@@ -15,6 +15,8 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "includes/stream_serializer.h"
+#include "utilities/cpp_tests_utilities.h"
+#include "utilities/variable_utils.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "mapping_application_variables.h"
@@ -32,6 +34,8 @@ typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointer
 typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
 typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
 
+namespace {
+
 void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
 {
     const int rank = rModelPart.GetCommunicator().MyPID();
@@ -45,6 +49,8 @@ void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
                                              i*0.2+rank*3.48*size,
                                              i*0.3*rank*6.13*size);
 }
+
+} //empty namespace
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMappingApplicationSerialTestSuite)
 {
@@ -66,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMapp
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingApplicationSerialTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeLocalBoundingBox, KratosMappingApplicationSerialTestSuite)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("Generated");
@@ -77,6 +83,29 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingAppli
     model_part.CreateNewNode(4, 12.6, 5.3, -8.3);
 
     const auto bbox = MapperUtilities::ComputeLocalBoundingBox(model_part);
+
+    // std::cout << MapperUtilities::BoundingBoxStringStream(bbox) << std::endl;
+
+    KRATOS_CHECK_EQUAL(bbox.size(), 6);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[0], 12.6);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[1], -9.2);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[2], 25.3);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[3], -17.13);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[4], 16.4);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[5], -8.3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox, KratosMappingApplicationSerialTestSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+
+    model_part.CreateNewNode(1, 0.2, 5.3, -8.3);
+    model_part.CreateNewNode(2, 8.2, 25.3, 16.4);
+    model_part.CreateNewNode(3, -9.2, -17.13, 1.5);
+    model_part.CreateNewNode(4, 12.6, 5.3, -8.3);
+
+    const auto bbox = MapperUtilities::ComputeGlobalBoundingBox(model_part);
 
     // std::cout << MapperUtilities::BoundingBoxStringStream(bbox) << std::endl;
 
@@ -127,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappi
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointIsInsideBoundingBox, KratosMappingApplicationSerialTestSuite)
 {
-    const std::vector<double> bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
+    const MapperUtilities::BoundingBoxType bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
     // xmax, xmin,  ymax, ymin,  zmax, zmin
 
     const Point p_out_x(10.6, 1.0, 3.8);
@@ -361,7 +390,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
         KRATOS_CHECK_DOUBLE_EQUAL(coords_to_check[i], coords_exp[i]);
 
     // Test if the "Create" function returns the correct object
-    KRATOS_CHECK_EQUAL(typeid(*p_ref_interface_info), typeid(*interface_info_container[0][0]));
+    const auto& r_arg_1 = *p_ref_interface_info;
+    const auto& r_arg_2 = *interface_info_container[0][0];
+    KRATOS_CHECK_EQUAL(typeid(r_arg_1), typeid(r_arg_2));
 
     /////
     // now we "update" the Interface and then check again
@@ -446,47 +477,41 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     node_3->SetValue(INTERFACE_EQUATION_ID, expected_id_found_3);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_1_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_1);
-    const double dist_2_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_2);
-    const double dist_3_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_3);
+    const double dist_1_1 = coords_1.Distance(*interface_node_1);
 
-    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1, dist_1_1);
-    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_2, dist_2_1);
-    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_3, dist_3_1);
+    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1);
+    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_2);
+    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_3);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
-    int found_id;
+    std::vector<int> found_id(1);
     p_nearest_neighbor_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_1);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_1);
     double neighbor_dist;
     p_nearest_neighbor_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
 
-    const double dist_1_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_1);
-    const double dist_2_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_2);
-    const double dist_3_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_3);
+    const double dist_2_2 = coords_2.Distance(*interface_node_2);
 
-    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_1, dist_1_2);
-    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2, dist_2_2);
-    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_3, dist_3_2);
+    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_1);
+    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2);
+    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_3);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     p_nearest_neighbor_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_2);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_2);
     p_nearest_neighbor_info_2->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
 
-    const double dist_1_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_1);
-    const double dist_2_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_2);
-    const double dist_3_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_3);
+    const double dist_3_3 = coords_3.Distance(*interface_node_3);
 
-    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_1, dist_1_3);
-    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_2, dist_2_3);
-    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_3, dist_3_3);
+    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_1);
+    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_2);
+    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_3);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     p_nearest_neighbor_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_3);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_3);
     p_nearest_neighbor_info_3->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
 
@@ -534,11 +559,11 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     const auto& r_info_3 = interface_info_container_new[0][0];
 
     r_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_1);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_1);
     r_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_2);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_2);
     r_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_3);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_3);
 
     r_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
@@ -548,205 +573,124 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
 
     // Test if the correct object type was created
-    KRATOS_CHECK_EQUAL(typeid(*r_info_1), typeid(*p_ref_nearest_neighbor_info));
-}
-
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplicationSerialTestSuite)
-{
-
-    typedef std::vector<std::vector<char>> BufferTypeChar;
-
-    const int comm_rank = 1; // Whatever is on this rank is not being serialized, since no sending is required
-    const int comm_size = 4;
-
-    MapperInterfaceInfoPointerVectorType interface_info_container(comm_size);
-
-    MapperInterfaceInfoUniquePointerType p_ref_interface_info(Kratos::make_unique<NearestNeighborInterfaceInfo>());
-
-    std::vector<int> send_sizes(comm_size); // recv_sizes are only needed for data-exchange in MPI
-    BufferTypeChar send_buffer(comm_size);
-    BufferTypeChar recv_buffer(comm_size);
-
-    // Create the MapperInterfaceInfos
-    // A "NearestNeighborInterfaceInfo" is being used since "MapperInterfaceInfo" is a pure virtual class
-
-    Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-    Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-    Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-    Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
-
-    Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
-
-    Model current_model;
-    ModelPart& model_part = current_model.CreateModelPart("Generated");
-
-    Parameters mesher_parameters(R"(
-    {
-        "number_of_divisions" : 3,
-        "element_name"        : "Element2D3N",
-        "create_skin_sub_model_part": false
-    }  )");
-
-    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
-
-    // const SizeType num_nodes = model_part.NumberOfNodes();
-    // InterfaceObjectConfigure::ResultContainerType interface_objs(num_nodes);
-    // std::cout << "    NUmNODES: " << num_nodes << std::endl;
-
-    // const auto nodes_begin = model_part.NodesBegin();
-    // for (IndexType i = 0; i<num_nodes; ++i)
-    // {
-    //     (nodes_begin+i)->SetValue(INTERFACE_EQUATION_ID, (nodes_begin+i)->Id());
-    //     std::cout << " ID: " << (nodes_begin+i)->Id() << std::endl;
-    //     interface_objs[i] = Kratos::make_shared<InterfaceNode>(*(nodes_begin+i));
-    // }
-        // #pragma omp parallel for
-        // for (int i = 0; i< static_cast<int>(num_nodes); ++i)
-        // {
-        //     auto it_node = nodes_begin + i;
-        //     (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceNode>(*(it_node));
-        // }
-
-    // for
-
-
-
-
-
-    // num_nodes = 10;
-    // std::vector<Point> points(10);
-
-    // Point coords_1(1.0, 2.45, 33.8);
-    // Point coords_2(10.0, 20.45, 100.0);
-    // Point coords_3(2.0, 2.45, -2.38);
-
-    // std::size_t source_local_sys_idx_1 = 123;
-    // std::size_t source_local_sys_idx_2 = 1235214;
-    // std::size_t source_local_sys_idx_3 = 8;
-
-    // MapperInterfaceInfoPointerType p_nearest_neighbor_info_1(
-    //     Kratos::make_shared<NearestNeighborInterfaceInfo>(coords_1, source_local_sys_idx_1, 0));
-    // MapperInterfaceInfoPointerType p_nearest_neighbor_info_2(
-    //     Kratos::make_shared<NearestNeighborInterfaceInfo>(coords_2, source_local_sys_idx_2, 0));
-    // MapperInterfaceInfoPointerType p_nearest_neighbor_info_3(
-    //     Kratos::make_shared<NearestNeighborInterfaceInfo>(coords_3, source_local_sys_idx_3, 0));
-
-    // // Auxiliary objects to fill the NearestNeighborInterfaceInfos with values that can be checked afterwards
-    // auto node_1(Kratos::make_shared<Node<3>>(1, 1.0, 2.5, 30.0));
-    // auto node_2(Kratos::make_shared<Node<3>>(3, 10.5, 20.0, 96.8));
-    // auto node_3(Kratos::make_shared<Node<3>>(15, 2.3, 1.9, -2.5));
-
-    // InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1));
-    // InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2));
-    // InterfaceObject::Pointer interface_node_3(Kratos::make_shared<InterfaceNode>(node_3));
-
-    // const int expected_id_found_1 = 108;
-    // const int expected_id_found_2 = 18;
-    // const int expected_id_found_3 = 896;
-
-    // node_1->SetValue(INTERFACE_EQUATION_ID, expected_id_found_1);
-    // node_2->SetValue(INTERFACE_EQUATION_ID, expected_id_found_2);
-    // node_3->SetValue(INTERFACE_EQUATION_ID, expected_id_found_3);
-
-    // // We compute the real distance bcs this would also be computed by the search
-    // const double dist_1_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_1);
-    // const double dist_2_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_2);
-    // const double dist_3_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_3);
-
-    // p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1, dist_1_1);
-    // p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_2, dist_2_1);
-    // p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_3, dist_3_1);
-
-    // // Now some the checks are performed to make sure the objects are correctly initialized
-    // int found_id;
-    // p_nearest_neighbor_info_1->GetValue(found_id);
-    // KRATOS_CHECK_EQUAL(found_id, expected_id_found_1);
-    // double neighbor_dist;
-    // p_nearest_neighbor_info_1->GetValue(neighbor_dist);
-    // KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
-
-    // const double dist_1_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_1);
-    // const double dist_2_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_2);
-    // const double dist_3_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_3);
-
-    // p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_1, dist_1_2);
-    // p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2, dist_2_2);
-    // p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_3, dist_3_2);
-
-    // // Now some the checks are performed to make sure the objects are correctly initialized
-    // p_nearest_neighbor_info_2->GetValue(found_id);
-    // KRATOS_CHECK_EQUAL(found_id, expected_id_found_2);
-    // p_nearest_neighbor_info_2->GetValue(neighbor_dist);
-    // KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
-
-    // const double dist_1_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_1);
-    // const double dist_2_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_2);
-    // const double dist_3_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_3);
-
-    // p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_1, dist_1_3);
-    // p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_2, dist_2_3);
-    // p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_3, dist_3_3);
-
-    // // Now some the checks are performed to make sure the objects are correctly initialized
-    // p_nearest_neighbor_info_3->GetValue(found_id);
-    // KRATOS_CHECK_EQUAL(found_id, expected_id_found_3);
-    // p_nearest_neighbor_info_3->GetValue(neighbor_dist);
-    // KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
-
-
-
-
-
-
-
-
-
-    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
-
-
-    MapperUtilities::FillBufferAfterLocalSearch(interface_info_container,
-                                                p_ref_interface_info,
-                                                comm_rank,
-                                                send_buffer,
-                                                send_sizes);
-
-    MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(recv_buffer,
-                                                               p_ref_interface_info,
-                                                               comm_rank,
-                                                               interface_info_container);
-
-    // Check the MapperInterfaceInfos
-
+    const auto& r_arg_1 = *r_info_1;
+    const auto& r_arg_2 = *p_ref_nearest_neighbor_info;
+    KRATOS_CHECK_EQUAL(typeid(r_arg_1), typeid(r_arg_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, KratosMappingApplicationSerialTestSuite)
 {
-    Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-    Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-    Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-    Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
-
-    Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
-
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("Generated");
+    CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
 
-    Parameters mesher_parameters(R"(
-    {
-        "number_of_divisions" : 3,
-        "element_name"        : "Element2D3N",
-        "create_skin_sub_model_part": false
-    }  )");
-
-    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
 
     std::vector<Kratos::unique_ptr<MapperLocalSystem>> mapper_local_systems;
 
-    MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestNeighborLocalSystem>(
+    MapperUtilities::CreateMapperLocalSystemsFromNodes(
+        NearestNeighborLocalSystem(nullptr),
         model_part.GetCommunicator(),
         mapper_local_systems);
 
     KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), mapper_local_systems.size());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_EraseNodalVariable, KratosMappingApplicationSerialTestSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+    CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
+
+    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.Has(DISPLACEMENT_X));
+        r_node[DISPLACEMENT_X] = 15.3;
+        KRATOS_CHECK(r_node.Has(DISPLACEMENT_X));
+    }
+
+    MapperUtilities::EraseNodalVariable(model_part, DISPLACEMENT_X);
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.Has(DISPLACEMENT_X));
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SaveCurrentConfiguration, KratosMappingApplicationSerialTestSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+    CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
+
+    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
+    }
+
+    MapperUtilities::SaveCurrentConfiguration(model_part);
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), r_node[CURRENT_COORDINATES][0]);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), r_node[CURRENT_COORDINATES][1]);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), r_node[CURRENT_COORDINATES][2]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_RestoreCurrentConfiguration, KratosMappingApplicationSerialTestSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+    CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
+
+    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::RestoreCurrentConfiguration(model_part), "Nodes do not have CURRENT_COORDINATES for restoring the current configuration!");
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
+        r_node.X() += 0.1;
+        r_node.Y() -= 0.125;
+        r_node.Z() += 0.33;
+    }
+
+    MapperUtilities::SaveCurrentConfiguration(model_part);
+
+    // X = X0
+    VariableUtils().UpdateCurrentToInitialConfiguration(model_part.Nodes());
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), r_node.X0());
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), r_node.Y0());
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), r_node.Z0());
+    }
+
+    MapperUtilities::RestoreCurrentConfiguration(model_part);
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), (r_node.X0()+0.1));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), (r_node.Y0()-0.125));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), (r_node.Z0()+0.33));
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointsAreCollinear, KratosMappingApplicationSerialTestSuite)
+{
+    Point p1(0,0,0);
+    Point p2(1,0,0);
+    Point p3(2,0,0);
+    Point p4(2,1,0);
+
+    KRATOS_CHECK(MapperUtilities::PointsAreCollinear(p1,p2,p3));
+    KRATOS_CHECK(MapperUtilities::PointsAreCollinear(p2,p3,p1));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p1,p2,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p1,p3,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
 }
 
 }  // namespace Testing

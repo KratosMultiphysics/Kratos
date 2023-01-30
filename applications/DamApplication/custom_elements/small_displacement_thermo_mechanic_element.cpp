@@ -48,20 +48,21 @@ Element::Pointer SmallDisplacementThermoMechanicElement::Create( IndexType NewId
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     //create and initialize element variables:
     ElementDataType Variables;
-    this->InitializeElementData(Variables,rCurrentProcessInfo);
+    this->InitializeElementData(Variables, rCurrentProcessInfo);
 
     //create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
@@ -78,26 +79,27 @@ void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(Proces
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementThermoMechanicElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     this->InitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     //create and initialize element variables:
     ElementDataType Variables;
-    this->InitializeElementData(Variables,rCurrentProcessInfo);
+    this->InitializeElementData(Variables, rCurrentProcessInfo);
 
     //create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Extrapolation variables
     const GeometryType& Geom = this->GetGeometry();
@@ -149,7 +151,7 @@ void SmallDisplacementThermoMechanicElement::SaveGPStress(Matrix& rStressContain
 
 void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& Dim, const unsigned int& VoigtSize)
 {
-    GeometryType& rGeom = this->GetGeometry();
+    auto& rGeom = this->GetGeometry();
     //const unsigned int& Dim  = rGeom.WorkingSpaceDimension();
     const unsigned int& NumNodes = rGeom.size();
     const double& Area = rGeom.Area(); // In 3D this is Volume
@@ -251,33 +253,9 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    const unsigned int& integration_points_number = mConstitutiveLawVector.size();
-
-    if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number );
-
-    if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == THERMAL_STRESS_TENSOR || rVariable == MECHANICAL_STRESS_TENSOR )
-    {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == THERMAL_STRAIN_TENSOR )
-    {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-        for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
-        {
-            rValues[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
-        }
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                          std::vector<Vector>& rOutput,
+                                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -309,6 +287,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
 	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	  ConstitutiveLawOptions.Set(ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY);
 	}
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -392,7 +371,9 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
 
 //----------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                                                                          std::vector< Matrix >& rOutput,
+                                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

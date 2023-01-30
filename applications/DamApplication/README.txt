@@ -8,7 +8,6 @@ Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 
 -DMETIS_APPLICATION=ON								                                        \
 -DMETIS_INCLUDE_DIR="/usr/include/"                                                         \
--DUSE_METIS_5=ON                                                                            \
 -DPARMETIS_ROOT_DIR="/usr/lib/"                                                   			\
 -DTRILINOS_APPLICATION=ON							                                        \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu/"                                         \
@@ -16,7 +15,7 @@ Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                                                       \
 -DCONVECTION_DIFFUSION_APPLICATION=ON 						                              \
 -DEXTERNAL_SOLVERS_APPLICATION=ON						                                    \
--DSOLID_MECHANICS_APPLICATION=ON   					                                    \
+-DSTRUCTURAL_MECHANICS_APPLICATION=ON   					                                    \
 -DPOROMECHANICS_APPLICATION=ON \
 -DDAM_APPLICATION=ON \
 -DUSE_DAM_MPI=ON \

@@ -416,7 +416,7 @@ private:
                 Element::Pointer pElement = i_entity->GetEntityType().Create(i_elem->Id(), i_elem->GetGeometry(), pProperties);
 
                 //set origin element as pointer
-                pElement->SetValue(MASTER_ELEMENT,*i_elem.base());
+                pElement->SetValue(MASTER_ELEMENT,Element::WeakPointer(*i_elem.base()));
 
                 rDestinationModelPart.Elements().push_back(pElement);
               }
@@ -438,7 +438,7 @@ private:
                 Condition::Pointer pCondition = i_entity->GetEntityType().Create(i_cond->Id(), i_cond->GetGeometry(), pProperties);
 
                 //set mechanical variables to contact conditions:
-                pCondition->Data() = i_cond->Data();
+                pCondition->GetData() = i_cond->GetData();
 
                 rDestinationModelPart.Conditions().push_back(pCondition);
               }

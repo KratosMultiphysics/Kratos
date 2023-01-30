@@ -1,14 +1,11 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-import restart_utility
-import save_restart_process as save_rest_proc
+from KratosMultiphysics import restart_utility
+from KratosMultiphysics import save_restart_process as save_rest_proc
 
 import os
-import sys
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -18,6 +15,7 @@ def ReadModelPart(file_path, current_model):
     model_part = current_model.CreateModelPart(model_part_name)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
     model_part_io = KratosMultiphysics.ModelPartIO(file_path)
     model_part_io.ReadModelPart(model_part)
 
@@ -147,7 +145,7 @@ class TestRestart(KratosUnittest.TestCase):
 
         temporary_model = KratosMultiphysics.Model() #this lives only until the end of this function
 
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"), temporary_model)
+        model_part = ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), temporary_model)
 
         serializer_save = KratosMultiphysics.FileSerializer(file_name, serializer_flag)
         serializer_save.Save(model_part.Name, model_part)
@@ -175,7 +173,7 @@ class TestRestart(KratosUnittest.TestCase):
         #creating a Model which will be destroyed at the end of the save function
         temporary_model = KratosMultiphysics.Model()
 
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"), temporary_model)
+        model_part = ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), temporary_model)
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0 # saving is only done if time > 0.0
 
@@ -246,16 +244,18 @@ class TestRestart(KratosUnittest.TestCase):
 
     def test_save_restart_process(self):
         model = KratosMultiphysics.Model()
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"), model)
+        model_part = ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), model)
 
         # Here "step" is used as control type, since "time" (=> default) is covered in the tests above
         save_restart_process_params = KratosMultiphysics.Parameters("""{
             "Parameters" : {
                 "model_part_name"        : "MainRestart",
                 "restart_save_frequency" : 2,
-                "restart_control_type"   : "step"
+                "restart_control_type"   : "step",
+                "max_files_to_keep": 20
             }
         }""")
+        number_of_restart_files                         = 20
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
         model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
@@ -276,11 +276,11 @@ class TestRestart(KratosUnittest.TestCase):
 
         # Checking if the files exist
         base_file_name = os.path.join(base_path, "MainRestart_")
-        for i in range(2,50,2):
+        for i in range(50-number_of_restart_files*2,50,2):
             self.assertTrue(os.path.isfile(base_file_name + str(i) + ".rest"))
 
         # Check number of restart-files
-        expected_num_files = 24
+        expected_num_files = number_of_restart_files
         num_files = len([name for name in os.listdir(base_path) if IsRestartFile(os.path.join(base_path, name))])
         self.assertEqual(expected_num_files, num_files)
 

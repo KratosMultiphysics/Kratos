@@ -16,16 +16,17 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "custom_elements/small_displacement.h"
 #include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
+
+// Application includes
+#include "custom_elements/small_displacement.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
 SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGeometry )
-        : BaseSolidElement( NewId, pGeometry )
+    : BaseSolidElement( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -44,7 +45,7 @@ SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGe
 
 Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<SmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<SmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -52,7 +53,7 @@ Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType cons
 
 Element::Pointer SmallDisplacement::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<SmallDisplacement>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<SmallDisplacement>( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -72,7 +73,7 @@ Element::Pointer SmallDisplacement::Clone (
 {
     KRATOS_TRY
 
-    SmallDisplacement::Pointer p_new_elem = Kratos::make_shared<SmallDisplacement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    SmallDisplacement::Pointer p_new_elem = Kratos::make_intrusive<SmallDisplacement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -112,6 +113,7 @@ void SmallDisplacement::CalculateAll(
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    const bool is_rotated = IsElementRotated();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -131,11 +133,11 @@ void SmallDisplacement::CalculateAll(
         if ( rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize( mat_size, false );
 
-        rRightHandSideVector = ZeroVector( mat_size ); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector( mat_size ); //resetting RHS
     }
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
 
     ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
 
@@ -165,7 +167,7 @@ void SmallDisplacement::CalculateAll(
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
         // Compute material reponse
-        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), is_rotated);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
@@ -197,7 +199,7 @@ void SmallDisplacement::CalculateKinematicVariables(
 {
     const auto& r_geometry = GetGeometry();
 
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints(rIntegrationMethod);
     // Shape functions
     rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
 
@@ -210,7 +212,8 @@ void SmallDisplacement::CalculateKinematicVariables(
 
     // Compute equivalent F
     GetValuesVector(rThisKinematicVariables.Displacements);
-    Vector strain_vector = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
+    Vector strain_vector(mConstitutiveLawVector[0]->GetStrainSize());
+    noalias(strain_vector) = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
     ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
@@ -251,25 +254,6 @@ void SmallDisplacement::SetConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacement::CalculateConstitutiveVariables(
-    KinematicVariables& rThisKinematicVariables,
-    ConstitutiveVariables& rThisConstitutiveVariables,
-    ConstitutiveLaw::Parameters& rValues,
-    const IndexType PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    )
-{
-    // Set the constitutive variables
-    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
-
-    // Actually do the computations in the ConstitutiveLaw
-    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SmallDisplacement::CalculateB(
     Matrix& rB,
     const Matrix& rDN_DX,
@@ -279,31 +263,7 @@ void SmallDisplacement::CalculateB(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    rB.clear();
-
-    if(dimension == 2) {
-        for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB( 0, i*2     ) = rDN_DX( i, 0 );
-            rB( 1, i*2 + 1 ) = rDN_DX( i, 1 );
-            rB( 2, i*2     ) = rDN_DX( i, 1 );
-            rB( 2, i*2 + 1 ) = rDN_DX( i, 0 );
-        }
-    } else if(dimension == 3) {
-        for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB( 0, i*3     ) = rDN_DX( i, 0 );
-            rB( 1, i*3 + 1 ) = rDN_DX( i, 1 );
-            rB( 2, i*3 + 2 ) = rDN_DX( i, 2 );
-            rB( 3, i*3     ) = rDN_DX( i, 1 );
-            rB( 3, i*3 + 1 ) = rDN_DX( i, 0 );
-            rB( 4, i*3 + 1 ) = rDN_DX( i, 2 );
-            rB( 4, i*3 + 2 ) = rDN_DX( i, 1 );
-            rB( 5, i*3     ) = rDN_DX( i, 2 );
-            rB( 5, i*3 + 2 ) = rDN_DX( i, 0 );
-        }
-    }
+    StructuralMechanicsElementUtilities::CalculateB(*this, rDN_DX, rB);
 
     KRATOS_CATCH( "" )
 }
@@ -316,38 +276,7 @@ void SmallDisplacement::ComputeEquivalentF(
     const Vector& rStrainTensor
     ) const
 {
-    const SizeType dim = GetGeometry().WorkingSpaceDimension();
-
-    if(dim == 2) {
-        rF(0,0) = 1.0+rStrainTensor(0);
-        rF(0,1) = 0.5*rStrainTensor(2);
-        rF(1,0) = 0.5*rStrainTensor(2);
-        rF(1,1) = 1.0+rStrainTensor(1);
-    } else {
-        rF(0,0) = 1.0+rStrainTensor(0);
-        rF(0,1) = 0.5*rStrainTensor(3);
-        rF(0,2) = 0.5*rStrainTensor(5);
-        rF(1,0) = 0.5*rStrainTensor(3);
-        rF(1,1) = 1.0+rStrainTensor(1);
-        rF(1,2) = 0.5*rStrainTensor(4);
-        rF(2,0) = 0.5*rStrainTensor(5);
-        rF(2,1) = 0.5*rStrainTensor(4);
-        rF(2,2) = 1.0+rStrainTensor(2);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int  SmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-
-    return ier;
-
-    KRATOS_CATCH( "" );
+    StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rStrainTensor, rF);
 }
 
 /***********************************************************************************/

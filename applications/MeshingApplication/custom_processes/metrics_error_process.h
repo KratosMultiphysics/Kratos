@@ -67,7 +67,7 @@ public:
     typedef Node <3>                                                                NodeType;
 
     /// Definition of the iterators
-    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    typedef GlobalPointersVector< Element >::iterator                         WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
 
@@ -119,6 +119,11 @@ public:
      * @brief We initialize the Metrics of the MMG sol using the Hessian Metric matrix approach
      */
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access

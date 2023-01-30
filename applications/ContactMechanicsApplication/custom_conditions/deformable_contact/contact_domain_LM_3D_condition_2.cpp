@@ -65,7 +65,7 @@ namespace Kratos
 
   Condition::Pointer ContactDomainLM3DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Kratos::make_shared<ContactDomainLM3DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+    return Kratos::make_intrusive<ContactDomainLM3DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
   }
 
 
@@ -2146,7 +2146,7 @@ namespace Kratos
     rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false); //friction needs an special treatment --> correct linearization is needed.
 
     //Stick contact contribution:
-    if(rVariables.Contact.Options.Is(NOT_SLIP))
+    if(rVariables.Contact.Options.IsNot(SLIP))
       {
 
 	  //std::cout<<" + stick ";

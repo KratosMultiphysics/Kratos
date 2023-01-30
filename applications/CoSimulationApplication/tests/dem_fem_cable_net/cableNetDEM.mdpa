@@ -1,0 +1,46 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes // GUI group identifier: particle celemid SphericPartDEMElement3D
+1 1.5 1.9257095 0.4168695
+2 1.575 1.4214195 0.4168695
+End Nodes
+
+Begin Elements SphericParticle3D   //  GUI group identifier: particle
+1 1 2
+2 1 1
+End Elements
+
+Begin NodalData RADIUS  // GUI group identifier: particle Elementid SphericPartDEMElement3D
+1 0 0.21035998521372676
+2 0 0.05
+End NodalData
+
+Begin SubModelPart 1 // GUI conditionid DEM-VelocityIC group identifier: STONE
+  Begin SubModelPartData
+  INITIAL_VELOCITY_X_VALUE 0.0
+  INITIAL_VELOCITY_Y_VALUE -5.74029
+  INITIAL_VELOCITY_Z_VALUE -5.74029
+  INITIAL_ANGULAR_VELOCITY_X_VALUE 0.0
+  INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
+  INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  1
+  2
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  1
+  2
+  End SubModelPartElements
+End SubModelPart
+
+Begin Table 0 TIME VELOCITY
+0.0  0.0
+1.0  0.0
+End Table
+

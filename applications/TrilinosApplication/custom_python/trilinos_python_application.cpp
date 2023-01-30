@@ -4,8 +4,8 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -13,6 +13,7 @@
 // System includes
 
 #if defined(KRATOS_PYTHON)
+
 // External includes
 #include <pybind11/pybind11.h>
 
@@ -26,14 +27,12 @@
 #include "custom_python/add_trilinos_processes_to_python.h"
 #include "custom_python/add_trilinos_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_zoltan_processes_to_python.h"
+#include "custom_python/add_trilinos_convergence_accelerators_to_python.h"
 
 // Project includes
 #include "trilinos_application.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -53,15 +52,12 @@ PYBIND11_MODULE(KratosTrilinosApplication,m)
     AddProcesses(m);
     AddStrategies(m);
     AddCustomUtilitiesToPython(m);
-    AddZoltanProcessesToPython(m);
+    AddTrilinosConvergenceAcceleratorsToPython(m);
 
     //registering variables in python
 
 }
 
-
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

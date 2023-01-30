@@ -26,9 +26,7 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "block_builder"                      : true,
         "clear_storage"                      : true,
-        "line_search"                        : false,
         "compute_reactions"                  : false,
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.001,
@@ -38,9 +36,7 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
                 "solver_type": "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Structure","Tying_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -49,8 +45,7 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [null,0.0,0.0]
             }
@@ -60,8 +55,7 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0]
             }
@@ -71,8 +65,7 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
-                "model_part_name" : "IMPOSE_DISP_Auto1",
+                "model_part_name" : "Structure.IMPOSE_DISP_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,-0.01,null]
             }
@@ -101,7 +94,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "mesh_tying_test/simple_patch_test_2D_results.json",
-                "model_part_name"      : "Tying_Part",
+                "model_part_name"      : "Structure.Tying_Part",
                 "time_frequency"       : 1.0
             }
         }
@@ -116,7 +109,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "mesh_tying_test/simple_patch_test_2D_results.json",
-            "model_part_name"      : "Tying_Part",
+            "model_part_name"      : "Structure.Tying_Part",
             "time_frequency"       : 1.0
         }
     }
@@ -128,7 +121,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

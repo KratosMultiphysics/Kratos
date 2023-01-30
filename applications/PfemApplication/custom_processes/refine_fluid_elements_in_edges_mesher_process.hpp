@@ -44,7 +44,7 @@ class RefineFluidElementsInEdgesMesherProcess
 
   typedef RefineElementsInEdgesMesherProcess    BaseType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{

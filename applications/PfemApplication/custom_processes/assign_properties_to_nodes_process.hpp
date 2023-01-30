@@ -42,7 +42,7 @@ public:
     typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
     typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
 
-    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
     /// Pointer definition of AssignPropertiesToNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignPropertiesToNodesProcess);
 

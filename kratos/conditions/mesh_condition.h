@@ -73,7 +73,7 @@ public:
     typedef BaseType::NodesArrayType NodesArrayType;
 
     /// Counted pointer of MeshCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MeshCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MeshCondition);
 
     ///@}
 
@@ -186,7 +186,7 @@ public:
     void AddExplicitContribution(
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<double >& rDestinationVariable,
+        const Variable<double >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -201,7 +201,7 @@ public:
     void AddExplicitContribution(
         const VectorType& rRHS,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -216,7 +216,7 @@ public:
     void AddExplicitContribution(
         const MatrixType& rLHSMatrix,
         const Variable<MatrixType>& rLHSVariable,
-        Variable<Matrix>& rDestinationVariable,
+        const Variable<Matrix>& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -224,6 +224,13 @@ public:
     ///@name Input and output
     ///@{
 
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+        
     /// Turn back information as a string.
     std::string Info() const override
     {

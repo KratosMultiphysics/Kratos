@@ -4,8 +4,8 @@
 
 // Project includes
 //#include "DEM_application.h"
-#include "../custom_constitutive/DEM_D_JKR_cohesive_law.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -13,20 +13,19 @@ namespace Kratos {
 
     DEM_D_JKR_Cohesive_Law::~DEM_D_JKR_Cohesive_Law() {}
 
-    void DEM_D_JKR_Cohesive_Law::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_JKR_Cohesive_Law::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_JKR_Cohesive_Law(*this));
         return p_clone;
     }
 
-    void DEM_D_JKR_Cohesive_Law::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_JKR_Cohesive_Law to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_JKR_Cohesive_Law::CloneUnique() {
+        return Kratos::make_unique<DEM_D_JKR_Cohesive_Law>();
     }
 
     double DEM_D_JKR_Cohesive_Law::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
-        const double equiv_cohesion = 0.5 * (element1->GetParticleCohesion() + element2->GetParticleCohesion());
+
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double equiv_cohesion = properties_of_this_contact[PARTICLE_COHESION];
         const double my_young       = element1->GetYoung();
         const double other_young    = element2->GetYoung();
         const double my_poisson     = element1->GetPoisson();
@@ -42,11 +41,11 @@ namespace Kratos {
 
         return cohesive_force;
     }
-    
+
     double DEM_D_JKR_Cohesive_Law::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) {
 
-        const double cohesion         = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy
-        const double equiv_cohesion   = 0.5 * (cohesion + wall->GetProperties()[WALL_COHESION]);
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double equiv_cohesion   = properties_of_this_contact[PARTICLE_COHESION];
         const double my_young         = element->GetYoung();
         const double my_poisson       = element->GetPoisson();
         const double equiv_radius     = element->GetRadius(); // Equivalent Radius for RIGID WALLS

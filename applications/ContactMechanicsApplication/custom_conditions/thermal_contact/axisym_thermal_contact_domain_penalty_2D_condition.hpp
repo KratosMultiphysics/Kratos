@@ -68,7 +68,7 @@ public:
 
 
     /// Counted pointer of AxisymThermalContactDomainPenalty2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymThermalContactDomainPenalty2DCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymThermalContactDomainPenalty2DCondition);
     ///@}
     ///@name Life Cycle
     ///@{
@@ -127,7 +127,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     //std::string Info() const;
 
@@ -169,7 +169,7 @@ protected:
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(GeneralVariables& rVariables,
-			     ProcessInfo& rCurrentProcessInfo,
+			     const ProcessInfo& rCurrentProcessInfo,
 			     const unsigned int& rPointNumber) override;
 
     /**

@@ -10,40 +10,38 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED )
-#define  KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#ifndef KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
 
 ///@defgroup ShallowWaterApplication Kratos Shallow Water Application
 ///@brief Basic set of tools to solve the shallow water equations.
 /// The Shallow Water Application implements a basic set of tools to
 /// solve shallow water problems. This applications contains a basic FEM
-/// implementation of common thechniques using both explicit pfem2 and
-/// eulerian shemes.
+/// implementation of common techniques using eulerian schemes.
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
 
 // Shallow water includes
-#include "shallow_water_application_variables.h"
-#include "custom_elements/shallow_element.h"
-#include "custom_elements/primitive_var_element.hpp"
-#include "custom_elements/conserved_var_element.hpp"
-#include "custom_elements/euler_prim_var_element.hpp"
-#include "custom_elements/euler_cons_var_element.hpp"
-#include "custom_conditions/nothing_condition.hpp"
+#include "custom_elements/wave_element.h"
+#include "custom_elements/primitive_element.h"
+#include "custom_elements/crank_nicolson_wave_element.h"
+#include "custom_elements/boussinesq_element.h"
+#include "custom_elements/conservative_element.h"
+#include "custom_elements/conservative_element_rv.h"
+#include "custom_elements/conservative_element_fc.h"
+#include "custom_conditions/wave_condition.h"
+#include "custom_conditions/primitive_condition.h"
+#include "custom_conditions/boussinesq_condition.h"
+#include "custom_conditions/conservative_condition.h"
+#include "custom_modelers/mesh_moving_modeler.h"
 
 
 namespace Kratos
@@ -71,7 +69,7 @@ namespace Kratos
     /// Short class definition.
     /** Detail class definition.
     */
-    class KratosShallowWaterApplication : public KratosApplication
+    class KRATOS_API(SHALLOW_WATER_APPLICATION) KratosShallowWaterApplication : public KratosApplication
     {
     public:
         ///@name Type Definitions
@@ -102,8 +100,6 @@ namespace Kratos
         ///@{
 
         virtual void Register() override;
-
-
 
         ///@}
         ///@name Access
@@ -155,43 +151,6 @@ namespace Kratos
 
         ///@}
 
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-
-        ///@}
-
     private:
         ///@name Static Member Variables
         ///@{
@@ -200,20 +159,30 @@ namespace Kratos
         ///@}
         ///@name Member Variables
         ///@{
-        // Lagrangian elements
-        const ShallowElement mShallowElement2D3N;
-        const PrimitiveVarElement<3> mPrimitiveVarElement2D3N;
-        const PrimitiveVarElement<4> mPrimitiveVarElement2D4N;
-        const ConservedVarElement<3> mConservedVarElement2D3N;
-        const ConservedVarElement<4> mConservedVarElement2D4N;
-        // Eulerian elements
-        const EulerPrimVarElement<3> mEulerPrimVarElement2D3N;
-        const EulerPrimVarElement<4> mEulerPrimVarElement2D4N;
-        const EulerConsVarElement<3> mEulerConsVarElement2D3N;
-        const EulerConsVarElement<4> mEulerConsVarElement2D4N;
-        // Condition
-        const NothingCondition<2> mNothingCondition2D2N;
 
+        // Elements
+        const WaveElement<3> mWaveElement2D3N;
+        const WaveElement<6> mWaveElement2D6N;
+        const WaveElement<4> mWaveElement2D4N;
+        const WaveElement<8> mWaveElement2D8N;
+        const WaveElement<9> mWaveElement2D9N;
+        const WaveElement<3> mPrimitiveElement2D3N;
+        const WaveElement<4> mPrimitiveElement2D4N;
+        const CrankNicolsonWaveElement<3> mCrankNicolsonWaveElement2D3N;
+        const BoussinesqElement<3> mBoussinesqElement2D3N;
+        const BoussinesqElement<4> mBoussinesqElement2D4N;
+        const ConservativeElement<3> mConservativeElementGJ2D3N;
+        const ConservativeElementRV<3> mConservativeElementRV2D3N;
+        const ConservativeElementFC<3> mConservativeElementFC2D3N;
+        // Conditions
+        const WaveCondition<2> mWaveCondition2D2N;
+        const WaveCondition<3> mWaveCondition2D3N;
+        const PrimitiveCondition<2> mPrimitiveCondition2D2N;
+        const BoussinesqCondition<2> mBoussinesqCondition2D2N;
+        const ConservativeCondition<2> mConservativeCondition2D2N;
+
+        // Modelers
+        const MeshMovingModeler mMeshMovingModeler;
 
         ///@}
         ///@name Private Operators

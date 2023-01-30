@@ -1,0 +1,17 @@
+{
+    "response_settings": {
+        "response_type": "point_temperature",
+        "primal_settings": "ProjectParametersPrimal.json",
+        "adjoint_settings": "ProjectParametersAdjoint.json",
+        "transfer_response_parameters": true,
+        "custom_settings": {
+            "model_part_name": "HeatFlux2D_right"
+        },
+        "sensitivity_settings": {
+            "sensitivity_model_part_name": "Parts_solid",
+            "nodal_solution_step_sensitivity_variables": [ "SHAPE_SENSITIVITY" ],
+            "build_mode": "static",
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe": false
+        }
+    }
+}

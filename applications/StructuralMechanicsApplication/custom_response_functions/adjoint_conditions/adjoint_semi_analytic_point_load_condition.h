@@ -67,7 +67,7 @@ public:
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
     /// Counted pointer of AdjointSemiAnalyticPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AdjointSemiAnalyticPointLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AdjointSemiAnalyticPointLoadCondition );
 
     ///@}
     ///@name Life Cycle
@@ -98,7 +98,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
+        return Kratos::make_intrusive<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -106,25 +106,13 @@ public:
                               typename GeometryType::Pointer pGeometry,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
+        return Kratos::make_intrusive<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
             NewId, pGeometry, pProperties);
     }
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
-
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override;
-
-    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
-                                            Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
-
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access

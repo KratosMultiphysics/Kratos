@@ -91,7 +91,7 @@ public:
 
     typedef Quaternion<double> QuaternionType;
 
-    typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
 
     /*@} */
     /**@name Life Cycle
@@ -545,9 +545,6 @@ public:
         {
           //calculate elemental contribution
           pScheme->CalculateSystemContributions(*i_nelem.base(), LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
-
-          // clean local elemental memory
-          pScheme->CleanMemory(*i_nelem.base());
         }
 
 
@@ -628,9 +625,6 @@ public:
 	    {
 	      //calculate elemental contribution
 	      pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
-
-	      // clean local elemental memory
-	      pScheme->CleanMemory(*it);
 	    }
 
 	  LHS_Contribution.resize(0, 0, false);
@@ -641,9 +635,6 @@ public:
 	    {
 	      //calculate condition contribution
 	      pScheme->Condition_CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
-
-	      //clean local condition memory
-	      pScheme->CleanMemory(*it);
 
 	    }
 	}

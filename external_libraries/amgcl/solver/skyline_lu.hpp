@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -182,7 +182,8 @@ class skyline_lu {
             // x = invperm[y];
 
             for(int i = 0; i < n; ++i) {
-                rhs_type sum = rhs[perm[i]];
+                rhs_type sum;
+                sum = rhs[perm[i]];
                 for(int k = ptr[i], j = i - ptr[i+1] + k; k < ptr[i+1]; ++k, ++j)
                     sum -= L[k] * y[j];
 

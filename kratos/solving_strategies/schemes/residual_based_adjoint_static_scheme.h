@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ADJOINT_STATIC_SCHEME_H_INCLUDED)
@@ -73,7 +73,7 @@ public:
     {
         mpResponseFunction = pResponseFunction;
 
-        int num_threads = OpenMPUtils::GetNumThreads();
+        int num_threads = ParallelUtilities::GetNumThreads();
         mAdjointValues.resize(num_threads);
     }
 
@@ -94,40 +94,15 @@ public:
     {
         KRATOS_TRY;
 
-        #pragma omp parallel for
-        for (int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
-            for (auto& r_dof : (rModelPart.NodesBegin()+i)->GetDofs()) {
-                if (r_dof.IsFree()) {
-                    r_dof.GetSolutionStepValue() = 0.0;
+        block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+            for (auto& r_dof : rNode.GetDofs()) {
+                if (r_dof->IsFree()) {
+                    r_dof->GetSolutionStepValue() = 0.0;
                 }
             }
-        }
+        });
 
         BaseType::Initialize(rModelPart);
-
-        KRATOS_CATCH("");
-    }
-
-    void InitializeSolutionStep(ModelPart& rModelPart,
-                                SystemMatrixType& rA,
-                                SystemVectorType& rDx,
-                                SystemVectorType& rb) override
-    {
-        KRATOS_TRY;
-
-        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-        KRATOS_CATCH("");
-    }
-
-    void FinalizeSolutionStep(ModelPart& rModelPart,
-                              SystemMatrixType& rA,
-                              SystemVectorType& rDx,
-                              SystemVectorType& rb) override
-    {
-        KRATOS_TRY;
-
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
         KRATOS_CATCH("");
     }
@@ -147,86 +122,88 @@ public:
         KRATOS_CATCH("");
     }
 
-    void CalculateSystemContributions(Element::Pointer pCurrentElement,
+    void CalculateSystemContributions(Element& rCurrentElement,
                                       LocalSystemMatrixType& rLHS_Contribution,
                                       LocalSystemVectorType& rRHS_Contribution,
                                       Element::EquationIdVectorType& rEquationId,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         int thread_id = OpenMPUtils::ThisThread();
 
-        pCurrentElement->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+        const auto& r_const_elem_ref = rCurrentElement;
+
+        rCurrentElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
         mpResponseFunction->CalculateGradient(
-            *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
+        r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
-        pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
-                                    LocalSystemMatrixType& rLHS_Contribution,
-                                    Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLHSContribution(Element& rCurrentElement,
+                                  LocalSystemMatrixType& rLHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationId,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        pCurrentElement->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-        pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
-                                                LocalSystemMatrixType& rLHS_Contribution,
-                                                LocalSystemVectorType& rRHS_Contribution,
-                                                Condition::EquationIdVectorType& rEquationId,
-                                                ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(Condition& rCurrentCondition,
+                                      LocalSystemMatrixType& rLHS_Contribution,
+                                      LocalSystemVectorType& rRHS_Contribution,
+                                      Condition::EquationIdVectorType& rEquationId,
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         int thread_id = OpenMPUtils::ThisThread();
-
-        pCurrentCondition->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+        const auto& r_const_cond_ref = rCurrentCondition;
+        rCurrentCondition.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
         mpResponseFunction->CalculateGradient(
-            *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        pCurrentCondition->GetValuesVector(mAdjointValues[thread_id]);
+        r_const_cond_ref.GetValuesVector(mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
-        pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        r_const_cond_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
-                                              LocalSystemMatrixType& rLHS_Contribution,
-                                              Condition::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLHSContribution(Condition& rCurrentCondition,
+                                  LocalSystemMatrixType& rLHS_Contribution,
+                                  Condition::EquationIdVectorType& rEquationId,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        pCurrentCondition->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-        pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentCondition.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }

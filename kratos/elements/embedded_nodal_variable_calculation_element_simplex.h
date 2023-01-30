@@ -56,14 +56,14 @@ namespace Kratos
 /**
  */
 template< class TVarType >
-class EmbeddedNodalVariableCalculationElementSimplex : public Element
+class KRATOS_API(KRATOS_CORE) EmbeddedNodalVariableCalculationElementSimplex : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of EmbeddedNodalVariableCalculationElementSimplex
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedNodalVariableCalculationElementSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedNodalVariableCalculationElementSimplex);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -160,7 +160,7 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**
@@ -173,7 +173,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate the element's local Left Hand Side (LHS) contribution to the system for the current step.
@@ -183,7 +183,7 @@ public:
      */
     void CalculateLeftHandSide(
         MatrixType &rLeftHandSideMatrix,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate the element's local Reft Hand Side (RHS) contribution to the system for the current step.
@@ -193,7 +193,7 @@ public:
      */
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Checks the input and that all required Kratos variables have been registered.
@@ -204,7 +204,7 @@ public:
      * @return 0 if no errors were found.
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     /**
      * @brief Provides the global indices for each one of this element's local rows
@@ -214,7 +214,7 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Get the Dof List object
@@ -224,7 +224,7 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -340,8 +340,6 @@ private:
     ///@{
 
     const array_1d<double, 2> GetDistanceBasedShapeFunctionValues();
-
-    Variable<TVarType> GetUnknownVariable();
 
     ///@}
     ///@name Private  Access

@@ -53,7 +53,7 @@ struct WriteInfo
  * meta data. Reading and writing data sets is the responsibility of the derived
  * class.
  */
-class File
+class KRATOS_API(HDF5_APPLICATION) File
 {
 public:
     ///@name Type Definitions
@@ -97,6 +97,8 @@ public:
 
     bool HasAttribute(const std::string& rObjectPath, const std::string& rName) const;
 
+    void DeleteAttribute(const std::string& rObjectPath, const std::string& rName);
+
     std::vector<std::string> GetAttributeNames(const std::string& rObjectPath) const;
 
     void CreateGroup(const std::string& rPath);
@@ -104,6 +106,8 @@ public:
     std::vector<std::string> GetLinkNames(const std::string& rGroupPath) const;
 
     std::vector<std::string> GetGroupNames(const std::string& rGroupPath) const;
+
+    std::vector<std::string> GetDataSetNames(const std::string& rGroupPath) const;
 
     void AddPath(const std::string& rPath);
 
@@ -124,7 +128,7 @@ public:
     /**
      *  Performs collective write in MPI. The data is written blockwise according to
      *  processor rank.
-     * 
+     *
      * @param[out] rInfo Information about the written data set.
      */
     virtual void WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
@@ -134,14 +138,14 @@ public:
     virtual void WriteDataSet(const std::string& rPath, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo);
 
     virtual void WriteDataSet(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo);
-    
+
     virtual void WriteDataSet(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo);
 
     /// Independently write data set to the HDF5 file.
     /**
-     * Performs independent write in MPI. Must be called collectively. Throws 
+     * Performs independent write in MPI. Must be called collectively. Throws
      * if more than one process has non-empty data.
-     * 
+     *
      * @param[out] rInfo Information about the written data set.
      */
     virtual void WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
@@ -162,6 +166,12 @@ public:
     bool HasFloatDataType(const std::string& rPath) const;
 
     void Flush();
+
+    /// Terminate access to the HDF5 file.
+    /*
+     *  @throws If the underlying HDF5 call fails.
+     */
+    void Close();
 
     unsigned GetFileSize() const;
 
@@ -213,7 +223,7 @@ public:
                              Matrix<int>& rData,
                              unsigned StartIndex,
                              unsigned BlockSize);
-   
+
     virtual void ReadDataSet(const std::string& rPath,
                              Matrix<double>& rData,
                              unsigned StartIndex,
@@ -242,7 +252,7 @@ public:
                                        Matrix<int>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);
- 
+
     virtual void ReadDataSetIndependent(const std::string& rPath,
                                        Matrix<double>& rData,
                                        unsigned StartIndex,
@@ -300,12 +310,20 @@ bool IsPath(const std::string& rPath);
 /// Return vector of non-empty substrings separated by a delimiter.
 std::vector<std::string> Split(const std::string& rPath, char Delimiter);
 
-template <class TScalar>
-hid_t GetScalarDataType();
+hid_t GetScalarDataType(const Vector<int>&);
+hid_t GetScalarDataType(const Vector<double>&);
+hid_t GetScalarDataType(const Vector<array_1d<double, 3>>&);
+hid_t GetScalarDataType(const Matrix<int>&);
+hid_t GetScalarDataType(const Matrix<double>&);
+hid_t GetScalarDataType(int);
+hid_t GetScalarDataType(double);
 
-extern template hid_t GetScalarDataType<int>();
-extern template hid_t GetScalarDataType<double>();
-
+std::vector<hsize_t> GetDataDimensions(const Vector<int>& rData);
+std::vector<hsize_t> GetDataDimensions(const Vector<double>& rData);
+std::vector<hsize_t> GetDataDimensions(const Vector<array_1d<double, 3>>& rData);
+std::vector<hsize_t> GetDataDimensions(const Matrix<int>& rData);
+std::vector<hsize_t> GetDataDimensions(const Matrix<double>& rData);
+std::vector<hsize_t> GetDataDimensions(const File& rFile, const std::string& rPath);
 } // namespace Internals.
 
 ///@} addtogroup

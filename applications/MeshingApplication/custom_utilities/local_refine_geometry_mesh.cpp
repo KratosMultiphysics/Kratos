@@ -14,12 +14,13 @@
 //
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
 // Project includes
+#include "utilities/math_utils.h"
 #include "local_refine_geometry_mesh.hpp"
-#include <unordered_map>
 
 namespace Kratos
 {
@@ -39,9 +40,9 @@ namespace Kratos
         }
 
         compressed_matrix<int> Coord;                                              // The matrix that stores all the index of the geometry
-        boost::numeric::ublas::vector<int> List_New_Nodes;                         // The news nodes
-        boost::numeric::ublas::vector<array_1d<int, 2 > > Position_Node;           // Edges where are the news nodes
-        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
+        std::vector<int> List_New_Nodes;                         // The news nodes
+        std::vector<array_1d<int, 2 > > Position_Node;           // Edges where are the news nodes
+        std::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
 
         PointerVector< Element > New_Elements;
 	New_Elements.reserve(20);
@@ -128,11 +129,11 @@ namespace Kratos
         for(NodesArrayType::iterator i = it_begin; i!=it_end; i++)
         {
             int index_i = i->Id() - 1; // WARNING: MESH MUST BE IN ORDER
-            WeakPointerVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
 
             std::vector<unsigned int> aux(neighb_nodes.size());
             unsigned int active = 0;
-            for (WeakPointerVector< Node < 3 > >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
+            for (GlobalPointersVector< Node < 3 > >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
             {
                 int index_j = inode->Id() - 1;
                 if (index_j > index_i)
@@ -195,8 +196,8 @@ namespace Kratos
     void LocalRefineGeometryMesh::CreateListOfNewNodes(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord,
-            boost::numeric::ublas::vector<int> &List_New_Nodes,
-            boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node
+            std::vector<int> &List_New_Nodes,
+            std::vector<array_1d<int, 2 > >& Position_Node
     )
     {
         KRATOS_TRY;
@@ -228,7 +229,7 @@ namespace Kratos
         }
 
         // Setting edges -2 to the new id of the new node
-        Position_Node.resize(number_of_new_nodes, false);
+        Position_Node.resize(number_of_new_nodes);
         unsigned int index = 0;
         for (i1_t i1 = Coord.begin1(); i1 != Coord.end1(); ++i1)
         {
@@ -252,16 +253,16 @@ namespace Kratos
 
     void LocalRefineGeometryMesh::CalculateCoordinateAndInsertNewNodes(
             ModelPart& this_model_part,
-            const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
-            const boost::numeric::ublas::vector<int> &List_New_Nodes
+            const std::vector<array_1d<int, 2 > >& Position_Node,
+            const std::vector<int> &List_New_Nodes
     )
     {
 	KRATOS_TRY;
 
         array_1d<double, 3 > Coord_Node_1;
         array_1d<double, 3 > Coord_Node_2;
-        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(Position_Node.size(), false);
+        std::vector< array_1d<double, 3 > > Coordinate_New_Node;
+        Coordinate_New_Node.resize(Position_Node.size());
         unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
         Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
 
@@ -306,23 +307,18 @@ namespace Kratos
             pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());
             pnode->Z0() = 0.5 * (it_node1->Z0() + it_node2->Z0());
 
-//             KRATOS_WATCH(__LINE__)
+            for (auto iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++) {
+                auto& r_dof = **iii;
+                auto p_new_dof = pnode->pAddDof(r_dof);
 
-            for (auto iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-            {
-                Node < 3 > ::DofType& rDof = *iii;
-                Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-
-                if (it_node1->IsFixed(iii->GetVariable()) == true && it_node2->IsFixed(iii->GetVariable()) == true)
-                {
+                const auto& r_variable = (r_dof).GetVariable();
+                if (it_node1->IsFixed(r_variable) && it_node2->IsFixed(r_variable)) {
                     (p_new_dof)->FixDof();
-                }
-                else
-                {
+                } else {
                     (p_new_dof)->FreeDof();
                 }
             }
-//             KRATOS_WATCH(__LINE__)
+
             // Interpolating the data
             unsigned int buffer_size = pnode->GetBufferSize();
             for (unsigned int step = 0; step < buffer_size; step++)
@@ -337,7 +333,6 @@ namespace Kratos
                     new_step_data[j] = 0.5 * (step_data1[j] + step_data2[j]);
                 }
             }
-//             KRATOS_WATCH(__LINE__)
 
             aux_node_list[pnode->Id()] = pnode;
             //this_model_part.Nodes().push_back(pnode);
@@ -471,13 +466,13 @@ namespace Kratos
             const int& number_elem,
             const Element::Pointer father_elem,
             Element::Pointer child_elem,
-            ProcessInfo& rCurrentProcessInfo
+            const ProcessInfo& rCurrentProcessInfo
             )
     {
         // NOTE: Right now there is not an interpolation at all, it just copying the values
         std::vector<Vector> values;
-        father_elem->GetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
-        child_elem->SetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
     }
 
 
@@ -486,17 +481,18 @@ namespace Kratos
         for (ModelPart::SubModelPartIterator iSubModelPart = rModelPart.SubModelPartsBegin();
                 iSubModelPart != rModelPart.SubModelPartsEnd(); iSubModelPart++)
         {
+            bool added_nodes = false;
             for (auto iNode = rModelPart.Nodes().ptr_begin();
                     iNode != rModelPart.Nodes().ptr_end(); iNode++)
             {
-                WeakPointerVector< Node<3> > &rFatherNodes = (*iNode)->GetValue(FATHER_NODES);
+                GlobalPointersVector< Node<3> > &rFatherNodes = (*iNode)->GetValue(FATHER_NODES);
                 unsigned int ParentCount = rFatherNodes.size();
 
                 if (ParentCount > 0)
                 {
                     unsigned int ParentsInSubModelPart = 0;
 
-                    for ( WeakPointerVector< Node<3> >::iterator iParent = rFatherNodes.begin();
+                    for ( GlobalPointersVector< Node<3> >::iterator iParent = rFatherNodes.begin();
                             iParent != rFatherNodes.end(); iParent++)
                     {
                         unsigned int ParentId = iParent->Id();
@@ -505,9 +501,16 @@ namespace Kratos
                             ParentsInSubModelPart++;
                     }
 
-                    if ( ParentCount == ParentsInSubModelPart )
+                    if ( ParentCount == ParentsInSubModelPart ) {
                         iSubModelPart->AddNode( *iNode );
+                        added_nodes = true;
+                    }
                 }
+            }
+            if(added_nodes)
+            {
+                 ModelPart &rSubModelPart = *iSubModelPart;
+                 UpdateSubModelPartNodes(rSubModelPart);
             }
         }
     }

@@ -2,24 +2,23 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand, Daniel Diez
-//                   
+//
 //
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
-#include "includes/define.h"
 #include "containers/data_value_container.h"
 
 
@@ -30,7 +29,7 @@ namespace Kratos
 
     void DataValueContainer::Merge(
         const DataValueContainer& rOther,
-        Flags Options)
+        const Flags Options)
     {
         const bool overwrite_values = Options.Is(OVERWRITE_OLD_VALUES);
 
@@ -40,6 +39,7 @@ namespace Kratos
                 for (iterator j = mData.begin(); j != mData.end(); ++j) {
                     if (i->first == j->first) {
                         variable_already_exist = true;
+                        j->first->Delete(j->second);
                         j->second = i->first->Clone(i->second);
                     }
                 }
@@ -59,6 +59,41 @@ namespace Kratos
             }
         }
     }
+
+    void DataValueContainer::save(Serializer& rSerializer) const
+    {
+        KRATOS_TRY
+
+        std::size_t size = mData.size();
+        rSerializer.save("Size", size);
+        for (std::size_t i = 0; i < size; i++)
+        {
+            rSerializer.save("Variable Name", mData[i].first->Name());
+            mData[i].first->Save(rSerializer, mData[i].second);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void DataValueContainer::load(Serializer& rSerializer)
+    {
+        KRATOS_TRY
+
+        std::size_t size;
+        rSerializer.load("Size", size);
+        mData.resize(size);
+        std::string name;
+        for (std::size_t i = 0; i < size; i++)
+        {
+            rSerializer.load("Variable Name", name);
+            mData[i].first = KratosComponents<VariableData>::pGet(name);
+            mData[i].first->Allocate(&(mData[i].second));
+            mData[i].first->Load(rSerializer, mData[i].second);
+        }
+
+        KRATOS_CATCH("")
+    }
+
 
 }  // namespace Kratos.
 

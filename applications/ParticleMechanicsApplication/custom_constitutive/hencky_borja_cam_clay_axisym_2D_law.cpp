@@ -31,9 +31,9 @@ namespace Kratos
 HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw()
     : HenckyElasticPlasticAxisym2DLaw()
 {
-    mpHardeningLaw   = MPMHardeningLaw::Pointer( new CamClayHardeningLaw() );
-    mpYieldCriterion = MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule    = MPMFlowRule::Pointer( new BorjaCamClayPlasticFlowRule(mpYieldCriterion) );
+    mpHardeningLaw   = ParticleHardeningLaw::Pointer( new CamClayHardeningLaw() );
+    mpYieldCriterion = ParticleYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule    = ParticleFlowRule::Pointer( new BorjaCamClayPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw()
 HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  ParticleYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 
@@ -76,7 +76,7 @@ HenckyBorjaCamClayPlasticAxisym2DLaw::~HenckyBorjaCamClayPlasticAxisym2DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyBorjaCamClayPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyBorjaCamClayPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticAxisym2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

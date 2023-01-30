@@ -1,7 +1,5 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-import sys
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -14,12 +12,7 @@ def CheckAvailabilityOfSensitivities(variable, model_part):
     variable -- traced variable within sensitivity analysis.
     model_part -- sub model part of the sensitivity model part.
     """
-
-    if sys.version_info[0] >= 3: # python3 syntax
-        return model_part.Elements.__iter__().__next__().Has(variable)
-    else: # python2 syntax
-        return model_part.Elements.__iter__().next().Has(variable)
-
+    return model_part.Elements.__iter__().__next__().Has(variable)
 
 class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
     """
@@ -62,7 +55,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
 
         # Get defined sub model parts of sensitivity model part as integration domains
         self.sensitivity_sub_model_parts = []
-        if len(sensitivity_sub_model_part_names) is 0:
+        if not sensitivity_sub_model_part_names:
             self.sensitivity_sub_model_parts.append(self.sensitivity_model_part)
         else:
             for mp_name in sensitivity_sub_model_part_names:

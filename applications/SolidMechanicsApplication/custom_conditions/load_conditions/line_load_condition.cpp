@@ -46,7 +46,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer LineLoadCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<LineLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<LineLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -60,7 +60,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared<LineLoadCondition>(NewCondition);
+    return Kratos::make_intrusive<LineLoadCondition>(NewCondition);
 
   }
 
@@ -341,23 +341,13 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int LineLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int LineLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = LoadCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE);
-    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE_VECTOR);
-
-    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE);
-    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE_VECTOR);
-
-    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD_VECTOR);
 
     return ErrorCode;
 

@@ -65,7 +65,7 @@ namespace Kratos
 
   Condition::Pointer ContactDomainLM3DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Kratos::make_shared<ContactDomainLM3DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+    return Kratos::make_intrusive<ContactDomainLM3DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
   }
 
   //************************************CLONE*******************************************
@@ -482,7 +482,7 @@ namespace Kratos
     noalias(F) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
@@ -670,7 +670,7 @@ namespace Kratos
     noalias(F) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
@@ -840,7 +840,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainLM3DCondition::CalculateContactFactor( ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainLM3DCondition::CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo )
   {
     //Initilialize Tau for the stabilization
     double alpha_stab = 0.1;
@@ -919,7 +919,7 @@ namespace Kratos
   //********************************CALCULATE EXPLICIT MULTIPLIERS**********************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
     // std::cout<<" Master Nodes "<<GetValue(MASTER_NODES).size()<<std::endl;
@@ -973,7 +973,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
     //Contact face node1-node2-node3
@@ -1177,7 +1177,7 @@ namespace Kratos
 
 
     double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
-    ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+    const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
     double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
 
 
@@ -1312,7 +1312,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
     //Contact face node1-node2-node3
@@ -1530,7 +1530,7 @@ namespace Kratos
 
 
     double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
-    ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+    const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
     double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
 
 
@@ -2354,7 +2354,7 @@ namespace Kratos
     rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false); //friction needs an special treatment --> correct linearization is needed.
 
     //Stick contact contribution:
-    if(rVariables.Contact.Options.Is(NOT_SLIP))
+    if(rVariables.Contact.Options.IsNot(SLIP))
       {
 
 	//std::cout<<" + stick ";

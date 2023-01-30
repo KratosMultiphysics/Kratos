@@ -13,7 +13,7 @@ void AMGCLSolve(
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::IndexType& rIterationNumber,
     double& rResidual,
-    const boost::property_tree::ptree &amgclParams,
+    boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
     );

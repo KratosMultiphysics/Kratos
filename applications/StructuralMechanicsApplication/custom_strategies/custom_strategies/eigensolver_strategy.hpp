@@ -4,24 +4,23 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//   License:        BSD License
-//   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 license: StructuralMechanicsApplication/license.txt
 //
-//   Project Name:        $StructuralMechanicsApplication $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         September 2016   $
-//   Revision:            $Revision:                0.0   $
+//  Main author:    Michael Andre, https://github.com/msandre
+//
 
-#if !defined(KRATOS_EIGENSOLVER_STRATEGY )
-#define  KRATOS_EIGENSOLVER_STRATEGY
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/atomic_utilities.h"
+#include "utilities/entities_utilities.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -54,7 +53,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class EigensolverStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -62,7 +61,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(EigensolverStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
 
@@ -90,9 +89,15 @@ public:
     EigensolverStrategy(
         ModelPart& rModelPart,
         SchemePointerType pScheme,
-        BuilderAndSolverPointerType pBuilderAndSolver
+        BuilderAndSolverPointerType pBuilderAndSolver,
+        double MassMatrixDiagonalValue,
+        double StiffnessMatrixDiagonalValue,
+        bool ComputeModalDecomposition = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
+            mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
+            mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
+            mComputeModalDecompostion(ComputeModalDecomposition)
     {
         KRATOS_TRY
 
@@ -379,7 +384,6 @@ public:
         KRATOS_TRY;
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        const int rank = rModelPart.GetCommunicator().MyPID();
 
         SchemePointerType& pScheme = this->pGetScheme();
         SparseMatrixType& rMassMatrix = this->GetMassMatrix();
@@ -390,19 +394,45 @@ public:
         SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
         SparseSpaceType::Set(b,0.0);
 
-        // Generate lhs matrix. the factor 1 is chosen to preserve
-        // SPD property
+        // if the size of the Matrix is the same as the size of the dofset, then also the dirichlet-dofs are in the matrix
+        // i.e. a BlockBuilder is used
+        const bool matrix_contains_dirichlet_dofs = SparseSpaceType::Size1(rMassMatrix) == this->pGetBuilderAndSolver()->GetDofSet().size();
+
+        const bool master_slave_constraints_defined = rModelPart.NumberOfMasterSlaveConstraints() != 0;
+
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
-        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
-        this->ApplyDirichletConditions(rMassMatrix, 1.0);
 
-        // Generate rhs matrix. the factor -1 is chosen to make
-        // Eigenvalues corresponding to fixed dofs negative
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+
+        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
+        if (master_slave_constraints_defined) {
+            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
+        }
+        if (matrix_contains_dirichlet_dofs) {
+            this->ApplyDirichletConditions(rMassMatrix, mMassMatrixDiagonalValue);
+        }
+
+        if (BaseType::GetEchoLevel() == 4) {
+            TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
+        }
+
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
-        ApplyDirichletConditions(rStiffnessMatrix,-1.0);
+        if (master_slave_constraints_defined) {
+            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
+        }
+
+        if (matrix_contains_dirichlet_dofs) {
+            this->ApplyDirichletConditions(rStiffnessMatrix, mStiffnessMatrixDiagonalValue);
+        }
+
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(rModelPart);
+
+        if (BaseType::GetEchoLevel() == 4) {
+            TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
+        }
 
         // Eigenvector matrix and eigenvalue vector are initialized by the solver
         DenseVectorType Eigenvalues;
@@ -416,10 +446,19 @@ public:
                 Eigenvalues,
                 Eigenvectors);
 
-        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
                 << system_solve_time.ElapsedSeconds() << std::endl;
 
+        if (master_slave_constraints_defined){
+            this->ReconstructSlaveSolution(Eigenvectors);
+        }
+
         this->AssignVariables(Eigenvalues,Eigenvectors);
+
+
+        if (mComputeModalDecompostion) {
+            ComputeModalDecomposition(Eigenvectors);
+        }
 
         return true;
         KRATOS_CATCH("")
@@ -539,6 +578,11 @@ private:
 
     bool mInitializeWasPerformed = false;
 
+    double mMassMatrixDiagonalValue = 0.0;
+    double mStiffnessMatrixDiagonalValue = 1.0;
+
+    bool mComputeModalDecompostion = false;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -546,6 +590,70 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Recover the solution related to the slave dofs in case of master-slave constraints.
+     * @details This function is an adaptation of the implementation in ConstraintUtilities,
+     *  since there the variables are assumed to be stored in SolutionStepValue.
+     *  Beware that this implementation is only valid for Block B&S, since the master-slave constraints
+     *  don't work with Elimination B&S yet.
+     */
+    void ReconstructSlaveSolution(
+        DenseMatrixType& rEigenvectors
+    )
+    {
+        KRATOS_TRY
+
+        auto& r_model_part = BaseType::GetModelPart();
+        const std::size_t number_of_eigenvalues = rEigenvectors.size1();
+
+        struct TLS{
+            Matrix relation_matrix;
+            Vector constant_vector;
+            Vector master_dofs_values;
+        };
+
+        for (std::size_t i_eigenvalue = 0; i_eigenvalue < number_of_eigenvalues; ++i_eigenvalue){
+
+            // Reset slave dofs
+            block_for_each(r_model_part.MasterSlaveConstraints(), [&i_eigenvalue, &rEigenvectors](const MasterSlaveConstraint& r_master_slave_constraint){
+                const auto& r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
+                for (const auto& r_slave_dof: r_slave_dofs_vector){
+                    AtomicMult(rEigenvectors(i_eigenvalue, r_slave_dof->EquationId()), 0.0);
+                }
+            });
+
+            // Apply constraints
+            block_for_each(r_model_part.MasterSlaveConstraints(), TLS(), [&i_eigenvalue, &rEigenvectors, &r_model_part](const MasterSlaveConstraint& r_master_slave_constraint, TLS& rTLS){
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (r_master_slave_constraint.IsDefined(ACTIVE))
+                    constraint_is_active = r_master_slave_constraint.Is(ACTIVE);
+                if (constraint_is_active) {
+                    // Saving the master dofs values
+                    const auto& r_master_dofs_vector = r_master_slave_constraint.GetMasterDofsVector();
+                    const auto& r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
+                    rTLS.master_dofs_values.resize(r_master_dofs_vector.size());
+                    for (IndexType i = 0; i < r_master_dofs_vector.size(); ++i) {
+                        rTLS.master_dofs_values[i] = rEigenvectors(i_eigenvalue, r_master_dofs_vector[i]->EquationId());
+                    }
+                    // Apply the constraint to the slave dofs
+                    r_master_slave_constraint.GetLocalSystem(rTLS.relation_matrix, rTLS.constant_vector, r_model_part.GetProcessInfo());
+                    double aux;
+                    for (IndexType i = 0; i < rTLS.relation_matrix.size1(); ++i) {
+                        aux = rTLS.constant_vector[i];
+                        for(IndexType j = 0; j < rTLS.relation_matrix.size2(); ++j) {
+                            aux += rTLS.relation_matrix(i,j) * rTLS.master_dofs_values[j];
+                        }
+                        AtomicAdd(rEigenvectors(i_eigenvalue, r_slave_dofs_vector[i]->EquationId()), aux);
+                    }
+                }
+            });
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /// Apply Dirichlet boundary conditions without modifying dof pattern.
     /**
@@ -570,12 +678,10 @@ private:
         const int NumDofs = static_cast<int>(rDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively
-        #pragma omp parallel for firstprivate(NumDofs)
-        for(int k = 0; k<NumDofs; k++)
-        {
+        IndexPartition(NumDofs).for_each([&rDofSet, &ScalingFactors](std::size_t k){
             auto dof_iterator = std::begin(rDofSet) + k;
             ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
-        }
+        });
 
         double* AValues = std::begin(rA.value_data());
         std::size_t* ARowIndices = std::begin(rA.index1_data());
@@ -598,9 +704,7 @@ private:
         //         rA(k,k) = 1.0;
         // }
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(SystemSize); ++k)
-        {
+        IndexPartition(SystemSize).for_each([&](std::size_t k){
             std::size_t ColBegin = ARowIndices[k];
             std::size_t ColEnd = ARowIndices[k+1];
             if (ScalingFactors[k] == 0.0)
@@ -608,7 +712,7 @@ private:
                 // row dof is fixed. zero off-diagonal columns and factor diagonal
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
                 {
-                    if (static_cast<int>(AColIndices[j]) != k)
+                    if (AColIndices[j] != k)
                     {
                         AValues[j] = 0.0;
                     }
@@ -626,7 +730,7 @@ private:
                     AValues[j] *= ScalingFactors[AColIndices[j]];
                 }
             }
-        }
+        });
 
         KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Exiting ApplyDirichletConditions" << std::endl;
@@ -643,31 +747,59 @@ private:
         // store eigenvalues in process info
         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR] = rEigenvalues;
 
-        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
-        {
+        const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+
+        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++) {
             ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
             const std::size_t NumNodeDofs = NodeDofs.size();
             Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
-            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs)
-            {
+            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs) {
                 rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
             }
 
-            // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
-            // the dof ordering must not change.
-            if (NodeDofs.IsSorted() == false)
-            {
-                NodeDofs.Sort();
-            }
-
             // fill the EIGENVECTOR_MATRIX
-            for (std::size_t i = 0; i < NumEigenvalues; i++)
+            for (std::size_t i = 0; i < NumEigenvalues; i++) {
                 for (std::size_t j = 0; j < NumNodeDofs; j++)
                 {
-                    auto itDof = std::begin(NodeDofs) + j;
-                    rNodeEigenvectors(i,j) = rEigenvectors(i,itDof->EquationId());
+                    const auto itDof = std::begin(NodeDofs) + j;
+                    bool is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
+                    if ((*itDof)->IsFree() && is_active) {
+                       rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
+                    }
+                    else {
+                       rNodeEigenvectors(i,j) = 0.0;
+                    }
                 }
+            }
         }
+    }
+
+    ///
+     /**
+     * Computes the modal decomposition depending on the number of eigenvalues
+     * chosen and stores them in the corresponding variables. Can be activated by setting
+     * bool variable exposed to the python interface.
+     */
+    void ComputeModalDecomposition(const DenseMatrixType& rEigenvectors)
+    {
+        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        SparseMatrixType m_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
+        boost::numeric::ublas::axpy_prod(rEigenvectors,rMassMatrix,m_temp,true);
+        Matrix modal_mass_matrix = ZeroMatrix(m_temp.size1(),m_temp.size1());
+        boost::numeric::ublas::axpy_prod(m_temp,trans(rEigenvectors),modal_mass_matrix);
+
+        const SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+        SparseMatrixType k_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
+        boost::numeric::ublas::axpy_prod(rEigenvectors,rStiffnessMatrix,k_temp,true);
+        Matrix modal_stiffness_matrix = ZeroMatrix(k_temp.size1(),k_temp.size1());
+        boost::numeric::ublas::axpy_prod(k_temp,trans(rEigenvectors),modal_stiffness_matrix);
+
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        rModelPart.GetProcessInfo()[MODAL_MASS_MATRIX] = modal_mass_matrix;
+        rModelPart.GetProcessInfo()[MODAL_STIFFNESS_MATRIX] = modal_stiffness_matrix;
+
+        KRATOS_INFO("ModalMassMatrix")      << modal_mass_matrix << std::endl;
+        KRATOS_INFO("ModalStiffnessMatrix") << modal_stiffness_matrix << std::endl;
     }
 
     ///@}
@@ -691,6 +823,3 @@ private:
 ///@}
 
 } /* namespace Kratos */
-
-#endif /* KRATOS_EIGENSOLVER_STRATEGY  defined */
-

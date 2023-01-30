@@ -4,27 +4,28 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
+//  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TETRAHEDRA_3D_10_H_INCLUDED )
-#define  KRATOS_TETRAHEDRA_3D_10_H_INCLUDED
+#pragma once
 
 // System includes
+#include <numeric>
 
 // External includes
 
 // Project includes
 #include "geometries/triangle_3d_6.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "utilities/integration_utilities.h"
 #include "integration/tetrahedron_gauss_legendre_integration_points.h"
-
 
 namespace Kratos
 {
@@ -32,19 +33,19 @@ namespace Kratos
  * @class Tetrahedra3D10
  * @ingroup KratosCore
  * @brief A ten node tetrahedra geometry with quadratic shape functions
- * @details The node ordering corresponds with:       
- *                     3                              
- *                   ,/|`\                          
- *                 ,/  |  `\       
- *               ,7    '.   `9     
- *             ,/       8     `\   
- *          ,/          |       `\ 
+ * @details The node ordering corresponds with:
+ *                     3
+ *                   ,/|`\
+ *                 ,/  |  `\
+ *               ,7    '.   `9
+ *             ,/       8     `\
+ *          ,/          |       `\
  *         0--------6--'.--------2
- *          `\.         |      ,/ 
- *             `\.      |    ,5   
- *                `4.   '. ,/     
- *                   `\. |/       
- *                      `1         
+ *          `\.         |      ,/
+ *             `\.      |    ,5
+ *                `4.   '. ,/
+ *                   `\. |/
+ *                      `1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -233,6 +234,24 @@ public:
             KRATOS_ERROR << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
     }
 
+    /// Constructor with Geometry Id
+    explicit Tetrahedra3D10(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 10 ) << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Tetrahedra3D10(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 10) << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
+    }
+
     /**
      * Copy constructor.
      * Construct this geometry as a copy of given geometry.
@@ -269,12 +288,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Tetrahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Tetrahedra;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Tetrahedra3D10;
+        return GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10;
     }
 
     /**
@@ -318,18 +337,69 @@ public:
     }
 
 
-    /**
-     * Operations
-     */
+    ///@}
+    ///@name Operations
+    ///@{
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Tetrahedra3D10( ThisPoints ) );
+        return typename BaseType::Pointer( new Tetrahedra3D10( rThisPoints ) );
     }
 
     /**
-     * Informations
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
      */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
+    {
+        return typename BaseType::Pointer( new Tetrahedra3D10( NewGeometryId, rThisPoints ) );
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const BaseType& rGeometry
+        ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Tetrahedra3D10( rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+        ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Tetrahedra3D10( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    ///@}
+    ///@name Information
+    ///@{
 
     /**
      * This method calculates and returns Length or charactereistic
@@ -370,24 +440,18 @@ public:
         return Volume();
     }
 
-
-    double Volume() const override //Not a closed formula for a quadratic tetrahedra
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    double Volume() const override
     {
-
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        //KRATOS_WATCH(temp)
-        return Volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -416,10 +480,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -440,63 +504,91 @@ public:
         return false;
     }
 
+    ///@}
+    ///@name Edge
+    ///@{
 
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     SizeType EdgesNumber() const override
     {
         return 6;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 4;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
-    */
-    GeometriesArrayType Edges( void ) override
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 4 ),
-                                              this->pGetPoint( 1 ) ) ) );
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 5 ),
-                                              this->pGetPoint( 2 ) ) ) );
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 5 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 6 ),
-                                              this->pGetPoint( 0 ) ) ) );
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 6 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 7 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 7 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 8 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 8 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 9 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 9 ) ) ) );
 
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 4;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -529,6 +621,21 @@ public:
                                               this->pGetPoint( 8 ),
                                               this->pGetPoint( 5 ) ) ) );
         return faces;
+    }
+
+    /** This method calculates and returns the average edge length of the geometry
+     *
+     * @return double value with the average edge length
+     *
+     */
+    double AverageEdgeLength() const override {
+        const GeometriesArrayType edges = this->GenerateEdges();
+        return std::accumulate(
+            edges.begin(),
+            edges.end(),
+            0.0,
+            [](double sum, const auto& rEdge) {return sum + rEdge.Length();}
+        ) * 0.16666666666666666667;
     }
 
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
@@ -663,6 +770,29 @@ public:
         return rResult;
     }
 
+    /** Tests the intersection of the geometry with
+     * a 3D box defined by rLowPoint and rHighPoint.
+     * The method is only implemented for simple tets
+     * where the faces are planar.
+     *
+     * @param  rLowPoint  Lower point of the box to test the intersection
+     * @param  rHighPoint Higher point of the box to test the intersection
+     * @return            True if the geometry intersects the box, False in any other case.
+     */
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
+    {
+        if (this->FacesArePlanar()) {
+            return Tetrahedra3D4<TPointType>(
+                this->pGetPoint(0),
+                this->pGetPoint(1),
+                this->pGetPoint(2),
+                this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint);
+        } else {
+             KRATOS_ERROR << "\"HasIntersection\" is not implemented for non-planar 10 noded tetrahedra.";
+        }
+        return false;
+    }
+
 
     /**
      * Input and output
@@ -723,6 +853,8 @@ private:
      */
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
 
     ///@}
     ///@name Serialization
@@ -749,7 +881,7 @@ private:
 
     /**
      * @brief Returns vector of shape function values at local coordinate.
-     * 
+     *
      * For a definition of the shape functions see, e.g.,
      * P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008, Sec. 4.1.
      */
@@ -782,7 +914,7 @@ private:
     {
         const std::size_t points_number = 10;
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         Matrix shape_function_values(integration_points.size(), points_number);
         //loop over all integration points
         Vector N(points_number);
@@ -810,8 +942,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -889,15 +1020,15 @@ private:
         {
             {
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -910,18 +1041,39 @@ private:
         {
             {
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
+    }
+
+    /**
+     * Checks if faces are planar. We iterate for all edges and check
+     * that the sum of 0-2 and 2-1 segments is no bigger than 0-1.
+     *
+     * @return bool faces are planar or not
+     *
+     */
+    bool FacesArePlanar() const
+    {
+        constexpr double tol = 1e-6;
+        for (auto& r_edge : this->GenerateEdges()) {
+            const double a = MathUtils<double>::Norm3(r_edge.GetPoint(0)-r_edge.GetPoint(1));
+            const double b = MathUtils<double>::Norm3(r_edge.GetPoint(1)-r_edge.GetPoint(2));
+            const double c = MathUtils<double>::Norm3(r_edge.GetPoint(2)-r_edge.GetPoint(0));
+            if (b + c > a*(1.0+tol) ) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -966,12 +1118,15 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Tetrahedra3D10<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_2,
+    &msGeometryDimension,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Tetrahedra3D10<TPointType>::AllIntegrationPoints(),
     Tetrahedra3D10<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
-}// namespace Kratos.
+template<class TPointType> const
+GeometryDimension Tetrahedra3D10<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
-#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined 
+}// namespace Kratos.

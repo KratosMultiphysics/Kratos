@@ -17,7 +17,10 @@
 #include "includes/serializer.h"
 #include "includes/condition.h"
 //#include "includes/variables.h"
-//#include "../custom_elements/spheric_particle.h"
+//#include "custom_elements/spheric_particle.h"
+// #include "custom_strategies/schemes/glued_to_wall_scheme.h"
+
+class GluedToWallScheme;
 
 namespace Kratos
 {
@@ -27,15 +30,15 @@ class KRATOS_API(DEM_APPLICATION) DEMWall : public Condition
 public:
 
     // Counted pointer of DEMWall
-    KRATOS_CLASS_POINTER_DEFINITION( DEMWall );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DEMWall );
 
 
-	typedef WeakPointerVector<Element> ParticleWeakVectorType;
+	typedef GlobalPointersVector<Element> ParticleWeakVectorType;
 	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+	typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+	typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+	typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void
@@ -59,38 +62,34 @@ public:
         PropertiesType::Pointer pProperties ) const override;
 
 
-    virtual void Initialize() override;
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
-    virtual void CalculateElasticForces(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
-    virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
-    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info) override;
+    virtual void ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector);
+    virtual void CalculateElasticForces(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info );
+    virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
+    virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
     virtual void CalculateNormal(array_1d<double, 3>& rnormal);
     virtual void AddExplicitContribution(const VectorType& rRHS,
-                                 const Variable<VectorType>& rRHSVariable,
-                                 Variable<array_1d<double,3> >& rDestinationVariable,
-                                 const ProcessInfo& r_process_info) override;
+                                        const Variable<VectorType>& rRHSVariable,
+                                        const Variable<array_1d<double,3> >& rDestinationVariable,
+                                        const ProcessInfo& r_process_info) override;
 
     virtual void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode);
     virtual void ComputeConditionRelativeData(int rigid_neighbour_index,
-                                              SphericParticle* const particle,
-                                              double LocalCoordSystem[3][3],
-                                              double& DistPToB,
-                                              array_1d<double, 4>& Weight,
-                                              array_1d<double, 3>& wall_delta_disp_at_contact_point,
-                                              array_1d<double, 3>& wall_velocity_at_contact_point,
-                                              int& ContactType){}
+                                            SphericParticle* const particle,
+                                            double LocalCoordSystem[3][3],
+                                            double& DistPToB,
+                                            array_1d<double, 4>& Weight,
+                                            array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                            array_1d<double, 3>& wall_velocity_at_contact_point,
+                                            int& ContactType){
+        KRATOS_ERROR << "Base class DemWall method ComputeConditionRelativeData was called!" << std::endl;
+    }
     virtual bool IsPhantom(){return false;}
     virtual int CheckSide(SphericParticle* p_particle){return 1.0;}
 
-    /*
-    double mTgOfFrictionAngle;
-    double mYoungModulus;
-    double mPoissonRatio;
-    */
-
-    double GetYoung();
-    double GetPoisson();
-    double GetTgOfFrictionAngle();
+    double GetYoung() const;
+    double GetPoisson() const;
 
     std::vector<SphericParticle*> mNeighbourSphericParticles;
     std::vector<array_1d <double, 3> > mRightHandSideVector;
@@ -117,11 +116,10 @@ protected:
 private:
     ///@name Static Member Variables
     std::vector<SphericParticle*> mVectorOfGluedParticles;
-    /// privat variables
+    /// private variables
 
 
-    // privat name Operations
-
+    // private name Operations
 
 
     ///@}
@@ -133,11 +131,13 @@ private:
     virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        //rSerializer.save("mRightHandSideVector", mRightHandSideVector);
     }
 
     virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        //rSerializer.load("mRightHandSideVector", mRightHandSideVector);
     }
 
 

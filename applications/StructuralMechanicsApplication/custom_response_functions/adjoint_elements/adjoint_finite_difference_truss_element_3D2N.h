@@ -45,7 +45,7 @@ public:
     typedef typename BaseType::IntegrationMethod IntegrationMethod;
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElement);
 
     AdjointFiniteDifferenceTrussElement(IndexType NewId = 0)
     : BaseType(NewId)
@@ -68,7 +68,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferenceTrussElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElement<TPrimalElement>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -76,7 +76,7 @@ public:
                               typename GeometryType::Pointer pGeometry,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferenceTrussElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElement<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
 
@@ -88,11 +88,9 @@ public:
     void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
-    void CheckVariables() const;
-
     void CheckDofs() const;
 
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;

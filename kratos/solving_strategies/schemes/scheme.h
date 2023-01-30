@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -20,7 +20,10 @@
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
+#include "includes/kratos_parameters.h"
+#include "utilities/entities_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -60,6 +63,9 @@ public:
     /// Pointer definition of Scheme
     KRATOS_CLASS_POINTER_DEFINITION(Scheme);
 
+    /// The definition of the current class
+    typedef Scheme< TSparseSpace, TDenseSpace > ClassType;
+
     /// Data type definition
     typedef typename TSparseSpace::DataType TDataType;
     /// Matrix type definition
@@ -75,97 +81,11 @@ public:
     typedef Dof<double> TDofType;
     /// DoF array type definition
     typedef ModelPart::DofsArrayType DofsArrayType;
-    /// DoF iterator type definition
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;
-    /// DoF constant iterator type definition
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
 
     /// Elements containers definition
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-
-    /**
-     * @class LocalSystemComponents
-     * @brief This struct is used in the component wise calculation only is defined here and is used to declare a member variable in the component wise schemes private pointers can only be accessed by means of set and get functions
-     * @details This allows to set and not copy the Element_Variables and Condition_Variables which will be asked and set by another strategy object
-     */
-    struct LocalSystemComponents
-    {
-    private:
-        ///@name Member Variables
-        ///@{
-        // Elements
-        std::vector<LocalSystemMatrixType> *mpLHS_Element_Components;
-        const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Element_Variables;
-
-        std::vector<LocalSystemVectorType> *mpRHS_Element_Components;
-        const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-
-        // Conditions
-        std::vector<LocalSystemMatrixType> *mpLHS_Condition_Components;
-        const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
-
-        std::vector<LocalSystemVectorType> *mpRHS_Condition_Components;
-        const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Condition_Variables;
-        ///@}
-    public:
-        ///@name Operations
-        ///@{
-        /**
-        * @brief This method initializes the pointer of the member variables
-        */
-        void Initialize()
-        {
-            mpLHS_Element_Components = NULL;
-            mpLHS_Element_Variables  = NULL;
-
-            mpRHS_Element_Components = NULL;
-            mpRHS_Element_Variables  = NULL;
-
-            mpLHS_Condition_Components = NULL;
-            mpLHS_Condition_Variables  = NULL;
-
-            mpRHS_Condition_Components = NULL;
-            mpRHS_Condition_Variables  = NULL;
-        }
-
-        /* Setting pointer variables */
-
-        // Elements
-        void SetLHS_Element_Components ( std::vector<LocalSystemMatrixType>& rLHS_Element_Components ) { mpLHS_Element_Components = &rLHS_Element_Components; };
-        void SetLHS_Element_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Element_Variables ) { mpLHS_Element_Variables = &rLHS_Element_Variables; };
-        void SetRHS_Element_Components ( std::vector<LocalSystemVectorType>& rRHS_Element_Components ) { mpRHS_Element_Components = &rRHS_Element_Components; };
-        void SetRHS_Element_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Element_Variables ) { mpRHS_Element_Variables = &rRHS_Element_Variables; };
-
-        bool Are_LHS_Element_Components_Set() { if( mpLHS_Element_Variables == NULL ) return false; else return true; };
-        bool Are_RHS_Element_Components_Set() { if( mpRHS_Element_Variables == NULL ) return false; else return true; };
-
-        // Conditions
-        void SetLHS_Condition_Components ( std::vector<LocalSystemMatrixType>& rLHS_Condition_Components ) { mpLHS_Condition_Components = &rLHS_Condition_Components; };
-        void SetLHS_Condition_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Condition_Variables ) { mpLHS_Condition_Variables = &rLHS_Condition_Variables; };
-        void SetRHS_Condition_Components ( std::vector<LocalSystemVectorType>& rRHS_Condition_Components ) { mpRHS_Condition_Components = &rRHS_Condition_Components; };
-        void SetRHS_Condition_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Condition_Variables ) { mpRHS_Condition_Variables = &rRHS_Condition_Variables; };
-
-        bool Are_LHS_Condition_Components_Set() { if( mpLHS_Condition_Variables == NULL ) return false; else return true; };
-        bool Are_RHS_Condition_Components_Set() { if( mpRHS_Condition_Variables == NULL ) return false; else return true; };
-
-        /* Getting pointer variables */
-
-        // Elements
-        std::vector<LocalSystemMatrixType>& GetLHS_Element_Components() { return *mpLHS_Element_Components; };
-        const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Element_Variables() { return *mpLHS_Element_Variables; };
-        std::vector<LocalSystemVectorType>& GetRHS_Element_Components() { return *mpRHS_Element_Components; };
-        const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Element_Variables() { return *mpRHS_Element_Variables; };
-
-        // Conditions
-        std::vector<LocalSystemMatrixType>& GetLHS_Condition_Components() { return *mpLHS_Condition_Components; };
-        const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Condition_Variables() { return *mpLHS_Condition_Variables; };
-        std::vector<LocalSystemVectorType>& GetRHS_Condition_Components() { return *mpRHS_Condition_Components; };
-        const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Condition_Variables() { return *mpRHS_Condition_Variables; };
-
-        ///@}
-    };
 
     ///@}
     ///@name Life Cycle
@@ -177,6 +97,19 @@ public:
      */
     explicit Scheme()
     {
+        mSchemeIsInitialized = false;
+        mElementsAreInitialized = false;
+        mConditionsAreInitialized = false;
+    }
+    /**
+     * @brief Constructor with Parameters
+     */
+    explicit Scheme(Parameters ThisParameters)
+    {
+        // Validate default parameters
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
         mSchemeIsInitialized = false;
         mElementsAreInitialized = false;
         mConditionsAreInitialized = false;
@@ -201,6 +134,19 @@ public:
     ///@name Operators
     ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
     /**
      * @brief Clone method
      * @return The pointer of the cloned scheme
@@ -208,16 +154,6 @@ public:
     virtual Pointer Clone()
     {
         return Kratos::make_shared<Scheme>(*this) ;
-    }
-
-    /**
-     * @brief Component wise components Get method
-     * @warning Must be defined on the derived classes
-     * @return The local system of components
-     */
-    virtual LocalSystemComponents& GetLocalSystemComponents()
-    {
-        KRATOS_ERROR << "Asking for Local Components to the SCHEME base class which is not component wise and not contains this member variable" << std::endl;
     }
 
     /**
@@ -295,11 +231,7 @@ public:
     {
         KRATOS_TRY
 
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Initialize();
-        }
+        EntitiesUtilities::InitializeEntities<Element>(rModelPart);
 
         SetElementsAreInitialized();
 
@@ -317,11 +249,7 @@ public:
 
         KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
 
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Initialize();
-        }
+        EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
         SetConditionsAreInitialized();
 
@@ -346,37 +274,8 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Initializes solution step for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Initializes solution step for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->InitializeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Initializes solution step for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->InitializeSolutionStep(r_current_process_info);
-        }
+        // Initializes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -396,37 +295,8 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Finalizes solution step for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->FinalizeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Finalizes solution step for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->FinalizeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Finalizes solution step for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->FinalizeSolutionStep(r_current_process_info);
-        }
+        // Finalizes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -502,6 +372,10 @@ public:
         )
     {
         KRATOS_TRY
+
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+
         KRATOS_CATCH("")
     }
 
@@ -511,7 +385,7 @@ public:
      * @param rCurrentElement The element to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
         ProcessInfo& rCurrentProcessInfo
         )
@@ -526,7 +400,7 @@ public:
      * @param rCurrentCondition The condition to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& rCurrentProcessInfo
         )
@@ -551,37 +425,8 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Finalizes non-linear iteration for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->FinalizeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Finalizes non-linear iteration  for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->FinalizeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Finalizes non-linear iteration for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->FinalizeNonLinearIteration(r_current_process_info);
-        }
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -669,24 +514,6 @@ public:
     }
 
     /**
-     * @brief Function to clean up "element" scratch space after each element is built.
-     * @param rCurrentElement The element to compute
-     */
-    virtual void CleanMemory(Element::Pointer rCurrentElement)
-    {
-        rCurrentElement->CleanMemory();
-    }
-
-    /**
-     * @brief Function to clean up "condition" scratch space after each condition is built.
-     * @param rCurrentCondition The condition to compute
-     */
-    virtual void CleanMemory(Condition::Pointer rCurrentCondition)
-    {
-        rCurrentCondition->CleanMemory();
-    }
-
-    /**
      * @brief Liberate internal storage.
      * @warning Must be implemented in the derived classes
      */
@@ -704,200 +531,208 @@ public:
      * @param rModelPart The model part of the problem to solve
      * @return 0 all OK, 1 otherwise
      */
-    virtual int Check(ModelPart& rModelPart)
+    virtual int Check(const ModelPart& rModelPart) const
     {
         KRATOS_TRY
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Checks for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Check(r_current_process_info);
-        }
-
-        // Checks for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Check(r_current_process_info);
-        }
-
         return 0;
         KRATOS_CATCH("");
+    }
+
+    virtual int Check(ModelPart& rModelPart)
+    {
+        // calling the const version for backward compatibility
+        const Scheme& r_const_this = *this;
+        const ModelPart& r_const_model_part = rModelPart;
+        return r_const_this.Check(r_const_model_part);
     }
 
     /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
-     * @param pCurrentElement The element to compute
+     * @param rElement The element to compute
      * @param LHS_Contribution The LHS matrix contribution
      * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
+        Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param LHS_Contribution The LHS matrix contribution
      * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
+    virtual void CalculateSystemContributions(
+        Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
      * @brief This function is designed to calculate just the RHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rElement The element to compute
      * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
+    virtual void CalculateRHSContribution(
+        Element& rElement,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentElement->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+    virtual void CalculateRHSContribution(
+        Condition& rCondition,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentCondition->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
      * @brief This function is designed to calculate just the LHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rElement The element to compute
      * @param LHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
+    virtual void CalculateLHSContribution(
+        Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentElement->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param LHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Condition_Calculate_LHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+    virtual void CalculateLHSContribution(
+        Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentCondition->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
      * @brief This method gets the eqaution id corresponding to the current element
-     * @param pCurrentElement The element to compute
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rElement The element to compute
+     * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void EquationId(
-        Element::Pointer pCurrentElement,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const Element& rElement,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        (pCurrentElement)->EquationIdVector(EquationId, rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rCondition The condition to compute
+     * @param rEquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Condition_EquationId(
-        Condition::Pointer pCurrentCondition,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+    virtual void EquationId(
+        const Condition& rCondition,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        (pCurrentCondition)->EquationIdVector(EquationId, rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
 
     /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given element
      * @param pCurrentElement The element to compute
-     * @param ElementalDofList The list containing the element degrees of freedom
+     * @param rDofList The list containing the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void GetElementalDofList(
-        Element::Pointer pCurrentElement,
-        Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
+    virtual void GetDofList(
+        const Element& rElement,
+        Element::DofsVectorType& rDofList,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
+        rElement.GetDofList(rDofList, rCurrentProcessInfo);
     }
 
     /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
-     * @param pCurrentCondition The condition to compute
-     * @param ConditionDofList The list containing the condition degrees of freedom
+     * @param rCondition The condition to compute
+     * @param rDofList The list containing the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void GetConditionDofList(
-        Condition::Pointer pCurrentCondition,
-        Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& rCurrentProcessInfo
+    virtual void GetDofList(
+        const Condition& rCondition,
+        Element::DofsVectorType& rDofList,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentCondition->GetDofList(ConditionDofList, rCurrentProcessInfo);
+        rCondition.GetDofList(rDofList, rCurrentProcessInfo);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "scheme"
+        })" );
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "scheme";
+    }
 
     ///@}
     ///@name Access
@@ -955,6 +790,29 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1004,5 +862,3 @@ private:
 } // namespace Kratos.
 
 #endif /* KRATOS_SCHEME  defined */
-
-

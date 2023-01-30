@@ -14,7 +14,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "processes/process.h"
 
 // Application includes
@@ -58,9 +58,10 @@ public:
     /// Pointer definition of SolverSettings
     KRATOS_CLASS_POINTER_DEFINITION(SolverSettings);
 
-    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> StrategyType;
+    typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> StrategyType;
     typedef typename StrategyType::Pointer StrategyPointerType;
     typedef typename Process::Pointer ProcessPointerType;
+    typedef BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> TBuilderAndSolverType;
 
     enum StrategyLabel { Velocity, Pressure, /*EddyViscosity,*/ NumLabels };
 
@@ -123,7 +124,7 @@ public:
     virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
-                                    const unsigned int MaxIter) = 0;
+                                    const unsigned int MaxIter) {}
 
     virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
     {
@@ -169,11 +170,19 @@ public:
 
         if ( itStrategy != mStrategies.end() )
         {
-            pThisStrategy.swap(itStrategy->second);
-            return true;
+            if(itStrategy->second != nullptr)
+            {
+                pThisStrategy.swap(itStrategy->second);
+                return true;
+            } else {
+                KRATOS_INFO("SolverSettingsFractionalStepStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+                return false;
+            }
         }
-        else
+        else {
+            KRATOS_INFO("SolverSettingsFractionalStepStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
             return false;
+        }
     }
 
     virtual bool FindTolerance(StrategyLabel const& rStrategyLabel,

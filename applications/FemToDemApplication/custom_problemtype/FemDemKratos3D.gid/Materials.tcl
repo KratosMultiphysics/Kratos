@@ -7,9 +7,7 @@ proc WriteMaterials { basename dir problemtypedir TableDict} {
     set FileVar [open $filename w]
 
     puts $FileVar ""
-    puts $FileVar "from __future__ import print_function, absolute_import, division"
     puts $FileVar "from KratosMultiphysics import *"
-    puts $FileVar "from KratosMultiphysics.SolidMechanicsApplication import *"
     puts $FileVar "from KratosMultiphysics.FemToDemApplication import *"
     puts $FileVar ""
     puts $FileVar "def AssignMaterial(Properties):"
@@ -24,7 +22,7 @@ proc WriteMaterials { basename dir problemtypedir TableDict} {
         incr PropertyId
         puts $FileVar "    prop_id = $PropertyId"
         puts $FileVar "    prop = Properties\[prop_id\]"
-        puts $FileVar "    mat = LinearElastic3DLaw()"
+        puts $FileVar "    mat = ElasticIsotropic3DFEMDEM()"
         puts $FileVar "    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())"
         puts $FileVar ""
 

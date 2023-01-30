@@ -30,7 +30,7 @@ namespace Kratos
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,               1 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR,  2 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN_ENERGY,        3 );
-  
+
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,        4 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,       5 );
 
@@ -40,7 +40,7 @@ namespace Kratos
 
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIALIZE_MATERIAL_RESPONSE, 9 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  10 );
-  
+
 
     /**
      * Flags related to the Features of the Constitutive Law
@@ -78,13 +78,28 @@ ConstitutiveLaw::Pointer ConstitutiveLaw::Clone() const
 }
 
 /**
- * Create function (should be implemented by any derived class)
- * @return a pointer to a new instance of this constitutive law
+ * @brief It creates a new constitutive law pointer
+ * @param NewParameters The configuration parameters of the new constitutive law
+ * @return a Pointer to the new constitutive law
  */
 ConstitutiveLaw::Pointer ConstitutiveLaw::Create(Kratos::Parameters NewParameters) const
 {
     const std::string& name = NewParameters["name"].GetString();
     return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+}
+
+/**
+ * @brief It creates a new constitutive law pointer (version with properties)
+ * @param NewParameters The configuration parameters of the new constitutive law
+ * @param rProperties The properties of the material
+ * @return a Pointer to the new constitutive law
+ */
+ConstitutiveLaw::Pointer ConstitutiveLaw::Create(
+    Kratos::Parameters NewParameters,
+    const Properties& rProperties
+    ) const
+{
+    return this->Create(NewParameters);
 }
 
 /**
@@ -100,7 +115,7 @@ ConstitutiveLaw::SizeType ConstitutiveLaw::WorkingSpaceDimension()
  * returns the size of the strain vector of the current constitutive law
  * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
  */
-ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize()
+ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize() const
 {
     KRATOS_ERROR <<  "Called the virtual function for GetStrainSize"<< std::endl;;
 }
@@ -432,6 +447,58 @@ array_1d<double, 6 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterVal
     return rValue;
 }
 
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<double>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    double& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Vector>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Vector& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Matrix>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Matrix& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<array_1d<double, 3>>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    array_1d<double, 3>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
 /**
  * Is called to check whether the provided material parameters in the Properties
  * match the requirements of current constitutive model.
@@ -534,8 +601,6 @@ void ConstitutiveLaw::InitializeNonLinearIteration(const Properties& rMaterialPr
 
 }
 
-
-
 /**
  * to be called at the end of each step iteration
  * (e.g. from Element::FinalizeNonLinearIteration)
@@ -585,7 +650,6 @@ void ConstitutiveLaw::CalculateMaterialResponse(Parameters& rValues,const Stress
     }
 }
 
-
 /**
  * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
  * @see Parameters
@@ -626,84 +690,85 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     KRATOS_ERROR <<  "Calling virtual function for CalculateMaterialResponseCauchy"<< std::endl;;
 }
 
+/**
+ * Computes the material response in terms of Cauchy stresses and constitutive tensor
+ * @see Parameters
+ */
 
-    /**
-     * Initialize the material response,  called by the element in InitializeSolutionStep.
-     * @see Parameters
-     * @see StressMeasures
-     */
+void ConstitutiveLaw::CalculateStressResponse (Parameters& rValues, Vector& rInternalVariables)
+{
+    KRATOS_ERROR <<  "Calling virtual function for CalculateStressResponse"<< std::endl;;
+}
 
-    void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
-    {
-      switch(rStressMeasure)
-	{
-	case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
-	  break;
-      
-	case StressMeasure_PK2:         InitializeMaterialResponsePK2(rValues);
-	  break;
-	  
-	case StressMeasure_Kirchhoff: 	InitializeMaterialResponseKirchhoff(rValues);
-	  break;
-
-	case StressMeasure_Cauchy:	InitializeMaterialResponseCauchy(rValues);
-	  break;
-	  
-	default:
-	  KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
-	  break;
-
-	}
-    }
-
-
-    /**
-     * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-
-     void ConstitutiveLaw::InitializeMaterialResponsePK1 (Parameters& rValues)
-    {
-      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponsePK1", "");
-    }
-
-    /**
-     * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-
-     void ConstitutiveLaw::InitializeMaterialResponsePK2 (Parameters& rValues)
-    {
-      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponsePK2", "");
-    }
-
-    /**
-     * Initialize the material response in terms of Kirchhoff stresses
-     * @see Parameters
-     */
-
-     void ConstitutiveLaw::InitializeMaterialResponseKirchhoff (Parameters& rValues)
-    {
-      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponseKirchhoff", "");
-    }
-
-    /**
-     * Initialize the material response in terms of Cauchy stresses
-     * @see Parameters
-     */
-
-     void ConstitutiveLaw::InitializeMaterialResponseCauchy (Parameters& rValues)
-    {
-      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponseCauchy", "");
-    }
-    
 
 /**
- * Updates the material response,  called by the element in FinalizeSolutionStep.
+ * @brief Initialize the material response,  called by the element in InitializeSolutionStep.
  * @see Parameters
  * @see StressMeasures
  */
+void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
+{
+    switch(rStressMeasure)
+    {
+        case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
+        break;
 
+        case StressMeasure_PK2:         InitializeMaterialResponsePK2(rValues);
+        break;
+
+        case StressMeasure_Kirchhoff: 	InitializeMaterialResponseKirchhoff(rValues);
+        break;
+
+        case StressMeasure_Cauchy:	InitializeMaterialResponseCauchy(rValues);
+        break;
+
+        default:
+        KRATOS_ERROR << " Stress Measure not Defined " << std::endl;
+        break;
+    }
+}
+
+/**
+ * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+ * @see Parameters
+ */
+void ConstitutiveLaw::InitializeMaterialResponsePK1 (Parameters& rValues)
+{
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponsePK1. Please implement InitializeMaterialResponsePK1 or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
+}
+
+/**
+ * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+ * @see Parameters
+ */
+void ConstitutiveLaw::InitializeMaterialResponsePK2 (Parameters& rValues)
+{
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponsePK2. Please implement InitializeMaterialResponsePK2 or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
+}
+
+/**
+ * @brief Initialize the material response in terms of Kirchhoff stresses
+ * @see Parameters
+ */
+void ConstitutiveLaw::InitializeMaterialResponseKirchhoff (Parameters& rValues)
+{
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponseKirchhoff. Please implement InitializeMaterialResponseKirchhoff or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
+}
+
+/**
+ * @brief Initialize the material response in terms of Cauchy stresses
+ * @see Parameters
+ */
+void ConstitutiveLaw::InitializeMaterialResponseCauchy (Parameters& rValues)
+{
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponseCauchy. Please implement InitializeMaterialResponseCauchy or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
+}
+
+/**
+ * @brief Updates the material response,  called by the element in FinalizeSolutionStep.
+ * @see Parameters
+ * @see StressMeasures
+ */
 void ConstitutiveLaw::FinalizeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
 {
     switch(rStressMeasure)
@@ -733,7 +798,7 @@ void ConstitutiveLaw::FinalizeMaterialResponse(Parameters& rValues,const StressM
 
 void ConstitutiveLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeMaterialResponsePK1"<< std::endl;;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponsePK1. Please implement FinalizeMaterialResponsePK1 or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -743,7 +808,7 @@ void ConstitutiveLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 
 void ConstitutiveLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeMaterialResponsePK2"<< std::endl;;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponsePK2. Please implement FinalizeMaterialResponsePK2 or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -753,7 +818,7 @@ void ConstitutiveLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 
 void ConstitutiveLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeMaterialResponseKirchhoff"<< std::endl;;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponseKirchhoff. Please implement FinalizeMaterialResponseKirchhoff or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -763,10 +828,8 @@ void ConstitutiveLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 
 void ConstitutiveLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeMaterialResponseCauchy"<< std::endl;;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponseCauchy. Please implement FinalizeMaterialResponseCauchy or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
-
-
 
 /**
  * This can be used in order to reset all internal variables of the
@@ -1274,7 +1337,7 @@ void ConstitutiveLaw::GetLawFeatures(Features& rFeatures)
  */
 int ConstitutiveLaw::Check(const Properties& rMaterialProperties,
                            const GeometryType& rElementGeometry,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -1612,96 +1675,6 @@ double& ConstitutiveLaw::GetConstitutiveComponent(double & rCabcd,
 
     return rCabcd;
 }
-
-//*** OUTDATED METHODS: ***//
-
-
-
-/**
- * Computes the material response in terms of stresses and algorithmic tangent
- * @param StrainVector the current strains (total strains, input)
- * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear strain measure is used)
- * @param StressVector the computed stresses (output)
- * @param algorithmicTangent the material tangent matrix (output)
- * @param rCurrentProcessInfo current ProcessInfo instance
- * @param rMaterialProperties the material's Properties object
- * @param rElementGeometry the element's geometry
- * @param rShapeFunctionsValues the shape functions values in the current integration pointer
- * @param CalculateStresses flag whether or not to compute the stress response
- * @param CalculateTangent flag to determine if to compute the material tangent
- * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
- * @param SaveInternalVariables flag whether or not to store internal (history) variables
- */
-void ConstitutiveLaw::CalculateMaterialResponse(const Vector& StrainVector,
-        const Matrix& DeformationGradient,
-        Vector& StressVector,
-        Matrix& AlgorithmicTangent,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        bool CalculateStresses,
-        int CalculateTangent,
-        bool SaveInternalVariables)
-{
-    KRATOS_ERROR <<  "Calling virtual function for CalculateMaterialResponse"<< std::endl;;
-}
-
-/**
- * Computes the volumetric part of the material response in terms of stresses and algorithmic tangent
- * @param StrainVector the current strains (total strains, input)
- * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
- * @param StressVector the computed stresses (output)
- * @param algorithmicTangent the material tangent matrix (output)
- * @param rCurrentProcessInfo current ProcessInfo instance
- * @param rMaterialProperties the material's Properties object
- * @param rElementGeometry the element's geometry
- * @param rShapeFunctionsValues the shape functions values in the current integration pointer
- * @param CalculateStresses flag whether or not to compute the stress response
- * @param CalculateTangent flag to determine if to compute the material tangent
- * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
- * @param SaveInternalVariables flag whether or not to store internal (history) variables
- */
-void ConstitutiveLaw::CalculateVolumetricResponse(const double VolumetricStrain,
-        const Matrix& DeformationGradient,
-        double& VolumetricStress,
-        double& AlgorithmicBulk,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        bool CalculateStresses,
-        int CalculateTangent,
-        bool SaveInternalVariables)
-{
-    KRATOS_ERROR <<  "Calling virtual function for CalculateVolumetricResponse"<< std::endl;;
-}
-
-/**
- * Computes the deviatoric part of the material response in terms of stresses and algorithmic tangent
- * @param StrainVector the current strains (total strains, input)
- * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
- * @param StressVector the computed stresses (output)
- * @param algorithmicTangent the material tangent matrix (output)
- * @param rCurrentProcessInfo current ProcessInfo instance
- * @param rMaterialProperties the material's Properties object
- * TODO: add proper definition for algorithmic tangent
- */
-void ConstitutiveLaw::CalculateDeviatoricResponse(const Vector& StrainVector,
-        const Matrix& DeformationGradient,
-        Vector& StressVector,
-        Matrix& AlgorithmicTangent,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        bool CalculateStresses,
-        int CalculateTangent,
-        bool SaveInternalVariables)
-{
-    KRATOS_ERROR <<  "Calling virtual function for CalculateDeviatoricResponse"<< std::endl;;
-}
-
 
 // VM
 void ConstitutiveLaw::CalculateCauchyStresses(Vector& Cauchy_StressVector,

@@ -76,6 +76,8 @@ namespace Kratos
 
 			void SetToFailed();
 
+			void SetToSkipped();
+
 			void SetOutput(const std::string& TheOutput);
 
 			const std::string& GetOutput() const;
@@ -95,7 +97,7 @@ namespace Kratos
 			void SetTearDownElapsedTime(double ElapsedTime);
 
 			double GetTearDownElapsedTime() const;
-			
+
 			void SetElapsedTime(double ElapsedTime);
 
 			double GetElapsedTime() const;
@@ -109,6 +111,10 @@ namespace Kratos
 			bool IsSucceed() const;
 
 			bool IsFailed() const;
+
+			bool IsSkipped() const;
+
+			bool IsRun() const;
 
 			///@}
 			///@name Input and output
@@ -133,6 +139,18 @@ namespace Kratos
 
 
 		private:
+
+			///@name Type definitions
+			///@{
+
+			enum class Result {
+				DidNotRun,
+				Passed,
+				Failed,
+				Skipped
+			};
+
+			///@}
 			///@name Static Member Variables
 			///@{
 
@@ -141,7 +159,7 @@ namespace Kratos
 			///@name Member Variables
 			///@{
 
-			bool mSucceed;
+			Result mStatus;
 			std::string mOutput;
 			std::string mErrorMessage;
 			double mSetupElapsedTime;

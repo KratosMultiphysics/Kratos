@@ -23,7 +23,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
 #include "includes/kratos_application.h"
 
 namespace Kratos {
@@ -64,13 +63,15 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@{
 
     /// Default constructor.
-    /** The default constructor creates a list of registerd variables in variables.cpp
-        by calling the RegisterVariables method of application class.
+    /** The default constructor creates a list of registered variables and classes in kratos_core.cpp
+        by calling the RegisterKratosCore method of application class.
 
         @see KratosApplication
 
     */
     Kernel();
+
+    Kernel(bool IsDistributedRun);
 
     /// Copy constructor.
     /** This constructor is empty
@@ -99,7 +100,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// To be deprecated becuase variables have their own hash key.
     /** The keys of Variables are not sequencial anymore, so this method will be deprecated
     */
-    void Initialize() { }
+    void Initialize();
 
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.
     /** This method gives the application the list of all variables, elements and condition which is registered
@@ -109,7 +110,9 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void InitializeApplication(KratosApplication& NewApplication) {}
 
-    bool IsImported(std::string ApplicationName) const;
+    bool IsImported(const std::string& ApplicationName) const;
+
+    static bool IsDistributedRun();
 
     ///@}
     ///@name Input and output
@@ -131,13 +134,23 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string BuildType();
 
+    static std::string OSName();
+
+    static std::string PythonVersion();
+
+    static std::string Compiler();
+
+    void PrintParallelismSupportInfo() const;
+
     ///@}
    protected:
    private:
     ///@name Static Member Variables
     ///@{
 
-        KratosApplication::Pointer mpKratosCoreApplication;
+    KratosApplication::Pointer mpKratosCoreApplication;
+
+    static bool mIsDistributedRun;
 
     ///@}
     ///@name Member Variables
@@ -147,7 +160,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@name Private Operations
     ///@{
 
-    void RegisterVariables();
+    void RegisterKratosCore();
 
     ///@}
     ///@name Un accessible methods

@@ -5,9 +5,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
 
     const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
     unsigned int LocalIndex = 0;
@@ -25,9 +23,7 @@ void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::EquationIdVector(Equation
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
 
     if (rElementalDofList.size() != LocalSize)
@@ -44,7 +40,7 @@ void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -52,20 +48,13 @@ int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& r
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
     if(ErrorCode != 0) return ErrorCode;
 
-    if(this->GetGeometry().size() != TDim+1)
-        KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
-
-    if (MATERIAL_ACCELERATION.Key() == 0){
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_LAPLACIAN Key is 0. Check if the application was correctly registered.","");
-    }
+    KRATOS_ERROR_IF(this->GetGeometry().size() != TDim+1)<< "Wrong number of nodes for element" << this->Id() << std::endl;
 
     // Checks on nodes
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-    {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_LAPLACIAN) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_LAPLACIAN variable on solution step data for node ",this->GetGeometry()[i].Id());
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_LAPLACIAN, this->GetGeometry()[i])
     }
     return 0;
 

@@ -70,7 +70,7 @@ public:
 
 
     /// Counted pointer of ContactDomainLM2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( ContactDomainLM2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ContactDomainLM2DCondition );
 
     ///@}
     ///@name Life Cycle
@@ -178,7 +178,7 @@ protected:
     /**
      * Calculate Tau stabilization or Penalty factor
      */
-    void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -191,7 +191,7 @@ protected:
      * Calculation of the Contact Multipliers or Penalty Factors
      */
     void CalculateExplicitFactors(ConditionVariables& rVariables,
-					  ProcessInfo& rCurrentProcessInfo) override;
+				  const ProcessInfo& rCurrentProcessInfo) override;
     /**
      * Tangent Matrix construction methods:
      */

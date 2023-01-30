@@ -14,20 +14,19 @@
 #if !defined(KRATOS_DEFLATION_UTILS )
 #define  KRATOS_DEFLATION_UTILS
 
-
 /* System includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
+
+/* External includes */
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
 #include "boost/numeric/ublas/matrix.hpp" // for the vector used here.
 #else
 #endif // KRATOS_USE_AMATRIX
 
-/* External includes */
-
-
 /* Project includes */
-
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -129,14 +128,14 @@ public:
                 in!=rNodes.end(); in++)
         {
             index_i = (in)->Id()-1;
-            WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+            auto& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
             std::vector<int>& indices = index_list[index_i];
             indices.reserve(neighb_nodes.size()+1);
 
             //filling the first neighbours list
             indices.push_back(index_i);
-            for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+            for( auto i =	neighb_nodes.begin();
                     i != neighb_nodes.end(); i++)
             {
 
@@ -356,10 +355,8 @@ public:
 #else
         //now apply the Wtranspose
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(w.size()); i++)
-        {
-            #pragma omp atomic
-            y[w[i]] += x[i];
+        for(int i=0; i<static_cast<int>(w.size()); i++) {
+            AtomicAdd(y[w[i]], x[i]);
         }
 #endif
     }

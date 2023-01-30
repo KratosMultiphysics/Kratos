@@ -1,0 +1,52 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes
+    1       -0.00108        0.00036        0.012
+    2        0.00416       -0.00108        0.00245
+End Nodes
+
+
+Begin Elements SphericParticle3D// GUI group identifier: DEM
+        1          1          1
+        2          1          2
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: DEM
+          1 0 0.00324027
+          2 0 0.00490317
+End NodalData
+
+Begin SubModelPart Parts_DEM // Group DEM // Subtree Parts
+    Begin SubModelPartNodes
+            1
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: fixed_DEM
+  Begin SubModelPartData // DEM-VelocityBC. Group name: fixed_DEM
+    IMPOSED_VELOCITY_X_VALUE 0.0
+    IMPOSED_VELOCITY_Y_VALUE 0.0
+    IMPOSED_VELOCITY_Z_VALUE 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    RIGID_BODY_MOTION 0
+  End SubModelPartData
+  Begin SubModelPartElements
+         2
+  End SubModelPartElements
+  Begin SubModelPartNodes
+         2
+  End SubModelPartNodes
+End SubModelPart
+

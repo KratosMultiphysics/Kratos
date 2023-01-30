@@ -17,13 +17,13 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/elemental_refining_criteria_process.h"
-#include "custom_processes/initial_perturbation_process.h"
+#include "custom_processes/apply_perturbation_function_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
+#include "custom_processes/calculate_distance_to_boundary_process.h"
+#include "custom_processes/depth_integration_process.h"
 
 
 namespace Kratos
@@ -36,27 +36,39 @@ namespace Python
     {
         namespace py = pybind11;
 
-        py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>
-        (m, "ElementalRefiningCriteriaProcess")
-        .def(py::init<ModelPart&>())
-        .def(py::init<ModelPart&, Parameters>())
-        .def(py::init<ModelPart&, Variable<double>, double, bool>())
+        typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
+        py::class_<ApplyPerturbationScalarFunctionProcess, ApplyPerturbationScalarFunctionProcess::Pointer, Process>
+        (m, "ApplyPerturbationFunctionToScalar")
+        .def(py::init<ModelPart&, Node<3>::Pointer, Variable<double>&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Variable<double>&, Parameters&>())
         ;
 
-        py::class_<InitialPerturbationProcess, InitialPerturbationProcess::Pointer, Process>
-        (m, "InitialPerturbationProcess")
-        .def(py::init<ModelPart&, Node<3>::Pointer, Parameters&>())
-        .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Parameters&>())
-        ;
-
-        py::class_<ApplySinusoidalFunctionProcess<Variable<double>>, ApplySinusoidalFunctionProcess<Variable<double>>::Pointer, Process>
+        typedef ApplySinusoidalFunctionProcess<Variable<double>> ApplySinusoidalScalarFunctionProcess;
+        py::class_<ApplySinusoidalScalarFunctionProcess, ApplySinusoidalScalarFunctionProcess::Pointer, Process>
         (m, "ApplySinusoidalFunctionToScalar")
         .def(py::init<ModelPart&, Variable<double>&, Parameters&>())
         ;
 
-        py::class_<ApplySinusoidalFunctionProcess<Variable<array_1d<double,3>>>, ApplySinusoidalFunctionProcess<Variable<array_1d<double,3>>>::Pointer, Process>
+        typedef ApplySinusoidalFunctionProcess<Variable<array_1d<double,3>>> ApplySinusoidalVectorFunctionProcess;
+        py::class_<ApplySinusoidalVectorFunctionProcess, ApplySinusoidalVectorFunctionProcess::Pointer, Process>
         (m, "ApplySinusoidalFunctionToVector")
         .def(py::init<ModelPart&, Variable<array_1d<double,3>>&, Parameters&>())
+        ;
+
+        py::class_<CalculateDistanceToBoundaryProcess, CalculateDistanceToBoundaryProcess::Pointer, Process>
+        (m, "CalculateDistanceToBoundaryProcess")
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
+        ;
+
+        py::class_<DepthIntegrationProcess<2>, DepthIntegrationProcess<2>::Pointer, Process>
+        (m, "DepthIntegrationProcess2D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
+        py::class_<DepthIntegrationProcess<3>, DepthIntegrationProcess<3>::Pointer, Process>
+        (m, "DepthIntegrationProcess3D")
+        .def(py::init<Model&, Parameters>())
         ;
 
     }

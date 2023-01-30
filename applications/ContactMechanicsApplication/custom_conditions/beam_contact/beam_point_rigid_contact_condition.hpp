@@ -65,7 +65,7 @@ public:
 
     ///@{
     // Counted pointer of BeamPointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( BeamPointRigidContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BeamPointRigidContactCondition );
     ///@}
 
 protected:
@@ -375,7 +375,7 @@ public:
      */
     virtual void AddExplicitContribution(const VectorType& rRHSVector,
 					 const Variable<VectorType>& rRHSVariable,
-					 Variable<array_1d<double,3> >& rDestinationVariable,
+					 const Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo);
 
     //************************************************************************************

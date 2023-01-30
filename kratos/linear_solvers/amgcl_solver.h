@@ -37,6 +37,8 @@
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 
+#include <amgcl/coarsening/rigid_body_modes.hpp>
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -84,7 +86,7 @@ void KRATOS_API(KRATOS_CORE) AMGCLSolve(
     TUblasSparseSpace<double>::VectorType& rB,
     TUblasSparseSpace<double>::IndexType& rIterationNumber,
     double& rResidual,
-    const boost::property_tree::ptree &amgclParams,
+    boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
     );
@@ -130,8 +132,8 @@ public:
     /// DofArray type
     typedef ModelPart::DofsArrayType DofsArrayType;
 
-    /// The index type definition
-    typedef std::size_t IndexType;
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
 
     /// The size type definition
     typedef std::size_t SizeType;
@@ -165,54 +167,33 @@ public:
             "max_levels"                     : -1,
             "pre_sweeps"                     : 1,
             "post_sweeps"                    : 1,
-            "use_gpgpu"                     : false
+            "use_gpgpu"                      : false
         }  )" );
 
         // Now validate agains defaults -- this also ensures no type mismatch
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+        // specify available options
+        std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
+        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres", "bicgstab_with_gmres_fallback","idrs"};
+        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
         std::set<std::string> available_preconditioner = {"amg","relaxation","dummy"};
+
+        // Validate if values are admissible
+        CheckIfSelectedOptionIsAvailable(ThisParameters, "smoother_type",       available_smoothers);
+        CheckIfSelectedOptionIsAvailable(ThisParameters, "krylov_type",         available_solvers);
+        CheckIfSelectedOptionIsAvailable(ThisParameters, "coarsening_type",     available_coarsening);
+        CheckIfSelectedOptionIsAvailable(ThisParameters, "preconditioner_type", available_preconditioner);
 
         //selecting preconditioner type - default is AMG
         mAMGCLParameters.put("precond.class", ThisParameters["preconditioner_type"].GetString());
         if(ThisParameters["preconditioner_type"].GetString() != "amg"){
-               mUseAMGPreconditioning = false;
+            mUseAMGPreconditioning = false;
         }
 
         if(ThisParameters["preconditioner_type"].GetString() == "relaxation") //this implies not using. Use a relaxation sweep as preconditioning. Relaxation type is taken from smoother_type
         {
             mAMGCLParameters.put("precond.type", ThisParameters["smoother_type"].GetString());
-        }
-
-
-        // Validate if values are admissible
-        std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
-        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres", "bicgstab_with_gmres_fallback","idrs"};
-        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
-
-
-
-        std::stringstream msg;
-
-        if(available_smoothers.find(ThisParameters["smoother_type"].GetString()) == available_smoothers.end()) {
-            msg << "Currently prescribed smoother_type : " << ThisParameters["smoother_type"].GetString() << std::endl;
-            msg << "Admissible values are : spai0,spai1,ilu0,ilut,iluk,damped_jacobi,gauss_seidel,chebyshev" << std::endl;
-            KRATOS_ERROR << " smoother_type is invalid: " << msg.str() << std::endl;
-        }
-        if(available_solvers.find(ThisParameters["krylov_type"].GetString()) == available_solvers.end()) {
-            msg << "Currently prescribed krylov_type : " << ThisParameters["krylov_type"].GetString() << std::endl;
-            msg << "Admissible values are : gmres,bicgstab,cg,bicgstabl,lgmres,fgmres, bicgstab_with_gmres_fallback,idrs" << std::endl;
-            KRATOS_ERROR << " krylov_type is invalid: available possibilities are : " << msg.str() << std::endl;
-        }
-        if(available_coarsening.find(ThisParameters["coarsening_type"].GetString()) == available_coarsening.end()) {
-            msg << "Currently prescribed krylov_type : " << ThisParameters["coarsening_type"].GetString() << std::endl;
-            msg << "Admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;
-            KRATOS_ERROR << " coarsening_type is invalid: available possibilities are : " << msg.str() << std::endl;
-        }
-        if(available_preconditioner.find(ThisParameters["preconditioner_type"].GetString()) == available_preconditioner.end()) {
-            msg << "Currently prescribed preconditioner_type : " << ThisParameters["preconditioner_type"].GetString() << std::endl;
-            msg << "Admissible values are : amg, relaxation, dummy" << std::endl;
-            KRATOS_ERROR << " preconditioner_type is invalid: available possibilities are : " << msg.str() << std::endl;
         }
 
         mProvideCoordinates = ThisParameters["provide_coordinates"].GetBool();
@@ -239,8 +220,6 @@ public:
             mAMGCLParameters.put("precond.relax.type", ThisParameters["smoother_type"].GetString());
             mAMGCLParameters.put("precond.coarsening.type",  ThisParameters["coarsening_type"].GetString());
 
-
-
             int max_levels = ThisParameters["max_levels"].GetInt();
             if(max_levels >= 0)
                 mAMGCLParameters.put("precond.max_levels",  max_levels);
@@ -250,12 +229,6 @@ public:
         }
 
         mUseBlockMatricesIfPossible = ThisParameters["use_block_matrices_if_possible"].GetBool();
-
-        if(mProvideCoordinates && mUseBlockMatricesIfPossible) {
-            KRATOS_WARNING("AMGCL Linear Solver") << "Sorry coordinates can not be provided when using block matrices, hence setting muse_block_matrices_if_possible to false" << std::endl;
-            mUseBlockMatricesIfPossible = false;
-            ThisParameters["use_block_matrices_if_possible"].SetBool(false);
-        }
 
         mUseGPGPU = ThisParameters["use_gpgpu"].GetBool();
     }
@@ -369,40 +342,40 @@ public:
         KRATOS_ERROR_IF(TSparseSpaceType::Size(rB) != TSparseSpaceType::Size1(rA)) << "size of b does not match the size of A. b size is " << TSparseSpaceType::Size(rB)
             << " matrix size is " << TSparseSpaceType::Size1(rA) << std::endl;
 
-        // Set block size
-
-        if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
-            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong",0.0);
-            mAMGCLParameters.put("precond.coarsening.aggr.block_size",mBlockSize);
-        }
         mAMGCLParameters.put("solver.tol", mTolerance);
         mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
 
         if(mUseAMGPreconditioning)
             mAMGCLParameters.put("precond.coarse_enough",mCoarseEnough/mBlockSize);
 
-        Matrix B;
-        if(mUseAMGPreconditioning && mProvideCoordinates) {
-            B = ZeroMatrix(  TSparseSpaceType::Size1(rA), mBlockSize*4  );
-            for(IndexType i=0; i<TSparseSpaceType::Size1(rA); i+=mBlockSize) {
-                for( IndexType j=0; j<static_cast<IndexType>(mBlockSize); j++) {
-                    B(i+j,  j) = 1.0;
+        // Use rigid body modes or set block size
+        int static_block_size = mUseBlockMatricesIfPossible ? mBlockSize : 1;
+        std::vector<double> B;
+        if(mUseAMGPreconditioning && mProvideCoordinates && (mBlockSize == 2 || mBlockSize == 3)) {
+            int nmodes = amgcl::coarsening::rigid_body_modes(mBlockSize,
+                    boost::make_iterator_range(
+                        &mCoordinates[0][0],
+                        &mCoordinates[0][0] + TSparseSpaceType::Size1(rA)),
+                    B);
 
-                    IndexType inode = i/mBlockSize;
-
-                    B(i+j, mBlockSize +j*3 + 0) = mCoordinates[inode][0];
-                    B(i+j, mBlockSize +j*3 + 1) = mCoordinates[inode][1];
-                    B(i+j, mBlockSize +j*3 + 2) = mCoordinates[inode][2];
-                }
+            if (static_block_size != 1 && static_block_size != 3) {
+                KRATOS_WARNING("AMGCL Linear Solver") << "Can only combine block matrices with coordinates in 3D. Falling back to scalar matrices" << std::endl;
+                static_block_size = 1;
             }
 
-            mAMGCLParameters.put("precond.coarsening.nullspace.cols", B.size2());
-            mAMGCLParameters.put("precond.coarsening.nullspace.rows", B.size1());
-            mAMGCLParameters.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
+            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong", 0.0);
+            mAMGCLParameters.put("precond.coarsening.aggr.block_size", 1);
+            mAMGCLParameters.put("precond.coarsening.nullspace.cols",  nmodes);
+            mAMGCLParameters.put("precond.coarsening.nullspace.rows",  TSparseSpaceType::Size1(rA));
+            mAMGCLParameters.put("precond.coarsening.nullspace.B",     &B[0]);
+        } else if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
+            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong", 0.0);
+            mAMGCLParameters.put("precond.coarsening.aggr.block_size", mBlockSize);
         }
 
-        if(mVerbosity > 1)
+        if (mVerbosity > 2) {
             write_json(std::cout, mAMGCLParameters);
+        }
 
         if(mVerbosity == 4) {
             //output to matrix market
@@ -419,7 +392,7 @@ public:
                 std::ofstream coordsfile;
                 coordsfile.open ("coordinates.txt");
                 for(unsigned int i=0; i<mCoordinates.size(); i++) {
-                    coordsfile << mCoordinates[i][0] << " " << mCoordinates[i][1] << " " << mCoordinates[i][2] << std::endl;
+                    coordsfile << mCoordinates[i][0] << " " << mCoordinates[i][1] << " " << mCoordinates[i][2] << "\n";
                 }
                 coordsfile.close();
             }
@@ -435,7 +408,7 @@ public:
             if(mAMGCLParameters.get<std::string>("solver.type") == "gmres" ||
                 mAMGCLParameters.get<std::string>("solver.type") == "lgmres" ||
                 mAMGCLParameters.get<std::string>("solver.type") == "fgmres" )
-                    mAMGCLParameters.put("solver.M",  mGMRESSize);
+                mAMGCLParameters.put("solver.M",  mGMRESSize);
             else
                 mAMGCLParameters.erase("solver.M");
 
@@ -443,7 +416,7 @@ public:
                 KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA)%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
                     << TSparseSpaceType::Size1(rA) << std::endl;
             }
-            AMGCLSolve(mBlockSize, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
+            AMGCLSolve(static_block_size, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
         } //please do not remove this parenthesis!
 
         if(mFallbackToGMRES && resid > mTolerance ) {
@@ -455,8 +428,8 @@ public:
         KRATOS_WARNING_IF("AMGCL Linear Solver", mTolerance < resid)<<"Non converged linear solution. ["<< resid << " > "<< mTolerance << "]" << std::endl;
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1)
-                    << "Iterations: " << iters << std::endl
-                    << "Error: " << resid << std::endl << std::endl;
+            << "Iterations: " << iters << std::endl
+            << "Error: "      << resid << std::endl;
 
         // Setting values
         SetResidualNorm(resid);
@@ -491,7 +464,7 @@ public:
      * @brief This method returns the current iteration number
      * @return mIterationsNumber The current iteration number
      */
-    virtual IndexType GetIterationsNumber()
+    IndexType GetIterationsNumber() override
     {
         return mIterationsNumber;
     }
@@ -545,30 +518,69 @@ public:
         ) override
     {
         int old_ndof = -1;
-        unsigned int old_node_id = rDofSet.begin()->Id();
         int ndof=0;
-        for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
-            if(it->EquationId() < TSparseSpaceType::Size1(rA) ) {
-                IndexType id = it->Id();
-                if(id != old_node_id) {
-                    old_node_id = id;
-                    if(old_ndof == -1) old_ndof = ndof;
-                    else if(old_ndof != ndof) { //if it is different than the block size is 1
-                        old_ndof = -1;
-                        break;
-                    }
 
-                    ndof=1;
-                } else {
-                    ndof++;
+        if (!rModelPart.IsDistributed())
+        {
+            unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
+            for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
+                if(it->EquationId() < TSparseSpaceType::Size1(rA) ) {
+                    IndexType id = it->Id();
+                    if(id != old_node_id) {
+                        old_node_id = id;
+                        if(old_ndof == -1) old_ndof = ndof;
+                        else if(old_ndof != ndof) { //if it is different than the block size is 1
+                            old_ndof = -1;
+                            break;
+                        }
+
+                        ndof=1;
+                    } else {
+                        ndof++;
+                    }
                 }
             }
-        }
 
-        if(old_ndof == -1)
-            mBlockSize = 1;
-        else
-            mBlockSize = ndof;
+            if(old_ndof == -1)
+                mBlockSize = 1;
+            else
+                mBlockSize = ndof;
+
+        }
+        else //distribute
+        {
+            const std::size_t system_size = TSparseSpaceType::Size1(rA);
+            int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
+            unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
+            for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
+                if(it->EquationId() < system_size  && it->GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
+                    IndexType id = it->Id();
+                    if(id != old_node_id) {
+                        old_node_id = id;
+                        if(old_ndof == -1) old_ndof = ndof;
+                        else if(old_ndof != ndof) { //if it is different than the block size is 1
+                            old_ndof = -1;
+                            break;
+                        }
+
+                        ndof=1;
+                    } else {
+                        ndof++;
+                    }
+                }
+            }
+
+            if(old_ndof != -1)
+                mBlockSize = ndof;
+
+            int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
+
+            if( old_ndof == -1) {
+                mBlockSize = max_block_size;
+            }
+
+            KRATOS_ERROR_IF(mBlockSize != max_block_size) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << max_block_size << std::endl;
+        }
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 
@@ -604,7 +616,7 @@ public:
      */
     void  PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AMGCL solver finished.";
+        rOStream << "AMGCL solver:";
     }
 
     /**
@@ -612,6 +624,8 @@ public:
      */
     void  PrintData(std::ostream& rOStream) const override
     {
+        rOStream << "Settings: ";
+        write_json(rOStream, mAMGCLParameters);
     }
 
     ///@}
@@ -640,6 +654,24 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    // Helper function for checking if a selected option is available
+    // and printing the available options
+    void CheckIfSelectedOptionIsAvailable(
+        const Parameters ThisParameters,
+        const std::string& rOptionName,
+        const std::set<std::string>& rAvailableOptions)
+    {
+        if (rAvailableOptions.find(ThisParameters[rOptionName].GetString()) == rAvailableOptions.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed " << rOptionName << " : " << ThisParameters[rOptionName].GetString() << std::endl;
+            msg << "Admissible values are :";
+            for (const auto& r_name : rAvailableOptions) {
+                msg << std::endl << "    " << r_name;
+            }
+            KRATOS_ERROR << "AMGCL Linear Solver : " << rOptionName << " is invalid!" << std::endl << msg.str() << std::endl;
+        }
+    }
 
     ///@}
     ///@name Protected  Access
@@ -859,8 +891,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
-
-//#undef MPI_COMM_WORLD
 
 }  // namespace Kratos.
 

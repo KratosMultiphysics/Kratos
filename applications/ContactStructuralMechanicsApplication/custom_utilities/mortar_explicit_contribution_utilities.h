@@ -1,16 +1,16 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES)
-#define KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES
+#pragma once
 
 // System includes
 
@@ -103,7 +103,7 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
 
-    typedef typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type DerivativeDataType;
 
     static constexpr IndexType MatrixSize = (TFrictional == FrictionalCase::FRICTIONLESS) ? TDim * (TNumNodesMaster + TNumNodes) + TNumNodes : (TFrictional == FrictionalCase::FRICTIONLESS_COMPONENTS || TFrictional == FrictionalCase::FRICTIONAL) ? TDim * (TNumNodesMaster + TNumNodes + TNumNodes) :  TDim * (TNumNodesMaster + TNumNodes);
 
@@ -111,9 +111,9 @@ public:
 
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes,TNumNodesMaster>                               GeneralVariables;
 
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster> AeData;
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>                   AeData;
 
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster> MortarConditionMatrices;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>                   MortarConditionMatrices;
 
     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true, TNumNodesMaster>                                IntegrationUtility;
 
@@ -136,13 +136,127 @@ public:
      * @param IntegrationOrder The integration order of the utility
      * @param AxisymmetricCase If consider the axisymmetric coefficient
      * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
+     * @param rAreaVariable The nodal area variable
+     * @return The mortar operators
      */
-    static void AddExplicitContributionOfMortarCondition(
+    static MortarConditionMatrices AddExplicitContributionOfMortarCondition(
         PairedCondition* pCondition,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false,
-        const bool ComputeNodalArea = false
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true,
+        const Variable<double>& rAreaVariable = NODAL_AREA
+        );
+    /**
+     * @brief This method computes the explicit contributions of the mortar contact conditions
+     * @details This method is created in order to avoid duplicated code
+     * @param pCondition The condition pointer to compute the explicit contribution
+     * @param rCurrentProcessInfo The current instance process info
+     * @param rPreviousMortarOperators The previous mortar operators
+     * @param IntegrationOrder The integration order of the utility
+     * @param AxisymmetricCase If consider the axisymmetric coefficient
+     * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
+     * @param rAreaVariable The nodal area variable
+     * @param ConsiderObjetiveFormulation If the objetive formulation is considered always
+     * @return The mortar operators
+     */
+    static MortarConditionMatrices AddExplicitContributionOfMortarFrictionalCondition(
+        PairedCondition* pCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        const MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+        const IndexType IntegrationOrder = 2,
+        const bool AxisymmetricCase = false,
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true,
+        const Variable<double>& rAreaVariable = NODAL_AREA,
+        const bool ConsiderObjetiveFormulation = false
+        );
+
+    /**
+     * @brief Calculate the operator Ae for the dual LM, without taking into account derivatives
+     * @details This can be used in the mortar conditions
+     * @param rSlaveGeometry The geometry of the slave side
+     * @param rVariables Container of the jacobians, shape functions, etc...
+     * @param rConditionsPointsSlave Container of the jacobians, shape functions, etc...
+     * @param rAe The dual LM operator
+     * @param rIntegrationMethod The integration method considered
+     * @param AxiSymCoeff The coefficient of axisymmetry
+     */
+    static bool ExplicitCalculateAe(
+        const GeometryType& rSlaveGeometry,
+        GeneralVariables& rVariables,
+        const ConditionArrayListType& rConditionsPointsSlave,
+        BoundedMatrix<double, TNumNodes, TNumNodes>& rAe,
+        const IntegrationMethod& rIntegrationMethod,
+        const double AxiSymCoeff = 1.0
+        );
+
+    /**
+     * @brief Calculate condition kinematics (shape functions, jacobians, ...), without taking into account derivatives
+     * @details This can be used in the mortar conditions
+     * @param pCondition The pointer to the condition
+     * @param rVariables Container of the jacobians, shape functions, etc...
+     * @param rAe The dual LM operator
+     * @param rNormalMaster The normal of the master side
+     * @param rLocalPointDecomp The local points of the decomposed geometries using the mortar segmentation
+     * @param rLocalPointParent The local points of the parent geometry
+     * @param rGeometryDecomp The geometry decomposed
+     * @param DualLM If the dual LM is considered or not
+     */
+    static void ExplicitCalculateKinematics(
+        const PairedCondition* pCondition,
+        GeneralVariables& rVariables,
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rAe,
+        const array_1d<double, 3>& rNormalMaster,
+        const PointType& rLocalPointDecomp,
+        const PointType& rLocalPointParent,
+        const GeometryPointType& rGeometryDecomp,
+        const bool DualLM = true
+        );
+
+    /**
+     * @brief This method computes the nodal area
+     * @details This method is created in order to avoid duplicated code
+     * @param pCondition The condition pointer to compute the explicit contribution
+     * @param rCurrentProcessInfo The current instance process info
+     * @param rAreaVariable The nodal area variable
+     * @param IntegrationOrder The integration order of the utility
+     * @param AxisymmetricCase If consider the axisymmetric coefficient
+     * @return True is dual LM, false otherwise
+     */
+    static void ComputeNodalArea(
+        PairedCondition* pCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        const Variable<double>& rAreaVariable = NODAL_AREA,
+        const IndexType IntegrationOrder = 2,
+        const bool AxisymmetricCase = false
+        );
+
+    /**
+     * @brief This method computes the previous mortar operators
+     * @details This method is created in order to avoid duplicated code
+     * @param pCondition The condition pointer to compute the explicit contribution
+     * @param rCurrentProcessInfo The current instance process info
+     * @param rPreviousMortarOperators The previous mortar operators
+     * @param IntegrationOrder The integration order of the utility
+     * @param AxisymmetricCase If consider the axisymmetric coefficient
+     * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
+     * @param rAreaVariable The nodal area variable
+     * @return True is dual LM, false otherwise
+     */
+    static bool ComputePreviousMortarOperators(
+        PairedCondition* pCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+        const IndexType IntegrationOrder = 2,
+        const bool AxisymmetricCase = false,
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true,
+        const Variable<double>& rAreaVariable = NODAL_AREA
         );
 
     /**
@@ -158,13 +272,13 @@ public:
      * @param DualLM If the dual LM is considered or not
      */
     static void CalculateKinematics(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         GeneralVariables& rVariables,
         const DerivativeDataType& rDerivativeData,
         const array_1d<double, 3>& rNormalMaster,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
-        GeometryPointType& rGeometryDecomp,
+        const GeometryPointType& rGeometryDecomp,
         const bool DualLM = true
         );
 
@@ -176,7 +290,7 @@ public:
      * @param rLocalPoint The current local point
      */
     static void MasterShapeFunctionValue(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         GeneralVariables& rVariables,
         const array_1d<double, 3>& rNormalMaster,
         const PointType& rLocalPoint
@@ -184,7 +298,7 @@ public:
 
 }; // class MortarExplicitContributionUtilities
 
-namespace AuxiliarOperationsUtilities
+namespace AuxiliaryOperationsUtilities
 {
     /**
      * @brief This functions computes the integration weight to consider
@@ -192,7 +306,7 @@ namespace AuxiliarOperationsUtilities
      * @param rNSlave The shape functions of the slave side
      */
     double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) GetAxisymmetricCoefficient(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         const Vector& rNSlave
         );
 
@@ -203,10 +317,9 @@ namespace AuxiliarOperationsUtilities
      * @return Radius: The radius of axisymmetry
      */
     double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CalculateRadius(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         const Vector& rNSlave
         );
 }
 
 }  // namespace Kratos
-#endif /* KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES defined */

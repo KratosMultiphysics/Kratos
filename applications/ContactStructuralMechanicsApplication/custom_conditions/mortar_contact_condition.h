@@ -1,16 +1,16 @@
-// KRATOS  ___|  |       |       |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//           | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License: BSD License
-//   license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_CONTACT_CONDITION_H_INCLUDED )
-#define  KRATOS_MORTAR_CONTACT_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -27,7 +27,7 @@
 /* Utilities */
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/derivatives_utilities.h"
-#include "custom_utilities/logging_settings.hpp"
+// #include "custom_utilities/logging_settings.hpp"
 
 /* Geometries */
 #include "geometries/line_2d_2.h"
@@ -81,7 +81,7 @@ public:
     ///@{
 
     /// Counted pointer of MortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MortarContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MortarContactCondition );
 
     /// Base class definitions
     typedef PairedCondition                                                               BaseType;
@@ -134,7 +134,7 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
 
-    typedef typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type DerivativeDataType;
 
     static constexpr IndexType MatrixSize = (TFrictional == FrictionalCase::FRICTIONLESS) ? TDim * (TNumNodesMaster + TNumNodes) + TNumNodes : (TFrictional == FrictionalCase::FRICTIONLESS_COMPONENTS || TFrictional == FrictionalCase::FRICTIONAL) ? TDim * (TNumNodesMaster + TNumNodes + TNumNodes) :  TDim * (TNumNodesMaster + TNumNodes);
 
@@ -142,9 +142,9 @@ public:
 
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes,TNumNodesMaster>                               GeneralVariables;
 
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster> AeData;
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>                   AeData;
 
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster> MortarConditionMatrices;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>                   MortarConditionMatrices;
 
     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true, TNumNodesMaster>                                IntegrationUtility;
 
@@ -156,16 +156,14 @@ public:
 
     /// Default constructor
     MortarContactCondition()
-        : PairedCondition(),
-          mIntegrationOrder(2)
+        : PairedCondition()
     {}
 
     // Constructor 1
     MortarContactCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
-        ) :PairedCondition(NewId, pGeometry),
-           mIntegrationOrder(2)
+        ) :PairedCondition(NewId, pGeometry)
     {}
 
     // Constructor 2
@@ -173,8 +171,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
-        ) :PairedCondition( NewId, pGeometry, pProperties ),
-           mIntegrationOrder(2)
+        ) :PairedCondition( NewId, pGeometry, pProperties )
     {}
 
     // Constructor 3
@@ -184,8 +181,7 @@ public:
         PropertiesType::Pointer pProperties,
         GeometryType::Pointer pMasterGeometry
         )
-        :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry),
-         mIntegrationOrder(2)
+        :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry)
     {}
 
     ///Copy constructor
@@ -205,32 +201,33 @@ public:
 
    /**
     * @brief Called at the beginning of each solution step
+    * @param rCurrentProcessInfo the current process info instance
     */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * @brief Called at the beginning of each solution step
     * @param rCurrentProcessInfo the current process info instance
     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * @brief Called at the beginning of each iteration
     * @param rCurrentProcessInfo the current process info instance
     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief Called at the ending of each solution step
     * @param rCurrentProcessInfo the current process info instance
     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * @brief Called at the end of each iteration
     * @param rCurrentProcessInfo the current process info instance
     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief This method computes the mass matrix
@@ -239,7 +236,7 @@ public:
     */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -249,7 +246,7 @@ public:
      */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -294,21 +291,15 @@ public:
         ) const override;
 
     /**
-     * @brief This is called during the assembling process in order
-     * to calculate the condition contribution in explicit calculation.
-     * NodalData is modified Inside the function, so the
-     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION
-     * IS ALLOWED TO WRITE ON ITS NODES.
-     * the caller is expected to ensure thread safety hence
-     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @brief This is called during the assembling process in order to calculate the condition contribution in explicit calculation.
+     * @details NodalData is modified Inside the function, so the the "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rCurrentProcessInfo the current process info instance
      */
-    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
-     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
-     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rRHSVector input variable containing the RHS vector to be assembled
      * @param rRHSVariable variable describing the type of the RHS vector to be assembled
      * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
@@ -317,7 +308,7 @@ public:
     void AddExplicitContribution(
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<double >& rDestinationVariable,
+        const Variable<double >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -332,7 +323,7 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const Variable<array_1d<double, 3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -347,8 +338,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on ConditionalDofList the degrees of freedom of the considered element geometry
@@ -357,44 +348,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Get on rVariable a double Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rValues The values of interest (doubles)
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Get on rVariable a array_1d Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rValues The values of interest (array_1d)
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Get on rVariable a Vector Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rValues The values of interest (vector)
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
     /**
      * @brief Calculate a double Variable
@@ -439,7 +394,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process information
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -471,7 +426,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -488,10 +443,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    IntegrationMethod mThisIntegrationMethod; /// Integration order of the element
-
-    IndexType mIntegrationOrder;              /// The integration order to consider
 
     ///@}
     ///@name Protected Operators
@@ -516,7 +467,7 @@ protected:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -527,7 +478,7 @@ protected:
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -538,7 +489,7 @@ protected:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -595,7 +546,7 @@ protected:
      * @param CurrentGeometry The geometry containing the nodes that are needed to be checked as active or inactive
      * @return The integer that can be used to identify the case to compute
      */
-    virtual IndexType GetActiveInactiveValue(GeometryType& CurrentGeometry) const
+    virtual IndexType GetActiveInactiveValue(const GeometryType& CurrentGeometry) const
     {
         KRATOS_ERROR << "You are calling to the base class method GetActiveInactiveValue, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
 
@@ -615,22 +566,23 @@ protected:
     /**
      * @brief It returns theintegration method considered
      */
-    IntegrationMethod GetIntegrationMethod() override
+    IntegrationMethod GetIntegrationMethod() const override
     {
-        // Setting the auxiliar integration points
-        switch (mIntegrationOrder) {
+        // Setting the auxiliary integration points
+        const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+        switch (integration_order) {
         case 1:
-            return GeometryData::GI_GAUSS_1;
+            return GeometryData::IntegrationMethod::GI_GAUSS_1;
         case 2:
-            return GeometryData::GI_GAUSS_2;
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
         case 3:
-            return GeometryData::GI_GAUSS_3;
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
         case 4:
-            return GeometryData::GI_GAUSS_4;
+            return GeometryData::IntegrationMethod::GI_GAUSS_4;
         case 5:
-            return GeometryData::GI_GAUSS_5;
+            return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            return GeometryData::GI_GAUSS_2;
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
     }
 
@@ -718,13 +670,11 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.save("IntegrationOrder", mIntegrationOrder);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.load("IntegrationOrder", mIntegrationOrder);
     }
 
     ///@}
@@ -743,5 +693,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_MORTAR_CONTACT_CONDITION_H_INCLUDED  defined

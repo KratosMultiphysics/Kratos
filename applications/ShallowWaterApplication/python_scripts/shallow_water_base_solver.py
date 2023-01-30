@@ -1,23 +1,17 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 from KratosMultiphysics.python_solver import PythonSolver
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 # Import applications
-import KratosMultiphysics.ShallowWaterApplication as Shallow
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 def CreateSolver(model, custom_settings):
     return ShallowWaterBaseSolver(model, custom_settings)
 
 class ShallowWaterBaseSolver(PythonSolver):
-    def __init__(self, model, custom_settings):  # Constructor of the class
-        settings = self._ValidateSettings(custom_settings)
-
-        super(ShallowWaterBaseSolver, self).__init__(model, settings)
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
+    def __init__(self, model, settings):
+        super().__init__(model, settings)
 
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
@@ -27,39 +21,58 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
+        self.main_model_part = self.model.CreateModelPart(model_part_name)
 
-        if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
+        self._SetProcessInfo()
 
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
-
-        domain_size = self.settings["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-        ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+    @classmethod
+    def GetDefaultParameters(cls):
+        default_settings = KM.Parameters("""
+        {
+            "solver_type"              : "shallow_water_base_solver",
+            "model_part_name"          : "main_model_part",
+            "domain_size"              : 2,
+            "gravity"                  : 9.81,
+            "density"                  : 1000,
+            "model_import_settings"    : {
+                "input_type"               : "use_input_model_part"
+            },
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
+            "echo_level"               : 0,
+            "convergence_criterion"    : "displacement",
+            "relative_tolerance"       : 1e-6,
+            "absolute_tolerance"       : 1e-9,
+            "maximum_iterations"       : 20,
+            "compute_reactions"        : false,
+            "reform_dofs_at_each_step" : false,
+            "move_mesh_flag"           : false,
+            "integrate_by_parts"       : false,
+            "linear_solver_settings"   : {
+                "solver_type"              : "amgcl"
+            },
+            "time_stepping"            : {
+                "automatic_time_step"      : false,
+                "time_step"                : 0.01
+            }
+        }""")
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
 
     def AddVariables(self):
-        # Primitive variables
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.HEIGHT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        # Physic problem parameters
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.FREE_SURFACE_ELEVATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.BATHYMETRY)
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.MANNING)
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.RAIN)
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY_GRADIENT)
-        # Auxiliary variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.HEIGHT)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.FREE_SURFACE_ELEVATION)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.BATHYMETRY)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -69,44 +82,20 @@ class ShallowWaterBaseSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        # Defining the variables
-        gravity = self.settings["gravity"].GetDouble()
-        time_scale = self.settings["time_scale"].GetString()
-        water_height_scale = self.settings["water_height_scale"].GetString()
+        if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
+            # Import material properties
+            materials_imported = self._ImportMaterials()
+            if materials_imported:
+                KM.Logger.PrintInfo(self.__class__.__name__, "Materials were successfully imported.")
+            else:
+                KM.Logger.PrintInfo(self.__class__.__name__, "Materials were not imported.")
 
-        # Time unit converter
-        if   time_scale == "seconds":
-            time_unit_converter =     1
-        elif time_scale == "minutes":
-            time_unit_converter =    60
-        elif time_scale == "hours":
-            time_unit_converter =  3600
-        elif time_scale == "days":
-            time_unit_converter = 86400
-        else:
-            raise Exception("unknown time scale")
-
-        # Water height unit converter
-        if   water_height_scale == "meters":
-            water_height_unit_converter = 1.0
-        elif water_height_scale == "millimeters":
-            water_height_unit_converter = 0.001
-        else:
-            raise Exception("unknown water height scale")
-
-        # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, gravity * time_unit_converter**2)
-        self.main_model_part.ProcessInfo.SetValue(Shallow.TIME_UNIT_CONVERTER, time_unit_converter)
-        self.main_model_part.ProcessInfo.SetValue(Shallow.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
-
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
-            ## Executes the check and prepare model process (Create computing_model_part)
+            ## Execute the check and prepare model process
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
-            self.main_model_part.SetBufferSize(self.min_buffer_size)
+            self.main_model_part.SetBufferSize(self.GetMinimumBufferSize())
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -115,190 +104,191 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.main_model_part
 
     def Initialize(self):
-        self.computing_model_part = self.GetComputingModelPart()
-
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            raise Exception("Estimation Dt utility not yet implemented")
-
-        # Initialize shallow water variables utility
-        self.ShallowVariableUtils = Shallow.ShallowWaterVariablesUtility(self.main_model_part, self.settings["dry_height"].GetDouble())
-
-        # Creating the solution strategy for the mesh stage
-        self.conv_criteria = KratosMultiphysics.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
-                                                                     self.settings["absolute_tolerance"].GetDouble())
-        (self.conv_criteria).SetEchoLevel(self.echo_level)
-
-        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        # domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        # self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
-        #                                                                                      domain_size+1) # BlockSize
-
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
-                                                                            self.time_scheme,
-                                                                            self.linear_solver,
-                                                                            self.conv_criteria,
-                                                                            builder_and_solver,
-                                                                            self.settings["maximum_iterations"].GetInt(),
-                                                                            self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            self.settings["move_mesh_flag"].GetBool())
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-
-        (self.solver).SetEchoLevel(max(0, self.echo_level-1))
-        (self.solver).Check()
-
-        (self.solver).Initialize()
-
-        KratosMultiphysics.Logger.PrintInfo("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
+        self._GetSolutionStrategy().Initialize()
+        KM.Logger.PrintInfo(self.__class__.__name__, "Initialization finished")
 
     def AdvanceInTime(self, current_time):
-        dt = self._ComputeDeltaTime()
-        new_time = current_time + dt
-
-        self.main_model_part.CloneTimeStep(new_time)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-
-        return new_time
+        current_time += self._GetEstimateDeltaTimeUtility().Execute()
+        self.main_model_part.CloneTimeStep(current_time)
+        self.main_model_part.ProcessInfo[KM.STEP] += 1
+        return current_time
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.solver.InitializeSolutionStep()
+            self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
         if self._TimeBufferIsInitialized():
-            self.solver.Predict()
+            self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            is_converged = self.solver.SolveSolutionStep()
+            is_converged = self._GetSolutionStrategy().SolveSolutionStep()
+            if not is_converged:
+                KM.Logger.PrintInfo(self.__class__.__name__, "The solver did not converge")
             return is_converged
+        else:
+            return True
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.solver.FinalizeSolutionStep()
+            self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def Check(self):
-        self.solver.Check()
+        self._GetSolutionStrategy().Check()
 
     def Clear(self):
-        self.solver.Clear()
+        self._GetSolutionStrategy().Clear()
 
     #### Specific internal functions ####
 
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
-
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
+        return self.main_model_part.ProcessInfo[KM.STEP] + 1 >= self.GetMinimumBufferSize()
 
-    def _ComputeDeltaTime(self):
-        # Automatic time step computation according to user defined CFL number
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
-        # User-defined delta time
+    def _GetEstimateDeltaTimeUtility(self):
+        if not hasattr(self, '_delta_time_utility'):
+            self._delta_time_utility = self._CreateEstimateDeltaTimeUtility()
+        return self._delta_time_utility
+
+    def _CreateEstimateDeltaTimeUtility(self):
+        # The c++ utility manages all the time step settings
+        return SW.EstimateTimeStepUtility(self.GetComputingModelPart(), self.settings["time_stepping"])
+
+    def _SetProcessInfo(self):
+        self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
+        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.settings["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, self.settings["integrate_by_parts"].GetBool())
+
+    def _ImportMaterials(self):
+        # Add the properties from json file to model parts.
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            material_settings = KM.Parameters("""{"Parameters": {} }""")
+            material_settings["Parameters"].AddString("materials_filename", materials_filename)
+            KM.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
         else:
-            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
-
-        # Move particles utility needs to read delta_time
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
-
-        return delta_time
-
-    def _ValidateSettings(self, settings):
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type"              : "shallow_water_base_solver",
-            "model_part_name"          : "main_model_part",
-            "domain_size"              : 2,
-            "gravity"                  : 9.81,
-            "time_scale"               : "seconds",
-            "water_height_scale"       : "meters",
-            "model_import_settings"    : {
-                "input_type"               : "mdpa",
-                "input_filename"           : "unknown_name"
-            },
-            "echo_level"               : 0,
-            "buffer_size"              : 2,
-            "dynamic_tau"              : 0.005,
-            "dry_height"               : 0.01,
-            "relative_tolerance"       : 1e-6,
-            "absolute_tolerance"       : 1e-9,
-            "maximum_iterations"       : 20,
-            "compute_reactions"        : false,
-            "reform_dofs_at_each_step" : false,
-            "calculate_norm_dx"        : true,
-            "move_mesh_flag"           : false,
-            "volume_model_part_name"   : "volume_model_part",
-            "skin_parts"               : [""],
-            "no_skin_parts"            : [""],
-            "linear_solver_settings"   : {
-                "solver_type"              : "AMGCL",
-                "smoother_type"            : "ilu0",
-                "krylov_type"              : "gmres",
-                "coarsening_type"          : "aggregation",
-                "max_iteration"            : 100,
-                "tolerance"                : 1.0e-6,
-                "scaling"                  : false
-            },
-            "time_stepping"            : {
-                "automatic_time_step"      : false,
-                "time_step"                : 0.01
-            },
-            "multigrid_settings"   : {}
-        }""")
-
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+            materials_imported = False
+        return materials_imported
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
-        elem_num_nodes = self._GetElementNumNodes()
-        cond_num_nodes = self._GetConditionNumNodes()
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        elem_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Elements)
+        cond_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Conditions)
+        domain_size = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
-        ## Complete the element name
-        if (self.element_name is not None):
-            new_elem_name = self.element_name + str(int(domain_size)) + "D" + str(int(elem_num_nodes)) + "N"
-        else:
-            raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
-
-        ## Complete the condition name
-        if (self.condition_name is not None):
-            new_cond_name = self.condition_name + str(int(domain_size)) + "D" + str(int(cond_num_nodes)) + "N"
-        else:
-            raise Exception("There is no condition name. Define the self.condition_name string variable in your derived solver.")
+        ## Get the full names
+        new_elem_name = self.__append_geometry_name(self.element_name, domain_size, elem_num_nodes)
+        new_cond_name = self.__append_geometry_name(self.condition_name, domain_size, cond_num_nodes)
 
         ## Set the element and condition names in the Json parameters
-        self.settings.AddValue("element_replace_settings", KratosMultiphysics.Parameters("""{}"""))
+        self.settings.AddValue("element_replace_settings", KM.Parameters("""{}"""))
         self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(new_elem_name)
         self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(new_cond_name)
 
         ## Call the replace elements and conditions process
-        KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-
-    def _GetElementNumNodes(self):
-        if self.main_model_part.NumberOfElements() != 0:
-            element_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes()) # python3 syntax
-        else:
-            element_num_nodes = 0
-
-        element_num_nodes = self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
-        return element_num_nodes
-
-    def _GetConditionNumNodes(self):
-        if self.main_model_part.NumberOfConditions() != 0:
-                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
-        else:
-            condition_num_nodes = 0
-
-        condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
-        return condition_num_nodes
+        KM.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
     def _ExecuteCheckAndPrepare(self):
-        pass
+        #verify the orientation of the skin in case of triangles mesh
+        elem_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Elements)
+        if elem_num_nodes == 3:
+            mesh_orientation = KM.TetrahedralMeshOrientationCheck
+            throw_errors = False
+            flags  = mesh_orientation.COMPUTE_NODAL_NORMALS.AsFalse()
+            flags |= mesh_orientation.COMPUTE_CONDITION_NORMALS.AsFalse()
+            flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), throw_errors, flags).Execute()
+        else:
+            KM.Logger.PrintWarning(self.__class__.__name__, "Orientation check not performed for quadrilateral or higher order geometries.")
+
+    def __get_geometry_num_nodes(self, container):
+        if len(container) != 0:
+            geometry_num_nodes = len(container.__iter__().__next__().GetNodes())
+        else:
+            geometry_num_nodes = 0
+        geometry_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(geometry_num_nodes)
+        return geometry_num_nodes
+
+    @staticmethod
+    def __append_geometry_name(base_name, domain_size, num_nodes):
+        if (base_name is not None):
+            return base_name + str(int(domain_size)) + "D" + str(int(num_nodes)) + "N"
+        else:
+            raise Exception("There is no element/condition name. Define the string variables in your derived solver.")
+
+    def _GetLinearSolver(self):
+        if not hasattr(self, '_linear_solver'):
+            self._linear_solver = self._CreateLinearSolver()
+        return self._linear_solver
+
+    def _GetBuilderAndSolver(self):
+        if not hasattr(self, '_builder_and_solver'):
+            self._builder_and_solver = self._CreateBuilderAndSolver()
+        return self._builder_and_solver
+
+    def _GetConvergenceCriterion(self):
+        if not hasattr(self, '_convergence_criterion'):
+            self._convergence_criterion = self._CreateConvergenceCriterion()
+        return self._convergence_criterion
+
+    def _GetScheme(self):
+        if not hasattr(self, '_scheme'):
+            self._scheme = self._CreateScheme()
+        return self._scheme
+
+    def _GetSolutionStrategy(self):
+        if not hasattr(self, '_solution_strategy'):
+            self._solution_strategy = self._CreateSolutionStrategy()
+        return self._solution_strategy
+
+    def _CreateLinearSolver(self):
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        return builder_and_solver
+
+    def _CreateConvergenceCriterion(self):
+        convergence_criterion_type = self.settings["convergence_criterion"].GetString()
+        if convergence_criterion_type == "displacement":
+            convergence_criterion = KM.DisplacementCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        elif convergence_criterion_type == "residual":
+            convergence_criterion = KM.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        else:
+            msg = "The displacement criterion specified is '{}'\n".format(convergence_criterion_type)
+            msg += "The following options are available:\n"
+            msg += "    - 'displacement'"
+            msg += "    - 'residual'"
+            raise Exception(msg)
+        convergence_criterion.SetEchoLevel(self.echo_level)
+        return convergence_criterion
+
+    def _CreateScheme(self):
+        time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
+        return time_scheme
+
+    def _CreateSolutionStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        scheme = self._GetScheme()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
+        strategy = KM.ResidualBasedNewtonRaphsonStrategy(
+            computing_model_part,
+            scheme,
+            convergence_criterion,
+            builder_and_solver,
+            self.settings["maximum_iterations"].GetInt(),
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            self.settings["move_mesh_flag"].GetBool())
+        strategy.SetEchoLevel(max(0, self.echo_level-1))
+        return strategy

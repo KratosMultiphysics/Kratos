@@ -1,15 +1,14 @@
-from __future__ import print_function
-import os,subprocess,sys
+import os
+import subprocess
+import sys
 import multiprocessing as mp
-if sys.version_info >= (3, 0):
-    import queue
-else:
-    import Queue as queue
+import queue
 from threading import Thread
 import threading
 from glob import glob
 import shutil
 import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics.testing.utilities import GetPython3Command
 
 
 kratos_benchmarking_path = os.path.join('..','..','..','benchmarking')
@@ -33,68 +32,66 @@ os.environ['OMP_NUM_THREADS']='1'
 os.system("echo Benchmarks will be running on $OMP_NUM_THREADS cpu")
 
 Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two identical spheres\n",
-                  "Running DEM Benchmark 2.... Elastic normal impact of a sphere against a rigid plane\n",
-                  "Running DEM Benchmark 3.... Impact of a sphere against a rigid plane with different coefficients of restitution\n",
-                  "Running DEM Benchmark 4.... Oblique impact of a sphere with a rigid plane with constant velocity module and variable incident angles\n",
-                  "Running DEM Benchmark 5.... Oblique impact of a sphere with a rigid plane with constant normal velocity and different tangential velocities\n",
-                  "Running DEM Benchmark 6.... Impact of a sphere with a rigid plane with a constant normal velocity and variable angular velocities\n",
-                  "Running DEM Benchmark 7.... Impact of two identical spheres with a constant normal velocity and different angular velocities\n",
-                  "Running DEM Benchmark 8.... Impact of two differently sized spheres with a constant normal velocity and variable angular velocities\n",
-                  "Running DEM Benchmark 9.... Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n",
-                  "Running DEM Benchmark 10... Linear: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
-                  "Running DEM Benchmark 11... Hertzian: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
-                  "Running DEM Benchmark 12... Sphere rotating over a plane surface with Rolling Friction\n",
-                  "Running DEM Benchmark 13... Impact of a low stiffness sphere against a rigid plane divided in small triangular elements\n",
-                  "Running DEM Benchmark 14... Impact of a low stiffness sphere against a rigid edge divided in small triangular elements\n",
-                  "Running DEM Benchmark 15... Impact of a low stiffness sphere against a rigid vertex divided in small triangular elements\n",
-                  "Running DEM Benchmark 16... Spheres contacting multiple entities (facets, edges and vertices)\n",
-                  "Running DEM Benchmark 17... Sphere sliding on a plane (discretized with triangles and quadrilaterals) with friction\n",
-                  "","",
-                  "Running DEM Benchmark 20... Normal compression of two identical spheres\n",\
-                  "Running DEM Benchmark 21... Normal compression of two identical indented spheres\n",\
-                  "Running DEM Benchmark 22... Tensile test of two identical spheres\n",\
-                  "Running DEM Benchmark 23... Tensile test of two identical indented spheres\n",\
-                  "Running DEM Benchmark 24... Shear test of two identical spheres by applying rotation\n",\
-                  "Running DEM Benchmark 25... Shear test of two identical spheres by applying rotation and radius expansion\n",\
-                  "","","","",
-                  "Running DEM Benchmark 30... Cylinder cluster with imposed angular velocity in two axis (Velocity Verlet + Zhao scheme)\n",
-                  "Running DEM Benchmark 31... Cylinder cluster with imposed angular velocity in two axis (Symplectic Euler + Runge-Kutta scheme)\n",
-                  "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n",
-                  "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n",
-                  "","","","","","",
-                  "Running DEM Benchmark 40... Generic test for code functionalities verification\n"]
+                    "Running DEM Benchmark 2.... Elastic normal impact of a sphere against a rigid plane\n",
+                    "Running DEM Benchmark 3.... Impact of a sphere against a rigid plane with different coefficients of restitution\n",
+                    "Running DEM Benchmark 4.... Oblique impact of a sphere with a rigid plane with constant velocity module and variable incident angles\n",
+                    "Running DEM Benchmark 5.... Oblique impact of a sphere with a rigid plane with constant normal velocity and different tangential velocities\n",
+                    "Running DEM Benchmark 6.... Impact of a sphere with a rigid plane with a constant normal velocity and variable angular velocities\n",
+                    "Running DEM Benchmark 7.... Impact of two identical spheres with a constant normal velocity and different angular velocities\n",
+                    "Running DEM Benchmark 8.... Impact of two differently sized spheres with a constant normal velocity and variable angular velocities\n",
+                    "Running DEM Benchmark 9.... Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n",
+                    "Running DEM Benchmark 10... Linear: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
+                    "Running DEM Benchmark 11... Hertzian: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
+                    "Running DEM Benchmark 12... Sphere rotating over a plane surface with Rolling Friction\n",
+                    "Running DEM Benchmark 13... Impact of a low stiffness sphere against a rigid plane divided in small triangular elements\n",
+                    "Running DEM Benchmark 14... Impact of a low stiffness sphere against a rigid edge divided in small triangular elements\n",
+                    "Running DEM Benchmark 15... Impact of a low stiffness sphere against a rigid vertex divided in small triangular elements\n",
+                    "Running DEM Benchmark 16... Spheres contacting multiple entities (facets, edges and vertices)\n",
+                    "Running DEM Benchmark 17... Sphere sliding on a plane (discretized with triangles and quadrilaterals) with friction\n",
+                    "","",
+                    "Running DEM Benchmark 20... Normal compression of two identical spheres\n",\
+                    "Running DEM Benchmark 21... Normal compression of two identical indented spheres\n",\
+                    "Running DEM Benchmark 22... Tensile test of two identical spheres\n",\
+                    "Running DEM Benchmark 23... Tensile test of two identical indented spheres\n",\
+                    "Running DEM Benchmark 24... Shear test of two identical spheres by applying rotation\n",\
+                    "Running DEM Benchmark 25... Shear test of two identical spheres by applying rotation and radius expansion\n",\
+                    "","","","",
+                    "Running DEM Benchmark 30... Cylinder cluster with imposed angular velocity in two axis (Velocity Verlet + Zhao scheme)\n",
+                    "Running DEM Benchmark 31... Cylinder cluster with imposed angular velocity in two axis (Symplectic Euler + Runge-Kutta scheme)\n",
+                    "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n",
+                    "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n",
+                    "","","","","","",
+                    "Running DEM Benchmark 40... Generic test for code functionalities verification\n"]
 
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def run(benchmark):
-    out_file_name = '{0}.info'.format(benchmark)
-    f = open(out_file_name, 'wb')
-
-    path_to_callable_script = os.path.join(path,"DEM_benchmarks_analysis.py")
-
-    if sys.version_info >= (3, 0):
-        subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
-    else:
-        subprocess.check_call(["python", "-3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
-
-    f.close()
-
-    file_to_remove = out_file_name
-    kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+def run(benchmark, file_for_output):
+    path_to_callable_script = os.path.join(path, "DEM_benchmarks_analysis.py")
+    py_cmd = GetPython3Command()
+    subprocess.check_call([py_cmd, path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
 
 def worker(queue):
-    """Process files from the queue."""
+
     for benchmark in iter(queue.get, None):
+        out_file_name = '{0}.info'.format(benchmark)
+        f = open(out_file_name, 'wb')
+        print(Benchmark_text[benchmark - 1])
+
         try:
-            print(Benchmark_text[benchmark - 1])
-            run(benchmark)
+            run(benchmark, f)
         except Exception:# catch exceptions to avoid exiting the thread prematurely
+            with open(out_file_name, 'r') as fin:
+                print(fin.read())
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
+
+        f.close()
+        file_to_remove = out_file_name
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
 
 def main():
     try:
@@ -203,7 +200,7 @@ def delete_archives():
         except OSError:
             pass
 
-    folders_to_delete_list      = glob('*Data')
+    folders_to_delete_list = []
     folders_to_delete_list.extend(glob('*ists'))
     folders_to_delete_list.extend(glob('*ults'))
     folders_to_delete_list.extend(glob('*he__'))

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_HEXAHEDRA_3D_27_H_INCLUDED )
-#define  KRATOS_HEXAHEDRA_3D_27_H_INCLUDED
+#pragma once 
 
 // System includes
 
@@ -23,8 +22,8 @@
 
 // Project includes
 #include "geometries/quadrilateral_3d_9.h"
+#include "utilities/integration_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
-
 
 namespace Kratos
 {
@@ -33,14 +32,14 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A twenty-seven node hexahedra geometry with second order shape functions
  * @details The node ordering corresponds with:
- *      3----10----2   
+ *      3----10----2
  *      |\         |\
  *      |15    23  | 14
- *      9  \ 20   11  \
+ *      11  \ 20   9  \
  *      |   7----18+---6
- *      |22 |  26  | 24|
+ *      |24 |  26  | 22|
  *      0---+-8----1   |
- *       \ 17    25 \  19
+ *       \ 19    25 \  17
  *       12 |  21    13|
  *         \|         \|
  *          4----16----5
@@ -284,6 +283,24 @@ public:
             KRATOS_ERROR << "Invalid points number. Expected 27, given " << this->PointsNumber() << std::endl;
     }
 
+    /// Constructor with Geometry Id
+    explicit Hexahedra3D27(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( GeometryId, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 27 ) << "Invalid points number. Expected 27, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Hexahedra3D27(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( rGeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 27) << "Invalid points number. Expected 27, given " << this->PointsNumber() << std::endl;
+    }
+
     /**
      * Copy constructor.
      * Construct this geometry as a copy of given geometry.
@@ -320,12 +337,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Hexahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Hexahedra3D27;
+        return GeometryData::KratosGeometryType::Kratos_Hexahedra3D27;
     }
 
     /**
@@ -373,26 +390,35 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        IndexType NewId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D27( ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D27( NewId, rThisPoints ) );
     }
 
-    //     Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D27< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Hexahedra3D27( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
     /**
      * Informations
@@ -439,27 +465,18 @@ public:
         return Volume();
     }
 
-
-
-    double Volume() const override  //Not a closed formula for a hexahedra
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    double Volume() const override
     {
-
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        //KRATOS_WATCH(temp)
-        return Volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
-
-
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -489,10 +506,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -510,94 +527,119 @@ public:
         return false;
     }
 
-    /**
-     * Jacobian
-     */
+    ///@}
+    ///@name Edge
+    ///@{
 
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     SizeType EdgesNumber() const override
     {
         return 12;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 6;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
         //0
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 8 ),
-                                              this->pGetPoint( 1 ) ) ) );
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 8 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 9 ),
-                                              this->pGetPoint( 2 ) ) ) );
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 9 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 10 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 10 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 11 ),
-                                              this->pGetPoint( 0 ) ) ) );
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 11 ) ) ) );
 
         //4
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 4 ),
-                                              this->pGetPoint( 16 ),
-                                              this->pGetPoint( 5 ) ) ) );
+                                              this->pGetPoint( 5 ),
+                                              this->pGetPoint( 16 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 5 ),
-                                              this->pGetPoint( 17 ),
-                                              this->pGetPoint( 6 ) ) ) );
+                                              this->pGetPoint( 6 ),
+                                              this->pGetPoint( 17 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 6 ),
-                                              this->pGetPoint( 18 ),
-                                              this->pGetPoint( 7 ) ) ) );
+                                              this->pGetPoint( 7 ),
+                                              this->pGetPoint( 18 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 7 ),
-                                              this->pGetPoint( 19 ),
-                                              this->pGetPoint( 4 ) ) ) );
+                                              this->pGetPoint( 4 ),
+                                              this->pGetPoint( 19 ) ) ) );
 
         //8
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 12 ),
-                                              this->pGetPoint( 4 ) ) ) );
+                                              this->pGetPoint( 4 ),
+                                              this->pGetPoint( 12 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 13 ),
-                                              this->pGetPoint( 5 ) ) ) );
+                                              this->pGetPoint( 5 ),
+                                              this->pGetPoint( 13 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 14 ),
-                                              this->pGetPoint( 6 ) ) ) );
+                                              this->pGetPoint( 6 ),
+                                              this->pGetPoint( 14 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 15 ),
-                                              this->pGetPoint( 7 ) ) ) );
+                                              this->pGetPoint( 7 ),
+                                              this->pGetPoint( 15 ) ) ) );
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 6;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -771,7 +813,7 @@ public:
     Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 27) rResult.resize(27,false);
-      
+
         double fx1 = 0.5 * ( rCoordinates[0] - 1.0 ) * ( rCoordinates[0] );
         double fx2 = 0.5 * ( rCoordinates[0] + 1.0 ) * ( rCoordinates[0] );
         double fx3 = 1.0 - ( rCoordinates[0] * rCoordinates[0] );
@@ -781,7 +823,7 @@ public:
         double fz1 = 0.5 * ( rCoordinates[2] - 1.0 ) * ( rCoordinates[2] );
         double fz2 = 0.5 * ( rCoordinates[2] + 1.0 ) * ( rCoordinates[2] );
         double fz3 = 1.0 - ( rCoordinates[2] * rCoordinates[2] );
-      
+
         rResult[0] = ( fx1*fy1*fz1 );
         rResult[1] = ( fx2*fy1*fz1 );
         rResult[2] = ( fx2*fy2*fz1 );
@@ -1061,23 +1103,13 @@ public:
         return( result );
     }
 
-
-protected:
-
-
-    /**
-     * there are no protected class members
-     */
-
 private:
-
-
-    /**
-     * Static Member Variables
-     */
+    ///@name Static Member Variables
+    ///@{
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1120,8 +1152,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1191,8 +1222,7 @@ private:
     {
         const IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        const IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1365,15 +1395,15 @@ private:
         {
             {
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1386,15 +1416,15 @@ private:
         {
             {
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
@@ -1440,12 +1470,15 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Hexahedra3D27<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_3,
+    &msGeometryDimension,
+    GeometryData::IntegrationMethod::GI_GAUSS_3,
     Hexahedra3D27<TPointType>::AllIntegrationPoints(),
     Hexahedra3D27<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
-}// namespace Kratos.
+template<class TPointType>
+const GeometryDimension Hexahedra3D27<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
-#endif // KRATOS_HEXAHEDRA_3D_27_H_INCLUDED  defined 
+}// namespace Kratos.

@@ -14,6 +14,7 @@
 // System includes
 
 // External includes
+#include "includes/define_python.h"
 #include "boost/numeric/ublas/vector.hpp"
 
 // Project includes
@@ -36,22 +37,20 @@ void AddCustomStrategiesToPython(pybind11::module& m) {
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
-    typedef LaplacianMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LaplacianMeshMovingStrategyType;
-    typedef StructuralMeshMovingStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > StructuralMeshMovingStrategyType;
+    typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
 
     py::class_<LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
         LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
         BaseSolvingStrategyType>(m,"LaplacianMeshMovingStrategy")
         .def(py::init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
-        .def("UpdateReferenceMesh",&LaplacianMeshMovingStrategyType::UpdateReferenceMesh)
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int, bool>())
         ;
 
     py::class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
         StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
         BaseSolvingStrategyType>(m,"StructuralMeshMovingStrategy")
-        .def(py::init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
-        .def("UpdateReferenceMesh",&StructuralMeshMovingStrategyType::UpdateReferenceMesh)
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int, double>())
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int, double, bool>())
         ;
 }
 

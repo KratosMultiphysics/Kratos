@@ -1,30 +1,31 @@
-// ==============================================================================
-//  KratosTopologyOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
-//                   license: TopologyOptimizationApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
 //                   Octaviano Malfavón Farías
 //                   Eric Gonzales
+//					 Philipp Hofer
+//					 Erich Wehrle
 //
 // ==============================================================================
 
 // External includes 
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "spaces/ublas_space.h"
 
 // Utilities
 #include "custom_utilities/structure_response_function_utilities.h"
 #include "custom_utilities/topology_filtering_utilities.h"
-#include "custom_utilities/topology_extractor_utilities.h"
-#include "custom_utilities/topology_smoothing_utilities.h"
 #include "custom_utilities/topology_updating_utilities.h"
 #include "custom_utilities/io_utilities.h"
 
@@ -35,44 +36,41 @@ namespace Kratos
 namespace Python
 {
 
+void AddCustomUtilitiesToPython(pybind11::module& m)
 
-void AddCustomUtilitiesToPython()
 {
-	using namespace boost::python;
+    namespace py = pybind11;
 
-	// =============================================================================================================================================
-	// Utility Classes
-	// =============================================================================================================================================
 
-	class_<StructureResponseFunctionUtilities, bases<Process> >("StructureResponseFunctionUtilities", init<ModelPart&>())
+
+    // =============================================================================================================================================
+    // Utility Classes
+    // =============================================================================================================================================
+
+    py::class_<StructureResponseFunctionUtilities>(m, "StructureResponseFunctionUtilities")
+    .def(py::init<ModelPart& >())
     .def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
-	.def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
-	;
+    .def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
+    ;
 
-	class_<TopologyFilteringUtilities, bases<Process> >("TopologyFilteringUtilities", init<ModelPart&, const double, const int>())
-    .def("ApplyFilter", &TopologyFilteringUtilities::ApplyFilter)
-	;
+    py::class_<TopologyFilteringUtilities >(m, "TopologyFilteringUtilities")
+    .def(py::init<ModelPart&, const double, const int>())
+    .def("ApplyFilterSensitivity", &TopologyFilteringUtilities::ApplyFilterSensitivity)
+    .def("ApplyFilterDensity", &TopologyFilteringUtilities::ApplyFilterDensity)
+    ;
 
-	class_<TopologyExtractorUtilities, bases<Process> >("TopologyExtractorUtilities", init<>())
-    .def("ExtractVolumeMesh", &TopologyExtractorUtilities::ExtractVolumeMesh)
-	.def("ExtractSurfaceMesh", &TopologyExtractorUtilities::ExtractSurfaceMesh)
-	;
-
-	class_<TopologySmoothingUtilities, bases<Process> >("TopologySmoothingUtilities", init<>())
-    .def("SmoothMesh", &TopologySmoothingUtilities::SmoothMesh)
-	;
-
-	class_<TopologyUpdatingUtilities, bases<Process> >("TopologyUpdatingUtilities", init<ModelPart&>())
+    py::class_<TopologyUpdatingUtilities >(m, "TopologyUpdatingUtilities")
+    .def(py::init<ModelPart&>())
     .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
-	;
+    ;
 
-	class_<IOUtilities, bases<Process> >("IOUtilities", init<>())
+    py::class_<IOUtilities >(m, "IOUtilities" )
+    .def(py::init<>())
     .def("SaveOptimizationResults", &IOUtilities::SaveOptimizationResults)
-	.def("WriteSurfaceAsSTLFile", &IOUtilities::WriteSurfaceAsSTLFile)
-	;
+    .def("WriteSurfaceAsSTLFile", &IOUtilities::WriteSurfaceAsSTLFile)
+    ;
 }
 
 }  // namespace Python.
 
 } // Namespace Kratos
-

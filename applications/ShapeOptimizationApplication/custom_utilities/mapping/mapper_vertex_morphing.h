@@ -16,18 +16,15 @@
 // ------------------------------------------------------------------------------
 #include <iostream>
 #include <string>
-#include <algorithm>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-#include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
-#include "filter_function.h"
+#include "custom_utilities/filter_function.h"
 
 // ==============================================================================
 
@@ -57,7 +54,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MapperVertexMorphing : public Mapper
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) MapperVertexMorphing : public Mapper
 {
 public:
     ///@name Type Definitions
@@ -111,211 +108,22 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void Initialize() override
-    {
-        BuiltinTimer timer;
-        std::cout << "> Starting initialization of mapper..." << std::endl;
-
-        CreateListOfNodesInOriginModelPart();
-        CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
-
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
-        ComputeMappingMatrix();
-
-        mIsMappingInitialized = true;
-
-        std::cout << "> Finished initialization of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
-    }
+    void Initialize() override;
 
     // --------------------------------------------------------------------------
-    void Map( const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) override
-    {
-        if (mIsMappingInitialized == false)
-            Initialize();
-
-        BuiltinTimer timer;
-        std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
-
-        // Prepare vectors for mapping
-        mValuesOrigin[0].clear();
-        mValuesOrigin[1].clear();
-        mValuesOrigin[2].clear();
-        mValuesDestination[0].clear();
-        mValuesDestination[1].clear();
-        mValuesDestination[2].clear();
-
-        for(auto& node_i : mrOriginModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rOriginVariable);
-            mValuesOrigin[0][i] = r_nodal_variable[0];
-            mValuesOrigin[1][i] = r_nodal_variable[1];
-            mValuesOrigin[2][i] = r_nodal_variable[2];
-        }
-
-        // Perform mapping
-        noalias(mValuesDestination[0]) = prod(mMappingMatrix,mValuesOrigin[0]);
-        noalias(mValuesDestination[1]) = prod(mMappingMatrix,mValuesOrigin[1]);
-        noalias(mValuesDestination[2]) = prod(mMappingMatrix,mValuesOrigin[2]);
-
-        // Assign results to nodal variable
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-
-            array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
-            r_node_vector(0) = mValuesDestination[0][i];
-            r_node_vector(1) = mValuesDestination[1][i];
-            r_node_vector(2) = mValuesDestination[2][i];
-        }
-
-        std::cout << "> Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
-    }
+    void Map( const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) override;
 
     // --------------------------------------------------------------------------
-    void Map( const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) override
-    {
-        if (mIsMappingInitialized == false)
-            Initialize();
-
-        BuiltinTimer timer;
-        std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
-
-        // Prepare vectors for mapping
-        mValuesOrigin[0].clear();
-        mValuesDestination[0].clear();
-
-        for(auto& node_i : mrOriginModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            mValuesOrigin[0][i] = node_i.FastGetSolutionStepValue(rOriginVariable);
-        }
-
-        // Perform mapping
-        noalias(mValuesDestination[0]) = prod(mMappingMatrix,mValuesOrigin[0]);
-
-        // Assign results to nodal variable
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
-        }
-
-        std::cout << "> Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
-    }
+    void Map( const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) override;
 
     // --------------------------------------------------------------------------
-    void InverseMap( const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable) override
-    {
-        if (mIsMappingInitialized == false)
-            Initialize();
-
-        BuiltinTimer timer;
-        std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
-
-        // Prepare vectors for mapping
-        mValuesOrigin[0].clear();
-        mValuesOrigin[1].clear();
-        mValuesOrigin[2].clear();
-        mValuesDestination[0].clear();
-        mValuesDestination[1].clear();
-        mValuesDestination[2].clear();
-
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
-            mValuesDestination[0][i] = r_nodal_variable[0];
-            mValuesDestination[1][i] = r_nodal_variable[1];
-            mValuesDestination[2][i] = r_nodal_variable[2];
-        }
-
-        // Perform mapping
-        if(mMapperSettings["consistent_mapping"].GetBool())
-        {
-            KRATOS_ERROR_IF(mrOriginModelPart.Nodes().size() != mrDestinationModelPart.Nodes().size()) << "Consistent mapping requires matching origin and destination model part.";
-
-            noalias(mValuesOrigin[0]) = prod(mMappingMatrix,mValuesDestination[0]);
-            noalias(mValuesOrigin[1]) = prod(mMappingMatrix,mValuesDestination[1]);
-            noalias(mValuesOrigin[2]) = prod(mMappingMatrix,mValuesDestination[2]);
-        }
-        else
-        {
-            SparseSpaceType::TransposeMult(mMappingMatrix,mValuesDestination[0],mValuesOrigin[0]);
-            SparseSpaceType::TransposeMult(mMappingMatrix,mValuesDestination[1],mValuesOrigin[1]);
-            SparseSpaceType::TransposeMult(mMappingMatrix,mValuesDestination[2],mValuesOrigin[2]);
-        }
-
-        // Assign results to nodal variable
-        for(auto& node_i : mrOriginModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-
-            array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
-            r_node_vector(0) = mValuesOrigin[0][i];
-            r_node_vector(1) = mValuesOrigin[1][i];
-            r_node_vector(2) = mValuesOrigin[2][i];
-        }
-
-        std::cout << "> Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
-    }
+    void InverseMap( const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable) override;
 
     // --------------------------------------------------------------------------
-    void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) override
-    {
-        if (mIsMappingInitialized == false)
-            Initialize();
-
-        BuiltinTimer timer;
-        std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
-
-        // Prepare vectors for mapping
-        mValuesOrigin[0].clear();
-        mValuesDestination[0].clear();
-
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            mValuesDestination[0][i] = node_i.FastGetSolutionStepValue(rDestinationVariable);
-        }
-
-        // Perform mapping
-        if(mMapperSettings["consistent_mapping"].GetBool())
-        {
-            KRATOS_ERROR_IF(mrOriginModelPart.Nodes().size() != mrDestinationModelPart.Nodes().size()) << "Consistent mapping requires matching origin and destination model part.";
-            noalias(mValuesOrigin[0]) = prod(mMappingMatrix,mValuesDestination[0]);
-        }
-        else
-            SparseSpaceType::TransposeMult(mMappingMatrix,mValuesDestination[0],mValuesOrigin[0]);
-
-        // Assign results to nodal variable
-        for(auto& node_i : mrOriginModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
-        }
-
-        std::cout << "> Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
-    }
+    void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) override;
 
     // --------------------------------------------------------------------------
-    void Update() override
-    {
-        if (mIsMappingInitialized == false)
-            KRATOS_ERROR << "> Mapping has to be initialized before calling the Update-function!";
-
-        BuiltinTimer timer;
-        std::cout << "> Starting to update mapper..." << std::endl;
-
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
-        ComputeMappingMatrix();
-
-        std::cout << "> Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
-    }
+    void Update() override;
 
     // --------------------------------------------------------------------------
 
@@ -371,7 +179,7 @@ protected:
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
     Parameters mMapperSettings;
-    FilterFunction::Pointer mpFilterFunction;
+    FilterFunction::UniquePointer mpFilterFunction;
     bool mIsMappingInitialized = false;
 
     ///@}
@@ -383,11 +191,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void InitializeComputationOfMappingMatrix()
-    {
-        mpSearchTree.reset();
-        mMappingMatrix.clear();
-    }
+    virtual void InitializeComputationOfMappingMatrix();
 
     ///@}
     ///@name Protected  Access
@@ -435,123 +239,36 @@ private:
     ///@{
 
     // --------------------------------------------------------------------------
-    void CreateListOfNodesInOriginModelPart()
-    {
-        mListOfNodesInOriginModelPart.resize(mrOriginModelPart.Nodes().size());
-        int counter = 0;
-        for (ModelPart::NodesContainerType::iterator node_it = mrOriginModelPart.NodesBegin(); node_it != mrOriginModelPart.NodesEnd(); ++node_it)
-        {
-            NodeTypePointer pnode = *(node_it.base());
-            mListOfNodesInOriginModelPart[counter++] = pnode;
-        }
-    }
+    void CreateListOfNodesInOriginModelPart();
 
     // --------------------------------------------------------------------------
-    void CreateFilterFunction()
-    {
-        std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
-
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
-    }
+    void CreateFilterFunction();
 
     // --------------------------------------------------------------------------
-    void InitializeMappingVariables()
-    {
-        const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
-        const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
-
-        mMappingMatrix.resize(destination_node_number,origin_node_number,false);
-        mMappingMatrix.clear();
-
-        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
-        mValuesDestination.resize(3,ZeroVector(destination_node_number));
-    }
+    void InitializeMappingVariables();
 
     // --------------------------------------------------------------------------
-    void AssignMappingIds()
-    {
-        unsigned int i = 0;
-        for(auto& node_i : mrOriginModelPart.Nodes())
-            node_i.SetValue(MAPPING_ID,i++);
-
-        i = 0;
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-            node_i.SetValue(MAPPING_ID,i++);
-    }
+    void AssignMappingIds();
 
     // --------------------------------------------------------------------------
-    void CreateSearchTreeWithAllNodesInOriginModelPart()
-    {
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginModelPart.begin(), mListOfNodesInOriginModelPart.end(), mBucketSize));
-    }
+    void CreateSearchTreeWithAllNodesInOriginModelPart();
 
     // --------------------------------------------------------------------------
-    void ComputeMappingMatrix()
-    {
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
-        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
-
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            NodeVector neighbor_nodes( max_number_of_neighbors );
-            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             filter_radius,
-                                                                             neighbor_nodes.begin(),
-                                                                             resulting_squared_distances.begin(),
-                                                                             max_number_of_neighbors );
-
-
-
-            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
-            double sum_of_weights = 0.0;
-
-            if(number_of_neighbors >= max_number_of_neighbors)
-                std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
-
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-        }
-    }
+    void ComputeMappingMatrix();
 
     // --------------------------------------------------------------------------
     virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
-    {
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
-
-            list_of_weights[neighbor_itr] = weight;
-            sum_of_weights += weight;
-        }
-    }
+                                        double& sum_of_weights );
 
     // --------------------------------------------------------------------------
     void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
-    {
-
-
-        unsigned int row_id = origin_node.GetValue(MAPPING_ID);
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            int collumn_id = neighbor_node.GetValue(MAPPING_ID);
-
-
-            double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            mMappingMatrix.insert_element(row_id,collumn_id,weight);
-        }
-    }
+                                        double& sum_of_weights );
 
     // --------------------------------------------------------------------------
 

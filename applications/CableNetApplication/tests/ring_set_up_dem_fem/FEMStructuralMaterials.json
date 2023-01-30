@@ -1,0 +1,107 @@
+{
+	"properties" : [{
+		"model_part_name" : "Structure.innerTotalNet",
+		"properties_id"   : 1,
+		"Material"        : {
+			"constitutive_law" : {
+				"name" : "TrussConstitutiveLaw"
+			},
+			"Variables"        : {
+				"DENSITY"               : 7850.0,
+				"YOUNG_MODULUS"         : 2.1e11,
+				"CROSS_AREA"            : 1.256637061E-05,
+				"TRUSS_PRESTRESS_PK2"   : 100000.0,
+				"RAYLEIGH_ALPHA"        : 15.0,
+				"RAYLEIGH_BETA"         : 0.000000000010000
+			},
+			"Tables"  : {}
+		}
+	},{
+		"model_part_name" : "Structure.edgeCable1",
+		"properties_id"   : 2,
+		"Material"        : {
+			"constitutive_law" : {
+				"name" : "TrussConstitutiveLaw"
+			},
+			"Variables"        : {
+				"DENSITY"               : 7850.0,
+				"YOUNG_MODULUS"         : 2.1e11,
+				"CROSS_AREA"            : 1.256637061E-04,
+				"TRUSS_PRESTRESS_PK2"   : 100000.0,
+				"RAYLEIGH_ALPHA"        : 15.0,
+				"RAYLEIGH_BETA"         : 0.000000000010000
+			},
+			"Tables"  : {}
+		}
+	},{
+		"model_part_name" : "Structure.edgeCable2",
+		"properties_id"   : 3,
+		"Material"        : {
+			"constitutive_law" : {
+				"name" : "TrussConstitutiveLaw"
+			},
+			"Variables"        : {
+				"DENSITY"               : 7850.0,
+				"YOUNG_MODULUS"         : 2.1e11,
+				"CROSS_AREA"            : 1.256637061E-04,
+				"TRUSS_PRESTRESS_PK2"   : 100000.0,
+				"RAYLEIGH_ALPHA"        : 15.0,
+				"RAYLEIGH_BETA"         : 0.000000000010000
+			},
+			"Tables"  : {}
+		}
+	},{
+		"model_part_name" : "Structure.edgeCable3",
+		"properties_id"   : 4,
+		"Material"        : {
+			"constitutive_law" : {
+				"name" : "TrussConstitutiveLaw"
+			},
+			"Variables"        : {
+				"DENSITY"               : 7850.0,
+				"YOUNG_MODULUS"         : 2.1e11,
+				"CROSS_AREA"            : 1.256637061E-04,
+				"TRUSS_PRESTRESS_PK2"   : 100000.0,
+				"RAYLEIGH_ALPHA"        : 15.0,
+				"RAYLEIGH_BETA"         : 0.000000000010000
+			},
+			"Tables"  : {}
+		}
+	},{
+		"model_part_name" : "Structure.edgeCable4",
+		"properties_id"   : 5,
+		"Material"        : {
+			"constitutive_law" : {
+				"name" : "TrussConstitutiveLaw"
+			},
+			"Variables"        : {
+				"DENSITY"               : 7850.0,
+				"YOUNG_MODULUS"         : 2.1e11,
+				"CROSS_AREA"            : 1.256637061E-04,
+				"TRUSS_PRESTRESS_PK2"   : 100000.0,
+				"RAYLEIGH_ALPHA"        : 15.0,
+				"RAYLEIGH_BETA"         : 0.000000000010000
+			},
+			"Tables"  : {}
+		}
+	},{
+		"model_part_name" : "Structure.breakmp",
+		"properties_id"   : 6,
+		"Material"        : {
+			"constitutive_law" : {
+				"name" : "TrussPlasticityConstitutiveLaw"
+			},
+			"Variables"        : {
+				"DENSITY"               : 7850.0,
+				"YOUNG_MODULUS"         : 2.1e9,
+				"CROSS_AREA"            : 1.256637061E-02,
+				"TRUSS_PRESTRESS_PK2"   : 0.0,
+				"RAYLEIGH_ALPHA"        : 15.0,
+				"RAYLEIGH_BETA"         : 0.000000000010000,
+				"YIELD_STRESS"			: 1.0e6,
+				"HARDENING_MODULUS_1D"	: 2.1e5
+			},
+			"Tables"  : {}
+		}
+	}]
+}

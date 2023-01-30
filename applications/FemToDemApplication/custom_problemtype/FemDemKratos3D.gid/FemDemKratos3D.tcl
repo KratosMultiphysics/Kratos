@@ -2,9 +2,9 @@
 ## GiD events --------------------------------------------------------------------------------------------------------------------------------------------------
 
 proc InitGIDProject { dir } {
-    
+
 # Initialize ProblemType Menu
-    if { [GidUtils::IsTkDisabled] eq 0} {  
+    if { [GidUtils::IsTkDisabled] eq 0} {
         GiDMenu::Create "FemDemKratos3D Application" PRE
         GiDMenu::InsertOption "FemDemKratos3D Application" [list "Parts"] 0 PRE "GidOpenConditions \"Parts\"" "" ""
         GiDMenu::InsertOption "FemDemKratos3D Application" [list "Dirichlet Constraints"] 1 PRE "GidOpenConditions \"Dirichlet_Constraints\"" "" ""
@@ -22,7 +22,7 @@ proc InitGIDProject { dir } {
 
 
 proc AfterReadGIDProject { filename } {
-    
+
     # Save ProblemPath
     set projectpath $filename
     append projectpath .gid
@@ -42,7 +42,7 @@ proc AfterReadGIDProject { filename } {
 
 #-------------------------------------------------------------------------------
 
-proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {  
+proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
 #---------------------------------------------------------------
     # Write MDPA
@@ -65,24 +65,23 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     }
 
 #---------------------------------------------------------------
-    
+
     # For Coupled calculations with DEM elements
     if {[GiD_AccessValue get gendata Coupled_Calculation] eq "true"} {
-
-        # Writes the mdpa of the discrete elements (only properties)
-        source [file join $problemtypedir MdpaDEM.tcl]
-        WriteMdpaDEM $basename $dir $problemtypedir
 
         source [file join $problemtypedir ProjectParametersDEM.tcl]
         WriteProjectParametersDEM $basename $dir $problemtypedir
 
-        file copy -force [file join $problemtypedir KratosFemDemCoupled3DApplication.py] [file join $dir KratosFemDemCoupled3DApplication.py]
+        source [file join $problemtypedir MaterialsDEM.tcl]
+        WriteMaterialsDEM $basename $dir $problemtypedir
+
+        file copy -force [file join $problemtypedir MainKratos.py] [file join $dir MainKratos.py]
     } else {
         file copy -force [file join $problemtypedir DEM_explicit_solver_var.py] [file join $dir DEM_explicit_solver_var.py]
         file copy -force [file join $problemtypedir KratosFemDemApplication.py] [file join $dir KratosFemDemApplication.py]
     }
 #---------------------------------------------------------------
-    
+
 }
 
 

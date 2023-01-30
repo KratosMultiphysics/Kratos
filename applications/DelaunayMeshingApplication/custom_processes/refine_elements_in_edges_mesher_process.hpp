@@ -48,7 +48,7 @@ class RefineElementsInEdgesMesherProcess
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
 
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -333,7 +333,7 @@ class RefineElementsInEdgesMesherProcess
 
     std::vector<double> ShapeFunctionsN;
 
-    unsigned int id = MesherUtilities::GetMaxNodeId(*(rModelPart.GetParentModelPart())) + 1;
+    unsigned int id = MesherUtilities::GetMaxNodeId(rModelPart.GetParentModelPart()) + 1;
 
     unsigned int size  = 0;
     //unsigned int count = 0;
@@ -357,7 +357,7 @@ class RefineElementsInEdgesMesherProcess
 
 
       //create a new node
-      pNode = Kratos::make_shared< Node<3> >( id, xc, yc, zc );
+      pNode = Kratos::make_intrusive< Node<3> >( id, xc, yc, zc );
 
       //giving model part variables list to the node
       pNode->SetSolutionStepVariablesList(&VariablesList);
@@ -368,7 +368,7 @@ class RefineElementsInEdgesMesherProcess
       //generating the dofs
       for(auto& i_dof : ReferenceDofs)
       {
-        Node<3>::DofType& rDof = i_dof;
+        Node<3>::DofType& rDof = *i_dof;
         Node<3>::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
 
         // in rigid edges set it fix has no sense:

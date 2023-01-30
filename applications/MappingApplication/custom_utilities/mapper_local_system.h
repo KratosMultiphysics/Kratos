@@ -92,7 +92,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLocalMappingMatrix,
                               EquationIdVectorType& rOriginIds,
-                              EquationIdVectorType& rDestinationIds) // TODO should be const if it werent for the PairingStatus
+                              EquationIdVectorType& rDestinationIds) const
     {
         if (mIsComputed) {
             // This will be called if the EquationIdVectors have been querried before
@@ -144,6 +144,31 @@ public:
         return mInterfaceInfos.size() > 0;
     }
 
+    bool HasInterfaceInfoThatIsNotAnApproximation() const
+    {
+        for (const auto& r_info : mInterfaceInfos) {
+            if (!r_info->GetIsApproximation()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    virtual bool IsDoneSearching() const
+    {
+        return HasInterfaceInfoThatIsNotAnApproximation();
+    }
+
+    virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
+    {
+        KRATOS_ERROR << "Create is not implemented for NodePointerType!" << std::endl;
+    }
+
+    virtual MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const
+    {
+        KRATOS_ERROR << "Create is not implemented for GeometryPointerType!" << std::endl;
+    }
+
 
     virtual void Clear()
     {
@@ -159,11 +184,16 @@ public:
         return mPairingStatus;
     }
 
+    virtual void SetPairingStatusForPrinting()
+    {
+        KRATOS_ERROR << "SetPairingStatusForPrinting is not implemented!" << std::endl;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
 
-    virtual std::string PairingInfo(const int EchoLevel, const int CommRank) const = 0;
+    virtual void PairingInfo(std::ostream& rOStream, const int EchoLevel) const = 0;
 
     /// Turn back information as a string.
     virtual std::string Info() const {return "MapperLocalSystem";}
@@ -194,7 +224,7 @@ protected:
     EquationIdVectorType mOriginIds;
     EquationIdVectorType mDestinationIds;
 
-    PairingStatus mPairingStatus = PairingStatus::NoInterfaceInfo;
+    mutable PairingStatus mPairingStatus = PairingStatus::NoInterfaceInfo;
 
     ///@}
     ///@name Protected Operations

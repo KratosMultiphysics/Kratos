@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/particle_flow_rule.hpp"
 
 
 namespace Kratos
@@ -64,8 +64,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class MCPlasticFlowRule
-    :public MPMFlowRule
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MCPlasticFlowRule
+    :public ParticleFlowRule
 {
 
 
@@ -87,9 +87,9 @@ public:
     public:
         void PrintInfo()
         {
-            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "Cohesion       = " << Cohesion       << std::endl;
-            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "FrictionAngle  = " << FrictionAngle  << std::endl;
-            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "DilatancyAngle = " << DilatancyAngle << std::endl;
+            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "Cohesion       = " << Cohesion       << std::endl;
+            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "FrictionAngle  = " << FrictionAngle  << std::endl;
+            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "DilatancyAngle = " << DilatancyAngle << std::endl;
         }
 
     };
@@ -111,7 +111,7 @@ public:
     MCPlasticFlowRule& operator=(MCPlasticFlowRule const& rOther);
 
     // CLONE
-    MPMFlowRule::Pointer Clone() const override;
+    ParticleFlowRule::Pointer Clone() const override;
 
     /// Destructor.
     ~MCPlasticFlowRule() override;
@@ -224,9 +224,6 @@ protected:
     void CalculateModificationMatrix(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rAuxT, BoundedMatrix<double,3,3>& rInvAuxT);
 
     void CalculateTransformationMatrix(const BoundedMatrix<double,3,3>& rMainDirection, BoundedMatrix<double,6,6>& rA);
-
-
-    double GetPI();
 
     ///@}
     ///@name Protected  Access

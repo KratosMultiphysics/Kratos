@@ -25,8 +25,7 @@ namespace Kratos
 AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
     IndexType NewId,
     GeometryType::Pointer pGeometry
-    )
-        : LineLoadCondition2D( NewId, pGeometry )
+    ) : LineLoadCondition<2>( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -38,8 +37,7 @@ AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
-    )
-        : LineLoadCondition2D( NewId, pGeometry, pProperties )
+    ) : LineLoadCondition<2>( NewId, pGeometry, pProperties )
 {
 }
 
@@ -52,7 +50,7 @@ Condition::Pointer AxisymLineLoadCondition2D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymLineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<AxisymLineLoadCondition2D>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
@@ -64,7 +62,7 @@ Condition::Pointer AxisymLineLoadCondition2D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<AxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -77,7 +75,7 @@ Condition::Pointer AxisymLineLoadCondition2D::Clone (
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_shared<AxisymLineLoadCondition2D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<AxisymLineLoadCondition2D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;
@@ -118,7 +116,7 @@ double AxisymLineLoadCondition2D::GetIntegrationWeight(
 
 void AxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition2D );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition<2> );
 }
 
 /***********************************************************************************/
@@ -126,7 +124,7 @@ void AxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
 
 void AxisymLineLoadCondition2D::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition2D );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition<2> );
 }
 
 } // Namespace Kratos

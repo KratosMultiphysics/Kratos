@@ -57,9 +57,9 @@ public:
     typedef BeamMathUtils<double>                   BeamMathUtilsType;
     typedef Quaternion<double>                         QuaternionType;
 
-    typedef WeakPointerVector<Node<3> >         NodeWeakPtrVectorType;
-    typedef WeakPointerVector<Element>       ElementWeakPtrVectorType;
-    typedef WeakPointerVector<Condition>   ConditionWeakPtrVectorType;
+    typedef GlobalPointersVector<Node<3> >         NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Element>       ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Condition>   ConditionWeakPtrVectorType;
     /// Pointer definition of BuildStringSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(BuildStringSkinProcess);
 
@@ -73,7 +73,7 @@ public:
     {
         KRATOS_TRY
 
-	mMaxId = GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
+	mMaxId = GetMaxNodeId(mrModelPart.GetParentModelPart());
 
         KRATOS_CATCH("")
     }
@@ -539,7 +539,7 @@ private:
 	      // std::cout<<" Radius "<<Radius<<std::endl;
 	      // std::cout<<" Base Point ["<<node_id<<"]"<<BasePoint<<std::endl;
 
-	      mrModelPart.AddNode(this->CreateNode(*(mrModelPart.GetParentModelPart()), BasePoint, node_id));
+	      mrModelPart.AddNode(this->CreateNode(mrModelPart.GetParentModelPart(), BasePoint, node_id));
 
 	    }
 
@@ -814,9 +814,9 @@ private:
       ConditionType::Pointer pSkinCondition;
 
       //PROPERTIES:
-      //int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
-      //Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
-      Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(0);
+      //int number_properties = mrModelPart.GetParentModelPart().NumberOfProperties();
+      //Properties::Pointer pProperties = mrModelPart.GetParentModelPart().pGetProperties(number_properties-1);
+      Properties::Pointer pProperties = mrModelPart.GetParentModelPart().pGetProperties(0);
 
       //Properties 0 in order to change the Id to 0 and then write tube elements in another layer
       /* ModelPart::PropertiesContainerType::ContainerType& PropertiesArray = mrModelPart.PropertiesArray(); */
@@ -824,7 +824,7 @@ private:
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
 
-      unsigned int condition_id = GetMaxConditionId(*(mrModelPart.GetParentModelPart()));
+      unsigned int condition_id = GetMaxConditionId(mrModelPart.GetParentModelPart());
 
       unsigned int counter = 1;
 
@@ -853,7 +853,7 @@ private:
 
 	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes1);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -880,7 +880,7 @@ private:
 
 	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes2);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -905,7 +905,7 @@ private:
 
 	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes1);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -927,7 +927,7 @@ private:
 
 	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes2);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -965,9 +965,9 @@ private:
       ConditionType::Pointer pSkinCondition;
 
       //PROPERTIES:
-      //int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
-      //Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
-      Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(0);
+      //int number_properties = mrModelPart.GetParentModelPart().NumberOfProperties();
+      //Properties::Pointer pProperties = mrModelPart.GetParentModelPart().pGetProperties(number_properties-1);
+      Properties::Pointer pProperties = mrModelPart.GetParentModelPart().pGetProperties(0);
 
       //Properties 0 in order to change the Id to 0 and then write tube elements in another layer
       /* ModelPart::PropertiesContainerType::ContainerType& PropertiesArray = mrModelPart.PropertiesArray(); */
@@ -975,7 +975,7 @@ private:
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
 
-      unsigned int condition_id = GetMaxConditionId(*(mrModelPart.GetParentModelPart()));
+      unsigned int condition_id = GetMaxConditionId(mrModelPart.GetParentModelPart());
 
       unsigned int counter = 1;
 
@@ -1005,7 +1005,7 @@ private:
 
 	    pFace = Kratos::make_shared<Quadrilateral3DType>(FaceNodes);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -1030,7 +1030,7 @@ private:
 
 	    pFace = Kratos::make_shared<Quadrilateral3DType>(FaceNodes);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -1129,7 +1129,7 @@ private:
 
       for(NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
       	  Node->pAddDof( rDof );
       	}
 
@@ -1138,7 +1138,7 @@ private:
 
       for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); iii++)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
 	  rDof.FixDof(); // dofs free
       	}
 
@@ -1211,11 +1211,11 @@ private:
     //************************************************************************************
     //************************************************************************************
     template<class TDataType> void  AddUniquePointer
-    (WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
+    (GlobalPointersVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
     {
-      typename WeakPointerVector< TDataType >::iterator i = v.begin();
-      typename WeakPointerVector< TDataType >::iterator endit = v.end();
-      while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+      typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+      typename GlobalPointersVector< TDataType >::iterator endit = v.end();
+      while ( i != endit && (i)->Id() != (candidate)->Id())
       {
         i++;
       }
@@ -1365,7 +1365,7 @@ private:
         KRATOS_TRY
 
 	std::string OutputModelPartName;
-	ModelPart& rMainModelPart = *(mrModelPart.GetParentModelPart());
+	ModelPart& rMainModelPart = mrModelPart.GetParentModelPart();
 	for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
 	  if( i_mp->Is(ACTIVE) )

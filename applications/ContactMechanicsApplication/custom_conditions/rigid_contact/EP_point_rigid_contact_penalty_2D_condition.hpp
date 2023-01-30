@@ -55,7 +55,7 @@ public:
 
     ///@{
     // Counted pointer of EPPointRigidContactPenalty3DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( EPPointRigidContactPenalty2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( EPPointRigidContactPenalty2DCondition );
     ///@}
 
     ///@}

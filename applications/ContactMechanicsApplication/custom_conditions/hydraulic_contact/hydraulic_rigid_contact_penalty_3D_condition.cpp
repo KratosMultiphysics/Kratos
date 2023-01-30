@@ -63,7 +63,7 @@ namespace Kratos
 
    Condition::Pointer HydraulicRigidContactPenalty3DCondition::Create(IndexType NewId, const NodesArrayType& ThisNodes, PropertiesType::Pointer pProperties) const
    {
-     return Kratos::make_shared<HydraulicRigidContactPenalty3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+     return Kratos::make_intrusive<HydraulicRigidContactPenalty3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
    }
 
    //************************************CLONE*******************************************
@@ -71,7 +71,7 @@ namespace Kratos
 
    Condition::Pointer HydraulicRigidContactPenalty3DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
    {
-     return Kratos::make_shared<HydraulicRigidContactPenalty3DCondition>(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
+     return Kratos::make_intrusive<HydraulicRigidContactPenalty3DCondition>(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
    }
 
 
@@ -83,7 +83,7 @@ namespace Kratos
 
    }
 
-   void HydraulicRigidContactPenalty3DCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+   void HydraulicRigidContactPenalty3DCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -106,7 +106,7 @@ namespace Kratos
    //***********************************************************************************
 
    void HydraulicRigidContactPenalty3DCondition::GetDofList(DofsVectorType& rConditionDofList,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 
@@ -130,7 +130,7 @@ namespace Kratos
    //***********************************************************************************
 
    void HydraulicRigidContactPenalty3DCondition::EquationIdVector(EquationIdVectorType& rResult,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 
@@ -157,7 +157,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void HydraulicRigidContactPenalty3DCondition::GetValuesVector(Vector& rValues, int Step)
+   void HydraulicRigidContactPenalty3DCondition::GetValuesVector(Vector& rValues, int Step) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -180,7 +180,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void HydraulicRigidContactPenalty3DCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void HydraulicRigidContactPenalty3DCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -203,7 +203,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void HydraulicRigidContactPenalty3DCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void HydraulicRigidContactPenalty3DCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();

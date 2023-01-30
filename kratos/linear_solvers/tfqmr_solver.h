@@ -16,14 +16,14 @@
 #define  KRATOS_TFQMR_SOLVER_H_INCLUDED
 
 // System includes
-#include <math.h>
+#include <cmath>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-#include "includes/preconditioner_factory.h"
+#include "factories/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -203,7 +203,7 @@ private:
         double errtol = BaseType::mBNorm*BaseType::GetTolerance();
 
 
-        VectorType r(rB);
+        const VectorType& r(rB);
         VectorType w(r);
 
 

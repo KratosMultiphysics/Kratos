@@ -10,65 +10,60 @@
 //  Main authors:    Antonia Larese
 //
 
-
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
-
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/edge_data.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-
-
+#include "add_custom_utilities_to_python.h"
 
 namespace Kratos
 {
 
-namespace Python
-{
+	namespace Python
+	{
 
+		void AddCustomUtilitiesToPython(pybind11::module &pymodule)
+		{
+			namespace py = pybind11;
 
-  void  AddCustomUtilitiesToPython(pybind11::module& pymodule)
-  {
-	namespace py = pybind11;
+			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 
+			py::class_<MatrixContainer<2, SparseSpaceType>>(pymodule, "MatrixContainer2D")
+				.def(py::init<>())
+				.def("ConstructCSRVector", &MatrixContainer<2, SparseSpaceType>::ConstructCSRVector)
+				.def("BuildCSRData", &MatrixContainer<2, SparseSpaceType>::BuildCSRData)
+				.def("Clear", &MatrixContainer<2, SparseSpaceType>::Clear);
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+			py::class_<MatrixContainer<3, SparseSpaceType>>(pymodule, "MatrixContainer3D")
+				.def(py::init<>())
+				.def("ConstructCSRVector", &MatrixContainer<3, SparseSpaceType>::ConstructCSRVector)
+				.def("BuildCSRData", &MatrixContainer<3, SparseSpaceType>::BuildCSRData)
+				.def("Clear", &MatrixContainer<3, SparseSpaceType>::Clear);
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-  		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    	typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+            py::class_<MatrixContainerC2C<2, SparseSpaceType>>(pymodule, "MatrixContainerC2C2D")
+                .def(py::init<>())
+                .def("ConstructCSRVector", &MatrixContainerC2C<2, SparseSpaceType>::ConstructCSRVector)
+                .def("BuildCSRData", &MatrixContainerC2C<2, SparseSpaceType>::BuildCSRData)
+                .def("Clear", &MatrixContainerC2C<2, SparseSpaceType>::Clear);
 
-    	py::class_< MatrixContainer < 2, SparseSpaceType> > (pymodule,"MatrixContainer2D")
-        .def(py::init< >())
-    	.def("ConstructCSRVector", &MatrixContainer < 2, SparseSpaceType >::ConstructCSRVector)
-    	.def("BuildCSRData", &MatrixContainer < 2, SparseSpaceType >::BuildCSRData)
-    	.def("Clear", &MatrixContainer < 2, SparseSpaceType >::Clear)
-    	;
+            py::class_<MatrixContainerC2C<3, SparseSpaceType>>(pymodule, "MatrixContainerC2C3D")
+                .def(py::init<>())
+                .def("ConstructCSRVector", &MatrixContainerC2C<3, SparseSpaceType>::ConstructCSRVector)
+                .def("BuildCSRData", &MatrixContainerC2C<3, SparseSpaceType>::BuildCSRData)
+                .def("Clear", &MatrixContainerC2C<3, SparseSpaceType>::Clear);
 
-    	py::class_< MatrixContainer < 3, SparseSpaceType> > (pymodule,"MatrixContainer3D")
-        .def(py::init< >())
-    	.def("ConstructCSRVector", &MatrixContainer < 3, SparseSpaceType >::ConstructCSRVector)
-    	.def("BuildCSRData", &MatrixContainer < 3, SparseSpaceType >::BuildCSRData)
-    	.def("Clear", &MatrixContainer < 3, SparseSpaceType >::Clear)
-    	;
+			py::class_<EdgebasedLevelsetAuxiliaryUtils <2>>(pymodule, "EdgebasedLevelsetAuxiliaryUtils2D")
+				.def(py::init<>())
+				.def("CalculateDistances", &EdgebasedLevelsetAuxiliaryUtils <2> ::CalculateDistances)
+				.def("FindMaximumEdgeSize", &EdgebasedLevelsetAuxiliaryUtils <2> ::FindMaximumEdgeSize);
 
+			py::class_<EdgebasedLevelsetAuxiliaryUtils <3>>(pymodule,"EdgebasedLevelsetAuxiliaryUtils3D")
+				.def(py::init<>())
+				.def("CalculateDistances", &EdgebasedLevelsetAuxiliaryUtils <3> ::CalculateDistances)
+				.def("FindMaximumEdgeSize", &EdgebasedLevelsetAuxiliaryUtils <3> ::FindMaximumEdgeSize);
+		}
 
-  }
-
-
-
-
-
-}  // namespace Python.
+	} // namespace Python
 
 } // Namespace Kratos

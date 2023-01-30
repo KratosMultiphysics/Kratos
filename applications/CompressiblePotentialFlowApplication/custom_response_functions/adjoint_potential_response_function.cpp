@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //
-//  Main authors:    Marc Nuñez, based on Martin Fusseder work, https://github.com/MFusseder
+//  Main authors:    Marc Nunez, based on Martin Fusseder work, https://github.com/MFusseder
 //
 
 
@@ -40,9 +40,15 @@ namespace Kratos
             double delta = ResponseSettings["step_size"].GetDouble();
             mDelta = delta;
         }
+        else if (gradient_mode == "analytic")
+        {
+            mGradientMode = 2;
+        }
         else
-            KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradient_mode << std::endl;
-
+            KRATOS_ERROR << "Specified gradient_mode not recognized. The only "
+                            "options are: semi_analytic and analytic. "
+                            "Specified gradient_mode: "
+                         << gradient_mode << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -56,6 +62,13 @@ namespace Kratos
             VariableUtils().SetNonHistoricalVariable(SCALE_FACTOR, mDelta, mrModelPart.Elements());
             VariableUtils().SetNonHistoricalVariable(SCALE_FACTOR, mDelta, mrModelPart.Conditions());
         }
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointPotentialResponseFunction::InitializeSolutionStep()
+    {
+        KRATOS_TRY;
 
         KRATOS_CATCH("");
     }

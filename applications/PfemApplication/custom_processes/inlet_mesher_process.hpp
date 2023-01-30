@@ -169,7 +169,7 @@ class InletMesherProcess
 
     double critical_distance = 4.0*mrRemesh.Refine->CriticalRadius;
 
-    unsigned int NodeId = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) ) + 1;
+    unsigned int NodeId = MesherUtilities::GetMaxNodeId( mrModelPart.GetParentModelPart() ) + 1;
 
     ModelPart::NodesContainerType InletNodes;
 
@@ -195,7 +195,7 @@ class InletMesherProcess
             //free dofs
             for(Node<3>::DofsContainerType::iterator i_dof = Dofs.begin(); i_dof != Dofs.end(); ++i_dof)
             {
-              i_dof->FreeDof();
+              (*i_dof)->FreeDof();
             }
 
             noalias(pnode->FastGetSolutionStepValue(DISPLACEMENT))   = ZeroVector(3);

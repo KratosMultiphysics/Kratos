@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 3
 
 
@@ -69,5 +68,5 @@ GiDWriteConditionsFlag = True
 GiDMultiFileFlag = "Single"
 
 #problem_name = "square"
-#problem_path = "/home/julio.marti/new_kratos/applications/convection_diffusion_application/test_examples/square.gid"
+#problem_path = "/home/julio.marti/new_kratos/applications/ConvectionDiffusionApplication/test_examples/square.gid"
 kratos_path = "../../../.."

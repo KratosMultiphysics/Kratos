@@ -6,8 +6,8 @@ import os
 import math
 import numpy as np
 import time as timer
-import swimming_DEM_procedures as SDP
-import swimming_DEM_analysis
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis as swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
 
@@ -164,12 +164,12 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
             self.laplacian_errors.append(self.current_laplacian_errors)
 
             text_width = 40
-            print('\n' + '-.' * text_width)
-            print('L2 error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[0])
-            print('max error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[1])
-            print('L2 error for the laplacian'.ljust(text_width), self.current_laplacian_errors[0])
-            print('max error for the laplacian'.ljust(text_width), self.current_laplacian_errors[1])
-            print('-.' * text_width + '\n')
+            Kratos.Logger.PrintInfo("SwimmingDEM", '\n' + '-.' * text_width)
+            Kratos.Logger.PrintInfo("SwimmingDEM", 'L2 error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[0])
+            Kratos.Logger.PrintInfo("SwimmingDEM", 'max error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[1])
+            Kratos.Logger.PrintInfo("SwimmingDEM", 'L2 error for the laplacian'.ljust(text_width), self.current_laplacian_errors[0])
+            Kratos.Logger.PrintInfo("SwimmingDEM", 'max error for the laplacian'.ljust(text_width), self.current_laplacian_errors[1])
+            Kratos.Logger.PrintInfo('-.' * text_width + '\n')
 
     def PerformFinalOperations(self, time = None):
 

@@ -20,7 +20,7 @@
 #include "includes/key_hash.h"
 namespace Kratos {
 
-    
+
 
 template<class TDataType>
 class GlobalPointer {
@@ -28,15 +28,24 @@ private:
 
   /// Pointer to the data
   TDataType * mDataPointer;
+#ifdef KRATOS_USING_MPI
   int mRank;
+#endif
 
 public:
+
+  typedef TDataType element_type;
 
  /** Default constructor
 	* Default constructor
 	* This should never be called as we need a local pointer to exists
 	*/
-	GlobalPointer() = delete;
+	GlobalPointer() {
+    mDataPointer = nullptr;
+#ifdef KRATOS_USING_MPI
+    this->mRank = 0;
+#endif
+  };
 
   /** Constructor by Data
    * Constructor by Data
@@ -50,8 +59,14 @@ public:
    */
   GlobalPointer(TDataType * DataPointer, int Rank = 0)
     : mDataPointer(DataPointer)
-    , mRank(Rank) {
-  }
+#ifdef KRATOS_USING_MPI
+    , mRank(Rank)
+#endif
+     {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
+     }
 
   /** Constructor by Kratos::shared_ptr
    * Constructor by Kratos::shared_ptr
@@ -59,7 +74,28 @@ public:
    */
   GlobalPointer(Kratos::shared_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
-    , mRank(Rank) {
+#ifdef KRATOS_USING_MPI
+    , mRank(Rank) 
+#endif
+  {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
+  }
+
+  /** Constructor by Kratos::shared_ptr
+   * Constructor by Kratos::shared_ptr
+   * @param DataPointer Boost Shared Pointer to the Data.
+   */
+  GlobalPointer(Kratos::intrusive_ptr<TDataType>& DataPointer, int Rank = 0)
+    : mDataPointer(DataPointer.get())
+#ifdef KRATOS_USING_MPI
+    , mRank(Rank) 
+#endif
+  {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
   }
 
   /** Constructor by Kratos::weak_ptr
@@ -68,7 +104,13 @@ public:
    */
   GlobalPointer(Kratos::weak_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.lock().get())
-    , mRank(Rank) {
+#ifdef KRATOS_USING_MPI
+    , mRank(Rank) 
+#endif
+  {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
   }
 
   /** Constructor by std::unique_ptr
@@ -83,7 +125,10 @@ public:
    */
   GlobalPointer(const GlobalPointer & rOther)
     : mDataPointer(rOther.mDataPointer)
-    , mRank(rOther.mRank) {
+#ifdef KRATOS_USING_MPI
+    , mRank(rOther.mRank)
+#endif
+  {
   }
 
   /** Move constructor
@@ -92,7 +137,10 @@ public:
    */
   GlobalPointer(const GlobalPointer && rOther)
     : mDataPointer(std::move(rOther.mDataPointer))
-    , mRank(std::move(rOther.mRank)) {
+#ifdef KRATOS_USING_MPI
+    , mRank(std::move(rOther.mRank))
+#endif
+  {
   }
 
   /** Assignment Operator
@@ -100,7 +148,9 @@ public:
    */
   GlobalPointer & operator=(const GlobalPointer & rOther) {
     mDataPointer = rOther.mDataPointer;
+#ifdef KRATOS_USING_MPI
     mRank = rOther.mRank;
+#endif
 
     return *this;
   }
@@ -109,6 +159,14 @@ public:
    * Default Destructor.
    */
   ~GlobalPointer() {
+  }
+
+  TDataType* get() {
+	  return mDataPointer;
+  }
+
+  TDataType const* get() const {
+	  return mDataPointer;
   }
 
   /** Pointer Operator
@@ -157,26 +215,32 @@ public:
    * @return rank of the global pointer data or 0
    */
   int GetRank() const {
+#ifdef KRATOS_USING_MPI
     return this->mRank;
+#else
+    return 0;
+#endif
   }
 
-  private: 
+  private:
 
   friend class Serializer;
+
+
 
   void save(Serializer& rSerializer) const
   {
       if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
       {
-        rSerializer.save("D", reinterpret_cast<const std::size_t>(mDataPointer));
+        rSerializer.save("D", reinterpret_cast<std::size_t>(mDataPointer));
       }
       else
       {
         rSerializer.save("D", mDataPointer);
       }
- 
+#ifdef KRATOS_USING_MPI
       rSerializer.save("R", mRank);
- 
+#endif
   }
 
   void load(Serializer& rSerializer)
@@ -191,9 +255,9 @@ public:
       {
         rSerializer.load("D", mDataPointer);
       }
-
+#ifdef KRATOS_USING_MPI
       rSerializer.load("R", mRank);
-
+#endif
   }
 
 };
@@ -209,13 +273,15 @@ struct GlobalPointerHasher
     {
         std::size_t seed = 0;
         HashCombine(seed, &(*pGp) );
+#ifdef KRATOS_USING_MPI
         HashCombine(seed, pGp.GetRank());
+#endif
         return seed;
     }
 };
 
 /**
- * @brief This is a key comparer between two dof pointers
+ * @brief This is a key comparer between two dof pointers checking for equal keys
  * @details Used for example for the B&S
  */
 template< class TDataType >
@@ -228,9 +294,53 @@ struct GlobalPointerComparor
      */
     bool operator()(const GlobalPointer<TDataType>& pGp1, const GlobalPointer<TDataType>& pGp2) const
     {
+#ifdef KRATOS_USING_MPI
         return ( &(*pGp1) == &(*pGp2)  &&  pGp1.GetRank() == pGp2.GetRank()  );
+#else
+        return ( &(*pGp1) == &(*pGp2) );
+#endif
     }
 };
+
+/**
+ * @brief This is a key compare between two pointers to the object object
+ * @details This should be used in std::sort or any other algorithm requiring weak ordering
+ * https://en.cppreference.com/w/cpp/named_req/Compare
+ */
+template< class TDataType >
+struct GlobalPointerCompare
+{
+    /**
+     * @brief The () operator
+     * @param pDoF1 The first DoF pointer
+     * @param pDoF2 The second DoF pointer
+     */
+    bool operator()(const GlobalPointer<TDataType>& pGp1, const GlobalPointer<TDataType>& pGp2) const
+    {
+#ifdef KRATOS_USING_MPI
+        return (pGp1.GetRank() == pGp2.GetRank()) ? (pGp1.get() < pGp2.get()) : (pGp1.GetRank() < pGp2.GetRank());
+#else
+        return (pGp1.get() < pGp2.get());
+#endif
+    }
+};
+
+/// input stream function
+template< class TDataType >
+inline std::istream& operator >> (std::istream& rIStream,
+                                  GlobalPointer<TDataType>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< class TDataType >
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const GlobalPointer<TDataType>& rThis)
+{
+
+    rOStream << reinterpret_cast<const std::size_t>(&*rThis) << " : " << rThis.GetRank();
+
+    return rOStream;
+}
 
 } // namespace Kratos
 

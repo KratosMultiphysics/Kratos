@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED )
-#define  KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -23,13 +22,12 @@
 // Project includes
 #include "interpolative_mapper_base.h"
 
-
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 
-class NearestNeighborInterfaceInfo : public MapperInterfaceInfo
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborInterfaceInfo : public MapperInterfaceInfo
 {
 public:
 
@@ -61,10 +59,9 @@ public:
         return InterfaceObject::ConstructionType::Node_Coords;
     }
 
-    void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                             const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void GetValue(int& rValue,
+    void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
     {
         rValue = mNearestNeighborId;
@@ -78,7 +75,7 @@ public:
 
 private:
 
-    int mNearestNeighborId = -1;
+    std::vector<int> mNearestNeighborId = {};
     double mNearestNeighborDistance = std::numeric_limits<double>::max();
 
     friend class Serializer;
@@ -98,7 +95,7 @@ private:
     }
 };
 
-class NearestNeighborLocalSystem : public MapperLocalSystem
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborLocalSystem : public MapperLocalSystem
 {
 public:
 
@@ -115,8 +112,14 @@ public:
         return mpNode->Coordinates();
     }
 
-    /// Turn back information as a string.
-    std::string PairingInfo(const int EchoLevel, const int CommRank) const override;
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+        return Kratos::make_unique<NearestNeighborLocalSystem>(pNode);
+    }
+
+    void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override;
+
+    void SetPairingStatusForPrinting() override;
 
 private:
     NodePointerType mpNode;
@@ -130,8 +133,9 @@ private:
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-template<class TSparseSpace, class TDenseSpace>
-class NearestNeighborMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
+template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborMapper
+    : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
 public:
 
@@ -143,7 +147,7 @@ public:
     /// Pointer definition of NearestNeighborMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapper);
 
-    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace> BaseType;
+    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
     typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
@@ -163,7 +167,20 @@ public:
                                      rModelPartDestination,
                                      JsonParameters)
     {
+        KRATOS_TRY;
+
+        auto check_has_nodes = [](const ModelPart& rModelPart){
+            if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+                KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfNodes() == 0) << "No nodes exist in ModelPart \"" << rModelPart.FullName() << "\"" << std::endl;
+            }
+        };
+        check_has_nodes(rModelPartOrigin);
+        check_has_nodes(rModelPartDestination);
+
+        this->ValidateInput();
         this->Initialize();
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -177,15 +194,25 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
-        return Kratos::make_unique<NearestNeighborMapper<TSparseSpace, TDenseSpace>>(
+        KRATOS_TRY;
+
+        return Kratos::make_unique<NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
+
+        KRATOS_CATCH("");
     }
 
     ///@}
     ///@name Inquiry
     ///@{
+
+    int AreMeshesConforming() const override
+    {
+        KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
+        return BaseType::mMeshesAreConforming;
+    }
 
     ///@}
     ///@name Input and output
@@ -206,6 +233,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
+        BaseType::PrintData(rOStream);
     }
 
 private:
@@ -217,7 +245,8 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestNeighborLocalSystem>(
+        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+            NearestNeighborLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }
@@ -227,11 +256,20 @@ private:
         return Kratos::make_unique<NearestNeighborInterfaceInfo>();
     }
 
+    Parameters GetMapperDefaultSettings() const override
+    {
+        return Parameters( R"({
+            "search_settings"              : {},
+            "use_initial_configuration"    : false,
+            "echo_level"                   : 0,
+            "print_pairing_status_to_file" : false,
+            "pairing_status_file_path"     : ""
+        })");
+    }
+
     ///@}
 
 }; // Class NearestNeighborMapper
 
 ///@} addtogroup block
 }  // namespace Kratos.
-
-#endif // KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED  defined

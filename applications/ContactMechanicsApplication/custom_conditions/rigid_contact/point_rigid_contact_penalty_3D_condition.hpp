@@ -54,7 +54,7 @@ public:
 
     ///@{
     // Counted pointer of PointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactPenalty3DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PointRigidContactPenalty3DCondition );
     ///@}
 
     ///@name Life Cycle

@@ -17,12 +17,12 @@
 /* Project includes */
 #include "includes/deprecated_variables.h"
 #include "utilities/math_utils.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 #include "utilities/split_tetrahedra.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "custom_utilities/parallel_fill_communicator.h"
-
+#include "mpi/utilities/parallel_fill_communicator.h"
+#include "includes/global_pointer_variables.h"
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"
 #include "Epetra_SerialDenseMatrix.h"
@@ -168,7 +168,7 @@ public:
         }
 
         //fill the communicator
-        ParallelFillCommunicator(mr_model_part).Execute();
+        ParallelFillCommunicator(mr_model_part, mr_model_part.GetCommunicator().GetDataCommunicator()).Execute();
         if (mrComm.MyPID() == 0) std::cout << "recalculation of communication plan completed" << std::endl;
 
         //clean up the data
@@ -641,9 +641,9 @@ public:
 
             for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType& rDof = *iii;
+                Node < 3 > ::DofType& rDof = **iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-                if (it_node1->IsFixed(iii->GetVariable()) == true && it_node2->IsFixed(iii->GetVariable()) == true)
+                if (it_node1->IsFixed(rDof.GetVariable()) == true && it_node2->IsFixed(rDof.GetVariable()) == true)
                     (p_new_dof)->FixDof();
                 else
                 {
@@ -730,7 +730,7 @@ public:
         int nint = 0;
         int aux[6];
 
-        ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
         PointerVector< Element > Old_Elements;
 
         unsigned int current_id = (this_model_part.Elements().end() - 1)->Id() + 1;
@@ -745,7 +745,7 @@ public:
             Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
             ///* crea las nuevas conectividades
-            create_element = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
+            create_element = TriangleSplit::Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
             ///* crea los nuevos elementos
             if (create_element == true)
@@ -754,7 +754,7 @@ public:
                 for (int i = 0; i < nel; i++)
                 {
                     int i0, i1, i2;
-                    TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
+                    TriangleSplit::TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
 
                     Triangle2D3<Node < 3 > > geom(
                         this_model_part.Nodes()(i0),
@@ -766,7 +766,7 @@ public:
                     Element::Pointer p_element;
                     p_element = it->Create(current_id, geom, it->pGetProperties());
                     p_element->SetFlags(*it);
-                    p_element->Initialize();
+                    p_element->Initialize(rCurrentProcessInfo);
                     p_element->InitializeSolutionStep(rCurrentProcessInfo);
                     p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -775,7 +775,7 @@ public:
                         InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                     // Transfer elemental variables
-                    p_element->Data() = it->Data();
+                    p_element->GetData() = it->GetData();
                     //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
                     p_element->GetValue(SPLIT_ELEMENT) = false;
                     //p_element->SetValue(REFINEMENT_LEVEL, 1);
@@ -855,7 +855,7 @@ public:
         aux[4] = GetUpperTriangularMatrixValue(p_edge_ids, index_1, index_2, MaxNumEntries, NumEntries, Indices, id_values);
         aux[5] = GetUpperTriangularMatrixValue(p_edge_ids, index_2, index_0, MaxNumEntries, NumEntries, Indices, id_values);
 
-        TriangleSplitMode(aux, edge_ids);
+        TriangleSplit::TriangleSplitMode(aux, edge_ids);
 
 
         KRATOS_CATCH("")
@@ -985,10 +985,10 @@ protected:
     void InterpolateInternalVariables(const int& nel,
                                       const Element::Pointer father_elem,
                                       Element::Pointer child_elem,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo)
     {
         std::vector<Vector> values;
-        father_elem->GetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
         /* /// WARNING =  Calculando la longitud ponderada de fractura del elemento. Solo valido para isotropic_damage
          Element::GeometryType& geom_father = father_elem->GetGeometry();
          Element::GeometryType& geom_child  = child_elem->GetGeometry();
@@ -996,7 +996,7 @@ protected:
          double area_child  = geom_child.Area();
          values[0][4]       = (area_child/area_father) * values[0][4];
          */
-        child_elem->SetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
 
     }
 
@@ -1050,7 +1050,7 @@ protected:
             unsigned int current_id = local_existing_elements + 1;
             bool create_element = false;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
             int edge_ids[6];
             int t[56];
             for (unsigned int i = 0; i < 56; i++)
@@ -1132,7 +1132,7 @@ protected:
 
                         //generate new element by cloning the base one
                         Element::Pointer p_element = it->Create(current_id, geom, it->pGetProperties());
-                        p_element->Initialize();
+                        p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
                         New_Elements.push_back(p_element);
@@ -1142,7 +1142,7 @@ protected:
                             InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                         // Transfer elemental variables
-                        p_element->Data() = it->Data();
+                        p_element->GetData() = it->GetData();
                         p_element->GetValue(SPLIT_ELEMENT) = false;
 
                         current_id++;
@@ -1235,7 +1235,7 @@ protected:
 
         for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
         {
-            Node < 3 > ::DofType& rDof = *iii;
+            Node < 3 > ::DofType& rDof = **iii;
             Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             //the variables are left as free for the internal node
@@ -1331,7 +1331,7 @@ protected:
             int nint = 0;
             int aux[6];
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
             PointerVector< Condition > Old_Conditions;
 
             unsigned int current_id = (this_model_part.Conditions().end() - 1)->Id() + 1;
@@ -1346,7 +1346,7 @@ protected:
                 Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
                 ///* crea las nuevas conectividades
-                create_Condition = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
+                create_Condition = TriangleSplit::Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
                 ///* crea los nuevos Conditionos
                 if (create_Condition == true)
@@ -1355,7 +1355,7 @@ protected:
                     for (int i = 0; i < nel; i++)
                     {
                         int i0, i1, i2;
-                        TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
+                        TriangleSplit::TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
 
 //                            cout << i0 << " " << i1 << " " << i2 << endl;
 
@@ -1369,7 +1369,7 @@ protected:
                         Condition::Pointer p_Condition;
                         p_Condition = it->Create(current_id, geom, it->pGetProperties());
                         p_Condition->SetFlags(*it);
-                        p_Condition->Initialize();
+                        p_Condition->Initialize(rCurrentProcessInfo);
                         p_Condition->InitializeSolutionStep(rCurrentProcessInfo);
                         p_Condition->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -1378,7 +1378,7 @@ protected:
                         //                            InterpolateInternalVariables(nel, *it.base(), p_Condition, rCurrentProcessInfo);
 
                         // Transfer Conditional variables
-                        p_Condition->Data() = it->Data();
+                        p_Condition->GetData() = it->GetData();
                         //p_Condition->SetValue(REFINEMENT_LEVEL, 1);
                         New_Conditions.push_back(p_Condition);
                         current_id++;

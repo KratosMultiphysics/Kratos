@@ -28,12 +28,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "linear_solver_settings"             : {
-            "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto6","DISPLACEMENT_Displacement_Auto7","DISPLACEMENT_Displacement_Auto8","SurfaceLoad3D_Load_on_surfaces_Auto2","SurfaceLoad3D_Load_on_surfaces_Auto3","SurfaceLoad3D_Load_on_surfaces_Auto4","SurfaceLoad3D_Load_on_surfaces_Auto5"]
+        "max_iteration"                      : 10
     },
     "processes" : {
     "constraints_process_list" : [{
@@ -43,7 +38,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto6",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto6",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [null,null,0.0],
             "interval"        : [0.0,"End"]
@@ -55,7 +50,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto7",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto7",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,null,0.0],
             "interval"        : [0.0,"End"]
@@ -67,7 +62,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto8",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto8",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -81,7 +76,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto2",
+            "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto2",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 1.0,
             "direction"       : [0.0,1.0,0.0],
@@ -95,7 +90,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto3",
+            "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto3",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 1.0,
             "direction"       : [0.0,-1.0,0.0],
@@ -109,7 +104,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto4",
+            "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto4",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 1.0,
             "direction"       : [-1.0,0.0,0.0],
@@ -123,7 +118,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto5",
+            "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto5",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 1.0,
             "direction"       : [1.0,0.0,0.0],
@@ -136,32 +131,12 @@
         "kratos_module"   : "KratosMultiphysics",
         "process_name"          : "AssignValueProcess",
         "Parameters"            : {
-                "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto2",
+                "model_part_name" : "Structure.SurfaceLoad3D_Load_on_surfaces_Auto2",
                 "variable_name"   : "DISPLACEMENT_Y",
                 "interval"        : [0.0, "End"],
                 "value"           : "7.8E-03",
                 "tolerance_rank"  : 3
         }
     }
-    ]},
-    "_output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
-        },
-        "point_data_configuration"  : []
-    }
+    ]}
 }

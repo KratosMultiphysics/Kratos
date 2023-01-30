@@ -1,20 +1,26 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import baseclass
 from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
 
+# Importing MPI extensions to Kratos
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 class TrilinosMeshSolverBase(MeshSolverBase):
     def __init__(self, model, custom_settings):
-        if not custom_settings.Has("mesh_motion_linear_solver_settings"): # Override defaults in the base class.
-            linear_solver_settings = KratosMultiphysics.Parameters("""{
+        super().__init__(model, custom_settings)
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Construction finished")
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
@@ -28,47 +34,45 @@ class TrilinosMeshSolverBase(MeshSolverBase):
                 "block_size": 1,
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
-            }""")
-            custom_settings.AddValue("mesh_motion_linear_solver_settings", linear_solver_settings)
-        super(TrilinosMeshSolverBase, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Construction finished")
+            }
+        }""")
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
 
     #### Public user interface functions ####
 
     def AddVariables(self):
-        super(TrilinosMeshSolverBase, self).AddVariables()
+        super().AddVariables()
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Variables ADDED.")
 
     def ImportModelPart(self):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: ", "Importing model part.")
-        from KratosMultiphysics.TrilinosApplication.trilinos_import_model_part_utility import TrilinosImportModelPartUtility
-        self.trilinos_model_part_importer = TrilinosImportModelPartUtility(self.mesh_model_part, self.settings)
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.mesh_model_part, self.settings)
+        self.distributed_model_part_importer.ImportModelPart()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: ", "Finished importing model part.")
 
     def PrepareModelPart(self):
-        super(TrilinosMeshSolverBase, self).PrepareModelPart()
+        super().PrepareModelPart()
         # Construct the mpi-communicator
-        self.trilinos_model_part_importer.CreateCommunicators()
+        self.distributed_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]::", "ModelPart prepared for Solver.")
 
     def Finalize(self):
-        super(TrilinosMeshSolverBase, self).Finalize()
-        self.get_mesh_motion_solving_strategy().Clear() # needed for proper finalization of MPI
+        super().Finalize()
+        self._GetSolutionStrategy().Clear() # needed for proper finalization of MPI
 
     #### Specific internal functions ####
 
     def get_communicator(self):
         if not hasattr(self, '_communicator'):
-            self._communicator = TrilinosApplication.CreateCommunicator()
+            self._communicator = TrilinosApplication.CreateEpetraCommunicator(self.mesh_model_part.GetCommunicator().GetDataCommunicator())
         return self._communicator
 
     #### Private functions ####
 
-    def _create_linear_solver(self):
-        from KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory import ConstructSolver
-        return ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
+    def _CreateLinearSolver(self):
+        return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _create_mesh_motion_solving_strategy(self):
+    def _CreateSolutionStrategy(self):
         raise Exception("Mesh motion solver must be created by the derived class.")

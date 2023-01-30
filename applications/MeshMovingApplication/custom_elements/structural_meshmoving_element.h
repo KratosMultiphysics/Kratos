@@ -50,7 +50,7 @@ public:
   ///@name Type Definitions
   ///@{
   /// Pointer definition of StructuralMeshMovingElement
-  KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElement);
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StructuralMeshMovingElement);
 
   typedef Element BaseType;
   typedef BaseType::GeometryType GeometryType;
@@ -102,13 +102,13 @@ public:
 
   void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                             VectorType &rRightHandSideVector,
-                            ProcessInfo &rCurrentProcessInfo) override;
+                            const ProcessInfo &rCurrentProcessInfo) override;
 
   /**
   * Sets on rResult the ID's of the element degrees of freedom
   */
   void EquationIdVector(EquationIdVectorType &rResult,
-                        ProcessInfo &rCurrentProcessInfo) override;
+                        const ProcessInfo &rCurrentProcessInfo) const override;
 
   /**
   * Sets on rElementalDofList the degrees of freedom of the considered element
@@ -116,14 +116,14 @@ public:
   */
 
   void GetDofList(DofsVectorType &rElementalDofList,
-                  ProcessInfo &rCurrentProcessInfo) override;
+                  const ProcessInfo &rCurrentProcessInfo) const override;
 
   void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                              ProcessInfo &rCurrentProcessInfo) override;
+                              const ProcessInfo &rCurrentProcessInfo) override;
 
-  void GetValuesVector(VectorType &rValues, int Step = 0) override;
+  void GetValuesVector(VectorType &rValues, int Step = 0) const override;
 
-  int Check(const ProcessInfo& rCurrentProcessInfo) override;
+  int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
   ///@}
   ///@name Access

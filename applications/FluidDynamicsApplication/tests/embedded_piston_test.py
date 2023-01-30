@@ -2,9 +2,6 @@ import math
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-
-have_mesh_moving = KratosUtilities.CheckIfApplicationsAvailable("MeshMovingApplication")
-
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
@@ -81,28 +78,11 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         # Note it is done after the level-set update to correct it with the distance modification process
         super(CustomFluidDynamicsAnalysis,self).ApplyBoundaryConditions()
 
-        # Set the EMBEDDED_VELOCITY
-        for element in self._GetSolver().GetComputingModelPart().Elements:
-            # Check if the element is split
-            n_pos = 0
-            n_neg = 0
-            for node in element.GetNodes():
-                if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
-                    n_neg += 1
-                else:
-                    n_pos += 1
-            # If it is split, set the EMBEDDED_VELOCITY
-            if n_neg != 0 and n_pos != 0:
-                element.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [vel,0.0,0.0])
-            else:
-                element.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [0.0,0.0,0.0])
-
     def OutputSolutionStep(self):
         if self.print_output:
             super(CustomFluidDynamicsAnalysis,self).OutputSolutionStep()
 
-
-@UnitTest.skipUnless(have_mesh_moving,"Missing required application: MeshMovingApplication")
+@UnitTest.skipIfApplicationsNotAvailable("MeshMovingApplication")
 class EmbeddedPistonTest(UnitTest.TestCase):
 
     # Embedded element tests
@@ -115,17 +95,19 @@ class EmbeddedPistonTest(UnitTest.TestCase):
         self.ExecuteEmbeddedPistonTest()
 
     def ExecuteEmbeddedPistonTest(self):
-        with UnitTest.WorkFolderScope(self.work_folder, __file__):
-            self.setUp()
-            self.setUpProblem()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.setUp()
+        self.setUpProblem()
+        self.runTest()
+        self.tearDown()
+        self.checkResults()
 
     def setUp(self):
         self.check_tolerance = 1e-6
         self.print_output = False
         self.print_reference_values = False
+        self.work_folder = "EmbeddedPiston2DTest"
+        self.reference_file = "reference_embedded_piston_2D"
+        self.settings = "EmbeddedPiston2DTestParameters.json"
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
@@ -205,16 +187,4 @@ class EmbeddedPistonTest(UnitTest.TestCase):
                             self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
 if __name__ == '__main__':
-    test = EmbeddedPistonTest()
-    test.setUp()
-    test.A = 1.5
-    test.w = 2.0 * math.pi
-    test.print_output = False
-    test.print_reference_values = False
-    test.work_folder = "EmbeddedPiston2DTest"
-    test.reference_file = "reference_embedded_piston_2D"
-    test.settings = "EmbeddedPiston2DTestParameters.json"
-    test.setUpProblem()
-    test.runTest()
-    test.tearDown()
-    test.checkResults()
+    UnitTest.main()

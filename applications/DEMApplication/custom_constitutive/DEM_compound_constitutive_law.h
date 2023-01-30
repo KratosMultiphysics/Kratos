@@ -22,23 +22,18 @@ public:
         return p_clone;
     }
 
-    void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_linear_viscous_Coulomb to Properties " << pProp->Id() << std::endl; // Print this correctly!!!
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override {
+        return std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_compound_constitutive_law<MainCL, CohesionCL>(*this)};
     }
 
     /// Destructor
-
     virtual ~DEM_compound_constitutive_law() {}
 
     double CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override {
-
         return mCCL.CalculateCohesiveNormalForce(element1, element2, indentation);
-
     };
-    
+
     double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) override {
-    
         return mCCL.CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
     };
 

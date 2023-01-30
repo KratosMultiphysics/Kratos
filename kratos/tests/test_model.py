@@ -1,8 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import sys
-
-import KratosMultiphysics
+﻿import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -10,19 +6,15 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 # Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
 pickle_message = ""
 try:
-    import cickle as pickle
+    import cPickle as pickle
     have_pickle_module = True
 except ImportError:
-    if sys.version_info > (3, 0):
-        try:
-            import pickle
-            have_pickle_module = True
-        except ImportError:
-            have_pickle_module = False
-            pickle_message = "No pickle module found"
-    else:
+    try:
+        import pickle
+        have_pickle_module = True
+    except ImportError:
         have_pickle_module = False
-        pickle_message = "No valid pickle module found"
+        pickle_message = "No pickle module found"
 
 class TestModel(KratosUnittest.TestCase):
 
@@ -36,14 +28,15 @@ class TestModel(KratosUnittest.TestCase):
 
         aaa = current_model["Main.Outlet"].CreateSubModelPart("aaa")
 
-        self.assertEqual(aaa, current_model["aaa"]) #search by flat name - should be eventually deprecated
+        with self.assertRaisesRegex(RuntimeError, "Error: DEPRECATION: The ModelPart \"aaa\" is retrieved from the Model by using the flat-map!"):
+            self.assertEqual(aaa, current_model["aaa"]) #search by flat name was removed
 
         #check that a meaningful error is thrown
         with self.assertRaisesRegex(RuntimeError, "Error: The ModelPart named : \"abc\" was not found either as root-ModelPart or as a flat name. The total input string was \"abc\""):
             current_model["abc"]
 
         #check that a meaningful error is thrown
-        with self.assertRaisesRegex(RuntimeError, "The ModelPart named : \"aaa\" was not found as SubModelPart of : \"Inlets\". The total input string was \"Main.Inlets.aaa\""):
+        with self.assertRaisesRegex(RuntimeError, "There is no sub model part with name \"aaa\" in model part \"Main.Inlets\"\nThe following sub model parts are available:"):
             current_model["Main.Inlets.aaa"]
 
         #here i create a model part in the lowest level and i check that the other model parts have it

@@ -34,7 +34,8 @@
             "input_type"     : "mdpa",
             "input_filename" : "beam_tests/hyperelastic_cantilever_beam/penalty_self_weight_load_2D_quad_test_Grid"
         },
-        "pressure_dofs"                      : false
+        "pressure_dofs"                      : false,
+        "auxiliary_variables_list"           : ["NORMAL"]
     },
     "processes"        : {
         "constraints_process_list" : [],
@@ -55,7 +56,7 @@
             "Parameters"    : {
                 "model_part_name" : "Background_Grid.PENALTY_Condition_Auto1",
                 "particles_per_condition" : 7,
-                "penalty_factor"  : 1e15,
+                "penalty_factor"  : 1e10,
                 "constrained"     : "fixed"
             }
         },{

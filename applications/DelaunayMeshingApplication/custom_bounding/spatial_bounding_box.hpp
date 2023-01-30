@@ -202,7 +202,7 @@ public:
 protected:
 
 
-  typedef struct
+  struct BoundingBoxVariables
   {
 
     int        Dimension;          // 2D or 3D
@@ -274,7 +274,7 @@ protected:
     }
 
 
-  } BoundingBoxVariables;
+  };
 
 
 
@@ -1367,7 +1367,7 @@ protected:
 
       for(NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); ++iii)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
       	  Node->pAddDof( rDof );
       	}
 
@@ -1376,7 +1376,7 @@ protected:
 
       for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); ++iii)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
 	  rDof.FixDof(); // dofs free
       	}
 

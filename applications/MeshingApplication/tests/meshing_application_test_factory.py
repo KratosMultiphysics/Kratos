@@ -1,12 +1,8 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 try:
   from KratosMultiphysics.StructuralMechanicsApplication.adaptative_remeshing_structural_mechanics_analysis import AdaptativeRemeshingStructuralMechanicsAnalysis
-  missing_external_structural_dependencies = False
 except ImportError as e:
-    missing_external_structural_dependencies = True
-
+    pass
 import os
 
 # Import KratosUnittest
@@ -14,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # TODO: Add fluid counter part
 class MeshingStructuralMechanicsTestFactory(KratosUnittest.TestCase):
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def setUp(self):
         # Within this location context:
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -21,20 +18,6 @@ class MeshingStructuralMechanicsTestFactory(KratosUnittest.TestCase):
             # Reading the ProjectParameters
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-            # The mechanical solver selects automatically the fastest linear-solver available
-            # this might not be appropriate for a test, therefore in case nothing is specified,
-            # the previous default linear-solver is set
-            if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
-                default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                    "solver_type": "ExternalSolversApplication.super_lu",
-                    "max_iteration": 500,
-                    "tolerance": 1e-9,
-                    "scaling": false,
-                    "symmetric_scaling": true,
-                    "verbosity": 0
-                }""")
-                ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
 
             self.modify_parameters(ProjectParameters)
 
@@ -45,12 +28,9 @@ class MeshingStructuralMechanicsTestFactory(KratosUnittest.TestCase):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
 
             # Creating the test
-            if not missing_external_structural_dependencies:
-                model = KratosMultiphysics.Model()
-                self.test = AdaptativeRemeshingStructuralMechanicsAnalysis(model, ProjectParameters)
-                self.test.Initialize()
-            else:
-                pass
+            model = KratosMultiphysics.Model()
+            self.test = AdaptativeRemeshingStructuralMechanicsAnalysis(model, ProjectParameters)
+            self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
         """This function can be used in derived classes to modify existing parameters

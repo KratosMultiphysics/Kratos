@@ -135,21 +135,29 @@ Element::Pointer AdjointSolidElement<TPrimalElement>::Create(IndexType NewId,
                                                              NodesArrayType const& ThisNodes,
                                                              PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<AdjointSolidElement<TPrimalElement>>(
+    return Kratos::make_intrusive<AdjointSolidElement<TPrimalElement>>(
         NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::Initialize()
+Element::Pointer AdjointSolidElement<TPrimalElement>::Create(IndexType NewId,
+                                                             GeometryType::Pointer pGeom,
+                                                             PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive<AdjointSolidElement<TPrimalElement>>(NewId, pGeom, pProperties);
+}
+
+template <class TPrimalElement>
+void AdjointSolidElement<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    mPrimalElement.Initialize();
+    mPrimalElement.Initialize(rCurrentProcessInfo);
     this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     KRATOS_CATCH("");
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement<TPrimalElement>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.InitializeSolutionStep(rCurrentProcessInfo);
@@ -157,7 +165,7 @@ void AdjointSolidElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rC
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement<TPrimalElement>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.InitializeNonLinearIteration(rCurrentProcessInfo);
@@ -165,7 +173,7 @@ void AdjointSolidElement<TPrimalElement>::InitializeNonLinearIteration(ProcessIn
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement<TPrimalElement>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
@@ -173,7 +181,7 @@ void AdjointSolidElement<TPrimalElement>::FinalizeNonLinearIteration(ProcessInfo
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement<TPrimalElement>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.FinalizeSolutionStep(rCurrentProcessInfo);
@@ -182,7 +190,7 @@ void AdjointSolidElement<TPrimalElement>::FinalizeSolutionStep(ProcessInfo& rCur
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                                ProcessInfo& rCurrentProcessInfo)
+                                                                const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -192,7 +200,7 @@ void AdjointSolidElement<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLef
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::CalculateFirstDerivativesLHS(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -202,7 +210,7 @@ void AdjointSolidElement<TPrimalElement>::CalculateFirstDerivativesLHS(
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::CalculateSecondDerivativesLHS(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -211,7 +219,7 @@ void AdjointSolidElement<TPrimalElement>::CalculateSecondDerivativesLHS(
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY;
     const auto& r_geom = mPrimalElement.GetGeometry();
@@ -232,7 +240,7 @@ void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int S
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
-                                                           ProcessInfo& rCurrentProcessInfo)
+                                                           const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     auto& r_geom = mPrimalElement.GetGeometry();
@@ -271,7 +279,7 @@ void AdjointSolidElement<TPrimalElement>::EquationIdVector(EquationIdVectorType&
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     auto& r_geom = mPrimalElement.GetGeometry();
@@ -301,18 +309,16 @@ void AdjointSolidElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalD
 }
 
 template <class TPrimalElement>
-int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-    for (const auto& r_node : GetGeometry())
-    {
+    for (const auto& r_node : GetGeometry()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
     }
-    return mPrimalElement.Check(rCurrentProcessInfo);
+    return 0;
     KRATOS_CATCH("");
 }
 
@@ -325,6 +331,6 @@ void AdjointSolidElement<TPrimalElement>::CalculateSensitivityMatrix(
     KRATOS_CATCH("");
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSolidElement<TotalLagrangian>;
+template class AdjointSolidElement<TotalLagrangian>;
 
 } // namespace Kratos.

@@ -2,13 +2,13 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Parameters
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import math
-import swimming_DEM_analysis
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis as swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
 class MarineRainAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
-        self.project_parameters.do_search_neighbours = False
+        self.project_parameters.do_search_dem_neighbours = False
         self.project_parameters.vorticity_calculation_type = 0
         self.project_parameters.do_impose_flow_from_field = True
 

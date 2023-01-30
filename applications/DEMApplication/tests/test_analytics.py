@@ -2,104 +2,59 @@ import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import DEM_analysis_stage
-
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 import KratosMultiphysics.kratos_utilities as kratos_utils
+
+import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
-    omp_utils = Kratos.OpenMPUtils()
-    if "OMP_NUM_THREADS" in os.environ:
-        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
-        omp_utils.SetNumThreads(1)
 
-    with open(parameters_file_name,'r') as parameter_file:
-        project_parameters = Kratos.Parameters(parameter_file.read())
 
-    my_obj(model, project_parameters).Run()
+class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    if "OMP_NUM_THREADS" in os.environ:
-        omp_utils.SetNumThreads(int(initial_number_of_threads))
-
-class AnalyticsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
-
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeTimeStep(self, time):
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
         tolerance = 1e-3
-        for node in self.spheres_model_part.Nodes:
-            normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)
-            face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
-            if node.Id == 1:
-                if time < 0.03:
-                    expected_value = 0.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 0.0
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-                elif time > 0.045 and time < 0.28:
-                    expected_value = 3.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 0.0
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-                elif time > 0.29 and time < 0.37:
-                    expected_value = 3.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 2.842938
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-                elif time > 0.43:
-                    expected_value = 14.4637
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 7.9635188
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-            if node.Id == 2:
-                if time < 0.03:
-                    expected_value = 0.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.045 and time < 0.13:
-                    expected_value = 3.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.17 and time < 0.37:
-                    expected_value = 3.941702
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.43:
-                    expected_value = 14.4637
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-            if node.Id == 3:
-                if time < 0.13:
-                    expected_value = 0.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.17 and time < 0.32:
-                    expected_value = 3.941702
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
 
-    @classmethod
-    def CheckValueOfNormalImpactVelocity(self, normal_impact_vel, expected_value, tolerance):
-        if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:
-            raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(normal_impact_vel))
+        if self.time > 0.099:
+            node = self.spheres_model_part.GetNode(1)
+            normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
+            face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
+            expected_value = 11.07179
+            self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
+            expected_value = 6.941702
+            self.assertAlmostEqual(face_normal_impact_vel, expected_value, delta=tolerance)
 
-    @classmethod
-    def CheckValueOfFaceNormalImpactVelocity(self, face_normal_impact_vel, expected_value, tolerance):
-        if face_normal_impact_vel > expected_value + tolerance or face_normal_impact_vel < expected_value - tolerance:
-            raise ValueError('Incorrect value for FACE_NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(face_normal_impact_vel))
+            node = self.spheres_model_part.GetNode(2)
+            normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
+            face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
+            expected_value = 16.29633
+            self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(3)
+            normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
+            face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
+            expected_value = 16.29633
+            self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
 
     def Finalize(self):
-        super(AnalyticsTestSolution, self).Finalize()
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
+class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-class GhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
-
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
@@ -107,14 +62,13 @@ class GhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def RunAnalytics(self, time, is_time_to_print=True):
-            self.MakeAnalyticsMeasurements()
-            if is_time_to_print:
-                self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                    self.CheckTotalNumberOfCrossingParticles()
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:
+            self.SurfacesAnalyzerClass.CreateNewFile()
+            self.SurfacesAnalyzerClass.UpdateDataBases(time)
+            self.CheckTotalNumberOfCrossingParticles()
 
-            self.FaceAnalyzerClass.RemoveOldFile()
+        self.SurfacesAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -122,19 +76,14 @@ class GhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
         if self.time > 0.145:
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('1/n_accum')
-
-            if n_accum_h5[-1] != -4:
-                print(n_accum_h5[-1])
-                raise ValueError('The total value of crossing particles was not the expected!')
+            self.assertEqual(n_accum_h5[-1], -4)
 
     def Finalize(self):
-        super(GhostsTestSolution, self).Finalize()
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
+class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-
-class MultiGhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
-
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
@@ -142,16 +91,15 @@ class MultiGhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def RunAnalytics(self, time, is_time_to_print=True):
-            self.MakeAnalyticsMeasurements()
-            if is_time_to_print:  # or IsCountStep()
-                self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:  # or IsCountStep()
+            self.SurfacesAnalyzerClass.CreateNewFile()
+            self.SurfacesAnalyzerClass.UpdateDataBases(time)
 
-                    if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
-                        self.CheckTotalNumberOfCrossingParticles()
+            if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
+                self.CheckTotalNumberOfCrossingParticles()
 
-                self.FaceAnalyzerClass.RemoveOldFile()
+            self.SurfacesAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -159,52 +107,45 @@ class MultiGhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
         if self.time > 1.9:
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('2/n_accum')
+            self.assertEqual(n_accum_h5[-1], -4)
 
-            if n_accum_h5[-1] != -4:
-                print(n_accum_h5[-1])
-                raise ValueError('The total value of crossing particles was not the expected!')
 
     def Finalize(self):
-        super(MultiGhostsTestSolution, self).Finalize()
-
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class TestAnalytics(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
 
-    @classmethod
     def test_Analytics_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
-        CreateAndRunStageInOneOpenMPThread(AnalyticsTestSolution, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(AnalyticsTestSolution, model, parameters_file_name, 1)
 
 
-    @classmethod
-    @KratosUnittest.expectedFailure
-    def test_Analytics_2(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM_single_layer_ghost.json")
-        model = Kratos.Model()
-        CreateAndRunStageInOneOpenMPThread(GhostsTestSolution, model, parameters_file_name)
+    # @KratosUnittest.expectedFailure
+    # def test_Analytics_2(self):
+    #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+    #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_single_layer_ghost.json")
+    #     model = Kratos.Model()
+    #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(GhostsTestSolution, model, parameters_file_name, 1)
 
 
-    @classmethod
-    @KratosUnittest.expectedFailure
-    def test_Analytics_3(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
-        model = Kratos.Model()
-        CreateAndRunStageInOneOpenMPThread(MultiGhostsTestSolution, model, parameters_file_name)
-
+    # @KratosUnittest.expectedFailure
+    # def test_Analytics_3(self):
+    #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+    #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
+    #      = os.path.join(path, "MaterialsDEM.json")
+    #     model = Kratos.Model()
+    #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, 1)
 
     def tearDown(self):
-        file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
+        file_to_remove = os.path.join("analytics_tests_files", "flux_data_new.hdf5")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-
         os.chdir(this_working_dir_backup)
-
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

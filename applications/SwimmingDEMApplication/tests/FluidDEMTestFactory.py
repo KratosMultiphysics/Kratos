@@ -6,7 +6,7 @@ import KratosMultiphysics
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-from swimming_DEM_analysis import SwimmingDEMAnalysis
+from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
 # This utility will control the execution scope
 class controlledExecutionScope:
     def __init__(self, scope):
@@ -31,9 +31,6 @@ class TestFactory(KratosUnittest.TestCase):
 
             # Create Model
             model = KratosMultiphysics.Model()
-
-            # To avoid too many prints
-            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             self.test = SwimmingDEMAnalysis(model, parameters)
 

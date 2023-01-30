@@ -5,28 +5,26 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborators:    Vicente Mataix Ferrandiz
-//                    Pablo Becker
+//  Collaborators:   Vicente Mataix Ferrandiz
+//                   Pablo Becker
 //
 
-#if !defined(KRATOS_MATH_UTILS )
-#define  KRATOS_MATH_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 #include <cmath>
 #include <type_traits>
 
-/* External includes */
+// External includes
 
-/* External includes */
+// Project includes
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
-#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -66,49 +64,43 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The matrix type
     typedef Matrix MatrixType;
 
+    /// The vector type
     typedef Vector VectorType;
 
+    /// The size type
     typedef std::size_t SizeType;
 
+    /// The index type
     typedef std::size_t IndexType;
 
+    /// The indirect array type
     typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
+    /// The machine precision
     static constexpr TDataType ZeroTolerance = std::numeric_limits<TDataType>::epsilon();
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /* Constructor */
-
-
-    /** Destructor */
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
     ///@{
 
     /**
-     * @brief This function calculates the number of elements between first and last.
-     * @param rFirstData First element
-     * @param rSecondData Second element
-     * @return Distance Number of elements
+     * @brief This function returns the machine precision
+     * @return The corresponding epsilon for the TDataType
      */
-
-    static TDataType Distance(
-        const TDataType& rFirstData,
-        const TDataType& rSecondData
-        )
+    static inline TDataType GetZeroTolerance()
     {
-        return rFirstData.Distance(rSecondData);
+        return ZeroTolerance;
     }
 
     /**
@@ -118,8 +110,7 @@ public:
      * @param c Third length
      * @return Heron solution: Heron's formula states that the area of a triangle whose sides have lengths a, b, and c
      */
-
-    template<bool check>// = false>
+    template<bool TCheck>// = false>
     static inline double Heron(
         double a,
         double b,
@@ -128,7 +119,7 @@ public:
     {
         const double s = 0.5 * (a + b + c);
         const double A2 = s * (s - a) * (s - b) * (s - c);
-        if(check) {
+        if constexpr(TCheck) {
             if(A2 < 0.0) {
                 KRATOS_ERROR << "The square of area is negative, probably the triangle is in bad shape:" << A2 << std::endl;
             } else {
@@ -178,35 +169,6 @@ public:
     }
 
     /**
-     * @brief Calculates the determinant of a 2x2, 3x3 and 4x4 matrix (using bounded matrix for performance)
-     * @param rInputMatrix The matrix to calculate
-     * @return DetA: The determinant of the matrix
-     */
-    template<class TMatrixType>
-    static inline TDataType DetMat(const TMatrixType& rInputMatrix)
-    {
-        static_assert(std::is_same<typename TMatrixType::value_type, TDataType>::value, "Bad value type.");
-        TDataType rInputMatrixDet;
-
-        if (rInputMatrix.size1() == 1) {
-            rInputMatrixDet = rInputMatrix(0, 0);
-        } else if (rInputMatrix.size1() == 2) {
-            rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0);
-        } else if (rInputMatrix.size1() == 3) {
-            rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)
-                           + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(0, 2)
-                           + rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0)
-                           - rInputMatrix(2, 0) * rInputMatrix(1, 1) * rInputMatrix(0, 2)
-                           - rInputMatrix(2, 1) * rInputMatrix(1, 2) * rInputMatrix(0, 0)
-                           - rInputMatrix(1, 0) * rInputMatrix(0, 1) * rInputMatrix(2,2);
-        } else {
-            rInputMatrixDet = rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 2) + rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 2) - rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 2) + rInputMatrix(0, 3) * (rInputMatrix(1, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 0) - rInputMatrix(1, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(1, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 1) + rInputMatrix(1, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 2) - rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 2)) + (rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)) * rInputMatrix(3, 3) + rInputMatrix(0, 2) * (-(rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 0)) + rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 0) + rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 1) - rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 3) + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 3));
-        }
-
-        return rInputMatrixDet;
-    }
-
-    /**
      * @brief Calculates the cofactor
      * @param rMat The matrix to calculate
      * @param i The index i
@@ -241,7 +203,7 @@ public:
 #else
         boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
 #endif // KRATOS_USE_AMATRIX
-        const TDataType first_minor = DetMat(sub_mat);
+        const TDataType first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
@@ -283,16 +245,16 @@ public:
         BoundedMatrix<TDataType, TDim, TDim> inverted_matrix;
 
         /* Compute Determinant of the matrix */
-        rInputMatrixDet = DetMat(rInputMatrix);
+        rInputMatrixDet = Det(rInputMatrix);
 
-        if(TDim == 1) {
+        if constexpr (TDim == 1) {
             inverted_matrix(0,0) = 1.0/rInputMatrix(0,0);
             rInputMatrixDet = rInputMatrix(0,0);
-        } else if (TDim == 2) {
+        } else if constexpr (TDim == 2) {
             InvertMatrix2(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 3) {
+        } else if constexpr (TDim == 3) {
             InvertMatrix3(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 4) {
+        } else if constexpr (TDim == 4) {
             InvertMatrix4(rInputMatrix, inverted_matrix, rInputMatrixDet);
         } else {
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
@@ -346,25 +308,30 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @param Tolerance The maximum tolerance considered
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
+    template<class TMatrix1, class TMatrix2>
     static void GeneralizedInvertMatrix(
-        const MatrixType& rInputMatrix,
-        MatrixType& rInvertedMatrix,
-        TDataType& rInputMatrixDet
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
         )
     {
         const SizeType size_1 = rInputMatrix.size1();
         const SizeType size_2 = rInputMatrix.size2();
 
         if (size_1 == size_2) {
-            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet, Tolerance);
         } else if (size_1 < size_2) { // Right inverse
             if (rInvertedMatrix.size1() != size_2 || rInvertedMatrix.size2() != size_1) {
                 rInvertedMatrix.resize(size_2, size_1, false);
             }
             const Matrix aux = prod(rInputMatrix, trans(rInputMatrix));
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            InvertMatrix(aux, auxInv, rInputMatrixDet, Tolerance);
             rInputMatrixDet = std::sqrt(rInputMatrixDet);
             noalias(rInvertedMatrix) = prod(trans(rInputMatrix), auxInv);
         } else { // Left inverse
@@ -373,7 +340,7 @@ public:
             }
             const Matrix aux = prod(trans(rInputMatrix), rInputMatrix);
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            InvertMatrix(aux, auxInv, rInputMatrixDet, Tolerance);
             rInputMatrixDet = std::sqrt(rInputMatrixDet);
             noalias(rInvertedMatrix) = prod(auxInv, trans(rInputMatrix));
         }
@@ -412,6 +379,8 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
     template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
@@ -421,6 +390,8 @@ public:
         const TDataType Tolerance = ZeroTolerance
         )
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+
         const SizeType size = rInputMatrix.size2();
 
         if(size == 1) {
@@ -443,16 +414,14 @@ public:
                 rInvertedMatrix.resize(size1, size2,false);
             }
 
+            Matrix A(rInputMatrix);
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            Matrix temp(rInputMatrix);
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
             rInputMatrixDet = lu_factorization.determinant();
             KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
             rInvertedMatrix = lu_factorization.inverse();
 #else
-
             typedef permutation_matrix<SizeType> pmatrix;
-            Matrix A(rInputMatrix);
             pmatrix pm(A.size1());
             const int singular = lu_factorize(A,pm);
             rInvertedMatrix.assign( IdentityMatrix(A.size1()));
@@ -462,14 +431,45 @@ public:
             // Calculating determinant
             rInputMatrixDet = 1.0;
 
-            for (IndexType i = 0; i < A.size1();++i) {
+            for (IndexType i = 0; i < size1;++i) {
                 IndexType ki = pm[i] == i ? 0 : 1;
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
-
  #endif // ifdef KRATOS_USE_AMATRIX
-       } else {
-           KRATOS_ERROR << "Not possible to invert Matrix: " << rInputMatrix << std::endl;
+       } else { // Bounded-matrix case
+            const SizeType size1 = rInputMatrix.size1();
+            const SizeType size2 = rInputMatrix.size2();
+
+            Matrix A(rInputMatrix);
+            Matrix invA(rInvertedMatrix);
+
+ #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+            rInputMatrixDet = lu_factorization.determinant();
+            KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
+            invA = lu_factorization.inverse();
+ #else
+            typedef permutation_matrix<SizeType> pmatrix;
+            pmatrix pm(size1);
+            const int singular = lu_factorize(A,pm);
+            invA.assign( IdentityMatrix(size1));
+            KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << rInputMatrix << std::endl;
+            lu_substitute(A, pm, invA);
+
+            // Calculating determinant
+            rInputMatrixDet = 1.0;
+
+            for (IndexType i = 0; i < size1;++i) {
+                IndexType ki = pm[i] == i ? 0 : 1;
+                rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
+            }
+ #endif // ifdef KRATOS_USE_AMATRIX
+
+            for (IndexType i = 0; i < size1;++i) {
+                for (IndexType j = 0; j < size2;++j) {
+                    rInvertedMatrix(i,j) = invA(i,j);
+                }
+            }
        }
 
        // Checking condition number
@@ -492,6 +492,8 @@ public:
         )
     {
         KRATOS_TRY;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if(rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) {
             rInvertedMatrix.resize(2,2,false);
@@ -523,6 +525,8 @@ public:
         )
     {
         KRATOS_TRY;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if(rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) {
             rInvertedMatrix.resize(3,3,false);
@@ -568,6 +572,8 @@ public:
     {
         KRATOS_TRY;
 
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+
         if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) {
             rInvertedMatrix.resize(4, 4, false);
         }
@@ -607,77 +613,15 @@ public:
     }
 
     /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
-     * @param rA Is the input matrix
-     * @return The determinant of the 2x2 matrix
-     */
-    static inline TDataType Det(const MatrixType& rA)
-    {
-        TDataType Det;
-
-        if (rA.size1() == 2) {
-            Det = Det2(rA);
-        } else if (rA.size1() == 3) {
-            Det = Det3(rA);
-        } else if (rA.size1() == 4) {
-            Det = Det4(rA);
-        } else {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            Matrix temp(rA);
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
-            Det = lu_factorization.determinant();
-#else
-            using namespace boost::numeric::ublas;
-            typedef permutation_matrix<SizeType> pmatrix;
-            Matrix Aux(rA);
-            pmatrix pm(Aux.size1());
-            bool singular = lu_factorize(Aux,pm);
-
-            if (singular) {
-                return 0.0;
-            }
-
-            Det = 1.0;
-
-            for (IndexType i = 0; i < Aux.size1();++i) {
-                IndexType ki = pm[i] == i ? 0 : 1;
-                Det *= std::pow(-1.0, ki) * Aux(i,i);
-            }
-#endif // ifdef KRATOS_USE_AMATRIX
-       }
-
-        return Det;
-    }
-
-    /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
-     * @param rA Is the input matrix
-     * @return The determinant of the 2x2 matrix
-     */
-    static inline TDataType GeneralizedDet(const MatrixType& rA)
-    {
-        TDataType determinant;
-
-        if (rA.size1() == rA.size2()) {
-            determinant = Det(rA);
-        } else if (rA.size1() < rA.size2()) { // Right determinant
-            const Matrix AAT = prod( rA, trans(rA) );
-            determinant = std::sqrt(Det(AAT));
-        } else { // Left determinant
-            const Matrix ATA = prod( trans(rA), rA );
-            determinant = std::sqrt(Det(ATA));
-        }
-
-        return determinant;
-    }
-
-    /**
      * @brief Calculates the determinant of a matrix of dimension 2x2 (no check performed on matrix size)
      * @param rA Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
-    static inline TDataType Det2(const MatrixType& rA)
+    template<class TMatrixType>
+    static inline TDataType Det2(const TMatrixType& rA)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
+
         return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
     }
 
@@ -686,8 +630,11 @@ public:
      * @param rA Is the input matrix
      * @return The determinant of the 3x3 matrix
      */
-    static inline TDataType Det3(const MatrixType& rA)
+    template<class TMatrixType>
+    static inline TDataType Det3(const TMatrixType& rA)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
+
         // Calculating the algebraic complements to the first line
         const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
         const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
@@ -701,37 +648,78 @@ public:
      * @param rA Is the input matrix
      * @return The determinant of the 4x4 matrix
      */
-    static inline TDataType Det4(const MatrixType& rA)
+    template<class TMatrixType>
+    static inline TDataType Det4(const TMatrixType& rA)
     {
-        const double Det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
+
+        const double det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
                           -rA(0,1)*rA(1,3)*rA(2,0)*rA(3,2)+rA(0,0)*rA(1,3)*rA(2,1)*rA(3,2)+rA(0,1)*rA(1,0)*rA(2,3)*rA(3,2)-rA(0,0)*rA(1,1)*rA(2,3)*rA(3,2)+rA(0,3)*(rA(1,2)*rA(2,1)*rA(3,0)-rA(1,1)*rA(2,2)*rA(3,0)-rA(1,2)*rA(2,0)*rA(3,1)+rA(1,0)*rA(2,2)*rA(3,1)+rA(1,1)*rA(2,0)*rA(3,2)
                           -rA(1,0)*rA(2,1)*rA(3,2))+(rA(0,1)*rA(1,2)*rA(2,0)-rA(0,0)*rA(1,2)*rA(2,1)-rA(0,1)*rA(1,0)*rA(2,2)+rA(0,0)*rA(1,1)*rA(2,2))*rA(3,3)+rA(0,2)*(-(rA(1,3)*rA(2,1)*rA(3,0))+rA(1,1)*rA(2,3)*rA(3,0)+rA(1,3)*rA(2,0)*rA(3,1)-rA(1,0)*rA(2,3)*rA(3,1)-rA(1,1)*rA(2,0)*rA(3,3)+rA(1,0)*rA(2,1)*rA(3,3));
-        return Det;
+        return det;
+    }
+
+public:
+    /**
+     * @brief Calculates the determinant of a matrix of a square matrix of any size (no check performed on release mode)
+     * @param rA Is the input matrix
+     * @return The determinant of any size matrix
+     */
+    template<class TMatrixType>
+    static inline TDataType Det(const TMatrixType& rA)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
+
+        switch (rA.size1()) {
+            case 2:
+                return Det2(rA);
+            case 3:
+                return Det3(rA);
+            case 4:
+                return Det4(rA);
+            default:
+                TDataType det = 1.0;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+                Matrix temp(rA);
+                AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+                det = lu_factorization.determinant();
+#else
+                using namespace boost::numeric::ublas;
+                typedef permutation_matrix<SizeType> pmatrix;
+                Matrix Aux(rA);
+                pmatrix pm(Aux.size1());
+                bool singular = lu_factorize(Aux,pm);
+
+                if (singular) {
+                    return 0.0;
+                }
+
+                for (IndexType i = 0; i < Aux.size1();++i) {
+                    IndexType ki = pm[i] == i ? 0 : 1;
+                    det *= std::pow(-1.0, ki) * Aux(i,i);
+                }
+#endif // ifdef KRATOS_USE_AMATRIX
+                return det;
+       }
     }
 
     /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 (in this case for a bounded matrix)
+     * @brief Calculates the determinant of any matrix (no check performed on matrix size)
      * @param rA Is the input matrix
-     * @return The determinant of the matrix
+     * @return The determinant of the 2x2 matrix
      */
-    static inline TDataType Det(const BoundedMatrix<double,2,2>& rA)
+    template<class TMatrixType>
+    static inline TDataType GeneralizedDet(const TMatrixType& rA)
     {
-        return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
-    }
-
-    /**
-     * @brief Calculates the determinant of a matrix of dimension 3x3 (in this case for a bounded matrix)
-     * @param rA Is the input matrix
-     * @return The determinant of the matrix
-     */
-    static inline TDataType Det(const BoundedMatrix<double,3,3>& rA)
-    {
-        // Calculating the algebraic complements to the first line
-        const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
-        const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
-        const double c = rA(1,0)*rA(2,1) - rA(1,1)*rA(2,0);
-
-        return rA(0,0)*a - rA(0,1)*b + rA(0,2)*c;
+        if (rA.size1() == rA.size2()) {
+            return Det(rA);
+        } else if (rA.size1() < rA.size2()) { // Right determinant
+            const Matrix AAT = prod( rA, trans(rA) );
+            return std::sqrt(Det(AAT));
+        } else { // Left determinant
+            const Matrix ATA = prod( trans(rA), rA );
+            return std::sqrt(Det(ATA));
+        }
     }
 
     /**
@@ -848,12 +836,13 @@ public:
      * @param b Second input vector
      * @return The resulting vector
      */
-    static inline Vector CrossProduct(
-        const Vector& a,
-        const Vector& b
+    template<class T>
+    static inline T CrossProduct(
+        const T& a,
+        const T& b
         )
     {
-        Vector c(3);
+        T c(a);
 
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
@@ -1068,14 +1057,15 @@ public:
     /**
      * @brief "rInputMatrix" is ADDED to "Destination" matrix starting from InitialRow and InitialCol of the destination matrix
      * @details "Destination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
-     * @param rDestination The matric destination
-     * @param rInputMatrix The input matrix to be computed
-     * @param InitialRow The initial row to compute
-     * @param InitialCol The initial column to compute
+     * @param rDestination The matrix destination
+     * @param rInputMatrix The input matrix to be added
+     * @param InitialRow The initial row
+     * @param InitialCol The initial column
      */
-    static inline void  AddMatrix(
-        MatrixType& rDestination,
-        const MatrixType& rInputMatrix,
+    template<class TMatrixType1, class TMatrixType2>
+    static inline void AddMatrix(
+        TMatrixType1& rDestination,
+        const TMatrixType2& rInputMatrix,
         const IndexType InitialRow,
         const IndexType InitialCol
         )
@@ -1086,6 +1076,28 @@ public:
             for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
+        }
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief "rInputVector" is ADDED to "Destination" vector starting from InitialIndex of the destination matrix
+     * @details "Destination" is assumed to be able to contain the "input vector" (no check is performed on the bounds)
+     * @param rDestination The vector destination
+     * @param rInputVector The input vector to be added
+     * @param InitialIndex The initial index
+     */
+    template<class TVectorType1, class TVectorType2>
+    static inline void AddVector(
+        TVectorType1& rDestination,
+        const TVectorType2& rInputVector,
+        const IndexType InitialIndex
+        )
+    {
+        KRATOS_TRY
+
+        for(IndexType i = 0; i < rInputVector.size(); ++i) {
+            rDestination[InitialIndex+i] += rInputVector[i];
         }
         KRATOS_CATCH("")
     }
@@ -1240,16 +1252,16 @@ public:
     static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
         KRATOS_TRY;
-        TMatrixType stress_tensor;
+
+        const SizeType matrix_size = rStressVector.size() == 3 ? 2 : 3;
+        TMatrixType stress_tensor(matrix_size, matrix_size);
 
         if (rStressVector.size()==3) {
-            stress_tensor.resize(2,2,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[2];
             stress_tensor(1,0) = rStressVector[2];
             stress_tensor(1,1) = rStressVector[1];
         } else if (rStressVector.size()==4) {
-            stress_tensor.resize(3,3,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[3];
             stress_tensor(0,2) = 0.0;
@@ -1260,7 +1272,6 @@ public:
             stress_tensor(2,1) = 0.0;
             stress_tensor(2,2) = rStressVector[2];
         } else if (rStressVector.size()==6) {
-            stress_tensor.resize(3,3,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[3];
             stress_tensor(0,2) = rStressVector[5];
@@ -1293,39 +1304,37 @@ public:
     {
         KRATOS_TRY;
 
-        TMatrixType Tensor;
+        const SizeType matrix_size = rVector.size() == 3 ? 2 : 3;
+        TMatrixType tensor(matrix_size, matrix_size);
 
         if (rVector.size() == 3) {
-            Tensor.resize(2,2,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[2];
-            Tensor(1,0) = rVector[2];
-            Tensor(1,1) = rVector[1];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[2];
+            tensor(1,0) = rVector[2];
+            tensor(1,1) = rVector[1];
         } else if (rVector.size() == 4) {
-            Tensor.resize(3,3,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[3];
-            Tensor(0,2) = 0.0;
-            Tensor(1,0) = rVector[3];
-            Tensor(1,1) = rVector[1];
-            Tensor(1,2) = 0.0;
-            Tensor(2,0) = 0.0;
-            Tensor(2,1) = 0.0;
-            Tensor(2,2) = rVector[2];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[3];
+            tensor(0,2) = 0.0;
+            tensor(1,0) = rVector[3];
+            tensor(1,1) = rVector[1];
+            tensor(1,2) = 0.0;
+            tensor(2,0) = 0.0;
+            tensor(2,1) = 0.0;
+            tensor(2,2) = rVector[2];
         } else if (rVector.size() == 6) {
-            Tensor.resize(3,3,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[3];
-            Tensor(0,2) = rVector[5];
-            Tensor(1,0) = rVector[3];
-            Tensor(1,1) = rVector[1];
-            Tensor(1,2) = rVector[4];
-            Tensor(2,0) = rVector[5];
-            Tensor(2,1) = rVector[4];
-            Tensor(2,2) = rVector[2];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[3];
+            tensor(0,2) = rVector[5];
+            tensor(1,0) = rVector[3];
+            tensor(1,1) = rVector[1];
+            tensor(1,2) = rVector[4];
+            tensor(2,0) = rVector[5];
+            tensor(2,1) = rVector[4];
+            tensor(2,2) = rVector[2];
         }
 
-        return Tensor;
+        return tensor;
 
         KRATOS_CATCH("");
     }
@@ -1360,17 +1369,15 @@ public:
     {
         KRATOS_TRY
 
-        TMatrixType strain_tensor;
+        const SizeType matrix_size = rStrainVector.size() == 3 ? 2 : 3;
+        TMatrixType strain_tensor(matrix_size, matrix_size);
 
         if (rStrainVector.size()==3) {
-            strain_tensor.resize(2,2, false);
-
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[2];
             strain_tensor(1,0) = 0.5*rStrainVector[2];
             strain_tensor(1,1) = rStrainVector[1];
         } else if (rStrainVector.size()==4) {
-            strain_tensor.resize(3,3, false);
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[3];
             strain_tensor(0,2) = 0;
@@ -1381,7 +1388,6 @@ public:
             strain_tensor(2,1) = 0;
             strain_tensor(2,2) = rStrainVector[2];
         } else if (rStrainVector.size()==6) {
-            strain_tensor.resize(3,3, false);
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[3];
             strain_tensor(0,2) = 0.5*rStrainVector[5];
@@ -1391,8 +1397,6 @@ public:
             strain_tensor(2,0) = 0.5*rStrainVector[5];
             strain_tensor(2,1) = 0.5*rStrainVector[4];
             strain_tensor(2,2) = rStrainVector[2];
-
-
         }
 
         return strain_tensor;
@@ -1422,8 +1426,6 @@ public:
     {
         KRATOS_TRY;
 
-        Vector StrainVector;
-
         if(rSize == 0) {
             if(rStrainTensor.size1() == 2) {
                 rSize = 3;
@@ -1432,28 +1434,27 @@ public:
             }
         }
 
+        Vector strain_vector(rSize);
+
         if (rSize == 3) {
-            StrainVector.resize(3,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = 2.0*rStrainTensor(0,1);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = 2.0*rStrainTensor(0,1);
         } else if (rSize == 4) {
-            StrainVector.resize(4,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = rStrainTensor(2,2);
-            StrainVector[3] = 2.0*rStrainTensor(0,1);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = rStrainTensor(2,2);
+            strain_vector[3] = 2.0*rStrainTensor(0,1);
         } else if (rSize == 6) {
-            StrainVector.resize(6,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = rStrainTensor(2,2);
-            StrainVector[3] = 2.0*rStrainTensor(0,1);
-            StrainVector[4] = 2.0*rStrainTensor(1,2);
-            StrainVector[5] = 2.0*rStrainTensor(0,2);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = rStrainTensor(2,2);
+            strain_vector[3] = 2.0*rStrainTensor(0,1);
+            strain_vector[4] = 2.0*rStrainTensor(1,2);
+            strain_vector[5] = 2.0*rStrainTensor(0,2);
         }
 
-        return StrainVector;
+        return strain_vector;
 
         KRATOS_CATCH("");
      }
@@ -1480,39 +1481,35 @@ public:
     {
         KRATOS_TRY;
 
-        TVector StressVector;
-
         if(rSize == 0) {
             if(rStressTensor.size1() == 2) {
                 rSize = 3;
-            }
-            else if(rStressTensor.size1() == 3) {
+            } else if(rStressTensor.size1() == 3) {
                 rSize = 6;
             }
         }
 
+        TVector stress_vector(rSize);
+
         if (rSize == 3) {
-            if (StressVector.size() != 3) StressVector.resize(3,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(0,1);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(0,1);
         } else if (rSize == 4) {
-            if (StressVector.size() != 4) StressVector.resize(4,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(2,2);
-            StressVector[3] = rStressTensor(0,1);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(2,2);
+            stress_vector[3] = rStressTensor(0,1);
         } else if (rSize == 6) {
-            if (StressVector.size() != 6) StressVector.resize(6,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(2,2);
-            StressVector[3] = rStressTensor(0,1);
-            StressVector[4] = rStressTensor(1,2);
-            StressVector[5] = rStressTensor(0,2);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(2,2);
+            stress_vector[3] = rStressTensor(0,1);
+            stress_vector[4] = rStressTensor(1,2);
+            stress_vector[5] = rStressTensor(0,2);
         }
 
-        return StressVector;
+        return stress_vector;
 
         KRATOS_CATCH("");
      }
@@ -1536,8 +1533,6 @@ public:
     {
         KRATOS_TRY;
 
-        Vector vector;
-
         if(rSize == 0) {
             if(rTensor.size1() == 2) {
                 rSize = 3;
@@ -1546,20 +1541,19 @@ public:
             }
         }
 
+        Vector vector(rSize);
+
         if (rSize == 3) {
-            vector.resize(3,false);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(0,1);
 
         } else if (rSize==4) {
-            vector.resize(4,false);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(2,2);
             vector[3]= rTensor(0,1);
         } else if (rSize==6) {
-            vector.resize(6);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(2,2);
@@ -1602,7 +1596,7 @@ public:
 
         // Direct multiplication
         // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
-        
+
         // Manual multiplication
         rA.clear();
         for(IndexType k = 0; k< rD.size1(); ++k) {
@@ -1647,7 +1641,7 @@ public:
 
         // Direct multiplication
         // noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
-        
+
         // Manual multiplication
         rA.clear();
         for(IndexType k = 0; k< rD.size1(); ++k) {
@@ -1706,6 +1700,10 @@ public:
         TMatrixType2 aux_A, aux_V_matrix, rotation_matrix;
         TDataType a, u, c, s, gamma, teta;
         IndexType index1, index2;
+
+        aux_A.resize(size,size,false);
+        aux_V_matrix.resize(size,size,false);
+        rotation_matrix.resize(size,size,false);
 
         for(IndexType iterations = 0; iterations < MaxIterations; ++iterations) {
             is_converged = true;
@@ -1821,6 +1819,98 @@ public:
         return is_converged;
     }
 
+    /**
+     * @brief Calculates the square root of a matrix
+     * @details This function calculates the square root of a matrix by doing an eigenvalue decomposition
+     * The square root of a matrix A is defined as A = V*S*inv(V) where A is the eigenvectors matrix
+     * and S the diagonal matrix containing the square root of the eigenvalues. Note that the previous
+     * expression can be rewritten as A = V*S*trans(V) since V is orthogonal.
+     * @tparam TMatrixType1 Input matrix type
+     * @tparam TMatrixType2 Output matrix type
+     * @param rA Input matrix
+     * @param rMatrixSquareRoot Square root output matrix
+     * @param Tolerance Tolerance of the eigenvalue decomposition
+     * @param MaxIterations Maximum iterations of the eigenvalue decomposition
+     * @return true The eigenvalue decomposition problem converged
+     * @return false The eigenvalue decomposition problem did not converge
+     */
+    template<class TMatrixType1, class TMatrixType2>
+    static inline bool MatrixSquareRoot(
+        const TMatrixType1 &rA,
+        TMatrixType2 &rMatrixSquareRoot,
+        const TDataType Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20
+        )
+    {
+        // Do an eigenvalue decomposition of the input matrix
+        TMatrixType2 eigenvectors_matrix, eigenvalues_matrix;
+        const bool is_converged = GaussSeidelEigenSystem(rA, eigenvectors_matrix, eigenvalues_matrix, Tolerance, MaxIterations);
+        KRATOS_WARNING_IF("MatrixSquareRoot", !is_converged) << "GaussSeidelEigenSystem did not converge.\n";
+
+        // Get the square root of the eigenvalues
+        SizeType size = eigenvalues_matrix.size1();
+        for (SizeType i = 0; i < size; ++i) {
+            KRATOS_ERROR_IF(eigenvalues_matrix(i,i) < 0) << "Eigenvalue " << i << " is negative. Square root matrix cannot be computed" << std::endl;
+            eigenvalues_matrix(i,i) = std::sqrt(eigenvalues_matrix(i,i));
+        }
+
+        // Calculate the solution from the previous decomposition and eigenvalues square root
+        BDBtProductOperation(rMatrixSquareRoot, eigenvalues_matrix, eigenvectors_matrix);
+
+        return is_converged;
+    }
+
+    /**
+     * @brief Calculates the Factorial of a number k, Factorial = k!
+     * @tparam Number The number of which the Factorial is computed
+     */
+    template<class TIntegerType>
+    static inline TIntegerType Factorial(const TIntegerType Number)
+    {
+        if (Number == 0) {
+            return 1;
+        }
+        TIntegerType k = Number;
+        for (TIntegerType i = Number - 1; i > 0; --i){
+            k *= i;
+        }
+        return k;
+    }
+
+    /**
+     * @brief Calculates the exponential of a matrix
+     * @brief see https://mathworld.wolfram.com/MatrixExponential.html
+     * @tparam rMatrix: the matrix A of which exp is calculated
+     * @tparam rExponentialMatrix: exp(A)
+     */
+    template<class TMatrixType>
+    static inline void CalculateExponentialOfMatrix(
+        const TMatrixType& rMatrix,
+        TMatrixType& rExponentialMatrix,
+        const double Tolerance = 1000.0*ZeroTolerance,
+        const SizeType MaxTerms = 200
+        )
+    {
+        SizeType series_term = 2;
+        SizeType factorial = 1;
+        const SizeType dimension = rMatrix.size1();
+
+        noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
+        TMatrixType exponent_matrix = rMatrix;
+        TMatrixType aux_matrix;
+
+        while (series_term < MaxTerms) {
+            noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
+            noalias(exponent_matrix) = aux_matrix;
+            factorial = Factorial(series_term);
+            noalias(rExponentialMatrix) += exponent_matrix / factorial;
+            const double norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
+            if (norm_series_term < Tolerance)
+                break;
+            series_term++;
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -1881,11 +1971,8 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_MATH_UTILS  defined */

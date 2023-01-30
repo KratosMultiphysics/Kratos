@@ -44,7 +44,7 @@ namespace HDF5
  * connectivities to Xdmf connectivities, which can be used directly to
  * index the node arrays.
  */
-class XdmfConnectivitiesWriterProcess : public Process
+class KRATOS_API(HDF5_APPLICATION) XdmfConnectivitiesWriterProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -75,8 +75,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    void CreateXdmfPoints(const std::string& rKratosNodeIdsPath, const std::string& rXdmfNodeIdsPath) const;
 
     void CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const;
+
+    void CreateXdmfConnectivitiesForSubModelParts(const std::string& rPath, const std::string& rDestinationPrefix) const;  
 
     ///@}
 

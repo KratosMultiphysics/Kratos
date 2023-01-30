@@ -44,7 +44,7 @@ namespace Kratos
  * Implements a Axisymmetric Total Lagrangian definition for structural analysis.
  */
 
-class AxisymUpdatedLagrangian
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AxisymUpdatedLagrangian
     : public UpdatedLagrangian
 {
 public:
@@ -66,7 +66,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of AxisymUpdatedLagrangian
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymUpdatedLagrangian);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymUpdatedLagrangian);
 
     ///@}
     ///@name Life Cycle

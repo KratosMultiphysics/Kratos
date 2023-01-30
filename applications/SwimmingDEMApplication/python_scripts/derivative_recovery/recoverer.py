@@ -1,7 +1,6 @@
 # This class can be taken as an abstract template for derivation. It can be used
 # for default passive behaviour.
 
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SwimmingDEMApplication as SDEM

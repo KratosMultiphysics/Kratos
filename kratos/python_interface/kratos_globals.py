@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 class KratosGlobalsImpl(object):
 
     def __init__(self, ThisKernel, ApplicationsRoot):
@@ -38,8 +36,12 @@ class KratosGlobalsImpl(object):
             return kernel.GetDoubleVariable(VarName)
         elif kernel.HasArrayVariable(VarName):
             return kernel.GetArrayVariable(VarName)
-        elif kernel.HasVariableComponent(VarName):
-            return kernel.GetVariableComponent(VarName)
+        elif kernel.HasArray4Variable(VarName):
+            return kernel.GetArray4Variable(VarName)
+        elif kernel.HasArray6Variable(VarName):
+            return kernel.GetArray6Variable(VarName)
+        elif kernel.HasArray9Variable(VarName):
+            return kernel.GetArray9Variable(VarName)
         elif kernel.HasBoolVariable(VarName):
             return kernel.GetBoolVariable(VarName)
         elif kernel.HasIntVariable(VarName):
@@ -72,7 +74,11 @@ class KratosGlobalsImpl(object):
             return True
         elif kernel.HasArrayVariable(VarName):
             return True
-        elif kernel.HasVariableComponent(VarName):
+        elif kernel.HasArray4Variable(VarName):
+            return True
+        elif kernel.HasArray6Variable(VarName):
+            return True
+        elif kernel.HasArray9Variable(VarName):
             return True
         elif kernel.HasBoolVariable(VarName):
             return True
@@ -112,14 +118,18 @@ class KratosGlobalsImpl(object):
             return "Double"
         elif kernel.HasArrayVariable(VarName):
             return "Array"
+        elif kernel.HasArray4Variable(VarName):
+            return "Array4"
+        elif kernel.HasArray6Variable(VarName):
+            return "Array6"
+        elif kernel.HasArray9Variable(VarName):
+            return "Array9"
         elif kernel.HasVectorVariable(VarName):
             return "Vector"
         elif kernel.HasMatrixVariable(VarName):
             return "Matrix"
         elif kernel.HasStringVariable(VarName):
             return "String"
-        elif kernel.HasVariableComponent(VarName):
-            return "Component"
         elif kernel.HasFlagsVariable(VarName):
             return "Flag"
         else:
@@ -142,5 +152,3 @@ class KratosGlobalsImpl(object):
         ConstitutiveLawName -- The name of the constitutive law to check
         """
         return self.Kernel.HasConstitutiveLaw(ConstitutiveLawName)
-
-

@@ -1,9 +1,8 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 from KratosMultiphysics import Model, Parameters
 import KratosMultiphysics.PfemFluidDynamicsApplication
+from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
 
-from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
+from importlib import import_module
 
 class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
 
@@ -22,14 +21,14 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
             variables_management.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
             variables_management.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
-        super(DEMCoupledPFEMFluidDynamicsAnalysis, self).__init__(model, self.project_parameters)
+        super().__init__(model, self.project_parameters)
         self.fluid_model_part = self._GetSolver().main_model_part
 
     def Initialize(self):
-        self.AddFluidVariablesBySwimmingDEMAlgorithm()
-        super(DEMCoupledPFEMFluidDynamicsAnalysis, self).Initialize()
+        self.AddFluidVariablesForSwimmingDEM()
+        super().Initialize()
 
-    def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+    def AddFluidVariablesForSwimmingDEM(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
 
     def RunSingleTimeStep(self):
@@ -38,6 +37,13 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self._GetSolver().SolveSolutionStep()
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
+
+    def _CreateSolver(self):
+        python_module_name = "KratosMultiphysics.SwimmingDEMApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
 
 if __name__ == '__main__':
     from sys import argv

@@ -12,13 +12,8 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 ## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib
 
-if(NOT (${DELAUNAY_MESHING_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Delaunay Meshing Application must be compiled before this one. Set DELAUNAY_MESHING_APPLICATION=ON in the configure file.")
-endif(NOT (${DELAUNAY_MESHING_APPLICATION} MATCHES "ON"))
-
-if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
-endif(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/SolidMechanicsApplication)
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
@@ -46,7 +41,7 @@ set( KRATOS_PFEM_APPLICATION_CORE
 
 ## Generate variables with the sources
 set( KRATOS_PFEM_APPLICATION_PYTHON_INTERFACE
-        # Custom python
+  # Custom python
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 )
@@ -61,8 +56,11 @@ pybind11_add_module(KratosPfemApplication MODULE THIN_LTO ${KRATOS_PFEM_APPLICAT
 target_link_libraries(KratosPfemApplication PRIVATE KratosPfemCore)
 set_target_properties(KratosPfemApplication PROPERTIES PREFIX "")
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosPfemCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosPfemApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -74,21 +72,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPfemApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/PfemApplication.py KratosMultiphysics/PfemApplication/__init__.py )
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("PfemApplication subdir inc_dirs = ${inc_dirs}")
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosPfemCore)
-    cotire(KratosPfemApplication)
-endif(USE_COTIRE MATCHES ON)
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
+# Install targets
 install(TARGETS KratosPfemCore DESTINATION libs )
 install(TARGETS KratosPfemApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PfemApplication.py" DESTINATION "KratosMultiphysics/PfemApplication" RENAME "__init__.py")
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosPfemCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosPfemApplication" PARENT_SCOPE)

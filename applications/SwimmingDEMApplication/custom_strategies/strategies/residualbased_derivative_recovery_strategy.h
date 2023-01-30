@@ -1,13 +1,13 @@
 //
 //  Main author:    Guillermo Casas
-//                    
+//
 //
 
 #if !defined(KRATOS_RESIDUALBASED_DERIVATIVE_RECOVERY_STRATEGY )
 #define  KRATOS_RESIDUALBASED_DERIVATIVE_RECOVERY_STRATEGY
 
 
-#include "../../../kratos/solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 namespace Kratos
 {
@@ -105,7 +105,6 @@ public:
         bool MoveMeshFlag = false
     ): ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part,
                                                                              pScheme,
-                                                                             pNewLinearSolver,
                                                                              CalculateReactionFlag,
                                                                              ReformDofSetAtEachStep,
                                                                              CalculateNormDxFlag,
@@ -125,7 +124,6 @@ public:
         bool MoveMeshFlag = false
     ): ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part,
                                                                              pScheme,
-                                                                             pNewLinearSolver,
                                                                              pNewBuilderAndSolver,
                                                                              CalculateReactionFlag,
                                                                              ReformDofSetAtEachStep,

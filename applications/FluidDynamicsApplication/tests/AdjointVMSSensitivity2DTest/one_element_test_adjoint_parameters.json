@@ -1,12 +1,12 @@
 {
     "problem_data" : {
         "problem_name"    : "one_element",
-        "start_step"      : 4.0,
-        "nsteps"          : 3,
+        "start_time"      : 0.0,
+        "end_time"        : 3.0,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
-    "output_processes" : {
+    "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
@@ -25,7 +25,7 @@
                         },
                         "file_label"          : "time",
                         "output_control_type" : "step",
-                        "output_frequency"    : 1.0,
+                        "output_interval"     : 1.0,
                         "body_output"         : true,
                         "node_output"         : false,
                         "skin_output"         : false,
@@ -58,8 +58,6 @@
             "nodal_solution_step_sensitivity_calculation_is_thread_safe" : true
         },
         "domain_size"                   : 2,
-        "dynamic_tau"                   : 1.0,
-        "oss_switch"                    : 0,
         "echo_level"                    : 0,
         "model_part_name"               : "MainModelPart",
         "volume_model_part_name"        : "Parts_Fluid",
@@ -72,9 +70,17 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/one_element_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/one_element_test_materials.json"
+        },
         "time_stepping"                : {
             "automatic_time_step" : false,
-            "time_step"           : -1.0
+            "time_step"           : 1.0
+        },
+        "formulation": {
+            "element_type"            : "vms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau"             : 1.0
         }
     },
     "processes": {
@@ -84,18 +90,16 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Inlet",
+                "model_part_name" : "MainModelPart.Inlet",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
         },{
             "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet",
+                "model_part_name" : "MainModelPart.Outlet",
                 "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
                 "value"           : 0
             }
@@ -104,8 +108,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Boundary",
+                "model_part_name" : "MainModelPart.Boundary",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -114,8 +117,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet",
+                "model_part_name" : "MainModelPart.Outlet",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0, 0.0, 0.0]

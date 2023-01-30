@@ -4,8 +4,8 @@
 #define SWIMMING_DEM_BENTONITE_FORCE_BASED_INLET_H
 
 // Project includes
-#include "../../../DEMApplication/custom_utilities/force_based_inlet.h"
-#include "../../../DEMApplication/custom_elements/nanoparticle.h"
+#include "custom_utilities/force_based_inlet.h"
+#include "custom_elements/nanoparticle.h"
 
 namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) Bentonite_Force_Based_Inlet: public DEM_Force_Based_Inlet
@@ -16,13 +16,13 @@ namespace Kratos {
 
         typedef NanoParticle* NanoParticlePointerType;
         typedef DEM_Force_Based_Inlet BaseClass;
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
 
         /// Constructor:
-        Bentonite_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force);
+        Bentonite_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force, const int seed=42);
 
         /// Destructor.
         virtual ~Bentonite_Force_Based_Inlet(){}

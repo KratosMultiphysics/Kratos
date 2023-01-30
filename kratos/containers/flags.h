@@ -186,17 +186,17 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(Flags ThisFlag);
+    void Set(const Flags ThisFlag);
 
-    void Set(Flags ThisFlag, bool Value);
+    void Set(const Flags ThisFlag, bool Value);
 
-    void Reset(Flags ThisFlag)
+    void Reset(const Flags ThisFlag)
     {
         mIsDefined &= (~ThisFlag.mIsDefined);
         mFlags &= (~ThisFlag.mIsDefined); // I want to put to zero the ones are set regardless to their value. Pooyan.
     }
 
-    void Flip(Flags ThisFlag)
+    void Flip(const Flags ThisFlag)
     {
         mIsDefined |= ThisFlag.mIsDefined;
         mFlags ^= (ThisFlag.mIsDefined); // I want to flip  the ones are set in this flags regardless to their value. Pooyan.
@@ -238,11 +238,26 @@ public:
         mFlags = BlockType();
     }
 
+    Flags AsFalse() const
+    {
+        Flags this_flag_false(*this);
+        this_flag_false.mFlags = !((*this).mFlags);
+        return this_flag_false;
+    }
 
     ///@}
     ///@name Access
     ///@{
 
+    static const Flags AllDefined()
+    {
+        return Flags(~0,0);
+    }
+
+    static const Flags AllTrue()
+    {
+        return Flags(~0,~0);
+    }
 
     ///@}
     ///@name Inquiry
@@ -317,9 +332,9 @@ public:
     ///@{
 
 
-    friend bool operator==(const Flags& Left, const Flags& Right );
+    friend bool KRATOS_API(KRATOS_CORE) operator==(const Flags& Left, const Flags& Right );
 
-    friend bool operator!=(const Flags& Left, const Flags& Right );
+    friend bool KRATOS_API(KRATOS_CORE) operator!=(const Flags& Left, const Flags& Right );
 
     friend Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right );
 
@@ -418,6 +433,13 @@ private:
     ///@name Private Inquiry
     ///@{
 
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+
+    Flags(BlockType DefinedFlags, BlockType SetFlags):
+        mIsDefined(DefinedFlags), mFlags(SetFlags)
+    {}
 
     ///@}
     ///@name Un accessible methods
@@ -462,5 +484,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_FLAGS_H_INCLUDED  defined
-
-

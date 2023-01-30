@@ -29,29 +29,39 @@ namespace Kratos
         const int domain_size = r_current_process_info[DOMAIN_SIZE];
         KRATOS_ERROR_IF(domain_size != 2) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
 
-        // Get pointer to element that contains the traced node
-        this->GetNeighboringElementPointer();
+        // Reading the reference chord from the parameters
+        mReferenceChord = ResponseSettings["reference_chord"].GetDouble();
+        const double eps = std::numeric_limits<double>::epsilon();
+        KRATOS_ERROR_IF(mReferenceChord < eps)
+            << "The reference chord should be larger than 0." << mReferenceChord << std::endl;
+
     }
 
     AdjointLiftJumpCoordinatesResponseFunction::~AdjointLiftJumpCoordinatesResponseFunction(){}
+
+    void AdjointLiftJumpCoordinatesResponseFunction::InitializeSolutionStep() {
+        // Get pointer to element that contains the traced node
+        this->GetNeighboringElementPointer();
+    }
 
     double AdjointLiftJumpCoordinatesResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
         Element tracedElem = rModelPart.GetElement(mpNeighboringElement->Id());
-        const array_1d<double, 3> v_inf = rModelPart.GetProcessInfo().GetValue(VELOCITY_INFINITY);
-        double vinfinity_norm = norm_2(v_inf);
+        const array_1d<double, 3> v_inf = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
+        double free_stream_velocity_norm = norm_2(v_inf);
         unsigned int NumNodes = tracedElem.GetGeometry().size();
         double lift_coefficient=0.0;
         for(IndexType i = 0; i < NumNodes; ++i)
         {
             if(tracedElem.GetGeometry()[i].GetValue(TRAILING_EDGE))
-            {   
+            {
                 double potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 double aux_potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                double potential_jump = std::abs(potential - aux_potential);
 
-                lift_coefficient = 2.0 / vinfinity_norm * std::abs(potential - aux_potential);
+                lift_coefficient = 2.0 * potential_jump / (free_stream_velocity_norm * mReferenceChord);
             }
         }
 
@@ -72,16 +82,17 @@ namespace Kratos
         rResponseGradient.clear();
         if( rAdjointElement.Id() == mpNeighboringElement->Id() )
         {
-            const array_1d<double, 3> v_inf = rProcessInfo.GetValue(VELOCITY_INFINITY);
+            const array_1d<double, 3> v_inf = rProcessInfo.GetValue(FREE_STREAM_VELOCITY);
             double v_norm = norm_2(v_inf);
-            double derivative = 2.0/v_norm;
+            double derivative = 2.0 / (v_norm * mReferenceChord);
             unsigned int NumNodes = rAdjointElement.GetGeometry().size();
             for(IndexType i = 0; i < NumNodes; ++i)
             {
                 if(rAdjointElement.GetGeometry()[i].GetValue(TRAILING_EDGE))
-                {   
+                {
                     rResponseGradient[i] = derivative;
                     rResponseGradient[i+NumNodes] = -derivative;
+                    return;
                 }
             }
         }
@@ -97,7 +108,7 @@ namespace Kratos
         rResponseGradient = ZeroVector(rResidualGradient.size1());
         KRATOS_CATCH("");
     }
-  
+
 
     void AdjointLiftJumpCoordinatesResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<double>& rVariable,
@@ -148,7 +159,7 @@ namespace Kratos
         KRATOS_TRY;
 
         for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
-        {   
+        {
             if ((*elem_it)->Is(STRUCTURE)){
                 mpNeighboringElement = (*elem_it);
                 return;

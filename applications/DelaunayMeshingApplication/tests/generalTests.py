@@ -19,10 +19,10 @@ class KratosDelaunayMeshingGeneralTests(KratosUnittest.TestCase):
         pass
 
     def testSmallExample(self):
-        self.AssertEqual(True, True)
+        self.assertEqual(True, True)
 
     def testNightlyFirstExample(self):
-        self.AssertEqual(True, True)
+        self.assertEqual(True, True)
 
     def testNightlySecondExample(self):
-        self.AssertEqual(True, True)
+        self.assertEqual(True, True)

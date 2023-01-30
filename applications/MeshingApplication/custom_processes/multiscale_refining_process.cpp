@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -38,16 +38,7 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
     , mParameters(ThisParameters)
     , mUniformRefinement(mrRefinedModelPart)
 {
-    Parameters DefaultParameters = Parameters(R"(
-    {
-        "number_of_divisions_at_subscale"     : 2,
-        "echo_level"                          : 0,
-        "subscale_interface_base_name"        : "refined_interface",
-        "subscale_boundary_condition"         : "Condition2D2N"
-    }
-    )");
-
-    mParameters.ValidateAndAssignDefaults(DefaultParameters);
+    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mDivisionsAtSubscale = mParameters["number_of_divisions_at_subscale"].GetInt();
     mEchoLevel = mParameters["echo_level"].GetInt();
@@ -166,7 +157,7 @@ void MultiscaleRefiningProcess::InitializeVisualizationModelPart(ModelPart& rRef
     sub_model_parts_names = rReferenceModelPart.GetSubModelPartNames();
 
     // Add the entities to the submodel parts
-    for (auto name : sub_model_parts_names)
+    for (const auto& name : sub_model_parts_names)
     {
         ModelPart& destination = rNewModelPart.GetSubModelPart(name);
         ModelPart& origin = rReferenceModelPart.GetSubModelPart(name);
@@ -201,7 +192,7 @@ void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
     sub_model_parts_names = rReferenceModelPart.GetSubModelPartNames();
 
     // Copy the hierarchy to the refined model part
-    for (auto name : sub_model_parts_names)
+    for (const auto& name : sub_model_parts_names)
     {
         ModelPart& sub_model_part = rNewModelPart.CreateSubModelPart(name);
 
@@ -400,7 +391,7 @@ void MultiscaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 
     // Adding the nodes to the refined sub model parts
     StringVectorType sub_model_part_names = mrCoarseModelPart.GetSubModelPartNames();
-    for (auto name : sub_model_part_names)
+    for (const auto& name : sub_model_part_names)
     {
         ModelPart& coarse_sub_model_part = mrCoarseModelPart.GetSubModelPart(name);
         ModelPart& refined_sub_model_part = mrRefinedModelPart.GetSubModelPart(name);
@@ -596,7 +587,7 @@ void MultiscaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
         const auto tag = collection.first;
         if (tag != 0)
         {
-            for (auto name : collection.second)
+            for (const auto& name : collection.second)
             {
                 ModelPart& sub_model_part = mrRefinedModelPart.GetSubModelPart(name);
                 sub_model_part.AddElements(tag_elems_map[tag]);
@@ -646,7 +637,7 @@ void MultiscaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
         const auto tag = collection.first;
         if (tag != 0)
         {
-            for (auto name : collection.second)
+            for (const auto& name : collection.second)
             {
                 ModelPart& sub_model_part = mrRefinedModelPart.GetSubModelPart(name);
                 sub_model_part.AddConditions(tag_conds_map[tag]);
@@ -773,7 +764,7 @@ void MultiscaleRefiningProcess::UpdateRefinedInterface()
     {
         auto node = refined_begin + i;
         bool is_refined_interface = true;
-        WeakPointerVector<NodeType>& father_nodes = node->GetValue(FATHER_NODES);
+        GlobalPointersVector<NodeType>& father_nodes = node->GetValue(FATHER_NODES);
         for (auto father_node = father_nodes.begin(); father_node < father_nodes.end(); father_node++)
         {
             if (father_node->IsNot(INTERFACE))
@@ -781,7 +772,7 @@ void MultiscaleRefiningProcess::UpdateRefinedInterface()
         }
 
         if (is_refined_interface)
-            mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
+            mRefinedInterfaceContainer.push_back(Kratos::intrusive_ptr<NodeType>(*node.base()));
     }
 }
 
@@ -828,6 +819,19 @@ void MultiscaleRefiningProcess::GetLastId(
         if (rCondsId < cond->Id())
             rCondsId = cond->Id();
     }
+}
+
+const Parameters MultiscaleRefiningProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "number_of_divisions_at_subscale"     : 2,
+        "echo_level"                          : 0,
+        "subscale_interface_base_name"        : "refined_interface",
+        "subscale_boundary_condition"         : "LineCondition2D2N"
+    })" );
+
+    return default_parameters;
 }
 
 } // namespace Kratos

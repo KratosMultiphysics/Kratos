@@ -7,13 +7,13 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Josep Maria Carbonell                 
-//                   
+//  Main authors:    Josep Maria Carbonell
+//
 //  contributors:    Hoang Giang Bui
 //                   Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-		     
+
 #if !defined(KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED )
 #define  KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED
 
@@ -207,12 +207,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Linear;
+        return GeometryData::KratosGeometryFamily::Kratos_Linear;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Line3D2;
+        return GeometryData::KratosGeometryType::Kratos_Line3D2;
     }
 
     ///@}
@@ -263,23 +263,6 @@ public:
         return typename BaseType::Pointer( new LineGaussLobatto3D2( ThisPoints ) );
     }
 
-    Geometry< Point >::Pointer Clone() const
-    {
-        Geometry< Point >::PointsArrayType NewPoints;
-
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-
-        for ( IndexType i = 0 ; i < BaseType::Points().size() ; i++ )
-            NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
-
-        //creating a geometry with the new points
-       Geometry< Point >::Pointer p_clone( new LineGaussLobatto3D2< Point >( NewPoints ) );
-
-        p_clone->ClonePoints();
-
-        return p_clone;
-    }
-
     /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
      * @param rResult Vector containing the lumping factors
@@ -323,9 +306,9 @@ public:
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -363,9 +346,9 @@ public:
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -418,9 +401,9 @@ public:
     @return JacobiansType a Vector of jacobian
     matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
     point index of given integration method.
-    
+
     @param DeltaPosition Matrix with the nodes position increment which describes
-    the configuration where the jacobian has to be calculated.     
+    the configuration where the jacobian has to be calculated.
 
     @see DeterminantOfJacobian
     @see InverseOfJacobian
@@ -656,19 +639,11 @@ public:
     Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
-        rResult = ZeroMatrix( 2, 1 ); 
+        rResult = ZeroMatrix( 2, 1 );
         rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) =  0.5; 
-        return( rResult ); 
+        rResult( 1, 0 ) =  0.5;
+        return( rResult );
     }
-
-
-
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
 
     /** Turn back information as a string.
 
@@ -759,6 +734,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -794,7 +771,7 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues( typename BaseType::IntegrationMethod ThisMethod )
     {
         const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
-        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[static_cast<int>(ThisMethod)];
         int integration_points_number = IntegrationPoints.size();
         Matrix N( integration_points_number, 2 );
 
@@ -811,7 +788,7 @@ private:
     static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients( typename BaseType::IntegrationMethod ThisMethod )
     {
         const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
-        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[static_cast<int>(ThisMethod)];
         ShapeFunctionsGradientsType DN_De( IntegrationPoints.size() );
 
         for ( unsigned int it_gp = 0; it_gp < IntegrationPoints.size(); it_gp++ )
@@ -833,7 +810,12 @@ private:
                 Quadrature<LineGaussLobattoIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<LineGaussLobattoIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<LineGaussLobattoIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<LineGaussLobattoIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints6, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints7, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints8, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints9, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints10,1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
             }
         };
         return integration_points;
@@ -842,11 +824,16 @@ private:
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values = {{
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 ),
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_4 ),
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_5 )
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -855,11 +842,16 @@ private:
     static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                LineGaussLobatto3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
 
             }
         };
@@ -922,15 +914,17 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 
 template<class TPointType>
-const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryData( 3,
-        3,
-        1,
-        GeometryData::GI_GAUSS_1,
+const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryData(
+        &msGeometryDimension,
+        GeometryData::IntegrationMethod::GI_GAUSS_1,
         LineGaussLobatto3D2<TPointType>::AllIntegrationPoints(),
         LineGaussLobatto3D2<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients() );
 
+template<class TPointType>
+const GeometryDimension LineGaussLobatto3D2<TPointType>::msGeometryDimension(
+    3, 3, 1);
+
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED  defined 
-
+#endif // KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED  defined

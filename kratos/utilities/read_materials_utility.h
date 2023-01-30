@@ -49,6 +49,7 @@ namespace Kratos {
  * @brief Process to read constitutive law and material properties from a json file
  * @details This process reads constitutive law and material properties from a json file
  * and assign them to elements and conditions.
+ * The definition includes the creation of subproperties
  * @author Marcelo Raschi
  * @author Vicente Mataix Ferrandiz
  */
@@ -64,9 +65,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
 
     /// Definition of the size type
     typedef std::size_t SizeType;
-
-    /// Definition of the mesh id (always zero)
-    static constexpr IndexType mesh_id = 0;
 
     ///@}
     ///@name Pointer Definitions
@@ -101,6 +99,9 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
 
+    /// Destructor.
+    virtual ~ReadMaterialsUtility() {}
+
     ///@}
     ///@name Operators
     ///@{
@@ -114,6 +115,46 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param MaterialData The configuration parameters defining the properties
      */
     void ReadMaterials(Parameters MaterialData);
+
+    /**
+     * @brief This method assigns the material parameters to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignMaterialToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+
+    /**
+     * @brief This method assigns the constitutive law to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignConstitutiveLawToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+
+    /**
+     * @brief This method assigns the variables to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignVariablesToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+
+    /**
+     * @brief This method assigns the tables to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignTablesToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
 
     ///@}
     ///@name Access
@@ -164,6 +205,27 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method creates an auxiliar Parameters when reading properties in order to avoid error, so these non-registered properties can be processed later
+     * @param VariablesParameters The original variable parameters
+     * @param PropertyId The current property Id (for a warning)
+     * @return The variables filtered if required
+     */
+    virtual Parameters FilterVariables(
+        const Parameters VariablesParameters,
+        const IndexType PropertyId = 0
+        );
+
+    /**
+     * @brief Trims out a component name, separating by '."
+     * @details Trims out a component name, removing unnecessary module information.
+     * For backward compatibility.
+     * Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
+     * Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
+     * @param rLine Component name in materials json file
+     */
+    void TrimComponentName(std::string& rLine);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -198,6 +260,18 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
 
     /**
+     * @brief This method creates a list of subproperties and it assigns to the father property from configuration parameters
+     * @param rModelPart The currently computed model part
+     * @param SubPropertiesData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the subproperties are to be created
+     */
+    void CreateSubProperties(
+        ModelPart& rModelPart,
+        const Parameters SubPropertiesData,
+        Properties& rProperty
+        );
+
+    /**
      * @brief This method assigns the properties to the model parts
      * @param Data The parameters containing all the configurations of the materials
      */
@@ -210,21 +284,16 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     void GetPropertyBlock(Parameters Materials);
 
     /**
-     * @brief Trims out a component name, separating by '."
-     * @details Trims out a component name, removing unnecessary module information.
-     * For backward compatibility.
-     * Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
-     * Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
-     * @param rLine Component name in materials json file
-     */
-    void TrimComponentName(std::string& rLine);
-
-
-    /**
      * @brief Checks if the materials are assigned uniquely to the modelparts
      * @param Materials The parameters containing the properties of the materials
      */
     void CheckUniqueMaterialAssignment(Parameters Materials);
+
+    /**
+     * @brief Check if a model part is repeated inside materials
+     * @param ModelPartNames vector with the model part names
+     */
+    void CheckModelPartIsNotRepeated(std::vector<std::string>);
 
 
     ///@}

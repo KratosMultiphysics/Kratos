@@ -19,6 +19,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -31,21 +32,7 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-    {
-        "element_name"                         : "SolidShellElementSprism3D6N",
-        "new_constitutive_law_name"            : "",
-        "model_part_name"                      : "",
-        "number_of_layers"                     : 1,
-        "export_to_mdpa"                       : false,
-        "output_name"                          : "output",
-        "computing_model_part_name"            : "computing_domain",
-        "create_submodelparts_external_layers" : false,
-        "append_submodelparts_external_layers" : false,
-        "initialize_elements"                  : false,
-        "replace_previous_geometry"            : true,
-        "collapse_geometry"                    : false
-    })" );
+    Parameters default_parameters(GetDefaultParameters());
 
     // Some initial checks
     if (mThisParameters.Has("collapse_geometry")) {
@@ -97,7 +84,7 @@ void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccord
         const std::string& r_model_part_name = mThisParameters["model_part_name"].GetString();
         ModelPart& r_geometry_model_part = r_model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(r_model_part_name);
 
-        // Auxiliar values
+        // Auxiliary values
         NodesArrayType& r_nodes_array = r_geometry_model_part.Nodes();
         const SizeType geometry_number_of_nodes = r_nodes_array.size();
         NodesArrayType& total_nodes_array = mrThisModelPart.Nodes();
@@ -155,15 +142,15 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
     // We initialize some values use later
     NodeType::Pointer p_node_begin = *(r_geometry_model_part.NodesBegin().base());
 
-    // Auxiliar model part where to store new nodes and elements
-    ModelPart& r_auxiliar_model_part = r_current_model.CreateModelPart("Extruded" + r_model_part_name);
+    // Auxiliary model part where to store new nodes and elements
+    ModelPart& r_auxiliary_model_part = r_current_model.CreateModelPart("Extruded" + r_model_part_name);
     const bool create_submodelparts_external_layers = mThisParameters["create_submodelparts_external_layers"].GetBool();
     const bool append_submodelparts_external_layers = mThisParameters["append_submodelparts_external_layers"].GetBool();
 
-    ModelPart& r_auxiliar_model_part_upper = r_current_model.CreateModelPart("AuxiliarUpper" + r_model_part_name);
-    ModelPart& r_auxiliar_model_part_lower = r_current_model.CreateModelPart("AuxiliarLower" + r_model_part_name);
+    ModelPart& r_auxiliary_model_part_upper = r_current_model.CreateModelPart("AuxiliaryUpper" + r_model_part_name);
+    ModelPart& r_auxiliary_model_part_lower = r_current_model.CreateModelPart("AuxiliaryLower" + r_model_part_name);
 
-    // Auxiliar values
+    // Auxiliary values
     NodesArrayType& r_nodes_array = r_geometry_model_part.Nodes();
     ElementsArrayType& r_elements_array = r_geometry_model_part.Elements();
     const SizeType geometry_number_of_nodes = r_nodes_array.size();
@@ -178,7 +165,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
 
     // We copy the dof from the first node
     const auto it_node_begin = r_nodes_array.begin();
-    NodeType::DofsContainerType dofs = it_node_begin->GetDofs();
+    NodeType::DofsContainerType& dofs = it_node_begin->GetDofs();
 
     // We initialize the thickness
     #pragma omp parallel for
@@ -212,12 +199,12 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
             auto& r_node = r_geometry[i];
 
             double& node_thickness = r_node.GetValue(THICKNESS);
-            #pragma omp atomic
-            node_thickness += thickness;
+
+            AtomicAdd(node_thickness, thickness);
 
             double& nodal_area = r_node.GetValue(NODAL_AREA);
-            #pragma omp atomic
-            nodal_area += 1.0;
+
+            AtomicAdd(nodal_area, 1.0);
         }
     }
 
@@ -239,32 +226,32 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
         const double delta_thickness = thickness/static_cast<double>(number_of_layers);
 
         IndexType node_id = total_number_of_nodes + i + 1;
-        NodeType::Pointer p_node0 = r_auxiliar_model_part.CreateNewNode(node_id, coordinates[0], coordinates[1], coordinates[2]);
+        NodeType::Pointer p_node0 = r_auxiliary_model_part.CreateNewNode(node_id, coordinates[0], coordinates[1], coordinates[2]);
 
         // Set the DOFs in the nodes
         for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-            p_node0->pAddDof(*it_dof);
+            p_node0->pAddDof(**it_dof);
 
         // We copy the step data
         CopyVariablesList(p_node0, p_node_begin);
 
         // We add the node to the external layers
-        if (create_submodelparts_external_layers) r_auxiliar_model_part_lower.AddNode(p_node0);
+        if (create_submodelparts_external_layers) r_auxiliary_model_part_lower.AddNode(p_node0);
 
         for (IndexType j = 0; j < number_of_layers; ++j) {
             coordinates += r_normal * delta_thickness;
             node_id = (j + 1) * geometry_number_of_nodes + total_number_of_nodes + i + 1;
-            NodeType::Pointer p_node1 = r_auxiliar_model_part.CreateNewNode(node_id, coordinates[0], coordinates[1], coordinates[2]);
+            NodeType::Pointer p_node1 = r_auxiliary_model_part.CreateNewNode(node_id, coordinates[0], coordinates[1], coordinates[2]);
 
             // Set the DOFs in the nodes
             for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-                p_node1->pAddDof(*it_dof);
+                p_node1->pAddDof(**it_dof);
 
             // We copy the step data
             CopyVariablesList(p_node1, p_node_begin);
 
             // We add the node to the external layers
-            if (create_submodelparts_external_layers && j == (number_of_layers - 1)) r_auxiliar_model_part_upper.AddNode(p_node1);
+            if (create_submodelparts_external_layers && j == (number_of_layers - 1)) r_auxiliary_model_part_upper.AddNode(p_node1);
         }
 
         // We set the flag TO_ERASE for later remove the nodes
@@ -293,7 +280,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
                 element_node_ids[k + TNumNodes] = total_number_of_nodes + index_node + (j + 1) * geometry_number_of_nodes;
             }
             element_counter++;
-            r_auxiliar_model_part.CreateNewElement(element_name, element_counter, element_node_ids, p_prop);
+            r_auxiliary_model_part.CreateNewElement(element_name, element_counter, element_node_ids, p_prop);
         }
 
         // We set the flag TO_ERASE for later remove the elements
@@ -318,9 +305,9 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
                 upper_condition_node_ids[k] = total_number_of_nodes + index_node + number_of_layers * geometry_number_of_nodes;
             }
             condition_counter++;
-            r_auxiliar_model_part_lower.CreateNewCondition(condition_name, condition_counter, lower_condition_node_ids, p_prop);
+            r_auxiliary_model_part_lower.CreateNewCondition(condition_name, condition_counter, lower_condition_node_ids, p_prop);
             condition_counter++;
-            r_auxiliar_model_part_upper.CreateNewCondition(condition_name, condition_counter, upper_condition_node_ids, p_prop);
+            r_auxiliary_model_part_upper.CreateNewCondition(condition_name, condition_counter, upper_condition_node_ids, p_prop);
         }
     }
 
@@ -329,29 +316,29 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
 
     // In case we replace the geometry
     if (replace_previous_geometry) {
-        ReplacePreviousGeometry(r_geometry_model_part, r_auxiliar_model_part);
+        ReplacePreviousGeometry(r_geometry_model_part, r_auxiliary_model_part);
     }
 
     // We copy the external layers
     if (create_submodelparts_external_layers) {
         const std::string name_upper = "Upper_" + r_model_part_name;
         ModelPart& r_upper_model_part = append_submodelparts_external_layers ? r_geometry_model_part.CreateSubModelPart(name_upper) :  mrThisModelPart.CreateSubModelPart(name_upper);
-        r_upper_model_part.AddNodes( r_auxiliar_model_part_upper.NodesBegin(), r_auxiliar_model_part_upper.NodesEnd() );
-        r_upper_model_part.AddConditions( r_auxiliar_model_part_upper.ConditionsBegin(), r_auxiliar_model_part_upper.ConditionsEnd() );
+        r_upper_model_part.AddNodes( r_auxiliary_model_part_upper.NodesBegin(), r_auxiliary_model_part_upper.NodesEnd() );
+        r_upper_model_part.AddConditions( r_auxiliary_model_part_upper.ConditionsBegin(), r_auxiliary_model_part_upper.ConditionsEnd() );
         const std::string name_lower = "Lower_" + r_model_part_name;
         ModelPart& r_lower_model_part = append_submodelparts_external_layers ? r_geometry_model_part.CreateSubModelPart(name_lower) : mrThisModelPart.CreateSubModelPart(name_lower);
-        r_lower_model_part.AddNodes( r_auxiliar_model_part_lower.NodesBegin(), r_auxiliar_model_part_lower.NodesEnd() );
-        r_lower_model_part.AddConditions( r_auxiliar_model_part_lower.ConditionsBegin(), r_auxiliar_model_part_lower.ConditionsEnd() );
+        r_lower_model_part.AddNodes( r_auxiliary_model_part_lower.NodesBegin(), r_auxiliary_model_part_lower.NodesEnd() );
+        r_lower_model_part.AddConditions( r_auxiliary_model_part_lower.ConditionsBegin(), r_auxiliary_model_part_lower.ConditionsEnd() );
     }
 
     // We add to the computing model part if available
     const std::string& computing_model_part_name = mThisParameters["computing_model_part_name"].GetString();
     if (computing_model_part_name != "") {
         ModelPart& r_computing_model_part = mrThisModelPart.GetSubModelPart(computing_model_part_name);
-        r_computing_model_part.AddNodes( r_auxiliar_model_part.NodesBegin(), r_auxiliar_model_part.NodesEnd() );
-        r_computing_model_part.AddElements( r_auxiliar_model_part.ElementsBegin(), r_auxiliar_model_part.ElementsEnd() );
-        r_computing_model_part.AddConditions( r_auxiliar_model_part_upper.ConditionsBegin(), r_auxiliar_model_part_upper.ConditionsEnd() );
-        r_computing_model_part.AddConditions( r_auxiliar_model_part_lower.ConditionsBegin(), r_auxiliar_model_part_lower.ConditionsEnd() );
+        r_computing_model_part.AddNodes( r_auxiliary_model_part.NodesBegin(), r_auxiliary_model_part.NodesEnd() );
+        r_computing_model_part.AddElements( r_auxiliary_model_part.ElementsBegin(), r_auxiliary_model_part.ElementsEnd() );
+        r_computing_model_part.AddConditions( r_auxiliary_model_part_upper.ConditionsBegin(), r_auxiliary_model_part_upper.ConditionsEnd() );
+        r_computing_model_part.AddConditions( r_auxiliary_model_part_lower.ConditionsBegin(), r_auxiliary_model_part_lower.ConditionsEnd() );
     }
 
     // Reorder again all the IDs
@@ -390,14 +377,14 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteCollapse()
     // We initialize some values use later
     NodeType::Pointer p_node_begin = *(r_geometry_model_part.NodesBegin().base());
 
-    // Auxiliar model part where to store new nodes and elements
-    ModelPart& r_auxiliar_model_part = r_current_model.CreateModelPart("Collapsed" + r_model_part_name);
+    // Auxiliary model part where to store new nodes and elements
+    ModelPart& r_auxiliary_model_part = r_current_model.CreateModelPart("Collapsed" + r_model_part_name);
 
     // We compute the thickness
     SolidShellThickComputeProcess thickness_process(r_geometry_model_part);
     thickness_process.Execute();
 
-    // Auxiliar values
+    // Auxiliary values
     NodesArrayType& r_nodes_array = r_geometry_model_part.Nodes();
     ElementsArrayType& r_elements_array = r_geometry_model_part.Elements();
     const SizeType geometry_number_of_elements = r_elements_array.size();
@@ -410,7 +397,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteCollapse()
 
     // We copy the dof from the first node
     const auto it_node_begin = r_nodes_array.begin();
-    NodeType::DofsContainerType dofs = it_node_begin->GetDofs();
+    NodeType::DofsContainerType& dofs = it_node_begin->GetDofs();
 
     // Initial check
     const SizeType number_of_layers = mThisParameters["number_of_layers"].GetInt();
@@ -442,14 +429,14 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteCollapse()
         // Collapsing nodes
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> coordinates = 0.5 * r_geometry[i_node].Coordinates() + 0.5 * r_geometry[i_node + TNumNodes].Coordinates();
-            NodeType::Pointer p_node = r_auxiliar_model_part.CreateNewNode(node_id, coordinates[0], coordinates[1], coordinates[2]);
+            NodeType::Pointer p_node = r_auxiliary_model_part.CreateNewNode(node_id, coordinates[0], coordinates[1], coordinates[2]);
             p_node->SetValue(THICKNESS, r_geometry[i_node].GetValue(THICKNESS));
 
             element_node_ids[i_node] = node_id;
 
             // Set the DOFs in the nodes
             for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-                p_node->pAddDof(*it_dof);
+                p_node->pAddDof(**it_dof);
 
             // We copy the step data
             CopyVariablesList(p_node, p_node_begin);
@@ -458,7 +445,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteCollapse()
         }
 
         // Now we create the new elements
-        r_auxiliar_model_part.CreateNewElement(element_name, element_id, element_node_ids, p_prop);
+        r_auxiliary_model_part.CreateNewElement(element_name, element_id, element_node_ids, p_prop);
 
         // We set the flag TO_ERASE for later remove the nodes and elements
         it_elem->Set(TO_ERASE, replace_previous_geometry);
@@ -474,15 +461,15 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteCollapse()
 
     // In case we replace the geometry
     if (replace_previous_geometry) {
-        ReplacePreviousGeometry(r_geometry_model_part, r_auxiliar_model_part);
+        ReplacePreviousGeometry(r_geometry_model_part, r_auxiliary_model_part);
     }
 
     // We add to the computing model part if available
     const std::string& computing_model_part_name = mThisParameters["computing_model_part_name"].GetString();
     if (computing_model_part_name != "") {
         ModelPart& r_computing_model_part = mrThisModelPart.GetSubModelPart(computing_model_part_name);
-        r_computing_model_part.AddNodes( r_auxiliar_model_part.NodesBegin(), r_auxiliar_model_part.NodesEnd() );
-        r_computing_model_part.AddElements( r_auxiliar_model_part.ElementsBegin(), r_auxiliar_model_part.ElementsEnd() );
+        r_computing_model_part.AddNodes( r_auxiliary_model_part.NodesBegin(), r_auxiliary_model_part.NodesEnd() );
+        r_computing_model_part.AddElements( r_auxiliary_model_part.ElementsBegin(), r_auxiliary_model_part.ElementsEnd() );
     }
 
     // Reorder again all the IDs
@@ -510,7 +497,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteCollapse()
 template<SizeType TNumNodes>
 void ShellToSolidShellProcess<TNumNodes>::ReplacePreviousGeometry(
     ModelPart& rGeometryModelPart,
-    ModelPart& rAuxiliarModelPart
+    ModelPart& rAuxiliaryModelPart
     )
 {
     // Finally we remove the old nodes and elements
@@ -518,8 +505,8 @@ void ShellToSolidShellProcess<TNumNodes>::ReplacePreviousGeometry(
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // We copy the new model part to the original one
-    rGeometryModelPart.AddNodes( rAuxiliarModelPart.NodesBegin(), rAuxiliarModelPart.NodesEnd() );
-    rGeometryModelPart.AddElements( rAuxiliarModelPart.ElementsBegin(), rAuxiliarModelPart.ElementsEnd() );
+    rGeometryModelPart.AddNodes( rAuxiliaryModelPart.NodesBegin(), rAuxiliaryModelPart.NodesEnd() );
+    rGeometryModelPart.AddElements( rAuxiliaryModelPart.ElementsBegin(), rAuxiliaryModelPart.ElementsEnd() );
 }
 
 /***********************************************************************************/
@@ -548,8 +535,9 @@ template<SizeType TNumNodes>
 void ShellToSolidShellProcess<TNumNodes>::InitializeElements()
 {
     ElementsArrayType& element_array = mrThisModelPart.Elements();
+    const auto& r_process_info = mrThisModelPart.GetProcessInfo();
     for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->Initialize();
+        (element_array.begin() + i)->Initialize(r_process_info);
 }
 
 /***********************************************************************************/
@@ -588,8 +576,8 @@ void ShellToSolidShellProcess<TNumNodes>::CleanModel()
             r_current_model.DeleteModelPart("Extruded" + r_model_part_name);
         }
     }
-    r_current_model.DeleteModelPart("AuxiliarUpper"  + r_model_part_name);
-    r_current_model.DeleteModelPart("AuxiliarLower"  + r_model_part_name);
+    r_current_model.DeleteModelPart("AuxiliaryUpper"  + r_model_part_name);
+    r_current_model.DeleteModelPart("AuxiliaryLower"  + r_model_part_name);
 }
 
 /***********************************************************************************/
@@ -633,11 +621,8 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
             auto& this_node = this_geometry[i];
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
             const array_1d<double, 3>& r_normal = this_geometry.UnitNormal(aux_coords);
-            auto& aux_normal = this_node.GetValue(NORMAL);
-            for (unsigned int index = 0; index < 3; ++index) {
-                #pragma omp atomic
-                aux_normal[index] += r_normal[index];
-            }
+            array_1d<double, 3>& aux_normal = this_node.GetValue(NORMAL);
+            AtomicAdd(aux_normal, r_normal);
         }
     }
 
@@ -664,6 +649,31 @@ inline void ShellToSolidShellProcess<TNumNodes>::CopyVariablesList(
     auto& node_data = pNodeNew->SolutionStepData();
     auto& node_data_reference = pNodeOld->SolutionStepData();
     node_data.SetVariablesList(node_data_reference.pGetVariablesList());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TNumNodes>
+const Parameters ShellToSolidShellProcess<TNumNodes>::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "element_name"                         : "SolidShellElementSprism3D6N",
+        "new_constitutive_law_name"            : "",
+        "model_part_name"                      : "",
+        "number_of_layers"                     : 1,
+        "export_to_mdpa"                       : false,
+        "output_name"                          : "output",
+        "computing_model_part_name"            : "computing_domain",
+        "create_submodelparts_external_layers" : false,
+        "append_submodelparts_external_layers" : false,
+        "initialize_elements"                  : false,
+        "replace_previous_geometry"            : true,
+        "collapse_geometry"                    : false
+    })" );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/

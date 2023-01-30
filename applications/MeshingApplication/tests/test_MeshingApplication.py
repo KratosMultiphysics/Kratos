@@ -9,11 +9,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 from test_refine import TestRedistance                                     as TTestRedistance
-from test_remesh_sphere import TestRemeshMMG                               as TTestRemeshMMG
+from test_remesh_rectangle import TestRemeshMMG2D                          as TTestRemeshMMG2D
+from test_remesh_sphere import TestRemeshMMG3D                             as TTestRemeshMMG3D
 from meshing_application_test_factory  import TwoDDynamicBeamTest          as TTwoDDynamicBeamTest
 from meshing_application_test_factory  import TwoDDynamicBeamLineLoadTest  as TTwoDDynamicBeamLineLoadTest
 from meshing_application_test_factory  import ThreeDShellTest              as TThreeDShellTest
 from meshing_application_test_factory  import ThreeDDynamicBeamTest        as TThreeDDynamicBeamTest
+from test_local_refine_parallel_to_boundaries import TestLocalRefineParallelToBoundaries as TTestRefineOnBoundaries
 
 ## NIGHTLY TESTS
 
@@ -35,6 +37,7 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTest(TTestRefineOnBoundaries('test_refine_boundary_elems'))
     if  hasattr(MeshingApplication,  "TetrahedraReconnectUtility") :
         smallSuite.addTest(TTestRedistance('test_refine_all'))
         smallSuite.addTest(TTestRedistance('test_refine_half'))
@@ -42,7 +45,11 @@ def AssembleTestSuites():
     else:
         KratosMultiphysics.Logger.PrintWarning("Unittests", "TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
     if hasattr(MeshingApplication,  "MmgProcess2D"):
-        smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
+        smallSuite.addTest(TTestRemeshMMG2D('test_remesh_rectangle_hessian'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere_skin'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere_skin_prisms'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_isosurface_remesh_sphere'))
         smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
         smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
         smallSuite.addTest(TThreeDShellTest('test_execution'))
@@ -71,7 +78,8 @@ def AssembleTestSuites():
     if hasattr(MeshingApplication, "MmgProcess2D") :
         allSuite.addTests(
             KratosUnittest.TestLoader().loadTestsFromTestCases([
-                TTestRemeshMMG,
+                TTestRemeshMMG2D,
+                TTestRemeshMMG3D,
                 TTwoDDynamicBeamTest,
                 TTwoDDynamicBeamLineLoadTest,
                 TThreeDShellTest,

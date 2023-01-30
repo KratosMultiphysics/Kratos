@@ -1,89 +1,164 @@
-'''Write a model part and its data at the end of each solution step.
+"""Store a model part and simulation results after each solution step with HDF5.
 
-This process provides the front end to the HDF5Application.core.
+This process:
+ - stores the initial model part in an .h5 file.
+ - stores the current model part and historical and non-historical results in
+   one .h5 file per output step.
+
+This process works with or without MPI.
 
 license: HDF5Application/license.txt
-'''
+"""
+
+
+__all__ = ["Factory"]
+
+
 import KratosMultiphysics
-import KratosMultiphysics.HDF5Application.core as _core
-import KratosMultiphysics.HDF5Application.utils as _utils
+from KratosMultiphysics.HDF5Application import core
+from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
+from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
 
-def Factory(process_settings, Model):
-    """Return a process for writing simulation results for multiple meshes to HDF5."""
-    default_settings = KratosMultiphysics.Parameters("""
+def Factory(settings, Model):
+    """Return a process for multiple mesh temporal output with HDF5.
+
+    The input settings are given in the following table:
+    +---------------------------------------------+------------+---------------------------------+
+    | Setting                                     | Type       | Default Value                   |
+    +---------------------------------------------+------------+---------------------------------+
+    | "model_part_name"                           | String     | ""                              |
+    +---------------------------------------------+------------+---------------------------------+
+    | "file_settings"                             | Parameters | "file_name": "<model_part_name>"|
+    |                                             |            | "time_format": "0.4f"           |
+    |                                             |            | "file_access_mode": "exclusive" |
+    |                                             |            | "max_files_to_keep": "unlimited"|
+    |                                             |            | "echo_level":  0                |
+    +---------------------------------------------+------------+---------------------------------+
+    | "output_time_settings"                      | Parameters | "time_frequency": 1.0           |
+    |                                             |            | "step_frequency": 1             |
+    +---------------------------------------------+------------+---------------------------------+
+    | "model_part_output_settings"                | Parameters | "prefix": "/ModelData"          |
+    +---------------------------------------------+------------+---------------------------------+
+    | "nodal_solution_step_data_settings"         | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    | "nodal_data_value_settings"                 | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    | "element_data_value_settings"               | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    | "nodal_flag_value_settings"                 | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    | "element_flag_value_settings"               | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    | "element_gauss_point_value_settings"        | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    | "condition_flag_value_settings"             | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    | "condition_data_value_settings"             | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    | "condition_gauss_point_value_settings"      | Parameters | "prefix": "/ResultsData"        |
+    |                                             |            | "list_of_variables": []         |
+    +---------------------------------------------+------------+---------------------------------+
+    """
+    core_settings = CreateCoreSettings(settings["Parameters"], Model)
+    return MultipleMeshTemporalOutputProcessFactory(core_settings, Model)
+
+
+def MultipleMeshTemporalOutputProcessFactory(core_settings, Model):
+    return core.Factory(core_settings, Model, KratosMultiphysics.OutputProcess)
+
+
+def CreateCoreSettings(user_settings, model):
+    """Return the core settings.
+
+    The core setting "io_type" cannot be overwritten by the user. It is
+    automatically set depending on whether or not MPI is used.
+    """
+    # Configure the defaults:
+    core_settings = ParametersWrapper("""
+        [{
+            "model_part_name" : "",
+            "process_step": "before_solution_loop",
+            "io_settings": {
+                "io_type": "serial_hdf5_file_io",
+                "file_name": "<model_part_name>-<time>.h5"
+            },
+            "list_of_operations": []
+        },{
+            "model_part_name" : "",
+            "process_step": "finalize_solution_step",
+            "controller_settings": {
+                "controller_type": "temporal_controller"
+            },
+            "io_settings": {
+                "io_type": "serial_hdf5_file_io",
+                "file_name": "<model_part_name>-<time>.h5"
+            },
+            "list_of_operations": []
+        }]
+        """)
+    # Apply the user settings:
+    user_settings.ValidateAndAssignDefaults(
+        KratosMultiphysics.Parameters("""
             {
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {},
+                "output_time_settings" : {},
                 "model_part_output_settings" : {},
                 "nodal_solution_step_data_settings" : {},
                 "nodal_data_value_settings": {},
                 "element_data_value_settings" : {},
-                "output_time_settings" : {}
+                "element_gauss_point_value_settings" : {},
+                "nodal_flag_value_settings": {},
+                "element_flag_value_settings" : {},
+                "condition_data_value_settings" : {},
+                "condition_flag_value_settings" : {},
+                "condition_gauss_point_value_settings" : {}
             }
             """)
-    settings = process_settings["Parameters"]
-    settings.ValidateAndAssignDefaults(default_settings)
-    new_settings = KratosMultiphysics.Parameters('''
-            {
-               "list_of_controllers": [{
-                    "model_part_name" : "",
-                    "process_step": "before_solution_loop",
-                    "io_settings": {
-                        "io_type": "serial_hdf5_file_io",
-                        "file_name": "<identifier>-<time>.h5"
-                    },
-                    "list_of_operations": [{
-                        "operation_type": "model_part_output"
-                    },{
-                        "operation_type": "nodal_solution_step_data_output"
-                    },{
-                        "operation_type": "nodal_data_value_output"
-                    },{
-                        "operation_type": "element_data_value_output"
-                    }]
-                },{
-                    "model_part_name" : "",
-                    "process_step": "finalize_solution_step",
-                    "controller_settings": {
-                        "controller_type": "temporal_controller"
-                    },
-                    "io_settings": {
-                        "io_type": "serial_hdf5_file_io",
-                        "file_name": "<identifier>-<time>.h5"
-                    },
-                    "list_of_operations": [{
-                        "operation_type": "model_part_output"
-                    },{
-                        "operation_type": "nodal_solution_step_data_output"
-                    },{
-                        "operation_type": "nodal_data_value_output"
-                    },{
-                        "operation_type": "element_data_value_output"
-                    }]
-                }]
-            }
-            ''')
-    model_part_name = settings["model_part_name"].GetString()
-    for current_settings in new_settings["list_of_controllers"]:
-        current_settings["model_part_name"].SetString(model_part_name)
-    model_part_settings = new_settings["list_of_controllers"][0]
-    results_settings = new_settings["list_of_controllers"][1]
-    for io_settings in [model_part_settings["io_settings"], results_settings["io_settings"]]:
-        _utils.InsertSettings(settings["file_settings"], io_settings)
-        if _utils.IsDistributed():
-            io_settings["io_type"].SetString("parallel_hdf5_file_io")
-    list_of_operations_settings = [settings["model_part_output_settings"], settings["nodal_solution_step_data_settings"],
-                                   settings["nodal_data_value_settings"], settings["element_data_value_settings"]]
-    _utils.InsertArrayOfSettings(
-        list_of_operations_settings, model_part_settings["list_of_operations"])
-    _utils.InsertArrayOfSettings(
-        list_of_operations_settings, results_settings["list_of_operations"])
-    output_time_settings = settings["output_time_settings"]
-    _utils.InsertSettings(output_time_settings,
-                          results_settings["controller_settings"])
-    _utils.CheckForDeprecatedFilename(
-        output_time_settings, __name__, model_part_settings["io_settings"], results_settings["io_settings"])
-    _utils.CheckForDeprecatedTemporalSettings(
-        output_time_settings, __name__, results_settings["controller_settings"])
-    return _core.Factory(new_settings["list_of_controllers"], Model)
+    )
+    user_settings = ParametersWrapper(user_settings)
+    for i in core_settings:
+        core_settings[i]["model_part_name"] = user_settings["model_part_name"]
+        for key in user_settings["file_settings"]:
+            core_settings[i]["io_settings"][key] = user_settings["file_settings"][key]
+        model_part_name = user_settings["model_part_name"]
+        if model[model_part_name].IsDistributed():
+            model_part_output_type = "partitioned_model_part_output"
+            core_settings[i]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
+        else:
+            model_part_output_type = "model_part_output"
+            core_settings[i]["io_settings"]["io_type"] = "serial_hdf5_file_io"
+        core_settings[i]["list_of_operations"] = [
+            CreateOperationSettings(model_part_output_type,
+                                    user_settings["model_part_output_settings"]),
+            CreateOperationSettings("nodal_solution_step_data_output",
+                                    user_settings["nodal_solution_step_data_settings"]),
+            CreateOperationSettings("nodal_data_value_output",
+                                    user_settings["nodal_data_value_settings"]),
+            CreateOperationSettings("element_data_value_output",
+                                    user_settings["element_data_value_settings"]),
+            CreateOperationSettings("nodal_flag_value_output",
+                                    user_settings["nodal_flag_value_settings"]),
+            CreateOperationSettings("element_flag_value_output",
+                                    user_settings["element_flag_value_settings"]),
+            CreateOperationSettings("element_integration_point_output",
+                                    user_settings["element_gauss_point_value_settings"]),
+            CreateOperationSettings("condition_flag_value_output",
+                                    user_settings["condition_flag_value_settings"]),
+            CreateOperationSettings("condition_data_value_output",
+                                    user_settings["condition_data_value_settings"]),
+            CreateOperationSettings("condition_integration_point_output",
+                                    user_settings["condition_gauss_point_value_settings"])
+        ]
+    for key in user_settings["output_time_settings"]:
+        core_settings[1]["controller_settings"][key] = user_settings["output_time_settings"][key]
+    return core_settings

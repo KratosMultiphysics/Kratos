@@ -53,6 +53,7 @@ namespace StressResponseDefinitions
             { "MZY", TracedStressType::MZY },
             { "MZZ", TracedStressType::MZZ },
             { "PK2", TracedStressType::PK2 },
+            { "VON_MISES_STRESS", TracedStressType::VON_MISES_STRESS }
         };
 
         auto stress_type_it = traced_stress_type_map.find(Str);
@@ -135,6 +136,8 @@ void StressCalculation::CalculateStressOnGP(Element& rElement,
         StressCalculation::CalculateStressOnGPTruss(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
     else if(name_current_element == "TrussLinearElement3D2N")
         StressCalculation::CalculateStressOnGPLinearTruss(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
+    else if((name_current_element == "SmallDisplacementElement3D4N") || (name_current_element == "SmallDisplacementElement3D6N" ) || (name_current_element == "SmallDisplacementElement3D8N" ))
+        StressCalculation::CalculateStressOnGPSmallDisplacement(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
     else
         KRATOS_ERROR << "Stress calculation on GP not yet implemented for " << name_current_element << std::endl;
 
@@ -357,7 +360,7 @@ void StressCalculation::CalculateStressOnGPShell(Element& rElement,
     KRATOS_CATCH("");
 }
 
-void StressCalculation::StressCalculation::CalculateStressBeam(Element& rElement,
+void StressCalculation::CalculateStressBeam(Element& rElement,
                         const TracedStressType rTracedStressType,
                         std::vector< array_1d<double, 3 > >& rStressVector,
                         const ProcessInfo& rCurrentProcessInfo,
@@ -425,7 +428,7 @@ void StressCalculation::CalculateStressOnGPBeam(Element& rElement,
                                             stress_vector, rCurrentProcessInfo,
                                             direction_1);
 
-    const SizeType GP_num = rElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+    const SizeType GP_num = rElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
 
     rOutput.resize(GP_num, false);
     for(IndexType i = 0; i < GP_num ; i++)
@@ -456,5 +459,28 @@ void StressCalculation::CalculateStressOnNodeBeam(Element& rElement,
     KRATOS_CATCH("")
 }
 
-}  // namespace Kratos.
 
+void StressCalculation::CalculateStressOnGPSmallDisplacement(Element& rElement,
+                        const TracedStressType rTracedStressType,
+                        Vector& rOutput,
+                        const ProcessInfo& rCurrentProcessInfo)
+{
+
+    switch (rTracedStressType)
+    {
+        case TracedStressType::VON_MISES_STRESS:
+        {
+            std::vector<double> tmp_stress_vector(rOutput.size());
+            rElement.CalculateOnIntegrationPoints(VON_MISES_STRESS, tmp_stress_vector, rCurrentProcessInfo);
+            if (rOutput.size() != tmp_stress_vector.size())
+                rOutput.resize(tmp_stress_vector.size());
+            for (size_t i=0; i<tmp_stress_vector.size(); i++)
+                rOutput[i] = tmp_stress_vector[i];
+            break;
+        }
+        default:
+            KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
+    }
+}
+
+}  // namespace Kratos.

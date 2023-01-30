@@ -46,22 +46,18 @@ KratosFluidTransportApplication::KratosFluidTransportApplication():
     mTransientConvectionDiffusionFICExplicitElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
     mTransientConvectionDiffusionFICExplicitElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
     mTransientConvectionDiffusionFICExplicitElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTransientConvectionDiffusionFICExplicitElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
+    mTransientConvectionDiffusionFICExplicitElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+
+    mTransientConvectionDiffusionPFEM2FICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mTransientConvectionDiffusionPFEM2FICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
+    mTransientConvectionDiffusionPFEM2FICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTransientConvectionDiffusionPFEM2FICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
 
     {}
 
 void KratosFluidTransportApplication::Register()
 {
- 	// calling base class register to register Kratos components
- 	KratosApplication::Register();
  	std::cout << "Initializing KratosFluidTransportApplication... " << std::endl;
-
-    KRATOS_REGISTER_VARIABLE(PECLET);
-    KRATOS_REGISTER_VARIABLE(THETA);
-    KRATOS_REGISTER_VARIABLE(PHI_THETA);
-    KRATOS_REGISTER_VARIABLE(NODAL_ANALYTIC_SOLUTION);
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_PHI_GRADIENT);
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PHI_GRADIENT);
 
     KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement2D3N", mSteadyConvectionDiffusionFICElement2D3N )
     KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement2D4N", mSteadyConvectionDiffusionFICElement2D4N )
@@ -77,6 +73,18 @@ void KratosFluidTransportApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICExplicitElement2D4N", mTransientConvectionDiffusionFICExplicitElement2D4N )
     KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICExplicitElement3D4N", mTransientConvectionDiffusionFICExplicitElement3D4N )
     KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICExplicitElement3D8N", mTransientConvectionDiffusionFICExplicitElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionPFEM2FICElement2D3N", mTransientConvectionDiffusionPFEM2FICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionPFEM2FICElement2D4N", mTransientConvectionDiffusionPFEM2FICElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionPFEM2FICElement3D4N", mTransientConvectionDiffusionPFEM2FICElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionPFEM2FICElement3D8N", mTransientConvectionDiffusionPFEM2FICElement3D8N )
+
+    KRATOS_REGISTER_VARIABLE(PECLET);
+    KRATOS_REGISTER_VARIABLE(THETA);
+    KRATOS_REGISTER_VARIABLE(PHI_THETA);
+    KRATOS_REGISTER_VARIABLE(NODAL_ANALYTIC_SOLUTION);
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_PHI_GRADIENT);
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PHI_GRADIENT);
 }
 
 }  // namespace Kratos.

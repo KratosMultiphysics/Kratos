@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -32,11 +30,11 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
     def setUp(self):
         self.setModelPart()
-        self.workFolder = "gid_io"
+        self.workFolder = "auxiliar_files_for_python_unittest/gid_io"
 
     def tearDown(self):
         with WorkFolderScope(self.workFolder):
-            for suffix in ['_0.post.res', '_0.post.msh']:
+            for suffix in ['.post.res', '.post.msh']:
                 kratos_utils.DeleteFileIfExisting(self.output_file_name+suffix)
 
 
@@ -113,8 +111,8 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         self.gid_io.FinalizeResults()
 
     def outputMatchesReferenceSolution(self):
-        msh_file_matches = filecmp.cmp(self.reference_file_name+'_0.post.msh',self.output_file_name+'_0.post.msh')
-        res_file_matches = filecmp.cmp(self.reference_file_name+'_0.post.res',self.output_file_name+'_0.post.res')
+        msh_file_matches = filecmp.cmp(self.reference_file_name+'.post.msh.ref',self.output_file_name+'.post.msh')
+        res_file_matches = filecmp.cmp(self.reference_file_name+'.post.res.ref',self.output_file_name+'.post.res')
         return msh_file_matches and res_file_matches
 
 
@@ -152,10 +150,4 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
 
 if __name__ == '__main__':
-    test = TestGiDIOGaussPoints()
-    test.setUp()
-    test.test_write_active_only()
-    test.tearDown()
-    test.setUp()
-    test.test_write_dynamic_deactivation()
-    test.tearDown()
+    UnitTest.main()

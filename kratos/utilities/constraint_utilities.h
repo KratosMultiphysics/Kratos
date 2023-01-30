@@ -50,6 +50,18 @@ namespace Kratos
 namespace ConstraintUtilities
 {
     /**
+     * @brief This method computes the active dofs
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rActiveDofs Vector containing the active dofs
+     * @param rDofSet The whole set of dofs
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeActiveDofs(
+        ModelPart& rModelPart,
+        std::vector<int>& rActiveDofs,
+        const ModelPart::DofsArrayType& rDofSet
+        );
+
+    /**
      * @brief This method resets the values of the slave dofs
      * @param rModelPart The model of the problem to solve
      */
@@ -84,10 +96,10 @@ namespace ConstraintUtilities
      */
     void KRATOS_API(KRATOS_CORE) PreComputeExplicitConstraintMassAndInertia(
         ModelPart& rModelPart,
-        const std::string DofDisplacementVariableName = "DISPLACEMENT",
-        const std::string MassVariableName = "NODAL_MASS",
-        const std::string DofRotationVariableName = "ROTATION",
-        const std::string InertiaVariableName = "NODAL_INERTIA_TENSOR"
+        const std::string& DofDisplacementVariableName = "DISPLACEMENT",
+        const std::string& MassVariableName = "NODAL_MASS",
+        const std::string& DofRotationVariableName = "ROTATION",
+        const std::string& InertiaVariableName = "NODAL_INERTIA_TENSOR"
         );
 
 }; // namespace ConstraintUtilities

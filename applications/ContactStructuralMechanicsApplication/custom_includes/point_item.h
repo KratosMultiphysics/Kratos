@@ -1,23 +1,22 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
+//
 
-#if !defined(POINT_ITEM_DEFINED )
-#define  POINT_ITEM_DEFINED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/condition.h"
 #include "geometries/point.h"
 
 namespace Kratos
@@ -28,11 +27,11 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -41,17 +40,25 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Custom Point container to be used by the mapper
+/**
+ * @class PointItem
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief Custom Point container to be used by the search
+ * @details It stores the pointer of a certain entity
+ * @tparam TEntity The entity which pointer will be stored
+ * @author Vicente Mataix Ferrandiz
  */
-class PointItem: public Point
+template<class TEntity>
+class PointItem
+    : public Point
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    
-    typedef Point BaseType; 
-    
+
+    typedef Point BaseType;
+
     /// Counted pointer of PointItem
     KRATOS_CLASS_POINTER_DEFINITION( PointItem );
 
@@ -62,32 +69,32 @@ public:
     /// Default constructors
     PointItem():
         BaseType(),
-        mpOriginCond(nullptr)
+        mpOriginEntity(nullptr)
     {}
 
-    PointItem(const array_1d<double, 3>& Coords)
-        :BaseType(Coords),
-         mpOriginCond(nullptr)
+    PointItem(const array_1d<double, 3>& rCoordinates)
+        :BaseType(rCoordinates),
+         mpOriginEntity(nullptr)
     {}
-    
-    PointItem(Condition::Pointer pCond):
-        mpOriginCond(pCond)
+
+    PointItem(typename TEntity::Pointer pEntity):
+        mpOriginEntity(pEntity)
     {
         UpdatePoint();
     }
-    
+
     PointItem(
-        const array_1d<double, 3>& Coords,
-        Condition::Pointer pCond
+        const array_1d<double, 3>& rCoordinates,
+        typename TEntity::Pointer pEntity
     ):
-        BaseType(Coords),
-        mpOriginCond(pCond)
+        BaseType(rCoordinates),
+        mpOriginEntity(pEntity)
     {}
 
     ///Copy constructor  (not really required)
-    PointItem(const PointItem& rhs):
-        BaseType(rhs),
-        mpOriginCond(rhs.mpOriginCond)
+    PointItem(const PointItem& rRHS):
+        BaseType(rRHS),
+        mpOriginEntity(rRHS.mpOriginEntity)
     {
     }
 
@@ -103,48 +110,48 @@ public:
     ///@{
 
     /**
-     * Returns the point
+     * @brief Returns the point
      * @return The point
      */
     BaseType GetPoint()
     {
         BaseType Point(this->Coordinates());
-        
+
         return Point;
     }
-    
+
     /**
-     * Set the point
-     * @param Point The point
+     * @brief Set the point
+     * @param rPoint The point
      */
-    void SetPoint(const BaseType Point)
+    void SetPoint(const BaseType& rPoint)
     {
-        this->Coordinates() = Point.Coordinates();
+        this->Coordinates() = rPoint.Coordinates();
     }
 
     /**
-     * Sets the condition associated to the point
-     * @param pCond The pointer to the condition
+     * @brief Sets the condition associated to the point
+     * @param pEntity The pointer to the condition
      */
 
-    void SetCondition(Condition::Pointer pCond)
+    void SetEntity(typename TEntity::Pointer pEntity)
     {
-        mpOriginCond = pCond;
+        mpOriginEntity = pEntity;
     }
-    
+
     /**
-     * Returns the condition associated to the point
-     * @return mpOriginCond The pointer to the condition associated to the point
+     * @brief Returns the condition associated to the point
+     * @return mpOriginEntity The pointer to the condition associated to the point
      */
 
-    Condition::Pointer GetCondition()
+    typename TEntity::Pointer GetEntity()
     {
     #ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointItem class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginEntity.get() == nullptr) << "TEntity no initialized in the PointItem class" << std::endl;
     #endif
-        return mpOriginCond;
+        return mpOriginEntity;
     }
-    
+
     /**
      * This method checks everything is right
      */
@@ -152,87 +159,31 @@ public:
     void Check()
     {
         KRATOS_TRY;
-        
+
         auto aux_coord = std::make_shared<array_1d<double, 3>>(this->Coordinates());
         KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointItem class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointItem class" << std::endl;
-        
+        KRATOS_ERROR_IF(mpOriginEntity.get() == nullptr) << "TEntity no initialized in the PointItem class" << std::endl;
+
         KRATOS_CATCH("Error checking the PointItem");
     }
-    
-    /**
-     * This function updates the database, using as base for the coordinates the condition center
-     */
 
+    /**
+     * @brief This function updates the database, using as base for the coordinates the condition center
+     */
     void UpdatePoint()
     {
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+        noalias(this->Coordinates()) = mpOriginEntity->GetGeometry().Center().Coordinates();
     }
 
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
     ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
 
-    Condition::Pointer mpOriginCond; // Condition pointer          
+    typename TEntity::Pointer mpOriginEntity; // Entity pointer
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
-}; // Class PointItem 
+}; // Class PointItem
 
 ///@}
 
@@ -247,5 +198,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // POINT_ITEM_DEFINED  defined

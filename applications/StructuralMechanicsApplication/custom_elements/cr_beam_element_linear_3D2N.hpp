@@ -33,11 +33,11 @@ namespace Kratos
  * @author Klaus B Sautter
  */
 
-class CrBeamElementLinear3D2N : public CrBeamElement3D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElementLinear3D2N : public CrBeamElement3D2N
 {
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(CrBeamElementLinear3D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElementLinear3D2N);
 
     CrBeamElementLinear3D2N() {};
     CrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -76,24 +76,27 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function calculates the element stiffness w.r.t. deformation modes
      */
     BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() const override;
+
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput,
+     const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,

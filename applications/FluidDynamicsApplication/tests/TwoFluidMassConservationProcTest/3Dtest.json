@@ -14,6 +14,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "TwoFluidMassConservationProcTest/3Dtest"
         },
+        "material_import_settings"       	: {
+            "materials_filename" : "TwoFluidMassConservationProcTest/TwoFluidMassConservation3DTestMaterials"
+        },
     	"maximum_iterations"			: 5,
     	"echo_level"					: 0,
     	"time_order"					: 2,
@@ -28,7 +31,8 @@
         "no_skin_parts"              	: [],
         "move_mesh_flag"				: false,
 		"formulation": {
-			"dynamic_tau": 1.0
+            "dynamic_tau": 1.0,
+            "mass_source": false
 		},
         "time_stepping"  : {
             "automatic_time_step" 	: false,
@@ -44,7 +48,7 @@
             "python_module" : "apply_inlet_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "Parameters"    : {
-                "model_part_name" : "AutomaticInlet3D_Inlet",
+                "model_part_name" : "FluidModelPart.AutomaticInlet3D_Inlet",
                 "variable_name"   : "VELOCITY",
                 "modulus"         : 1.0,
                 "direction"       : [1.0,0.0,0.0],
@@ -54,7 +58,7 @@
             "python_module" : "apply_outlet_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "Parameters"    : {
-                "model_part_name"    : "Outlet3D_Outlet",
+                "model_part_name"    : "FluidModelPart.Outlet3D_Outlet",
                 "variable_name"      : "PRESSURE",
                 "constrained"        : true,
                 "value"              : 0.0,

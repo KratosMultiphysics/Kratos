@@ -5,12 +5,12 @@
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrandiz
+//  Co-authors:      Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH)
@@ -28,7 +28,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
 #include "utilities/split_tetrahedra.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 
 namespace Kratos
 {
@@ -57,14 +57,13 @@ public:
     ///@{
 
     /// Default constructors
-    LocalRefineTetrahedraMesh(ModelPart& model_part) : LocalRefineGeometryMesh(model_part)
+    LocalRefineTetrahedraMesh(ModelPart& rModelPart) : LocalRefineGeometryMesh(rModelPart)
     {
 
     }
 
     /// Destructor
-    ~LocalRefineTetrahedraMesh()
-    = default;
+    ~LocalRefineTetrahedraMesh() = default;
 
     ///@}
     ///@name Operators
@@ -115,7 +114,7 @@ public:
 
         for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
         {
-            Node < 3 > ::DofType& rDof = *iii;
+            Node < 3 > ::DofType& rDof = **iii;
             Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             // The variables are left as free for the internal node
@@ -176,7 +175,7 @@ public:
 	int splitted_edges = 0;
 	int internal_node = 0;
 
-	ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+	const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 	int edge_ids[6];
 	int t[56];
 	std::vector<int> aux;
@@ -223,11 +222,15 @@ public:
 
 	  }
 
-	  if (create_element == true)
+      //TODO: CHANGE RESPECT TO BASE CLASS: ( FLUID SOLVER MIGHT HAVE CHANGED THIS)
+      //probably it'd be good to move this to github
+      it->SetValue(SPLIT_ELEMENT,false);
+
+	  if (create_element)
 	  {
 	      to_be_deleted++;
 
-          WeakPointerVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
+          GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
           // We will use this flag to identify the element later, when operating on
           // SubModelParts. Note that fully refined elements already have this flag set
           // to true, but this is not the case for partially refined element, so we set it here.
@@ -253,7 +256,7 @@ public:
 		  // Generate new element by cloning the base one
 		  Element::Pointer p_element;
 		  p_element = it->Create(current_id, geom, it->pGetProperties());
-		  p_element->Initialize();
+		  p_element->Initialize(rCurrentProcessInfo);
 		  p_element->InitializeSolutionStep(rCurrentProcessInfo);
 		  p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -264,7 +267,7 @@ public:
 		  }
 
 		  // Transfer elemental variables
-		  p_element->Data() = it->Data();
+		  p_element->GetData() = it->GetData();
 		  p_element->GetValue(SPLIT_ELEMENT) = false;
 		  NewElements.push_back(p_element);
 
@@ -300,10 +303,22 @@ public:
       // Now update the elements in SubModelParts
       if (NewElements.size() > 0)
       {
+          UpdateSubModelPartElements(this_model_part, NewElements);
+      }
+
+    }
+
+    /**
+    * Updates recursively the elements in the submodelpars
+    * @param NewElements: list of elems
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    void UpdateSubModelPartElements(ModelPart& this_model_part, PointerVector< Element >& NewElements)
+      {
           for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
                   iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
           {
-              to_be_deleted = 0;
+              unsigned int to_be_deleted = 0;
               NewElements.clear();
 
               // Create list of new elements in SubModelPart
@@ -314,12 +329,12 @@ public:
                   if( iElem->GetValue(SPLIT_ELEMENT) )
                   {
                       to_be_deleted++;
-                      WeakPointerVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
+                      GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
 
                       for ( auto iChild = rChildElements.ptr_begin();
                               iChild != rChildElements.ptr_end(); iChild++ )
                       {
-                          NewElements.push_back( (*iChild).lock() );
+                          NewElements.push_back((*iChild)->shared_from_this());
                       }
                   }
               }
@@ -335,15 +350,23 @@ public:
               // Delete old elements
               iSubModelPart->Elements().Sort();
               iSubModelPart->Elements().erase(iSubModelPart->Elements().end() - to_be_deleted, iSubModelPart->Elements().end());
-
+              /*
               KRATOS_WATCH(iSubModelPart->Info());
               KRATOS_WATCH(to_be_deleted);
               KRATOS_WATCH(iSubModelPart->Elements().size());
               KRATOS_WATCH(this_model_part.Elements().size());
+              */
+
+            //NEXT LEVEL
+            if (NewElements.size() > 0)
+            {
+               ModelPart &rSubModelPart = *iSubModelPart;
+               UpdateSubModelPartElements(rSubModelPart,NewElements);
+            }
+
+
           }
       }
-    }
-
     /***********************************************************************************/
     /***********************************************************************************/
 
@@ -377,7 +400,7 @@ public:
             int  nint            = 0;
             array_1d<int, 6> aux;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
             unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
@@ -389,11 +412,11 @@ public:
                     CalculateEdgesFaces(geom, Coord, edge_ids, aux);
 
                     // Create the new conditions
-                    bool create_condition =  Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
+                    bool create_condition =  TriangleSplit::Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
                     if(create_condition==true)
                     {
-                        WeakPointerVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                        GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
                         // We will use this flag to identify the condition later, when operating on
                         // SubModelParts.
                         it->SetValue(SPLIT_ELEMENT,true);
@@ -416,12 +439,12 @@ public:
                             // Generate new condition by cloning the base one
                             Condition::Pointer pcond;
                             pcond = it->Create(current_id, newgeom, it->pGetProperties());
-                            pcond ->Initialize();
+                            pcond ->Initialize(rCurrentProcessInfo);
                             pcond ->InitializeSolutionStep(rCurrentProcessInfo);
                             pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
 
                             // Transfer condition variables
-                            pcond->Data() = it->Data();
+                            pcond->GetData() = it->GetData();
                             pcond->GetValue(SPLIT_ELEMENT) = false;
                             NewConditions.push_back(pcond);
 
@@ -462,50 +485,48 @@ public:
             // Now update the conditions in SubModelParts
             if (NewConditions.size() > 0)
             {
-                for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
-                        iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
-                {
-                    to_be_deleted = 0;
-                    NewConditions.clear();
-
-                    // Create list of new conditions in SubModelPart
-                    // Count how many conditions will be removed
-                    for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
-                            iCond != iSubModelPart->ConditionsEnd(); iCond++)
-                    {
-                        if( iCond->GetValue(SPLIT_ELEMENT) )
-                        {
-                            to_be_deleted++;
-                            WeakPointerVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
-
-                            for ( auto iChild = rChildConditions.ptr_begin();
-                                    iChild != rChildConditions.ptr_end(); iChild++ )
-                            {
-                                NewConditions.push_back( (*iChild).lock() );
-                            }
-                        }
-                    }
-
-                    // Add new conditions to SubModelPart
-                    iSubModelPart->Conditions().reserve( iSubModelPart->Conditions().size() + NewConditions.size() );
-                    for (PointerVector< Condition >::iterator it_new = NewConditions.begin();
-                            it_new != NewConditions.end(); it_new++)
-                    {
-                        iSubModelPart->Conditions().push_back(*(it_new.base()));
-                    }
-
-                    // Delete old conditions
-                    iSubModelPart->Conditions().Sort();
-                    iSubModelPart->Conditions().erase(iSubModelPart->Conditions().end() - to_be_deleted, iSubModelPart->Conditions().end());
-
-                    KRATOS_WATCH(iSubModelPart->Info());
-                    KRATOS_WATCH(to_be_deleted);
-                    KRATOS_WATCH(iSubModelPart->Conditions().size());
-                    KRATOS_WATCH(this_model_part.Conditions().size());
-                }
+                UpdateSubModelPartConditions(this_model_part, NewConditions);
             }
         }
         KRATOS_CATCH("");
+    }
+
+
+    /**
+    * Updates recursively the conditions in the submodelpars
+    * @param rNewConditions: list of conds
+    * @return rModelPart: The model part of the model (it is the input too)
+    */
+    void UpdateSubModelPartConditions(ModelPart& rModelPart, PointerVector< Condition >& rNewConditions) {
+        for (auto it_sub_model_part = rModelPart.SubModelPartsBegin(); it_sub_model_part != rModelPart.SubModelPartsEnd(); it_sub_model_part++) {
+            unsigned int to_be_deleted = 0;
+            rNewConditions.clear();
+
+            // Create list of new conditions in SubModelPart
+            // Count how many conditions will be removed
+            for (auto it_cond = it_sub_model_part->ConditionsBegin(); it_cond != it_sub_model_part->ConditionsEnd(); it_cond++) {
+                if( it_cond->GetValue(SPLIT_ELEMENT) ) {
+                    to_be_deleted++;
+                    auto& rChildConditions = it_cond->GetValue(NEIGHBOUR_CONDITIONS);
+                    for ( auto iChild = rChildConditions.ptr_begin(); iChild != rChildConditions.ptr_end(); iChild++ ) {
+                        rNewConditions.push_back((*iChild)->shared_from_this());
+                    }
+                }
+            }
+
+            // Add new conditions to SubModelPart
+            it_sub_model_part->Conditions().reserve( it_sub_model_part->Conditions().size() + rNewConditions.size() );
+            for (auto it_new = rNewConditions.begin(); it_new != rNewConditions.end(); it_new++) {
+                it_sub_model_part->Conditions().push_back(*(it_new.base()));
+            }
+
+            // Delete old conditions
+            it_sub_model_part->Conditions().Sort();
+            it_sub_model_part->Conditions().erase(it_sub_model_part->Conditions().end() - to_be_deleted, it_sub_model_part->Conditions().end());
+            if (rNewConditions.size() > 0) {
+                UpdateSubModelPartConditions(rModelPart, rNewConditions);
+            }
+        }
     }
 
     /***********************************************************************************/
@@ -594,103 +615,9 @@ public:
 	  aux[9] = Coord(index_2, index_3);
       }
 
-      // Edge 01
-      if (aux[4] < 0)
-      {
-	  if (index_0 > index_1)
-	  {
-	    edge_ids[0] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[0] = 1;
-	  }
-      }
-      else
-      {
-	  edge_ids[0] = 4;
-      }
-
-      // Edge 02
-      if (aux[5] < 0)
-	  if (index_0 > index_2)
-	  {
-	    edge_ids[1] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[1] = 2;
-	  }
-      else
-      {
-	  edge_ids[1] = 5;
-      }
-
-      // Edge 03
-      if (aux[6] < 0)
-      {
-	  if (index_0 > index_3)
-	  {
-	    edge_ids[2] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[2] = 3;
-	  }
-      }
-      else
-      {
-	  edge_ids[2] = 6;
-      }
-
-      // Edge 12
-      if (aux[7] < 0)
-      {
-	  if (index_1 > index_2)
-	  {
-	    edge_ids[3] = 1;
-	  }
-	  else
-	  {
-	    edge_ids[3] = 2;
-	  }
-      }
-      else
-      {
-	  edge_ids[3] = 7;
-      }
-
-      // Edge 13
-      if (aux[8] < 0)
-	  if (index_1 > index_3)
-	  {
-	    edge_ids[4] = 1;
-	  }
-	  else
-	  {
-	    edge_ids[4] = 3;
-	  }
-      else
-      {
-	  edge_ids[4] = 8;
-      }
-
-      // Edge 23
-      if (aux[9] < 0)
-      {
-	  if (index_2 > index_3)
-	  {
-	    edge_ids[5] = 2;
-	  }
-	  else
-	  {
-	    edge_ids[5] = 3;
-	  }
-      }
-      else
-      {
-	  edge_ids[5] = 9;
-      }
+      TetrahedraSplit::TetrahedraSplitMode(
+        aux.data(),
+        edge_ids);
     }
 
     /***********************************************************************************/

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -40,22 +39,29 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
-            "help"                        : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
-            "mesh_id"                     : 0,
-            "model_part_name"             : "Structure",
-            "computing_model_part_name"   : "computing_domain",
-            "contact_model_part"          : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "contact_property_ids"        : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
-            "contact_type"                : "Frictionless",
-            "interval"                    : [0.0,"End"],
-            "normal_variation"            : "no_derivatives_computation",
-            "frictional_law"              : "Coulomb",
-            "tangent_factor"              : 1.0e-1,
-            "integration_order"           : 2,
-            "clear_inactive_for_post"     : true,
-            "search_parameters" : {
-                "type_search"                         : "in_radius",
+            "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
+            "model_part_name"               : "Structure",
+            "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "friction_coefficients"         : {"0": 0.0,"1": 0.0,"2": 0.0,"3": 0.0,"4": 0.0,"5": 0.0,"6": 0.0,"7": 0.0,"8": 0.0,"9": 0.0},
+            "contact_type"                  : "Frictionless",
+            "not_normal_update_frictional"  : false,
+            "interval"                      : [0.0,"End"],
+            "normal_variation"              : "no_derivatives_computation",
+            "frictional_law"                : "Coulomb",
+            "tangent_factor"                : 1.0e-3,
+            "operator_threshold"            : 1.0e-3,
+            "slip_augmentation_coefficient" : 0.0,
+            "slip_threshold"                : 2.0e-2,
+            "zero_tolerance_factor"         : 1.0,
+            "integration_order"             : 2,
+            "consider_tessellation"         : false,
+            "normal_check_proportion"       : 0.1,
+            "clear_inactive_for_post"       : true,
+            "slip_step_reset_frequency"     : 1,
+            "search_parameters"             : {
+                "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,
@@ -65,10 +71,26 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 1.0e-1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
-                "check_gap"                           : "check_mapping"
+                "check_gap"                           : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"             : 0.1,
+                    "debug_obb"                       : false,
+                    "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "build_from_bounding_box"         : true,
+                    "lower_bounding_box_coefficient"  : 0.0,
+                    "higher_bounding_box_coefficient" : 1.0
+                }
+            },
+            "advance_explicit_parameters"  : {
+                "manual_max_gap_theshold"  : false,
+                "automatic_gap_factor"     : 1.0e-1,
+                "max_gap_threshold"        : 5.0e-2,
+                "max_gap_factor"           : 1.0e2,
+                "logistic_exponent_factor" : 6.0
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
@@ -78,7 +100,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "penalty"                     : 1.0e16,
                 "scale_factor"                : 1.0e0,
                 "adapt_penalty"               : false,
-                "max_gap_factor"              : 1.0e-3
+                "max_gap_factor"              : 5.0e-4
             },
             "alternative_formulations" : {
                 "axisymmetric"                : false
@@ -86,12 +108,12 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         }
         """)
 
-        # Construct the base process.
-        super(PenaltyContactProcess, self).__init__(Model, settings)
-
         # Overwrite the default settings with user-provided parameters
         self.contact_settings = settings
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
+
+        # Construct the base process.
+        super().__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -101,7 +123,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteInitialize()
+        super().ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -110,7 +132,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteBeforeSolutionLoop()
+        super().ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -120,7 +142,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteInitializeSolutionStep()
+        super().ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -129,7 +151,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -139,7 +161,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteBeforeOutputStep()
+        super().ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -149,7 +171,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteAfterOutputStep()
+        super().ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -159,7 +181,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteFinalize()
+        super().ExecuteFinalize()
 
     def _get_condition_name(self):
         """ This method returns the condition name
@@ -171,23 +193,23 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         # We define the condition name to be used
         if self.contact_settings["contact_type"].GetString() == "Frictionless":
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyNVFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "PenaltyNVFrictionlessMortarContact"
             else:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "PenaltyFrictionlessMortarContact"
-        elif self.is_frictional is True:
+        elif self.is_frictional:
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyNVFrictionalAxisymMortarContact"
                 else:
                     condition_name = "PenaltyNVFrictionalMortarContact"
             else:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyFrictionalAxisymMortarContact"
                 else:
                     condition_name = "PenaltyFrictionalMortarContact"
@@ -202,14 +224,14 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process (in fact not, to avoid writing twice the values)
-        #super(PenaltyContactProcess, self)._initialize_problem_parameters()
+        #super()._initialize_problem_parameters()
 
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
 
         if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
             # We compute NODAL_H that can be used in the search and some values computation
-            self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
+            self.find_nodal_h = KM.FindNodalHProcess(self.main_model_part)
             self.find_nodal_h.Execute()
 
             # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)

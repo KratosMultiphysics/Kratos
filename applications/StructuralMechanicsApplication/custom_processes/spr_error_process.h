@@ -10,13 +10,9 @@
 //  Co-author   :    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SPR_ERROR_PROCESS)
-#define KRATOS_SPR_ERROR_PROCESS
+#pragma once
 
 // System includes
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 // External includes
 
@@ -24,9 +20,6 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "structural_mechanics_application_variables.h"
-#include "spaces/ublas_space.h"
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -82,7 +75,7 @@ public:
     typedef Node <3>                                                                NodeType;
 
     /// Definition of the iterators
-    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    typedef GlobalPointersVector< Element >::iterator                         WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
 
@@ -131,6 +124,11 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -171,9 +169,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                               /// The model part to compute
-    Variable<Vector> mStressVariable = CAUCHY_STRESS_VECTOR; /// The stress variable considered
-    SizeType mEchoLevel;                                     /// The echo level
+    ModelPart& mThisModelPart;                                  /// The model part to compute
+    Variable<Vector>* mpStressVariable = &CAUCHY_STRESS_VECTOR; /// The stress variable considered
+    SizeType mEchoLevel;                                        /// The echo level
 
     ///@}
     ///@name Protected Operators
@@ -209,7 +207,7 @@ protected:
     virtual void CalculatePatch(
         NodeItType itNode,
         NodeItType itPatchNode,
-        SizeType NeighbourSize,
+        const SizeType NeighbourSize,
         Vector& rSigmaRecovered
         );
 
@@ -280,4 +278,3 @@ private:
 };// class SPRErrorProcess
 
 };// namespace Kratos.
-#endif /* KRATOS_SPR_ERROR_PROCESS defined */

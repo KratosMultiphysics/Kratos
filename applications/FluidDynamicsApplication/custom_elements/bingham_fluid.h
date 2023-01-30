@@ -40,7 +40,7 @@ public:
     ///@{
 
     // Pointer types for BinghamFluid
-    KRATOS_CLASS_POINTER_DEFINITION(BinghamFluid);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BinghamFluid);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -144,7 +144,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< BinghamFluid<TBaseElement> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< BinghamFluid<TBaseElement> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /// Create a new element of this type.
@@ -158,24 +158,7 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< BinghamFluid<TBaseElement> >(NewId,pGeom,pProperties);
-    }
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY;
-
-        int Error = 0;
-
-        // Check that any required model parameters are defined
-
-
-        // Call the underlying element's check routine
-        Error = TBaseElement::Check(rCurrentProcessInfo);
-
-        return Error;
-
-        KRATOS_CATCH("");
+        return Kratos::make_intrusive< BinghamFluid<TBaseElement> >(NewId,pGeom,pProperties);
     }
 
     ///@}
@@ -280,9 +263,9 @@ protected:
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
 
         double YieldStress = rProcessInfo[YIELD_STRESS];
-                        
+
         double m = rProcessInfo[REGULARIZATION_COEFFICIENT];
-        
+
         if (GammaDot > 1e-12) // Normal behaviour
         {
             double Regularization = 1.0 - std::exp(-m*GammaDot);

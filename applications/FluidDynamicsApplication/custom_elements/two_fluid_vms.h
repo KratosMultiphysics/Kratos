@@ -82,7 +82,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Pointer definition of TwoFluidVMS
-    KRATOS_CLASS_POINTER_DEFINITION(TwoFluidVMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoFluidVMS);
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
     ///Element from which it is derived
@@ -166,13 +166,13 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< TwoFluidVMS >(NewId, pGeom, pProperties);
     }
 
     /// Provides local contributions from body forces to the RHS
@@ -185,7 +185,7 @@ public:
      * expected to contain values for DYNAMIC_TAU and DELTA_TIME
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int local_size = (TDim+1)*(TDim+1);
         Matrix tmp(local_size,local_size);
@@ -200,7 +200,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::logic_error,"MassMatrix function shall not be called when using this type of element","");
     }
@@ -212,7 +212,7 @@ public:
     /// on the cut elements
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override
+                                          const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -245,7 +245,7 @@ public:
 
         //estimate a minimal h
         /*double h=0.0;
-        if(TDim == 3) h = pow(6.0*Area, 1.0/3.0);
+        if constexpr (TDim == 3) h = pow(6.0*Area, 1.0/3.0);
         else h = sqrt(2.0*Area);*/
 
 
@@ -291,13 +291,13 @@ public:
 
         if(ndivisions == 1) //compute gauss points for exact integration of a tetra element
         {
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-            Ngauss = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            Ngauss = this->GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             volumes.resize(IntegrationPoints.size(),false);
 
-            for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+            for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
 	    {
                 volumes[g] = 6.0*Area * IntegrationPoints[g].Weight();
 		        signs[g] = signs[0];
@@ -557,6 +557,8 @@ KRATOS_WATCH(Ngauss);  */
         //note that it each step we assume that the enrichment starts from 0
         if (ndivisions > 1)
         {
+            //We only apply enrichment if we do not have an almost empty/full element
+            if (positive_volume / Area > min_area_ratio && negative_volume / Area > min_area_ratio) {
                 //finalize the computation of the rhs
                 noalias(enriched_rhs) -= prod(enrichment_terms_horizontal,U);
 
@@ -565,123 +567,46 @@ KRATOS_WATCH(Ngauss);  */
                     if(fabs(enrichment_diagonal(k,k) ) > max_diag) max_diag = fabs(enrichment_diagonal(k,k) );
                 if(max_diag == 0) max_diag = 1.0;
 
-
-
-                if(positive_volume/Area < min_area_ratio)
-                {
-//                     KRATOS_WATCH(this->Id());
-//                     KRATOS_WATCH(positive_volume/Area)
-                    for(unsigned int i=0; i<TDim+1; i++)
-                    {
-                        if(distances[i] >= 0.0)
-                        {
-/*
-                            for(unsigned int k=0; k<TDim+1; k++)
-                            {
-                                enrichment_diagonal(i,k) = 0.0;
-                                enrichment_diagonal(k,i) = 0.0;
-                            }*/
-                            enrichment_diagonal(i,i) += 1000.0*max_diag;
-//                             enriched_rhs[i] = 0.0;
-//
-//                             for(unsigned int k=0; k<enrichment_terms_horizontal.size2();k++)
-//                             {
-//                                 enrichment_terms_horizontal(i,k) = 0.0;
-//                                 enrichment_terms_vertical(k,i) = 0.0;
-//                             }
-                        }
-                    }
-                }
-                 if(negative_volume/Area < min_area_ratio)
-                {
-//                     KRATOS_WATCH(this->Id());
-//                     KRATOS_WATCH(negative_volume/Area)
-                    for(unsigned int i=0; i<TDim+1; i++)
-                    {
-                        if(distances[i] < 0.0)
-                        {
-                            enrichment_diagonal(i,i) += 1000.0*max_diag;
-//                             for(unsigned int k=0; k<TDim+1; k++)
-//                             {
-//                                 enrichment_diagonal(i,k) = 0.0;
-//                                 enrichment_diagonal(k,i) = 0.0;
-//                             }
-//                             enrichment_diagonal(i,i) = 1.0; //max_diag;
-//                             enriched_rhs[i] = 0.0;
-//
-//
-//                             for(unsigned int k=0; k<enrichment_terms_horizontal.size2();k++)
-//                             {
-//                                 enrichment_terms_horizontal(i,k) = 0.0;
-//                                 enrichment_terms_vertical(k,i) = 0.0;
-//                             }
-                        }
-                    }
-                }
-
-
-                //ensure the matrix is invertible
-//                 for(unsigned int i=0; i<nenrichments; i++)
-//                 {
-//                     if(fabs(enrichment_diagonal(i,i)) < 1e-30)
-//                     {
-//                         enrichment_diagonal(i,i) = 1.0;
-//                         enriched_rhs[i] = 0.0;
-//                     }
-//                 }
-
-                //"weakly" impose continuity
-//                 KRATOS_WATCH("line 541");
-                for(unsigned int i=0; i<TDim; i++)
+                for (unsigned int i = 0; i < TDim; i++)
                 {
                     const double di = fabs(distances[i]);
 
-                    for(unsigned int j=i+1; j<TDim+1; j++)
+                    for (unsigned int j = i + 1; j < TDim + 1; j++)
                     {
-                        const double dj =  fabs(distances[j]);
+                        const double dj = fabs(distances[j]);
 
-                        if( distances[i]*distances[j] < 0.0) //cut edge
+                        if (distances[i] * distances[j] < 0.0) //cut edge
                         {
-                            double sum_d = di+dj;
-                            double Ni = dj/sum_d;
-                            double Nj = di/sum_d;
+                            double sum_d = di + dj;
+                            double Ni = dj / sum_d;
+                            double Nj = di / sum_d;
 
-                            double penalty_coeff = max_diag*0.001; // h/BDFVector[0];
-                            enrichment_diagonal(i,i) += penalty_coeff * Ni*Ni;
-                            enrichment_diagonal(i,j) -= penalty_coeff * Ni*Nj;
-                            enrichment_diagonal(j,i) -= penalty_coeff * Nj*Ni;
-                            enrichment_diagonal(j,j) += penalty_coeff * Nj*Nj;
+                            double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
+                            enrichment_diagonal(i, i) += penalty_coeff * Ni*Ni;
+                            enrichment_diagonal(i, j) -= penalty_coeff * Ni*Nj;
+                            enrichment_diagonal(j, i) -= penalty_coeff * Nj*Ni;
+                            enrichment_diagonal(j, j) += penalty_coeff * Nj*Nj;
 
                         }
                     }
                 }
-//                 KRATOS_WATCH("line 565");
 
-
-//                 KRATOS_WATCH(enrichment_diagonal);
-
-
-                //add to LHS enrichment contributions
                 Matrix inverse_diag(nenrichments, nenrichments);
                 double det;
-                MathUtils<double>::InvertMatrix(enrichment_diagonal,inverse_diag,det);
+                MathUtils<double>::InvertMatrix(enrichment_diagonal, inverse_diag, det);
 
-                  //  double inverse_diag_term = 1.0 / ( enrichment_diagonal);
-//        KRATOS_WATCH(this->Id());
-//        KRATOS_WATCH(enrichment_terms_horizontal);
-//        KRATOS_WATCH(enrichment_terms_vertical);
-//        KRATOS_WATCH(inverse_diag);
-                Matrix tmp = prod(inverse_diag,enrichment_terms_horizontal);
-                noalias(rLeftHandSideMatrix) -= prod(enrichment_terms_vertical,tmp);
+                Matrix tmp = prod(inverse_diag, enrichment_terms_horizontal);
+                noalias(rLeftHandSideMatrix) -= prod(enrichment_terms_vertical, tmp);
 
-                Vector tmp2 = prod(inverse_diag,enriched_rhs);
-                noalias(rRightHandSideVector) -= prod(enrichment_terms_vertical,tmp2);
+                Vector tmp2 = prod(inverse_diag, enriched_rhs);
+                noalias(rRightHandSideVector) -= prod(enrichment_terms_vertical, tmp2);
+            }
 
 /*                for (unsigned int i = 0; i < LocalSize; i++)
-                    for (unsigned int j = 0; j < LocalSize; j++)
-                        rLeftHandSideMatrix(i, j) -= inverse_diag_term * enrichment_terms_vertical[i] * enrichment_terms_horizontal[j];
-                noalias(rRightHandSideVector) -= (inverse_diag_term*enriched_rhs )*enrichment_terms_vertical;
-      */      }
+                for (unsigned int j = 0; j < LocalSize; j++)
+                    rLeftHandSideMatrix(i, j) -= inverse_diag_term * enrichment_terms_vertical[i] * enrichment_terms_horizontal[j];
+            noalias(rRightHandSideVector) -= (inverse_diag_term*enriched_rhs )*enrichment_terms_vertical;
+    */      }
 
 //       KRATOS_WATCH("finished elem")
     }
@@ -706,41 +631,13 @@ KRATOS_WATCH(Ngauss);  */
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
         // Perform basic element checks
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if (ErrorCode != 0) return ErrorCode;
-        // Check that all required variables have been registered
-        if (DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DISTANCE Key is 0. Check if the application was correctly registered.", "");
-        if (VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY Key is 0. Check if the application was correctly registered.", "");
-        if (MESH_VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "MESH_VELOCITY Key is 0. Check if the application was correctly registered.", "");
-        if (PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "PRESSURE Key is 0. Check if the application was correctly registered.", "");
-        if (DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY Key is 0. Check if the application was correctly registered.", "");
-        if (VISCOSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "VISCOSITY Key is 0. Check if the application was correctly registered.", "");
-        if (DYNAMIC_TAU.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DYNAMIC_TAU Key is 0. Check if the application was correctly registered.", "");
-        if (DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DELTA_TIME Key is 0. Check if the application was correctly registered.", "");
-//         if (ADVPROJ.Key() == 0)
-//             KRATOS_THROW_ERROR(std::invalid_argument, "ADVPROJ Key is 0. Check if the application was correctly registered.", "");
-//         if (DIVPROJ.Key() == 0)
-//             KRATOS_THROW_ERROR(std::invalid_argument, "DIVPROJ Key is 0. Check if the application was correctly registered.", "");
-        if (NODAL_AREA.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "NODAL_AREA Key is 0. Check if the application was correctly registered.", "");
-        if (C_SMAGORINSKY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "C_SMAGORINSKY Key is 0. Check if the application was correctly registered.", "");
-        if (ERROR_RATIO.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "ERROR_RATIO Key is 0. Check if the application was correctly registered.", "");
-        // Additional variables, only required to print results:
-        // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
+
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)

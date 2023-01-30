@@ -5,16 +5,13 @@
 
 namespace Kratos {
 
-    //void DEM_D_Hertz_confined::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Hertz_confined::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Hertz_confined(*this));
         return p_clone;
     }
 
-    void DEM_D_Hertz_confined::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        KRATOS_INFO("DEM") << "Assigning DEM_D_Hertz_confined to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Hertz_confined::CloneUnique() {
+        return Kratos::make_unique<DEM_D_Hertz_confined>();
     }
 
     double DEM_D_Hertz_confined::CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2,

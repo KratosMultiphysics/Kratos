@@ -31,9 +31,9 @@ namespace Kratos
 HenckyBorjaCamClayPlasticPlaneStrain2DLaw::HenckyBorjaCamClayPlasticPlaneStrain2DLaw()
     : HenckyElasticPlasticPlaneStrain2DLaw()
 {
-    mpHardeningLaw   = MPMHardeningLaw::Pointer( new CamClayHardeningLaw() );
-    mpYieldCriterion = MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule    = MPMFlowRule::Pointer( new BorjaCamClayPlasticFlowRule(mpYieldCriterion) );
+    mpHardeningLaw   = ParticleHardeningLaw::Pointer( new CamClayHardeningLaw() );
+    mpYieldCriterion = ParticleYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule    = ParticleFlowRule::Pointer( new BorjaCamClayPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyBorjaCamClayPlasticPlaneStrain2DLaw::HenckyBorjaCamClayPlasticPlaneStrain2
 HenckyBorjaCamClayPlasticPlaneStrain2DLaw::HenckyBorjaCamClayPlasticPlaneStrain2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  ParticleYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 
@@ -75,7 +75,7 @@ HenckyBorjaCamClayPlasticPlaneStrain2DLaw::~HenckyBorjaCamClayPlasticPlaneStrain
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticPlaneStrain2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

@@ -26,8 +26,6 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "block_builder"                      : true,
-        "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
@@ -38,17 +36,14 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Structure","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3"],
-        "rotation_dofs"                      : false
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -58,7 +53,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,-0.1],
@@ -88,7 +83,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_Z"],
                 "input_file_name"      : "mesh_tying_test/3D_contact_simplest_patch_matching_quadtri_test_results.json",
-                "model_part_name"      : "DISPLACEMENT_Displacement_Auto3",
+                "model_part_name"      : "Structure.DISPLACEMENT_Displacement_Auto3",
                 "time_frequency"       : 1.0
             }
         }
@@ -101,7 +96,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -133,7 +128,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Z"],
             "output_file_name"     : "mesh_tying_test/3D_contact_simplest_patch_matching_quadtri_test_results.json",
-            "model_part_name"      : "DISPLACEMENT_Displacement_Auto3",
+            "model_part_name"      : "Structure.DISPLACEMENT_Displacement_Auto3",
             "time_frequency"       : 1.0
         }
     }

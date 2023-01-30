@@ -14,12 +14,17 @@
 #if !defined(KRATOS_CUTTING_UTILITY)
 #define  KRATOS_CUTTING_UTILITY
 
-
+// System includes
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include <string>
+#include <iostream>
+#include <cstdlib>
+#include <cmath>
+#include <algorithm>
 
-#include <boost/timer.hpp>
+// External includes
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/banded.hpp>
@@ -28,16 +33,7 @@
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 
-
-// System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
-#include <cmath>
-#include <algorithm>
-
-
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
@@ -45,17 +41,14 @@
 #include "includes/variables.h"
 #include "containers/array_1d.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
 #include "utilities/split_tetrahedra.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
-#include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
-
 
 namespace Kratos
 {
@@ -285,7 +278,7 @@ public:
 
 			//now to the conditions!
 			DenseVector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
-			Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
+			Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");         //condition type
 			Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number); 		//this will allow us later to turn this layer on/off in GID
 
 			for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
@@ -345,11 +338,11 @@ public:
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
         {
             int index_i = i->Id() - 1;
-            WeakPointerVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
             Coord.push_back(index_i, index_i, -1);        //only modification added, now the diagonal is filled with -1 too.
 
             unsigned int active = 0;
-            for (WeakPointerVector< Node < 3 > >::iterator inode = neighb_nodes.begin();
+            for (GlobalPointersVector< Node < 3 > >::iterator inode = neighb_nodes.begin();
                     inode != neighb_nodes.end(); inode++)
             {
                 int index_j = inode->Id() - 1;
@@ -371,7 +364,7 @@ public:
 
     //************************************************************************************************
 
-    void FirstLoop(ModelPart& this_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord, array_1d<double, 3 > versor, array_1d<double, 3 > Xp,
+    void FirstLoop(ModelPart& this_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord, const array_1d<double, 3 >& versor, const array_1d<double, 3 >& Xp,
                    int number_of_triangles, DenseVector<int>&  Elems_In_Plane, double tolerance)//
     {
         //Xp is a random point that belongs to the cutting plane
@@ -586,7 +579,7 @@ public:
     void Calculate_Coordinate_And_Insert_New_Nodes_Mod(ModelPart& this_model_part, ModelPart& new_model_part,
             const DenseVector<array_1d<int, 2 > >& Position_Node,
             const DenseVector<int> &List_New_Nodes,
-            array_1d<double, 3 > versor, array_1d<double, 3 > Xp, double tolerance)//,
+            const array_1d<double, 3 >& versor, const array_1d<double, 3 >& Xp, double tolerance)//,
     {
 
         array_1d<double, 3 > Coord_Node_1;
@@ -611,10 +604,10 @@ public:
             /// calculating the coordinate of the new nodes
             const int& node_i = Position_Node[i][0];
             const int& node_j = Position_Node[i][1];
-            ModelPart::NodesContainerType::iterator it_node1 = this_model_part.Nodes().find(node_i);
+            auto it_node1 = this_model_part.Nodes()(node_i);
             //std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
             noalias(Coord_Node_1) = it_node1->Coordinates();
-            ModelPart::NodesContainerType::iterator it_node2 = this_model_part.Nodes().find(node_j);
+            auto it_node2 = this_model_part.Nodes()(node_j);
             //std::size_t pos2 = it_node2 - this_model_part.NodesBegin();
             noalias(Coord_Node_2) = it_node2->Coordinates();
             //ok, now we have both coordinates. now we must define a weight coefficient based on the distance.
@@ -650,8 +643,8 @@ public:
             //it_node2 = this_model_part.NodesBegin() + pos2;
 
             pnode->GetValue(FATHER_NODES).resize(0);
-            pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node1.base() ) );       //saving data about fathers in the model part
-            pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node2.base() ) );
+            pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( it_node1 ) );       //saving data about fathers in the model part
+            pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( it_node2 ) );
             pnode-> GetValue(WEIGHT_FATHER_NODES) = weight;
 
             pnode->X0() = weight * (it_node1->X0())  +  (1.0 - weight) * it_node2->X0();
@@ -663,7 +656,7 @@ public:
     ///**********************************************************************************
 
 
-    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, DenseVector<int> Elems_In_Plane, boost::numeric::ublas::compressed_matrix<int>& Coord, array_1d<double, 3 > versor, int plane_number)
+    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, DenseVector<int> Elems_In_Plane, boost::numeric::ublas::compressed_matrix<int>& Coord, const array_1d<double, 3 >& versor, int plane_number)
     {
         array_1d<double, 3 > temp_vector1;
         array_1d<double, 3 > temp_vector2;
@@ -697,7 +690,7 @@ public:
             KRATOS_WATCH("First Cutting Plane");
         }
 
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number);
 
         int number_of_triangles =  0;

@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Parameters, Vector
-import swimming_DEM_procedures as SDP
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import math
 import os
 import sys
@@ -16,19 +16,21 @@ def Cross(a, b):
     c2 = a[0]*b[1] - a[1]*b[0]
     return Vector([c0, c1, c2])
 
-from swimming_DEM_analysis import SwimmingDEMAnalysis
-from swimming_DEM_analysis import Say
-import parameters_tools as PT
+from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
+from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import Say
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters=Parameters("{}")):
-        super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
+        super().__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference"]["frame_type"].GetInt()
         self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'candelier_tests')
         candelier_pp.include_history_force = self.vars_man.do_include_history_force
         candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(self.project_parameters["properties"],
                                                                             'vorticity_induced_lift_parameters',
-                                                                            condition=lambda value: not (value['name']=='default'))
+                                                                            condition=lambda value: not (value['name'].GetString()=='default'))
+
+        Kratos.Logger.PrintInfo("SwimmingDEM", 'candelier_pp.include_lift ', candelier_pp.include_lift)
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
         self.project_parameters["custom_fluid"]["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
@@ -70,7 +72,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                 node.SetSolutionStepValue(Kratos.FLUID_VORTICITY_PROJECTED, vorticity)
 
     def _CreateSolver(self):
-        import candelier_dem_solver as sdem_solver
+        import tests_python_scripts.candelier_scripts.candelier_dem_solver as sdem_solver
         return sdem_solver.CandelierDEMSolver(self.model,
                                               self.project_parameters,
                                               self.GetFieldUtility(),
@@ -79,8 +81,8 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                                               self.vars_man)
 
     def FinalizeSolutionStep(self):
-        super(CandelierBenchmarkAnalysis, self).FinalizeSolutionStep()
-        analytic_coors = [0.,0.,0.]
+        super().FinalizeSolutionStep()
+        analytic_coors = [0., 0., 0.]
         candelier.sim.CalculatePosition(analytic_coors, self.time * candelier_pp.omega)
         node = [node for node in self.spheres_model_part.Nodes][0]
         Say('analytic', analytic_coors)
@@ -101,3 +103,4 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
 
                 self.radial_error = self.results_database.CalculateError(self.time, coor_calculated)
                 self.error_time = self.time
+

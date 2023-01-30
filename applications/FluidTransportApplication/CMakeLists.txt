@@ -5,9 +5,9 @@ message("**** configuring KratosFluidTransportApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidTransportApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidTransportApplication )
 
 
 ## Define application core sources (pure C++ parts)
@@ -18,6 +18,7 @@ set( KRATOS_FLUID_TRANSPORT_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/steady_convection_diffusion_FIC_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/transient_convection_diffusion_FIC_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/transient_convection_diffusion_FIC_explicit_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/transient_convection_diffusion_PFEM2_FIC_element.cpp
 )
 
 ## Define python interface sources
@@ -30,12 +31,19 @@ set( KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES
 ###############################################################################
 ## FluidTransportApplication core library (C++ parts)
 add_library(KratosFluidTransportCore SHARED ${KRATOS_FLUID_TRANSPORT_APPLICATION_CORE_SOURCES})
-target_link_libraries(KratosFluidTransportCore PRIVATE KratosCore KratosFluidDynamicsCore)
+target_link_libraries(KratosFluidTransportCore PUBLIC KratosCore KratosFluidDynamicsCore)
+set_target_properties( KratosFluidTransportCore PROPERTIES COMPILE_DEFINITIONS "FLUID_TRANSPORT_APPLICATION=EXPORT,API")
 
 ## FluidTransportApplication python module
-pybind11_add_module(KratosFluidTransportApplication MODULE ${KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES})
+pybind11_add_module(KratosFluidTransportApplication MODULE THIN_LTO ${KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosFluidTransportApplication PRIVATE KratosFluidTransportCore)
 set_target_properties(KratosFluidTransportApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosFluidTransportCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosFluidTransportApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 ###############################################################################
 # changing the .dll suffix to .pyd (Windows)
@@ -48,24 +56,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidTransportApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-###############################################################################
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosFluidTransportCore)
-    cotire(KratosFluidTransportApplication)
-endif(USE_COTIRE MATCHES ON)
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/FluidTransportApplication.py KratosMultiphysics/FluidTransportApplication/__init__.py )
 
-###############################################################################
-## installing the resulting libraries
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install targets
 install(TARGETS KratosFluidTransportCore DESTINATION libs )
 install(TARGETS KratosFluidTransportApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidTransportApplication.py" DESTINATION "KratosMultiphysics/FluidTransportApplication" RENAME "__init__.py")
-
-
-# install the python files
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidTransportCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFluidTransportApplication" PARENT_SCOPE)

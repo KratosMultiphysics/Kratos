@@ -1,15 +1,16 @@
-from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import time as timer
 import os
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
+
+from importlib import import_module
 
 class PoromechanicsAnalysis(AnalysisStage):
     '''Main script for poromechanics simulations.'''
@@ -19,29 +20,33 @@ class PoromechanicsAnalysis(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
         self.initial_time = timer.perf_counter()
 
-        # Set number of OMP threads
-        parallel=Kratos.OpenMPUtils()
-        parallel.SetNumThreads(parameters["problem_data"]["number_of_threads"].GetInt())
-
         ## Import parallel modules if needed
-        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
-        else:
-            import poromechanics_cleaning_utility
-            poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+        from KratosMultiphysics.PoromechanicsApplication import poromechanics_cleaning_utility
+        poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration.")
 
         # Initialize Fracture Propagation Utility if necessary
         if parameters["problem_data"]["fracture_utility"].GetBool():
-            import poromechanics_fracture_propagation_utility
-            self.fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(model,
-                                                                                                        self._GetOrderOfProcessesInitialization())
+            from KratosMultiphysics.PoromechanicsApplication.poromechanics_fracture_propagation_utility import FracturePropagationUtility
+            self.fracture_utility = FracturePropagationUtility(model,
+                                                                self._GetOrderOfProcessesInitialization())
             parameters = self.fracture_utility.Initialize(parameters)
 
         # Creating solver and model part and adding variables
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
+
+        self.initial_stress_mode = 'external' # Not from a Poromechanics solution
+        if parameters["problem_data"].Has("initial_stress_utility_settings"):
+            self.initial_stress_mode = parameters["problem_data"]["initial_stress_utility_settings"]["mode"].GetString()
+        if (self.initial_stress_mode == 'load' or self.initial_stress_mode == 'save'):
+            from KratosMultiphysics.PoromechanicsApplication.poromechanics_initial_stress_utility import InitialStressUtility
+            self.initial_stress_utility = InitialStressUtility(model,parameters)
+
+    def Initialize(self):
+        super(PoromechanicsAnalysis,self).Initialize()
+
+        if (self.initial_stress_mode == 'load'):
+            self.initial_stress_utility.Load()
 
     def OutputSolutionStep(self):
         super(PoromechanicsAnalysis,self).OutputSolutionStep()
@@ -60,6 +65,9 @@ class PoromechanicsAnalysis(AnalysisStage):
         if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
             self.fracture_utility.Finalize()
 
+        if (self.initial_stress_mode == 'save'):
+            self.initial_stress_utility.Save()
+
         # Finalizing strategy
         if self.parallel_type == "OpenMP":
             self._GetSolver().Clear()
@@ -69,7 +77,9 @@ class PoromechanicsAnalysis(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
 
     def _CreateSolver(self):
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
+        python_module_name = "KratosMultiphysics.PoromechanicsApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
         solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
         return solver
 

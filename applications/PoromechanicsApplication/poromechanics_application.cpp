@@ -112,8 +112,6 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication()
 
 void KratosPoromechanicsApplication::Register()
 {
-    //Calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosPoromechanicsApplication... " << std::endl;
 
     //Register Elements
@@ -184,8 +182,20 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive3DLaw",mExponentialCohesive3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive2DLaw",mExponentialCohesive2DLaw);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticSolid3DLaw", mLinearElastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainSolid2DLaw", mLinearElasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStressSolid2DLaw", mLinearElasticPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticSolid3DLaw", mHyperElastic3DLaw);
+
+    Serializer::Register("IsotropicDamageFlowRule", mIsotropicDamageFlowRule);
     Serializer::Register( "LocalDamageFlowRule", mLocalDamageFlowRule );
     Serializer::Register( "NonlocalDamageFlowRule", mNonlocalDamageFlowRule );
+
+    Serializer::Register("SimoJuYieldCriterion", mSimoJuYieldCriterion);
+    Serializer::Register("ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion);
+
+    Serializer::Register("ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw);
+    Serializer::Register("ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamage3DLaw",mSimoJuLocalDamage3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamagePlaneStrain2DLaw",mSimoJuLocalDamagePlaneStrain2DLaw);
@@ -198,6 +208,10 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamage3DLaw",mModifiedMisesNonlocalDamage3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStrain2DLaw",mModifiedMisesNonlocalDamagePlaneStrain2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStress2DLaw",mModifiedMisesNonlocalDamagePlaneStress2DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElastic3DLaw",mHistoryLinearElastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElasticPlaneStrain2DLaw",mHistoryLinearElasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElasticPlaneStress2DLaw",mHistoryLinearElasticPlaneStress2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
@@ -220,6 +234,7 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( TRANSVERSAL_PERMEABILITY )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FLUID_FLUX_VECTOR )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_FLUID_FLUX_VECTOR )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CONTACT_STRESS_VECTOR )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_STRESS_VECTOR )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_RELATIVE_DISPLACEMENT_VECTOR )
     KRATOS_REGISTER_VARIABLE( PERMEABILITY_MATRIX )
@@ -230,6 +245,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( IS_CONVERGED )
 
     KRATOS_REGISTER_VARIABLE( TOTAL_STRESS_TENSOR )
+
+    KRATOS_REGISTER_VARIABLE( INITIAL_STRESS_TENSOR )
 
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE )
     KRATOS_REGISTER_VARIABLE( ARC_LENGTH_LAMBDA )
@@ -244,12 +261,30 @@ void KratosPoromechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE( NODAL_SMOOTHING )
     KRATOS_REGISTER_VARIABLE( NODAL_CAUCHY_STRESS_TENSOR )
+    KRATOS_REGISTER_VARIABLE( EFFECTIVE_STRESS_TENSOR )
+    KRATOS_REGISTER_VARIABLE( NODAL_EFFECTIVE_STRESS_TENSOR )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_PRESSURE_GRADIENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_WATER_PRESSURE_GRADIENT )
     KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE_VARIABLE )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_AREA )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_WIDTH )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_DAMAGE )
 
     KRATOS_REGISTER_VARIABLE( SHEAR_FRACTURE_ENERGY )
+
+    KRATOS_REGISTER_VARIABLE( BIOT_COEFFICIENT )
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DAMPING_FORCE )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_OLD )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_OLDER )
+    KRATOS_REGISTER_VARIABLE( FLUX_RESIDUAL )
+    KRATOS_REGISTER_VARIABLE( G_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( THETA_FACTOR )
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TARGET_REACTION )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AVERAGE_REACTION )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOADING_VELOCITY )
+
 }
 
 }// namespace Kratos.

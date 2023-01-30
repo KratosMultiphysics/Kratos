@@ -101,7 +101,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of SmallDisplacementStrElement
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementBbar);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementBbar);
 
     ///@}
     ///@name Life Cycle
@@ -154,15 +154,6 @@ public:
         ) const override;
 
     /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
     * Calculate a Matrix Variable on the Element Constitutive Law
     * @param rVariable The variable we want to get
     * @param rOutput The values obtained int the integration points
@@ -202,7 +193,7 @@ public:
     * Called at the end of eahc solution step
     * @param rCurrentProcessInfo the current process info instance
     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 
@@ -265,23 +256,6 @@ protected:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
         ) override;
 
-    /**
-     * This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
-     */
-    void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
-        ) override;
 
     /**
     * This functions calculates both the RHS and the LHS

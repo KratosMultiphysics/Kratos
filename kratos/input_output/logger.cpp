@@ -13,6 +13,7 @@
 
 
 // System includes
+#include <algorithm>
 
 
 // External includes
@@ -47,6 +48,21 @@ namespace Kratos
     {
       GetOutputsInstance().push_back(pTheOutput);
     }
+  }
+
+  void Logger::RemoveOutput(LoggerOutput::Pointer pTheOutput)
+  {
+    KRATOS_TRY
+
+    #pragma omp critical
+    {
+      auto i = std::find(GetOutputsInstance().begin(), GetOutputsInstance().end(), pTheOutput);
+      if (i != GetOutputsInstance().end()) {
+         GetOutputsInstance().erase(i);
+      }  
+    }
+
+    KRATOS_CATCH("");
   }
 
   void Logger::Flush() {

@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/particle_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -48,8 +48,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ExponentialStrainSofteningLaw
-        : public MPMHardeningLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ExponentialStrainSofteningLaw
+        : public ParticleHardeningLaw
 {
 public:
 

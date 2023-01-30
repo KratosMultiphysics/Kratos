@@ -28,28 +28,25 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "external_includes/amgcl_mpi_solver.h"
-
-//aztec solver includes
-#include "AztecOO.h"
-#include "Epetra_LinearProblem.h"
-//#include "Teuchos_ParameterList.hpp"
+#include "custom_utilities/trilinos_solver_utilities.h"
 
 #include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
 #include <amgcl/amg.hpp>
 #include <amgcl/adapter/epetra.hpp>
-#include <amgcl/profiler.hpp>
-#include <amgcl/solver/runtime.hpp>
-#include <amgcl/coarsening/runtime.hpp>
-#include <amgcl/relaxation/runtime.hpp>
-#include <amgcl/relaxation/as_preconditioner.hpp>
 
 #include <amgcl/mpi/make_solver.hpp>
 #include <amgcl/mpi/schur_pressure_correction.hpp>
+#include <amgcl/mpi/solver/runtime.hpp>
 #include <amgcl/mpi/block_preconditioner.hpp>
-#include <amgcl/mpi/subdomain_deflation.hpp>
+#include <amgcl/relaxation/as_preconditioner.hpp>
+#include <amgcl/relaxation/runtime.hpp>
+#include <amgcl/mpi/amg.hpp>
+#include <amgcl/mpi/coarsening/runtime.hpp>
+#include <amgcl/mpi/relaxation/runtime.hpp>
 #include <amgcl/mpi/direct_solver/runtime.hpp>
+#include <amgcl/mpi/partition/runtime.hpp>
 
 namespace Kratos
 {
@@ -169,10 +166,10 @@ public:
         mprm.put("precond.psolver.solver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
         mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
         mprm.put("precond.psolver.solver.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
-//         mprm.put("precond.psolver.precond.local.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
+        mprm.put("precond.psolver.precond.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
+        mprm.put("precond.psolver.precond.coarse_enough", mCoarseEnough);
 //         mprm.put("precond.psolver.precond.local.coarsening.aggr.eps_strong", 0.0);
 //         mprm.put("precond.psolver.precond.local.coarsening.aggr.block_size", 1);
-//         mprm.put("precond.psolver.precond.local.coarse_enough",mCoarseEnough);
 
     }
 
@@ -197,7 +194,9 @@ public:
         //using amgcl::prof;
         //prof.reset();
 
-        amgcl::mpi::communicator world ( MPI_COMM_WORLD );
+        MPI_Comm the_comm = TrilinosSolverUtilities::GetMPICommFromEpetraComm(rA.Comm());
+
+        amgcl::mpi::communicator world ( the_comm );
         if ( mVerbosity >=0 && world.rank == 0 ) {
             std::cout << "World size: " << world.size << std::endl;
         }
@@ -218,26 +217,27 @@ public:
                     amgcl::mpi::block_preconditioner<
                         amgcl::relaxation::as_preconditioner<Backend, amgcl::runtime::relaxation::wrapper>
                         >,
-                    amgcl::runtime::solver::wrapper
+                    amgcl::runtime::mpi::solver::wrapper<Backend>
                     >,
-                amgcl::mpi::subdomain_deflation<
-                    amgcl::amg<Backend, amgcl::runtime::coarsening::wrapper, amgcl::runtime::relaxation::wrapper>,
-                    amgcl::runtime::solver::wrapper,
-                    amgcl::runtime::mpi::direct::solver<double>
+                amgcl::mpi::make_solver<
+                    amgcl::mpi::amg<
+                        Backend,
+                        amgcl::runtime::mpi::coarsening::wrapper<Backend>,
+                        amgcl::runtime::mpi::relaxation::wrapper<Backend>,
+                        amgcl::runtime::mpi::direct::solver<double>,
+                        amgcl::runtime::mpi::partition::wrapper<Backend>
+                        >,
+                    amgcl::runtime::mpi::solver::wrapper<Backend>
                     >
                 >,
-            amgcl::runtime::solver::wrapper
-            > SDD;
-
-        std::function<double(ptrdiff_t,unsigned)> dv = amgcl::mpi::constant_deflation(1);
-        mprm.put("precond.psolver.precond.num_def_vec", 1);
-        mprm.put("precond.psolver.precond.def_vec", &dv);
+            amgcl::runtime::mpi::solver::wrapper<Backend>
+            > Solver;
 
         mprm.put("precond.pmask", static_cast<void*>(&mPressureMask[0]));
         mprm.put("precond.pmask_size", mPressureMask.size());
 
         //prof.tic ( "setup" );
-        SDD solve ( world, amgcl::adapter::map ( rA ), mprm );
+        Solver solve ( world, amgcl::adapter::map ( rA ), mprm );
         //double tm_setup = prof.toc ( "setup" );
 
         //prof.tic ( "Solve" );

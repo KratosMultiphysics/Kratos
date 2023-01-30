@@ -53,7 +53,7 @@ Element::Pointer AxisymSmallDisplacement::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymSmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<AxisymSmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //************************************************************************************
@@ -65,7 +65,7 @@ Element::Pointer AxisymSmallDisplacement::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymSmallDisplacement>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<AxisymSmallDisplacement>( NewId, pGeom, pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -121,13 +121,8 @@ void AxisymSmallDisplacement::ComputeEquivalentF(
 {
     rF(0,0) = 1.0 + rStrainVector[0];
     rF(0,1) = 0.5 * rStrainVector[3];
-    rF(0,2) = 0.0;
     rF(1,0) = 0.5 * rStrainVector[3];
     rF(1,1) = 1.0 + rStrainVector[1];
-    rF(1,2) = 0.0;
-    rF(2,0) = 0.0;
-    rF(2,1) = 0.0;
-    rF(2,2) = 1.0 + rStrainVector[2];
 }
 
 //************************************************************************************

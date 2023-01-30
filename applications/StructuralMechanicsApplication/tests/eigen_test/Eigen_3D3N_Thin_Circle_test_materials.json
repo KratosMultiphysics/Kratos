@@ -1,6 +1,6 @@
 {
     "properties": [{
-            "model_part_name": "Parts_plate",
+            "model_part_name": "Structure.Parts_plate",
             "properties_id": 4,
             "Material": {
                     "name": "Material",
@@ -11,7 +11,8 @@
                             "DENSITY": 7.85000E+03,
                             "YOUNG_MODULUS": 2.06900E+11,
                             "POISSON_RATIO": 3.00000E-001,
-                            "THICKNESS": 1.00000E-02
+                            "THICKNESS": 1.00000E-02,
+                            "COMPUTE_LUMPED_MASS_MATRIX": true
                     },
                     "Tables": {}
             }

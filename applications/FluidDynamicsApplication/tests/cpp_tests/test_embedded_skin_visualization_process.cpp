@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -44,10 +44,16 @@ namespace Kratos {
             // Set the nodal values
             const double p_pos = 1.0;
             const double p_neg = -1.0;
+            const double t_pos = -2.0;
+            const double t_neg = 2.0;
             array_1d<double, 3> v_pos = ZeroVector(3);
             array_1d<double, 3> v_neg = ZeroVector(3);
+            array_1d<double, 3> d_pos = ZeroVector(3);
+            array_1d<double, 3> d_neg = ZeroVector(3);
             v_pos[0] = 1.0;
             v_neg[0] = -1.0;
+            d_pos[1] = 2.0;
+            d_neg[1] = -2.0;
             const double level_set_height = 4.5;
 
             for (unsigned int i_node = 0; i_node < rNewModelPart.NumberOfNodes(); ++i_node){
@@ -57,13 +63,17 @@ namespace Kratos {
                 const double node_distance = (it_node->Y()) - level_set_height;
                 it_node->FastGetSolutionStepValue(DISTANCE) = node_distance;
 
-                // Set the VELOCITY and PRESSURE values
+                // Set the nodal values
                 if (node_distance > 0.0){
                     it_node->FastGetSolutionStepValue(VELOCITY) = v_pos;
                     it_node->FastGetSolutionStepValue(PRESSURE) = p_pos;
+                    it_node->SetValue(TEMPERATURE, t_pos);
+                    it_node->SetValue(DISPLACEMENT, d_pos);
                 } else {
                     it_node->FastGetSolutionStepValue(VELOCITY) = v_neg;
                     it_node->FastGetSolutionStepValue(PRESSURE) = p_neg;
+                    it_node->SetValue(TEMPERATURE, t_neg);
+                    it_node->SetValue(DISPLACEMENT, d_neg);
                 }
             }
 
@@ -99,10 +109,16 @@ namespace Kratos {
             // Set the nodal values
             const double p_pos = 1.0;
             const double p_neg = -1.0;
-            array_1d<double,3> v_pos = ZeroVector(3);
-            array_1d<double,3> v_neg = ZeroVector(3);
+            const double t_pos = -2.0;
+            const double t_neg = 2.0;
+            array_1d<double, 3> v_pos = ZeroVector(3);
+            array_1d<double, 3> v_neg = ZeroVector(3);
+            array_1d<double, 3> d_pos = ZeroVector(3);
+            array_1d<double, 3> d_neg = ZeroVector(3);
             v_pos[0] = 1.0;
             v_neg[0] = -1.0;
+            d_pos[1] = 2.0;
+            d_neg[1] = -2.0;
             const double level_set_height = 4.5;
 
             for (unsigned int i_node = 0; i_node < rNewModelPart.NumberOfNodes(); ++i_node){
@@ -112,13 +128,17 @@ namespace Kratos {
                 const double node_distance = (it_node->Z()) - level_set_height;
                 it_node->FastGetSolutionStepValue(DISTANCE) = node_distance;
 
-                // Set the VELOCITY and PRESSURE values
+                // Set the nodal values
                 if (node_distance > 0.0){
                     it_node->FastGetSolutionStepValue(VELOCITY) = v_pos;
                     it_node->FastGetSolutionStepValue(PRESSURE) = p_pos;
+                    it_node->SetValue(TEMPERATURE, t_pos);
+                    it_node->SetValue(DISPLACEMENT, d_pos);
                 } else {
                     it_node->FastGetSolutionStepValue(VELOCITY) = v_neg;
                     it_node->FastGetSolutionStepValue(PRESSURE) = p_neg;
+                    it_node->SetValue(TEMPERATURE, t_neg);
+                    it_node->SetValue(DISPLACEMENT, d_neg);
                 }
             }
 
@@ -155,8 +175,10 @@ namespace Kratos {
             // Set the embedded skin visualization process
             Parameters visualization_settings(R"(
             {
+                "level_set_type"          : "continuous",
                 "shape_functions"         : "standard",
-                "visualization_variables" : ["VELOCITY","PRESSURE"]
+                "visualization_variables" : ["VELOCITY","PRESSURE"],
+                "visualization_nonhistorical_variables" : ["TEMPERATURE","DISPLACEMENT"]
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
@@ -171,20 +193,19 @@ namespace Kratos {
             skin_visualization_process.ExecuteFinalizeSolutionStep();
 
             // Check values
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(2).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(3).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(4).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(5).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(6).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(2).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(3).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(4).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(5).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(6).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
+            const double tolerance = 1.0e-8;
+            const std::array<double, 8> expected_p{{-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1}};
+            const std::array<double, 8> expected_v_x{{-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1}};
+            const std::array<double, 8> expected_t{{2.0,2.0,-2.0,0.2,0.2,0.2,0.2,0.2}};
+            const std::array<double, 8> expected_d_y{{-2.0,-2.0,2.0,-0.2,-0.2,-0.2,-0.2,-0.2}};
+            unsigned int i = 0;
+            for (auto& r_node : visualization_model_part.Nodes()) {
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                i++;
+            }
 	    }
 
 	    /**
@@ -206,8 +227,10 @@ namespace Kratos {
             // Set the embedded skin visualization process
             Parameters visualization_settings(R"(
             {
+                "level_set_type"          : "discontinuous",
                 "shape_functions"         : "ausas",
-                "visualization_variables" : ["VELOCITY","PRESSURE"]
+                "visualization_variables" : ["VELOCITY","PRESSURE"],
+                "visualization_nonhistorical_variables" : ["TEMPERATURE","DISPLACEMENT"]
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
@@ -222,20 +245,79 @@ namespace Kratos {
             skin_visualization_process.ExecuteFinalizeSolutionStep();
 
             // Check values
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(2).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(3).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(4).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(5).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(6).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(2).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(3).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(4).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(5).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(6).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
+            const double tolerance = 1.0e-8;
+            const std::array<double, 8> expected_p{{-1.0,-1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0}};
+            const std::array<double, 8> expected_v_x{{-1.0,-1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0}};
+            const std::array<double, 8> expected_t{{2.0,2.0,-2.0,-2.0,-2.0,2.0,2.0,2.0}};
+            const std::array<double, 8> expected_d_y{{-2.0,-2.0,2.0,2.0,2.0,-2.0,-2.0,-2.0}};
+            unsigned int i = 0;
+            for (auto& r_node : visualization_model_part.Nodes()) {
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                i++;
+            }
+	    }
+
+        /**
+	     * Checks the embedded skin visualization process for a unique triangle with the Ausas incised shape functions
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTriangleAusasIncised, FluidDynamicsApplicationFastSuite)
+		{
+            // Set the test model part
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart("MainModelPart");
+            SetUniqueTriangleModelPart(main_model_part);
+
+            // Set ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED to test Ausas incised element
+            array_1d<double,3> elem_edge_dist_extra(3,-1.0);
+            elem_edge_dist_extra[1] = 0.55;
+            for (unsigned int i_elem = 0; i_elem < main_model_part.NumberOfElements(); ++i_elem){
+                auto it_elem = main_model_part.ElementsBegin() + i_elem;
+                it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, elem_edge_dist_extra);
+            }
+
+            // Create the visualization model part
+            ModelPart& visualization_model_part = model.CreateModelPart("VisualizationModelPart");
+            visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
+            visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
+            visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
+
+            // Set the embedded skin visualization process
+            Parameters visualization_settings(R"(
+            {
+                "level_set_type"          : "discontinuous",
+                "shape_functions"         : "ausas",
+                "visualization_variables" : ["VELOCITY","PRESSURE"],
+                "visualization_nonhistorical_variables" : ["TEMPERATURE","DISPLACEMENT"]
+            })");
+
+            EmbeddedSkinVisualizationProcess skin_visualization_process(
+                main_model_part,
+                visualization_model_part,
+                visualization_settings);
+
+            skin_visualization_process.ExecuteInitialize();
+            skin_visualization_process.ExecuteBeforeSolutionLoop();
+            skin_visualization_process.ExecuteInitializeSolutionStep();
+            skin_visualization_process.ExecuteBeforeOutputStep();
+            skin_visualization_process.ExecuteFinalizeSolutionStep();
+
+            // Check values
+            const double tolerance = 1.0e-8;
+            const std::array<double, 8> expected_p{{-1.0,-1.0,1.0,-0.1,1.0,-0.1,-1.0,-0.1}};
+            const std::array<double, 8> expected_v_x{{-1.0,-1.0,1.0,-0.1,1.0,-0.1,-1.0,-0.1}};
+            const std::array<double, 8> expected_t{{2.0,2.0,-2.0,0.2,-2.0,0.2,2.0,0.2}};
+            const std::array<double, 8> expected_d_y{{-2.0,-2.0,2.0,-0.2,2.0,-0.2,-2.0,-0.2}};
+            unsigned int i = 0;
+            for (auto& r_node : visualization_model_part.Nodes()) {
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                i++;
+            }
 	    }
 
 	    /**
@@ -257,8 +339,10 @@ namespace Kratos {
             // Set the embedded skin visualization process
             Parameters visualization_settings(R"(
             {
+                "level_set_type"          : "continuous",
                 "shape_functions"         : "standard",
-                "visualization_variables" : ["VELOCITY","PRESSURE"]
+                "visualization_variables" : ["VELOCITY","PRESSURE"],
+                "visualization_nonhistorical_variables" : ["TEMPERATURE","DISPLACEMENT"]
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
@@ -273,32 +357,19 @@ namespace Kratos {
             skin_visualization_process.ExecuteFinalizeSolutionStep();
 
             // Check values
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(2).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(3).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(4).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(5).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(6).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(8).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(9).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(10).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(11).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(12).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(13).FastGetSolutionStepValue(PRESSURE), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(2).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(3).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(4).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(5).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(6).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(8).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(9).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(10).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(11).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(12).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(13).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
+            const double tolerance = 1.0e-8;
+            const std::array<double, 13> expected_p{{-1.0,-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1}};
+            const std::array<double, 13> expected_v_x{{-1.0,-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1}};
+            const std::array<double, 13> expected_t{{2.0,2.0,2.0,-2.0,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2}};
+            const std::array<double, 13> expected_d_y{{-2.0,-2.0,-2.0,2.0,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2}};
+            unsigned int i = 0;
+            for (auto& r_node : visualization_model_part.Nodes()) {
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                i++;
+            }
 	    }
 
 	    /**
@@ -320,8 +391,10 @@ namespace Kratos {
             // Set the embedded skin visualization process
             Parameters visualization_settings(R"(
             {
+                "level_set_type"          : "discontinuous",
                 "shape_functions"         : "ausas",
-                "visualization_variables" : ["VELOCITY","PRESSURE"]
+                "visualization_variables" : ["VELOCITY","PRESSURE"],
+                "visualization_nonhistorical_variables" : ["TEMPERATURE","DISPLACEMENT"]
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
@@ -336,32 +409,79 @@ namespace Kratos {
             skin_visualization_process.ExecuteFinalizeSolutionStep();
 
             // Check values
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(2).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(3).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(4).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(5).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(6).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(PRESSURE), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(8).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(9).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(10).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(11).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(12).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(13).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(2).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(3).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(4).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(5).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(6).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(VELOCITY_X), 1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(8).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(9).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(10).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(11).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(12).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
-            KRATOS_CHECK_NEAR(visualization_model_part.GetNode(13).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
+            const double tolerance = 1.0e-8;
+            const std::array<double, 13> expected_p{{-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0}};
+            const std::array<double, 13> expected_v_x{{-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0}};
+            const std::array<double, 13> expected_t{{2.0,2.0,2.0,-2.0,-2.0,-2.0,-2.0,2.0,2.0,2.0,2.0,2.0,2.0}};
+            const std::array<double, 13> expected_d_y{{-2.0,-2.0,-2.0,2.0,2.0,2.0,2.0,-2.0,-2.0,-2.0,-2.0,-2.0,-2.0}};
+            unsigned int i = 0;
+            for (auto& r_node : visualization_model_part.Nodes()) {
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                i++;
+            }
+	    }
+
+        /**
+	     * Checks the embedded skin visualization process for a unique tetrahedron using the Ausas incised shape functions
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTetrahedronAusasIncised, FluidDynamicsApplicationFastSuite)
+		{
+            // Set the test model part
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart ("MainModelPart");
+            SetUniqueTetrahedronModelPart(main_model_part);
+
+            // Set ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED to test Ausas incised element
+            array_1d<double,6> elem_edge_dist_extra(6,-1.0);
+            elem_edge_dist_extra[3] = 0.45;
+            for (unsigned int i_elem = 0; i_elem < main_model_part.NumberOfElements(); ++i_elem){
+                auto it_elem = main_model_part.ElementsBegin() + i_elem;
+                it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, elem_edge_dist_extra);
+            }
+
+            // Create the visualization model part
+            ModelPart& visualization_model_part = model.CreateModelPart("VisualizationModelPart");
+            visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
+            visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
+            visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
+
+            // Set the embedded skin visualization process
+            Parameters visualization_settings(R"(
+            {
+                "level_set_type"          : "discontinuous",
+                "shape_functions"         : "ausas",
+                "visualization_variables" : ["VELOCITY","PRESSURE"],
+                "visualization_nonhistorical_variables" : ["TEMPERATURE","DISPLACEMENT"]
+            })");
+
+            EmbeddedSkinVisualizationProcess skin_visualization_process(
+                main_model_part,
+                visualization_model_part,
+                visualization_settings);
+
+            skin_visualization_process.ExecuteInitialize();
+            skin_visualization_process.ExecuteBeforeSolutionLoop();
+            skin_visualization_process.ExecuteInitializeSolutionStep();
+            skin_visualization_process.ExecuteBeforeOutputStep();
+            skin_visualization_process.ExecuteFinalizeSolutionStep();
+
+            // Check values
+            const double tolerance = 1.0e-8;
+            const std::array<double, 13> expected_p{{-1.0,-1.0,-1.0,1.0,-0.1,1.0,1.0,-1.0,-0.1,-0.1,-1.0,-0.1,-1.0}};
+            const std::array<double, 13> expected_v_x{{-1.0,-1.0,-1.0,1.0,-0.1,1.0,1.0,-1.0,-0.1,-0.1,-1.0,-0.1,-1.0}};
+            const std::array<double, 13> expected_t{{2.0,2.0,2.0,-2.0,0.2,-2.0,-2.0,2.0,0.2,0.2,2.0,0.2,2.0}};
+            const std::array<double, 13> expected_d_y{{-2.0,-2.0,-2.0,2.0,-0.2,2.0,2.0,-2.0,-0.2,-0.2,-2.0,-0.2,-2.0}};
+            unsigned int i = 0;
+            for (auto& r_node : visualization_model_part.Nodes()) {
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_X), expected_v_x[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), expected_t[i], tolerance);
+                KRATOS_CHECK_NEAR(r_node.GetValue(DISPLACEMENT_Y), expected_d_y[i], tolerance);
+                i++;
+            }
 	    }
     } // namespace Testing
 }  // namespace Kratos.

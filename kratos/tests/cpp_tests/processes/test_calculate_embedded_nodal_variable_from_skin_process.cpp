@@ -35,10 +35,10 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(CalculateEmbeddedNodalVariableFromSkinProcessDouble, KratosCoreFastSuite)
     {
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, 0.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3, 1.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, 1.00, 0.00, 0.00);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 1.00, 0.00);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.00, 1.00, 0.00);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.00, 0.00, 0.00);
 
         Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -74,14 +74,18 @@ namespace Testing {
         CalculateDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
 
         // Compute the embedded nodal variable values
-        EmbeddedNodalVariableProcessDouble emb_nod_var_from_skin_proc(
-            surface_part,
-            skin_part,
-            TEMPERATURE,
-            TEMPERATURE,
-            "continuous");
-
+        Parameters settings(R"(
+        {
+            "base_model_part_name": "Volume",
+            "skin_model_part_name": "Skin",
+            "skin_variable_name": "TEMPERATURE",
+            "embedded_nodal_variable_name": "TEMPERATURE",
+            "gradient_penalty_coefficient": 1.0e-5
+        }
+        )");
+        EmbeddedNodalVariableProcessDouble emb_nod_var_from_skin_proc(current_model, settings);
         emb_nod_var_from_skin_proc.Execute();
+        emb_nod_var_from_skin_proc.Clear();
 
         // Check values
         std::vector<std::size_t> check_nodes_ids = {19, 20, 28, 45, 46, 54};
@@ -95,10 +99,10 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(CalculateEmbeddedNodalVariableFromSkinProcessArray, KratosCoreFastSuite)
     {
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, 0.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3, 1.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, 1.00, 0.00, 0.00);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 1.00, 0.00);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.00, 1.00, 0.00);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.00, 0.00, 0.00);
 
         Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -134,14 +138,18 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
 
         // Compute the embedded nodal variable values
-        EmbeddedNodalVariableProcessArray emb_nod_var_from_skin_proc(
-            surface_part,
-            skin_part,
-            DISPLACEMENT,
-            DISPLACEMENT,
-            "discontinuous");
-
+        Parameters settings(R"(
+        {
+            "base_model_part_name": "Volume",
+            "skin_model_part_name": "Skin",
+            "skin_variable_name": "DISPLACEMENT",
+            "embedded_nodal_variable_name": "DISPLACEMENT",
+            "gradient_penalty_coefficient": 1.0e-5
+        }
+        )");
+        EmbeddedNodalVariableProcessArray emb_nod_var_from_skin_proc(current_model, settings);
         emb_nod_var_from_skin_proc.Execute();
+        emb_nod_var_from_skin_proc.Clear();
 
         // Check values
         const std::vector<std::size_t> check_nodes_ids = {19, 20, 28, 45, 46, 54};

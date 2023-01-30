@@ -59,7 +59,12 @@ namespace Kratos
 
     KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
         KratosApplication("ParticleMechanicsApplication"),
-        //// ELEMENTS:
+        /// Elements, using QuadraturePointGeometries:
+        mUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+
+        /// Deprecated Elements
         mUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -81,16 +86,28 @@ namespace Kratos
         mMPMGridSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
         mMPMGridSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
         // Particle Conditions
+        /// Conditions, using QuadraturePointGeometries:
+        mMPMParticlePenaltyDirichletCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
+        mMPMParticlePenaltyCouplingInterfaceCondition( 0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
+        mMPMParticlePointLoadCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
+
+        /// Deprecated Conditions
         mMPMParticlePenaltyDirichletCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mMPMParticlePenaltyDirichletCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) )
+        mMPMParticlePenaltyDirichletCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
+        mMPMParticlePenaltyCouplingInterfaceCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+        mMPMParticlePenaltyCouplingInterfaceCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mMPMParticlePenaltyCouplingInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mMPMParticlePenaltyCouplingInterfaceCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
+        mMPMParticlePointLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Triangle2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+        mMPMParticlePointLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
+        mMPMParticlePointLoadCondition2D4N(0, Condition::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
+        mMPMParticlePointLoadCondition3D8N(0, Condition::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(Condition::GeometryType::PointsArrayType(8))))
     {}
 
     void KratosParticleMechanicsApplication::Register()
     {
-        // Calling base class register to register Kratos components
-        KratosApplication::Register();
         KRATOS_INFO("") << "    KRATOS  ____ __   ____ _____ _  ___ _   ____\n"
                         << "           |  _ |  \\ |  _ |_   _| |/   | | | ___|\n"
                         << "           |   _| \\ \\|    | | | | |   (  |_| _|_\n"
@@ -98,6 +115,11 @@ namespace Kratos
                         << "Initializing KratosParticleMechanicsApplication..." << std::endl;
 
         // Registering elements
+        KRATOS_REGISTER_ELEMENT("UpdatedLagrangian", mUpdatedLagrangian)
+        KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUP", mUpdatedLagrangianUP)
+        KRATOS_REGISTER_ELEMENT("UpdatedLagrangianPQ", mUpdatedLagrangianPQ)
+
+        // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
@@ -118,14 +140,28 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D3N", mMPMGridSurfaceLoadCondition3D3N)
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D4N", mMPMGridSurfaceLoadCondition3D4N)
         // Particle Conditions
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition", mMPMParticlePenaltyCouplingInterfaceCondition)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
+
+        // deprecated conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D3N", mMPMParticlePenaltyDirichletCondition2D3N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D4N", mMPMParticlePenaltyDirichletCondition2D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D4N", mMPMParticlePenaltyDirichletCondition3D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D8N", mMPMParticlePenaltyDirichletCondition3D8N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition2D3N", mMPMParticlePenaltyCouplingInterfaceCondition2D3N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition2D4N", mMPMParticlePenaltyCouplingInterfaceCondition2D4N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition3D4N", mMPMParticlePenaltyCouplingInterfaceCondition3D4N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition3D8N", mMPMParticlePenaltyCouplingInterfaceCondition3D8N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition2D3N", mMPMParticlePointLoadCondition2D3N )
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition3D4N", mMPMParticlePointLoadCondition3D4N )
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition2D4N", mMPMParticlePointLoadCondition2D4N )
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition3D8N", mMPMParticlePointLoadCondition3D8N )
 
         // Registering elements
         KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )
         KRATOS_REGISTER_VARIABLE( PARTICLES_PER_ELEMENT )
+        KRATOS_REGISTER_VARIABLE( MP_SUB_POINTS)
         KRATOS_REGISTER_VARIABLE( MP_MASS )
         KRATOS_REGISTER_VARIABLE( MP_DENSITY )
         KRATOS_REGISTER_VARIABLE( MP_VOLUME )
@@ -135,13 +171,18 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_TOTAL_ENERGY )
         KRATOS_REGISTER_VARIABLE( MP_PRESSURE )
         KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )
+        KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_STRESS )
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN_RATE)
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_TEMPERATURE)
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
+        KRATOS_REGISTER_VARIABLE(IS_COMPRESSIBLE)
+        KRATOS_REGISTER_VARIABLE(IS_MIXED_FORMULATION)
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
@@ -156,10 +197,18 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( COHESION_RESIDUAL )
         KRATOS_REGISTER_VARIABLE( INTERNAL_DILATANCY_ANGLE_RESIDUAL )
         KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_BETA )
+        // CL: Johnson Cook
+        KRATOS_REGISTER_VARIABLE( REFERENCE_STRAIN_RATE)
+        KRATOS_REGISTER_VARIABLE( TAYLOR_QUINNEY_COEFFICIENT)
+        KRATOS_REGISTER_VARIABLE( MP_HARDENING_RATIO)
+
+        // Mesh variables
+        KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
 
         // Registering condition variables
         // Essential Boundary Conditions
-        KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, PENALTY_FACTOR )
+        KRATOS_REGISTER_VARIABLE( MPC_BOUNDARY_CONDITION_TYPE )
+        KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )
 
         // Nodal load variables
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
@@ -182,8 +231,13 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MPC_AREA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_NORMAL )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_DISPLACEMENT )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_DELTA_DISPLACEMENT )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_IMPOSED_DISPLACEMENT )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_VELOCITY )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_IMPOSED_VELOCITY )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_ACCELERATION )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_IMPOSED_ACCELERATION )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_CONTACT_FORCE )
         KRATOS_REGISTER_VARIABLE( PARTICLES_PER_CONDITION )
 
         // Registering grid node variable
@@ -193,16 +247,16 @@ namespace Kratos
 
         // Registering Constitutive Laws
         // CL: Linear Elastic laws
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mLinearElastic3DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticIsotropic3DLaw", mLinearElastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticIsotropicPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticIsotropicPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticIsotropicAxisym2DLaw", mLinearElasticAxisym2DLaw);
         // CL: Hyperelastic laws
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElastic3DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUP3DLaw", mHyperElasticUP3DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrainUP2DLaw", mHyperElasticPlaneStrainUP2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookean3DLaw", mHyperElastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanAxisym2DLaw", mHyperElasticAxisym2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanUP3DLaw", mHyperElasticUP3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanPlaneStrainUP2DLaw", mHyperElasticPlaneStrainUP2DLaw);
         // CL: Mohr Coulomb
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
@@ -217,6 +271,13 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlastic3DLaw", mHenckyBorjaCamClayPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlasticPlaneStrain2DLaw", mHenckyBorjaCamClayPlasticPlaneStrain2DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlasticAxisym2DLaw", mHenckyBorjaCamClayPlasticAxisym2DLaw);
+        // CL: Johnson Cook
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
+        // CL: Newtonian fluid
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluid3DLaw", mDispNewtonianFluid3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrain2DLaw", mDispNewtonianFluidPlaneStrain2DLaw);
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
@@ -231,6 +292,26 @@ namespace Kratos
         Serializer::Register("ExponentialStrainSofteningLaw", mExponentialStrainSofteningLaw);
         Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
+        // Solver related variables
+        KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
+        KRATOS_REGISTER_VARIABLE(IS_AXISYMMETRIC);
+
+        // Explicit time integration variables
+        KRATOS_REGISTER_VARIABLE(CALCULATE_MUSL_VELOCITY_FIELD)
+        KRATOS_REGISTER_VARIABLE(IS_EXPLICIT)
+        KRATOS_REGISTER_VARIABLE(IS_EXPLICIT_CENTRAL_DIFFERENCE)
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_STRESS_UPDATE_OPTION)
+        KRATOS_REGISTER_VARIABLE(CALCULATE_EXPLICIT_MP_STRESS)
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_MAP_GRID_TO_MP)
+        KRATOS_REGISTER_VARIABLE(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)
+
+        // Partitioned Quadrature MPM variables
+        KRATOS_REGISTER_VARIABLE (IS_PQMPM)
+        KRATOS_REGISTER_VARIABLE(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS)
+        KRATOS_REGISTER_VARIABLE(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION)
+
+        // Stabilization variables
+        KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
     }
 
 }  // namespace Kratos.

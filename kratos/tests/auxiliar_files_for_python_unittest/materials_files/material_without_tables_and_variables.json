@@ -1,0 +1,21 @@
+{
+	"properties": [{
+		"model_part_name": "Main.Inlets",
+		"properties_id": 1,
+		"Material": {
+			"name": "steel",
+			"constitutive_law": {
+				"name": "LinearElastic3DLaw"
+			}
+		}
+	}, {
+		"model_part_name": "Main.Outlet",
+		"properties_id": 2,
+		"Material": {
+			"name": "steel",
+			"constitutive_law": {
+				"name": "KratosMultiphysics.FluidDynamicsApplication.Newtonian2DLaw"
+			}
+		}
+	}]
+}

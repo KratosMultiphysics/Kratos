@@ -31,7 +31,8 @@
 #include "containers/pointer_vector_set.h"
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -39,19 +40,20 @@ namespace Kratos
   ///@{
   typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
 
-  typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
-  typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
-  typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
+  typedef Node<3>::WeakPointer NodeWeakPtrType;
+  typedef Element::WeakPointer ElementWeakPtrType;
+  typedef Condition::WeakPointer ConditionWeakPtrType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
 
   ///@name Kratos Globals
   ///@{
 
   //Define Variables
+
 
   //nodal dofs
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( DELAUNAY_MESHING_APPLICATION, OFFSET )
@@ -65,6 +67,8 @@ namespace Kratos
 
   //boundary definition
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, int,                                 RIGID_WALL )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, int, PROPERTY_ID )
+
 
   //custom neighbor and masters
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, NodeWeakPtrType,                    MASTER_NODE )

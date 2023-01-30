@@ -1,12 +1,12 @@
 {
     "problem_data"                     : {
         "problem_name"    : "steady_cylinder_test",
-        "start_step"      : 2.0,
-        "nsteps"          : 1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
-    "output_processes" : {
+    "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
@@ -25,7 +25,7 @@
                         },
                         "file_label"          : "time",
                         "output_control_type" : "step",
-                        "output_frequency"    : 1.0,
+                        "output_interval"     : 1.0,
                         "body_output"         : true,
                         "node_output"         : false,
                         "skin_output"         : false,
@@ -57,8 +57,6 @@
             "nodal_solution_step_sensitivity_calculation_is_thread_safe" : true
         },
         "domain_size"                  : 2,
-        "dynamic_tau"                  : 0,
-        "oss_switch"                   : 0,
         "echo_level"                   : 0,
         "model_part_name"              : "MainModelPart",
         "volume_model_part_name"       : "Parts_Fluid",
@@ -73,9 +71,17 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test_materials.json"
+        },
         "time_stepping"               : {
             "automatic_time_step" : false,
-            "time_step"           : -1.0
+            "time_step"           : 1.0
+        },
+        "formulation": {
+            "element_type"            : "vms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau"             : 0.0
         }
     },
     "processes": {
@@ -85,8 +91,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Inlet2D_Inlet",
+                "model_part_name" : "MainModelPart.Inlet2D_Inlet",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -95,8 +100,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet2D_Outlet",
+                "model_part_name" : "MainModelPart.Outlet2D_Outlet",
                 "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
                 "value"           : 0
             }
@@ -105,8 +109,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "NoSlip2D_Cylinder",
+                "model_part_name" : "MainModelPart.NoSlip2D_Cylinder",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -115,8 +118,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "NoSlip2D_Wall",
+                "model_part_name" : "MainModelPart.NoSlip2D_Wall",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -126,8 +128,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,
                 "constrained"     : false,

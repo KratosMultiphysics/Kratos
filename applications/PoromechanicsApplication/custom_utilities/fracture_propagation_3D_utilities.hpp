@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -152,7 +153,7 @@ public:
         }
 
         this->FinalizeCheckFracture(PropagationData, rParameters, rModelPart, move_mesh_flag);
-        
+
         return PropagationData.PropagateFractures;
     }
 
@@ -162,13 +163,13 @@ public:
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
-        
+
         this->InitializeMapping(AuxVariables,rModelPartNew, move_mesh_flag);
-        
+
         this->NodalVariablesMapping(AuxVariables,rParameters,rModelPartOld,rModelPartNew);
-        
+
         this->GaussPointStateVariableMapping(AuxVariables,rParameters,rModelPartOld,rModelPartNew);
-        
+
         if(move_mesh_flag==true)
             this->UpdateMeshPosition(rModelPartNew);
     }
@@ -374,7 +375,7 @@ protected:
             PropDataFile << "dict set BodyVolumesDict " << Id << " MeshSize " << rParameters["body_volumes_list"][i]["mesh_size"].GetDouble() << std::endl;
         }
         PropDataFile << "lappend PropagationData $BodyVolumesDict" << std::endl;
-                
+
         // FracturesDict
         for(unsigned int i = 0; i < rParameters["fractures_list"].size(); i++)
         {
@@ -494,14 +495,14 @@ protected:
             PropDataFile << "dict set FracturesDict " << Id << " BodyVolumes $BodyVolumes" << std::endl;
         }
         PropDataFile << "lappend PropagationData $FracturesDict" << std::endl;
-        
+
         // PropagationDict
         PropDataFile << "set PropagationDict [dict create]" << std::endl;
         for(unsigned int i = 0; i < PropagationData.PropagationVector.size(); i++)
         {
             PropDataFile << "dict set PropagationDict " << i << " MotherFractureId "
                          << PropagationData.PropagationVector[i].MotherFractureId << std::endl;
-            
+
             PropDataFile << "set Coordinates \"" << PropagationData.PropagationVector[i].TopInitCoordinates[0]
                          << " " << PropagationData.PropagationVector[i].TopInitCoordinates[1] << " "
                          << PropagationData.PropagationVector[i].TopInitCoordinates[2] << "\"" << std::endl;
@@ -704,7 +705,7 @@ protected:
                 if(Row_top < 0) Row_top = 0;
                 else if(Row_top >= AuxVariables.NRows) Row_top = AuxVariables.NRows-1;
                 if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
-                else if(Row_bot < 0) Row_bot = 0;        
+                else if(Row_bot < 0) Row_bot = 0;
                 if(Section_back < 0) Section_back = 0;
                 else if(Section_back >= AuxVariables.NSections) Section_back = AuxVariables.NSections-1;
                 if(Section_front >= AuxVariables.NSections) Section_front = AuxVariables.NSections-1;
@@ -754,7 +755,7 @@ protected:
                     X_me = itElemOld->GetGeometry().GetPoint(j).X0();
                     Y_me = itElemOld->GetGeometry().GetPoint(j).Y0();
                     Z_me = itElemOld->GetGeometry().GetPoint(j).Z0();
-                    
+
                     if(X_me > X_right) X_right = X_me;
                     else if(X_me < X_left) X_left = X_me;
                     if(Y_me > Y_top) Y_top = Y_me;
@@ -769,7 +770,7 @@ protected:
                 int Row_bot = int((AuxVariables.Y_max-Y_bot)/AuxVariables.RowSize);
                 int Section_back = int((Z_back-AuxVariables.Z_min)/AuxVariables.SectionSize);
                 int Section_front = int((Z_front-AuxVariables.Z_min)/AuxVariables.SectionSize);
-                
+
                 if(Column_left < 0) Column_left = 0;
                 else if(Column_left >= AuxVariables.NColumns) Column_left = AuxVariables.NColumns-1;
                 if(Column_right >= AuxVariables.NColumns) Column_right = AuxVariables.NColumns-1;
@@ -829,7 +830,7 @@ protected:
             noalias(GlobalCoordinates) = itNodeNew->Coordinates(); //Coordinates of new nodes are still in the original position
             bool IsInside = false;
             Element::Pointer pElementOld;
-        
+
             for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
             {
                 pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
@@ -847,7 +848,7 @@ protected:
             }
             if(IsInside == false)
                 std::cout << "ERROR!!, NONE OF THE OLD ELEMENTS CONTAINS NODE: " << itNodeNew->Id() << std::endl;
-            
+
             PointsNumber = pElementOld->GetGeometry().PointsNumber();
             Vector ShapeFunctionsValuesVector(PointsNumber);
             Vector NodalVariableVector(PointsNumber);
@@ -950,7 +951,7 @@ protected:
         Parameters& rParameters,
         ModelPart& rModelPartOld,
         ModelPart& rModelPartNew)
-    {        
+    {
         // Define GaussPointOld Cell matrix
         std::vector< std::vector< std::vector< std::vector<GaussPointOld> > > > BodyGaussPointOldCellMatrix;
         BodyGaussPointOldCellMatrix.resize(AuxVariables.NRows);
@@ -975,7 +976,7 @@ protected:
                 InterfaceGaussPointOldCellMatrix[i][j].resize(AuxVariables.NSections);
             }
         }
-        
+
         // Locate Old Gauss Points in cells
         GaussPointOld MyGaussPointOld;
         GeometryData::IntegrationMethod MyIntegrationMethod;
@@ -1004,7 +1005,7 @@ protected:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> StateVariableVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
+                itElem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
                 int Row;
                 int Column;
                 int Section;
@@ -1035,7 +1036,7 @@ protected:
                 }
             }
         }
-        
+
         unsigned int NumInterfaceSubModelPartsOld = rParameters["fracture_data"]["interface_domain_sub_model_part_old_list"].size();
 
         // Loop through all OLD InterfaceSubModelParts
@@ -1052,13 +1053,13 @@ protected:
                 ModelPart::ElementsContainerType::iterator itElem = el_begin + j;
 
                 Element::GeometryType& rGeom = itElem->GetGeometry();
-                MyIntegrationMethod = GeometryData::GI_GAUSS_1;
+                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
                 unsigned int NumGPoints = IntegrationPoints.size();
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> StateVariableVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
+                itElem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
                 int Row;
                 int Column;
                 int Section;
@@ -1089,7 +1090,7 @@ protected:
                 }
             }
         }
-        
+
         // Transfer state variables from old Gauss points to new Gauss Points (nonlocal average)
         const ProcessInfo& CurrentProcessInfoNew = rModelPartNew.GetProcessInfo();
         const double PropagationLength = rParameters["fracture_data"]["propagation_length"].GetDouble();
@@ -1142,14 +1143,14 @@ protected:
                     int Row_bot = int((AuxVariables.Y_max-Y_bot)/AuxVariables.RowSize);
                     int Section_back = int((Z_back-AuxVariables.Z_min)/AuxVariables.SectionSize);
                     int Section_front = int((Z_front-AuxVariables.Z_min)/AuxVariables.SectionSize);
-        
+
                     if(Column_left < 0) Column_left = 0;
                     if(Column_right >= AuxVariables.NColumns) Column_right = AuxVariables.NColumns-1;
                     if(Row_top < 0) Row_top = 0;
                     if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
                     if(Section_back < 0) Section_back = 0;
                     if(Section_front >= AuxVariables.NSections) Section_front = AuxVariables.NSections-1;
-        
+
                     // Search GaussPointOld neighbours around the GaussPointNew and compute nonlocal state variable
                     double Numerator = 0.0;
                     double WeightingFunctionDenominator = 0.0;
@@ -1187,10 +1188,10 @@ protected:
                         StateVariableVector[GPoint] = DamageThreshold;
                 }
                 // Set stateVariable of new GaussPoints
-                itElem->SetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
+                itElem->SetValuesOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
             }
         }
-        
+
         unsigned int NumInterfaceSubModelParts = rParameters["fracture_data"]["interface_domain_sub_model_part_list"].size();
         const double PropagationDamage = rParameters["fracture_data"]["propagation_damage"].GetDouble();
 
@@ -1210,7 +1211,7 @@ protected:
                 ModelPart::ElementsContainerType::iterator itElem = el_begin + j;
 
                 Element::GeometryType& rGeom = itElem->GetGeometry();
-                MyIntegrationMethod = GeometryData::GI_GAUSS_1;
+                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
                 unsigned int NumGPoints = IntegrationPoints.size();
                 std::vector<double> StateVariableVector(NumGPoints);
@@ -1226,7 +1227,7 @@ protected:
                     double X_me = AuxGlobalCoordinates[0];
                     double Y_me = AuxGlobalCoordinates[1];
                     double Z_me = AuxGlobalCoordinates[2];
-                    
+
                     // GaussPointNew search area
                     double X_left = X_me - PropagationLength;
                     double X_right = X_me + PropagationLength;
@@ -1248,7 +1249,7 @@ protected:
                     if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
                     if(Section_back < 0) Section_back = 0;
                     if(Section_front >= AuxVariables.NSections) Section_front = AuxVariables.NSections-1;
-                    
+
                     // Search GaussPointOld neighbours around the GaussPointNew and compute nonlocal state variable
                     double Numerator = 0.0;
                     double WeightingFunctionDenominator = 0.0;
@@ -1293,7 +1294,7 @@ protected:
                         StateVariableVector[GPoint] = PropagationDamage;
                 }
                 // Set stateVariable of new GaussPoints
-                itElem->SetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
+                itElem->SetValuesOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
             }
         }
     }
@@ -1345,7 +1346,7 @@ private:
         ModelPart& rModelPart)
     {
         // Compute X, Y and Z limits of the current geometry
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        unsigned int NumThreads = ParallelUtilities::GetNumThreads();
         std::vector<double> X_max_partition(NumThreads);
         std::vector<double> X_min_partition(NumThreads);
         std::vector<double> Y_max_partition(NumThreads);
@@ -1486,7 +1487,7 @@ private:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> DamageVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                itElem->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                 int Row;
                 int Column;
                 int Section;
@@ -1628,7 +1629,7 @@ private:
         if (IsInside == true)
         {
             std::vector<double> DamageVector;
-            pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+            pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
             unsigned int NumGPoints = DamageVector.size();
             double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
             double ElementDamage = 0.0;
@@ -1689,7 +1690,7 @@ private:
                 GlobalCoordinates[0] = TopEndX/TopEndDen;
                 GlobalCoordinates[1] = TopEndY/TopEndDen;
                 GlobalCoordinates[2] = TopEndZ/TopEndDen;
-                
+
                 // Check whether new tip falls inside a valid element
                 IsInside = false;
                 for(unsigned int i = 0; i < rAuxPropagationVariables.TopFrontFracturePoints.size(); i++)
@@ -1702,7 +1703,7 @@ private:
                 if (IsInside == true)
                 {
                     std::vector<double> DamageVector;
-                    pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                     unsigned int NumGPoints = DamageVector.size();
                     double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
                     double ElementDamage = 0.0;
@@ -1724,7 +1725,7 @@ private:
                 GlobalCoordinates[0] = BotEndX/BotEndDen;
                 GlobalCoordinates[1] = BotEndY/BotEndDen;
                 GlobalCoordinates[2] = BotEndZ/BotEndDen;
-                
+
                 // Check whether new tip falls inside a valid element
                 IsInside = false;
                 for(unsigned int i = 0; i < rAuxPropagationVariables.BotFrontFracturePoints.size(); i++)
@@ -1737,7 +1738,7 @@ private:
                 if (IsInside == true)
                 {
                     std::vector<double> DamageVector;
-                    pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                     unsigned int NumGPoints = DamageVector.size();
                     double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
                     double ElementDamage = 0.0;
@@ -1785,7 +1786,7 @@ private:
             AuxArray1[0] -= PropagationDistance;
             AuxArray1[2] -= 0.5*PropagationWidth;
             noalias(MyBifurcation.BotInitCoordinates) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-            
+
             // Compute new TopTip RotationMatrix
             this->CalculateNewTipRotationMatrix(rAuxPropagationVariables,MyBifurcation.TopTipCoordinates,
                                                 MyBifurcation.LeftInitCoordinates,PropagationDistance);
@@ -1825,7 +1826,7 @@ private:
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
             AuxArray1[2] -= 0.5*PropagationWidth;
             noalias(MyBifurcation.BotBotEndCoordinates) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-            
+
             rPropagationData.BifurcationVector.push_back(MyBifurcation);
             rPropagationData.PropagateFractures = true;
             return;
@@ -1961,7 +1962,7 @@ private:
         const array_1d<double,3>& NewTipCoordinates,
         const array_1d<double,3>& LeftInitCoordinates,
         const double& PropagationDistance)
-    {        
+    {
         // Unitary vector in local x direction
         array_1d<double,3> Vx;
         noalias(Vx) = NewTipCoordinates - rAuxPropagationVariables.TipCoordinates;
@@ -1969,19 +1970,19 @@ private:
         Vx[0] *= inv_norm;
         Vx[1] *= inv_norm;
         Vx[2] *= inv_norm;
-        
+
         array_1d<double,3> CenterPoint;
         noalias(CenterPoint) = rAuxPropagationVariables.TipCoordinates + PropagationDistance*(Vx);
-        
+
         array_1d<double,3> LeftLine;
         noalias(LeftLine) = NewTipCoordinates - LeftInitCoordinates;
-        
+
         const double Lambda = (Vx[0]*(CenterPoint[0]-LeftInitCoordinates[0])+Vx[1]*(CenterPoint[1]-LeftInitCoordinates[1])+
                             Vx[2]*(CenterPoint[2]-LeftInitCoordinates[2]))/(LeftLine[0]*Vx[0]+LeftLine[1]*Vx[1]+LeftLine[2]*Vx[2]);
-        
+
         array_1d<double,3> LeftPoint;
         noalias(LeftPoint) = LeftInitCoordinates + Lambda*LeftLine;
-        
+
         // Vector in local y direction
         array_1d<double,3> Vy;
         noalias(Vy) = LeftPoint - CenterPoint;
@@ -1995,7 +1996,7 @@ private:
 
         // Unitary vector in local y direction
         MathUtils<double>::CrossProduct(Vy, Vz, Vx);
-        
+
         // Rotation Matrix
         rAuxPropagationVariables.RotationMatrix(0,0) = Vx[0];
         rAuxPropagationVariables.RotationMatrix(0,1) = Vx[1];
@@ -2008,7 +2009,7 @@ private:
         rAuxPropagationVariables.RotationMatrix(2,0) = Vz[0];
         rAuxPropagationVariables.RotationMatrix(2,1) = Vz[1];
         rAuxPropagationVariables.RotationMatrix(2,2) = Vz[2];
-        
+
         noalias(rAuxPropagationVariables.TipLocalCoordinates) = prod(rAuxPropagationVariables.RotationMatrix,CenterPoint);
     }
 

@@ -24,7 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-#include "includes/preconditioner_factory.h"
+#include "factories/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -138,6 +138,8 @@ public:
         BaseType::GetPreconditioner()->ApplyLeft(rB);
 
         bool is_solved = IterativeSolve(rA,rX,rB);
+
+        KRATOS_WARNING_IF("CG Linear Solver", !is_solved)<<"Non converged linear solution. ["<< BaseType::GetResidualNorm()/BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
 
         BaseType::GetPreconditioner()->Finalize(rX);
 

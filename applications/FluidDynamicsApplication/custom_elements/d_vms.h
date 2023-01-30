@@ -57,7 +57,10 @@ public:
     ///@{
 
     /// Pointer definition of DVMS
-    KRATOS_CLASS_POINTER_DEFINITION(DVMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DVMS);
+
+    /// Base type definition
+    using BaseType = QSVMS<TElementData>;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -93,11 +96,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = QSVMS<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = QSVMS<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = BaseType::Dim;
+    constexpr static unsigned int NumNodes = BaseType::NumNodes;
+    constexpr static unsigned int BlockSize = BaseType::BlockSize;
+    constexpr static unsigned int LocalSize = BaseType::LocalSize;
+    constexpr static unsigned int StrainSize = BaseType::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -195,47 +198,54 @@ public:
 
     /// Set up the element.
     /** Allocate the subscale velocity containers and let base class initialize the constitutive law */
-    void Initialize() override;
+    virtual void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Update the values of tracked small scale quantities.
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Predict the value of the small scale velocity for the current iteration.
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 3>> const& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                     std::vector<double>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<double> const& rVariable,
+        std::vector<double>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 6>> const& rVariable,
+        std::vector<array_1d<double, 6>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
     ///@{
+
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override;
@@ -257,10 +267,24 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    constexpr static double mTauC1 = 8.0;
+    constexpr static double mTauC2 = 2.0;
+    constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
+    constexpr static double mSubscalePredictionResidualTolerance = 1e-14;
+    constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
 
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    // Velocity subscale history, stored at integration points
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
+
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    std::vector< double > mSubscaleIterationError;
+    std::vector< unsigned int > mSubscaleIterationCount;
+    #endif
 
 
     ///@}
@@ -279,13 +303,13 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
-    void AddMassLHS(
+    virtual void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
     // Implementation details of DVMS /////////////////////////////////////////
 
-    void AddMassStabilization(
+    virtual void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
 
@@ -298,18 +322,19 @@ protected:
         double &TauTwo,
         double &TauP) const;
 
-    void SubscaleVelocity(
+    virtual void SubscaleVelocity(
         const TElementData& rData,
         array_1d<double,3>& rVelocitySubscale) const override;
 
-    void SubscalePressure(
+    virtual void SubscalePressure(
         const TElementData& rData,
         double &rPressureSubscale) const override;
 
-    array_1d<double,3> FullConvectiveVelocity(
+    virtual array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const;
 
-
+    virtual void UpdateSubscaleVelocityPrediction(
+        const TElementData& rData);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -331,24 +356,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    constexpr static double mTauC1 = 8.0;
-    constexpr static double mTauC2 = 2.0;
-    constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
-    constexpr static double mSubscalePredictionResidualTolerance = 1e-14;
-    constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
-
     ///@}
     ///@name Member Variables
     ///@{
-
-    // Velocity subscale history, stored at integration points
-    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
-
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    std::vector< double > mSubscaleIterationError;
-    std::vector< unsigned int > mSubscaleIterationCount;
-    #endif
 
     ///@}
     ///@name Serialization
@@ -368,9 +378,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void UpdateSubscaleVelocityPrediction(
-        const TElementData& rData);
 
     ///@}
     ///@name Private  Access

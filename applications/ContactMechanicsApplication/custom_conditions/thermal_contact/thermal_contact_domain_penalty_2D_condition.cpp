@@ -66,7 +66,7 @@ ThermalContactDomainPenalty2DCondition&  ThermalContactDomainPenalty2DCondition:
 
 Condition::Pointer ThermalContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<ThermalContactDomainPenalty2DCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+  return Kratos::make_intrusive<ThermalContactDomainPenalty2DCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 
@@ -186,7 +186,7 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
 
 
 void ThermalContactDomainPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables,
-						    ProcessInfo& rCurrentProcessInfo,
+						    const ProcessInfo& rCurrentProcessInfo,
 						    const unsigned int& rPointNumber)
 {
     KRATOS_TRY
@@ -202,7 +202,7 @@ void ThermalContactDomainPenalty2DCondition::CalculateKinematics(GeneralVariable
 //************************************************************************************
 //************************************************************************************
 
-void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & rVariables, ProcessInfo& rCurrentProcessInfo)
+void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
     //Contact face segment node1-node2
@@ -421,7 +421,7 @@ ContactDomainUtilities::PointType & ThermalContactDomainPenalty2DCondition::Calc
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  ThermalContactDomainPenalty2DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int  ThermalContactDomainPenalty2DCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

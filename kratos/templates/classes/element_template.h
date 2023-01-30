@@ -4,15 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
 
-#if !defined(KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED )
-#define KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -62,7 +60,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of @{KRATOS_NAME_CAMEL}
-    KRATOS_CLASS_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
 
     ///@}
     ///@name Life Cycle
@@ -121,7 +119,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * creates a new element pointer
@@ -130,7 +128,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * creates a new element pointer and clones the previous element data
@@ -139,7 +137,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     /**
      * this determines the elemental equation ID vector for all elemental
@@ -147,14 +145,14 @@ public:
      * @param rResult: the elemental equation ID vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override;
 
     /**
      * determines the elemental list of DOFs
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     /**
      * ELEMENTS inherited from this class have to implement next
@@ -174,7 +172,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -182,7 +180,7 @@ public:
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -190,7 +188,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -202,7 +200,7 @@ public:
     void CalculateFirstDerivativesContributions(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -210,7 +208,7 @@ public:
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -218,7 +216,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * ELEMENTS inherited from this class must implement this methods
@@ -240,7 +238,7 @@ public:
     void CalculateSecondDerivativesContributions(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -250,7 +248,7 @@ public:
      */
     void CalculateSecondDerivativesLHS(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -260,7 +258,7 @@ public:
      */
     void CalculateSecondDerivativesRHS(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -268,7 +266,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -276,7 +274,7 @@ public:
      * @param rDampingMatrix: the elemental damping matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input
@@ -287,7 +285,7 @@ public:
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -407,5 +405,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED  defined

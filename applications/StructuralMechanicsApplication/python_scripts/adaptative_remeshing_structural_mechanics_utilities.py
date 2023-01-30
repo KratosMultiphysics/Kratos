@@ -1,10 +1,9 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 
 try:
     import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -84,7 +83,6 @@ class AdaptativeRemeshingMechanicalUtilities(object):
                 return adaptative_error_criteria
 
         # Regular convergence criteria
-        import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_settings)
 
         # If we combine the regular convergence criteria with adaptative

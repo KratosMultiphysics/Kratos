@@ -15,57 +15,61 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 #include "dem_wall.h"
+#include "custom_strategies/schemes/glued_to_wall_scheme.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(DEM_APPLICATION) RigidEdge3D : public DEMWall
+class KRATOS_API(DEM_APPLICATION) RigidEdge2D : public DEMWall
 {
 public:
-    // Counted pointer of RigidEdge3D
-    KRATOS_CLASS_POINTER_DEFINITION(RigidEdge3D);
+    // Counted pointer of RigidEdge2D
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RigidEdge2D);
 
-	typedef WeakPointerVector<Element> ParticleWeakVectorType;
+	typedef GlobalPointersVector<Element> ParticleWeakVectorType;
 	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+	typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+	typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+	typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     /**
      * Default constructor.
      */
-    RigidEdge3D( IndexType NewId, GeometryType::Pointer pGeometry);
+    RigidEdge2D( IndexType NewId, GeometryType::Pointer pGeometry);
 
-    RigidEdge3D( IndexType NewId, GeometryType::Pointer pGeometry,
-                           PropertiesType::Pointer pProperties
-                         );
+    RigidEdge2D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
 
-    RigidEdge3D( IndexType NewId, GeometryType::Pointer pGeometry,
-                           PropertiesType::Pointer pProperties,
-                           Condition::Pointer Master,
-                           Condition::Pointer Slave,
-                           Point& MasterContactLocalPoint,
-                           Point& SlaveContactLocalPoint,
-                           int SlaveIntegrationPointIndex
-                         );
+    RigidEdge2D( IndexType NewId, GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties,
+                        Condition::Pointer Master,
+                        Condition::Pointer Slave,
+                        Point& MasterContactLocalPoint,
+                        Point& SlaveContactLocalPoint,
+                        int SlaveIntegrationPointIndex
+                        );
     /**
      * Destructor.
      */
-    virtual ~RigidEdge3D();
+    virtual ~RigidEdge2D();
 
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    void Initialize() override;
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;
-    void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
-    void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
-
+    void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
+    void ComputeConditionRelativeData(int rigid_neighbour_index,
+                                    SphericParticle* const particle,
+                                    double LocalCoordSystem[3][3],
+                                    double& DistPToB,
+                                    array_1d<double, 4>& Weight,
+                                    array_1d<double, 3>& edge_delta_disp_at_contact_point,
+                                    array_1d<double, 3>& edge_velocity_at_contact_point,
+                                    int& ContactType) override;
 
     /**
      * Turn back information as a string.
@@ -96,7 +100,7 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    RigidEdge3D() {};
+    RigidEdge2D() {};
 
     virtual void save(Serializer& rSerializer) const override
     {

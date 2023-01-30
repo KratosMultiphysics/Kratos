@@ -1,7 +1,7 @@
 {
     "properties": [
     {
-            "model_part_name": "Parts_body_lower",
+            "model_part_name": "Structure.Parts_body_lower",
             "properties_id": 1,
             "Material": {
                     "name": "Material",
@@ -18,7 +18,7 @@
             }
     },
     {
-            "model_part_name": "Parts_body_upper",
+            "model_part_name": "Structure.Parts_body_upper",
             "properties_id": 2,
             "Material": {
                     "name": "Material",

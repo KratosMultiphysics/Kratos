@@ -1,11 +1,10 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 
 def GetDefaultInputParameters():
-
     default_settings = KratosMultiphysics.Parameters("""
         {
             "do_print_results_option"          : true,
+            "WriteMdpaFromResults"             : false,
             "Dimension"                        : 3,
             "PeriodicDomainOption"             : false,
             "BoundingBoxOption"                : false,
@@ -20,15 +19,15 @@ def GetDefaultInputParameters():
             "BoundingBoxMinY"                  : -10.0,
             "BoundingBoxMinZ"                  : -10.0,
             "dem_inlet_option"                 : true,
+            "dem_inlets_settings"              : {},
+            "seed"                             : 42,
             "GravityX"                         : 0.0,
             "GravityY"                         : 0.0,
             "GravityZ"                         : -9.81,
-
             "EnergyCalculationOption"          : false,
             "PotentialEnergyReferencePointX"   : 0.0,
             "PotentialEnergyReferencePointY"   : 0.0,
             "PotentialEnergyReferencePointZ"   : 0.0,
-
             "VelocityTrapOption"               : false,
             "VelocityTrapMaxX"                 : 0.0,
             "VelocityTrapMaxY"                 : 0.0,
@@ -39,11 +38,8 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
-            "solver_settings" :{
-                "strategy"                 : "deprecated_key.invalid_strategy",
-                "RemoveBallsInitiallyTouchingWalls": false,
-                "do_search_neighbours": true
-            },
+            "solver_settings" : {},
+            "creator_destructor_settings" : {},
             "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
@@ -78,22 +74,31 @@ def GetDefaultInputParameters():
             "SearchTolerance"                  : 0.0,
             "search_tolerance_against_walls"   : 0.0,
             "CoordinationNumber"               : 10,
+            "LocalCoordinationNumberOption"    : false,
+            "GlobalCoordinationNumberOption"   : true,
+            "respect_preprocessor_marked_skin" : true,
+            "AutomaticSkinComputation" : false,
+            "SkinFactorRadius" : 1.0,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
+            "YCoordinateOfCylinderBottomBase"     : 0.0,
+            "ZCoordinateOfCylinderBottomBase"     : 0.0,
             "ModelDataInfo"                    : false,
             "VirtualMassCoefficient"           : 1.0,
             "RollingFrictionOption"            : false,
             "ComputeStressTensorOption"        : false,
+            "ImposeZStrainIn2DOption"          : false,
+            "ZStrainValue"                     : "0.0*t",
+            "ImposeZStrainIn2DWithControlModule" : false,
             "GlobalDamping"                    : 0.0,
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
             "DontSearchUntilFailure"           : false,
             "ContactMeshOption"                : false,
+            "MaxNumberOfIntactBondsToConsiderASphereBroken" : 0,
             "OutputFileType"                   : "Binary",
             "Multifile"                        : "multiple_files",
-            "TestType"                         : "None",
             "ElementType"                      : "SphericPartDEMElement3D",
-
             "TranslationalIntegrationScheme"   : "Symplectic_Euler",
             "RotationalIntegrationScheme"      : "Direct_Integration",
             "AutomaticTimestep"                : false,
@@ -113,16 +118,16 @@ def GetDefaultInputParameters():
                 "PostVirtualSeaSurfaceX4"      : 0.0,
                 "PostVirtualSeaSurfaceY4"      : 0.0
             },
-            "output_processes"                 :{},
-
-            "ConfinementPressure"              : 0.0,
-            "LoadingVelocity"                  : -0.10,
-            "MeshType"                         : "1",
-            "MeshPath"                         : "0",
-            "SpecimenLength"                   : 0.3,
-            "SpecimenDiameter"                 : 0.15,
-            "MeasuringSurface"                 : 0.01767145867644375,
-
+            "output_processes"                 : {},
+            "material_test_settings" : {
+                "TestType"                         : "None",
+                "ConfinementPressure"              : 0.0,
+                "LoadingVelocity"                  : -0.10,
+                "SpecimenLength"                   : 0.3,
+                "SpecimenDiameter"                 : 0.15,
+                "YCoordinateOfCylinderBottomBase"  : 0.0,
+                "ZCoordinateOfCylinderBottomBase"  : 0.0
+            },
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
             "OutputTimeStep"                   : 1e-2,
@@ -164,14 +169,18 @@ def GetDefaultInputParameters():
             "PostTangentialImpactVelocity"     : false,
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
+            "PostControlModule"                : false,
+            "PostDeltaDisplacement"            : false,
+            "print_CN_graph"                   : false,
+            "PostBrokenRatio"                  : false,
+            "output_configuration" : {
+                "print_number_of_neighbours_histogram" : false
+            },
             "post_vtk_option"                  : false,
-
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
             "LoadingVelocityTop"               : 0.0,
             "LoadingVelocityBot"               : 0.0,
-
             "problem_name" : "dummy_name.Provide_a_real_one",
             "processes" : {}
-            }""")
-
+        }""")
     return default_settings

@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -18,8 +19,9 @@
 // Project includes
 #include "includes/define_python.h"
 #include "python/add_factories_to_python.h"
-#include "includes/linear_solver_factory.h"
-#include "includes/preconditioner_factory.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/preconditioner_factory.h"
+#include "factories/register_factories.h"
 
 namespace Kratos
 {
@@ -27,22 +29,24 @@ namespace Kratos
 namespace Python
 {
 
+typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
+typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
+typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
+
+typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
+typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
+typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
+typedef ExplicitBuilder< SpaceType, LocalSpaceType > ExplicitBuilderType;
+typedef Factory< ExplicitBuilderType > ExplicitBuilderFactoryType;
+
 void  AddFactoriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
-    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
-
-    //////////////////////////////////////////////////////////////7
+    //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER LINEAR SOLVERS
-
-    typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
-    typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
-    typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
-
     py::class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
      .def( py::init< >() )
      .def("Create",&LinearSolverFactoryType::Create)
@@ -59,6 +63,20 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( py::init< >() )
      .def("Create",&PreconditionerFactoryType::Create)
      .def("Has",&PreconditionerFactoryType::Has)
+    ;
+
+    //////////////////////////////////////////////////////////////
+    //HERE WE REGISTER SOME COMMON METHODS
+    py::class_<FactoryBase, FactoryBase::Pointer >(m, "FactoryBase")
+     .def("Has",&FactoryBase::Has)
+    ;
+
+    //////////////////////////////////////////////////////////////
+    //HERE THE TOOLS TO REGISTER EXPLICIT BUILDER
+    py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, FactoryBase>(m, "ExplicitBuilderFactory")
+     .def( py::init< >() )
+     .def("Create",[](ExplicitBuilderFactoryType& rExplicitBuilderFactory, Kratos::Parameters Settings) {return rExplicitBuilderFactory.Create(Settings);})
+     .def("__str__", PrintObject<ExplicitBuilderFactoryType>)
     ;
 
 }

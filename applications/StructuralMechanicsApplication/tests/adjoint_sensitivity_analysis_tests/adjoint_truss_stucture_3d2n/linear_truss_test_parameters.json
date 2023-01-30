@@ -17,10 +17,10 @@
         },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "linear_truss_structure"
+            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/linear_truss_structure"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN","Structure"],
         "rotation_dofs"                      : false
     },
     "processes" : {

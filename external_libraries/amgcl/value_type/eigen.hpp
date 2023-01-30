@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,10 +53,22 @@ struct scalar_of< Eigen::Matrix<T, N, M> > {
     typedef typename math::scalar_of<T>::type type;
 };
 
+/// Replace scalar type in the static matrix
+template <class T, int N, int M, class S>
+struct replace_scalar< Eigen::Matrix<T, N, M>, S> {
+    typedef Eigen::Matrix<S, N, M> type;
+};
+
 /// RHS type corresponding to a non-scalar type.
 template <class T, int N>
 struct rhs_of< Eigen::Matrix<T, N, N> > {
     typedef Eigen::Matrix<T, N, 1> type;
+};
+
+/// Element type of a non-scalar type
+template <class T, int N, int M>
+struct element_of< Eigen::Matrix<T, N, M> > {
+    typedef T type;
 };
 
 /// Whether the value type is a statically sized matrix.
@@ -158,26 +170,6 @@ struct inverse_impl< Eigen::Matrix<T, N, N> >
 };
 
 } // namespace math
-
-namespace relaxation {
-template <class Backend> struct spai1;
-} //namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct relaxation_is_supported<
-    Backend, relaxation::spai1,
-    typename std::enable_if<
-        std::is_base_of<
-            Eigen::MatrixBase<typename Backend::value_type>,
-            typename Backend::value_type
-            >::value
-        >::type
-    > : std::false_type
-{};
-
-} // namespace backend
 } // namespace amgcl
 
 namespace Eigen {

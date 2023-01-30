@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,8 @@ THE SOFTWARE.
  * \brief  Static matrix support for the VexCL backend.
  */
 
+#include <cassert>
+#include <amgcl/backend/detail/mixing.hpp>
 #include <amgcl/backend/vexcl.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
 
@@ -61,14 +63,14 @@ struct rhs_of< amgcl::static_matrix<T, N, N> > {
     typedef amgcl::static_matrix<T, N, 1> type;
 };
 
-template <typename T, int N>
-struct spmv_ops_impl<amgcl::static_matrix<T,N,N>, amgcl::static_matrix<T,N,1>> {
-    typedef amgcl::static_matrix<T,N,N> matrix_value;
-    typedef amgcl::static_matrix<T,N,1> vector_value;
+template <typename TA, typename TX, int N>
+struct spmv_ops_impl<amgcl::static_matrix<TA,N,N>, amgcl::static_matrix<TX,N,1>> {
+    typedef amgcl::static_matrix<TA,N,N> matrix_value;
+    typedef amgcl::static_matrix<TX,N,1> vector_value;
 
     static void decl_accum_var(backend::source_generator &src, const std::string &name)
     {
-        src.new_line() << type_name<vector_value>() << " " << name << ";";
+        src.new_line() << type_name<amgcl::static_matrix<TA,N,1>>() << " " << name << ";";
         for(int i = 0; i < N; ++i) {
             src.new_line() << name << ".data[" << i << "][0] = 0;";
         }
@@ -155,7 +157,7 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
             if (ell_width == 0) {
                 assert(csr_nnz == nnz);
 
-                csr_ptr = backend::device_vector<Col>(q[0], n + 1,   &ptr[0]);
+                csr_ptr = backend::device_vector<Ptr>(q[0], n + 1,   &ptr[0]);
                 csr_col = backend::device_vector<Col>(q[0], csr_nnz, &col[0]);
                 csr_val = create_device_vector       (q[0], csr_nnz, &val[0], false);
 
@@ -421,23 +423,25 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
         {
             backend::device_vector<T> val(q, nnz * N * N);
 
-            if (fast) {
-                backend::device_vector<T> tmp(q, nnz * N * N, reinterpret_cast<const T*>(host_data));
+            if (nnz) {
+                if (fast) {
+                    backend::device_vector<T> tmp(q, nnz * N * N, reinterpret_cast<const T*>(host_data));
 
-                VEX_FUNCTION(T, transpose, (int,k)(int,m)(int,nnz)(T*, v),
-                        int i = k / nnz;
-                        int j = k % nnz;
-                        return v[j * m + i];
-                        );
+                    VEX_FUNCTION(T, transpose, (int,k)(int,m)(int,nnz)(T*, v),
+                            int i = k / nnz;
+                            int j = k % nnz;
+                            return v[j * m + i];
+                            );
 
-                vex::vector<T>(q,val) = transpose(vex::element_index(), N*N, nnz, raw_pointer(vex::vector<T>(q, tmp)));
-            } else {
-                auto v = val.map(q);
+                    vex::vector<T>(q,val) = transpose(vex::element_index(), N*N, nnz, raw_pointer(vex::vector<T>(q, tmp)));
+                } else {
+                    auto v = val.map(q);
 
-                for(int k = 0, i = 0; i < N; ++i)
-                    for(int j = 0; j < N; ++j, ++k)
-                        for(size_t m = 0; m < nnz; ++m)
-                            v[k * nnz + m] = host_data[m](i,j);
+                    for(int k = 0, i = 0; i < N; ++i)
+                        for(int j = 0; j < N; ++j, ++k)
+                            for(size_t m = 0; m < nnz; ++m)
+                                v[k * nnz + m] = host_data[m](i,j);
+                }
             }
 
             return val;
@@ -506,8 +510,8 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
             size_t nnz = host_ptr[n];
 
             backend::device_vector<Ptr> Aptr(q, n + 1, &host_ptr[0]);
-            backend::device_vector<Col> Acol(q, nnz, &host_col[0]);
-            backend::device_vector<T>   Aval = create_device_vector(q, nnz, &host_val[0]);
+            backend::device_vector<Col> Acol(q, nnz, nnz ? &host_col[0] : nullptr);
+            backend::device_vector<T>   Aval = create_device_vector(q, nnz, nnz ? &host_val[0] : nullptr);
 
             /* 1. Get optimal ELL widths for local and remote parts. */
             // Speed of ELL relative to CSR:
@@ -648,22 +652,61 @@ struct vex_scale {
     } const apply;
 };
 
-template <typename T, int N>
-struct vex_add {
-    typedef static_matrix<T,N,1> vector;
+template <typename TS, typename TD, int N, class Enable = void> struct vex_convert;
 
-    struct apply_type : vex::UserFunction<apply_type, vector(vector, vector)> {
+template <typename TS, typename TD, int N>
+struct vex_convert<TS, TD, N,
+    typename std::enable_if<!std::is_same<TS, TD>::value>::type>
+{
+    typedef static_matrix<TS,N,1> src_vector;
+    typedef static_matrix<TD,N,1> dst_vector;
+
+    struct apply_type : vex::UserFunction<apply_type, dst_vector(src_vector)> {
         apply_type() {}
 
         static std::string name() {
-            return "add_" + vex::type_name<vector>();
+            return "convert_" + vex::type_name<src_vector>() + "_" + vex::type_name<dst_vector>();
         }
 
         static void define(vex::backend::source_generator &src, const std::string &fname = name()) {
-            src.begin_function<vector>(fname);
+            src.begin_function<dst_vector>(fname);
             src.begin_function_parameters();
-            src.parameter<vector>("a");
-            src.parameter<vector>("b");
+            src.parameter<src_vector>("s");
+            src.end_function_parameters();
+            src.new_line() << vex::type_name<dst_vector>() << " d;";
+            for(int i = 0; i < N; ++i)
+                src.new_line() << "d.data[" << i << "][0] = s.data[" << i << "][0];";
+            src.new_line() << "return d;";
+            src.end_function();
+        }
+    } const apply;
+};
+
+template <typename TS, typename TD, int N>
+struct vex_convert<TS, TD, N,
+    typename std::enable_if<std::is_same<TS, TD>::value>::type>
+{
+    template <class X>
+    static const X& apply(const X &x) { return x; }
+};
+
+template <typename TA, typename TB, int N>
+struct vex_add {
+    typedef static_matrix<TA,N,1> vectorA;
+    typedef static_matrix<TB,N,1> vectorB;
+
+    struct apply_type : vex::UserFunction<apply_type, vectorA(vectorA, vectorB)> {
+        apply_type() {}
+
+        static std::string name() {
+            return "add_" + vex::type_name<vectorA>() + "_" + vex::type_name<vectorB>();
+        }
+
+        static void define(vex::backend::source_generator &src, const std::string &fname = name()) {
+            src.begin_function<vectorA>(fname);
+            src.begin_function_parameters();
+            src.parameter<vectorA>("a");
+            src.parameter<vectorB>("b");
             src.end_function_parameters();
             for(int i = 0; i < N; ++i)
                 src.new_line() << "a.data[" << i << "][0] += "
@@ -674,22 +717,23 @@ struct vex_add {
     } const apply;
 };
 
-template <typename T, int N>
+template <typename TA, typename TB, int N>
 struct vex_sub {
-    typedef static_matrix<T,N,1> vector;
+    typedef static_matrix<TA,N,1> vectorA;
+    typedef static_matrix<TB,N,1> vectorB;
 
-    struct apply_type : vex::UserFunction<apply_type, vector(vector, vector)> {
+    struct apply_type : vex::UserFunction<apply_type, vectorA(vectorA, vectorB)> {
         apply_type() {}
 
         static std::string name() {
-            return "sub_" + vex::type_name<vector>();
+            return "sub_" + vex::type_name<vectorA>() + "_" + vex::type_name<vectorB>();
         }
 
         static void define(vex::backend::source_generator &src, const std::string &fname = name()) {
-            src.begin_function<vector>(fname);
+            src.begin_function<vectorA>(fname);
             src.begin_function_parameters();
-            src.parameter<vector>("a");
-            src.parameter<vector>("b");
+            src.parameter<vectorA>("a");
+            src.parameter<vectorB>("b");
             src.end_function_parameters();
             for(int i = 0; i < N; ++i)
                 src.new_line() << "a.data[" << i << "][0] -= "
@@ -700,25 +744,26 @@ struct vex_sub {
     } const apply;
 };
 
-template <typename T, int N>
+template <typename TA, typename TX, int N>
 struct vex_mul {
-    typedef static_matrix<T,N,N> matrix;
-    typedef static_matrix<T,N,1> vector;
+    typedef static_matrix<TA,N,N> matrix;
+    typedef static_matrix<TX,N,1> vectorX;
+    typedef static_matrix<TA,N,1> vectorY;
 
-    struct apply_type : vex::UserFunction<apply_type, vector(matrix, vector)> {
+    struct apply_type : vex::UserFunction<apply_type, vectorY(matrix, vectorX)> {
         apply_type() {}
 
         static std::string name() {
-            return "mul_" + vex::type_name<matrix>();
+            return "mul_" + vex::type_name<matrix>() + "_" + vex::type_name<vectorX>();
         }
 
         static void define(vex::backend::source_generator &src, const std::string &fname = name()) {
-            src.begin_function<vector>(fname);
+            src.begin_function<vectorY>(fname);
             src.begin_function_parameters();
             src.parameter<matrix>("a");
-            src.parameter<vector>("b");
+            src.parameter<vectorX>("b");
             src.end_function_parameters();
-            src.new_line() << vex::type_name<vector>() << " c;";
+            src.new_line() << vex::type_name<vectorY>() << " c;";
             for(int i = 0; i < N; ++i) {
                 src.new_line() << "c.data[" << i << "][0] = ";
                 for(int j = 0; j < N; ++j) {
@@ -733,56 +778,144 @@ struct vex_mul {
     } const apply;
 };
 
-template <typename Alpha, typename Beta, typename T, int B>
+template <typename Alpha, typename Beta, typename TA, typename TX, typename TY, int B, typename C, typename P>
 struct spmv_impl<Alpha,
-    vex::sparse::distributed<vex::sparse::matrix<static_matrix<T,B,B>, ptrdiff_t, ptrdiff_t>>,
-    vex::vector<static_matrix<T,B,1>>, Beta, vex::vector<static_matrix<T,B,1>>>
+    vex::sparse::distributed<vex::sparse::matrix<static_matrix<TA,B,B>, C, P>>,
+    vex::vector<static_matrix<TX,B,1>>, Beta, vex::vector<static_matrix<TY,B,1>>,
+    typename std::enable_if<(B > 1)>::type
+    >
 {
-    typedef vex::sparse::distributed<vex::sparse::matrix<static_matrix<T,B,B>, ptrdiff_t, ptrdiff_t>> matrix;
-    typedef vex::vector<static_matrix<T,B,1>> vector;
+    typedef vex::sparse::distributed<vex::sparse::matrix<static_matrix<TA,B,B>, C, P>> matrix;
+    typedef vex::vector<static_matrix<TX,B,1>> vectorX;
+    typedef vex::vector<static_matrix<TY,B,1>> vectorY;
 
-    static void apply(Alpha alpha, const matrix &A, const vector &x, Beta beta, vector &y)
+    static void apply(Alpha alpha, const matrix &A, const vectorX &x, Beta beta, vectorY &y)
     {
         if (beta)
-            y = vex_add<T,B>().apply(vex_scale<T,B>().apply(alpha, A * x), vex_scale<T,B>().apply(beta, y));
+            y = vex_add<TY,TA,B>().apply(vex_scale<TY,B>().apply(beta, y), vex_scale<TA,B>().apply(alpha, A * x));
         else
-            y = vex_scale<T,B>().apply(alpha, A * x);
+            y = vex_convert<TA,TY,B>().apply(vex_scale<TA,B>().apply(alpha, A * x));
     }
 };
 
-template <typename T, int B>
-struct residual_impl<
-    vex::sparse::distributed<vex::sparse::matrix<static_matrix<T,B,B>, ptrdiff_t, ptrdiff_t>>,
-    vex::vector<static_matrix<T,B,1>>,
-    vex::vector<static_matrix<T,B,1>>,
-    vex::vector<static_matrix<T,B,1>>
-    >
-{
-    typedef vex::sparse::distributed<vex::sparse::matrix<static_matrix<T,B,B>, ptrdiff_t, ptrdiff_t>> matrix;
-    typedef vex::vector<static_matrix<T,B,1>> vector;
 
-    static void apply(const vector &rhs, const matrix &A, const vector &x, vector &r)
+template <typename Alpha, typename Beta, typename TA, typename TX, typename TY, typename C, typename P>
+struct spmv_impl<Alpha,
+    vex::sparse::distributed<vex::sparse::matrix<TA, C, P>>,
+    vex::vector<TX>, Beta, vex::vector<TY>,
+    typename std::enable_if<
+        (math::static_rows<TA>::value == 1) && (
+                math::static_rows<TA>::value != math::static_rows<TX>::value ||
+                math::static_rows<TA>::value != math::static_rows<TY>::value
+                )
+        >::type>
+{
+    typedef vex::sparse::distributed<vex::sparse::matrix<TA, C, P>> matrix;
+    typedef vex::vector<TX> vectorx;
+    typedef vex::vector<TY> vectory;
+
+    static void apply(Alpha alpha, const matrix &A, const vectorx &x, Beta beta, vectory &y)
     {
-        r = vex_sub<T,B>().apply(rhs, A * x);
+        auto _x = x.template reinterpret<typename math::scalar_of<TX>::type>();
+        auto _y = y.template reinterpret<typename math::scalar_of<TY>::type>();
+        spmv(alpha, A, _x, beta, _y);
     }
 };
 
-template < typename Alpha, typename Beta, typename T, int B >
-struct vmul_impl<
-    Alpha, vex::vector< static_matrix<T,B,B> >,
-    vex::vector< static_matrix<T,B,1> >,
-    Beta, vex::vector< static_matrix<T,B,1> >
+template <typename Alpha, typename Beta, typename TA, typename TX, typename TY, typename C, typename P>
+struct spmv_impl<Alpha,
+    vex::sparse::distributed<vex::sparse::matrix<TA, C, P>>,
+    vex::vector<TX>, Beta, vex::vector<TY>,
+    typename std::enable_if<
+        (math::static_rows<TA>::value > 1) && (
+                math::static_rows<TA>::value != math::static_rows<TX>::value ||
+                math::static_rows<TA>::value != math::static_rows<TY>::value
+                )
+        >::type>
+{
+    typedef vex::sparse::distributed<vex::sparse::matrix<TA, C, P>> matrix;
+    typedef vex::vector<TX> vectorx;
+    typedef vex::vector<TY> vectory;
+
+    static void apply(Alpha alpha, const matrix &A, const vectorx &x, Beta beta, vectory &y)
+    {
+        const int B = math::static_rows<TA>::value;
+        auto _x = x.template reinterpret<static_matrix<typename math::scalar_of<TX>::type, B, 1>>();
+        auto _y = y.template reinterpret<static_matrix<typename math::scalar_of<TY>::type, B, 1>>();
+        spmv(alpha, A, _x, beta, _y);
+    }
+};
+
+template <typename TB, typename TA, typename TX, typename TR, int B, typename C, typename P>
+struct residual_impl<
+    vex::sparse::distributed<vex::sparse::matrix<static_matrix<TA,B,B>, C, P>>,
+    vex::vector<static_matrix<TB,B,1>>,
+    vex::vector<static_matrix<TX,B,1>>,
+    vex::vector<static_matrix<TR,B,1>>,
+    typename std::enable_if<(B > 1)>::type
     >
 {
-    typedef vex::vector< static_matrix<T,B,B> > matrix;
-    typedef vex::vector< static_matrix<T,B,1> > vector;
+    typedef vex::sparse::distributed<vex::sparse::matrix<static_matrix<TA,B,B>, C, P>> matrix;
+    typedef vex::vector<static_matrix<TB,B,1>> vectorB;
+    typedef vex::vector<static_matrix<TX,B,1>> vectorX;
+    typedef vex::vector<static_matrix<TR,B,1>> vectorR;
 
-    static void apply(Alpha a, const matrix &x, const vector &y, Beta b, vector &z)
+    static void apply(const vectorB &rhs, const matrix &A, const vectorX &x, vectorR &r)
+    {
+        r = vex_convert<TB,TR,B>().apply(vex_sub<TB, TA, B>().apply(rhs, A * x));
+    }
+};
+
+template <typename TB, typename TA, typename TX, typename TR, int B, typename C, typename P>
+struct residual_impl<
+    vex::sparse::distributed<vex::sparse::matrix<static_matrix<TA,B,B>, C, P>>,
+    vex::vector<TB>,
+    vex::vector<TX>,
+    vex::vector<TR>,
+    typename std::enable_if<
+        math::static_rows<TB>::value == 1 &&
+        math::static_rows<TX>::value == 1 &&
+        math::static_rows<TR>::value == 1 &&
+        (B > 1)
+        >::type
+    >
+{
+    typedef vex::sparse::distributed<vex::sparse::matrix<static_matrix<TA,B,B>, C, P>> matrix;
+    typedef vex::vector<TB> vectorB;
+    typedef vex::vector<TX> vectorX;
+    typedef vex::vector<TR> vectorR;
+
+    static void apply(const vectorB &b, const matrix &A, const vectorX &x, vectorR &r)
+    {
+        typedef static_matrix<TB,B,1> VB;
+        typedef static_matrix<TX,B,1> VX;
+        typedef static_matrix<TR,B,1> VR;
+
+        auto _b = b.template reinterpret<VB>();
+        auto _x = x.template reinterpret<VX>();
+        auto _r = r.template reinterpret<VR>();
+
+        _r = vex_convert<TB,TR,B>().apply(vex_sub<TB, TA, B>().apply(_b, A * _x));
+    }
+};
+
+template < typename Alpha, typename Beta, typename TX, typename TY, typename TZ, int B >
+struct vmul_impl<
+    Alpha, vex::vector< static_matrix<TX,B,B> >,
+    vex::vector< static_matrix<TY,B,1> >,
+    Beta, vex::vector< static_matrix<TZ,B,1> >
+    >
+{
+    typedef vex::vector< static_matrix<TX,B,B> > matrix;
+    typedef vex::vector< static_matrix<TY,B,1> > vectorY;
+    typedef vex::vector< static_matrix<TZ,B,1> > vectorZ;
+
+    static void apply(Alpha a, const matrix &x, const vectorY &y, Beta b, vectorZ &z)
     {
         if (b)
-            z = vex_add<T,B>().apply(vex_scale<T,B>().apply(a, vex_mul<T,B>().apply(x, y)), vex_scale<T,B>().apply(b, z));
+            z = vex_add<TZ,TX,B>().apply(vex_scale<TZ,B>().apply(b, z), vex_scale<TX,B>().apply(a, vex_mul<TX,TY,B>().apply(x, y)));
         else
-            z = vex_scale<T,B>().apply(a, vex_mul<T,B>().apply(x, y));
+            z = vex_convert<TX,TZ,B>().apply(vex_scale<TX,B>().apply(a, vex_mul<TX,TY,B>().apply(x, y)));
     }
 };
 
@@ -812,44 +945,47 @@ struct copy_impl<
     }
 };
 
-template < typename A, typename B, typename T, int N >
+template < typename A, typename B, typename TX, typename TY, int N >
 struct axpby_impl<
-    A, vex::vector< static_matrix<T, N, 1> >,
-    B, vex::vector< static_matrix<T, N, 1> >
+    A, vex::vector< static_matrix<TX, N, 1> >,
+    B, vex::vector< static_matrix<TY, N, 1> >
     >
 {
-    typedef vex::vector< static_matrix<T,N,1> > vector;
+    typedef vex::vector< static_matrix<TX,N,1> > vectorX;
+    typedef vex::vector< static_matrix<TY,N,1> > vectorY;
 
-    static void apply(A a, const vector &x, B b, vector &y) {
+    static void apply(A a, const vectorX &x, B b, vectorY &y) {
         if (b)
-            y.template reinterpret<T>() =
-                a * x.template reinterpret<T>() +
-                b * y.template reinterpret<T>();
+            y.template reinterpret<TY>() =
+                a * x.template reinterpret<TX>() +
+                b * y.template reinterpret<TY>();
         else
-            y.template reinterpret<T>() =
-                a * x.template reinterpret<T>();
+            y.template reinterpret<TY>() =
+                a * x.template reinterpret<TX>();
     }
 };
 
-template < typename A, typename B, typename C, typename T, int N >
+template < typename A, typename B, typename C, typename TX, typename TY, typename TZ, int N >
 struct axpbypcz_impl<
-    A, vex::vector< static_matrix<T, N, 1> >,
-    B, vex::vector< static_matrix<T, N, 1> >,
-    C, vex::vector< static_matrix<T, N, 1> >
+    A, vex::vector< static_matrix<TX, N, 1> >,
+    B, vex::vector< static_matrix<TY, N, 1> >,
+    C, vex::vector< static_matrix<TZ, N, 1> >
     >
 {
-    typedef vex::vector< static_matrix<T,N,1> > vector;
+    typedef vex::vector< static_matrix<TX,N,1> > vectorX;
+    typedef vex::vector< static_matrix<TY,N,1> > vectorY;
+    typedef vex::vector< static_matrix<TZ,N,1> > vectorZ;
 
-    static void apply(A a, const vector &x, B b, const vector &y, C c, vector &z) {
+    static void apply(A a, const vectorX &x, B b, const vectorY &y, C c, vectorZ &z) {
         if (c)
-            z.template reinterpret<T>() =
-                a * x.template reinterpret<T>() +
-                b * y.template reinterpret<T>() +
-                c * z.template reinterpret<T>();
+            z.template reinterpret<TZ>() =
+                a * x.template reinterpret<TX>() +
+                b * y.template reinterpret<TY>() +
+                c * z.template reinterpret<TZ>();
         else
-            z.template reinterpret<T>() =
-                a * x.template reinterpret<T>() +
-                b * y.template reinterpret<T>();
+            z.template reinterpret<TZ>() =
+                a * x.template reinterpret<TX>() +
+                b * y.template reinterpret<TY>();
     }
 };
 
@@ -869,6 +1005,26 @@ struct inner_product_impl<
     }
 };
 
+namespace detail {
+
+template <class V1, class V2>
+struct common_scalar_backend< backend::vexcl<V1>, backend::vexcl<V2>,
+    typename std::enable_if<
+        math::static_rows<V1>::value != 1 ||
+        math::static_rows<V2>::value != 1
+        >::type>
+{
+    typedef typename math::scalar_of<V1>::type S1;
+    typedef typename math::scalar_of<V2>::type S2;
+
+    typedef
+        typename std::conditional<
+            (sizeof(S1) > sizeof(S2)), backend::vexcl<S1>, backend::vexcl<S2>
+            >::type
+        type;
+};
+
+} // namespace detail
 } // namespace backend
 } // namespace amgcl
 

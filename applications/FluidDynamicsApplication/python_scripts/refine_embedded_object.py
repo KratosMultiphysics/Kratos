@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -51,7 +50,7 @@ class MeshAdaptor:
                 elem.SetValue(SPLIT_ELEMENT,True)
 
         #do refinement
-        nodal_neighbour_search = FindNodalNeighboursProcess(self.model_part,20,20)
+        nodal_neighbour_search = FindNodalNeighboursProcess(self.model_part)
         nodal_neighbour_search.Execute()
 
         print("before refinement")

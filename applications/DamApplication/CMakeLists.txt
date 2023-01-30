@@ -2,13 +2,17 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDamApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DamApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/DamApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_DAM_APPLICATION_CORE_SOURCES
@@ -46,11 +50,17 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_cohesion_driven_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_cohesion_driven_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_stress_driven_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_stress_driven_2D_law.cpp
 
     # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_thermo_mechanic_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/wave_equation_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
 
     # Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/UP_condition.cpp
@@ -61,7 +71,7 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
 
 if(${USE_DAM_MPI} MATCHES ON)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
+    include_directories( ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(${TRILINOS_INCLUDE_DIR})
 
     ## Define python interface sources
@@ -77,7 +87,7 @@ if(${USE_DAM_MPI} MATCHES ON)
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosTrilinosApplication KratosSolidMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosTrilinosApplication KratosStructuralMechanicsCore KratosPoromechanicsCore)
 
 else()
 
@@ -93,7 +103,7 @@ else()
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore)
 
 endif()
 
@@ -103,7 +113,7 @@ endif()
 ###############################################################################
 ## DamApplication core library (C++ parts)
 #add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-#target_link_libraries(KratosDamCore PRIVATE KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
+#target_link_libraries(KratosDamCore PRIVATE KratosCore KratosStructuralMechanicsCore KratosPoromechanicsCore)
 set_target_properties(KratosDamCore PROPERTIES COMPILE_DEFINITIONS "DAM_APPLICATION=EXPORT,API")
 
 ## DamApplication python module
@@ -111,7 +121,12 @@ pybind11_add_module(KratosDamApplication MODULE THIN_LTO ${KRATOS_DAM_APPLICATIO
 target_link_libraries(KratosDamApplication PRIVATE KratosDamCore)
 set_target_properties(KratosDamApplication PROPERTIES PREFIX "")
 
-###############################################################################
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosDamCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosDamApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosDamApplication PROPERTIES SUFFIX .pyd)
@@ -122,23 +137,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosDamApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-###############################################################################
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosDamCore)
-    cotire(KratosDamApplication)
-endif(USE_COTIRE MATCHES ON)
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/DamApplication.py KratosMultiphysics/DamApplication/__init__.py )
 
-###############################################################################
-## installing the resulting libraries
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install targets
 install(TARGETS KratosDamCore DESTINATION libs )
 install(TARGETS KratosDamApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DamApplication.py" DESTINATION "KratosMultiphysics/DamApplication" RENAME "__init__.py")
-
-
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosDamCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosDamApplication" PARENT_SCOPE)

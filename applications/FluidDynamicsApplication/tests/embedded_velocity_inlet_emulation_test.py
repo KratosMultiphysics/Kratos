@@ -1,24 +1,23 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 import sys
 import KratosMultiphysics.KratosUnittest as UnitTest
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+@UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
     def testEmbeddedVelocityInletEmulationSymbolic2D(self):
         self.print_output = False
         self.check_tolerance = 1.0e-10
         self.print_reference_values = False
         self.work_folder = "EmbeddedVelocityInletEmulationTest"
-        self.reference_file = "reference_embedded_symbolic_navier_stokes"
+        self.reference_file = "reference_embedded_weakly_compressible_navier_stokes"
         self.settings = "EmbeddedVelocityInletEmulationTest.json"
         self.formulation_settings = KratosMultiphysics.Parameters(r'''{
-            "element_type"        : "embedded_symbolic_navier_stokes",
+            "element_type"        : "embedded_weakly_compressible_navier_stokes",
             "is_slip"             : false,
             "slip_length"         : 1.0e8,
             "penalty_coefficient" : 10.0,
@@ -126,7 +125,8 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
                 else:
                     n_pos += 1
             if (n_neg != 0 and n_pos != 0):
-                elem.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, embedded_velocity)
+                for node in elem.GetNodes():
+                    node.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, embedded_velocity)
             elif (n_neg == len(elem.GetNodes()) and deactivate_negative_elems):
                 elem.Set(KratosMultiphysics.ACTIVE, False)
 
@@ -150,7 +150,7 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
                             },
                             "file_label"          : "time",
                             "output_control_type" : "step",
-                            "output_frequency"    : 1.0,
+                            "output_interval"     : 1.0,
                             "body_output"         : true,
                             "node_output"         : false,
                             "skin_output"         : false,
@@ -165,6 +165,4 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
         }''')
 
 if __name__ == '__main__':
-    test = EmbeddedVelocityInletEmulationTest()
-    test.testEmbeddedVelocityInletEmulationSymbolic2D()
-    test.testEmbeddedVelocityInletEmulationEmbedded2D()
+    UnitTest.main()

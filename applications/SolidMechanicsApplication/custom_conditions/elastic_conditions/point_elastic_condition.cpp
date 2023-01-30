@@ -50,7 +50,7 @@ namespace Kratos
 						  NodesArrayType const& ThisNodes,
 						  PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<PointElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<PointElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -64,7 +64,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared<PointElasticCondition>(NewCondition);
+    return Kratos::make_intrusive<PointElasticCondition>(NewCondition);
   }
 
 
@@ -211,17 +211,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int PointElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int PointElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD_VECTOR);
 
     return ErrorCode;
 

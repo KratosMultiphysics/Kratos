@@ -243,7 +243,7 @@ private:
 		zc=OutPointList[base+2];
 
 	      //create a new node
-	      pNode = Kratos::make_shared< NodeType >( id, xc, yc, zc );
+	      pNode = Kratos::make_intrusive<Node<3>>( id, xc, yc, zc );
 
 	      //set new id
 	      if(mrRemesh.InputInitializedFlag){
@@ -262,7 +262,7 @@ private:
 	      //generating the dofs
 	      for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
 		{
-		  NodeType::DofType& rDof = *i_dof;
+		  NodeType::DofType& rDof = **i_dof;
 		  NodeType::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
 
 		  (pNewDof)->FreeDof();

@@ -1,12 +1,12 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-
+import KratosMultiphysics.process_factory as process_factory
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+@UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class NavierStokesWallConditionTest(UnitTest.TestCase):
     def testNavierStokesWallCondition(self):
         self.setUp()
@@ -35,7 +35,6 @@ class NavierStokesWallConditionTest(UnitTest.TestCase):
             self.model = KratosMultiphysics.Model()
 
             ## Solver construction
-            import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             self.solver.AddVariables()
@@ -51,7 +50,6 @@ class NavierStokesWallConditionTest(UnitTest.TestCase):
             self.solver.Initialize()
 
             ## Processes construction
-            import process_factory
             self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["gravity"] )
             self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["boundary_conditions_process_list"] )
 

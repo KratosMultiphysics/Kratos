@@ -16,7 +16,7 @@
 
 /* External includes */
 // #include "boost/smart_ptr.hpp"
-#include <stdlib.h>
+#include <cstdlib>
 #include <boost/timer.hpp>
 
 
@@ -91,7 +91,7 @@ template<unsigned int TDim, class TSparseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
 class LapModifiedLinearStrategy
-    : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     /**@name Type Definitions */
@@ -100,7 +100,7 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( LapModifiedLinearStrategy );
 
-    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -142,7 +142,7 @@ public:
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
     )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        : ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -194,7 +194,7 @@ public:
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
     )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,MoveMeshFlag)
+        : ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -465,7 +465,7 @@ public:
 
     }
 
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType& GetSystemMatrix() override
     {
         TSystemMatrixType& mA = *mpA;
 
@@ -787,8 +787,8 @@ private:
             if(it->FastGetSolutionStepValue(IS_FLUID)!=0 && (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
             {
                 int count_fluid_neighb=0;
-                WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     if (i->FastGetSolutionStepValue(IS_FLUID)!=0)
@@ -811,7 +811,7 @@ private:
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 && it->FastGetSolutionStepValue(IS_FLUID)!=0)
             {
                 //first row in the block
@@ -826,7 +826,7 @@ private:
                 }
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     if ( i->FastGetSolutionStepValue(IS_FLUID)!=0)

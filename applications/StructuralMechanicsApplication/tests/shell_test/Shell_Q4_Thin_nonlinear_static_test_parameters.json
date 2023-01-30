@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
-        "problem_domain_sub_model_part_list" : ["Parts_surface"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_hinged_edges","DISPLACEMENT_XY_sym","DISPLACEMENT_YZ_sym","DISPLACEMENT_point_load","ROTATION_XY_sym","ROTATION_YZ_sym"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -41,7 +39,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_hinged_edges",
+            "model_part_name" : "Structure.DISPLACEMENT_hinged_edges",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -53,7 +51,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_XY_sym",
+            "model_part_name" : "Structure.DISPLACEMENT_XY_sym",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [null,null,0.0],
             "interval"        : [0.0,"End"]
@@ -65,7 +63,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_YZ_sym",
+            "model_part_name" : "Structure.DISPLACEMENT_YZ_sym",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,null,null],
             "interval"        : [0.0,"End"]
@@ -77,7 +75,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_point_load",
+            "model_part_name" : "Structure.DISPLACEMENT_point_load",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,"-0.03*t",0.0],
             "interval"        : [0.0,"End"]
@@ -89,7 +87,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_XY_sym",
+            "model_part_name" : "Structure.ROTATION_XY_sym",
             "variable_name"   : "ROTATION",
             "value"           : [0.0,0.0,null],
             "interval"        : [0.0,"End"]
@@ -101,7 +99,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_YZ_sym",
+            "model_part_name" : "Structure.ROTATION_YZ_sym",
             "variable_name"   : "ROTATION",
             "value"           : [null,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -117,7 +115,7 @@
         "Parameters"            : {
             "check_variables"  : ["REACTION_Y"],
             "input_file_name"  : "shell_test/Shell_Q4_Thin_nonlinear_static_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_point_load",
+            "model_part_name"  : "Structure.DISPLACEMENT_point_load",
             "time_frequency"   : 0.01
         }
     }
@@ -131,7 +129,7 @@
         "Parameters"            : {
             "output_variables" : ["REACTION_Y"],
             "output_file_name" : "shell_test/Shell_Q4_Thin_nonlinear_static_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_point_load",
+            "model_part_name"  : "Structure.DISPLACEMENT_point_load",
             "time_frequency"   : 0.01
         }
     }

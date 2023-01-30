@@ -19,6 +19,7 @@
 #include "move_mesh_utilities.h"
 #include "containers/model.h"
 #include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -44,89 +45,95 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 
 //******************************************************************************
 //******************************************************************************
-
-void CalculateMeshVelocities(ModelPart* pMeshModelPart,
-                             const int TimeOrder, const double DeltaTime) {
-
-    CalculateMeshVelocities(*pMeshModelPart, TimeOrder, DeltaTime);
-}
-
-void CalculateMeshVelocities(ModelPart &rMeshModelPart,
-                             const int TimeOrder, const double DeltaTime) {
-  KRATOS_TRY;
-
-  KRATOS_ERROR_IF(DeltaTime <= 0.0) << "Invalid DELTA_TIME." << std::endl;
-
-  const double coeff = 1 / DeltaTime;
-
-  if (TimeOrder == 1) {
-    for (ModelPart::NodeIterator i =
-             rMeshModelPart.GetCommunicator().LocalMesh().NodesBegin();
-         i != rMeshModelPart.GetCommunicator().LocalMesh().NodesEnd(); ++i) {
-
-      array_1d<double, 3> &mesh_v =
-          (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-      array_1d<double, 3> &disp =
-          (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-      array_1d<double, 3> &dispold =
-          (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-      noalias(mesh_v) = disp - dispold;
-      mesh_v *= coeff;
-    }
-  } else if (TimeOrder == 2) {
-    const double c1 = 1.50 * coeff;
-    const double c2 = -2.0 * coeff;
-    const double c3 = 0.50 * coeff;
-
-    for (ModelPart::NodeIterator i =
-             rMeshModelPart.GetCommunicator().LocalMesh().NodesBegin();
-         i != rMeshModelPart.GetCommunicator().LocalMesh().NodesEnd(); ++i) {
-
-      array_1d<double, 3> &mesh_v =
-          (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-      noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-      noalias(mesh_v) +=
-          c2 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-      noalias(mesh_v) +=
-          c3 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 2);
-    }
-  } else {
-    KRATOS_ERROR << "Wrong TimeOrder: Acceptable values are: 1 and 2"
-                 << std::endl;
-  }
-
-  KRATOS_CATCH("");
-}
-
-//******************************************************************************
-//******************************************************************************
-void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
+void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    const int num_nodes = rNodes.size();
-    const auto nodes_begin = rNodes.begin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = nodes_begin + i;
-        noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
-            + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-    }
+    block_for_each(rNodes, [](Node<3>& rNode ){
+        noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
+    });
 
     KRATOS_CATCH("");
 }
 
 //******************************************************************************
 //******************************************************************************
-void SetMeshToInitialConfiguration(
-    const ModelPart::NodesContainerType &rNodes) {
-  KRATOS_TRY;
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const array_1d<double,3>& rRotationAxis,
+    const double rotationAngle,
+    const array_1d<double,3>& rReferencePoint,
+    const array_1d<double,3>& rTranslationVector)
+{
+    KRATOS_TRY
 
-  for (auto &rnode : rNodes) {
-    noalias(rnode.Coordinates()) = rnode.GetInitialPosition();
-  }
+    const LinearTransform transform(
+        rRotationAxis,
+        rotationAngle,
+        rReferencePoint,
+        rTranslationVector);
 
-  KRATOS_CATCH("");
+    MoveModelPart(rModelPart, transform);
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const Parameters rotationAxis,
+    const Parameters rotationAngle,
+    const Parameters referencePoint,
+    const Parameters translationVector)
+{
+    KRATOS_TRY
+
+    ParametricLinearTransform transform(
+        rotationAxis,
+        rotationAngle,
+        referencePoint,
+        translationVector);
+
+    MoveModelPart(rModelPart, transform);
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const LinearTransform& rTransform)
+{
+    KRATOS_TRY
+
+    block_for_each(
+        rModelPart.Nodes(),
+        [&rTransform](Node<3>& rNode){
+            const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(initial_position) - initial_position;
+        });
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    ParametricLinearTransform& rTransform)
+{
+    KRATOS_TRY
+
+    const double time = rModelPart.GetProcessInfo().GetValue(TIME);
+
+    block_for_each(
+        rModelPart.Nodes(),
+        [&rTransform, time](Node<3>& rNode){
+            const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(
+                initial_position,
+                time,
+                rNode.X0(),
+                rNode.Y0(),
+                rNode.Z0()) - initial_position;
+        });
+
+    KRATOS_CATCH("");
 }
 
 //******************************************************************************
@@ -147,11 +154,15 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
   const Element &r_reference_element =
       KratosComponents<Element>::Get(rElementName);
 
+
+  // create a new property for the mesh motion
+  Properties::Pointer p_mesh_motion_property = pmesh_model_part->CreateNewProperties(0);
+
   for (int i = 0; i < (int)rModelPart.Elements().size(); i++) {
     ModelPart::ElementsContainerType::iterator it =
         rModelPart.ElementsBegin() + i;
     Element::Pointer p_element = r_reference_element.Create(
-        it->Id(), it->pGetGeometry(), it->pGetProperties());
+        it->Id(), it->pGetGeometry(), p_mesh_motion_property);
     rmesh_elements.push_back(p_element);
   }
 
@@ -160,19 +171,59 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
   KRATOS_CATCH("");
 }
 
-//******************************************************************************
-//******************************************************************************
-  void UpdateReferenceMesh(ModelPart &rModelPart)
+void InitializeMeshPartWithElements(
+    ModelPart& rDestinationModelPart,
+    ModelPart& rOriginModelPart,
+    Properties::Pointer pProperties,
+    const std::string& rElementName)
 {
+    KRATOS_TRY
 
-  for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
-          i != rModelPart.NodesEnd(); ++i){
+    // initializing mesh nodes and variables
+    rDestinationModelPart.Nodes() = rOriginModelPart.Nodes();
 
-      (i)->X0() = (i)->X();
-      (i)->Y0() = (i)->Y();
-      (i)->Z0() = (i)->Z();
+    auto& r_elements = rDestinationModelPart.Elements();
 
-  }
+    // clear all existing elements
+    r_elements.clear();
+
+    const Element& r_reference_element = KratosComponents<Element>::Get(rElementName);
+
+    KRATOS_ERROR_IF(rOriginModelPart.GetCommunicator().GlobalNumberOfElements() == 0)
+        << "No elements are found in " << rOriginModelPart.Name()
+        << " to initialize " << rDestinationModelPart.Name() << ".\n";
+
+    for (auto& r_origin_element : rOriginModelPart.Elements()) {
+        auto p_destination_element = r_reference_element.Create(
+            r_origin_element.Id(), r_origin_element.pGetGeometry(), pProperties);
+        r_elements.push_back(p_destination_element);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
+                                                 const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+    KRATOS_TRY;
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        if (rNode.Has(rVariableToSuperImpose)) {
+            rNode.GetSolutionStepValue(rVariable,0) += rNode.GetValue(rVariableToSuperImpose);
+        }
+    });
+
+  KRATOS_CATCH("");
+}
+
+void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  SuperImposeVariables(rModelPart, MESH_DISPLACEMENT, rVariableToSuperImpose);
+}
+
+void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  SuperImposeVariables(rModelPart, MESH_VELOCITY, rVariableToSuperImpose);
 }
 
 } // namespace Move Mesh Utilities.

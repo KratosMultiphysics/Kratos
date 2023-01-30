@@ -6,7 +6,6 @@
 #define  KRATOS_CONTINUUM_EXPLICIT_SOLVER_STRATEGY
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_elements/spheric_continuum_particle.h"
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 namespace Kratos {
 
@@ -18,8 +17,8 @@ namespace Kratos {
         typedef BaseType::ElementsArrayType ElementsArrayType;
         typedef BaseType::ElementsIterator ElementsIterator;
         typedef BaseType::ConditionsArrayType ConditionsArrayType;
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 
         using BaseType::mpInlet_model_part;
@@ -31,7 +30,6 @@ namespace Kratos {
         using BaseType::mListOfSphericParticles;
         using BaseType::mListOfGhostSphericParticles;
         using BaseType::SearchNeighbours;
-        using BaseType::SetSearchRadiiOnAllParticles;
 
         /// Pointer definition of ExplicitSolverStrategy
         KRATOS_CLASS_POINTER_DEFINITION(ContinuumExplicitSolverStrategy);
@@ -63,24 +61,34 @@ namespace Kratos {
         }
 
         virtual void Initialize() override;
-        virtual double Solve() override;
-        void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi);
+        virtual double SolveSolutionStep() override;
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi);
         void ComputeNewNeighboursHistoricalData() override;
+        void ComputeNewRigidFaceNeighboursHistoricalData() override;
         void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
-        double ComputeCoordinationNumber(double& standard_dev);
+        double ComputeCoordinationNumber(double& standard_dev) override;
+
+        void RebuildListOfContinuumSphericParticles() {
+            RebuildListOfSphericParticles<SphericContinuumParticle>(GetModelPart().GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
+        }
+
+        void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) override;
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
-        void Check_MPI(bool& has_mpi);
         virtual void CalculateMaxSearchDistance();
         virtual void MeshRepairOperations();
         virtual void DestroyMarkedParticlesRebuildLists();
         void CalculateMeanContactArea();
+        void BreakAllBonds();
+        void HealAllBonds();
         void SetInitialDemContacts();
         void SetInitialFemContacts();
         void FinalizeSolutionStep() override;
         void FinalizeSolutionStepFEM();
         void MarkNewSkinParticles();
+        void ResetSkinParticles(ModelPart& r_model_part);
+        void ComputeSkin(ModelPart& rSpheresModelPart, const double factor_radius = 1.0);
+        void BreakAlmostBrokenSpheres();
 
         virtual void Add_As_Own(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element) {
             KRATOS_TRY
@@ -113,6 +121,7 @@ namespace Kratos {
         //bool   mDempackOption;
         std::vector<SphericContinuumParticle*> mListOfSphericContinuumParticles;
         std::vector<SphericContinuumParticle*> mListOfGhostSphericContinuumParticles;
+        DenseVector<int> mSearchControlVector;
 
     }; // Class ContinuumExplicitSolverStrategy
 

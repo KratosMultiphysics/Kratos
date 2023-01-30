@@ -1,0 +1,17 @@
+{
+    "properties" : [{
+        "model_part_name" : "MainModelPart.Parts_Fluid",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "Newtonian2DLaw"
+            },
+            "Variables"        : {
+                "SOUND_VELOCITY": 1E+04,
+                "DENSITY": 1.00000E+00,
+                "DYNAMIC_VISCOSITY": 1.00000E-02
+            },
+            "Tables"           : {}
+        }
+    }]
+}

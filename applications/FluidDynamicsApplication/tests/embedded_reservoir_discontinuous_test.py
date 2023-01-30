@@ -1,7 +1,9 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.KratosUnittest as UnitTest
+
+import KratosMultiphysics.FluidDynamicsApplication
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class EmbeddedReservoirDiscontinuousTest(UnitTest.TestCase):
     def testEmbeddedReservoirDiscontinuous3D(self):
@@ -36,8 +38,7 @@ class EmbeddedReservoirDiscontinuousTest(UnitTest.TestCase):
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             self.Model = KratosMultiphysics.Model()
-            import fluid_dynamics_analysis
-            self.simulation = fluid_dynamics_analysis.FluidDynamicsAnalysis(self.Model, self.ProjectParameters)
+            self.simulation = FluidDynamicsAnalysis(self.Model, self.ProjectParameters)
 
     def setUpDistanceField(self):
         # Get the model part containing the domain
@@ -49,6 +50,8 @@ class EmbeddedReservoirDiscontinuousTest(UnitTest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, d)
 
         # Set discontinuous distance field
+        n_edges = fluid_model_part.Elements[1].GetGeometry().EdgesNumber()
+        elem_edge_dist = KratosMultiphysics.Vector(n_edges, -1.0)
         for element in fluid_model_part.Elements:
             i_node = 0
             elem_dist = KratosMultiphysics.Vector(4)
@@ -56,6 +59,7 @@ class EmbeddedReservoirDiscontinuousTest(UnitTest.TestCase):
                 elem_dist[i_node] = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 i_node += 1
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
+            element.SetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES, elem_edge_dist)
 
     def setUpInitialCondition(self):
         # Set exact initial solution

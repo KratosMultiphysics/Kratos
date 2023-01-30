@@ -1,9 +1,5 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-import KratosMultiphysics.DelaunayMeshingApplication as DelaunayMeshingApplication
-import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluidDynamicsApplication
-import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest

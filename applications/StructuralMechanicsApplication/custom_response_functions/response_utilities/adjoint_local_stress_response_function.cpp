@@ -15,6 +15,8 @@
 
 // Project includes
 #include "adjoint_local_stress_response_function.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
@@ -32,14 +34,28 @@ namespace Kratos
         // Get info how and where to treat the stress
         mStressTreatment = StressResponseDefinitions::ConvertStringToStressTreatment( ResponseSettings["stress_treatment"].GetString() );
 
-        if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node)
-        {
+        if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node) {
             mIdOfLocation = ResponseSettings["stress_location"].GetInt();
             KRATOS_ERROR_IF(mIdOfLocation < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << mIdOfLocation << std::endl;
+        }
+
+        if(ResponseSettings.Has("add_particular_solution")) {
+            mAddParticularSolution = ResponseSettings["add_particular_solution"].GetBool();
         }
     }
 
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
+
+    void AdjointLocalStressResponseFunction::FinalizeSolutionStep()
+    {
+        KRATOS_TRY;
+
+        if(mAddParticularSolution) {
+            this->CalculateParticularSolution();
+        }
+
+        KRATOS_CATCH("");
+    }
 
     void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
@@ -94,14 +110,11 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElement->Id())
         {
-            ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
-                                                                    rSensitivityGradient, process_info);
+                                                                    rSensitivityGradient, rProcessInfo);
         }
         else
-        {
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
-        }
 
         KRATOS_CATCH("")
     }
@@ -129,14 +142,11 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElement->Id())
         {
-            ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
-                                                                    rSensitivityGradient, process_info);
+                                                                    rSensitivityGradient, rProcessInfo);
         }
         else
-        {
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
-        }
 
         KRATOS_CATCH("");
     }
@@ -178,7 +188,8 @@ namespace Kratos
         Vector element_stress;
 
         Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
+        const ProcessInfo &r_process_info = rModelPart.GetProcessInfo();
+        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, r_process_info);
 
         const SizeType stress_vec_size = element_stress.size();
 
@@ -195,7 +206,8 @@ namespace Kratos
         Vector element_stress;
 
         Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
+        const ProcessInfo &r_process_info = rModelPart.GetProcessInfo();
+        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, r_process_info);
 
         const SizeType stress_vec_size = element_stress.size();
 
@@ -211,7 +223,8 @@ namespace Kratos
         Vector element_stress;
 
         Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnNode(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
+        const ProcessInfo &r_process_info = rModelPart.GetProcessInfo();
+        StressCalculation::CalculateStressOnNode(r_element, mTracedStressType, element_stress, r_process_info);
 
         const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
 
@@ -227,7 +240,7 @@ namespace Kratos
                                       const std::string& rVariableName,
                                       const Matrix& rSensitivityMatrix,
                                       Vector& rSensitivityGradient,
-                                      ProcessInfo& rProcessInfo)
+                                      const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
@@ -238,17 +251,26 @@ namespace Kratos
         if(mStressTreatment == StressTreatment::Mean)
         {
             rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
+            if (stress_design_variable_derivative.size1() == 0)
+                rSensitivityGradient = ZeroVector(0);
+            else
+                this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
         else if(mStressTreatment == StressTreatment::GaussPoint)
         {
             rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
+            if (stress_design_variable_derivative.size1() == 0)
+                rSensitivityGradient = ZeroVector(0);
+            else
+                this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
         else if(mStressTreatment == StressTreatment::Node)
         {
             rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractNodeStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
+            if (stress_design_variable_derivative.size1() == 0)
+                rSensitivityGradient = ZeroVector(0);
+            else
+                this->ExtractNodeStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
 
         KRATOS_ERROR_IF(rSensitivityGradient.size() != rSensitivityMatrix.size1())
@@ -319,6 +341,191 @@ namespace Kratos
 
         for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
             rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (mIdOfLocation-1));
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateParticularSolution() const
+    {
+        KRATOS_TRY;
+
+        std::string element_name;
+        CompareElementsAndConditionsUtility::GetRegisteredName(*mpTracedElement, element_name);
+
+        if(element_name == "AdjointFiniteDifferenceCrBeamElementLinear3D2N" || element_name == "AdjointFiniteDifferenceTrussLinearElement3D2N") {
+            Vector particular_solution;
+            // delivers particular solution of influence function in local coordinates
+            this->CalculateParticularSolutionLinearElement2N(particular_solution);
+            // transform particular solution into global coordinates
+            Matrix transformation_matrix = ZeroMatrix(particular_solution.size());
+            Matrix local_element_orientation = ZeroMatrix(3);
+            const ProcessInfo &r_process_info = mrModelPart.GetProcessInfo();
+            mpTracedElement->Calculate(LOCAL_ELEMENT_ORIENTATION, local_element_orientation, r_process_info);
+
+            const SizeType dimension(3);
+            KRATOS_ERROR_IF_NOT((particular_solution.size()%dimension)==0) << "Size of particular solution does not fit!" << std::endl;
+            const SizeType check_a(particular_solution.size()/dimension);
+
+            SizeType iterator_count(0);
+            for (SizeType i=0;  i<check_a;++i){
+                iterator_count = i*dimension;
+                project(transformation_matrix, range(iterator_count,iterator_count+dimension),range(iterator_count,iterator_count+dimension)) += local_element_orientation;
+            }
+
+            particular_solution = prod(transformation_matrix, particular_solution);
+            // set particular solution as non-historical result
+            mpTracedElement->SetValue(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution);
+        } else {
+            KRATOS_ERROR << "CalculateParticularSolution not available for " << element_name << "!" << std::endl;
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateParticularSolutionLinearElement2N(Vector& rResult) const
+    {
+        KRATOS_TRY;
+
+        DofsVectorType dofs_of_element;
+        const ProcessInfo &r_process_info = mrModelPart.GetProcessInfo();
+        mpTracedElement->GetDofList(dofs_of_element, r_process_info);
+        rResult = ZeroVector(dofs_of_element.size());
+
+        Array1DComponentsPointerType p_traced_dof;
+        this->FindVariableComponent(p_traced_dof);
+
+        if(mStressTreatment == StressTreatment::Mean) {
+            this->CalculateMeanParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
+        } else if(mStressTreatment == StressTreatment::GaussPoint) {
+            this->CalculateGPParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
+        } else if(mStressTreatment == StressTreatment::Node) {
+            this->CalculateNodeParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateMeanParticularSolutionLinearElement2N(Vector& rResult,
+                        DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const
+    {
+        KRATOS_TRY;
+
+        if(rResult.size() != rElementalDofList.size()) {
+            rResult.resize(rElementalDofList.size());
+        }
+
+        const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
+        const double prefactor = 1.0 / (1.0 + num_GP);
+
+        const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
+        const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
+
+        for(IndexType gp_it = 0; gp_it < num_GP; ++gp_it) {
+            for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
+                if (rElementalDofList[i]->GetVariable() == *TracedDof) {
+                    if (rElementalDofList[i]->Id() == id_node_1) {
+                        rResult[i] += prefactor * (num_GP - gp_it);
+                    } else if (rElementalDofList[i]->Id() == id_node_2) {
+                        rResult[i] += -prefactor * (gp_it + 1);
+                    }
+                }
+            }
+        }
+        rResult /= num_GP;
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateGPParticularSolutionLinearElement2N(Vector& rResult,
+                            DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const
+    {
+        KRATOS_TRY;
+
+        if(rResult.size() != rElementalDofList.size()) {
+            rResult.resize(rElementalDofList.size());
+        }
+
+        const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
+        const double prefactor = 1.0 / (1.0 + num_GP);
+
+        const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
+        const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
+
+        for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
+            if (rElementalDofList[i]->GetVariable() == *TracedDof) {
+                if (rElementalDofList[i]->Id() == id_node_1) {
+                    rResult[i] = prefactor * (num_GP + 1 - mIdOfLocation);
+                } else if (rElementalDofList[i]->Id() == id_node_2) {
+                    rResult[i] = -prefactor * mIdOfLocation;
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateNodeParticularSolutionLinearElement2N(Vector& rResult,
+                     DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const
+    {
+        KRATOS_TRY;
+
+        if(rResult.size() != rElementalDofList.size()) {
+            rResult.resize(rElementalDofList.size());
+        }
+
+        for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
+            if (rElementalDofList[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
+                rElementalDofList[i]->GetVariable() == *TracedDof) {
+                if (mIdOfLocation == 1) {
+                    rResult[i] = 1.0;
+                } else if (mIdOfLocation == 2) {
+                    rResult[i] = -1.0;
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::FindVariableComponent(Array1DComponentsPointerType& rTracedDof) const
+    {
+        KRATOS_TRY;
+
+        switch (mTracedStressType)
+        {
+            case TracedStressType::MX:
+            {
+                rTracedDof = &ADJOINT_ROTATION_X;
+                break;
+            }
+            case TracedStressType::MY:
+            {
+                rTracedDof = &ADJOINT_ROTATION_Y;
+                break;
+            }
+            case TracedStressType::MZ:
+            {
+                rTracedDof = &ADJOINT_ROTATION_Z;
+                break;
+            }
+            case TracedStressType::FX:
+            {
+                rTracedDof = &ADJOINT_DISPLACEMENT_X;
+                break;
+            }
+            case TracedStressType::FY:
+            {
+                rTracedDof = &ADJOINT_DISPLACEMENT_Y;
+                break;
+            }
+            case TracedStressType::FZ:
+            {
+                rTracedDof = &ADJOINT_DISPLACEMENT_Z;
+                break;
+            }
+            default:
+                KRATOS_ERROR << "Invalid stress type! Stress type not supported for particular solution!" << std::endl;
+        }
 
         KRATOS_CATCH("");
     }

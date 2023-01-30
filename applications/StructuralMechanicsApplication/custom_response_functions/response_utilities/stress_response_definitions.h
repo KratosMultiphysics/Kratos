@@ -51,7 +51,8 @@ enum class TracedStressType
     MZX,
     MZY,
     MZZ,
-    PK2
+    PK2,
+    VON_MISES_STRESS
 };
 
 enum class StressTreatment
@@ -123,6 +124,11 @@ private:
                             const ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateStressOnNodeBeam(Element& rElement,
+                            const TracedStressType rTracedStressType,
+                            Vector& rOutput,
+                            const ProcessInfo& rCurrentProcessInfo);
+
+    static void CalculateStressOnGPSmallDisplacement(Element& rElement,
                             const TracedStressType rTracedStressType,
                             Vector& rOutput,
                             const ProcessInfo& rCurrentProcessInfo);

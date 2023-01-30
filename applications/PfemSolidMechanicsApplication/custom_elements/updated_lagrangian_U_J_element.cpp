@@ -205,7 +205,7 @@ namespace Kratos
    //*********************************DISPLACEMENT***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::GetValuesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJElement::GetValuesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -237,7 +237,7 @@ namespace Kratos
    //************************************VELOCITY****************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -265,7 +265,7 @@ namespace Kratos
    //*********************************ACCELERATION***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -296,7 +296,7 @@ namespace Kratos
    // **************************************************************************
    // **************************************************************************
 
-   UpdatedLagrangianUJElement::SizeType UpdatedLagrangianUJElement::GetDofsSize()
+   UpdatedLagrangianUJElement::SizeType UpdatedLagrangianUJElement::GetDofsSize() const
    {
       KRATOS_TRY
 
@@ -368,7 +368,7 @@ namespace Kratos
 
    //*********************************SET DOUBLE VALUE***********************************
    //************************************************************************************
-   void UpdatedLagrangianUJElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+   void UpdatedLagrangianUJElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
          std::vector<double>& rValues,
          const ProcessInfo& rCurrentProcessInfo )
    {
@@ -384,7 +384,7 @@ namespace Kratos
       }
       else{
 
-         LargeDisplacementElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+         LargeDisplacementElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
       }
 
@@ -1420,7 +1420,7 @@ namespace Kratos
 
       Vector KuJ(number_of_nodes*dimension);
       noalias( KuJ ) = prod( trans( rVariables.B), (ConstVector) );
-      
+
 
       Matrix SecondMatrix(dimension*number_of_nodes, number_of_nodes);
       noalias(  SecondMatrix ) = ZeroMatrix( dimension*number_of_nodes, number_of_nodes);
@@ -1681,7 +1681,7 @@ namespace Kratos
       // Not Lumped Mass Matrix (numerical integration):
 
       //reading integration points
-      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 

@@ -38,7 +38,7 @@ public:
     typedef typename BaseType::IntegrationMethod IntegrationMethod;
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceCrBeamElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferenceCrBeamElement);
 
     AdjointFiniteDifferenceCrBeamElement(IndexType NewId = 0)
     : BaseType(NewId, true)
@@ -61,7 +61,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferenceCrBeamElement<TPrimalElement>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -69,11 +69,15 @@ public:
                               typename GeometryType::Pointer pGeometry,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferenceCrBeamElement<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                 std::vector< array_1d<double, 3 > >& rOutput,
+                const ProcessInfo& rCurrentProcessInfo) override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 protected:
 

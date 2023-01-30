@@ -29,10 +29,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto2", "GENERIC_Add_SubModelPart_Auto1"],
-        "rotation_dofs"                      : false
+        "max_iteration"                      : 10
     },
     "processes"        : {
         "constraints_process_list" : [{
@@ -61,7 +58,7 @@
             "kratos_module"   : "KratosMultiphysics",
             "process_name"          : "CheckValueProcess",
             "Parameters"            : {
-                    "model_part_name" : "GENERIC_Add_SubModelPart_Auto1",
+                    "model_part_name" : "Structure.GENERIC_Add_SubModelPart_Auto1",
                     "variable_name"   : "DISPLACEMENT_X",
                     "interval"        : [0.0, "End"],
                     "value"           : 1.0e-4,
@@ -72,7 +69,7 @@
             "kratos_module"   : "KratosMultiphysics",
             "process_name"          : "CheckValueProcess",
             "Parameters"            : {
-                    "model_part_name" : "GENERIC_Add_SubModelPart_Auto1",
+                    "model_part_name" : "Structure.GENERIC_Add_SubModelPart_Auto1",
                     "variable_name"   : "DISPLACEMENT_Y",
                     "interval"        : [0.0, "End"],
                     "value"           : 1.0e-4,
@@ -83,7 +80,7 @@
             "kratos_module"   : "KratosMultiphysics",
             "process_name"          : "CheckValueProcess",
             "Parameters"            : {
-                    "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                    "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                     "variable_name"   : "REACTION_X",
                     "interval"        : [0.0, "End"],
                     "value"           : -1.756626061277224e+07,
@@ -94,7 +91,7 @@
             "kratos_module"   : "KratosMultiphysics",
             "process_name"          : "CheckValueProcess",
             "Parameters"            : {
-                    "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                    "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                     "variable_name"   : "REACTION_Y",
                     "interval"        : [0.0, "End"],
                     "value"           : -1.756626061277224e+07,

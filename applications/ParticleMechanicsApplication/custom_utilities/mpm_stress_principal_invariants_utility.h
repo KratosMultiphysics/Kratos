@@ -268,7 +268,7 @@ namespace Kratos
 
                   rLodeAngle   = -j_3 / 2.0 * std::pow(3.0/j_2, 1.5);
                   if ( std::abs( rLodeAngle ) > 1.0 )                                           // if current rLodeAngle magnitude is larger than 1.0
-                        rLodeAngle = ( GetPI() / 6.0 ) * rLodeAngle / std::abs(rLodeAngle);
+                        rLodeAngle = ( Globals::Pi / 6.0 ) * rLodeAngle / std::abs(rLodeAngle);
                   else                                                                          // otherwise
                         rLodeAngle = std::asin( rLodeAngle ) / 3.0;
 
@@ -508,11 +508,30 @@ namespace Kratos
                   return vector;
             }
 
-            static double GetPI()
+
+            static double CalculateMatrixDoubleContraction(const Matrix& rInput)
             {
-                  return std::atan(1.0)*4.0;
+                double result = 0.0;
+                KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) 
+                    << "CalculateMatrixDoubleContraction only takes square matrices\n";
+                for (size_t i = 0; i < rInput.size1(); ++i)
+                {
+                    for (size_t j = 0; j < rInput.size2(); ++j)
+                    {
+                        result += rInput(i, j) * rInput(i, j);
+                    }
+                }
+                return result;
             }
 
+
+            static double CalculateMatrixTrace(const Matrix& rInput)
+            {
+                KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) << "Can only calculate trace of square matrices";
+                double trace = 0.0;
+                for (size_t i = 0; i < rInput.size1(); ++i) trace += rInput(i, i);
+                return trace;
+            }
    }; // end Class MPMStressPrincipalInvariantsUtility
 
 } // end namespace Kratos

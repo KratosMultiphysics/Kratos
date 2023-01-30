@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
@@ -7,6 +5,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(model, custom_settings):
     return UPwSolver(model, custom_settings)
@@ -15,9 +14,10 @@ class UPwSolver(PythonSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
     def __init__(self, model, custom_settings):
-        settings = self._ValidateSettings(custom_settings)
 
-        super(UPwSolver,self).__init__(model, settings)
+        self._validate_settings_in_baseclass=True # To be removed eventually
+
+        super(UPwSolver,self).__init__(model, custom_settings)
 
         self.min_buffer_size = 2
 
@@ -36,6 +36,78 @@ class UPwSolver(PythonSolver):
                                                   self.settings["domain_size"].GetInt())
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "solver_type": "poromechanics_U_Pw_solver",
+            "model_part_name": "PorousModelPart",
+            "domain_size": 2,
+            "start_time": 0.0,
+            "time_step": 0.1,
+            "model_import_settings":{
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            },
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
+            "buffer_size": 2,
+            "echo_level": 0,
+            "reform_dofs_at_each_step": false,
+            "clear_storage": false,
+            "compute_reactions": false,
+            "move_mesh_flag": false,
+            "nodal_smoothing": false,
+            "gp_to_nodal_variable_list": [],
+            "gp_to_nodal_variable_extrapolate_non_historical": false,
+            "periodic_interface_conditions": false,
+            "solution_type": "implicit_quasi_static",
+            "scheme_type": "Newmark",
+            "newmark_beta": 0.25,
+            "newmark_gamma": 0.5,
+            "newmark_theta": 0.5,
+            "calculate_alpha_beta"       : false,
+            "omega_1"                    : 1.0,
+            "omega_n"                    : 10.0,
+            "xi_1"                       : 1.0,
+            "xi_n"                       : 0.05,
+            "rayleigh_alpha": 0.0,
+            "rayleigh_beta": 0.0,
+            "strategy_type": "newton_raphson",
+            "convergence_criterion": "Displacement_criterion",
+            "displacement_relative_tolerance": 1.0e-4,
+            "displacement_absolute_tolerance": 1.0e-9,
+            "residual_relative_tolerance": 1.0e-4,
+            "residual_absolute_tolerance": 1.0e-9,
+            "max_iteration": 15,
+            "desired_iterations": 4,
+            "max_radius_factor": 20.0,
+            "min_radius_factor": 0.5,
+            "block_builder": true,
+            "nonlocal_damage": false,
+            "characteristic_length": 0.05,
+            "search_neighbours_step": false,
+            "linear_solver_settings":{
+                "solver_type": "amgcl",
+                "tolerance": 1.0e-6,
+                "max_iteration": 100,
+                "scaling": false,
+                "verbosity": 0,
+                "preconditioner_type": "ilu0",
+                "smoother_type": "ilu0",
+                "krylov_type": "gmres",
+                "coarsening_type": "aggregation"
+            },
+            "problem_domain_sub_model_part_list": [""],
+            "processes_sub_model_part_list": [""],
+            "body_domain_sub_model_part_list": [""],
+            "loads_sub_model_part_list": [],
+            "loads_variable_list": []
+        }""")
+
+        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
+        return this_defaults
 
     def AddVariables(self):
 
@@ -64,13 +136,22 @@ class UPwSolver(PythonSolver):
         ## Other variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PERIODIC_PAIR_INDEX)
-        if(self.settings["nodal_smoothing"].GetBool() == True):
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_DAMAGE_VARIABLE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_DAMAGE_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_EFFECTIVE_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_WATER_PRESSURE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
+
+        # Add variables from gp to nodal variable list
+        if self.settings["gp_to_nodal_variable_extrapolate_non_historical"].GetBool()==False:
+            for i in range(self.settings["gp_to_nodal_variable_list"].size()):
+                variable_name = self.settings["gp_to_nodal_variable_list"][i].GetString()
+                variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+                self.main_model_part.AddNodalSolutionStepVariable(variable)
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Variables added correctly.")
 
@@ -86,7 +167,6 @@ class UPwSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
                                                   self.settings["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
-
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
         if(self.settings["nodal_smoothing"].GetBool() == True):
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, True)
@@ -109,7 +189,7 @@ class UPwSolver(PythonSolver):
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
-        if(self.settings["solution_type"].GetString() == "Dynamic"):
+        if(self.settings["solution_type"].GetString() == "implicit_dynamic"):
             for node in self.main_model_part.Nodes:
                 # adding VELOCITY as dofs
                 node.AddDof(KratosMultiphysics.VELOCITY_X)
@@ -160,6 +240,9 @@ class UPwSolver(PythonSolver):
         # Check if everything is assigned correctly
         self.Check()
 
+        # Check and construct gp_to_nodal_variable process
+        self._CheckAndConstructGPtoNodalVariableExtrapolationProcess()
+
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Solver initialization finished.")
 
     def GetComputingModelPart(self):
@@ -199,6 +282,14 @@ class UPwSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.solver.FinalizeSolutionStep()
 
+        if self.gp_to_nodal_variable:
+            self.integration_values_extrapolation_to_nodes_process.ExecuteBeforeSolutionLoop()
+            self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
+
+    def Finalize(self):
+        if self.gp_to_nodal_variable:
+            self.integration_values_extrapolation_to_nodes_process.ExecuteFinalize()
+
     def Solve(self):
         message = "".join([
             "Calling UPwSolver.Solve() method, which is deprecated\n",
@@ -219,71 +310,6 @@ class UPwSolver(PythonSolver):
         self.FinalizeSolutionStep()
 
     #### Specific internal functions ####
-
-    def _ValidateSettings(self, settings):
-
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "poromechanics_U_Pw_solver",
-            "model_part_name": "PorousModelPart",
-            "domain_size": 2,
-            "start_time": 0.0,
-            "time_step": 0.1,
-            "model_import_settings":{
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "buffer_size": 2,
-            "echo_level": 0,
-            "reform_dofs_at_each_step": false,
-            "clear_storage": false,
-            "compute_reactions": false,
-            "move_mesh_flag": false,
-            "nodal_smoothing": false,
-            "periodic_interface_conditions": false,
-            "solution_type": "quasi_static",
-            "scheme_type": "Newmark",
-            "newmark_beta": 0.25,
-            "newmark_gamma": 0.5,
-            "newmark_theta": 0.5,
-            "rayleigh_m": 0.0,
-            "rayleigh_k": 0.0,
-            "strategy_type": "newton_raphson",
-            "convergence_criterion": "Displacement_criterion",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-9,
-            "max_iteration": 15,
-            "desired_iterations": 4,
-            "max_radius_factor": 20.0,
-            "min_radius_factor": 0.5,
-            "block_builder": true,
-            "nonlocal_damage": false,
-            "characteristic_length": 0.05,
-            "search_neighbours_step": false,
-            "linear_solver_settings":{
-                "solver_type": "amgcl",
-                "tolerance": 1.0e-6,
-                "max_iteration": 100,
-                "scaling": false,
-                "verbosity": 0,
-                "preconditioner_type": "ilu0",
-                "smoother_type": "ilu0",
-                "krylov_type": "gmres",
-                "coarsening_type": "aggregation"
-            },
-            "problem_domain_sub_model_part_list": [""],
-            "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [""],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": []
-        }
-        """)
-
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
 
     def _ExecuteCheckAndPrepare(self):
 
@@ -316,8 +342,23 @@ class UPwSolver(PythonSolver):
         check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
-        from KratosMultiphysics.PoromechanicsApplication import poromechanics_constitutivelaw_utility
-        poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
+        materials_imported = self.import_constitutive_laws()
+        if materials_imported:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was successfully imported via json.")
+        else:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was not successfully imported.")
+
+    def import_constitutive_laws(self):
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            # Add constitutive laws and material properties from json file to model parts.
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
 
     def _SetBufferSize(self):
         required_buffer_size = self.settings["buffer_size"].GetInt()
@@ -362,19 +403,40 @@ class UPwSolver(PythonSolver):
 
     def _ConstructScheme(self, scheme_type, solution_type):
 
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.VELOCITY_COEFFICIENT, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.DT_PRESSURE_COEFFICIENT, 1.0)
+
         if(scheme_type == "Newmark"):
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
             theta = self.settings["newmark_theta"].GetDouble()
-            rayleigh_m = self.settings["rayleigh_m"].GetDouble()
-            rayleigh_k = self.settings["rayleigh_k"].GetDouble()
-            if(solution_type == "quasi_static"):
-                if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
-                    scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
+            rayleigh_alpha = self.settings["rayleigh_alpha"].GetDouble()
+            rayleigh_beta = self.settings["rayleigh_beta"].GetDouble()
+            if self.settings["calculate_alpha_beta"].GetBool():
+                omega_1 = self.settings["omega_1"].GetDouble()
+                omega_n = self.settings["omega_n"].GetDouble()
+                xi_1 = self.settings["xi_1"].GetDouble()
+                xi_n = self.settings["xi_n"].GetDouble()
+                rayleigh_beta = 2.0*(xi_n*omega_n-xi_1*omega_1)/(omega_n*omega_n-omega_1*omega_1)
+                rayleigh_alpha = 2.0*xi_1*omega_1-rayleigh_beta*omega_1*omega_1
+                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: Scheme Information")
+                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: omega_1: ",omega_1)
+                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: omega_n: ",omega_n)
+                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: xi_1: ",xi_1)
+                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: xi_n: ",xi_n)
+                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: Alpha and Beta output")
+                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: rayleigh_alpha: ",rayleigh_alpha)
+                KratosMultiphysics.Logger.PrintInfo("::[UPwSolver]:: rayleigh_beta: ",rayleigh_beta)
+            
+            self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_ALPHA,rayleigh_alpha)
+            self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA,rayleigh_beta)
+            if(solution_type == "implicit_quasi_static"):
+                if(rayleigh_alpha<1.0e-20 and rayleigh_beta<1.0e-20):
+                    scheme = KratosPoro.PoroNewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
-                    scheme = KratosPoro.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta,rayleigh_m,rayleigh_k)
+                    scheme = KratosPoro.PoroNewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
-                scheme = KratosPoro.NewmarkDynamicUPwScheme(beta,gamma,theta,rayleigh_m,rayleigh_k)
+                scheme = KratosPoro.PoroNewmarkDynamicUPwScheme(beta,gamma,theta)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 
@@ -411,23 +473,26 @@ class UPwSolver(PythonSolver):
 
     def _ConstructSolver(self, builder_and_solver, strategy_type):
 
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, 1)
+
         nonlocal_damage = self.settings["nonlocal_damage"].GetBool()
         max_iters = self.settings["max_iteration"].GetInt()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
 
+        self.strategy_params = KratosMultiphysics.Parameters("{}")
+        self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
+        self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+
         if strategy_type == "newton_raphson":
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             if nonlocal_damage:
                 self.strategy_params.AddValue("body_domain_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
                 self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
-                                                                               self.linear_solver,
                                                                                self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -438,7 +503,6 @@ class UPwSolver(PythonSolver):
             else:
                 solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                        self.scheme,
-                                                                       self.linear_solver,
                                                                        self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,
@@ -448,19 +512,18 @@ class UPwSolver(PythonSolver):
                                                                        move_mesh_flag)
         else:
             # Arc-Length strategy
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_LAMBDA,1.0)
+            self.main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_RADIUS_FACTOR,1.0)
+
             self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
             self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
             self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             if nonlocal_damage:
                 self.strategy_params.AddValue("body_domain_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
                 self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solving_strategy = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
-                                                                               self.linear_solver,
                                                                                self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -471,7 +534,6 @@ class UPwSolver(PythonSolver):
             else:
                 solving_strategy = KratosPoro.PoromechanicsRammArcLengthStrategy(self.computing_model_part,
                                                                        self.scheme,
-                                                                       self.linear_solver,
                                                                        self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,
@@ -491,3 +553,27 @@ class UPwSolver(PythonSolver):
     def _UpdateLoads(self):
 
         self.solver.UpdateLoads()
+
+    def _CheckAndConstructGPtoNodalVariableExtrapolationProcess(self):
+        if self.settings["gp_to_nodal_variable_list"].size() > 0:
+            self.gp_to_nodal_variable = True
+            # Create extrapolation process
+            extrapolation_parameters = KratosMultiphysics.Parameters("""
+            {
+                "model_part_name"            : "",
+                "echo_level"                 : 0,
+                "average_variable"           : "NODAL_AREA",
+                "area_average"               : true,
+                "list_of_variables"          : [],
+                "extrapolate_non_historical" : false
+            }
+            """)
+            for i in range(self.settings["gp_to_nodal_variable_list"].size()):
+                var_name = self.settings["gp_to_nodal_variable_list"][i].GetString()
+                extrapolation_parameters["list_of_variables"].Append(var_name)
+            extrapolation_parameters["model_part_name"].SetString(self.settings["model_part_name"].GetString())
+            extrapolation_parameters["extrapolate_non_historical"].SetBool(self.settings["gp_to_nodal_variable_extrapolate_non_historical"].GetBool())
+            self.integration_values_extrapolation_to_nodes_process = KratosMultiphysics.IntegrationValuesExtrapolationToNodesProcess(self.main_model_part, extrapolation_parameters)
+        else:
+            self.gp_to_nodal_variable = False
+            self.integration_values_extrapolation_to_nodes_process = KratosMultiphysics.Process()

@@ -21,7 +21,7 @@
 #include "custom_elements/transient_convection_diffusion_FIC_element.hpp"
 #include "includes/convection_diffusion_settings.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 
 #include "fluid_transport_application_variables.h"
 
@@ -34,7 +34,7 @@ class KRATOS_API(FLUID_TRANSPORT_APPLICATION) TransientConvectionDiffusionFICExp
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( TransientConvectionDiffusionFICExplicitElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TransientConvectionDiffusionFICExplicitElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -62,7 +62,7 @@ public:
     TransientConvectionDiffusionFICExplicitElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : TransientConvectionDiffusionFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    virtual ~TransientConvectionDiffusionFICExplicitElement() {}
+    ~TransientConvectionDiffusionFICExplicitElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -73,9 +73,9 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+                        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

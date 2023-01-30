@@ -25,8 +25,6 @@ namespace Kratos {
     {}
 
   void KratosUmatApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     std::cout << "             _   _            _              "<< std::endl;
     std::cout << "     KRATOS | | | |_ __  __ _| |_            "<< std::endl;
     std::cout << "            | |_| | '  \\/ _` |  _|           "<< std::endl;
@@ -34,23 +32,23 @@ namespace Kratos {
     std::cout << "Initializing KratosConstitutiveModelsApplication... " << std::endl;
     std::cout << "Initializing KratosUmatApplication... " << std::endl;
 
-    
+
 
     Serializer::Register( "FabricUmatSmallStrainModel", mFabricSmallStrainUmatModel);
     Serializer::Register( "VonMisesUmatSmallStrainModel", mVonMisesSmallStrainUmatModel);
     Serializer::Register( "HypoplasticUmatSmallStrainModel", mHypoplasticSmallStrainUmatModel);
     Serializer::Register( "VonMisesUmatLargeStrainModel", mVonMisesLargeStrainUmatModel);
- 
+
    KRATOS_REGISTER_VARIABLE( ALPHA )
-   KRATOS_REGISTER_VARIABLE( BETA )   
-   KRATOS_REGISTER_VARIABLE( MF )   
-   KRATOS_REGISTER_VARIABLE( CC )   
-   KRATOS_REGISTER_VARIABLE( MM )   
-   KRATOS_REGISTER_VARIABLE( KSIS )   
-   KRATOS_REGISTER_VARIABLE( RHOM )   
-   KRATOS_REGISTER_VARIABLE( PC0 )   
-   KRATOS_REGISTER_VARIABLE( VOID_RATIO )   
-   KRATOS_REGISTER_VARIABLE( PLASTIC_MULTIPLIER )   
+   KRATOS_REGISTER_VARIABLE( BETA )
+   KRATOS_REGISTER_VARIABLE( MF )
+   KRATOS_REGISTER_VARIABLE( CC )
+   KRATOS_REGISTER_VARIABLE( MM )
+   KRATOS_REGISTER_VARIABLE( KSIS )
+   KRATOS_REGISTER_VARIABLE( RHOM )
+   KRATOS_REGISTER_VARIABLE( PC0 )
+   KRATOS_REGISTER_VARIABLE( VOID_RATIO )
+   KRATOS_REGISTER_VARIABLE( PLASTIC_MULTIPLIER )
 
   }
 }  // namespace Kratos.

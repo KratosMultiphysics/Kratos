@@ -11,7 +11,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // Project includes
 #include "includes/define.h"
@@ -31,7 +31,6 @@
 
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-//#include "../../DEMApplication/DEM_application.h"
 
 // /* External includes */
 #ifdef _OPENMP
@@ -273,14 +272,14 @@ struct IsCloser{
 
 void SetNeighboursAndWeights(ModelPart& r_model_part);
 void SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part);
-void OrderByDistance(Node<3>::Pointer &p_node, WeakPointerVector<Node<3> >& neigh_nodes);
+void OrderByDistance(Node<3>::Pointer &p_node, GlobalPointersVector<Node<3> >& neigh_nodes);
 bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p_node);
 bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node);
 double SecondDegreeTestPolynomial(const array_1d <double, 3>& coordinates);
 double SecondDegreeGenericPolynomial(DenseMatrix<double> C, const array_1d <double, 3>& coordinates);
 inline int Factorial(const unsigned int n);
 bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer& p_node);
-unsigned int GetNumberOfUniqueNeighbours(const int my_id, const WeakPointerVector<Element>& my_neighbour_elements);
+unsigned int GetNumberOfUniqueNeighbours(const int my_id, const GlobalPointersVector<Element>& my_neighbour_elements);
 double CalculateTheMaximumDistanceToNeighbours(Node<3>::Pointer& p_node);
 double CalculateTheMaximumEdgeLength(ModelPart& r_model_part);
 double CalculateTheMinumumEdgeLength(ModelPart& r_model_part);

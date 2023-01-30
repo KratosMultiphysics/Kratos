@@ -1,16 +1,16 @@
-// KRATOS  ___|  |       |       |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//           | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License: BSD License
-//   license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ALM_FRICTIONLESS_COMPONENTS_MORTAR_CONTACT_CONDITION_H_INCLUDED )
-#define  KRATOS_ALM_FRICTIONLESS_COMPONENTS_MORTAR_CONTACT_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition );
 
     typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_COMPONENTS, TNormalVariation, TNumNodesMaster> BaseType;
 
@@ -114,7 +114,7 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataType;
 
     static constexpr IndexType MatrixSize = TDim * (TNumNodesMaster + TNumNodes + TNumNodes);
 
@@ -173,13 +173,12 @@ public:
     ///@{
 
     /**
-     * Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an arry of nodes
      * @param NewId the ID of the new element
      * @param rThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& rThisNodes,
@@ -187,13 +186,12 @@ public:
         ) const override;
 
     /**
-     * Creates a new element pointer from an existing geometry
+     * @brief Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
      * @param pGeom the  geometry taken to create the condition
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         GeometryPointerType pGeom,
@@ -201,14 +199,13 @@ public:
         ) const override;
 
     /**
-     * Creates a new element pointer from an existing geometry
+     * @brief Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
      * @param pGeom the  geometry taken to create the condition
      * @param pProperties the properties assigned to the new element
      * @param pMasterGeom the paired geometry
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         GeometryPointerType pGeom,
@@ -216,40 +213,59 @@ public:
         GeometryPointerType pMasterGeom
         ) const override;
 
+    /********************************************************************************/
+    /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
+    /********************************************************************************/
+
+    /**
+     * @brief Calculates the local contibution of the RHS
+     * @param pCondition The condition pointer
+     * @param rLocalRHS The local RHS to compute
+     * @param rMortarConditionMatrices The mortar operators to be considered
+     * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
+     * @param rActiveInactive The integer that is used to identify which case is the currectly computed
+     */
+    static void StaticCalculateLocalRHS(
+        PairedCondition* pCondition,
+        Vector& rLocalRHS,
+        const MortarConditionMatrices& rMortarConditionMatrices,
+        const DerivativeDataType& rDerivativeData,
+        const IndexType rActiveInactive,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
     /**
-     * Sets on rResult the ID's of the element degrees of freedom
+     * @brief Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The result vector with the ID's of the DOF
      * @param rCurrentProcessInfo the current process info instance
      */
-
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
-     * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
+     * @brief Sets on ConditionalDofList the degrees of freedom of the considered element geometry
      * @param rConditionalDofList The list of DOFs
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process information
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -281,7 +297,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -312,13 +328,12 @@ protected:
     /********************************************************************************/
 
     /**
-     * Calculates the local contibution of the LHS
+     * @brief Calculates the local contibution of the LHS
      * @param rLocalLHS The local LHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
      * @param rActiveInactive The integer that is used to identify which case is the currectly computed
      */
-
     void CalculateLocalLHS(
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
@@ -328,13 +343,12 @@ protected:
         ) override;
 
     /**
-     * Calculates the local contibution of the RHS
+     * @brief Calculates the local contibution of the RHS
      * @param rLocalRHS The local RHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
      * @param rActiveInactive The integer that is used to identify which case is the currectly computed
      */
-
     void CalculateLocalRHS(
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
@@ -348,12 +362,11 @@ protected:
     /******************************************************************/
 
     /**
-     * Returns a value depending of the active/inactive set
+     * @brief Returns a value depending of the active/inactive set
      * @param CurrentGeometry The geometry containing the nodes that are needed to be checked as active or inactive
      * @return The integer that can be used to identify the case to compute
      */
-
-    IndexType GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
+    IndexType GetActiveInactiveValue(const GeometryType& CurrentGeometry) const override
     {
         IndexType value = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
@@ -434,5 +447,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_ALM_FRICTIONLESS_COMPONENTS_MORTAR_CONTACT_CONDITION_H_INCLUDED  defined

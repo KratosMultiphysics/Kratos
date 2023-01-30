@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -7,9 +6,9 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-import main_script
-import plot_variables                # Related to benchmarks in Chung, Ooi
-import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
+import KratosMultiphysics.DEMApplication.main_script as main_script
+import KratosMultiphysics.DEMApplication.plot_variables as plot_variables # Related to benchmarks in Chung, Ooi
+import KratosMultiphysics.DEMApplication.DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
 
 Logger.PrintInfo("DEM", "WARNING: DEM_benchmarks.py is is deprecated since 20/03/2019")
 Logger.PrintInfo("DEM", "WARNING: Please use DEM_benchmarks_analysis.py")
@@ -54,8 +53,7 @@ class Solution(main_script.Solution):
         elif benchmark_number in listGeneric:
             file_name = "ProjectParametersDEMGeneric.json"
         else:
-            Logger.PrintInfo("DEM",'Benchmark number does not exist')
-            sys.exit()
+            raise Exception("Benchmark number does not exist")
 
         with open(file_name, 'r') as parameters_file:
             parameters = Parameters(parameters_file.read())
@@ -64,7 +62,7 @@ class Solution(main_script.Solution):
 
 
     def __init__(self, model):
-        super(Solution, self).__init__(model)
+        super().__init__(model)
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()
@@ -76,17 +74,11 @@ class Solution(main_script.Solution):
         # Strategy object
         element_type = self.DEM_parameters["ElementType"].GetString()
         if (element_type == "SphericPartDEMElement3D" or element_type == "CylinderPartDEMElement2D"):
-            import sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
         elif (element_type == "SphericContPartDEMElement3D" or element_type == "CylinderContPartDEMElement2D"):
-            import continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "ThermalSphericContPartDEMElement3D"):
-            import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "ThermalSphericPartDEMElement3D"):
-            import thermal_sphere_strategy as SolverStrategy
-        elif (element_type == "SinteringSphericConPartDEMElement3D"):
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.continuum_sphere_strategy as SolverStrategy
         elif (element_type == "IceContPartDEMElement3D"):
-            import ice_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.ice_continuum_sphere_strategy as SolverStrategy
         else:
             self.KratosPrintWarning('Error: Strategy unavailable. Select a different scheme-element')
 
@@ -110,7 +102,7 @@ class Solution(main_script.Solution):
         #self.end_time = slt.end_time
         #self.dt = slt.dt
         #self.graph_print_interval = slt.graph_print_interval
-        super(Solution, self).Initialize()
+        super().Initialize()
 
         Logger.PrintInfo("DEM","Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
         list_of_nodes_ids = [1]
@@ -120,7 +112,7 @@ class Solution(main_script.Solution):
             self.tang_plotter = plot_variables.tangential_force_plotter(self.spheres_model_part, list_of_nodes_ids, self.iteration)
 
     def ReadModelParts(self):
-        super(Solution, self).ReadModelParts()
+        super().ReadModelParts()
         benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)
 
     def GetMpFilename(self):
@@ -141,18 +133,18 @@ class Solution(main_script.Solution):
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)
 
-    def _BeforeSolveOperations(self, time):
-        super(Solution, self)._BeforeSolveOperations(time)
-        benchmark.ApplyNodalRotation(time, self.dt, self.spheres_model_part)
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+        benchmark.ApplyNodalRotation(self.time, self.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
-        super(Solution, self).BeforePrintingOperations(time)
+        super().BeforePrintingOperations(time)
         self.SetDt()
         benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)
 
     def Finalize(self):
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)
-        super(Solution, self).Finalize()
+        super().Finalize()
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.close_files()
@@ -160,8 +152,8 @@ class Solution(main_script.Solution):
 
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
-    def FinalizeTimeStep(self, time):
-        super(Solution, self).FinalizeTimeStep(time)
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
@@ -169,7 +161,7 @@ class Solution(main_script.Solution):
 
     def CleanUpOperations(self):
         Logger.PrintInfo("DEM","running CleanUpOperations")
-        super(Solution, self).CleanUpOperations()
+        super().CleanUpOperations()
 
 
 end_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)

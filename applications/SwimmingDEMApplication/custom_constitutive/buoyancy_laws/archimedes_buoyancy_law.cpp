@@ -14,7 +14,7 @@ namespace Kratos {
     void ArchimedesBuoyancyLaw::Initialize(const ProcessInfo& r_process_info){}
 
     std::string ArchimedesBuoyancyLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Archimedes buoyancy law";
+        std::string type_of_law = "ArchimedesBuoyancyLaw";
         return type_of_law;
     }
 

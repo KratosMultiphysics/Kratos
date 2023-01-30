@@ -34,21 +34,13 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     /// Pointer definition of ApplyPeriodicConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPeriodicConditionProcess);
 
-    typedef Dof<double>*                                    DofPointerType;
-    typedef Dof<double>                                     DofType;
     typedef Node<3>                                         NodeType;
-    typedef ModelPart::VariableComponentType                VariableComponentType;
-    typedef KratosComponents<Variable<array_1d<double, 3>>> VectorVariableType;
-    typedef ProcessInfo                                     ProcessInfoType;
-    typedef ProcessInfo::Pointer                            ProcessInfoPointerType;
+    typedef Variable<double>                                VariableType;
     typedef NodeType::IndexType                             IndexType;
-    typedef ModelPart::DoubleVariableType                   VariableType;
     typedef ModelPart::NodeIterator                         NodeIteratorType;
-    typedef Element                                         ElementType;
     typedef Matrix                                          MatrixType;
     typedef Vector                                          VectorType;
     typedef Geometry<NodeType>                              GeometryType;
-    typedef ModelPart::MasterSlaveConstraintContainerType   ConstraintContainerType;
 
     /**
      * @brief Constructor of the process to apply periodic boundary condition
@@ -73,6 +65,11 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @brief Function initializes the solution step
      */
     void ExecuteInitializeSolutionStep() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     /**
      * @brief Function to print the information about this current process
@@ -139,25 +136,9 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
 
     /**
-     * @brief   Calculate the transformation matrix to account for the moving the two periodic condition modelparts together.
+     * @brief Calculate the transformation matrix to account for the moving the two periodic condition modelparts together.
      */
     void CalculateTransformationMatrix();
-
-    /**
-     * @brief   Calculate the transformation matrix which translates the given vector along mDirOfTranslation by mDistance
-     * @param   Modulus is the magnitude by which the translation should happen in the direction of mDirOfTranslation.
-     * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
-     */
-    void CalculateTranslationMatrix(const double Modulus, MatrixType& rMatrix);
-
-    /**
-     * @brief   Calculate the transformation matrix which rotates the given vector around mAxisOfRotationVector and mCenterOfRotation
-     *          by provided Theta and stores the result in rMatrix The following code is generated from MATLAB and is adapted here.
-     * @see     http://paulbourke.net/geometry/rotate/
-     * @param   Theta is the angle of rotation about mAxisOfRotationVector and mCenterOfRotation.
-     * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
-     */
-    void CalculateRotationMatrix(const double Theta, MatrixType& rMatrix );
 
     /*
      * @brief Transform the point(node_cords) using the mTransformationMatrix calculated in CalculateTransformationMatrix function

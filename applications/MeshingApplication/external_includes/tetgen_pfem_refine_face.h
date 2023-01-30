@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <boost/timer.hpp>
 
 
@@ -29,8 +29,8 @@
 #include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "meshing_application.h"
-#include "processes/node_erase_process.h"
+#include "meshing_application_variables.h"
+#include "processes/entity_erase_process.h"
 
 #include "spatial_containers/spatial_containers.h"
 //#include "containers/bucket.h"
@@ -102,7 +102,7 @@ public:
         ModelPart& ThisModelPart , ModelPart::ElementsContainerType& rElements,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,
-        NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
+        EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes=true,
         double alpha_param = 1.4, double h_factor=0.5)
     {
 
@@ -612,7 +612,7 @@ public:
                 //generating the dofs
                 for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = *iii;
+                    Node<3>::DofType &rDof = **iii;
                     Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
@@ -851,7 +851,7 @@ public:
         			int base = ( iii->Id() - 1 )*4;
 
         			(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
-        			WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+        			GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
 
         			for(int i = 0; i<4; i++)
         			{
@@ -1528,7 +1528,7 @@ private:
                 array_1d<int,3> str_pts = ZeroVector(3);
 //                                int str_num = 0;
 //                                int cnt = 0;
-                WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
+                GlobalPointersVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
                 for(int ii=0; ii<4; ++ii)
                 {
                     if(neighbor_els[ii].Id() == elem->Id())
@@ -1760,6 +1760,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TETGEN_PFEM_MODELER_H_INCLUDED  defined 
+#endif // KRATOS_TETGEN_PFEM_MODELER_H_INCLUDED  defined
 
 

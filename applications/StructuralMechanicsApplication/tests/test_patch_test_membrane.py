@@ -1,17 +1,31 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 class BasePatchTestMembrane(KratosUnittest.TestCase):
 
-    def _add_variables(self,mp):
+    def _add_variables(self,mp,explicit_dynamics=False):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+        if explicit_dynamics:
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
+            mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+            mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+            mp.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
+            mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 
     def _add_dofs(self,mp):
         # Adding the dofs AND their corresponding reaction!
@@ -74,7 +88,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.CreateNewNode(25, 1.0000000000,  0.0000000000,  0.0000000000)
 
     def _create_elements_3d3n(self,mp):
-        element_name = "PreStressMembraneElement3D3N"
+        element_name = "MembraneElement3D3N"
         mp.CreateNewElement(element_name, 1, [21, 13, 18], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 2, [11, 13, 21], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 3, [8, 13, 11], mp.GetProperties()[1])
@@ -113,7 +127,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.CreateNewElement(element_name, 36, [12, 14, 9], mp.GetProperties()[1])
 
     def _create_elements_3d4n(self,mp):
-        element_name = "PreStressMembraneElement3D4N"
+        element_name = "MembraneElement3D4N"
         mp.CreateNewElement(element_name,  1 , [19, 12, 10, 16], mp.GetProperties()[1])
         mp.CreateNewElement(element_name,  2 , [22, 14, 12, 19], mp.GetProperties()[1])
         mp.CreateNewElement(element_name,  3 , [24, 20, 14, 22], mp.GetProperties()[1])
@@ -131,10 +145,16 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.CreateNewElement(element_name, 15 , [13, 11,  6,  8], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 16 , [18, 17, 11, 13], mp.GetProperties()[1])
 
-    def _apply_dirichlet_BCs(self,mp):
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+    def _apply_dirichlet_BCs(self,mp,fix_type='all'):
+        if fix_type=='all':
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+        elif fix_type=='YZ':
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+        else:
+            print('fix_type: ', fix_type,' not implemented')
 
     def _apply_self_weight(self, mp):
         for node in mp.Nodes:
@@ -150,23 +170,11 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,700.0)
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA,0.03)
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA,0.02)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
         constitutive_law = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
 
-        local_axis_1 = KratosMultiphysics.Vector(3)
-        local_axis_1[0] = 1.0
-        local_axis_1[1] = 0.0
-        local_axis_1[2] = 0.0
-
-        local_axis_2= KratosMultiphysics.Vector(3)
-        local_axis_2[0] = 0.0
-        local_axis_2[1] = 0.0
-        local_axis_2[2] = 1.0
-
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,constitutive_law)
-        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.PROJECTION_TYPE_COMBO,"planar")
-        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.PRESTRESS_AXIS_1_GLOBAL,local_axis_1)
-        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.PRESTRESS_AXIS_2_GLOBAL,local_axis_2)
 
         prestress = KratosMultiphysics.Vector(3)
         prestress[0]=1e4        #1e4
@@ -178,7 +186,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-9)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-6)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -187,7 +195,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,
@@ -197,35 +204,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         strategy.SetEchoLevel(0)
         strategy.Check()
         strategy.Solve()
-
-    def _solve_dynamic(self,mp):
-
-        #define a minimal newton raphson dynamic solver
-        damp_factor_m = -0.30
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-9)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 500
-        compute_reactions = True
-        reform_step_dofs = False
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        linear_solver,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
-        strategy.Check()
-        strategy.Solve()
-
 
     def _check_static_results(self,node,displacement_results):
         #check that the results are exact on the node
@@ -255,12 +233,12 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-
-    def _set_up_system_3d3n(self,current_model):
+    def _set_up_system_3d3n(self,current_model,explicit_dynamics=False):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
-        self._add_variables(mp)
+        self._add_variables(mp,explicit_dynamics)
         self._apply_material_properties(mp)
         self._create_nodes_3d3n(mp)
         self._add_dofs(mp)
@@ -274,11 +252,12 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
 
         return mp
 
-    def _set_up_system_3d4n(self,current_model):
+    def _set_up_system_3d4n(self,current_model,explicit_dynamics=False):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
-        self._add_variables(mp)
+        self._add_variables(mp,explicit_dynamics)
         self._apply_material_properties(mp)
         self._create_nodes_3d4n(mp)
         self._add_dofs(mp)
@@ -292,38 +271,11 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
 
         return mp
 
-    def __post_process(self, main_model_part):
-        from gid_output_process import GiDOutputProcess
-        self.gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISPLACEMENT"],
-                                                "gauss_point_results" : []
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        self.gid_output.ExecuteInitialize()
-        self.gid_output.ExecuteBeforeSolutionLoop()
-        self.gid_output.ExecuteInitializeSolutionStep()
-        self.gid_output.PrintOutput()
-        self.gid_output.ExecuteFinalizeSolutionStep()
-        self.gid_output.ExecuteFinalize()
-
 
 class StaticPatchTestMembrane(BasePatchTestMembrane):
 
     def test_membrane_3d3n_static(self):
-        displacement_results = [-4.628753e-12 , -0.0493006 , -6.483677e-12]
+        displacement_results = [0.0 ,-0.14387, 0.0]
 
         current_model = KratosMultiphysics.Model()
 
@@ -333,10 +285,8 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
 
         self._check_static_results(mp.Nodes[10],displacement_results)
 
-        #self.__post_process(mp)
-
     def test_membrane_3d4n_static(self):
-        displacement_results = [1.73962e-07 , -0.0519422 , -1.243591e-08]
+        displacement_results = [0.0 , -0.654530593225597 , 0.0]
 
         current_model = KratosMultiphysics.Model()
 
@@ -348,14 +298,226 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
 
         #self.__post_process(mp)
 
+    def test_membrane_wrinkling_law(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("Structure")
+        mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+        self._add_variables(mp)
+
+        # add properties and subproperties
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,206900000000.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,0.0001)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,7850.0)
+        constitutive_law = ConstitutiveLawsApplication.WrinklingLinear2DLaw()
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,constitutive_law)
+        sub_constitutive_law = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+        mp.GetProperties()[2].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,sub_constitutive_law)
+        mp.GetProperties()[1].AddSubProperties(mp.GetProperties()[2])
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
+
+
+        # create nodes
+        mp.CreateNewNode(1,   0.0000000000,   1.0000000000,   0.0000000000)
+        mp.CreateNewNode(2,   0.0000000000,   0.0000000000,   0.0000000000)
+        mp.CreateNewNode(3,   1.0000000000,   1.0000000000,   0.0000000000)
+        mp.CreateNewNode(4,   1.0000000000,   0.0000000000,   0.0000000000)
+
+        # add dofs
+        self._add_dofs(mp)
+
+        # create element
+        element_name = "MembraneElement3D4N"
+        mp.CreateNewElement(element_name, 1, [4, 3, 1, 2], mp.GetProperties()[1])
+
+        # create & apply dirichlet bcs
+        bcs_dirichlet_all = mp.CreateSubModelPart("BoundaryCondtionsDirichletAll")
+        bcs_dirichlet_all.AddNodes([2,4])
+
+        bcs_dirichlet_mv = mp.CreateSubModelPart("BoundaryCondtionsDirichletMove")
+        bcs_dirichlet_mv.AddNodes([1,3])
+
+        self._apply_dirichlet_BCs(bcs_dirichlet_all)
+        self._apply_dirichlet_BCs(bcs_dirichlet_mv,fix_type='YZ')
+
+        # create & apply neumann bcs
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[1],mp.GetProperties()[1])
+        mp.CreateNewCondition("PointLoadCondition3D1N",2,[3],mp.GetProperties()[1])
+
+        bcs_neumann = mp.CreateSubModelPart("BoundaryCondtionsNeumann")
+        bcs_neumann.AddNodes([1,3])
+        bcs_neumann.AddConditions([1,2])
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_X, 1000000.0, bcs_neumann.Nodes)
+
+        # solve
+        self._solve_static(mp)
+
+        # check results
+        self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.58054148514004470,4)
+        self.assertAlmostEqual(mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.15072065295319598,4)
+
+
+    def test_membrane_cauchy_stress_and_local_axis(self):
+
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("Structure")
+        mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+        self._add_variables(mp)
+
+        # add properties and subproperties
+        thickness = 1.3
+        height = 1.2
+        length = 10.0
+
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,500.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.00)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,thickness)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,7850.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw())
+
+        # create nodes
+        mp.CreateNewNode(1,   -0.668004, 0.9192533, 0.3856725)
+        mp.CreateNewNode(2,   0.0, 0.0, 0.0)
+        mp.CreateNewNode(3,   5.966131, 7.3471293, -3.4445475)
+        mp.CreateNewNode(4,   6.634135, 6.427876, -3.83022)
+
+
+        # add dofs
+        self._add_dofs(mp)
+
+        # create element
+        element_name = "MembraneElement3D4N"
+        mp.CreateNewElement(element_name, 1, [4, 3, 1, 2], mp.GetProperties()[1])
+
+        # create & apply dirichlet bcs
+        bcs_dirichlet_all = mp.CreateSubModelPart("BoundaryCondtionsDirichletAll")
+        bcs_dirichlet_all.AddNodes([1,2])
+
+
+        self._apply_dirichlet_BCs(bcs_dirichlet_all)
+
+        # create & apply neumann bcs
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[3],mp.GetProperties()[1])
+        mp.CreateNewCondition("PointLoadCondition3D1N",2,[4],mp.GetProperties()[1])
+
+        bcs_neumann = mp.CreateSubModelPart("BoundaryCondtionsNeumann")
+        bcs_neumann.AddNodes([3,4])
+        bcs_neumann.AddConditions([1,2])
+        point_load = 5.0
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_X, point_load*0.6634135, bcs_neumann.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_Y, point_load*0.6427876, bcs_neumann.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_Z, point_load*(-0.383022), bcs_neumann.Nodes)
+
+        ## 1.) with local axis calculated from element (dependent on node numbering)
+        cauchy_stress_analytical = point_load * len(bcs_neumann.Nodes) / (thickness*height)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        disp_y_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+        disp_z_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+        disp_i = (disp_x_i**2 + disp_y_i**2 + disp_z_i**2)**0.5
+        det_F_inv = length / (length+disp_i)
+
+        for element_i in mp.Elements:
+            pk2 = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,mp.ProcessInfo)
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], 0.0,5)
+                self.assertAlmostEqual(cauchy[i][1], cauchy_stress_analytical,5)
+                self.assertAlmostEqual(cauchy[i][2], 0.0,5)
+
+                self.assertAlmostEqual(pk2[i][0], 0.0,5)
+                self.assertAlmostEqual(pk2[i][1], cauchy_stress_analytical*det_F_inv,5)
+                self.assertAlmostEqual(pk2[i][2], 0.0,5)
+
+
+        ## 2.) with local mat_axis = 0.6634135,0.6427876,-0.383022 : along forces
+
+        projection_settings = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"  : "Structure",
+            "projection_type"  : "planar",
+            "global_direction" : [0.6634135,0.6427876,-0.383022],
+            "variable_name"    : "LOCAL_MATERIAL_AXIS_1"
+        }
+        """)
+        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(mp, projection_settings)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        disp_y_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+        disp_z_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+        disp_i = (disp_x_i**2 + disp_y_i**2 + disp_z_i**2)**0.5
+        det_F_inv = length / (length+disp_i)
+
+        for element_i in mp.Elements:
+            pk2 = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,mp.ProcessInfo)
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], cauchy_stress_analytical,5)
+                self.assertAlmostEqual(cauchy[i][1], 0.0,5)
+                self.assertAlmostEqual(cauchy[i][2], 0.0,5)
+
+                self.assertAlmostEqual(pk2[i][0], cauchy_stress_analytical*det_F_inv,5)
+                self.assertAlmostEqual(pk2[i][1], 0.0,5)
+                self.assertAlmostEqual(pk2[i][2], 0.0,5)
+
+
+
+        ## 3.) with local mat_axis = 0.07537005, 0.9961943, -0.0437662 -> rotate stress state by 45°
+        cauchy_stress_analytical /= 2.0
+
+        projection_settings = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"  : "Structure",
+            "projection_type"  : "planar",
+            "global_direction" : [0.07537005, 0.9961943, -0.0437662],
+            "variable_name"    : "LOCAL_MATERIAL_AXIS_1"
+        }
+        """)
+        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(mp, projection_settings)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        det_F_inv = length / (length+disp_x_i)
+
+        for element_i in mp.Elements:
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], cauchy_stress_analytical,5)
+                self.assertAlmostEqual(cauchy[i][1], cauchy_stress_analytical,5)
+                self.assertAlmostEqual(abs(cauchy[i][2]), cauchy_stress_analytical,5)
+
+
 class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
     def test_membrane_3d3n_dynamic(self):
 
-        displacement_results = [-0.004145456940147508, -0.016577305470262357, -0.036009405854487204,
-        -0.05724634378436276, -0.07431594485756908, -0.08286293670959116,
-        -0.08158307966494918, -0.07223491977349739, -0.058530143571647514,
-        -0.044671016341598674, -0.03417034853894327]
+        displacement_results = [-0.007089438412033326, -0.029822680087784745,
+         -0.06885919290197041, -0.11789566268620255, -0.16782594612777746,
+          -0.20965003664374557, -0.23625437622363624, -0.24367871176937714,
+           -0.23199366410722475, -0.20519338137993956, -0.16989264638279236]
 
 
         current_model = KratosMultiphysics.Model()
@@ -369,26 +531,31 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
         self._set_and_fill_buffer(mp,2,dt)
 
+        strategy = _set_up_dynamic_solver(mp)
+
+
         while(time <= end_time):
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
 
-            self._solve_dynamic(mp)
+            strategy.Solve()
             self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
 
-        #self.__post_process(mp)
 
-    def test_membrane_3d4n_dynamic(self):
+    def test_membrane_3d3n_dynamic_consistent_mm(self):
 
-        displacement_results = [-0.004416597413161373, -0.017672715828946108, -0.0383282878649957,
-        -0.060720299929014065, -0.07850778062395564, -0.08727738281567025,
-        -0.08586880143129107, -0.07618411850603453, -0.06201094423792496,
-        -0.04762424029880159, -0.03666158466786426]
+        # testing the consistent mass matrix
+        displacement_results = [-0.007490195298498001, -0.03205918380077824,
+         -0.07412766703320273, -0.12577430959520983, -0.17651326061862066,
+          -0.21651319590892576, -0.23851009222949052, -0.23960005011005436,
+           -0.22180996450645668, -0.19094076125850337, -0.15452324756578495]
+
 
 
         current_model = KratosMultiphysics.Model()
-        mp = self._set_up_system_3d4n(current_model)
+        mp = self._set_up_system_3d3n(current_model)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
         #time integration parameters
         dt = 0.05
@@ -398,15 +565,249 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
         self._set_and_fill_buffer(mp,2,dt)
 
+        strategy = _set_up_dynamic_solver(mp)
+
         while(time <= end_time):
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
 
-            self._solve_dynamic(mp)
+            strategy.Solve()
+            self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
+
+
+    def test_membrane_3d4n_dynamic(self):
+
+        displacement_results = [-0.007965399725003252, -0.03429887689665373, -0.08360241926282734,
+         -0.15647485023885868, -0.2518758324657345, -0.36743465800961833,
+          -0.49868348939138385, -0.6365094414925273, -0.7654926123165248,
+           -0.8678567755398555, -0.9310288151818886]
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d4n(current_model)
+
+
+        #time integration parameters
+        dt = 0.05
+        time = 0.0
+        end_time = 0.5
+        step = 0
+
+        self._set_and_fill_buffer(mp,2,dt)
+
+        strategy = _set_up_dynamic_solver(mp)
+
+        while(time <= end_time):
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+
+            strategy.Solve()
             self._check_dynamic_results(mp.Nodes[9],step-1,displacement_results)
 
-        #self.__post_process(mp)
+    def test_membrane_3d4n_dynamic_consistent_mm(self):
+
+        # testing the consistent mass matrix
+        displacement_results = [-0.0068262937328168495, -0.02941854364046232, -0.07256819077129248,
+            -0.14135354440105916, -0.24454216474869334, -0.3867710965498557,
+             -0.553540800031605, -0.7125921423281173, -0.8384584501442425,
+              -0.9239910415432309, -0.9663825374837367]
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d4n(current_model)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
+
+        #time integration parameters
+        dt = 0.05
+        time = 0.0
+        end_time = 0.5
+        step = 0
+
+        self._set_and_fill_buffer(mp,2,dt)
+
+        strategy = _set_up_dynamic_solver(mp)
+
+        while(time <= end_time):
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+
+            strategy.Solve()
+            self._check_dynamic_results(mp.Nodes[9],step-1,displacement_results)
+
+
+    def test_membrane_3d3n_dynamic_explicit(self):
+
+        displacement_results = [-0.00040479957654093675, -0.0016324179587680046,
+         -0.0037704865143040603, -0.006897010585329448, -0.01105166110793577,
+          -0.016228737864184672, -0.02238079840616669, -0.029428730428419043,
+           -0.037274683949580445, -0.045814472093039196, -0.054946932064362665,
+            -0.06457910325238626, -0.07462741105917634, -0.08501594513456154,
+             -0.09567325302012067, -0.10652892812279724, -0.11751086332538496,
+             -0.1285435789039004, -0.13954765895506027, -0.1504401029901513,
+              -0.16113531138791007, -0.17154643332610123, -0.18158686573505992,
+               -0.19117176426047214, -0.20021949008993895, -0.20865296062028277,
+                -0.21640089621275393, -0.22339896268355758, -0.22959080465276283,
+                 -0.2349289543566711, -0.23937559005493414, -0.24290311265638176,
+                  -0.24549451123781657, -0.24714349746297454, -0.2478544028992154,
+                   -0.24764184823170488, -0.24653020619437496, -0.2445528888815245,
+                    -0.24175149473282598, -0.23817485172406405, -0.23387799233376924,
+                     -0.22892109368859137, -0.22336841348997402, -0.21728724908181823,
+                      -0.21074694331627486, -0.20381795666297683, -0.19657102031530843,
+                       -0.18907638002801846, -0.18140313534463032, -0.1736186740930271]
+
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d3n(current_model,explicit_dynamics=True)
+
+
+        #time integration parameters
+        dt = 0.01
+        time = 0.0
+        end_time = 0.5
+        step = 0
+
+        self._set_and_fill_buffer(mp,3,dt)
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
+        while(time <= end_time):
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            strategy_expl.Solve()
+            self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
+
+    def test_membrane_3d3n_dynamic_explicit_energy(self):
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d3n(current_model,explicit_dynamics=True)
+
+        #time integration parameters
+        dt = 0.001
+        time = 0.0
+        end_time = 0.02
+        step = 0
+
+        self._set_and_fill_buffer(mp,3,dt)
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
+
+        e_damp = 0.0
+        while(time <= end_time):
+
+            e_strain = 0.0
+            e_kin = 0.0
+            e_ext = 0.0
+
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            strategy_expl.Solve()
+
+
+            for element_i in mp.Elements:
+                e_strain += element_i.Calculate(KratosMultiphysics.STRAIN_ENERGY,mp.ProcessInfo)
+                e_kin    += element_i.Calculate(KratosMultiphysics.KINETIC_ENERGY,mp.ProcessInfo)
+                e_damp += dt*element_i.Calculate(StructuralMechanicsApplication.ENERGY_DAMPING_DISSIPATION,mp.ProcessInfo)
+                # adding external energy due to dead load
+                e_ext   += element_i.Calculate(KratosMultiphysics.EXTERNAL_ENERGY,mp.ProcessInfo)
+
+
+            # total energy should be ca. 0
+            e_total = sum([-e_ext,e_kin,e_strain,e_damp])
+            self.assertLessEqual(abs(e_total), 0.015)
+            # respective energy parts should be > or < 0 after first step
+            if step>1:
+                self.assertGreater(abs(e_ext), 0.0)
+                self.assertGreater(abs(e_damp), 0.0)
+                self.assertGreater(abs(e_kin), 0.0)
+                self.assertGreater(abs(e_strain), 0.0)
+
+
+
+    def test_membrane_3d4n_dynamic_explicit_energy(self):
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d4n(current_model,explicit_dynamics=True)
+
+        #time integration parameters
+        dt = 0.001
+        time = 0.0
+        end_time = 0.02
+        step = 0
+
+        self._set_and_fill_buffer(mp,3,dt)
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
+
+        e_damp = 0.0
+        while(time <= end_time):
+
+            e_strain = 0.0
+            e_kin = 0.0
+            e_ext = 0.0
+
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            strategy_expl.Solve()
+
+
+            for element_i in mp.Elements:
+                e_strain += element_i.Calculate(KratosMultiphysics.STRAIN_ENERGY,mp.ProcessInfo)
+                e_kin    += element_i.Calculate(KratosMultiphysics.KINETIC_ENERGY,mp.ProcessInfo)
+                e_damp += dt*element_i.Calculate(StructuralMechanicsApplication.ENERGY_DAMPING_DISSIPATION,mp.ProcessInfo)
+                # adding external energy due to dead load
+                e_ext   += element_i.Calculate(KratosMultiphysics.EXTERNAL_ENERGY,mp.ProcessInfo)
+
+
+            # total energy should be ca. 0
+            e_total = sum([-e_ext,e_kin,e_strain,e_damp])
+            self.assertLessEqual(abs(e_total), 0.035)
+            # respective energy parts should be > or < 0 after first step
+            if step>1:
+                self.assertGreater(abs(e_ext), 0.0)
+                self.assertGreater(abs(e_damp), 0.0)
+                self.assertGreater(abs(e_kin), 0.0)
+                self.assertGreater(abs(e_strain), 0.0)
+
+
+def _create_dynamic_explicit_strategy(mp,scheme_name):
+    if (scheme_name=='central_differences'):
+        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
+    elif scheme_name=='multi_stage':
+        scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(0.33333333333333333)
+
+    strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,scheme,0,0,1)
+    strategy.SetEchoLevel(0)
+    return strategy
+
+def _set_up_dynamic_solver(mp):
+
+    #define a minimal newton raphson dynamic solver
+    damp_factor_m = -0.30
+    linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+    scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+    convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-9)
+    convergence_criterion.SetEchoLevel(0)
+
+    max_iters = 500
+    compute_reactions = True
+    reform_step_dofs = False
+    move_mesh_flag = True
+    strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                    scheme,
+                                                                    convergence_criterion,
+                                                                    builder_and_solver,
+                                                                    max_iters,
+                                                                    compute_reactions,
+                                                                    reform_step_dofs,
+                                                                    move_mesh_flag)
+    strategy.SetEchoLevel(0)
+
+    strategy.Check()
+    return strategy
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

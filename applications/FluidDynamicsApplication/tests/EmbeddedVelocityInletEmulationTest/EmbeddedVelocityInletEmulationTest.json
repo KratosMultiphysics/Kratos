@@ -4,7 +4,7 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 0.2
+        "end_time"      : 0.1
     },
     "output_processes" : {
     },
@@ -15,6 +15,9 @@
         "model_import_settings"       : {
             "input_type"     : "mdpa",
             "input_filename" : "embedded_velocity_inlet_emulation_test"
+        },
+        "material_import_settings": {
+            "materials_filename": "EmbeddedVelocityInletEmulationTestMaterials.json"
         },
         "echo_level"                  : 0,
         "compute_reactions"           : false,
@@ -33,7 +36,7 @@
         "formulation"                 : {
         },
         "linear_solver_settings": {
-            "solver_type": "ExternalSolversApplication.super_lu"
+            "solver_type": "LinearSolversApplication.sparse_lu"
         }
     },
     "processes"        : {

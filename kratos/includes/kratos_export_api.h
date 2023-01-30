@@ -15,12 +15,17 @@
 
 #undef KRATOS_API_EXPORT
 #undef KRATOS_API_IMPORT
-#ifdef _WIN32
-  #define KRATOS_API_EXPORT __declspec(dllexport)
-  #define KRATOS_API_IMPORT __declspec(dllimport)
+#if _WIN32
+    #if defined(__MINGW32__) || defined(__MINGW64__)
+        #define KRATOS_API_EXPORT __attribute__((visibility("default")))
+        #define KRATOS_API_IMPORT __attribute__((visibility("default")))
+    #else 
+        #define KRATOS_API_EXPORT __declspec(dllexport)
+        #define KRATOS_API_IMPORT __declspec(dllimport)
+    #endif
 #else
-  #define KRATOS_API_EXPORT __attribute__((visibility("default")))
-  #define KRATOS_API_IMPORT __attribute__((visibility("default")))
+    #define KRATOS_API_EXPORT __attribute__((visibility("default")))
+    #define KRATOS_API_IMPORT __attribute__((visibility("default")))
 #endif
 
 // Fixes MSVC not expanding __VA_ARGS__ as defined in the C99 standard
@@ -32,20 +37,24 @@
 
 // If KRATOS_API_NO_DLL is defined ingore the DLL api
 #ifndef KRATOS_API_NO_DLL
-  #define KRATOS_API(...) \
-    KRATOS_EXPAND(KRATOS_API_CALL(,##__VA_ARGS__,KRATOS_API_EXPORT,KRATOS_API_IMPORT))
-  #define KRATOS_NO_EXPORT(...)
+    #define KRATOS_API(...) \
+        KRATOS_EXPAND(KRATOS_API_CALL(,##__VA_ARGS__,KRATOS_API_EXPORT,KRATOS_API_IMPORT))
+    #define KRATOS_NO_EXPORT(...)
 #else
-  #define KRATOS_API(...)
-  #define KRATOS_NO_EXPORT(...)
+    #define KRATOS_API(...)
+    #define KRATOS_NO_EXPORT(...)
 #endif
 
 // Conditionally declare explicit template instances, since explicit instiation does not play nice with dllexport
 #undef KRATOS_API_EXTERN
 #ifdef _WIN32
-  #define KRATOS_API_EXTERN
+    #if defined(__MINGW32__) || defined(__MINGW64__)
+        #define KRATOS_API_EXTERN extern
+    #else 
+        #define KRATOS_API_EXTERN
+    #endif
 #else
-  #define KRATOS_API_EXTERN extern
+    #define KRATOS_API_EXTERN extern
 #endif
 
 #endif

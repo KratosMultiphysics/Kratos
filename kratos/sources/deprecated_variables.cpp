@@ -11,28 +11,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
-#include <vector>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/deprecated_variables.h"
-#include "includes/kernel.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/constitutive_law.h"
-#include "includes/geometrical_object.h"
-
-// #include "python/add_deprecated_variables_to_python.h"
-
-#include "includes/convection_diffusion_settings.h"
-#include "includes/radiation_settings.h"
-
-#include "includes/kratos_flags.h"
+#include "includes/kratos_application.h"
 
 namespace Kratos
 {

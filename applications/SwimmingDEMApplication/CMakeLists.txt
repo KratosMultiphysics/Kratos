@@ -2,25 +2,17 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosSwimmingDEMApplication ****")
 
-if(NOT (${DEM_APPLICATION} STREQUAL "ON"))
-    message(SEND_ERROR "The DEM Application must be compiled before this one. Set DEM_APPLICATION=ON in the configure file.")
-endif(NOT (${DEM_APPLICATION} STREQUAL "ON"))
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 
-if(NOT (${FLUID_DYNAMICS_APPLICATION} STREQUAL "ON"))
-    message(SEND_ERROR "The Fluid Dynamics Application must be compiled before this one. Set FLUID_DYNAMICS_APPLICATION=ON in the configure file.")
-endif(NOT (${FLUID_DYNAMICS_APPLICATION} STREQUAL "ON"))
-
-#if(NOT (${INCOMPRESSIBLE_FLUID_APPLICATION} STREQUAL "ON"))
-#    message(SEND_ERROR "The Incompressible Fluid Application must be compiled before this one. Set INCOMPRESSIBLE_FLUID_APPLICATION=ON in the configure file.")
-#endif(NOT (${INCOMPRESSIBLE_FLUID_APPLICATION} STREQUAL "ON"))
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Dependecies on other applications
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/SwimmingDEMApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/SwimmingDEMApplication )
 
 ## Generate variables with the sources
 set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
@@ -48,9 +40,11 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/beetstra_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/schiller_and_naumann_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/haider_and_levenspiel_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/chien_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/ganser_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/shah_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/newton_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/dallavalle_drag_law.cpp
 
     # Inviscid Force Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/inviscid_force_law.cpp
@@ -77,6 +71,16 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/rubinow_and_keller_torque_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/loth_steady_viscous_torque_law.cpp
+
+    #Process
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/bump_transient_porosity_solution_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_and_sinusoidal_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_transient_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/sinusoidal_porosity_solution_transient_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/sinusoidal_porosity_solution_and_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hyperbolic_tangential_porosity_solution_and_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hyperbolic_tangential_porosity_solution_transient_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_and_body_force_process.cpp
 
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
@@ -113,6 +117,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlets/bentonite_force_based_inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/fluid_field_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/stationarity_check.cpp
 )
 
 ## Define python interface sources
@@ -120,6 +125,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/swimming_DEM_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 )
 
@@ -134,14 +140,11 @@ pybind11_add_module(KratosSwimmingDEMApplication MODULE ${KRATOS_SWIMMING_DEM_AP
 target_link_libraries(KratosSwimmingDEMApplication PUBLIC KratosSwimmingDEMCore)
 set_target_properties(KratosSwimmingDEMApplication PROPERTIES PREFIX "")
 
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosSwimmingDEMCore)
-  cotire(KratosSwimmingDEMApplication)
-endif(USE_COTIRE MATCHES ON)
-
-## installing the resulting libraries
-install(TARGETS KratosSwimmingDEMCore DESTINATION libs )
-install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosSwimmingDEMCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosSwimmingDEMApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -153,19 +156,30 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosSwimmingDEMApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("KratosSwimmingDEMApplication subdir inc_dirs = ${inc_dirs}")
-
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/SwimmingDEMApplication.py" DESTINATION "KratosMultiphysics/SwimmingDEMApplication" RENAME "__init__.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/SwimmingDEMApplication.py KratosMultiphysics/SwimmingDEMApplication/__init__.py )
 
-#if(${INSTALL_PYTHON_FILES} MATCHES ON)
-#  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-#  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-#endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/tests KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+## Install targets
+install(TARGETS KratosSwimmingDEMCore DESTINATION libs )
+install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosSwimmingDEMCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosSwimmingDEMApplication" PARENT_SCOPE)

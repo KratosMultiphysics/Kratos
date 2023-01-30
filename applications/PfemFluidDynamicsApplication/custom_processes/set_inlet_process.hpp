@@ -7,10 +7,8 @@
 //
 //
 
-
-#if !defined(KRATOS_SET_INLET_PROCESS_H_INCLUDED )
-#define  KRATOS_SET_INLET_PROCESS_H_INCLUDED
-
+#if !defined(KRATOS_SET_INLET_PROCESS_H_INCLUDED)
+#define KRATOS_SET_INLET_PROCESS_H_INCLUDED
 
 // External includes
 
@@ -26,7 +24,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -45,175 +42,154 @@ namespace Kratos
 */
 
 class SetInletProcess
-  : public Process
+    : public Process
 {
 public:
-    ///@name Type Definitions
-    ///@{
+  ///@name Type Definitions
+  ///@{
 
-    /// Pointer definition of Process
-    KRATOS_CLASS_POINTER_DEFINITION( SetInletProcess );
+  /// Pointer definition of Process
+  KRATOS_CLASS_POINTER_DEFINITION(SetInletProcess);
 
-  typedef ModelPart::NodeType                   NodeType;
-  typedef ModelPart::ConditionType         ConditionType;
-  typedef ModelPart::PropertiesType       PropertiesType;
-  typedef ConditionType::GeometryType       GeometryType;
+  typedef ModelPart::NodeType NodeType;
+  typedef ModelPart::ConditionType ConditionType;
+  typedef ModelPart::PropertiesType PropertiesType;
+  typedef ConditionType::GeometryType GeometryType;
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
-    /// Default constructor.
-    SetInletProcess(ModelPart& rModelPart,
-				int EchoLevel)
+  /// Default constructor.
+  SetInletProcess(ModelPart &rModelPart,
+                  int EchoLevel)
       : mrModelPart(rModelPart)
-    {
-        KRATOS_INFO("SetInletProcess") << " inlet_management CONSTRUCTOR ";
+  {
+    KRATOS_INFO("SetInletProcess") << " activated "<< std::endl;
 
-        mEchoLevel = EchoLevel;
-    }
+    mEchoLevel = EchoLevel;
+  }
 
+  /// Destructor.
+  virtual ~SetInletProcess() {}
 
-    /// Destructor.
-    virtual ~SetInletProcess() {}
+  ///@}
+  ///@name Operators
+  ///@{
 
+  /// This operator is provided to call the process as a function and simply calls the Execute method.
+  void operator()()
+  {
+    Execute();
+  }
 
-    ///@}
-    ///@name Operators
-    ///@{
+  ///@}
+  ///@name Operations
+  ///@{
 
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /// Execute method is used to execute the Process algorithms.
-    void Execute() override
+  /// Execute method is used to execute the Process algorithms.
+  void Execute() override
   {
     KRATOS_TRY
 
-      if( mEchoLevel > 1 )
-	std::cout<<"  SET INLET PROCESS ]; "<<std::endl;
+    if (mEchoLevel > 1)
+      std::cout << "  SET INLET PROCESS ]; " << std::endl;
 
     // const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     // unsigned int count=0;
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
-      {
-	// count++;
-	i_node->Set(INLET);
-	i_node->Set(RIGID);
-	// std::cout<<"x y ("<<")  "<<i_node->X()<<" "<<i_node->Y();
-        // i_node->Set(RIGID);
-	// std::cout<<count<<".  "<<i_node->X()<<std::endl;
-	// if(i_node->Is(FLUID)){
-	//   std::cout<<"fluid node "<<std::endl;
-	// }else{
-	//   std::cout<<"not fluid node "<<std::endl;
-	// }
-	// if(i_node->Is(RIGID)){
-	//   std::cout<<"rigid node "<<std::endl;
-	// }
-
-      }
+    for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
+    {
+      // count++;
+      i_node->Set(INLET);
+      i_node->Set(RIGID);
+      // std::cout<<"x y ("<<")  "<<i_node->X()<<" "<<i_node->Y();
+      // i_node->Set(RIGID);
+      // std::cout<<count<<".  "<<i_node->X()<<std::endl;
+      // if(i_node->Is(FLUID)){
+      //   std::cout<<"fluid node "<<std::endl;
+      // }else{
+      //   std::cout<<"not fluid node "<<std::endl;
+      // }
+      // if(i_node->Is(RIGID)){
+      //   std::cout<<"rigid node "<<std::endl;
+      // }
+    }
 
     KRATOS_CATCH(" ")
-      }
+  }
 
+  ///@}
+  ///@name Access
+  ///@{
 
+  ///@}
+  ///@name Inquiry
+  ///@{
 
-    ///@}
-    ///@name Access
-    ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
 
+  /// Turn back information as a string.
+  std::string Info() const override
+  {
+    return "SetInletProcess";
+  }
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+  /// Print information about this object.
+  void PrintInfo(std::ostream &rOStream) const override
+  {
+    rOStream << "SetInletProcess";
+  }
 
+  ///@}
+  ///@name Friends
+  ///@{
 
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "SetInletProcess";
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "SetInletProcess";
-    }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
+  ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
+  ///@name Static Member Variables
+  ///@{
 
-    ///@}
-    ///@name Static Member Variables
-    ///@{
-    ModelPart& mrModelPart;
+  ///@}
+  ///@name Static Member Variables
+  ///@{
+  ModelPart &mrModelPart;
 
-    MesherUtilities mMesherUtilities;
+  MesherUtilities mMesherUtilities;
 
-    int mEchoLevel;
+  int mEchoLevel;
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+  ///@}
+  ///@name Private Operators
+  ///@{
 
+  ///@}
+  ///@name Private Operations
+  ///@{
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+  ///@}
+  ///@name Private  Access
+  ///@{
 
+  ///@}
+  ///@name Private Inquiry
+  ///@{
 
+  ///@}
+  ///@name Un accessible methods
+  ///@{
 
+  /// Assignment operator.
+  SetInletProcess &operator=(SetInletProcess const &rOther);
 
+  /// this function is a private function
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+  /// Copy constructor.
+  //Process(Process const& rOther);
 
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    /// Assignment operator.
-    SetInletProcess& operator=(SetInletProcess const& rOther);
-
-
-    /// this function is a private function
-
-
-    /// Copy constructor.
-    //Process(Process const& rOther);
-
-
-    ///@}
+  ///@}
 
 }; // Class Process
 
@@ -222,31 +198,26 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  SetInletProcess& rThis);
+inline std::istream &operator>>(std::istream &rIStream,
+                                SetInletProcess &rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const SetInletProcess& rThis)
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const SetInletProcess &rThis)
 {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+  rThis.PrintInfo(rOStream);
+  rOStream << std::endl;
+  rThis.PrintData(rOStream);
 
-    return rOStream;
+  return rOStream;
 }
 ///@}
 
-
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_SET_INLET_PROCESS_H_INCLUDED  defined
-
-

@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI",
         "start_time"      : 0.0,
-        "end_time"        : 0.005,
+        "end_time"        : 0.003,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP",
         "threads"         : 1,
@@ -14,13 +14,16 @@
         "domain_size": 2,
         "time_stepping"               : {
             "automatic_time_step" : false,
-            "time_step"           : 0.0005
+            "time_step"           : 0.001
         },
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI"
         },
-        "maximum_pressure_iterations"        : 6,
+        "material_import_settings"           : {
+            "materials_filename" : "fluid_element_tests/Test_2D_FSI/PfemFluidDynamicsMaterials.json"
+        },
+        "maximum_pressure_iterations"        : 2,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
         "echo_level"                         : 0,
@@ -56,11 +59,12 @@
             "parts_list" : ["Parts_Parts_Auto6"]
         }],
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto4","Parts_Parts_Auto5","Parts_Parts_Auto6"],
+        "constitutive_laws_list" : ["Newtonian2DLaw","Hypoelastic2DLaw","None"],
         "processes_sub_model_part_list"      : ["VELOCITY_Velocity_Auto1"]
     },
     "problem_process_list"     : [{
         "help"          : "This process applies meshing to the problem domains",
-        "kratos_module" : "KratosMultiphysics.DelaunayMeshingApplication",
+        "kratos_module" : "KratosMultiphysics.PfemFluidDynamicsApplication",
         "python_module" : "remesh_fluid_domains_process",
         "process_name"  : "RemeshFluidDomainsProcess",
         "Parameters"    : {
@@ -69,22 +73,20 @@
             "meshing_frequency"     : 1.0,
             "write_totalVolumeBeforeMeshing" : false,
             "meshing_before_output" : true,
+            "update_conditions_on_free_surface" : {
+                "update_conditions"        : false,
+                "sub_model_part_list"      : [],
+                "reference_condition_list" : []
+            },
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",
                 "python_module"                   : "fluid_meshing_domain",
                 "alpha_shape"                     : 1.25,
-                "offset_factor"                   : 0.0,
                 "meshing_strategy"                : {
                     "python_module"                 : "fluid_meshing_strategy",
-                    "meshing_frequency"             : 0,
                     "remesh"                        : true,
                     "refine"                        : true,
-                    "reconnect"                     : false,
-                    "transfer"                      : false,
-                    "constrained"                   : false,
-                    "mesh_smoothing"                : false,
-                    "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "transfer"        		    : false,
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
@@ -95,62 +97,23 @@
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
                 },
-                "refining_parameters"             : {
-                    "critical_size"       : 0.0,
-                    "threshold_variable"  : "PLASTIC_STRAIN",
-                    "reference_threshold" : 0.0,
-                    "error_variable"      : "NORM_ISOCHORIC_STRESS",
-                    "reference_error"     : 0.0,
-                    "add_nodes"           : false,
-                    "insert_nodes"        : true,
-                    "remove_nodes"        : {
-                        "apply_removal" : true,
-                        "on_distance"   : true,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "remove_boundary"     : {
-                        "apply_removal" : false,
-                        "on_distance"   : false,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "refine_elements"     : {
-                        "apply_refinement" : true,
-                        "on_distance"      : true,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refine_boundary"     : {
-                        "apply_refinement" : false,
-                        "on_distance"      : false,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
                     }
-                },
-                "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
             },{
                 "model_part_name"                 : "Body2",
                 "python_module"                   : "fluid_meshing_domain",
                 "alpha_shape"                     : 1.25,
-                "offset_factor"                   : 0.0,
                 "meshing_strategy"                : {
                     "python_module"                 : "fluid_meshing_strategy",
-                    "meshing_frequency"             : 0,
                     "remesh"                        : false,
                     "refine"                        : false,
-                    "reconnect"                     : false,
                     "transfer"                      : false,
-                    "constrained"                   : false,
-                    "mesh_smoothing"                : false,
-                    "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
@@ -161,127 +124,35 @@
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
                 },
-                "refining_parameters"             : {
-                    "critical_size"       : 0.0,
-                    "threshold_variable"  : "PLASTIC_STRAIN",
-                    "reference_threshold" : 0.0,
-                    "error_variable"      : "NORM_ISOCHORIC_STRESS",
-                    "reference_error"     : 0.0,
-                    "add_nodes"           : false,
-                    "insert_nodes"        : true,
-                    "remove_nodes"        : {
-                        "apply_removal" : true,
-                        "on_distance"   : true,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "remove_boundary"     : {
-                        "apply_removal" : false,
-                        "on_distance"   : false,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "refine_elements"     : {
-                        "apply_refinement" : true,
-                        "on_distance"      : true,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refine_boundary"     : {
-                        "apply_refinement" : false,
-                        "on_distance"      : false,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
-                    }
-                },
-                "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
-            },{
-                "model_part_name"                 : "Body3",
-                "python_module"                   : "fluid_meshing_domain",
-                "alpha_shape"                     : 1.25,
-                "offset_factor"                   : 0.0,
-                "meshing_strategy"                : {
-                    "python_module"                 : "fluid_meshing_strategy",
-                    "meshing_frequency"             : 0,
-                    "remesh"                        : false,
-                    "refine"                        : false,
-                    "reconnect"                     : false,
-                    "transfer"                      : false,
-                    "constrained"                   : false,
-                    "mesh_smoothing"                : false,
-                    "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
-                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
-                    "reference_condition_type"      : "CompositeCondition2D2N"
-                },
-                "spatial_bounding_box"            : {
-                    "use_bounding_box" : true,
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
                     "initial_time"     : 0.0,
-                    "final_time"       : 1000.0,
-                    "upper_point"      : [100,100,100],
-                    "lower_point"      : [-100,-100,-100]
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
                 },
-                "refining_parameters"             : {
-                    "critical_size"       : 0.0,
-                    "threshold_variable"  : "PLASTIC_STRAIN",
-                    "reference_threshold" : 0.0,
-                    "error_variable"      : "NORM_ISOCHORIC_STRESS",
-                    "reference_error"     : 0.0,
-                    "add_nodes"           : false,
-                    "insert_nodes"        : true,
-                    "remove_nodes"        : {
-                        "apply_removal" : true,
-                        "on_distance"   : true,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "remove_boundary"     : {
-                        "apply_removal" : false,
-                        "on_distance"   : false,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "refine_elements"     : {
-                        "apply_refinement" : true,
-                        "on_distance"      : true,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refine_boundary"     : {
-                        "apply_refinement" : false,
-                        "on_distance"      : false,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
                     }
-                },
-                "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
             }]
         }
     }],
     "processes": {
         "constraints_process_list" : [{
-            "python_module" : "assign_vector_components_to_nodes_process",
-            "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-            "help"          : "This process fixes the selected components of a given vector variable",
-            "process_name"  : "AssignVectorComponentsToNodesProcess",
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name"     : "VELOCITY_Velocity_Auto1",
-                "variable_name"       : "VELOCITY",
-                "value"               : [0.0,0.0,0.0],
-                "compound_assignment" : "direct",
-                "interval"            : [0.0,"End"]
+                "model_part_name" : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
             }
         }],
         "loads_process_list"       : [],
@@ -289,10 +160,12 @@
             "python_module" : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "check_variables"     : ["VELOCITY_X","VELOCITY_Y"],
+                "check_variables"     : ["VELOCITY_X"],
                 "input_file_name"     : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI_results.json",
                 "model_part_name"      : "PfemFluidModelPart",
-                "time_frequency"       : 0.001
+            "tolerance"            : 1e-6,
+            "relative_tolerance"   : 1e-9,
+                "time_frequency"       : 0.002
             }
         }]
     },
@@ -300,10 +173,10 @@
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
-            "output_variables"     : ["VELOCITY_X","VELOCITY_Y"],
+            "output_variables"     : ["VELOCITY_X"],
             "output_file_name"     : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI_results.json",
             "model_part_name"      : "PfemFluidModelPart",
-            "time_frequency"       : 0.001
+            "time_frequency"       : 0.002
         }
     }]
 }

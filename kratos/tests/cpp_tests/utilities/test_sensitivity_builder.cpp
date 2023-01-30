@@ -33,13 +33,15 @@ template <class TElement>
 class TestAdjoint : public TElement
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestAdjoint);
+    typedef Kratos::intrusive_ptr<TestAdjoint> Pointer;
+    typedef Kratos::unique_ptr<TestAdjoint> UniquePointer;
 
-    static TestAdjoint::Pointer Create(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
+
+    static typename TestAdjoint::Pointer CreateElement(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
     {
         Geometry<Node<3>>::Pointer p_geom =
             Kratos::make_shared<Triangle2D3<Node<3>>>(rNodes);
-        return Kratos::make_shared<TestAdjoint>(NewId, p_geom);
+        return Kratos::make_intrusive<TestAdjoint>(NewId, p_geom);
     }
 
     TestAdjoint(std::size_t NewId, Geometry<Node<3>>::Pointer pGeom)
@@ -47,7 +49,7 @@ public:
     {
     }
 
-    void GetValuesVector(Vector& rValues, int) override
+    void GetValuesVector(Vector& rValues, int) const override
     {
         rValues.resize(3, false);
         rValues[0] = 12.;
@@ -165,13 +167,13 @@ ModelPart& CreateModelPartWithTestElements(Model& rModel)
     r_model_part.CreateNewNode(5, 4., 1., 0.);
     r_model_part.CreateNewNode(6, 3., 2., 0.);
     r_model_part.AddElement(
-        TestAdjointElement::Create(1, GetNodes(r_model_part, {1, 2, 4})));
+        TestAdjointElement::CreateElement(1, GetNodes(r_model_part, {1, 2, 4})));
     r_model_part.AddElement(
-        TestAdjointElement::Create(2, GetNodes(r_model_part, {2, 5, 4})));
+        TestAdjointElement::CreateElement(2, GetNodes(r_model_part, {2, 5, 4})));
     r_model_part.AddElement(
-        TestAdjointElement::Create(3, GetNodes(r_model_part, {2, 3, 5})));
+        TestAdjointElement::CreateElement(3, GetNodes(r_model_part, {2, 3, 5})));
     r_model_part.AddElement(
-        TestAdjointElement::Create(4, GetNodes(r_model_part, {4, 5, 6})));
+        TestAdjointElement::CreateElement(4, GetNodes(r_model_part, {4, 5, 6})));
     r_model_part.SetBufferSize(1);
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              r_model_part.Nodes());
@@ -193,13 +195,13 @@ ModelPart& CreateModelPartWithTestConditions(Model& rModel)
     r_model_part.CreateNewNode(5, 4., 1., 0.);
     r_model_part.CreateNewNode(6, 3., 2., 0.);
     r_model_part.AddCondition(
-        TestAdjointCondition::Create(1, GetNodes(r_model_part, {1, 2, 4})));
+        TestAdjointCondition::CreateElement(1, GetNodes(r_model_part, {1, 2, 4})));
     r_model_part.AddCondition(
-        TestAdjointCondition::Create(2, GetNodes(r_model_part, {2, 5, 4})));
+        TestAdjointCondition::CreateElement(2, GetNodes(r_model_part, {2, 5, 4})));
     r_model_part.AddCondition(
-        TestAdjointCondition::Create(3, GetNodes(r_model_part, {2, 3, 5})));
+        TestAdjointCondition::CreateElement(3, GetNodes(r_model_part, {2, 3, 5})));
     r_model_part.AddCondition(
-        TestAdjointCondition::Create(4, GetNodes(r_model_part, {4, 5, 6})));
+        TestAdjointCondition::CreateElement(4, GetNodes(r_model_part, {4, 5, 6})));
     r_model_part.SetBufferSize(1);
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              r_model_part.Nodes());

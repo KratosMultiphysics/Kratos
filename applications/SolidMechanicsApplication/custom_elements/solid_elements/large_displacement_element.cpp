@@ -71,7 +71,7 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
 Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a large displacement element " << std::endl;
-    return Kratos::make_shared< LargeDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< LargeDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -98,7 +98,7 @@ Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< LargeDisplacementElement >(NewElement);
+    return Kratos::make_intrusive< LargeDisplacementElement >(NewElement);
 }
 
 
@@ -194,7 +194,7 @@ void LargeDisplacementElement::SetElementData(ElementDataType& rVariables,
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -209,7 +209,7 @@ void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -434,7 +434,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
 //************************************************************************************
 //************************************************************************************
 
-int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

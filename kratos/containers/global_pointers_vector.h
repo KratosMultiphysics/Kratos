@@ -17,9 +17,8 @@
 #include <vector>
 #include <iostream>
 
-
 // External includes
-
+#include <boost/iterator/indirect_iterator.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -28,7 +27,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -50,11 +49,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class GlobalPointersVector
+ * @ingroup KratosCore
+ * @brief This class is a vector which stores global pointers
+ * @details Uses boost::indirect_iterator
+ * @tparam TDataType The type of data stored
+ * @author Riccardo Rossi
+ */
 template< class TDataType >
-class GlobalPointersVector : public std::vector< GlobalPointer<TDataType> >
+class GlobalPointersVector final
 {
 public:
     ///@name Type Definitions
@@ -63,19 +67,42 @@ public:
     /// Pointer definition of GlobalPointersVector
     KRATOS_CLASS_POINTER_DEFINITION(GlobalPointersVector);
 
+    typedef std::vector< GlobalPointer<TDataType> > TContainerType;
+    typedef GlobalPointer<TDataType> TPointerType;
+    typedef TDataType data_type;
+    typedef TPointerType value_type;
+    typedef TPointerType pointer;
+    typedef const TPointerType const_pointer;
+    typedef TDataType& reference;
+    typedef const TDataType& const_reference;
+    typedef TContainerType ContainerType;
+
+
+    typedef boost::indirect_iterator<typename TContainerType::iterator>                iterator;
+    typedef boost::indirect_iterator<typename TContainerType::const_iterator>          const_iterator;
+    typedef boost::indirect_iterator<typename TContainerType::reverse_iterator>        reverse_iterator;
+    typedef boost::indirect_iterator<typename TContainerType::const_reverse_iterator>  const_reverse_iterator;
+
+    typedef typename TContainerType::size_type size_type;
+    typedef typename TContainerType::iterator ptr_iterator;
+    typedef typename TContainerType::const_iterator ptr_const_iterator;
+    typedef typename TContainerType::reverse_iterator ptr_reverse_iterator;
+    typedef typename TContainerType::const_reverse_iterator ptr_const_reverse_iterator;
+    typedef typename TContainerType::difference_type difference_type;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    GlobalPointersVector() {}
+    GlobalPointersVector() : mData() {}
 
-    GlobalPointersVector(const std::initializer_list<GlobalPointer<TDataType>>& l) 
-        : std::vector< GlobalPointer<TDataType> >(l)
-    {} 
+    GlobalPointersVector(const std::initializer_list<GlobalPointer<TDataType>>& l)
+        : mData(l)
+    {}
 
     /// Destructor.
-    virtual ~GlobalPointersVector() {}
+    ~GlobalPointersVector() {}
 
     template < class TContainerType >
     void FillFromContainer( TContainerType& container)
@@ -86,6 +113,25 @@ public:
             this->push_back(GlobalPointer<TDataType>(&item));
         }
     }
+
+    void Sort()
+    {
+        std::sort(mData.begin(), mData.end(), GlobalPointerCompare<TDataType>());
+    }
+
+    void Unique()
+    {
+        Sort();
+        auto end_it = mData.end();
+        auto new_end_it = std::unique(mData.begin(), mData.end(), GlobalPointerComparor<TDataType>());
+        this->erase(new_end_it, end_it);
+    }
+
+    void shrink_to_fit()
+    {
+        mData.shrink_to_fit();
+    }
+
 
     ///@}
     ///@name Operators
@@ -112,7 +158,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "GlobalPointersVector" ;
@@ -120,13 +166,233 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "GlobalPointersVector";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
+
+    GlobalPointersVector& operator=(const GlobalPointersVector& rOther)
+    {
+        mData = rOther.mData;
+        return *this;
+    }
+
+    TDataType& operator[](const size_type& i)
+    {
+        return *(mData[i]);
+    }
+
+    TDataType const& operator[](const size_type& i) const
+    {
+        return *(mData[i]);
+    }
+
+    pointer& operator()(const size_type& i)
+    {
+        return mData[i];
+    }
+
+    const_pointer& operator()(const size_type& i) const
+    {
+        return mData[i];
+    }
+
+    bool operator==( const GlobalPointersVector& r ) const // nothrow
+    {
+        if( size() != r.size() )
+            return false;
+        else
+            return std::equal(mData.begin(), mData.end(), r.mData.begin(), this->EqualKeyTo());
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    iterator                   begin()
+    {
+        return iterator( mData.begin() );
+    }
+    const_iterator             begin() const
+    {
+        return const_iterator( mData.begin() );
+    }
+    iterator                   end()
+    {
+        return iterator( mData.end() );
+    }
+    const_iterator             end() const
+    {
+        return const_iterator( mData.end() );
+    }
+    reverse_iterator           rbegin()
+    {
+        return reverse_iterator( mData.rbegin() );
+    }
+    const_reverse_iterator     rbegin() const
+    {
+        return const_reverse_iterator( mData.rbegin() );
+    }
+    reverse_iterator           rend()
+    {
+        return reverse_iterator( mData.rend() );
+    }
+    const_reverse_iterator     rend() const
+    {
+        return const_reverse_iterator( mData.rend() );
+    }
+    ptr_iterator               ptr_begin()
+    {
+        return mData.begin();
+    }
+    ptr_const_iterator         ptr_begin() const
+    {
+        return mData.begin();
+    }
+    ptr_iterator               ptr_end()
+    {
+        return mData.end();
+    }
+    ptr_const_iterator         ptr_end() const
+    {
+        return mData.end();
+    }
+    ptr_reverse_iterator       ptr_rbegin()
+    {
+        return mData.rbegin();
+    }
+    ptr_const_reverse_iterator ptr_rbegin() const
+    {
+        return mData.rbegin();
+    }
+    ptr_reverse_iterator       ptr_rend()
+    {
+        return mData.rend();
+    }
+    ptr_const_reverse_iterator ptr_rend() const
+    {
+        return mData.rend();
+    }
+
+    reference        front()       /* nothrow */
+    {
+        assert( !mData.empty() );
+        return *(mData.front());
+    }
+    const_reference  front() const /* nothrow */
+    {
+        assert( !mData.empty() );
+        return *(mData.front());
+    }
+    reference        back()        /* nothrow */
+    {
+        assert( !mData.empty() );
+        return *(mData.back());
+    }
+    const_reference  back() const  /* nothrow */
+    {
+        assert( !mData.empty() );
+        return *(mData.back());
+    }
+
+    size_type size() const
+    {
+        return mData.size();
+    }
+
+    size_type max_size() const
+    {
+        return mData.max_size();
+    }
+
+    void swap(GlobalPointersVector& rOther)
+    {
+        mData.swap(rOther.mData);
+    }
+
+    void push_back(TPointerType x)
+    {
+        mData.push_back(x);
+    }
+
+//     template<class TOtherDataType>
+//     void push_back(TOtherDataType const& x)
+//     {
+//         push_back(TPointerType(new TOtherDataType(x)));
+//     }
+/*
+    template<class TOtherDataType>
+    iterator insert(iterator Position, const TOtherDataType& rData)
+    {
+        return iterator(mData.insert(Position, TPointerType(new TOtherDataType(rData))));
+    }*/
+
+    iterator insert(iterator Position, const TPointerType pData)
+    {
+        return iterator(mData.insert(Position, pData));
+    }
+
+    template <class InputIterator>
+    void insert(InputIterator First, InputIterator Last)
+    {
+        for(; First != Last; ++First)
+            insert(*First);
+    }
+
+
+    iterator erase(iterator pos)
+    {
+        return iterator(mData.erase(pos.base()));
+    }
+
+    iterator erase( iterator first, iterator last )
+    {
+        return iterator( mData.erase( first.base(), last.base() ) );
+    }
+
+    void clear()
+    {
+        mData.clear();
+    }
+
+    void resize(size_type new_dim) const
+    {
+        return mData.resize(new_dim);
+    }
+    void resize(size_type new_dim)
+    {
+        mData.resize(new_dim);
+    }
+
+    void reserve(int dim)
+    {
+        mData.reserve(dim);
+    }
+
+    int capacity()
+    {
+        return mData.capacity();
+    }
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+   /** Gives a reference to underly normal container. */
+    TContainerType& GetContainer()
+    {
+        return mData;
+    }
+
+    /** Gives a constant reference to underly normal container. */
+    const TContainerType& GetContainer() const
+    {
+        return mData;
+    }
 
 
     ///@}
@@ -181,6 +447,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    TContainerType mData;
 
 
     ///@}
@@ -190,63 +457,24 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
-        {
-            std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
+        rSerializer.save("Size", this->size());
 
-            std::string data;
-            data.resize( this->size() * pointer_size);
-            for(std::size_t i=0; i<this->size(); ++i)
-            {
-                (*this)[i].save(&data[0]+i*pointer_size);
-            }
-
-            rSerializer.save("Size", this->size());
-            rSerializer.save("Data", data);
-        }
-        else //SERIALIZING THE POINTER CONTENT TOO
-        {
-            rSerializer.save("Size", this->size());
-            for(const auto& item : *this)
-                rSerializer.save("Gp", item);
+        for(std::size_t i=0; i<this->size(); i++) {
+            rSerializer.save("Data", mData[i]);
         }
     }
 
-
-
     void load(Serializer& rSerializer)
     {
-        if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
-        {
-            std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
+        std::size_t size;
 
-            std::size_t size;
-            rSerializer.load("Size", size);
-            this->reserve(size);
+        rSerializer.load("Size", size);
 
-            std::string tmp;
-            rSerializer.load("Data", tmp);
-
-            for(std::size_t i = 0; i<size; ++i)
-            {
-                GlobalPointer<TDataType> p(nullptr);
-                p.load(&tmp[0]+i*pointer_size);
-                this->push_back(p);
-            }
+        for(std::size_t i = 0; i < size; i++) {
+            GlobalPointer<TDataType> p(nullptr);
+            rSerializer.load("Data", p);
+            this->push_back(p);
         }
-        else //SERIALIZING THE POINTER CONTENT TOO
-        {
-            std::size_t size;
-            rSerializer.load("Size", size);
-            this->reserve(size);
-            for(std::size_t i = 0; i<size; ++i)
-            {
-                GlobalPointer<TDataType> p(nullptr);
-                rSerializer.load("Gp", p);
-                this->push_back(p);
-            }
-        }
-
     }
 
 
@@ -309,6 +537,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED  defined 
-
-
+#endif // KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED  defined

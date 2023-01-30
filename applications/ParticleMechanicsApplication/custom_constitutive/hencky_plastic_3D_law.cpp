@@ -74,7 +74,15 @@ HenckyElasticPlastic3DLaw::~HenckyElasticPlastic3DLaw()
 
 bool HenckyElasticPlastic3DLaw::Has( const Variable<double>& rThisVariable )
 {
-    return false;
+    if (rThisVariable == MP_DELTA_PLASTIC_STRAIN
+        || rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
+        || rThisVariable == MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+        || rThisVariable == MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+        || rThisVariable == MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+        || rThisVariable == MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+        || rThisVariable == MIU)
+        return true;
+    else return false;
 }
 
 bool HenckyElasticPlastic3DLaw::Has( const Variable<Vector>& rThisVariable )
@@ -95,37 +103,37 @@ double& HenckyElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariab
 {
     if (rThisVariable==MP_DELTA_PLASTIC_STRAIN)
     {
-        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        const ParticleFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.DeltaPlasticStrain;
     }
 
     if (rThisVariable==MP_EQUIVALENT_PLASTIC_STRAIN)
     {
-        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        const ParticleFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.EquivalentPlasticStrain;
     }
 
     if (rThisVariable==MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN)
     {
-        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        const ParticleFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.DeltaPlasticVolumetricStrain;
     }
 
     if (rThisVariable==MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN)
     {
-        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        const ParticleFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.AccumulatedPlasticVolumetricStrain;
     }
 
     if (rThisVariable==MP_DELTA_PLASTIC_DEVIATORIC_STRAIN)
     {
-        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        const ParticleFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.DeltaPlasticDeviatoricStrain;
     }
 
     if (rThisVariable==MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN)
     {
-        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        const ParticleFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.AccumulatedPlasticDeviatoricStrain;
     }
 
@@ -175,7 +183,7 @@ void HenckyElasticPlastic3DLaw::SetValue( const Variable<Matrix>& rThisVariable,
 
 
 void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
-        const GeometryType& rGeom,
+        const GeometryType& rGeometry,
         const Vector& rShapeFunctionsValues)
 {
     mDeterminantF0                = 1;
@@ -230,7 +238,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     ElasticVariables.SetElementGeometry(domain_geometry);
     ElasticVariables.SetShapeFunctionsValues(shape_functions);
 
-    MPMFlowRule::RadialReturnVariables ReturnMappingVariables;
+    ParticleFlowRule::RadialReturnVariables ReturnMappingVariables;
     // ReturnMappingVariables.initialize(); //it has to be called at the start
     ReturnMappingVariables.clear();
 
@@ -238,9 +246,9 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     ReturnMappingVariables.DeltaTime = current_process_info[DELTA_TIME];
 
     if(current_process_info[IMPLEX] == 1)
-        ReturnMappingVariables.Options.Set(MPMFlowRule::IMPLEX_ACTIVE,true);
+        ReturnMappingVariables.Options.Set(ParticleFlowRule::IMPLEX_ACTIVE,true);
     else
-        ReturnMappingVariables.Options.Set(MPMFlowRule::IMPLEX_ACTIVE,false);
+        ReturnMappingVariables.Options.Set(ParticleFlowRule::IMPLEX_ACTIVE,false);
 
     //1.-Determinant of the Total Deformation Gradient -- detF
     ElasticVariables.DeterminantF = determinant_F;
@@ -288,7 +296,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         mpMPMFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, stress_matrix, hencky_main_strain_matrix);
 
         mPlasticRegion = 0;
-        if( ReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION) )
+        if( ReturnMappingVariables.Options.Is(ParticleFlowRule::PLASTIC_REGION) )
         {
             mPlasticRegion = mpMPMFlowRule->GetPlasticRegion();
         }
@@ -330,7 +338,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 }
 
 void HenckyElasticPlastic3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues,
-    const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+    const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
 
     mpMPMFlowRule->CalculatePrincipalStressTrial(rReturnMappingVariables, rNewElasticLeftCauchyGreen, rStressMatrix);
@@ -365,7 +373,7 @@ void HenckyElasticPlastic3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, co
 //************************************************************************************
 //************************************************************************************
 
-void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
+void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
 {
     mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
 }
@@ -393,7 +401,7 @@ Matrix HenckyElasticPlastic3DLaw::SetConstitutiveMatrixToAppropiateDimension(Mat
 /** CalculateEigenbases is a function which calculate the matrix with the eigenbases of the
 * three principal directions
 */
-Matrix HenckyElasticPlastic3DLaw::CalculateEigenbases(const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rEigenbasesMatrix)
+Matrix HenckyElasticPlastic3DLaw::CalculateEigenbases(const ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rEigenbasesMatrix)
 {
     //1- compute eigendirections
     Vector N1 = ZeroVector(3);
@@ -563,7 +571,7 @@ Vector& HenckyElasticPlastic3DLaw::GetStressVectorFromMatrix(const Matrix& rStre
 
 
 void HenckyElasticPlastic3DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyGreenMatrix,
-        MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
+        ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
         Vector& rMainStrain)
 {
     Matrix eigen_vectors  = ZeroMatrix(3,3);
@@ -605,7 +613,7 @@ void HenckyElasticPlastic3DLaw::GetLawFeatures(Features& rFeatures)
 
 int HenckyElasticPlastic3DLaw::Check(const Properties& rMaterialProperties,
                                      const GeometryType& rElementGeometry,
-                                     const ProcessInfo& rCurrentProcessInfo)
+                                     const ProcessInfo& rCurrentProcessInfo) const
 {
 
     // Verify Positive Density

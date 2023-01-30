@@ -3,8 +3,8 @@ BOOK: Parts
 CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: volumes 
-QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,SimoJu,Rankine,DruckerPrager)
+GROUPALLOW: volumes elements
+QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,MohrCoulomb,SimoJu,Rankine,DruckerPrager,VonMises,Tresca,Elastic)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
 VALUE: 35.00e9
@@ -15,7 +15,7 @@ HELP: Units in IS: kg/m3
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Compressive_Yield_Strength
-VALUE: 30e6
+VALUE: 30.0e6
 HELP: Units in IS: Pa
 QUESTION: Tensile_Yield_Strength
 VALUE: 1.5e6
@@ -23,13 +23,13 @@ HELP: Units in IS: Pa
 QUESTION: Tensile_Fracture_Energy
 VALUE: 1.5e5
 QUESTION: Internal_Friction_Angle
-VALUE: 32
+VALUE: 32.0
 HELP: Units Degrees
 QUESTION: Rayleigh_Beta
-VALUE: 0.005
+VALUE: 0.002
 HELP: D = R_alpha*M + r_beta*K
 QUESTION: Rayleigh_Alpha
-VALUE: 0.00
+VALUE: 0.5
 HELP: D = R_alpha*M + r_beta*K
 QUESTION: Composite_Calculation#CB#(true,false)
 VALUE: false
@@ -37,15 +37,15 @@ HELP: True if passive reinforcement is applied
 QUESTION: Young_Modulus_Fiber
 VALUE: 210.0e9
 QUESTION: Density_Fiber
-VALUE: 7850
+VALUE: 7850.0
 QUESTION: Poisson_Ratio_Fiber
 VALUE: 0.3
 QUESTION: Fiber_Volumetric_Participation
 VALUE: 0.1
 QUESTION: Yield_Stress_Compression_Fiber
-VALUE: 210e6
+VALUE: 210.0e6
 QUESTION: Yield_Stress_Tension_Fiber
-VALUE: 210e6
+VALUE: 210.0e6
 QUESTION: Fracture_Energy_Fiber
 VALUE: 1.5e5
 QUESTION: Hardening_Law#CB#(1,2,3)
@@ -56,6 +56,8 @@ VALUE: 250e6
 QUESTION: Max_Stress_position_Curve_3
 VALUE: 0.3
 HELP: Value Ranging 0,1
+QUESTION: Large_Displacement_Calculation#CB#(true,false)
+VALUE: false
 END CONDITION
 
 CONDITION: Initial_DEM_Part
@@ -74,7 +76,7 @@ BOOK: Dirichlet_Constraints
 CONDITION: Solid_Displacement
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes surfaces volumes
-GROUPALLOW: points lines surfaces
+GROUPALLOW: points lines surfaces nodes
 QUESTION: SOLID_DISPLACEMENT_X#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Fix_X,false)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,#CURRENT#)
@@ -131,7 +133,7 @@ BOOK: Loads
 CONDITION: Force
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points
+GROUPALLOW: points nodes
 QUESTION: Modulus
 VALUE: 0.0
 HELP: If it is a function write the expression between ""
@@ -177,9 +179,9 @@ END CONDITION
 CONDITION: Face_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines 
+GROUPALLOW: lines faces
 QUESTION: Modulus
-VALUE: 0.0 
+VALUE: 0.0
 HELP: If it is a function write the expression between ""
 QUESTION: FACE_LOAD_X#CB#(true,false)
 VALUE: true
@@ -223,7 +225,7 @@ END CONDITION
 CONDITION: Normal_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines 
+GROUPALLOW: lines faces
 QUESTION: NORMAL_LOAD#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,Normal_Load_Distribution,Uniform,HIDE,Normal_Pressure_Value,0.0,HIDE,Imposed_Normal_Load,Constant)(true,RESTORE,Normal_Load_Distribution,#CURRENT#,RESTORE,Normal_Pressure_Value,#CURRENT#,RESTORE,Imposed_Normal_Load,#CURRENT#)
@@ -269,7 +271,7 @@ END CONDITION
 CONDITION: Body_Acceleration
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: surfaces volumes
+GROUPALLOW: surfaces volumes nodes
 QUESTION: Modulus
 VALUE: 9.81
 HELP: If it is a function write the expression between ""
@@ -315,9 +317,9 @@ END CONDITION
 CONDITION: Surf_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: surfaces 
+GROUPALLOW: surfaces faces
 QUESTION: Modulus
-VALUE: 0.0 
+VALUE: 0.0
 HELP: If it is a function write the expression between ""
 QUESTION: SURF_LOAD_X#CB#(true,false)
 VALUE: true
@@ -361,7 +363,7 @@ END CONDITION
 CONDITION: Pressure_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: surfaces 
+GROUPALLOW: surfaces faces nodes
 QUESTION: PRESSURE_LOAD#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,Pressure_Load_Distribution,Uniform,HIDE,Pressure_Load_Value,0.0,HIDE,Imposed_Pressure_Load,Constant)(true,RESTORE,Pressure_Load_Distribution,#CURRENT#,RESTORE,Pressure_Load_Value,#CURRENT#,RESTORE,Imposed_Pressure_Load,#CURRENT#)
@@ -407,15 +409,15 @@ BOOK: Plots
 
 CONDITION: list_of_nodes_reaction
 CONDTYPE: over groups
-CONDMESHTYPE: over nodes 
-GROUPALLOW: points lines surfaces
+CONDMESHTYPE: over node
+GROUPALLOW: points lines surfaces nodes
 HELP: Select the nodes/lines to plot the sum of the reaction
 END CONDITION
 
 CONDITION: list_of_nodes_displacement
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points lines surfaces
+GROUPALLOW: points lines surfaces nodes
 HELP: Select the nodes/lines to plot the sum of the displacement
 END CONDITION
 

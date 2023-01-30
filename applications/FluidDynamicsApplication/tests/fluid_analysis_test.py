@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.FluidDynamicsApplication as kfd
 
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -74,7 +74,7 @@ class FluidAnalysisTest(UnitTest.TestCase):
                                 },
                                 "file_label"          : "time",
                                 "output_control_type" : "step",
-                                "output_frequency"    : 1,
+                                "output_interval"     : 1,
                                 "body_output"         : true,
                                 "node_output"         : false,
                                 "skin_output"         : false,

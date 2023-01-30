@@ -15,18 +15,16 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+// External includes
 #include "triangle.h"
-#endif
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 
 
@@ -391,6 +389,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_CDT_H_INCLUDED  defined 
+#endif // KRATOS_TRIGEN_CDT_H_INCLUDED  defined
 
 

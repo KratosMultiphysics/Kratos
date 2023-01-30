@@ -22,7 +22,6 @@
         "time_stepping"                      : {
             "time_step" : 1.01
         },
-        "line_search"                        : false,
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -30,15 +29,12 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "buffer_size"                        : 3,
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1","LineLoad2D_Load_on_lines_Auto1"],
         "linear_solver_settings"             : {
             "solver_type": "skyline_lu_factorization"
         },
         "contact_settings"                   : {
             "mortar_type" : "ALMContactFrictional"
-        },
-        "rotation_dofs"                      : false
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -47,7 +43,7 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -59,7 +55,7 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0],
@@ -75,6 +71,7 @@
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
                 "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
+                "friction_coefficients"       : { "0" : 0.05},
                 "contact_type"                : "Frictional"
             }
         }],
@@ -85,7 +82,7 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
+                "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto1",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : "2000000.0*t",
                 "direction"       : [0.0,-1.0,0.0],
@@ -102,7 +99,7 @@
             "Parameters"            : {
                 "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
                 "input_file_name"     : "ALM_frictional_contact_test_2D/pure_friction_test_results.json",
-                "model_part_name"      : "CONTACT_Contact_Auto1",
+                "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
                 "time_frequency"       : 1.0
             }
         }]
@@ -116,7 +113,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictional_contact_test_2D/pure_friction_test_results.json",
-            "model_part_name"      : "CONTACT_Contact_Auto1",
+            "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
             "time_frequency"       : 1.00
         }
     }],
@@ -127,7 +124,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

@@ -26,8 +26,8 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
-#include "utilities/indexed_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "includes/indexed_object.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 
 //Cfeng,RigidFace
@@ -37,7 +37,7 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DiscreteElement : public Element {
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(DiscreteElement);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DiscreteElement);
         DiscreteElement(IndexType NewId = 0) : Element(NewId) {}
         DiscreteElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
         DiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
@@ -54,36 +54,9 @@ namespace Kratos {
             return *this;
         }
 
-        virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override {
-            if (rRightHandSideVector.size() != 0)
-                rRightHandSideVector.resize(0, false);
-        }
+        virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override {}
 
-        virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) override {
-            if (rResult.size() != 0)
-                rResult.resize(0, false);
-        }
-
-        virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override {
-            if (rMassMatrix.size1() != 0)
-                rMassMatrix.resize(0, 0, false);
-        }
-
-        virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override {
-            if (rDampingMatrix.size1() != 0)
-                rDampingMatrix.resize(0, 0, false);
-        }
-
-        virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info) override {
-            if (ElementalDofList.size() != 0)
-                ElementalDofList.resize(0);
-        }
-
-        using Element::InitializeSolutionStep;
-        virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {}
-
-        using Element::FinalizeSolutionStep;
-        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {}
+        virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info) override {}
 
         virtual std::string Info() const override {
             std::stringstream buffer;
@@ -95,7 +68,7 @@ namespace Kratos {
         virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "Discrete Element #" << Id();}
 
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const override { /*mpGeometry->PrintData(rOStream);*/ }
+        //virtual void PrintData(std::ostream& rOStream) const override { /*mpGeometry->PrintData(rOStream);*/ }
 
     protected:
 

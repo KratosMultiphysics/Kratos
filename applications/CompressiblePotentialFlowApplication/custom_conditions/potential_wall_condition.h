@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Pointer definition of PotentialWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PotentialWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PotentialWallCondition);
 
     static constexpr int NumNodes = TNumNodes;
     static constexpr int Dim = TDim;
@@ -185,21 +185,24 @@ public:
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
     // Find the condition's parent element.
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -209,7 +212,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -269,7 +272,8 @@ private:
     ///@{
 
     bool mInitializeWasPerformed = false;
-    ElementWeakPointerType mpElement;
+
+    GlobalPointer<Element> mpElement;
 
     void CalculateNormal2D(array_1d<double, 3>& An) const;
 
@@ -289,16 +293,16 @@ private:
     ///@name Private Operators
     ///@{
 
-    inline ElementPointerType pGetElement() const;
+    inline GlobalPointer<Element> pGetElement() const;
 
-    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates,
+    void GetElementCandidates(GlobalPointersVector<Element>& ElementCandidates,
                               const GeometryType& rGeom) const;
 
     void GetSortedIds(std::vector<IndexType>& Ids, const GeometryType& rGeom) const;
 
     void FindParentElement(std::vector<IndexType>& NodeIds,
                            std::vector<IndexType>& ElementNodeIds,
-                           WeakPointerVector<Element> ElementCandidates);
+                           GlobalPointersVector<Element> ElementCandidates);
 
     ///@}
     ///@name Private Operations

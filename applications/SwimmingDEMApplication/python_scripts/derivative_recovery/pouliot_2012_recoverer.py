@@ -1,9 +1,8 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as Kratos
 from . import recoverer
 from . import L2_projection_recoverer
-import parameters_tools as PT
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 import sys
 
 class Pouliot2012GradientRecoverer(L2_projection_recoverer.L2ProjectionGradientRecoverer):
@@ -53,7 +52,7 @@ class Pouliot2012LaplacianRecoverer(L2_projection_recoverer.L2ProjectionDerivati
         self.recovery_strategy.Solve()
 
     def Solve(self):
-        print("\nSolving for the fluid acceleration...")
+        Kratos.Logger.PrintInfo("SwimmingDEM", "\nSolving for the fluid acceleration...")
         sys.stdout.flush()
         self.SetToZero(Kratos.VELOCITY_COMPONENT_GRADIENT)
         if self.do_pre_recovery:

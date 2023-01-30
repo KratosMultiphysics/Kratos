@@ -20,31 +20,25 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/define.h"
+#include "utilities/constraint_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 
 ///@}
 ///@name Type Definitions
 ///@{
 
 ///@}
-
-
 ///@name  Enum's
 ///@{
-
 
 ///@}
 ///@name  Functions
 ///@{
-
-
 
 ///@}
 ///@name Kratos Classes
@@ -69,20 +63,28 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
 
+    /// The definition of the base ConvergenceCriteria
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
-    typedef TSparseSpace SparseSpaceType;
+    /// The definition of the current class
+    typedef ResidualCriteria< TSparseSpace, TDenseSpace > ClassType;
 
+    /// The data type
     typedef typename BaseType::TDataType TDataType;
 
+    /// The dofs array type
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
+    /// The sparse matrix type
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
+    /// The dense vector type
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    /// Definition of the IndexType
     typedef std::size_t IndexType;
 
+    /// Definition of the size type
     typedef std::size_t SizeType;
 
     ///@}
@@ -90,25 +92,21 @@ public:
     ///@{
 
     //* Constructor.
-    explicit ResidualCriteria(Kratos::Parameters Settings)
+    explicit ResidualCriteria()
         : BaseType()
     {
-        if (Settings.Has("residual_absolute_tolerance")) {
-            mAlwaysConvergedNorm = Settings["residual_absolute_tolerance"].GetDouble();
-        } else if (Settings.Has("absolute_tolerance")) {
-            mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
-        } else {
-            KRATOS_WARNING("ResidualCriteria") << "residual_absolute_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
-            mAlwaysConvergedNorm = 1.0e-9;
-        }
-        if (Settings.Has("residual_relative_tolerance")) {
-            mRatioTolerance = Settings["residual_relative_tolerance"].GetDouble();
-        } else if (Settings.Has("relative_tolerance")) {
-            mRatioTolerance = Settings["relative_tolerance"].GetDouble();
-        } else {
-            KRATOS_WARNING("ResidualCriteria") << "residual_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
-            mRatioTolerance = 1.0e-4;
-        }
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         this->mActualizeRHSIsNeeded = true;
     }
@@ -143,29 +141,42 @@ public:
     ///@name Operators
     ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
     /**
      * @brief Criterias that need to be called after getting the solution
      * @details Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      * @return true if convergence is achieved, false otherwise
      */
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        const SizeType size_b = TSparseSpace::Size(b);
+        const SizeType size_b = TSparseSpace::Size(rb);
         if (size_b != 0) { //if we are solving for something
 
             SizeType size_residual;
-            CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, b);
+            CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, rb);
 
             TDataType ratio = 0.0;
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
@@ -177,6 +188,7 @@ public:
             const TDataType float_size_residual = static_cast<TDataType>(size_residual);
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
+            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << mCurrentResidualNorm << "]" << std::endl;
             KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
@@ -200,6 +212,7 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
+        KRATOS_ERROR_IF(rModelPart.IsDistributed() && rModelPart.NumberOfMasterSlaveConstraints() > 0) << "This Criteria does not yet support constraints in MPI!" << std::endl;
     }
 
     /**
@@ -222,29 +235,7 @@ public:
 
         // Filling mActiveDofs when MPC exist
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            mActiveDofs.resize(rDofSet.size());
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mActiveDofs.size()); ++i) {
-                mActiveDofs[i] = true;
-            }
-
-            #pragma omp parallel for
-            for (int i=0; i<static_cast<int>(rDofSet.size()); ++i) {
-                const auto it_dof = rDofSet.begin() + i;
-                if (it_dof->IsFixed()) {
-                    mActiveDofs[it_dof->EquationId()] = false;
-                }
-            }
-
-            for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
-                for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
-                    mActiveDofs[r_dof->EquationId()] = false;
-                }
-                for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
-                    mActiveDofs[r_dof->EquationId()] = false;
-                }
-            }
+            ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
         }
 
         SizeType size_residual;
@@ -262,23 +253,45 @@ public:
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        BaseType::FinalizeSolutionStep(rModelPart, rDofSet, A, Dx, b);
+        BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                        : "residual_criteria",
+            "residual_absolute_tolerance" : 1.0e-4,
+            "residual_relative_tolerance" : 1.0e-9
+        })");
 
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "residual_criteria";
+    }
 
     ///@}
     ///@name Access
     ///@{
-
 
     ///@}
     ///@name Inquiry
@@ -310,23 +323,19 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -339,14 +348,14 @@ protected:
      * @param rResidualSolutionNorm The norm of the residual
      * @param rDofNum The number of DoFs
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param b RHS vector (residual + reactions)
+     * @param rb RHS vector (residual + reactions)
      */
     virtual void CalculateResidualNorm(
         ModelPart& rModelPart,
         TDataType& rResidualSolutionNorm,
         SizeType& rDofNum,
         DofsArrayType& rDofSet,
-        const TSystemVectorType& b
+        const TSystemVectorType& rb
         )
     {
         // Initialize
@@ -366,8 +375,8 @@ protected:
 
                 const IndexType dof_id = it_dof->EquationId();
 
-                if (mActiveDofs[dof_id]) {
-                    residual_dof_value = TSparseSpace::GetValue(b,dof_id);
+                if (mActiveDofs[dof_id] == 1) {
+                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
                     residual_solution_norm += std::pow(residual_dof_value, 2);
                     dof_num++;
                 }
@@ -379,7 +388,7 @@ protected:
 
                 if (!it_dof->IsFixed()) {
                     const IndexType dof_id = it_dof->EquationId();
-                    residual_dof_value = TSparseSpace::GetValue(b,dof_id);
+                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
                     residual_solution_norm += std::pow(residual_dof_value, 2);
                     dof_num++;
                 }
@@ -390,28 +399,34 @@ protected:
         rResidualSolutionNorm = std::sqrt(residual_solution_norm);
     }
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mAlwaysConvergedNorm = ThisParameters["residual_absolute_tolerance"].GetDouble();
+        mRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
-
 
     ///@}
 
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -427,7 +442,7 @@ private:
 
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
-    std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;   /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
@@ -441,16 +456,13 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 

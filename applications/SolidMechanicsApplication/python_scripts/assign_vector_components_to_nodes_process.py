@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
@@ -103,8 +102,7 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
                     params.AddEmptyValue("value").SetString(self.settings["value"][counter].GetString())
 
                 params.AddValue("local_axes", self.settings["local_axes"])
-
-                import assign_scalar_to_nodes_process as assign_scalar_process
+                from KratosMultiphysics.SolidMechanicsApplication import assign_scalar_to_nodes_process as assign_scalar_process
 
                 self.AssignValueProcesses.append(assign_scalar_process.AssignScalarToNodesProcess(self.model, params))
 

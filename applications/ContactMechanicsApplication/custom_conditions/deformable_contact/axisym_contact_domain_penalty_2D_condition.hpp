@@ -74,7 +74,7 @@ public:
 
 
     /// Counted pointer of AxisymContactDomainPenalty2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymContactDomainPenalty2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymContactDomainPenalty2DCondition );
 
     ///@}
     ///@name Life Cycle
@@ -186,7 +186,7 @@ protected:
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(ConditionVariables& rVariables,
-			     ProcessInfo& rCurrentProcessInfo,
+			     const ProcessInfo& rCurrentProcessInfo,
 			     const unsigned int& rPointNumber) override;
 
     /**

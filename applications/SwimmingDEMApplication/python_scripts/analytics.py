@@ -1,6 +1,5 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics as Kratos
-import swimming_DEM_procedures
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as swimming_DEM_procedures
 import math
 import os
 import numpy as np
@@ -30,8 +29,8 @@ class Gauge:
     def MakeNodalMeasurement(self):
         if self.counter.Tick():
             self.times[self.current_instant] = self.model_part.ProcessInfo[Kratos.TIME]
-            print(self.model_part.ProcessInfo[Kratos.TIME] / self.end_time)
-            print(self.current_instant / self.n_instants)
+            Kratos.Logger.PrinInfo(self.model_part.ProcessInfo[Kratos.TIME] / self.end_time)
+            Kratos.Logger.PrinInfo(self.current_instant / self.n_instants)
             i_node = 0
             for node in self.nodes:
                 i_var = 0

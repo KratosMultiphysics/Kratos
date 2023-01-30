@@ -1,9 +1,8 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Array3, Logger
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-import DEM_procedures as DP
+import KratosMultiphysics.DEMApplication.DEM_procedures as DP
 import shutil
 import weakref
 import math
@@ -76,6 +75,7 @@ def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_mod
     if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, Kratos.FLUID_FRACTION):
         SetModelPartSolutionStepValue(fluid_model_part, Kratos.FLUID_FRACTION, 1.0)
         SetModelPartSolutionStepValue(fluid_model_part, Kratos.FLUID_FRACTION_OLD, 1.0)
+        SetModelPartSolutionStepValue(fluid_model_part, SDEM.FLUID_FRACTION_OLD_2, 1.0)
     if checker.ModelPartHasNodalVariableOrNot(balls_model_part, Kratos.FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, Kratos.FLUID_FRACTION_PROJECTED, 1.0)
 
@@ -580,19 +580,3 @@ def PrintPositionsToFileInterpolation(coors, n_div, method, main_path=''):
             for comp in coor:
                 line += str(comp) + ' '
             fout.write(line + '\n')
-
-class StationarityAssessmentTool:
-
-    def __init__(self, max_pressure_variation_rate_tol, custom_functions_tool):
-        self.tol  = max_pressure_variation_rate_tol
-        self.tool = weakref.proxy(custom_functions_tool)
-
-    def Assess(self, model_part): # in the first time step the 'old' pressure vector is created and filled
-        stationarity = self.tool.AssessStationarity(model_part, self.tol)
-
-        if stationarity:
-            Logger.PrintInfo("SwimmingDEM","\nThe fluid has reached a stationary state.")
-            Logger.PrintInfo("Its calculation will be omitted from here on.\n")
-            Logger.Flush()
-
-        return stationarity

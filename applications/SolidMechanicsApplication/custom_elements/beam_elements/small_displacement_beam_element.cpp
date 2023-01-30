@@ -49,7 +49,7 @@ namespace Kratos
 
   Element::Pointer SmallDisplacementBeamElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<SmallDisplacementBeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SmallDisplacementBeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
   //*******************************DESTRUCTOR*******************************************
@@ -427,7 +427,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  SmallDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int  SmallDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 

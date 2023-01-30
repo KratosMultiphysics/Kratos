@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosDamApplication   $
 //   Last Modified by:    $Author:Ignasi de Pouplana $
 //   Date:                $Date:    February 2017$
@@ -38,9 +38,9 @@ public:
     TrilinosDamUPScheme(double beta, double gamma, double rayleigh_m ,double rayleigh_k)
         : DamUPScheme<TSparseSpace,TDenseSpace>(beta, gamma, rayleigh_m ,rayleigh_k),
         mImporterIsInitialized(false) {}
-    
+
     //------------------------------------------------------------------------------------
-    
+
     ///Destructor
     virtual ~TrilinosDamUPScheme() {}
 
@@ -54,31 +54,31 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        
+
         if (DofImporterIsInitialized() == false)
         {
             this->InitializeDofImporter(rDofSet,Dx);
         }
 
         const int system_size = TSparseSpace::Size1(A);
-        
-        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+        const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
         // Defining a temporary vector to gather all of the values needed
         Epetra_Vector temp( mpDofImporter->TargetMap() );
-        
+
         // Importing in the new temp vector the values
         const unsigned int ierr = temp.Import(Dx,*mpDofImporter,Insert);
-        if(ierr != 0) 
+        if(ierr != 0)
         {
             KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
         }
-        
+
         double* temp_values; //DO NOT make delete of this one!!
         temp.ExtractView( &temp_values );
 
         Dx.Comm().Barrier();
-        
+
         // Update of displacement (by DOF)
         OpenMPUtils::PartitionVector DofPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
@@ -101,7 +101,7 @@ public:
                 }
             }
         }
-        
+
         this->UpdateVariablesDerivatives(r_model_part);
 
         KRATOS_CATCH( "" )
@@ -112,7 +112,7 @@ public:
     void Clear()
     {
         BaseType::Clear();
-        
+
         mpDofImporter.reset();
         mImporterIsInitialized = false;
     }
@@ -127,9 +127,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    
+
     /// Member Variables
-    
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -189,9 +189,9 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     /// Member Variables
-    
+
     bool mImporterIsInitialized;
     Kratos::shared_ptr<Epetra_Import> mpDofImporter;
 

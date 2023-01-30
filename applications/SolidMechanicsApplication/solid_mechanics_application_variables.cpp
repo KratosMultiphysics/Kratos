@@ -19,7 +19,7 @@ namespace Kratos
   typedef array_1d<double, 3>                                                                      VectorType;
   typedef Variable<VectorType>                                                             VariableVectorType;
   typedef Variable<double>                                                                 VariableScalarType;
-  typedef VariableComponent<VectorComponentAdaptor<VectorType>>                         VariableComponentType;
+  typedef Variable<double>                                                              VariableComponentType;
 
   typedef TimeIntegrationMethodsContainer<VariableVectorType, double>      VectorTimeIntegrationContainerType;
   typedef VectorTimeIntegrationContainerType::Pointer               VectorTimeIntegrationContainerPointerType;
@@ -165,7 +165,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, SHEARxPOLAR_INERTIA )
 
   //boundary definition
-  KRATOS_CREATE_VARIABLE( ElementWeakPtrType, MASTER_ELEMENT )
+  KRATOS_CREATE_VARIABLE( Element::WeakPointer, MASTER_ELEMENT )
 
   //thermal properties
   KRATOS_CREATE_VARIABLE( double, HEAT_CAPACITY )

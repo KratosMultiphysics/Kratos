@@ -14,20 +14,17 @@
 //                    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED )
-#define  KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 
@@ -41,9 +38,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    /// The size definition
-    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -87,11 +81,19 @@ public:
     typedef typename ConfigureType::ResultContainerType ResultContainerType;
     typedef typename ConfigureType::ResultIteratorType ResultIteratorType;
 
+    // The definition of the bins
+    typedef BinsObjectDynamic<ConfigureType> BinsType;
+    typedef typename BinsObjectDynamic<ConfigureType>::CoordinateType BinsCoordinateType;
+    typedef typename BinsObjectDynamic<ConfigureType>::PointType BinsPointType;
+
     /// The definition of the node
     typedef Node<3> NodeType;
 
     /// The definition of the geometry
     typedef Geometry<NodeType> GeometryType;
+
+    /// The size definition
+    typedef std::size_t SizeType;
 
     /// The index definition
     typedef std::size_t IndexType;
@@ -115,6 +117,14 @@ public:
     /// Destructor.
     virtual ~BinBasedFastPointLocator() = default;
 
+    /// Copy constructor.
+    BinBasedFastPointLocator(BinBasedFastPointLocator const& rOther)
+        : mrModelPart(rOther.mrModelPart)
+    {
+        auto paux = typename BinsType::Pointer(new BinsType(*rOther.mpBinsObjectDynamic));
+        paux.swap(mpBinsObjectDynamic);
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -130,13 +140,13 @@ public:
     {
         KRATOS_TRY
 
-        // Copy the entities to a new container, as the list will be shuffled duringthe construction of the tree
+        // Copy the entities to a new container, as the list will be shuffled during the construction of the tree
         ContainerType entities_array;
         GetContainer(mrModelPart, entities_array);
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
 
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end));
+        auto paux = typename BinsType::Pointer(new BinsType(it_begin, it_end));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -146,7 +156,7 @@ public:
      * @brief Function to construct or update the search database
      * @param CellSize The current size of the cell used for search
      */
-    void UpdateSearchDatabaseAssignedSize(double CellSize)
+    void UpdateSearchDatabaseAssignedSize(const BinsCoordinateType CellSize)
     {
         KRATOS_TRY
 
@@ -156,7 +166,7 @@ public:
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
 
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, CellSize));
+        auto paux = typename BinsType::Pointer(new BinsType(it_begin, it_end, CellSize));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -186,18 +196,18 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(BinsPointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
             for (IndexType i = 0; i < results_found; i++) {
-                GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
+                GeometryType& r_geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
                 array_1d<double, 3> point_local_coordinates;
                 Vector shape_function;
-                const bool is_found = geom.IsInside(rCoordinates, point_local_coordinates, Tolerance);
-                geom.ShapeFunctionsValues(shape_function, point_local_coordinates);
+                const bool is_found = LocalIsInside(r_geom, rCoordinates, point_local_coordinates, Tolerance);
+                r_geom.ShapeFunctionsValues(shape_function, point_local_coordinates);
                 noalias(rNShapeFunction) = shape_function;
 
                 if (is_found) {
@@ -235,18 +245,18 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        const int results_found = mpBinsObjectDynamic->SearchObjectsInCell(typename BinsObjectDynamic<ConfigureType>::PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
+        const SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(BinsPointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
             for (IndexType i = 0; i < static_cast<IndexType>(results_found); i++) {
-              
-                GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
+
+                GeometryType& r_geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
                 array_1d<double, 3> point_local_coordinates;
-                const bool is_found = geom.IsInside(rCoordinates, point_local_coordinates, Tolerance);
-                geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
+                const bool is_found = LocalIsInside(r_geom, rCoordinates, point_local_coordinates, Tolerance);
+                r_geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
 
                 if (is_found) {
                     pEntity = (*(ItResultBegin + i));
@@ -314,6 +324,27 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+    * @brief Checks if given point in global space coordinates
+    *        is inside the geometry boundaries. This function
+    *        computes the local coordinates and checks then if
+    *        this point lays within the boundaries.
+    * @param rPointGlobalCoordinates the global coordinates of the
+    *        external point.
+    * @param rResult the local coordinates of the point.
+    * @param Tolerance the tolerance to the boundary.
+    * @return true if the point is inside, false otherwise
+    */
+    virtual bool LocalIsInside(
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        GeometryType::CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const
+    {
+        return rGeometry.IsInside(rPointGlobalCoordinates, rResult, Tolerance);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -337,7 +368,7 @@ private:
 
     ModelPart& mrModelPart; /// The model part containing the mesh for the search
 
-    typename BinsObjectDynamic<ConfigureType>::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
+    typename BinsType::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
 
     ///@}
     ///@name Private Operators
@@ -353,26 +384,26 @@ private:
      * @param The corresponding element array
      */
     static inline void GetContainer(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         PointerVectorSet<Element, IndexedObject>::ContainerType& rContainerArray
         )
     {
         rContainerArray = rModelPart.ElementsArray();
     }
-    
+
     /**
      * @brief This operation is defined to the the corresponding container type
      * @param rModelPart The model part to get the condition container
      * @param The corresponding condition array
      */
     static inline void GetContainer(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         PointerVectorSet<Condition, IndexedObject>::ContainerType& rContainerArray
         )
     {
         rContainerArray = rModelPart.ConditionsArray();
     }
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -390,9 +421,5 @@ private:
     ///@{
     ///@}
 };
-    
+
 } // namespace Kratos.
-
-#endif // KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED  defined
-
-

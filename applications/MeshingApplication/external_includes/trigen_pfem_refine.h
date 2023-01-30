@@ -10,26 +10,21 @@
 #if !defined(KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED )
 #define  KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+// External includes
 #include "triangle.h"
-#endif
-
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/timer.h"
 #include "geometries/triangle_2d_3.h"
-#include "meshing_application.h"
-#include "processes/node_erase_process.h"
+#include "meshing_application_variables.h"
+#include "processes/entity_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 #include "includes/deprecated_variables.h"
 
@@ -114,7 +109,7 @@ public:
         ModelPart& ThisModelPart ,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,
-        NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
+        EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes=true,
         double my_alpha = 1.4, double h_factor=0.5)
     {
 
@@ -129,7 +124,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
 
         KRATOS_WATCH("Trigen PFEM Refining Mesher")
-        boost::timer auxiliary;
+        const auto inital_time = std::chrono::steady_clock::now();
 
 
 //clearing elements
@@ -205,11 +200,10 @@ public:
             in_mid.pointlist[base] = (nodes_begin + i)->X();
             in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
 
-            Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
-            for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
+            auto& node_dofs = (nodes_begin + i)->GetDofs();
+            for(auto iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
-                iii->SetId(i+1);
-//                                    iii->Id() = i+1;
+                (**iii).SetEquationId(i+1);
             }
         }
         //in_mid.numberoftriangles = ThisModelPart.Elements().size();
@@ -223,7 +217,7 @@ public:
         char options1[] = "Pne";
         triangulate(options1, &in_mid, &out_mid, &vorout_mid);
         //print out the mesh generation time
-        std::cout<<"mesh generation time = "<<auxiliary.elapsed();
+        std::cout << "Mesh generation time = " << Timer::ElapsedSeconds(inital_time) << std::endl;
         //number of newly generated triangles
         unsigned int el_number=out_mid.numberoftriangles;
 
@@ -381,7 +375,7 @@ public:
                 //generating the dofs
                 for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = *iii;
+                    Node<3>::DofType& rDof = **iii;
                     Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
@@ -534,12 +528,12 @@ public:
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
             for(int i = 0; i<3; i++)
             {
                 int index = out2.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
                 else
                     neighb(i) = Element::WeakPointer();
             }
@@ -643,13 +637,13 @@ private:
     boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
     array_1d<double,2> mC; //center pos
     array_1d<double,2> mRhs; //center pos
-    //NodeEraseProcess* mpNodeEraseProcess;
+    //EntitiesEraseProcess<Node<3>>* mpNodeEraseProcess;
 
 
     ///@}
     ///@name Private Operators
     ///@{
-    void RemoveCloseNodes(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, NodeEraseProcess& node_erase, double& h_factor)
+    void RemoveCloseNodes(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, EntitiesEraseProcess<Node<3>>& node_erase, double& h_factor)
     {
         //unsigned int bucket_size = 20;
 
@@ -770,9 +764,9 @@ private:
             nfluid += int( temp[2].FastGetSolutionStepValue(IS_FLUID) );
 
             //check the number of nodes of boundary
-            int nboundary = int( temp[0].FastGetSolutionStepValue(IS_BOUNDARY) );
-            nboundary += int( temp[1].FastGetSolutionStepValue(IS_BOUNDARY) );
-            nboundary += int( temp[2].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // int nboundary = int( temp[0].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // nboundary += int( temp[1].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // nboundary += int( temp[2].FastGetSolutionStepValue(IS_BOUNDARY) );
             //first check that we are working with fluid elements, otherwise throw an error
             //if (nfluid!=3)
             //	KRATOS_THROW_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
@@ -1220,7 +1214,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined

@@ -32,8 +32,8 @@ class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
     typedef ModelPart::ElementsContainerType                          ElementsArrayType;
     typedef ModelPart::NodesContainerType                             NodesArrayType;
     typedef ModelPart::PropertiesType                                 PropertiesType;
-    typedef WeakPointerVector<Element>                                ParticleWeakVectorType;
-    typedef WeakPointerVector<Element >::iterator                     ParticleWeakIteratorType;
+    typedef GlobalPointersVector<Element>                                ParticleWeakVectorType;
+    typedef GlobalPointersVector<Element >::iterator                     ParticleWeakIteratorType;
 
     KRATOS_CLASS_POINTER_DEFINITION(DEMFEMUtilities);
 
@@ -57,10 +57,6 @@ class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
 
     /// Print object's data
     virtual void PrintData(std::ostream& rOStream) const;
-
-    protected:
-
-        std::vector<unsigned int> mElementPartition;
 
     private:
 

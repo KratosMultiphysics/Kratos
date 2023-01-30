@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -164,8 +164,9 @@ struct gauss_seidel {
             const ptrdiff_t inc = forward ? 1 : -1;
 
             for(ptrdiff_t i = beg; i != end; i += inc) {
-                rhs_type X = rhs[i];
                 val_type D = math::identity<val_type>();
+                rhs_type X;
+                X = rhs[i];
 
                 for (auto a = backend::row_begin(A, i); a; ++a) {
                     ptrdiff_t c = a.col();
@@ -329,8 +330,9 @@ struct gauss_seidel {
                             ptrdiff_t beg = ptr[tid][r];
                             ptrdiff_t end = ptr[tid][r+1];
 
-                            rhs_type   X = rhs[i];
                             value_type D = math::identity<value_type>();
+                            rhs_type X;
+                            X = rhs[i];
 
                             for(ptrdiff_t j = beg; j < end; ++j) {
                                 ptrdiff_t  c = col[tid][j];
@@ -348,6 +350,7 @@ struct gauss_seidel {
                         // each task corresponds to a level, so we need
                         // to synchronize across threads at this point:
 #pragma omp barrier
+                        ;
                     }
                 }
             }

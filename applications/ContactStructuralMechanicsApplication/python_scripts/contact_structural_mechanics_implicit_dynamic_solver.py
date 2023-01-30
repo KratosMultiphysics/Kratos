@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KM backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics as KM
 
@@ -8,8 +7,11 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import the implicit solver (the explicit one is derived from it)
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_implicit_dynamic_solver
 
-# Import auxiliar methods
-from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
+# Import auxiliary methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliary_methods_solvers
+
+# Import the contact convergence criteria factory
+from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_convergence_criteria_factory import ContactConvergenceCriteriaFactory
 
 def CreateSolver(model, custom_settings):
     return ContactImplicitMechanicalSolver(model, custom_settings)
@@ -27,13 +29,12 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     """
     def __init__(self, model, custom_settings):
 
-        ## Settings string in json format
-        contact_settings = auxiliar_methods_solvers.AuxiliarContactSettings()
+        self._validate_settings_in_baseclass=True # To be removed eventually
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.validate_and_transfer_matching_settings(self.settings, contact_settings)
-        self.contact_settings = contact_settings["contact_settings"]
+        # Construct the base solver.
+        super().__init__(model, custom_settings)
+
+        self.contact_settings = self.settings["contact_settings"]
 
         # Linear solver settings
         if self.settings.Has("linear_solver_settings"):
@@ -41,11 +42,8 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         else:
             self.linear_solver_settings = KM.Parameters("""{}""")
 
-        # Construct the base solver.
-        super(ContactImplicitMechanicalSolver, self).__init__(model, self.settings)
-
         # Setting default configurations true by default
-        auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
+        auxiliary_methods_solvers.AuxiliarySetSettings(self.settings, self.contact_settings)
 
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
@@ -58,35 +56,40 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
         KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
 
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliary_methods_solvers.AuxiliaryValidateSettings(self)
+
     def AddVariables(self):
 
-        super(ContactImplicitMechanicalSolver, self).AddVariables()
+        super().AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
+        auxiliary_methods_solvers.AuxiliaryAddVariables(self.main_model_part, mortar_type)
 
         KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Variables ADDED")
 
     def AddDofs(self):
 
-        super(ContactImplicitMechanicalSolver, self).AddDofs()
+        super().AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
+        auxiliary_methods_solvers.AuxiliaryAddDofs(self.main_model_part, mortar_type)
 
         KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
-        super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
+        super().Initialize() # The mechanical solver is created here.
 
         # No verbosity from strategy
-        if self.contact_settings["silent_strategy"].GetBool() is True:
-            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        if self.contact_settings["silent_strategy"].GetBool():
+            mechanical_solution_strategy = self._GetSolutionStrategy()
             mechanical_solution_strategy.SetEchoLevel(0)
 
         # We set the flag INTERACTION
         computing_model_part = self.GetComputingModelPart()
-        if self.contact_settings["simplified_semi_smooth_newton"].GetBool() is True:
+        if self.contact_settings["simplified_semi_smooth_newton"].GetBool():
             computing_model_part.Set(KM.INTERACTION, False)
         else:
             computing_model_part.Set(KM.INTERACTION, True)
@@ -95,29 +98,21 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-        auxiliar_methods_solvers.AuxiliarSolve(mechanical_solution_strategy)
+        mechanical_solution_strategy = self._GetSolutionStrategy()
+        auxiliary_methods_solvers.AuxiliarySolve(mechanical_solution_strategy)
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
     def ExecuteFinalizeSolutionStep(self):
-        super(ContactImplicitMechanicalSolver, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
         if self.contact_settings["ensure_contact"].GetBool():
             computing_model_part = self.GetComputingModelPart()
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
 
     def ComputeDeltaTime(self):
-        delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
-        if self.contact_settings["inner_loop_adaptive"].GetBool():
-            process_info = self.GetComputingModelPart().ProcessInfo
-            if process_info.Has(CSMA.INNER_LOOP_ITERATION):
-                inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
-                if inner_iterations > 1:
-                    delta_time = delta_time/float(inner_iterations)
-                    KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
-        return delta_time
+        return auxiliary_methods_solvers.AuxiliaryComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.contact_settings)
 
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)
@@ -129,21 +124,20 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
-        return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
+        return auxiliary_methods_solvers.AuxiliaryCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
 
-    def _create_convergence_criterion(self):
-        from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_convergence_criteria_factory
-        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
+    def _CreateConvergenceCriterion(self):
+        convergence_criterion = ContactConvergenceCriteriaFactory(self.main_model_part, self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
-        linear_solver = super(ContactImplicitMechanicalSolver, self)._create_linear_solver()
-        return auxiliar_methods_solvers.AuxiliarCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
+    def _CreateLinearSolver(self):
+        linear_solver = super()._CreateLinearSolver()
+        return auxiliary_methods_solvers.AuxiliaryCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
-            linear_solver = self.get_linear_solver()
-            if self.settings["block_builder"].GetBool():
+            linear_solver = self._GetLinearSolver()
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
                 builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
                     # We use the elimination builder and solver
@@ -154,36 +148,48 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                     else:
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
         else:
-            builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
+            builder_and_solver = super()._CreateBuilderAndSolver()
 
         return builder_and_solver
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solution_strategy = self._create_linear_strategy()
-            else:
-                if(self.settings["line_search"].GetBool()):
-                    mechanical_solution_strategy = self._create_contact_line_search_strategy()
-                else:
+            elif self.settings["analysis_type"].GetString() == "non_linear":
+                # Create strategy
+                if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
                     mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
+                elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+                    mechanical_solution_strategy = self._create_contact_line_search_strategy()
+                elif self.settings["solving_strategy_settings"]["type"].GetString() == "arc_length":
+                    mechanical_solution_strategy = self._create_arc_length_strategy()
+            else:
+                err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+                err_msg += "Available options are: \"linear\", \"non_linear\""
+                raise Exception(err_msg)
         else:
-            mechanical_solution_strategy = super(ContactImplicitMechanicalSolver, self)._create_mechanical_solution_strategy()
+            mechanical_solution_strategy = super()._CreateSolutionStrategy()
 
         return mechanical_solution_strategy
 
     def _create_contact_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        self.mechanical_scheme = self.get_solution_scheme()
-        self.linear_solver = self.get_linear_solver()
-        self.mechanical_convergence_criterion = self.get_convergence_criterion()
-        self.builder_and_solver = self.get_builder_and_solver()
-        return auxiliar_methods_solvers.AuxiliarLineSearch(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+        self.mechanical_scheme = self._GetScheme()
+        self.linear_solver = self._GetLinearSolver()
+        self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        self.builder_and_solver = self._GetBuilderAndSolver()
+        return auxiliary_methods_solvers.AuxiliaryLineSearch(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     def _create_contact_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        self.mechanical_scheme = self.get_solution_scheme()
-        self.linear_solver = self.get_linear_solver()
-        self.mechanical_convergence_criterion = self.get_convergence_criterion()
-        self.builder_and_solver = self.get_builder_and_solver()
-        return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+        self.mechanical_scheme = self._GetScheme()
+        self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        self.builder_and_solver = self._GetBuilderAndSolver()
+        return auxiliary_methods_solvers.AuxiliaryNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = auxiliary_methods_solvers.AuxiliaryContactSettings()
+        this_defaults.RecursivelyAddMissingParameters(super(ContactImplicitMechanicalSolver, cls).GetDefaultParameters())
+        return this_defaults

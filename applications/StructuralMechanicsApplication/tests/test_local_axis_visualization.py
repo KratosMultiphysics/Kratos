@@ -1,10 +1,10 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from compare_two_files_check_process import CompareTwoFilesCheckProcess
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 import os, math
 
@@ -37,7 +37,6 @@ def CreateShellElements(mp,element_name):
         mp.CreateNewElement(element_name, 4, [4,1,5], mp.GetProperties()[1])
 
 def WriteGiDOutput(model_part):
-    from gid_output_process import GiDOutputProcess
     gid_output = GiDOutputProcess(model_part,
         "local_axis_"+model_part.Name,
         KratosMultiphysics.Parameters("""
@@ -68,8 +67,8 @@ def CheckResults(ref_file_name, out_file_name):
     # check the results
     settings_check_process = KratosMultiphysics.Parameters("""
     {
-        "reference_file_name"   : \"""" + ref_file_name + """\",
-        "output_file_name"      : \"""" + out_file_name + """\",
+        "reference_file_name"   : \"""" + ref_file_name.replace("\\", "\\\\") + """\",
+        "output_file_name"      : \"""" + out_file_name.replace("\\", "\\\\") + """\",
         "comparison_type"       : "post_res_file"
     }
     """)
@@ -88,8 +87,8 @@ def CheckResults(ref_file_name, out_file_name):
 class TestLocalAxisVisualization(KratosUnittest.TestCase):
     def tearDown(self):
         # delete all files leftover from the tests
-        output_file_name = "local_axis_" + self.element_name + "_0.post.res"
-        msh_file_name = "local_axis_" + self.element_name + "_0.post.msh"
+        output_file_name = "local_axis_" + self.element_name + ".post.res"
+        msh_file_name = "local_axis_" + self.element_name + ".post.msh"
         kratos_utils.DeleteFileIfExisting(msh_file_name)
         kratos_utils.DeleteFileIfExisting(output_file_name) # usually this is deleted by the check process but not if it fails
 
@@ -129,10 +128,10 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
             elem.SetValue(StructuralMechanicsApplication.MATERIAL_ORIENTATION_ANGLE, in_plane_rotation_angle)
 
         WriteGiDOutput(model_part)
-        reference_file_name = "local_axis_" + self.element_name + "_0.post.res.ref"
+        reference_file_name = "local_axis_" + self.element_name + ".post.res.ref"
         reference_file_name = os.path.join("local_axis_visualization_ref_result_files", reference_file_name)
         reference_file_name = GetFilePath(reference_file_name)
-        output_file_name = "local_axis_" + self.element_name + "_0.post.res"
+        output_file_name = "local_axis_" + self.element_name + ".post.res"
         CheckResults(reference_file_name, output_file_name)
 
     def __ExecuteBeamTest(self):
@@ -164,10 +163,10 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
             elem.SetValue(KratosMultiphysics.LOCAL_AXIS_2, local_axis_2)
 
         WriteGiDOutput(model_part)
-        reference_file_name = "local_axis_" + self.element_name + "_0.post.res.ref"
+        reference_file_name = "local_axis_" + self.element_name + ".post.res.ref"
         reference_file_name = os.path.join("local_axis_visualization_ref_result_files", reference_file_name)
         reference_file_name = GetFilePath(reference_file_name)
-        output_file_name = "local_axis_" + self.element_name + "_0.post.res"
+        output_file_name = "local_axis_" + self.element_name + ".post.res"
         CheckResults(reference_file_name, output_file_name)
 
 if __name__ == '__main__':

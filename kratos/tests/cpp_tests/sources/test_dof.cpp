@@ -140,11 +140,6 @@ KRATOS_TEST_CASE_IN_SUITE(DofId, KratosCoreFastSuite)
 
     KRATOS_CHECK_EQUAL(my_id, p_dof->GetId());
 
-    const std::size_t my_id_new= 5609;
-    p_dof->SetId(my_id_new);
-
-    KRATOS_CHECK_EQUAL(my_id_new, p_dof->Id());
-
     KRATOS_CHECK_EQUAL(p_dof->GetId(), p_dof->Id());
 }
 }

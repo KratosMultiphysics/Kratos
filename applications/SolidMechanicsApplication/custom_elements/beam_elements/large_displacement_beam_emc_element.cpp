@@ -57,7 +57,7 @@ namespace Kratos
 
   Element::Pointer LargeDisplacementBeamEMCElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<LargeDisplacementBeamEMCElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<LargeDisplacementBeamEMCElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
   //*******************************DESTRUCTOR*******************************************
@@ -71,11 +71,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::Initialize()
+  void LargeDisplacementBeamEMCElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    LargeDisplacementBeamElement::Initialize();
+    LargeDisplacementBeamElement::Initialize(rCurrentProcessInfo);
 
     //------------- REDUCED QUADRATURE INTEGRATION
 
@@ -116,7 +116,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamEMCElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1113,7 +1113,7 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration
-  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
@@ -1254,7 +1254,7 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration
-  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
@@ -1422,7 +1422,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int LargeDisplacementBeamEMCElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int LargeDisplacementBeamEMCElement::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -1457,5 +1457,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-

@@ -16,15 +16,15 @@ class KRATOS_API(DEM_APPLICATION) AnalyticRigidFace3D : public RigidFace3D
 public:
 
     // Counted pointer of AnalyticRigidFace3D
-    KRATOS_CLASS_POINTER_DEFINITION( AnalyticRigidFace3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AnalyticRigidFace3D );
 
     typedef RigidFace3D BaseType;
-    typedef WeakPointerVector<Element> ParticleWeakVectorType;
+    typedef GlobalPointersVector<Element> ParticleWeakVectorType;
     typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+    typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-    typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-    typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+    typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void
@@ -41,7 +41,7 @@ public:
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-    void InitializeSolutionStep(ProcessInfo& r_process_info) override;
+    void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 
     int CheckSide(SphericParticle* p_particle) override;
     bool IsPhantom() override {return true;}

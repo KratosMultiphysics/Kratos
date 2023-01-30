@@ -34,7 +34,7 @@ Element::Pointer SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Create(Ind
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -127,18 +127,18 @@ int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInf
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
     //return this->GetGeometry().GetDefaultIntegrationMethod();
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
-        GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& rGeom = this->GetGeometry();
 
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
@@ -158,7 +158,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetDofList(DofsVectorT
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -182,7 +182,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLocalSystem( 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -194,7 +194,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLeftHandSide(
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -213,11 +213,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRightHandSide
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = TNumNodes;
 
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
@@ -237,7 +237,7 @@ void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(Equa
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -287,7 +287,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeNonLinearIte
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -734,10 +734,24 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
     double Domain = rGeom.DomainSize();
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
         rVariables.lv = std::sqrt(2.0*Domain);
         rVariables.lsc = rVariables.lv;
+
+        if constexpr (TNumNodes == 3)
+        {
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                array_1d <double, 3> AuxNodeNormal = rGeom[i].FastGetSolutionStepValue(NORMAL);
+                double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+
+                if (NormAuxNodeNormal > rVariables.LowTolerance)
+                {
+                    rVariables.lsc = std::sqrt(2.0) * rVariables.lv;
+                }
+            }
+        }
     }
     else
     {
@@ -759,10 +773,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     {
 
         // TODO: S'ha de posar OmegaV = 0 si v = 0??
-        rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv / conductivity;
+        rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv * rVariables.rho_dot_c / conductivity;
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
 
+        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
     }
     else
     {
@@ -775,7 +790,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
             rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
         }
 
-        rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
+        rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv * rVariables.rho_dot_c / rVariables.AuxDiffusion;
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
 
@@ -835,6 +850,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
     noalias(rVariables.DifMatrixS) = (rVariables.absorption / (TNumNodes + 1)) * BaricenterMatrix;
 
+    //TODO : if element is not 3-noded triangles or 4-noded quadrilaters, Ds = 0
 
     //////////////////////////////////////////////////////
     // Calculate Dr
@@ -1172,7 +1188,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(Elemen
 
     double Domain = rGeom.DomainSize();
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
         rVariables.lv = std::sqrt(2.0*Domain);
     }
@@ -1191,11 +1207,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(Elemen
 
     if (conductivity < rVariables.HighTolerance)
     {
-        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / rVariables.HighTolerance;
+        rVariables.Peclet = NormVel * rVariables.lv / rVariables.HighTolerance;
     }
     else
     {
-        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
+        rVariables.Peclet = NormVel * rVariables.lv / (2.0 * rVariables.AuxDiffusion);
     }
 
 }
@@ -1387,74 +1403,23 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
-                                                                const ProcessInfo& rCurrentProcessInfo )
-{
-    const GeometryType& Geom = this->GetGeometry();
-    GeometryData::IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
-    const unsigned int NumGPoints = integration_points.size();
-
-    if ( rVariable == FIC_BETA || rVariable == PECLET )
-    {
-        if ( rValues.size() != NumGPoints )
-            rValues.resize(NumGPoints);
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-        if ( rValues.size() != NumGPoints )
-            rValues.resize(NumGPoints);
-
-        for ( unsigned int i = 0;  i < NumGPoints; i++ )
-        {
-            rValues[i] = 0.0;
-        }
-    }
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
-                                                                    const ProcessInfo& rCurrentProcessInfo)
-{
-    const GeometryType& Geom = this->GetGeometry();
-    GeometryData::IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
-    const unsigned int NumGPoints = integration_points.size();
-
-    if(rVariable == PHI_GRADIENT)
-    {
-        if ( rValues.size() != NumGPoints )
-            rValues.resize(NumGPoints);
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-        if ( rValues.size() != NumGPoints )
-            rValues.resize(NumGPoints);
-
-        for ( unsigned int i = 0;  i < NumGPoints; i++ )
-        {
-            noalias(rValues[i]) = ZeroVector(3);
-        }
-    }
-}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rOutput,
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
                                                                             const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
+    const GeometryType& Geom = this->GetGeometry();
+    GeometryData::IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    if ( rValues.size() != NumGPoints ) {
+        rValues.resize(NumGPoints);
+    }
+    
     if(rVariable == PECLET)
     {
         //Previous definitions
@@ -1508,7 +1473,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
             }
 
             this->CalculatePeclet(Variables, Geom, NormVel, rCurrentProcessInfo, Prop);
-            rOutput[GPoint] = Variables.Peclet;
+            rValues[GPoint] = Variables.Peclet;
         }
     }
     else if(rVariable == FIC_BETA)
@@ -1564,7 +1529,12 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
             }
 
             this->CalculateFICBeta(Variables);
-            rOutput[GPoint] = Variables.Beta;
+            rValues[GPoint] = Variables.Beta;
+        }
+    } else {
+        for ( unsigned int i = 0;  i < NumGPoints; i++ )
+        {
+            rValues[i] = 0.0;
         }
     }
 
@@ -1574,10 +1544,19 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rOutput,
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
                                                                             const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+
+    const GeometryType& Geom = this->GetGeometry();
+    GeometryData::IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    if ( rValues.size() != NumGPoints ) {
+        rValues.resize(NumGPoints);
+    }
 
     if(rVariable == PHI_GRADIENT)
     {
@@ -1606,7 +1585,13 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
             noalias(Variables.GradPhi) = ZeroVector(TDim);
 
             Variables.GradPhi = prod(trans(Variables.GradNT), Variables.NodalPhi);
-            ElementUtilities::FillArray1dOutput(rOutput[GPoint],Variables.GradPhi);
+            ElementUtilities::FillArray1dOutput(rValues[GPoint],Variables.GradPhi);
+        }
+    } else {
+
+        for ( unsigned int i = 0;  i < NumGPoints; i++ )
+        {
+            noalias(rValues[i]) = ZeroVector(3);
         }
     }
 
@@ -1707,8 +1692,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdve
 
     noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
-     //rVariables.Aux1 -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
-
 }
 //----------------------------------------------------------------------------------------
 
@@ -1720,8 +1703,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSDiff
     noalias(rVariables.DifMatrixAuxTwo) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
     noalias(rRightHandSideVector) -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
-
-    //rVariables.Aux2 -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 
@@ -1756,7 +1737,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
 
-    noalias(rRightHandSideVector) += (rVariables.N + 0.5 * prod(rVariables.GradNT,rVariables.HVector))*rVariables.QSource*rVariables.IntegrationCoefficient;
+    noalias(rRightHandSideVector) += (rVariables.N + 0.5 * prod(rVariables.GradNT,rVariables.HvVector))*rVariables.QSource*rVariables.IntegrationCoefficient;
 
 }
 

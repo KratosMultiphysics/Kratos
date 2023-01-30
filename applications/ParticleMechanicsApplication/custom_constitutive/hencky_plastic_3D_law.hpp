@@ -20,7 +20,7 @@
 
 // Project includes
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
-#include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/particle_flow_rule.hpp"
 #include "includes/ublas_interface.h"
 
 namespace Kratos
@@ -69,9 +69,9 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
-    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
+    typedef ParticleFlowRule::Pointer                MPMFlowRulePointer;
+    typedef ParticleYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
@@ -134,7 +134,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 6;
     };
@@ -171,7 +171,7 @@ public:
      * Material parameters are inizialized
      */
     void InitializeMaterial( const Properties& rProps,
-                             const GeometryType& rGeom,
+                             const GeometryType& rGeometry,
                              const Vector& rShapeFunctionsValues ) override;
 
     /**
@@ -192,7 +192,7 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
 
 
 
@@ -245,7 +245,7 @@ protected:
 
     virtual void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables);
 
-    virtual void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
+    virtual void CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
 
     double& TensorComponent(double & rCabcd,
                             const Matrix& rMA, const Matrix& rMB,
@@ -280,7 +280,7 @@ protected:
                                   Matrix& rEigenbasesProductMatrix);
 
 
-    virtual Matrix CalculateEigenbases(const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rEigenbasesMatrix);
+    virtual Matrix CalculateEigenbases(const ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rEigenbasesMatrix);
 
 
 
@@ -289,10 +289,10 @@ protected:
                                       const Matrix& rEigenVectors);
 
     virtual void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix,
-                                           MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
+                                           ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
                                            Vector& rMainStrain);
 
-    virtual void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues, const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
+    virtual void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues, const ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
             Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix);
 
 

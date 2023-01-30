@@ -31,9 +31,9 @@ namespace Kratos
 HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::HenckyMCStrainSofteningPlasticPlaneStrain2DLaw()
     : HenckyElasticPlasticPlaneStrain2DLaw()
 {
-    mpHardeningLaw   = MPMHardeningLaw::Pointer( new ExponentialStrainSofteningLaw() );
-    mpYieldCriterion = MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule    = MPMFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
+    mpHardeningLaw   = ParticleHardeningLaw::Pointer( new ExponentialStrainSofteningLaw() );
+    mpYieldCriterion = ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule    = ParticleFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::HenckyMCStrainSofteningPlasticPl
 HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::HenckyMCStrainSofteningPlasticPlaneStrain2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 
@@ -75,7 +75,7 @@ HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::~HenckyMCStrainSofteningPlasticP
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticPlaneStrain2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

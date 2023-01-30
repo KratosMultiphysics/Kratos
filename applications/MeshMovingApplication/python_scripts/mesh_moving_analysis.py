@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_motion as mesh_mothion_solvers
@@ -27,7 +25,7 @@ class MeshMovingAnalysis(AnalysisStage):
         if not solver_settings.Has("echo_level"): # this is done to remain backwards-compatible
             raise Exception('"solver_settings" does not have "echo_level", please add it!')
 
-        super(MeshMovingAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -39,7 +37,7 @@ class MeshMovingAnalysis(AnalysisStage):
         This method is TEMPORARY to not break existing code
         It was removed, now throwing errors to avoid silent failures
         """
-        list_of_processes = super(MeshMovingAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["boundary_conditions_process_list", "list_other_processes", "json_output_process",

@@ -1,7 +1,6 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+from KratosMultiphysics import eigen_solver_factory
 
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
@@ -51,10 +50,13 @@ class AutomaticRayleighComputationProcess(KM.Process):
 
         # Setting solver settings
         if settings.Has("eigen_system_settings"):
-            if settings["eigen_system_settings"].Has("solver_type"):
-                solver_type = settings["eigen_system_settings"]["solver_type"].GetString()
-                eigen_system_settings = self._auxiliar_eigen_settings(solver_type)
-                default_parameters["eigen_system_settings"] = eigen_system_settings["eigen_system_settings"]
+            if not settings["eigen_system_settings"].Has("solver_type"):
+              settings["eigen_system_settings"].AddValue("solver_type", default_parameters["eigen_system_settings"]["solver_type"])
+        else:
+            settings.AddValue("eigen_system_settings", default_parameters["eigen_system_settings"])
+        solver_type = settings["eigen_system_settings"]["solver_type"].GetString()
+        eigen_system_settings = self._auxiliary_eigen_settings(solver_type)
+        default_parameters["eigen_system_settings"] = eigen_system_settings["eigen_system_settings"]
 
         # Overwrite the default settings with user-provided parameters
         self.settings = settings
@@ -71,14 +73,6 @@ class AutomaticRayleighComputationProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
-        import KratosMultiphysics.kratos_utilities as kratos_utils
-        if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-            from KratosMultiphysics import ExternalSolversApplication
-        elif kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-            from KratosMultiphysics import EigenSolversApplication
-        else:
-            raise Exception("ExternalSolversApplication or EigenSolversApplication not available")
-
         # The general damping ratios
         damping_ratio_0 = self.settings["damping_ratio_0"].GetDouble()
         damping_ratio_1 = self.settings["damping_ratio_1"].GetDouble()
@@ -87,7 +81,7 @@ class AutomaticRayleighComputationProcess(KM.Process):
         current_process_info = self.main_model_part.ProcessInfo
         existing_computation = current_process_info.Has(SMA.EIGENVALUE_VECTOR)
 
-        # Create auxiliar parameters
+        # Create auxiliary parameters
         compute_damping_coefficients_settings = KM.Parameters("""
         {
             "echo_level"          : 0,
@@ -122,11 +116,12 @@ class AutomaticRayleighComputationProcess(KM.Process):
             # If not computed eigen values already
             if not existing_computation:
                 KM.Logger.PrintInfo("::[MechanicalSolver]::", "EIGENVALUE_VECTOR not previously computed. Computing automatically, take care")
-                from KratosMultiphysics import eigen_solver_factory
                 eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.settings["eigen_system_settings"])
                 builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
                 eigen_scheme = SMA.EigensolverDynamicScheme()
-                eigen_solver = SMA.EigensolverStrategy(self.main_model_part, eigen_scheme, builder_and_solver)
+                eigen_solver = SMA.EigensolverStrategy(self.main_model_part, eigen_scheme, builder_and_solver,
+                    self.mass_matrix_diagonal_value,
+                    self.stiffness_matrix_diagonal_value)
                 eigen_solver.Solve()
 
                 # Setting the variable RESET_EQUATION_IDS
@@ -159,30 +154,29 @@ class AutomaticRayleighComputationProcess(KM.Process):
             else:
                 current_process_info.SetValue(SMA.RAYLEIGH_BETA, coefficients_vector[1])
 
-    def _auxiliar_eigen_settings(self, solver_type):
+    def _auxiliary_eigen_settings(self, solver_type):
         """ This method returns the settings for the eigenvalues computations
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if solver_type == "feast" or solver_type == "FEAST":
+        if solver_type == "feast":
             eigen_system_settings = KM.Parameters("""
             {
                 "eigen_system_settings" : {
-                    "solver_type"                : "feast",
-                    "print_feast_output"         : false,
-                    "perform_stochastic_estimate": true,
-                    "solve_eigenvalue_problem"   : true,
-                    "lambda_min"                 : 0.0,
-                    "lambda_max"                 : 4.0e5,
-                    "number_of_eigenvalues"      : 2,
-                    "search_dimension"           : 15,
-                    "linear_solver_settings": {
-                        "solver_type": "skyline_lu_complex"
-                    }
+                    "solver_type"           : "feast",
+                    "echo_level"            : 0,
+                    "tolerance"             : 1e-10,
+                    "symmetric"             : true,
+                    "e_min"                 : 0.0,
+                    "e_max"                 : 4.0e5,
+                    "number_of_eigenvalues" : 2,
+                    "subspace_size"         : 15
                 }
             }
             """)
+            self.mass_matrix_diagonal_value = 1.0
+            self.stiffness_matrix_diagonal_value = -1.0
         else:
             eigen_system_settings = KM.Parameters("""
             {
@@ -192,4 +186,6 @@ class AutomaticRayleighComputationProcess(KM.Process):
             }
             """)
             eigen_system_settings["eigen_system_settings"]["solver_type"].SetString(solver_type)
+            self.mass_matrix_diagonal_value = 0.0
+            self.stiffness_matrix_diagonal_value = 1.0
         return eigen_system_settings

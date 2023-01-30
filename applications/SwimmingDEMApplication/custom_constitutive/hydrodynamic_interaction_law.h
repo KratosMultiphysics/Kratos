@@ -13,6 +13,7 @@
 #include "vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
 #include "rotation_induced_lift_laws/rotation_induced_lift_law.h"
 #include "steady_viscous_torque_laws/steady_viscous_torque_law.h"
+#include "../DEMApplication/custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -66,7 +67,7 @@ public:
                                       array_1d<double, 3>& buoyancy,
                                       const ProcessInfo& r_current_process_info);
 
-    virtual void ComputeDragForce(Geometry<Node<3> >& r_geometry,
+    void ComputeDragForce(SphericParticle* p_particle,
                                   double particle_radius,
                                   double fluid_density,
                                   double fluid_kinematic_viscosity,

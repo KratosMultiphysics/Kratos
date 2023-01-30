@@ -47,8 +47,6 @@
                 "etmxa": 5,
                 "etmna": 0.1
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1", "DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3","POINTLOAD_PointLoad_Auto4"]
     },
     "processes" : {
     "constraints_process_list" : [
@@ -59,7 +57,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0]
@@ -72,7 +70,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0]
@@ -85,7 +83,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto3",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0]
@@ -98,7 +96,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "POINTLOAD_PointLoad_Auto4",
+            "model_part_name" : "Structure.POINTLOAD_PointLoad_Auto4",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : -1.0e3,
             "direction"       : [0.0,0.0,"t"],
@@ -114,7 +112,7 @@
         "Parameters"            : {
             "check_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
             "input_file_name" : "sprism_test/pan_test_results.json",
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
+            "model_part_name"  : "Structure.POINTLOAD_PointLoad_Auto4",
             "time_frequency"   : 0.01
         }
     }
@@ -125,7 +123,7 @@
         "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
-            "model_part_name"  : "Parts_Parts_Auto1"
+            "model_part_name"  : "Structure.Parts_Parts_Auto1"
             }
     }]},
     "_json_output_process" : [
@@ -137,7 +135,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
             "output_file_name" : "sprism_test/pan_test_results.json",
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
+            "model_part_name"  : "Structure.POINTLOAD_PointLoad_Auto4",
             "time_frequency"   : 0.01
         }
     }

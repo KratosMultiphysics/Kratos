@@ -5,7 +5,6 @@
 #if !defined(KRATOS_ITERATIVE_SOLVER_STRATEGY)
 #define  KRATOS_ITERATIVE_SOLVER_STRATEGY
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 namespace Kratos
 {
@@ -20,8 +19,8 @@ namespace Kratos
       typedef BaseType::ElementsIterator                           ElementsIterator;
       typedef BaseType::ConditionsArrayType                        ConditionsArrayType;
 
-      typedef WeakPointerVector<Element> ParticleWeakVectorType;
-      typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+      typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+      typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 
       /// Pointer definition of ExplicitSolverStrategy
@@ -90,26 +89,24 @@ namespace Kratos
         //BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),2);
       }
 
-      virtual double Solve() override
+      virtual double SolveSolutionStep() override
       {
 
         KRATOS_TRY
 
         ModelPart& r_model_part = BaseType::GetModelPart();
 
-        BaseType::InitializeSolutionStep();
         SchemePredict();
         BaseType::SearchDEMOperations(r_model_part);
         BaseType::SearchFEMOperations(r_model_part);
         BaseType::ForceOperations(r_model_part);
         SchemeCorrect();
-        BaseType::FinalizeSolutionStep();
 
         return 0.00;
 
         KRATOS_CATCH("")
 
-      }//Solve()
+      }//SolveSolutionStep()
 
   };//ClassIterativeSolverStrategy
 

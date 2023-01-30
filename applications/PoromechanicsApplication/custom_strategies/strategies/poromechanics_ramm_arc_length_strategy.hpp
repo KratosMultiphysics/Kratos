@@ -33,7 +33,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsRammArcLengthStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
@@ -52,7 +52,6 @@ public:
     using GrandMotherType::mpDx; //Delta x of iteration i
     using GrandMotherType::mReformDofSetAtEachStep;
     using GrandMotherType::mCalculateReactionsFlag;
-    using GrandMotherType::mSolutionStepIsInitialized;
     using GrandMotherType::mMaxIterationNumber;
     using GrandMotherType::mInitializeWasPerformed;
     using MotherType::mSubModelPartList;
@@ -64,7 +63,6 @@ public:
     PoromechanicsRammArcLengthStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters& rParameters,
@@ -72,7 +70,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-        ) : PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
+        ) : PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
             mDesiredIterations = rParameters["desired_iterations"].GetInt();
@@ -152,16 +150,13 @@ public:
     {
         KRATOS_TRY
 
-		if (mSolutionStepIsInitialized == false)
-		{
-            GrandMotherType::InitializeSolutionStep();
+        GrandMotherType::InitializeSolutionStep();
 
-            this->SaveInitializeSystemVector(mpf);
-            this->InitializeSystemVector(mpDxf);
-            this->InitializeSystemVector(mpDxb);
-            this->InitializeSystemVector(mpDxPred);
-            this->InitializeSystemVector(mpDxStep);
-        }
+        this->SaveInitializeSystemVector(mpf);
+        this->InitializeSystemVector(mpDxf);
+        this->InitializeSystemVector(mpDxb);
+        this->InitializeSystemVector(mpDxPred);
+        this->InitializeSystemVector(mpDxStep);
 
         KRATOS_CATCH( "" )
     }
@@ -171,6 +166,8 @@ public:
 	bool SolveSolutionStep() override
 	{
         // ********** Prediction phase **********
+
+        KRATOS_INFO("Ramm's Arc Length Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
 
         KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
 
@@ -363,9 +360,6 @@ public:
         //Cleaning memory after the solution
         mpScheme->Clean();
 
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
-
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {
             this->ClearStep();
@@ -465,23 +459,6 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check() override
-    {
-        KRATOS_TRY
-
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_LAMBDA);
-        KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_RADIUS_FACTOR);
-
-        return ierr;
-
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void InitializeSystemVector(TSystemVectorPointerType& pv)
     {
         if (pv == NULL)
@@ -577,7 +554,7 @@ protected:
 
             if( KratosComponents< Variable<double> >::Has( VariableName ) )
             {
-                Variable<double> var = KratosComponents< Variable<double> >::Get( VariableName );
+                const Variable<double>& var = KratosComponents< Variable<double> >::Get( VariableName );
 
                 #pragma omp parallel
                 {
@@ -594,10 +571,10 @@ protected:
             }
             else if( KratosComponents< Variable<array_1d<double,3> > >::Has(VariableName) )
             {
-                typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-                component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
-                component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
-                component_type varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
+                typedef Variable<double> component_type;
+                const component_type& varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
+                const component_type& vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
+                const component_type& varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
 
                 #pragma omp parallel
                 {

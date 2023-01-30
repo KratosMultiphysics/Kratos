@@ -1,24 +1,20 @@
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Import Kratos core and apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
 
 # Additional imports
+from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os, csv
 
 # Read parameters
 with open("optimization_parameters.json",'r') as parameter_file:
-    parameters = Parameters(parameter_file.read())
+    parameters = KM.Parameters(parameter_file.read())
 
-model = Model()
+model = KM.Model()
 
 # Create optimizer and perform optimization
-import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model)
+optimizer = optimizer_factory.Create(model, parameters["optimization_settings"])
 optimizer.Optimize()
 
 # =======================================================================================================
@@ -51,11 +47,5 @@ with open(optimization_log_filename, 'r') as csvfile:
     TestCase().assertAlmostEqual(resulting_abs_improvement, 229.167, 3)
 
 os.chdir(original_directory)
-
-# Cleaning
-kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
-kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
 
 # =======================================================================================================

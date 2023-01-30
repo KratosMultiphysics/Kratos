@@ -199,9 +199,9 @@ public:
     )
     {
         KRATOS_TRY
-	
+
 	//KRATOS_WATCH("ENTERED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
-	mActiveNodes.clear(); 
+	mActiveNodes.clear();
         mActiveNodes.reserve(r_model_part.Nodes().size() );
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
@@ -219,13 +219,13 @@ public:
         BaseType::mDofSet.clear();
         BaseType::mDofSet.reserve(mActiveNodes.size()*TDim );
 
-        for(WeakPointerVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
+        for(GlobalPointersVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
         {
 
 	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_X).get());
 	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y).get());
             //BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y));
-	    if (TDim==3)
+	    if constexpr (TDim==3)
 	            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Z).get());
         }
 
@@ -259,7 +259,7 @@ public:
         BaseType::mDofSet.reserve( mnumber_of_active_nodes * TDim );
         int FractionalStepNumber = r_model_part.GetProcessInfo()[FRACTIONAL_STEP];
         KRATOS_WATCH(FractionalStepNumber);
-        if(TDim == 2)
+        if constexpr (TDim == 2)
         {
             for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
             {
@@ -271,7 +271,7 @@ public:
             }
 
         }
-        else if(TDim == 3)
+        else if constexpr (TDim == 3)
         {
             for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
             {
@@ -409,8 +409,6 @@ public:
             //assemble the elemental contribution
             AssembleLHS(A,LHS_Contribution,EquationId);
             AssembleRHS(b,RHS_Contribution,EquationId);
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
         }
         LHS_Contribution.resize(0,0,false);
 
@@ -477,17 +475,12 @@ public:
 
                 		}
                 */
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
 
                 //					#pragma omp critical
                 //					{
                 //						//assemble the elemental contribution
                 //						AssembleLHS(A,LHS_Contribution,EquationId);
                 //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
                 //					}
             }
         }
@@ -621,7 +614,7 @@ public:
     TSystemVectorType mMdiagInv;
     TSystemVectorType mpreconditioner;
     unsigned int mnumber_of_active_nodes;
-    WeakPointerVector<Node<3> > mActiveNodes;
+    GlobalPointersVector<Node<3> > mActiveNodes;
 
 //private:
     /**@name Static Member Variables */
@@ -631,7 +624,7 @@ public:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-  //  WeakPointerVector<Node<3> > mActiveNodes;
+  //  GlobalPointersVector<Node<3> > mActiveNodes;
 
     /*@} */
     /**@name Private Operations*/
@@ -925,17 +918,12 @@ public:
 
                 		}
                 */
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
 
                 //					#pragma omp critical
                 //					{
                 //						//assemble the elemental contribution
                 //						AssembleLHS(A,LHS_Contribution,EquationId);
                 //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
                 //					}
             }
         }
@@ -1024,7 +1012,7 @@ public:
         unsigned int dof_position = r_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -1038,7 +1026,7 @@ public:
                 }
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
@@ -1097,7 +1085,7 @@ public:
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -1115,7 +1103,7 @@ public:
                 indices.push_back(row_index/TDim);
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
@@ -1169,7 +1157,7 @@ public:
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -1183,7 +1171,7 @@ public:
                 }
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
@@ -1295,17 +1283,17 @@ public:
                             if (row_index==col_index)
                             {
                                 //Mconsistent(row_index,col_index) += temp * 2.0;
-                                if (TDim==2)
+                                if constexpr (TDim==2)
                                     Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
-                                else if (TDim==3)
+                                else if constexpr (TDim==3)
                                     Mconsistent(row_index,col_index) += 0.2*temp * 2.0*2.5;
                             }
                             else
                             {
                                 //Mconsistent(row_index,col_index) += temp ;
-                                if (TDim==2)
+                                if constexpr (TDim==2)
                                     Mconsistent(row_index,col_index) += 0.25*temp ;
-                                else if (TDim==3)
+                                else if constexpr (TDim==3)
                                     Mconsistent(row_index,col_index) += 0.2*temp*0.0 ;
                             }
 
@@ -1413,17 +1401,17 @@ public:
                             if (row_index==col_index)
                             {
                                 //Mconsistent(row_index,col_index) += temp * 2.0;
-                                if (TDim==2)
+                                if constexpr (TDim==2)
                                     Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
-                                else if (TDim==3)
+                                else if constexpr (TDim==3)
                                     Mconsistent(row_index,col_index) += 0.2*temp * 2.0;
                             }
                             else
                             {
                                 //Mconsistent(row_index,col_index) += temp ;
-                                if (TDim==2)
+                                if constexpr (TDim==2)
                                     Mconsistent(row_index,col_index) += 0.25*temp ;
-                                else if (TDim==3)
+                                else if constexpr (TDim==3)
                                     Mconsistent(row_index,col_index) += 0.2*temp ;
                             }
 
@@ -1803,18 +1791,18 @@ public:
                         if (row_index==col_index)
                         {
                             //Mconsistent(row_index,col_index) += temp * 2.0;
-                            if (TDim==2)
+                            if constexpr (TDim==2)
                                 Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
-                            else if (TDim==3)
+                            else if constexpr (TDim==3)
                                 Mconsistent(row_index,col_index) += 0.2*temp * 2.0;
                         }
                         else
                         {
 
                             //Mconsistent(row_index,col_index) += temp ;
-                            if (TDim==2)
+                            if constexpr (TDim==2)
                                 Mconsistent(row_index,col_index) += 0.25*temp ;
-                            else if (TDim==3)
+                            else if constexpr (TDim==3)
                                 Mconsistent(row_index,col_index) += 0.2*temp;
 
                         }
@@ -2417,7 +2405,7 @@ public:
         const array_1d<double,3>& fv1 = geom[1].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double,3>& fv2 = geom[2].FastGetSolutionStepValue(VELOCITY);
         array_1d<double,3> fv3 = ZeroVector(3);
-        if (TDim==3)
+        if constexpr (TDim==3)
         	fv3 = geom[3].FastGetSolutionStepValue(VELOCITY);
 
 
@@ -2430,7 +2418,7 @@ public:
         				geom[2].FastGetSolutionStepValue(DENSITY);
 
         ms_vel_gauss=fv0+fv1+fv2;
-        if (TDim==2)
+        if constexpr (TDim==2)
         	{
         	nu*=0.33333333333;
         	density*=0.33333333333;
@@ -2439,7 +2427,7 @@ public:
 
 
 
-        if (TDim==3)
+        if constexpr (TDim==3)
         	{
         	ms_vel_gauss+=fv3;
         	nu+=geom[3].FastGetSolutionStepValue(VISCOSITY);
@@ -2475,7 +2463,7 @@ public:
         //but with one integration N=0.333333333
         double norm_u;
         double h;
-        if (TDim==2)
+        if constexpr (TDim==2)
         {
         ms_vel_gauss[0] =  0.33333333333333*(fv0[0]+fv1[0]+fv2[0]);
         ms_vel_gauss[1] =  0.33333333333333*(fv0[1]+fv1[1]+fv2[1]);
@@ -2486,7 +2474,7 @@ public:
         norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
         norm_u = sqrt(norm_u);
         }
-        if (TDim==3)
+        if constexpr (TDim==3)
         {
         ms_vel_gauss[0] =  0.25*(fv0[0]+fv1[0]+fv2[0]+fv3[0]);
         ms_vel_gauss[1] =  0.25*(fv0[1]+fv1[1]+fv2[1]+fv3[1]);

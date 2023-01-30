@@ -1,0 +1,78 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Mok_CSM",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 15.0,
+        "echo_level"      : 0
+    },
+    "co_sim_settings" : {
+        "INFO" : "this block is only used if Kratos is used as an external solver for CoSimulation!",
+        "is_strong_coupling" : true,
+        "io_settings" : {
+            "echo_level" : 0,
+            "my_name" : "ext_structure",
+            "connect_to" : "structure"
+        },
+        "communication_settings" : {
+            "export_meshes" : [
+                "Structure.GENERIC_FSI"
+            ],
+            "export_fields" : [{
+                "identifier"      : "disp",
+                "model_part_name" : "Structure.GENERIC_FSI",
+                "variable_name"   : "DISPLACEMENT"
+            }],
+            "import_fields" : [{
+                "identifier"      : "load",
+                "model_part_name" : "Structure.GENERIC_FSI",
+                "variable_name"   : "POINT_LOAD"
+            }]
+        }
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "dynamic",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "newmark",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "fsi_mok/Mok_CSM"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "fsi_mok/StructuralMaterials.json"
+        },
+        "time_stepping"               : {
+            "time_step"           : 0.1
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 1e-6,
+        "displacement_absolute_tolerance"    : 1e-6,
+        "residual_relative_tolerance"        : 1e-6,
+        "residual_absolute_tolerance"        : 1e-6,
+        "max_iteration"                      : 25,
+        "linear_solver_settings"             : {
+            "solver_type" : "LinearSolversApplication.sparse_qr"
+        },
+        "rotation_dofs"            : false
+    },
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Dirichlet",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : []
+    }
+}

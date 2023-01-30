@@ -42,10 +42,9 @@ void SetErrorVariable(MesherUtilities::RefiningParameters& rRefiningParameters, 
   rRefiningParameters.SetErrorVariable(rVariable);
 }
 
-Variable<double> GetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters)
+const Variable<double>& GetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters)
 {
   return rRefiningParameters.GetThresholdVariable();
-
 }
 // remeshing methods
 
@@ -140,6 +139,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
       .def_readonly_static("SELECT_TESSELLATION_ELEMENTS",&MesherUtilities::SELECT_TESSELLATION_ELEMENTS)
       .def_readonly_static("KEEP_ISOLATED_NODES",&MesherUtilities::KEEP_ISOLATED_NODES)
+      .def_readonly_static("REFINE_WALL_CORNER",&MesherUtilities::REFINE_WALL_CORNER)
       ;
 
 
@@ -270,6 +270,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("SetBoundingBoxLowerPoint",&MesherUtilities::MeshingParameters::SetBoundingBoxLowerPoint)
       .def("SetBoundingBoxUpperPoint",&MesherUtilities::MeshingParameters::SetBoundingBoxUpperPoint)
       .def("SetBoundingBoxTimeInterval",&MesherUtilities::MeshingParameters::SetBoundingBoxTimeInterval)
+      .def("InitializeRefiningBoxParameters",&MesherUtilities::MeshingParameters::InitializeRefiningBoxParameters)
+      .def("SetUseRefiningBox",&MesherUtilities::MeshingParameters::SetUseRefiningBox)      
+      .def("SetRefiningBoxMinimumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxMinimumPoint)
+      .def("SetRefiningBoxShiftedMinimumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxShiftedMinimumPoint)
+      .def("SetRefiningBoxMaximumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxMaximumPoint)
+      .def("SetRefiningBoxShiftedMaximumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxShiftedMaximumPoint)
+      .def("SetRefiningBoxTimeInterval",&MesherUtilities::MeshingParameters::SetRefiningBoxTimeInterval)
+      .def("SetRefiningBoxMeshSize",&MesherUtilities::MeshingParameters::SetRefiningBoxMeshSize)
+      .def("SetRefiningBoxElementsInTransitionZone",&MesherUtilities::MeshingParameters::SetRefiningBoxElementsInTransitionZone)
       ;
 
 }

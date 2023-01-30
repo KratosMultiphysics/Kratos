@@ -5,7 +5,8 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from tests_python_scripts.interpolation_scripts.interpolation_test_analysis import InterpolationTestAnalysis
+import tests_python_scripts.interpolation_scripts.interpolation_test_analysis as interpolation_test_analysis
+InterpolationTestAnalysis = interpolation_test_analysis.InterpolationTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -30,12 +31,9 @@ class TestFactory(KratosUnittest.TestCase):
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             # Create Model
-            model = KratosMultiphysics.Model()
+            self.model = KratosMultiphysics.Model()
 
-            # To avoid too many prints
-            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
-            self.test = InterpolationTestAnalysis(model, parameters)
+            self.test = InterpolationTestAnalysis(self.model, parameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

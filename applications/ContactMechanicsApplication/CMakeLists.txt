@@ -2,19 +2,17 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosContactMechanicsApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 
 ################### PYBIND11
 include(pybind11Tools)
 
-if(NOT (${DELAUNAY_MESHING_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Delaunay Meshing Application must be compiled before this one. Set DELAUNAY_MESHING_APPLICATION=ON in the configure file.")
-endif(NOT (${DELAUNAY_MESHING_APPLICATION} MATCHES "ON"))
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+  set(TRIANGLE_DIR ${KRATOS_SOURCE_DIR}/external_libraries/triangle)
   include_directories( ${TRIANGLE_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
@@ -28,7 +26,7 @@ endif(NOT DEFINED ${INCLUDE_TETGEN})
 # Generate variables with the sources
 set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application_variables.cpp
 
 	## deformable contact conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/deformable_contact/contact_domain_condition.cpp
@@ -73,8 +71,8 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_links/rigid_body_point_link_segregated_V_condition.cpp
 
 	##elements
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_segregated_V_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_segregated_V_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_segregated_V_element.cpp
 
@@ -114,6 +112,12 @@ pybind11_add_module(KratosContactMechanicsApplication MODULE THIN_LTO ${KRATOS_C
 target_link_libraries(KratosContactMechanicsApplication PRIVATE KratosContactMechanicsCore)
 set_target_properties(KratosContactMechanicsApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosContactMechanicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosContactMechanicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosContactMechanicsApplication PROPERTIES SUFFIX .pyd)
@@ -124,22 +128,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosContactMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# install the python files
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ContactMechanicsApplication.py KratosMultiphysics/ContactMechanicsApplication/__init__.py )
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosContactMechanicsCore)
-    cotire(KratosContactMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
+# Install targets
 install(TARGETS KratosContactMechanicsCore DESTINATION libs )
 install(TARGETS KratosContactMechanicsApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ContactMechanicsApplication.py" DESTINATION "KratosMultiphysics/ContactMechanicsApplication" RENAME "__init__.py")
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosContactMechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosContactMechanicsApplication" PARENT_SCOPE)

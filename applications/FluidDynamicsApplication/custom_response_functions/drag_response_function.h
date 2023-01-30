@@ -20,10 +20,10 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/variable_utils.h"
+#include "includes/ublas_interface.h"
 #include "response_functions/adjoint_response_function.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -58,7 +58,7 @@ public:
 
     /// Constructor.
     DragResponseFunction(Parameters Settings, ModelPart& rModelPart)
-    : mrModelPart(rModelPart)
+        : mrModelPart(rModelPart)
     {
         KRATOS_TRY;
 
@@ -70,8 +70,7 @@ public:
 
         Settings.ValidateAndAssignDefaults(default_settings);
 
-        mStructureModelPartName =
-            Settings["structure_model_part_name"].GetString();
+        mStructureModelPartName = Settings["structure_model_part_name"].GetString();
 
         if (Settings["drag_direction"].IsArray() == false ||
             Settings["drag_direction"].size() != 3)
@@ -88,7 +87,8 @@ public:
             if (magnitude == 0.0)
                 KRATOS_ERROR << "\"drag_direction\" is zero." << std::endl;
 
-            KRATOS_WARNING("DragResponseFunction") << "Non unit magnitude in \"drag_direction\"." << std::endl;
+            KRATOS_WARNING("DragResponseFunction")
+                << "Non unit magnitude in \"drag_direction\"." << std::endl;
             KRATOS_WARNING("DragResponseFunction") << "Normalizing ..." << std::endl;
 
             for (unsigned int d = 0; d < TDim; ++d)
@@ -119,7 +119,8 @@ public:
 
         VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Nodes());
         VariableUtils().SetFlag(
-            STRUCTURE, true, mrModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
+            STRUCTURE, true,
+            mrModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
 
         KRATOS_CATCH("");
     }
@@ -133,6 +134,15 @@ public:
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
     }
 
+    void CalculateGradient(
+        const Condition& rAdjointCondition,
+        const Matrix& rResidualGradient,
+        Vector& rResponseGradient,
+        const ProcessInfo& rProcessInfo) override
+    {
+        rResponseGradient.clear();
+    }
+
     void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
                                            const Matrix& rResidualGradient,
                                            Vector& rResponseGradient,
@@ -142,6 +152,14 @@ public:
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
     }
 
+    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                           const Matrix& rResidualGradient,
+                                           Vector& rResponseGradient,
+                                           const ProcessInfo& rProcessInfo) override
+    {
+        rResponseGradient.clear();
+    }
+
     void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
                                             const Matrix& rResidualGradient,
                                             Vector& rResponseGradient,
@@ -149,6 +167,14 @@ public:
     {
         CalculateDragContribution(
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
+    }
+
+    void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
+                                            const Matrix& rResidualGradient,
+                                            Vector& rResponseGradient,
+                                            const ProcessInfo& rProcessInfo) override
+    {
+        rResponseGradient.clear();
     }
 
     void CalculatePartialSensitivity(Element& rAdjointElement,
@@ -165,11 +191,23 @@ public:
         KRATOS_CATCH("");
     }
 
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                     const Variable<array_1d<double, 3>>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     const ProcessInfo& rProcessInfo) override
+    {
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
+
+        rSensitivityGradient.clear();
+    }
+
     double CalculateValue(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
-        KRATOS_ERROR
-            << "DragResponseFunction::CalculateValue(ModelPart& rModelPart) is not implemented!!!\n";
+        KRATOS_ERROR << "DragResponseFunction::CalculateValue(ModelPart& "
+                        "rModelPart) is not implemented!!!\n";
         KRATOS_CATCH("");
     }
 
@@ -222,23 +260,18 @@ private:
     {
         constexpr std::size_t max_size = 50;
         BoundedVector<double, max_size> drag_flag_vector(rDerivativesOfResidual.size2());
+        drag_flag_vector.clear();
 
         const unsigned num_nodes = rNodes.size();
-        unsigned local_index = 0;
+        const unsigned local_size = rDerivativesOfResidual.size2() / num_nodes;
+
         for (unsigned i_node = 0; i_node < num_nodes; ++i_node)
         {
             if (rNodes[i_node].Is(STRUCTURE))
             {
                 for (unsigned d = 0; d < TDim; ++d)
-                    drag_flag_vector[local_index++] = mDragDirection[d];
+                    drag_flag_vector[i_node * local_size + d] = mDragDirection[d];
             }
-            else
-            {
-                for (unsigned int d = 0; d < TDim; ++d)
-                    drag_flag_vector[local_index++] = 0.0;
-            }
-
-            drag_flag_vector[local_index++] = 0.0; // pressure dof
         }
 
         if (rDerivativesOfDrag.size() != rDerivativesOfResidual.size1())

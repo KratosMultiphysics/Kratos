@@ -31,9 +31,9 @@ namespace Kratos
 HenckyMCStrainSofteningPlastic3DLaw::HenckyMCStrainSofteningPlastic3DLaw()
     : HenckyElasticPlastic3DLaw()
 {
-    mpHardeningLaw   = MPMHardeningLaw::Pointer( new ExponentialStrainSofteningLaw() );
-    mpYieldCriterion = MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule    = MPMFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
+    mpHardeningLaw   = ParticleHardeningLaw::Pointer( new ExponentialStrainSofteningLaw() );
+    mpYieldCriterion = ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule    = ParticleFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyMCStrainSofteningPlastic3DLaw::HenckyMCStrainSofteningPlastic3DLaw()
 HenckyMCStrainSofteningPlastic3DLaw::HenckyMCStrainSofteningPlastic3DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 
@@ -75,7 +75,7 @@ HenckyMCStrainSofteningPlastic3DLaw::~HenckyMCStrainSofteningPlastic3DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyMCStrainSofteningPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyMCStrainSofteningPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlastic3DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

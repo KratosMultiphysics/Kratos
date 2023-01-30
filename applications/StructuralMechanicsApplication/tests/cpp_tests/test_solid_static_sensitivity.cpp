@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:
+//  Main authors:    Michael Andre, https://github.com/msandre
 //
 
 // System includes
@@ -19,7 +19,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/shared_pointers.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
@@ -40,14 +39,14 @@ namespace Kratos
 namespace
 {
 namespace test_solid_static_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 using SparseSpaceType = TUblasSparseSpace<double>;
 using LocalSpaceType = TUblasDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 using SchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
 using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
 using SolvingStrategyType =
-    SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
 class PrimalTestSolver
 {
@@ -85,6 +84,11 @@ namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    if (!KratosComponents<ConstitutiveLaw>::Has("KirchhoffSaintVenantPlaneStrain2DLaw")) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
+
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
@@ -122,6 +126,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensit
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    if (!KratosComponents<ConstitutiveLaw>::Has("KirchhoffSaintVenantPlaneStress2DLaw")) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
+
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
@@ -161,6 +170,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensit
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    if (!KratosComponents<ConstitutiveLaw>::Has("KirchhoffSaintVenant3DLaw")) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
+
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
@@ -202,6 +216,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, Krat
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    if (!KratosComponents<ConstitutiveLaw>::Has("KirchhoffSaintVenantPlaneStress2DLaw")) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
+
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
@@ -245,12 +264,17 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensit
 namespace
 {
 namespace test_solid_static_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 AdjointResponseFunction::Pointer ResponseFunctionFactory(ModelPart* pModelPart, unsigned ResponseNodeId)
 {
-    Parameters params{R"({"traced_dof": "DISPLACEMENT_Y", "gradient_mode": "semi_analytic", "step_size": 1e-2})"};
-    params.AddEmptyValue("traced_node_id");
-    params["traced_node_id"].SetInt(ResponseNodeId);
+    Parameters params{R"({"traced_dof": "DISPLACEMENT", "direction": [0.0,1.0,0.0], "gradient_mode": "semi_analytic", "step_size": 1e-2})"};
+    std::string response_mp_label = "response_mp";
+    if (!pModelPart->HasSubModelPart(response_mp_label)) {
+        ModelPart& r_sub = pModelPart->CreateSubModelPart(response_mp_label);
+        r_sub.AddNode(pModelPart->pGetNode(ResponseNodeId));
+    }
+    params.AddEmptyValue("response_part_name");
+    params["response_part_name"].SetString(response_mp_label);
     return Kratos::make_shared<AdjointNodalDisplacementResponseFunction>(*pModelPart, params);
 }
 
@@ -282,7 +306,7 @@ double PrimalTestSolver::CalculateResponseValue(const unsigned NodeToPerturb,
                                                 const char Direction,
                                                 const double Perturbation)
 {
-    
+
     KRATOS_ERROR_IF(Perturbation <= 0.) << "invalid perturbation: " << Perturbation;
     const unsigned i_dir = DirectionIndex(Direction);
     auto& r_node = mpPrimalModelPart->GetNode(NodeToPerturb);

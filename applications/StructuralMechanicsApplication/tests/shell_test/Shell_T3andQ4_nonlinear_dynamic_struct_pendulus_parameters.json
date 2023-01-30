@@ -31,8 +31,6 @@
         "residual_relative_tolerance"        : 1e-9,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 100,
-        "problem_domain_sub_model_part_list" : ["Parts_Surface_T3_thin","Parts_Surface_T3_thick","Parts_Surface_Q4_thick","Parts_Surface_Q4_thin"],
-        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_edge","SelfWeight3D_Surface_Q4_thick","SelfWeight3D_Surface_Q4_thin","SelfWeight3D_Surface_T3_thick","SelfWeight3D_Surface_T3_thin"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -43,7 +41,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_edge",
+            "model_part_name" : "Structure.DISPLACEMENT_edge",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -59,8 +57,9 @@
         "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight3D_Surface_Q4_thick",
+            "model_part_name" : "Structure.SelfWeight3D_Surface_Q4_thick",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]
@@ -73,8 +72,9 @@
         "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight3D_Surface_Q4_thin",
+            "model_part_name" : "Structure.SelfWeight3D_Surface_Q4_thin",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]
@@ -87,8 +87,9 @@
         "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight3D_Surface_T3_thick",
+            "model_part_name" : "Structure.SelfWeight3D_Surface_T3_thick",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]
@@ -101,8 +102,9 @@
         "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight3D_Surface_T3_thin",
+            "model_part_name" : "Structure.SelfWeight3D_Surface_T3_thin",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]
@@ -117,7 +119,7 @@
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_pendulus_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 0.1
         }
     }]},

@@ -13,6 +13,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/properties.h"
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
@@ -83,6 +84,11 @@ double& TrussConstitutiveLaw::CalculateValue(
     double& rValue)
 {
     if(rThisVariable == TANGENT_MODULUS) rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS];
+    else if (rThisVariable == STRAIN_ENERGY){
+        Vector current_strain = ZeroVector(1);
+        rParameterValues.GetStrainVector(current_strain);
+        rValue = 0.50 * rParameterValues.GetMaterialProperties()[YOUNG_MODULUS] * current_strain[0] * current_strain[0];
+    }
     else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
@@ -130,32 +136,24 @@ array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
 
 //************************************************************************************
 //************************************************************************************
-
-void TrussConstitutiveLaw::CalculateMaterialResponse(
-    const Vector& rStrainVector,const Matrix& rDeformationGradient,
-    Vector& rStressVector,Matrix& rAlgorithmicTangent,
-    const ProcessInfo& rCurrentProcessInfo,const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues,
-    bool CalculateStresses,int CalculateTangent,bool SaveInternalVariables)
+void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
-    const double axial_strain = rStrainVector[0];
-    const double youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
-
-    if (rStressVector.size() != 1) rStressVector.resize(1, false);
-    rStressVector[0] = youngs_modulus*axial_strain;
+    Vector& stress_vector = rValues.GetStressVector();
+    if (stress_vector.size() != 1) stress_vector.resize(1, false);
+    stress_vector[0] = this->CalculateStressElastic(rValues);
 }
-
 //************************************************************************************
 //************************************************************************************
 
 double TrussConstitutiveLaw::CalculateStressElastic(
-    ConstitutiveLaw::Parameters& rParameterValues) const
+    ConstitutiveLaw::Parameters& rParameterValues)
 {
     Vector current_strain = ZeroVector(1);
     rParameterValues.GetStrainVector(current_strain);
+    double tangent_modulus(0.0);
+    CalculateValue(rParameterValues,TANGENT_MODULUS,tangent_modulus);
 
-    const double current_stress =
-     rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]*current_strain[0];
+    const double current_stress = tangent_modulus*current_strain[0];
     return current_stress;
 }
 
@@ -166,8 +164,9 @@ int TrussConstitutiveLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-)
+) const
 {
+    KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
      << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 

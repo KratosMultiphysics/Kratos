@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_PRISM_3D_6_H_INCLUDED )
-#define  KRATOS_PRISM_3D_6_H_INCLUDED
+#pragma once 
 
 // System includes
 
@@ -24,6 +23,7 @@
 // Project includes
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "utilities/integration_utilities.h"
 #include "integration/prism_gauss_legendre_integration_points.h"
 
 namespace Kratos
@@ -217,10 +217,28 @@ public:
         this->Points().push_back( pPoint6 );
     }
 
-    explicit Prism3D6( const PointsArrayType& ThisPoints )
-        : BaseType( ThisPoints, &msGeometryData )
+    explicit Prism3D6( const PointsArrayType& rThisPoints )
+        : BaseType( rThisPoints, &msGeometryData )
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Id
+    explicit Prism3D6(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( GeometryId, rThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Prism3D6(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 6) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -259,12 +277,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Prism;
+        return GeometryData::KratosGeometryFamily::Kratos_Prism;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Prism3D6;
+        return GeometryData::KratosGeometryType::Kratos_Prism3D6;
     }
 
     /**
@@ -312,27 +330,35 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Prism3D6( ThisPoints ) );
+        return typename BaseType::Pointer( new Prism3D6( NewGeometryId, rThisPoints ) );
     }
 
-
-    //     Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Prism3D6< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+        ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Prism3D6( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
     /**
      * Informations
@@ -380,33 +406,17 @@ public:
         return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
-
-    /**
-     * This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
      * @see Length()
      * @see Area()
-     * @see Volume()
-     *
-     * :TODO: might be necessary to reimplement
+     * @see DomainSize()
      */
     double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double volume = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
 
     /**
@@ -476,7 +486,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -489,33 +499,35 @@ public:
         return false;
     }
 
-
+    ///@}
+    ///@name Edge
+    ///@{
 
     /**
-     * This method gives you number of all edges of this
-    geometry.
-    * @return SizeType containes number of this geometry edges.
-    * @see Edges()
-    * @see Edge()
-    * @note It will be used by refinement algorithm, thus uncommented. Janosch.
-    */
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
+     */
     SizeType EdgesNumber() const override
     {
         return 9;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 5;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -549,7 +561,31 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 5;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -579,7 +615,27 @@ public:
         return faces;
     }
 
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
+    {
+        // Check if faces have intersection
+        if(FaceType1(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType1(this->pGetPoint(3),this->pGetPoint(4), this->pGetPoint(5)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(1),this->pGetPoint(2), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(0),this->pGetPoint(3), this->pGetPoint(5), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(4), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
 
+        CoordinatesArrayType local_coordinates;
+        // If there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
+    }
 
     /**
      * Shape Function
@@ -719,12 +775,12 @@ protected:
      */
 
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -800,7 +856,7 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod )
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -848,8 +904,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -919,25 +974,25 @@ private:
         {
             {
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -953,25 +1008,25 @@ private:
         {
             {
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
@@ -996,15 +1051,11 @@ private:
  * Input and output
  */
 
-/**
- * input stream function
- */
+/// input stream function
 template<class TPointType> inline std::istream& operator >> (
     std::istream& rIStream, Prism3D6<TPointType>& rThis );
 
-/**
- * output stream function
- */
+/// output stream function
 template<class TPointType> inline std::ostream& operator << (
     std::ostream& rOStream, const Prism3D6<TPointType>& rThis )
 {
@@ -1015,15 +1066,17 @@ template<class TPointType> inline std::ostream& operator << (
     return rOStream;
 }
 
-
 template<class TPointType> const
 GeometryData Prism3D6<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_2,
+    &msGeometryDimension,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Prism3D6<TPointType>::AllIntegrationPoints(),
     Prism3D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
-}// namespace Kratos.
+template<class TPointType> const
+GeometryDimension Prism3D6<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
-#endif // KRATOS_PRISM_3D_6_H_INCLUDED  defined
+}// namespace Kratos.

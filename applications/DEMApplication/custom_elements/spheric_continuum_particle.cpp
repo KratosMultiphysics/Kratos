@@ -31,7 +31,7 @@ namespace Kratos {
     }
 
     Element::Pointer SphericContinuumParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
-      return SphericParticle::Pointer(new SphericContinuumParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return SphericParticle::Pointer(new SphericContinuumParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
     /// Destructor
@@ -39,7 +39,7 @@ namespace Kratos {
     SphericContinuumParticle::~SphericContinuumParticle() {
     }
 
-    void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
+    void SphericContinuumParticle::SetInitialSphereContacts(const ProcessInfo& r_process_info) {
 
         std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
         std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
@@ -72,7 +72,6 @@ namespace Kratos {
                 //mArrayOfDeltaDisplacements.push_back(vector_of_zeros);
                 ContinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 continuum_ini_size++;
-
             } else {
                 DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
                 DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
@@ -101,9 +100,10 @@ namespace Kratos {
         mContinuumConstitutiveLawArray.resize(mContinuumInitialNeighborsSize);
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
-            mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
-            mContinuumConstitutiveLawArray[i]->Initialize();
+            Properties::Pointer properties_of_this_contact = GetProperties().pGetSubProperties(mNeighbourElements[i]->GetProperties().Id());
+            mContinuumConstitutiveLawArray[i] = (*properties_of_this_contact)[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
+            SphericContinuumParticle* p_cont_neighbour_particle = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            mContinuumConstitutiveLawArray[i]->Initialize(this, p_cont_neighbour_particle, properties_of_this_contact);
         }
     }
 
@@ -115,6 +115,7 @@ namespace Kratos {
 
         mFemIniNeighbourIds.resize(fem_neighbours_size);
         mFemIniNeighbourDelta.resize(fem_neighbours_size);
+        mContactConditionWeights.resize(fem_neighbours_size);
 
         for (unsigned int i = 0; i < rFemNeighbours.size(); i++) {
 
@@ -141,7 +142,6 @@ namespace Kratos {
         double effectiveVolumeRadius = EffectiveVolumeRadius();  //calculateEffectiveVolumeRadius
         double external_sphere_area = 4 * Globals::Pi * effectiveVolumeRadius * effectiveVolumeRadius;
         double total_equiv_area = 0.0;
-        double total_mContIniNeighArea = 0.0;
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
         Vector& cont_ini_neigh_area = GetValue(NEIGHBOURS_CONTACT_AREAS);
         bool print_debug_files = false;
@@ -168,7 +168,6 @@ namespace Kratos {
                 }
                 for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
                     cont_ini_neigh_area[i] = alpha * cont_ini_neigh_area[i];
-                    total_mContIniNeighArea += cont_ini_neigh_area[i];
                 } //for every neighbor
             }
 
@@ -203,25 +202,10 @@ namespace Kratos {
         return effectiveVolumeRadius;
     }
 
-
-    /*void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
-
-    KRATOS_TRY
-
-    SphericParticle::InitializeSolutionStep(r_process_info);
-
-    for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-        DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
-    }
-
-    KRATOS_CATCH("")
-    }*/
-
-    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
-                                                                 ProcessInfo& r_process_info,
-                                                                 array_1d<double, 3>& rElasticForce,
-                                                                 array_1d<double, 3>& rContactForce,
-                                                                 double& RollingResistance)
+    void SphericContinuumParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                                const ProcessInfo& r_process_info,
+                                                                array_1d<double, 3>& rElasticForce,
+                                                                array_1d<double, 3>& rContactForce)
     {
         KRATOS_TRY
 
@@ -229,8 +213,6 @@ namespace Kratos {
         DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
 
         const int time_steps = r_process_info[TIME_STEPS];
-        const int& search_control = r_process_info[SEARCH_CONTROL];
-        DenseVector<int>& search_control_vector = r_process_info[SEARCH_CONTROL_VECTOR];
 
         const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -288,7 +270,7 @@ namespace Kratos {
 
             if (i < (int)mContinuumInitialNeighborsSize) {
                 mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
-                mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator);
+                mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator, indentation);
             }
 
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, vel, delta_displ);
@@ -329,85 +311,140 @@ namespace Kratos {
             double ViscoLocalRotationalMoment[3] = {0.0};
             double cohesive_force =  0.0;
             double LocalRelVel[3] = {0.0};
+            double LocalContactForce[3] = {0.0};
+            double GlobalContactForce[3] = {0.0};
+
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, RelVel, LocalRelVel);
 
+            //*******************Forces calculation****************
             if (i < (int)mContinuumInitialNeighborsSize) {
 
-                mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator);
-
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
-                                                                   OldLocalElasticContactForce,
-                                                                   LocalElasticContactForce,
-                                                                   LocalElasticExtraContactForce,
-                                                                   data_buffer.mLocalCoordSystem,
-                                                                   LocalDeltDisp,
-                                                                   kn_el,
-                                                                   kt_el,
-                                                                   contact_sigma,
-                                                                   contact_tau,
-                                                                   failure_criterion_state,
-                                                                   equiv_young,
-                                                                   equiv_shear,
-                                                                   indentation,
-                                                                   calculation_area,
-                                                                   acumulated_damage,
-                                                                   this,
-                                                                   neighbour_iterator,
-                                                                   i,
-                                                                   r_process_info[TIME_STEPS],
-                                                                   sliding,
-                                                                   search_control,
-                                                                   search_control_vector,
-                                                                   equiv_visco_damp_coeff_normal,
-                                                                   equiv_visco_damp_coeff_tangential,
-                                                                   LocalRelVel,
-                                                                   ViscoDampingLocalContactForce);
+                                                                OldLocalElasticContactForce,
+                                                                LocalElasticContactForce,
+                                                                LocalElasticExtraContactForce,
+                                                                data_buffer.mLocalCoordSystem,
+                                                                LocalDeltDisp,
+                                                                kn_el,
+                                                                kt_el,
+                                                                contact_sigma,
+                                                                contact_tau,
+                                                                failure_criterion_state,
+                                                                equiv_young,
+                                                                equiv_shear,
+                                                                indentation,
+                                                                calculation_area,
+                                                                acumulated_damage,
+                                                                this,
+                                                                neighbour_iterator,
+                                                                i,
+                                                                r_process_info[TIME_STEPS],
+                                                                sliding,
+                                                                equiv_visco_damp_coeff_normal,
+                                                                equiv_visco_damp_coeff_tangential,
+                                                                LocalRelVel,
+                                                                ViscoDampingLocalContactForce);
 
             } else if (indentation > 0.0) {
                 const double previous_indentation = indentation + LocalDeltDisp[2];
+                mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(data_buffer.mpOtherParticle);
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
-                        LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
-                        ViscoDampingLocalContactForce, cohesive_force, this, data_buffer.mpOtherParticle, sliding, data_buffer.mLocalCoordSystem);
+                                                                LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
+                                                                ViscoDampingLocalContactForce, cohesive_force, this, data_buffer.mpOtherParticle, sliding, data_buffer.mLocalCoordSystem);
             } else { //Not bonded and no idata_buffer.mpOtherParticlendentation
                 LocalElasticContactForce[0] = 0.0;      LocalElasticContactForce[1] = 0.0;      LocalElasticContactForce[2] = 0.0;
                 ViscoDampingLocalContactForce[0] = 0.0; ViscoDampingLocalContactForce[1] = 0.0; ViscoDampingLocalContactForce[2] = 0.0;
                 cohesive_force= 0.0;
             }
 
-            // Transforming to global forces and adding up
-            double LocalContactForce[3] = {0.0};
-            double GlobalContactForce[3] = {0.0};
-
-            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < (int)mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
-                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, data_buffer.mLocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info, i, indentation);
-            }
-
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
+            GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+
+            //******************Moments calculation start****************
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                if (i < (int)mContinuumInitialNeighborsSize) {
+                    mContinuumConstitutiveLawArray[i]->CalculateMoments(this,
+                                                                        neighbour_iterator,
+                                                                        equiv_young,
+                                                                        data_buffer.mDistance,
+                                                                        calculation_area,
+                                                                        data_buffer.mLocalCoordSystem,
+                                                                        ElasticLocalRotationalMoment,
+                                                                        ViscoLocalRotationalMoment,
+                                                                        equiv_poisson,
+                                                                        indentation,
+                                                                        LocalElasticContactForce,
+                                                                        LocalContactForce[2],
+                                                                        GlobalElasticContactForce,
+                                                                        data_buffer.mLocalCoordSystem[2],
+                                                                        i);
+
+                    if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
+                        if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
+                            mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, indentation, mContactMoment);
+                        }
+                        else {
+                            if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
+                              mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
+                            }
+                        }
+                    }
+
+                } else { //for unbonded particles
+
+                    double GlobalElasticContactForce[3] = {0.0};
+                    GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+                    ComputeMoments(LocalContactForce[2], GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
+
+
+                    if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
+                        if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
+                            mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, indentation, mContactMoment);
+                        }
+                        else {
+                            if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
+                                mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
+                            }
+                        }
+                    }
+                }
+            }
+            //*****************Moments calculation end******************
+
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < (int)mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
+                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, data_buffer.mLocalCoordSystem, LocalElasticContactForce[2],
+                                                                          calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info, i, indentation);
+            }
+
+            //*******************Bond failure check*********************
+            if (i < (int)mContinuumInitialNeighborsSize) {
+                mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator, contact_sigma, contact_tau, LocalElasticContactForce,
+                                                                    ViscoDampingLocalContactForce, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
+            }
+
+            //*******************Add up forces and moments**************
             AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
-                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce,ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
+                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation);
-                if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
-                    mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, data_buffer.mDistance, calculation_area,
-                                                                                        data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
-                }
-
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 
-            if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
+            if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 double total_local_elastic_contact_force[3] = {0.0};
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
-                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
+                //TODO: REMOVE ElasticLocalRotationalMoment
+                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, ElasticLocalRotationalMoment, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
-                AddNeighbourContributionToStressTensor(TotalGlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, radius_sum, this);
+                AddNeighbourContributionToStressTensor(r_process_info, TotalGlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, radius_sum, this);
             }
 
             AddContributionToRepresentativeVolume(data_buffer.mDistance, radius_sum, calculation_area);
@@ -422,34 +459,25 @@ namespace Kratos {
         ComputeBrokenBondsRatio();
 
         KRATOS_CATCH("")
-    } //  ComputeBallToBallContactForce
+    } //  ComputeBallToBallContactForceAndMoment
 
     void SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){}
 
     void SphericContinuumParticle::ComputeBrokenBondsRatio() {
 
-        int BrokenBondsCounter = 0.0;
+        int BrokenBondsCounter = 0;
 
-        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-
-            if (mNeighbourElements[i] == NULL) continue;
-            //if (this->Is(NEW_ENTITY) && mNeighbourElements[i]->Is(NEW_ENTITY)) continue;
-
-            //SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-            //unsigned int neighbour_id = neighbour_iterator->Id();
-            if ((i < mContinuumInitialNeighborsSize) && mIniNeighbourFailureId[i] > 0) {
-            //if ((i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_id && mIniNeighbourFailureId[i] > 0) {
-                ++BrokenBondsCounter;
-            }
-
-            //int NeighbourSize = mNeighbourElements.size();
-            //GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_SIZE) = NeighbourSize;
-            double NeighbourRatio = 0.0;
-
-            if (mContinuumInitialNeighborsSize) NeighbourRatio = BrokenBondsCounter / mContinuumInitialNeighborsSize;
-
-            GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_RATIO) = NeighbourRatio;
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+            if(mNeighbourElements[i] == NULL) BrokenBondsCounter++;
+            else if (mIniNeighbourFailureId[i] > 0) BrokenBondsCounter++;
         }
+
+        if(mContinuumInitialNeighborsSize) {
+            GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = double(BrokenBondsCounter) / mContinuumInitialNeighborsSize;
+        } else {
+            GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = 1.0;
+        }
+
     }
 
     void SphericContinuumParticle::FilterNonSignificantDisplacements(double DeltDisp[3], //IN GLOBAL AXES
@@ -494,7 +522,7 @@ namespace Kratos {
     }
     */
 
-    void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
+    void SphericContinuumParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
         KRATOS_TRY
 
         SphericParticle::FinalizeSolutionStep(r_process_info);
@@ -566,7 +594,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
 
-            if (mNeighbourElements[i] == NULL) {
+            if (mNeighbourElements[i] == NULL || mIniNeighbourFailureId[i]) {
                 *mSkinSphere = 1.0;
                 break;
             }
@@ -631,7 +659,47 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void SphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {}
+    void SphericContinuumParticle::UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info) {}
+
+    void SphericContinuumParticle::ReorderFEMneighbours() {
+
+        KRATOS_TRY
+
+        unsigned int current_neighbors_size = mNeighbourRigidFaces.size();
+        unsigned int initial_neighbors_size = mFemIniNeighbourIds.size();
+
+        std::vector<DEMWall*> temp_neighbour_elements(initial_neighbors_size, nullptr);
+        std::vector<array_1d<double, 4> > temp_neighbours_weights(initial_neighbors_size, ZeroVector(4));
+        std::vector<int> temp_neighbours_contact_types(initial_neighbors_size, 0);
+
+        // Loop over current neighbors
+        for (unsigned int i = 0; i < current_neighbors_size; i++) {
+            DEMWall* i_neighbour = mNeighbourRigidFaces[i];
+            bool found = false;
+            // Loop over initial neighbors
+            for (unsigned int k = 0; k < initial_neighbors_size; k++) {
+                if (static_cast<int>(i_neighbour->Id()) == mFemIniNeighbourIds[k]) {
+                    temp_neighbour_elements[k] = i_neighbour;
+                    temp_neighbours_weights[k] = mContactConditionWeights[i];
+                    temp_neighbours_contact_types[k] = mContactConditionContactTypes[i];
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                temp_neighbour_elements.push_back(i_neighbour);
+                temp_neighbours_weights.push_back(mContactConditionWeights[i]);
+                temp_neighbours_contact_types.push_back(mContactConditionContactTypes[i]);
+            }
+        }
+
+        mNeighbourRigidFaces.swap(temp_neighbour_elements);
+        mContactConditionWeights.swap(temp_neighbours_weights);
+        mContactConditionContactTypes.swap(temp_neighbours_contact_types);
+
+        KRATOS_CATCH("")
+    }
 
     double SphericContinuumParticle::CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) {
 
@@ -640,7 +708,7 @@ namespace Kratos {
         double max_local_search = 0.0;
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-	    if (mNeighbourElements[i] == NULL) continue;
+            if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             double search_dist = mContinuumConstitutiveLawArray[i]->LocalMaxSearchDistance(i, this, r_continuum_ini_neighbour);
             if (search_dist > max_local_search) max_local_search = search_dist;
@@ -676,27 +744,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
-
-        KRATOS_TRY
-
-        double max_sqr_period = 0.0;
-
-        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-            double sqr_period = mContinuumConstitutiveLawArray[i]->LocalPeriod(i, this, r_continuum_ini_neighbour);
-            if (sqr_period > max_sqr_period) { (max_sqr_period = sqr_period); }
-        }
-        for (unsigned int i = mContinuumInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
-
-            double sqr_period_discontinuum = mDiscontinuumConstitutiveLaw->LocalPeriod(i, this, mNeighbourElements[i]);
-            if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
-        }
-        return max_sqr_period;
-
-        KRATOS_CATCH("")
-    }
-
     void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
@@ -725,7 +772,7 @@ namespace Kratos {
                 std::string message = "An element (Id " + std::to_string(this->Id()) + ") found a neighbor (had contact area) but the neighbor (Id " \
                                                         + std::to_string(r_continuum_ini_neighbour->Id()) + ") did not have area for that element  ";
 
-                KRATOS_THROW_ERROR(std::runtime_error, message, 0);
+                KRATOS_ERROR << message << std::endl;
             }
 
             bool neigh_is_skin = r_continuum_ini_neighbour->IsSkin();
@@ -752,8 +799,7 @@ namespace Kratos {
         if (rVariable == DELTA_TIME) {
             double coeff = r_process_info[NODAL_MASS_COEFF];
             double mass = GetMass();
-
-            if (coeff > 1.0) { KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", coeff) }
+            KRATOS_ERROR_IF(coeff > 1.0) << "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= "<< coeff << std::endl;
             else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) { Output = 9.0E09; }
             else {
                 if (r_process_info[VIRTUAL_MASS_OPTION]) { mass /= 1 - coeff; }
@@ -789,10 +835,9 @@ namespace Kratos {
         else return 0.0;
     }
 
-    void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
+    void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double ElasticLocalRotationalMoment[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
 
         KRATOS_TRY
-
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
         ParticleContactElement* bond = mBondElements[i];
         if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
@@ -800,6 +845,9 @@ namespace Kratos {
         bond->mLocalContactForce[0] = LocalElasticContactForce[0];
         bond->mLocalContactForce[1] = LocalElasticContactForce[1];
         bond->mLocalContactForce[2] = LocalElasticContactForce[2];
+        bond->mElasticLocalRotationalMoment[0] = ElasticLocalRotationalMoment[0];
+        bond->mElasticLocalRotationalMoment[1] = ElasticLocalRotationalMoment[1];
+        bond->mElasticLocalRotationalMoment[2] = ElasticLocalRotationalMoment[2];
         bond->mContactSigma = contact_sigma;
         bond->mContactTau = contact_tau;
         bond->mContactFailure = mIniNeighbourFailureId[i];

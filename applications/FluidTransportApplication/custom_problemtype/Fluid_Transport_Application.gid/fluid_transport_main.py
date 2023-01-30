@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import kratos core and applications
 import KratosMultiphysics
@@ -7,7 +6,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.FluidTransportApplication
 
-from fluid_transport_analysis import FluidTransportAnalysis
+from KratosMultiphysics.FluidTransportApplication.fluid_transport_analysis import FluidTransportAnalysis
 
 if __name__ == "__main__":
 

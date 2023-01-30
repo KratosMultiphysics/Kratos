@@ -3,8 +3,8 @@ BOOK: Parts
 CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: surfaces 
-QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,SimoJu,Rankine,DruckerPrager)
+GROUPALLOW: surfaces elements
+QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,MohrCoulomb,SimoJu,Rankine,DruckerPrager,VonMises,Tresca,Elastic)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
 VALUE: 35.00e9
@@ -20,7 +20,7 @@ QUESTION: Thickness
 VALUE: 1.0
 HELP: If t = 1.0 implies plane strain, otherwise plane stress
 QUESTION: Compressive_Yield_Strength
-VALUE: 30e6
+VALUE: 30.0e6
 HELP: Units in IS: Pa
 QUESTION: Tensile_Yield_Strength
 VALUE: 1.5e6
@@ -28,27 +28,25 @@ HELP: Units in IS: Pa
 QUESTION: Tensile_Fracture_Energy
 VALUE: 1.5e5
 QUESTION: Internal_Friction_Angle
-VALUE: 32
+VALUE: 32.0
 HELP: Units Degrees
 QUESTION: Rayleigh_Beta
-VALUE: 0.005
+VALUE: 0.002
 HELP: D = R_alpha*M + r_beta*K
 QUESTION: Rayleigh_Alpha
-VALUE: 0.00
+VALUE: 0.5
 HELP: D = R_alpha*M + r_beta*K
-QUESTION: Characteristic_length
-VALUE: 0.02
-HELP: Units in IS: m // Radius of the averaged mapping circle
+QUESTION: Large_Displacement_Calculation#CB#(true,false)
+VALUE: false
 END CONDITION
 
 CONDITION: Initial_DEM_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points lines 
+GROUPALLOW: points lines
 HELP: Select the nodes to create initial DEM elements (skin elements)
 QUESTION: Apply_initial_DEM#CB#(true,false)
 VALUE: false
-
 END CONDITION
 
 
@@ -57,7 +55,7 @@ BOOK: Dirichlet_Constraints
 CONDITION: Solid_Displacement
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points lines 
+GROUPALLOW: points lines nodes
 QUESTION: SOLID_DISPLACEMENT_X#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Fix_X,false)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,#CURRENT#)
@@ -114,7 +112,7 @@ BOOK: Loads
 CONDITION: Force
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points
+GROUPALLOW: points nodes
 QUESTION: Modulus
 VALUE: 0.0
 HELP: If it is a function write the expression between ""
@@ -160,9 +158,9 @@ END CONDITION
 CONDITION: Face_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines
+GROUPALLOW: lines faces
 QUESTION: Modulus
-VALUE: 0.0 
+VALUE: 0.0
 HELP: If it is a function write the expression between ""
 QUESTION: FACE_LOAD_X#CB#(true,false)
 VALUE: true
@@ -206,7 +204,7 @@ END CONDITION
 CONDITION: Normal_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines 
+GROUPALLOW: lines faces nodes
 QUESTION: NORMAL_LOAD#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,Normal_Load_Distribution,Uniform,HIDE,Normal_Pressure_Value,0.0,HIDE,Imposed_Normal_Load,Constant)(true,RESTORE,Normal_Load_Distribution,#CURRENT#,RESTORE,Normal_Pressure_Value,#CURRENT#,RESTORE,Imposed_Normal_Load,#CURRENT#)
@@ -251,7 +249,7 @@ END CONDITION
 CONDITION: Body_Acceleration
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: surfaces 
+GROUPALLOW: surfaces nodes
 QUESTION: Modulus
 VALUE: 9.81
 HELP: If it is a function write the expression between ""
@@ -299,13 +297,13 @@ BOOK: Plots
 CONDITION: list_of_nodes_reaction
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points lines 
+GROUPALLOW: points lines nodes
 HELP: Select the nodes/lines to plot the sum of the reaction
 END CONDITION
 
 CONDITION: list_of_nodes_displacement
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points lines 
+GROUPALLOW: points lines nodes
 HELP: Select the nodes/lines to plot the sum of the displacement
 END CONDITION

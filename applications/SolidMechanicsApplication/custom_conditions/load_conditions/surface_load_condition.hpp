@@ -44,7 +44,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of SurfaceLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceLoadCondition );
     ///@}
 
     ///@name Life Cycle
@@ -104,7 +104,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 
@@ -158,8 +157,10 @@ class ProcessHandler(KratosMultiphysics.Process):
     #
     def ConstructProcess(self, process):
 
-        kratos_module = __import__(process["kratos_module"].GetString())
-        python_module = __import__(process["python_module"].GetString())
+        #kratos_module = __import__(process["kratos_module"].GetString())
+        #python_module = __import__(process["python_module"].GetString())
+        import importlib
+        python_module = importlib.import_module(process["kratos_module"].GetString()+"."+process["python_module"].GetString())
         return(python_module.Factory(process, self.model))
 
 

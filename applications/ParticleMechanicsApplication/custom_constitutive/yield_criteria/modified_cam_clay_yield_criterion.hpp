@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/yield_criteria/MPM_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/particle_yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
 namespace Kratos
@@ -49,8 +49,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ModifiedCamClayYieldCriterion
-	: public MPMYieldCriterion
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ModifiedCamClayYieldCriterion
+	: public ParticleYieldCriterion
 {
     public:
         ///@name Type Definitions
@@ -203,8 +203,6 @@ class ModifiedCamClayYieldCriterion
         ///@}
         ///@name Private Operations
         ///@{
-
-        double GetPI();
 
         ///@}
         ///@name Private  Access

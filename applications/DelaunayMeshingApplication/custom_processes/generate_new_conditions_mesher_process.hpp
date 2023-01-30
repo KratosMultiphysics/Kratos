@@ -40,13 +40,13 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 typedef ModelPart::ElementsContainerType ElementsContainerType;
 typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
-typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
-typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
+typedef Node<3>::WeakPointer NodeWeakPtrType;
+typedef Element::WeakPointer ElementWeakPtrType;
+typedef Condition::WeakPointer ConditionWeakPtrType;
 
-typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
 ///@}
 ///@name  Enum's
@@ -113,7 +113,7 @@ class GenerateNewConditionsMesherProcess
 
     bool success=false;
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     if( mEchoLevel > 0 )
       std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
@@ -126,14 +126,14 @@ class GenerateNewConditionsMesherProcess
     {
       std::cout<<"  ERROR:  BOUNDARY BUILD FAILED ModelPart : ["<<mrModelPart<<"] "<<std::endl;
     }
-    else
-    {
-      if( mEchoLevel >= 1 ){
-        double end_time = OpenMPUtils::GetCurrentTime();
-        std::cout<<" [ Search performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
-      }
-      //PrintSkin(mrModelPart);
-    }
+    // else
+    // {
+    //   if( mEchoLevel >= 1 ){
+    //     double end_time = OpenMPUtils::GetCurrentTime();
+    //     std::cout<<" [ Search performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+    //   }
+    //   //PrintSkin(mrModelPart);
+    // }
 
     KRATOS_CATCH(" ")
   }
@@ -200,11 +200,11 @@ class GenerateNewConditionsMesherProcess
     this->ClearMasterEntities(rModelPart, rTemporaryConditions);
 
     //properties to be used in the generation
-    int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
+    int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
     if(number_properties<0)
       KRATOS_ERROR<<" number of properties is "<<number_properties<<std::endl;
 
-    Properties::Pointer properties = rModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
+    Properties::Pointer properties = rModelPart.GetParentModelPart().GetMesh().pGetProperties(number_properties-1);
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 

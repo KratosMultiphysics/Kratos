@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from swimming_DEM_PFEM_analysis import SDEMPFEMAnalysis
+from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_PFEM_analysis import SDEMPFEMAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -31,9 +31,6 @@ class TestFactory(KratosUnittest.TestCase):
 
             # Create Model
             model = KratosMultiphysics.Model()
-
-            # To avoid too many prints
-            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             self.test = SDEMPFEMAnalysis(model, parameters)
 

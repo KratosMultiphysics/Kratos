@@ -31,9 +31,9 @@ namespace Kratos
 HenckyMCPlasticAxisym2DLaw::HenckyMCPlasticAxisym2DLaw()
     : HenckyElasticPlasticAxisym2DLaw()
 {
-  mpHardeningLaw      = MPMHardeningLaw::Pointer( new MPMHardeningLaw() );
-  mpYieldCriterion    = MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-  mpMPMFlowRule       = MPMFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
+  mpHardeningLaw      = ParticleHardeningLaw::Pointer( new ParticleHardeningLaw() );
+  mpYieldCriterion    = ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+  mpMPMFlowRule       = ParticleFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyMCPlasticAxisym2DLaw::HenckyMCPlasticAxisym2DLaw()
 HenckyMCPlasticAxisym2DLaw::HenckyMCPlasticAxisym2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
   mpHardeningLaw       =  pHardeningLaw;
-  mpYieldCriterion     =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+  mpYieldCriterion     =  ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
   mpMPMFlowRule        =  pMPMFlowRule;
 }
 
@@ -76,7 +76,7 @@ HenckyMCPlasticAxisym2DLaw::~HenckyMCPlasticAxisym2DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyMCPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyMCPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticAxisym2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

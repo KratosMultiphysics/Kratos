@@ -64,8 +64,10 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_BasicTests, KratosMapping
     const auto nearest_neighbor_info_2(nearest_neighbor_info.Create(coords, source_local_sys_idx, dummy_rank));
 
     // Test if the "Create" function returns the correct object
-    KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(*nearest_neighbor_info_1));
-    KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(*nearest_neighbor_info_2));
+    const auto& r_arg_1 = *nearest_neighbor_info_1;
+    const auto& r_arg_2 = *nearest_neighbor_info_2;
+    KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(r_arg_1));
+    KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(r_arg_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMappingApplicationSerialTestSuite)
@@ -78,9 +80,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMap
 
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
 
-    auto node_1(Kratos::make_shared<NodeType>(1, 1.0, 2.5, 30.0));
-    auto node_2(Kratos::make_shared<NodeType>(3, 10.5, 20.0, 96.8));
-    auto node_3(Kratos::make_shared<NodeType>(15, 2.3, 1.9, -2.5));
+    auto node_1(Kratos::make_intrusive<NodeType>(1, 1.0, 2.5, 30.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(3, 10.5, 20.0, 96.8));
+    auto node_3(Kratos::make_intrusive<NodeType>(15, 2.3, 1.9, -2.5));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -93,22 +95,20 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMap
     node_3->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_1 = MapperUtilities::ComputeDistance(coords, *interface_node_1);
-    const double dist_2 = MapperUtilities::ComputeDistance(coords, *interface_node_2);
-    const double dist_3 = MapperUtilities::ComputeDistance(coords, *interface_node_3);
+    const double dist_3 = coords.Distance(*interface_node_3);
 
-    nearest_neighbor_info.ProcessSearchResult(*interface_node_1, dist_1);
-    nearest_neighbor_info.ProcessSearchResult(*interface_node_2, dist_2);
-    nearest_neighbor_info.ProcessSearchResult(*interface_node_3, dist_3);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_1);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_3);
 
     KRATOS_CHECK(nearest_neighbor_info.GetLocalSearchWasSuccessful());
     // this function should never return true for this class!
     // It already works with nodes, which could be approximations for other mappers
     KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetIsApproximation());
 
-    int found_id;
+    std::vector<int> found_id(1);
     nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
@@ -125,8 +125,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
 
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
 
-    auto node_1(Kratos::make_shared<NodeType>(1, 18.0, 2.7, 30.0));
-    auto node_2(Kratos::make_shared<NodeType>(3, 1.0, 2.5, -3.0));
+    auto node_1(Kratos::make_intrusive<NodeType>(1, 18.0, 2.7, 30.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(3, 1.0, 2.5, -3.0));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -137,22 +137,64 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
     node_2->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_1 = MapperUtilities::ComputeDistance(coords, *interface_node_1);
-    const double dist_2 = MapperUtilities::ComputeDistance(coords, *interface_node_2);
+    const double dist_2 = coords.Distance(*interface_node_2);
 
     KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
 
-    nearest_neighbor_info.ProcessSearchResult(*interface_node_1, dist_1);
-    nearest_neighbor_info.ProcessSearchResult(*interface_node_2, dist_2);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_1);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
 
     KRATOS_CHECK(nearest_neighbor_info.GetLocalSearchWasSuccessful());
 
-    int found_id;
+    std::vector<int> found_id(1);
     nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
+    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_SameDistanceFound, KratosMappingApplicationSerialTestSuite)
+{
+    Point coords(0.0, 0.0, 0.0);
+
+    std::size_t source_local_sys_idx = 123;
+
+    NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
+
+    auto node_1(Kratos::make_intrusive<NodeType>(1,  1.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(2, -1.0, 0.0, 0.0));
+
+    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
+    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
+
+    const int expected_id_found_1 = 35;
+    const int expected_id_found_2 = 67;
+
+    node_1->SetValue(INTERFACE_EQUATION_ID, expected_id_found_1);
+    node_2->SetValue(INTERFACE_EQUATION_ID, expected_id_found_2);
+
+    // We compute the real distance bcs this would also be computed by the search
+    const double dist_1 = coords.Distance(*interface_node_1);
+    const double dist_2 = coords.Distance(*interface_node_2);
+    KRATOS_CHECK_DOUBLE_EQUAL(dist_1, dist_2);
+
+    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
+
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_1);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
+
+    KRATOS_CHECK(nearest_neighbor_info.GetLocalSearchWasSuccessful());
+
+    std::vector<int> found_id(2);
+    nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
+    KRATOS_CHECK(found_id[0] == expected_id_found_1 || found_id[0] == expected_id_found_2);
+    KRATOS_CHECK(found_id[1] == expected_id_found_1 || found_id[1] == expected_id_found_2);
+
+    double neighbor_dist;
+    nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
+    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2);
 }
 
@@ -166,8 +208,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
 
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
 
-    auto node_2(Kratos::make_shared<NodeType>(3, 10.5, 20.0, 96.8));
-    auto node_3(Kratos::make_shared<NodeType>(15, 2.3, 1.9, -2.5));
+    auto node_2(Kratos::make_intrusive<NodeType>(3, 10.5, 20.0, 96.8));
+    auto node_3(Kratos::make_intrusive<NodeType>(15, 2.3, 1.9, -2.5));
 
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
     InterfaceObject::Pointer interface_node_3(Kratos::make_shared<InterfaceNode>(node_3.get()));
@@ -178,11 +220,10 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
     node_3->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_2 = MapperUtilities::ComputeDistance(coords, *interface_node_2);
-    const double dist_3 = MapperUtilities::ComputeDistance(coords, *interface_node_3);
+    const double dist_3 = coords.Distance(*interface_node_3);
 
-    nearest_neighbor_info.ProcessSearchResult(*interface_node_2, dist_2);
-    nearest_neighbor_info.ProcessSearchResult(*interface_node_3, dist_3);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_3);
 
     // serializing the object
     StreamSerializer serializer;
@@ -194,9 +235,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
 
     KRATOS_CHECK_EQUAL(nearest_neighbor_info_new.GetLocalSystemIndex(), source_local_sys_idx);
 
-    int found_id;
+    std::vector<int> found_id(1);
     nearest_neighbor_info_new.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info_new.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
@@ -209,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperLocalSystem_BasicTests, KratosMappingApplication
     // A "NearestNeighborLocalSystem" is being used since "MapperLocalSystem" is a pure virtual class
 
     Point coords_1(1.0, 2.45, -23.8);
-    auto node_local_sys(Kratos::make_shared<NodeType>(5, coords_1));
+    auto node_local_sys(Kratos::make_intrusive<NodeType>(5, coords_1));
 
     NearestNeighborLocalSystem local_sys(node_local_sys.get());
 
@@ -221,7 +262,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperLocalSystem_BasicTests, KratosMappingApplication
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
-    auto node_local_sys(Kratos::make_shared<NodeType>(8, 1.0, 2.5, -5.0));
+    auto node_local_sys(Kratos::make_intrusive<NodeType>(8, 1.0, 2.5, -5.0));
 
     NearestNeighborLocalSystem local_sys(node_local_sys.get());
 
@@ -244,22 +285,24 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
 
-    KRATOS_CHECK_C_STRING_EQUAL((local_sys.PairingInfo(2,23)).c_str(),
-        "NearestNeighborLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5 in rank 23");
+    std::stringstream str_steam;
+    local_sys.PairingInfo(str_steam, 4);
+    KRATOS_CHECK_STRING_EQUAL(str_steam.str(),
+        "NearestNeighborLocalSystem based on Node #8 at Coordinates 1 | 2.5 | -5");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosMappingApplicationSerialTestSuite)
 {
     const int dest_id = 13;
 
-    auto node_local_sys(Kratos::make_shared<NodeType>(5, 1.0, 2.5, -5.0));
+    auto node_local_sys(Kratos::make_intrusive<NodeType>(5, 1.0, 2.5, -5.0));
     node_local_sys->SetValue(INTERFACE_EQUATION_ID, dest_id);
 
     NearestNeighborLocalSystem local_sys(node_local_sys.get());
 
     // Create the NearestNeighborInfos to be used by the NearestNeighborLocalSystem
-    auto node_1(Kratos::make_shared<NodeType>(1, 18.0, 2.7, 30.0));
-    auto node_2(Kratos::make_shared<NodeType>(3, 1.0, 2.5, -3.0)); // this is the nearest neighbor
+    auto node_1(Kratos::make_intrusive<NodeType>(1, 18.0, 2.7, 30.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(3, 1.0, 2.5, -3.0)); // this is the nearest neighbor
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -269,15 +312,11 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosM
     node_1->SetValue(INTERFACE_EQUATION_ID, 35);
     node_2->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
 
-    // We compute the real distance bcs this would also be computed by the search
-    const double dist_1 = MapperUtilities::ComputeDistance(local_sys.Coordinates(), *interface_node_1);
-    const double dist_2 = MapperUtilities::ComputeDistance(local_sys.Coordinates(), *interface_node_2);
-
     MapperInterfaceInfo::Pointer p_nearest_neighbor_info_1(Kratos::make_shared<NearestNeighborInterfaceInfo>(local_sys.Coordinates(), 0, 0));
     MapperInterfaceInfo::Pointer p_nearest_neighbor_info_2(Kratos::make_shared<NearestNeighborInterfaceInfo>(local_sys.Coordinates(), 0, 0));
 
-    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1, dist_1);
-    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2, dist_2);
+    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1);
+    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2);
 
     local_sys.AddInterfaceInfo(p_nearest_neighbor_info_1);
     local_sys.AddInterfaceInfo(p_nearest_neighbor_info_2);

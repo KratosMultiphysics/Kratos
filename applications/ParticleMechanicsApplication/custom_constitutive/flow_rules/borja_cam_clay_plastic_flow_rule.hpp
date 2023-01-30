@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/particle_flow_rule.hpp"
 
 
 namespace Kratos
@@ -64,8 +64,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class BorjaCamClayPlasticFlowRule
-    :public MPMFlowRule
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) BorjaCamClayPlasticFlowRule
+    :public ParticleFlowRule
 {
 
 
@@ -86,9 +86,9 @@ public:
     public:
         void PrintInfo()
         {
-            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "PreconsolidationPressure = " <<  PreconsolidationPressure  << std::endl;
-            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "PlasticHardeningModulus  = " <<  PlasticHardeningModulus   << std::endl;
-            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "ConsistencyParameter     = " <<  ConsistencyParameter      << std::endl;
+            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "PreconsolidationPressure = " <<  PreconsolidationPressure  << std::endl;
+            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "PlasticHardeningModulus  = " <<  PlasticHardeningModulus   << std::endl;
+            KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "ConsistencyParameter     = " <<  ConsistencyParameter      << std::endl;
         }
 
     };
@@ -110,7 +110,7 @@ public:
     BorjaCamClayPlasticFlowRule& operator=(BorjaCamClayPlasticFlowRule const& rOther);
 
     // CLONE
-    MPMFlowRule::Pointer Clone() const override;
+    ParticleFlowRule::Pointer Clone() const override;
 
     /// Destructor.
     ~BorjaCamClayPlasticFlowRule() override;
@@ -231,8 +231,6 @@ protected:
     void CalculateTransformationMatrix(const BoundedMatrix<double,3,3>& rMainDirection, BoundedMatrix<double,6,6>& rA);
 
     void UpdateStateVariables(const BoundedVector<double,3> rPrincipalStress, const double rAlpha = 0.0, const double rConsistencyParameter = 0.0);
-
-    double GetPI();
 
     ///@}
     ///@name Protected  Access

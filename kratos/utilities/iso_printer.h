@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 #if !defined(KRATOS_ISO_PRINTING_APP)
@@ -25,7 +25,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 #include <algorithm>
 
@@ -43,19 +43,16 @@
 
 // #include "containers/array_1d.h"
 // #include "processes/find_nodal_neighbours_process.h"
-// #include "processes/find_elements_neighbours_process.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
 //#include "utilities/split_triangle.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 #include "utilities/split_tetrahedra.h"
 //#include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/geometry_utilities.h"
-//#include "processes/node_erase_process.h"
-//#include "custom_utilities/parallel_fill_communicator.h"
 // #include "spatial_containers/spatial_containers.h"
 
 
@@ -262,7 +259,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    
+
     //**********************************************************************************************************************
 
 
@@ -525,6 +522,6 @@ protected:
 
 } // namespace Kratos.
 
-#endif // KRATOS_ISO_PRINTING_APP  defined 
+#endif // KRATOS_ISO_PRINTING_APP  defined
 
 

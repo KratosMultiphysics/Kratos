@@ -1,38 +1,40 @@
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
-def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+def Factory(settings, model):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplySlipProcess(Model, settings["Parameters"])
+    return ApplySlipProcess(model, settings["Parameters"])
 
-## All the processes python should be derived from "Process"
-class ApplySlipProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
-        KratosMultiphysics.Process.__init__(self)
+class ApplySlipProcess(KM.Process):
+    """ApplySlipProcess
 
-        default_parameters = KratosMultiphysics.Parameters("""
-            {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0
-            }
-            """
-            )
+    This process sets the SLIP flag and computes the
+    NORMAL variable on the selected model part
+    """
+    def __init__(self, model, settings):
+        """The constructor of the ApplySlipProcess
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- The model to be used
+        settings -- The ProjectParameters used
+        """
+        KM.Process.__init__(self)
+
+        default_parameters = KM.Parameters("""{
+                "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
+                "recompute_normals" : false
+            }""")
         settings.ValidateAndAssignDefaults(default_parameters)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
-        self.domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.model_part = model[settings["model_part_name"].GetString()]
+        self.recompute_normals = settings["recompute_normals"].GetBool()
 
     def ExecuteInitialize(self):
-        # Compute the normal on the nodes of interest
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
-
-        #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
-        #TODO: Remove the MESH_VELOCITY variable as soon the scheme doesn't use it
-        for node in self.model_part.Nodes:
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
-            node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
-            node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,[0.0, 0.0, 0.0])
+        domain_size = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
+        KM.NormalCalculationUtils().CalculateOnSimplex(self.model_part, domain_size)
+        KM.VariableUtils().SetFlag(KM.SLIP, True, self.model_part.Nodes)
 
     def ExecuteInitializeSolutionStep(self):
-        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.IS_STRUCTURE, 0.0, self.model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.MESH_VELOCITY, [0.0, 0.0, 0.0], self.model_part.Nodes)
+        if self.recompute_normals:
+            self.ExecuteInitialize()

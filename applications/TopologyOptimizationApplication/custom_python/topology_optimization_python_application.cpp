@@ -1,67 +1,60 @@
-// ==============================================================================
-//  KratosTopologyOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
-//                   license: TopologyOptimizationApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
+//                   Erich Wehrle, https://github.com/e-dub
+//  based on original file from
+//                   Baumgärtner Daniel, https://github.com/dbaumgaertner
 //                   Octaviano Malfavón Farías
 //                   Eric Gonzales
-//
-// ==============================================================================
-
-// System includes 
-
 #if defined(KRATOS_PYTHON)
-// External includes 
-#include <boost/python.hpp>
-
-
-// Project includes 
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "topology_optimization_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_response_functions_to_python.h"
 
- 
 namespace Kratos
 {
 
 namespace Python
 {
+    PYBIND11_MODULE(KratosTopologyOptimizationApplication,m)
+    {
+    namespace py = pybind11;
 
-  using namespace boost::python;
+        py::class_<KratosTopologyOptimizationApplication,
+                            KratosTopologyOptimizationApplication::Pointer,
+                            KratosApplication >(m, "KratosTopologyOptimizationApplication")
+                            .def(py::init<>())
+                            ;
 
-
-  
-  BOOST_PYTHON_MODULE(KratosTopologyOptimizationApplication)
-  {
-
-	  class_<KratosTopologyOptimizationApplication, 
-                          KratosTopologyOptimizationApplication::Pointer, 
-                          bases<KratosApplication>, boost::noncopyable >("KratosTopologyOptimizationApplication")
-                         ;
-
-    AddCustomStrategiesToPython();
-    AddCustomUtilitiesToPython();
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //Registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( E_MIN )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( E_0 )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PENAL )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( X_PHYS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( X_PHYS_OLD )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DCDX )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DVDX )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_VOID )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOCAL_STRAIN_ENERGY )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, YOUNGS_MODULUS_MIN)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, YOUNGS_MODULUS_0 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENAL )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAT_INTERP )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, X_PHYS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, X_PHYS_OLD )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DCDX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DVDX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SOLID_VOID )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_STRAIN_ENERGY )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INITIAL_ELEMENT_SIZE )
+    }
 
-
-  }
-  
-  
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

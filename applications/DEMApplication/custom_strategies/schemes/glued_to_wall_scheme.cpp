@@ -45,8 +45,13 @@ namespace Kratos {
     void GluedToWallScheme::Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
 
+        const unsigned int num_nodes = mCondition->GetGeometry().size();
+
         array_1d<double, 3> inner_point;
-        noalias(inner_point) = mShapeFunctionsValues[0] * mCondition->GetGeometry()[0] + mShapeFunctionsValues[1] * mCondition->GetGeometry()[1] + mShapeFunctionsValues[2] * mCondition->GetGeometry()[2];
+        noalias(inner_point) = ZeroVector(3);
+        for(unsigned int j = 0; j < num_nodes; j++){
+            noalias(inner_point) += mShapeFunctionsValues[j] * mCondition->GetGeometry()[j];
+        }
 
         noalias(mCurrentNormalToWall) = mCondition->GetGeometry().UnitNormal(mCondition->GetGeometry()[0]);
         DEM_MULTIPLY_BY_SCALAR_3(mCurrentNormalToWall, mDistanceSignedWithNormal);
@@ -61,47 +66,61 @@ namespace Kratos {
 
         //Finding velocity of inner_point:
         array_1d<double, 3> velocity_of_inner_point = ZeroVector(3);
-        noalias(velocity_of_inner_point) += mShapeFunctionsValues[0] * mCondition->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-        noalias(velocity_of_inner_point) += mShapeFunctionsValues[1] * mCondition->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
-        noalias(velocity_of_inner_point) += mShapeFunctionsValues[2] * mCondition->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
-
-        //Finding angular velocity of inner_point:
-        BoundedMatrix<double,9,3>  matrix_a;
-        BoundedVector<double,9> vector_b;
-        std::vector<array_1d<double, 3> > r;
-        r.resize(3);
-
-        for (int i=0; i<3; i++) {
-            noalias(r[i]) = mCondition->GetGeometry()[i] - inner_point;
-            matrix_a(3*i,0)   =  0.0;
-            matrix_a(3*i,1)   =  r[i][2];
-            matrix_a(3*i,2)   = -r[i][1];
-            matrix_a(3*i+1,0) = -r[i][2];
-            matrix_a(3*i+1,1) =  0.0;
-            matrix_a(3*i+1,2) =  r[i][0];
-            matrix_a(3*i+2,0) =  r[i][1];
-            matrix_a(3*i+2,1) = -r[i][0];
-            matrix_a(3*i+2,2) =  0.0;
-	    array_1d<double, 3>& velocity_of_node_i = mCondition->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            vector_b[3*i]   = velocity_of_node_i[0] - velocity_of_inner_point[0];
-            vector_b[3*i+1] = velocity_of_node_i[1] - velocity_of_inner_point[1];
-            vector_b[3*i+2] = velocity_of_node_i[2] - velocity_of_inner_point[2];
+        for(unsigned int j = 0; j < num_nodes; j++){
+            noalias(velocity_of_inner_point) += mShapeFunctionsValues[j] * mCondition->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
         }
 
-        BoundedMatrix<double,3,9>  trans_matrix_a = trans(matrix_a);
-
-        BoundedMatrix<double,3,3> new_lhs = prod(trans_matrix_a, matrix_a);
-        BoundedVector<double,3> new_rhs = prod(trans_matrix_a, vector_b);
-        double det = 0.0;
-        Matrix inverse_new_lhs(3,3);
-        MathUtils<double>::InvertMatrix3(new_lhs, inverse_new_lhs, det);
+        //Finding angular velocity of inner_point:
         array_1d<double, 3>&  angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        noalias(angular_velocity) = prod(inverse_new_lhs, new_rhs);
+        std::vector<array_1d<double, 3> > r;
+        r.resize(num_nodes);
+        std::vector<array_1d<double, 3> > velocity_of_nodes;
+        velocity_of_nodes.resize(num_nodes);
+        for (unsigned int j=0; j<num_nodes; j++) {
+            noalias(r[j]) = mCondition->GetGeometry()[j] - inner_point;
+            noalias(velocity_of_nodes[j]) = mCondition->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+        }
+        if(num_nodes == 3) {
+            BoundedMatrix<double,9,3>  matrix_a;
+            BoundedVector<double,9> vector_b;
+            for (unsigned int j=0; j<num_nodes; j++) {
+                matrix_a(3*j,0)   =  0.0;
+                matrix_a(3*j,1)   =  r[j][2];
+                matrix_a(3*j,2)   = -r[j][1];
+                matrix_a(3*j+1,0) = -r[j][2];
+                matrix_a(3*j+1,1) =  0.0;
+                matrix_a(3*j+1,2) =  r[j][0];
+                matrix_a(3*j+2,0) =  r[j][1];
+                matrix_a(3*j+2,1) = -r[j][0];
+                matrix_a(3*j+2,2) =  0.0;
+                vector_b[3*j]   = velocity_of_nodes[j][0] - velocity_of_inner_point[0];
+                vector_b[3*j+1] = velocity_of_nodes[j][1] - velocity_of_inner_point[1];
+                vector_b[3*j+2] = velocity_of_nodes[j][2] - velocity_of_inner_point[2];
+            }
+            BoundedMatrix<double,3,9>  trans_matrix_a = trans(matrix_a);
+            BoundedMatrix<double,3,3> new_lhs = prod(trans_matrix_a, matrix_a);
+            BoundedVector<double,3> new_rhs = prod(trans_matrix_a, vector_b);
+            double det = 0.0;
+            Matrix inverse_new_lhs(3,3);
+            MathUtils<double>::InvertMatrix3(new_lhs, inverse_new_lhs, det);
+            noalias(angular_velocity) = prod(inverse_new_lhs, new_rhs);
+        } else if(num_nodes == 2) {
+            angular_velocity[0] = 0.0;
+            angular_velocity[1] = 0.0;
+            angular_velocity[2] = (-r[0][1]*velocity_of_nodes[0][0]+r[0][0]*velocity_of_nodes[0][1]-r[1][1]*velocity_of_nodes[1][0]+r[1][0]*velocity_of_nodes[1][1])
+                                 /(r[0][0]*r[0][0]+r[0][1]*r[0][1]+r[1][0]*r[1][0]+r[1][1]*r[1][1]);
+        } else {
+            KRATOS_ERROR << "No matching number of nodes in the condition of GluedToWallScheme" << std::endl;
+        }
 
         //Once the angular velocity is found, we use it to calculate the total velocity of the sphere:
         array_1d<double, 3> linear_vel_of_sphere_due_to_rotation;
         MathUtils<double>::CrossProduct(linear_vel_of_sphere_due_to_rotation, angular_velocity, mCurrentNormalToWall);
         noalias(i.FastGetSolutionStepValue(VELOCITY)) = velocity_of_inner_point + linear_vel_of_sphere_due_to_rotation;
+
+        #ifdef KRATOS_DEBUG
+        DemDebugFunctions::CheckIfNan(i.FastGetSolutionStepValue(VELOCITY), "NAN in VELOCITY in GluedToWallScheme of Ball");
+        #endif
     }
 
     void GluedToWallScheme::Rotate(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
@@ -118,7 +137,16 @@ namespace Kratos {
     }
 
     bool GluedToWallScheme::ShapeFunctionsValuesAreBetween0and1() {
-        return (mShapeFunctionsValues[0]>=0.0 && mShapeFunctionsValues[0]<=1.0 && mShapeFunctionsValues[1]>=0.0 && mShapeFunctionsValues[1]<=1.0 && mShapeFunctionsValues[2]>=0.0 && mShapeFunctionsValues[2]<=1.0);
+        bool sf_between_0_1 = false;
+
+        const unsigned int num_nodes = mCondition->GetGeometry().size();
+        for(unsigned int i = 0; i < num_nodes; i++) {
+            sf_between_0_1 = (mShapeFunctionsValues[i]>=0.0 && mShapeFunctionsValues[i]<=1.0);
+            if (sf_between_0_1 == false)
+                break;
+        }
+
+        return sf_between_0_1;
     }
 
 } //namespace Kratos

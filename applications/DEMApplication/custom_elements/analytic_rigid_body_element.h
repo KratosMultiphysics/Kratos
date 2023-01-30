@@ -19,7 +19,7 @@ namespace Kratos {
 
     public:
         /// Pointer definition of AnalyticRigidBodyElement
-        KRATOS_CLASS_POINTER_DEFINITION(AnalyticRigidBodyElement);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AnalyticRigidBodyElement);
 
         AnalyticRigidBodyElement();
         AnalyticRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry);

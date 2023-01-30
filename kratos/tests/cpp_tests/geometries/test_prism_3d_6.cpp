@@ -91,7 +91,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6Area, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_NEAR(geomRegular->Area(),  0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(geomRegular->Area(),  0.5, ZERO_TOLERANCE);
     }
 
     /** Checks if the volume of the prism is calculated correctly.
@@ -101,7 +101,26 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6Volume, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, ZERO_TOLERANCE);
+    }
+
+    /**
+     * This test performs the check of the box intersection method
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6BoxIntersection, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateRegularPrism3D6();
+
+        // Prism inside the box
+        KRATOS_CHECK(p_geom->HasIntersection(Point(-0.6,-0.6,-0.6), Point(0.6,0.6,0.6)));
+
+        // Prism contains the box
+        KRATOS_CHECK(p_geom->HasIntersection(Point(-.25,-.25,-.25), Point(.25,.25,.25)));
+
+        // Prism intersects the box
+        KRATOS_CHECK(p_geom->HasIntersection(Point(.25,.25,.25), Point(1.0,1.0,1.0)));
+
+        // Prism not intersects the box
+        KRATOS_CHECK_IS_FALSE(p_geom->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.1)));
     }
 
     /** Checks the inside test for a given point respect to the prism
@@ -211,8 +230,8 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_1), expected_vol, TOLERANCE);
-        VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_1);
+        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
+        VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1);
     }
 
     /** Tests the area using 'GI_GAUSS_2' integration method.
@@ -223,8 +242,8 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_2), expected_vol, TOLERANCE);
-        VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_2);
+        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
+        VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
     }
 
     /** Tests the area using 'GI_GAUSS_3' integration method.
@@ -235,8 +254,8 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_3), expected_vol, TOLERANCE);
-        VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_3);
+        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
+        VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3);
     }
 
     /** Tests the area using 'GI_GAUSS_4' integration method.
@@ -247,8 +266,8 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_4), expected_vol, TOLERANCE);
-        VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_4);
+        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
+        VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4);
     }
 
     /** Tests the area using 'GI_GAUSS_5' integration method.
@@ -259,8 +278,8 @@ namespace Testing {
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_5), expected_vol, TOLERANCE);
-        VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_5);
+        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
+        VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
     }
 }
 }  // namespace Kratos.

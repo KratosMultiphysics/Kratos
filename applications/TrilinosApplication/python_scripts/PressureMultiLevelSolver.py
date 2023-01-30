@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.TrilinosApplication import *
 
@@ -12,8 +11,7 @@ def MultilevelLinearSolver(tolerance, max_iterations):
     # settings of the ML solver
     MLList = ParameterList()
 
-    default_settings = EpetraDefaultSetter()
-    default_settings.SetDefaults(MLList, "SA")
+    MultiLevelSolver.SetDefaults(MLList, "SA")
 
     MLList.set("ML output", 10)
     MLList.set("max levels", 3)

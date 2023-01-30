@@ -44,7 +44,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer LineElasticCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<LineElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<LineElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -58,7 +58,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared<LineElasticCondition>(NewCondition);
+    return Kratos::make_intrusive<LineElasticCondition>(NewCondition);
 
   }
 
@@ -322,21 +322,13 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int LineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int LineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT);
-    KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT_VECTOR);
-
-
-    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD_VECTOR);
 
     return ErrorCode;
 

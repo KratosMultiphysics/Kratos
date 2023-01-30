@@ -54,7 +54,7 @@ public:
 
     ///@{
     // Counted pointer of WaterPointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( HydraulicAxisymRigidContactPenalty2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( HydraulicAxisymRigidContactPenalty2DCondition );
     ///@}
 
     ///@name Life Cycle

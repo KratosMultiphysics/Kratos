@@ -159,15 +159,15 @@ namespace Kratos
          V(5) = SM(1,2);
          ThisInput.push_back(V);
 
-         (firstelemMesh2 + elem)->SetValueOnIntegrationPoints( VariableVector, ThisInput, CurrentProcessInfo);
+         (firstelemMesh2 + elem)->SetValuesOnIntegrationPoints( VariableVector, ThisInput, CurrentProcessInfo);
 
          if ( DetF0Interpolation) {
             ResultJ[0] = (MatrixOfDeterminants[elem]) / Areas[elem];
-            (firstelemMesh2 + elem)->SetValueOnIntegrationPoints( DETERMINANT_F, ResultJ, CurrentProcessInfo);
+            (firstelemMesh2 + elem)->SetValuesOnIntegrationPoints( DETERMINANT_F, ResultJ, CurrentProcessInfo);
          }
 
          ResultJ[0] = MatrixOfPlastic[elem] / Areas[elem];
-         //(firstelemMesh2 + elem)->SetValueOnIntegrationPoints( PlasticVariable, ResultJ, CurrentProcessInfo);
+         //(firstelemMesh2 + elem)->SetValuesOnIntegrationPoints( PlasticVariable, ResultJ, CurrentProcessInfo);
       }
 
       ClearTrianglesList( SuperMesh );

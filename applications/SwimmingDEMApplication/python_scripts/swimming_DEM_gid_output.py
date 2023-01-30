@@ -1,8 +1,8 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import MultiFileFlag
 from KratosMultiphysics import GiDPostMode
-import gid_output
+import KratosMultiphysics.gid_output as gid_output # this is deprecated
 
 
 class SwimmingDEMGiDOutput(gid_output.GiDOutput):
@@ -30,7 +30,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
     def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part):
 
         if self.multi_file == MultiFileFlag.SingleFile:
-            print("Singlefile option is not available for the swimming DEM application!")
+            Kratos.Logger.PrintWarning("Singlefile option is not available for the swimming DEM application!")
             mesh_name = 0.0
             self.io.InitializeMesh(mesh_name)
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
@@ -82,8 +82,8 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
         with open(self.outerlistfilename, "a") as listfile:
             listfile.write("Multiple\n")
-            folder_name = self.filename + "_Post_Files"
-            full_string_to_write = os.path.join(folder_name,self.filename+"_"+"%.12g"%step_label+ext)
+            output_path = self.filename + "_Post_Files"
+            full_string_to_write = os.path.join(output_path,self.filename+"_"+"%.12g"%step_label+ext)
             listfile.write(full_string_to_write+"\n")
 
 
@@ -117,27 +117,27 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             self.io.InitializeResults(label, mixed_model_part.GetMesh())
 
         for var in fluid_nodal_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, fluid_model_part, kratos_variable)
 
         for var in DEM_nodal_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, DEM_model_part, kratos_variable)
 
         for var in cluster_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, clusters_model_part, kratos_variable)
 
         for var in rigid_faces_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, rigid_faces_model_part, kratos_variable)
 
         for var in mixed_nodal_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, mixed_model_part, kratos_variable)
 
         for var in fluid_gp_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_gp_results(label, fluid_model_part, kratos_variable)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:

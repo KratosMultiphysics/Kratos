@@ -87,6 +87,10 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     /// Auxiliary map
     typedef std::unordered_map<IndexType,std::set<IndexType>> IndexIndexSetMapType;
 
+    /// Auxiliary map
+    typedef std::unordered_map<std::set<IndexType>, IndexType, KeyHasherRange<std::set<IndexType>>, KeyComparorRange<std::set<IndexType>> >  IndexSetIndexMapType;
+
+
     /// Pointer definition of AssignUniqueModelPartCollectionTagUtility
     KRATOS_CLASS_POINTER_DEFINITION( AssignUniqueModelPartCollectionTagUtility );
 
@@ -128,7 +132,27 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
         IndexIndexMapType& rCondTags,
         IndexIndexMapType& rElemTags,
         IndexStringMapType& rCollections
-    );
+        );
+
+    /**
+     * @brief This functions gets the "colors" from an existing json file
+     * @param rFilename Map where the nodes id and tags are stored
+     * @param rCollections Map where the tags and associated submodelparts collections are stored
+     */
+    static Parameters ReadTagsFromJson(
+        const std::string& rFilename,
+        IndexStringMapType& rCollections
+        );
+
+    /**
+     * @brief This functions writes the "colors" to a new json file
+     * @param rFilename Map where the nodes id and tags are stored
+     * @param rCollections Map where the tags and associated submodelparts collections are stored
+     */
+    static Parameters WriteTagsToJson(
+        const std::string& rFilename,
+        const IndexStringMapType& rCollections
+        );
 
     /**
      * @brief This method returns the list submodelpart to be computed (it searchs recursively to find the subsubmodelparts if necessary)
@@ -149,6 +173,15 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
      * @brief This method can be used to debug complex model parts directly on python
      */
     void DebugAssignUniqueModelPartCollectionTag();
+
+
+    /**
+     * @brief This method returns the model part combinations as colors, expressed as integers, and the collection
+     * of all model part names strings combinations. Required to run in MPI.
+     */
+    void SetParallelModelPartAndSubModelPartCollectionsAndCombinations(IndexStringMapType& rCollections,
+                                            IndexSetIndexMapType& rCombinations,
+                                            IndexType& rTag);
 
     ///@}
     ///@name Access

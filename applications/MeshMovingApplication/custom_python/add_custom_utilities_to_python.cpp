@@ -17,15 +17,16 @@
 #include "boost/numeric/ublas/vector.hpp"
 
 // Project includes
-#include "custom_python/add_custom_utilities_to_python.h"
-
-#include "custom_utilities/ball_vertex_meshmoving.h"
-#include "custom_utilities/ball_vertex_meshmoving3D.h"
-#include "custom_utilities/explicit_mesh_moving_utilities.h"
-#include "custom_utilities/mesh_velocity_calculation.h"
-#include "custom_utilities/move_mesh_utilities.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
+
+// Application includes
+#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/fixed_mesh_ale_utilities.h"
+#include "custom_utilities/mesh_velocity_calculation.h"
+#include "custom_utilities/move_mesh_utilities.h"
+#include "custom_utilities/linear_transform.h"
+#include "custom_utilities/parametric_linear_transform.h"
 
 namespace Kratos {
 namespace Python {
@@ -33,29 +34,32 @@ namespace Python {
 void AddCustomUtilitiesToPython(pybind11::module& m) {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    py::class_<FixedMeshALEUtilities, FixedMeshALEUtilities::Pointer>(m, "FixedMeshALEUtilities")
+        .def(py::init<Model &, Parameters &>())
+        .def("Initialize", &FixedMeshALEUtilities::Initialize)
+        .def("SetVirtualMeshValuesFromOriginMesh", &FixedMeshALEUtilities::SetVirtualMeshValuesFromOriginMesh)
+        .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
+        .def("ProjectVirtualValues2D", &FixedMeshALEUtilities::ProjectVirtualValues<2>)
+        .def("ProjectVirtualValues3D", &FixedMeshALEUtilities::ProjectVirtualValues<3>)
+        .def("UndoMeshMovement", &FixedMeshALEUtilities::UndoMeshMovement);
 
-    py::class_<BallVertexMeshMoving<2, SparseSpaceType, LinearSolverType> >(m,"BallVertexMeshMoving2D")
-        .def(py::init<>())
-        .def("ConstructSystem", &BallVertexMeshMoving<2, SparseSpaceType, LinearSolverType>::ConstructSystem)
-        .def("BuildAndSolveSystem", &BallVertexMeshMoving<2, SparseSpaceType, LinearSolverType>::BuildAndSolveSystem)
-        .def("ClearSystem", &BallVertexMeshMoving<2, SparseSpaceType, LinearSolverType>::ClearSystem);
+    py::class_<LinearTransform, LinearTransform::Pointer>(m, "LinearTransform")
+        .def(py::init<const array_1d<double,3>&, const double, const array_1d<double,3>&, const array_1d<double,3>&>())
+        .def(py::init<const array_1d<double,3>&, const array_1d<double,3>&, const array_1d<double,3>&>())
+        .def(py::init<const Quaternion<double>&, const array_1d<double,3>&, const array_1d<double,3>&>())
+        .def("SetRotation", static_cast<void (LinearTransform::*)(const array_1d<double,3>&, const double, const array_1d<double,3>&)>(&LinearTransform::SetRotation))
+        .def("SetRotation", [](LinearTransform& rThis, const array_1d<double,3>& rAxis, const double angle, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rAxis, angle, rReferencePoint);})
+        .def("SetRotation", [](LinearTransform& rThis, const array_1d<double,3>& rEulerAngles, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rEulerAngles, rReferencePoint);})
+        .def("SetRotation", [](LinearTransform& rThis, const Quaternion<double>& rQuaternion, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rQuaternion, rReferencePoint);})
+        .def("SetTranslation", &LinearTransform::SetTranslation)
+        .def("Apply", &LinearTransform::Apply)
+        ;
 
-    py::class_<BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>>(m,"BallVertexMeshMoving3D")
-        .def(py::init<>())
-        .def("ConstructSystem", &BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>::ConstructSystem)
-        .def("BuildAndSolveSystem", &BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>::BuildAndSolveSystem)
-        .def("ClearSystem", &BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>::ClearSystem);
-
-    py::class_<ExplicitMeshMovingUtilities>(m,"ExplicitMeshMovingUtilities")
-        .def(py::init<ModelPart&, ModelPart&, const double>())
-        .def("ComputeExplicitMeshMovement",&ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement)
-        .def("FillVirtualModelPart",&ExplicitMeshMovingUtilities::FillVirtualModelPart)
-        .def("ProjectVirtualValues2D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<2>)
-        .def("ProjectVirtualValues3D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<3>)
-        .def("UndoMeshMovement",&ExplicitMeshMovingUtilities::UndoMeshMovement);
+    py::class_<ParametricLinearTransform, ParametricLinearTransform::Pointer>(m, "ParametricLinearTransform")
+        .def(py::init<const Parameters, const Parameters, const Parameters, const Parameters>())
+        .def(py::init<const Parameters, const Parameters, const Parameters>())
+        .def("Apply", &ParametricLinearTransform::Apply)
+        ;
 
     void (*CalculateMeshVelocitiesBDF1)(ModelPart&, const TimeDiscretization::BDF1&) = &MeshVelocityCalculation::CalculateMeshVelocities;
     void (*CalculateMeshVelocitiesBDF2)(ModelPart&, const TimeDiscretization::BDF2&) = &MeshVelocityCalculation::CalculateMeshVelocities;
@@ -70,6 +74,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     m.def("CalculateMeshVelocities", CalculateMeshVelocitiesGeneralizedAlpha );
 
     m.def("MoveMesh", &MoveMeshUtilities::MoveMesh );
+    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const array_1d<double,3>&, const double, const array_1d<double,3>&, const array_1d<double,3>&)>(&MoveMeshUtilities::MoveModelPart));
+    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const Parameters, const Parameters, const Parameters, const Parameters)>(&MoveMeshUtilities::MoveModelPart));
+    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const LinearTransform&)>(&MoveMeshUtilities::MoveModelPart));
+    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, ParametricLinearTransform&)>(&MoveMeshUtilities::MoveModelPart));
+    m.def("SuperImposeMeshDisplacement", &MoveMeshUtilities::SuperImposeMeshDisplacement );
+    m.def("SuperImposeMeshVelocity", &MoveMeshUtilities::SuperImposeMeshVelocity);
 
 }
 

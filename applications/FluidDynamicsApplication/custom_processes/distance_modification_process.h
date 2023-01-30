@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -59,6 +59,11 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : publi
 public:
     ///@name Type Definitions
     ///@{
+
+    typedef Variable<double> ComponentType;
+    
+    static constexpr std::array<std::array<std::size_t,2>, 3> NodeIDs2D {{ {{1,2}}, {{2,0}}, {{0,1}} }};
+    static constexpr std::array<std::array<std::size_t,2>, 6> NodeIDs3D {{ {{0,1}}, {{1,2}}, {{2,0}}, {{0,3}}, {{1,3}}, {{2,3}} }};    
 
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);
@@ -156,9 +161,11 @@ private:
     bool                                    mNegElemDeactivation;
     bool                               mAvoidAlmostEmptyElements;
     bool                                mRecoverOriginalDistance;
-    std::vector<unsigned int>              mModifiedDistancesIDs;
+    std::vector<std::size_t>               mModifiedDistancesIDs;
     std::vector<double>                 mModifiedDistancesValues;
     std::vector<Vector>        mModifiedElementalDistancesValues;
+    std::vector<const Variable<double>*>    mDoubleVariablesList;
+    std::vector<const ComponentType*>    mComponentVariablesList;
 
     ///@}
     ///@name Protected Operators
@@ -169,6 +176,14 @@ private:
     ///@{
 
     void CheckDefaultsAndProcessSettings(Parameters &rParameters);
+
+    /**
+     * @brief Initialize the EMBEDDED_IS_ACTIVE variable
+     * This method initializes the non historical variable EMBEDDED_IS_ACTIVE.
+     * It needs to be called in the constructor to do a threadsafe initialization
+     * of such nodal variable before any other operation is done.
+     */
+    void InitializeEmbeddedIsActive();
 
     void ModifyDistance();
 
@@ -181,6 +196,51 @@ private:
     void RecoverOriginalDiscontinuousDistance();
 
     void DeactivateFullNegativeElements();
+
+    template<class TDistancesVectorType>
+    void SetElementToSplitFlag(
+        Element &rElem,
+        const TDistancesVectorType& rDistancesVector)
+    {
+        std::size_t n_pos = 0;
+        std::size_t n_neg = 0;
+        for (double i_dist : rDistancesVector) {
+            if (i_dist < 0.0) {
+                n_neg++;
+            } else {
+                n_pos++;
+            }
+        }
+        if (n_neg != 0 && n_pos != 0) {
+            rElem.Set(TO_SPLIT, true);
+        } else {
+            rElem.Set(TO_SPLIT, false);
+        }
+    }
+
+    void SetContinuousDistanceToSplitFlag();
+
+    void SetDiscontinuousDistanceToSplitFlag();
+
+    /**
+     * @brief Reads the variables list specified in the Parameters to be fixed in the elements
+     * that are fully negative, storing them in mDoubleVariablesList and mComponentVariablesList.
+     * It also checks that the variables and the DOFs are defined in the rmModelPart.
+     * @param rVariableStringArray Array containing the variables to be fixed in the full negative elements
+    */
+    void CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray);
+
+    /**
+     * @brief Returns the node IDs corresponding to the given edge ID. 
+     * This mapping is a consequence of the node and edge order used in the CalculateDiscontinuousDistanceToSkinProcess
+     * for ELEMENTAL_DISTANCES and ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 
+     * which is based on triangle_2d_3.h and tetrahedra_3d_4.h (geometry)
+     * @param NumEdges Number of edges of one element to distinguish between Triangle2D3N and Tetrahedra2D4N 
+     * @param EdgeID ID of the element's edge
+    */
+    const std::array<std::size_t,2> GetNodeIDs(
+        const std::size_t NumEdges, 
+        const std::size_t EdgeID);
 
     ///@}
     ///@name Private  Access

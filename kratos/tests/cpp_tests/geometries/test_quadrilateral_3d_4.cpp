@@ -86,11 +86,52 @@ namespace Testing
     /** Checks if the number of edges is correct.
     * Checks if the number of edges is correct.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4EdgesNumber, KratosCoreGeometriesFastSuite) 
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4EdgesNumber, KratosCoreGeometriesFastSuite)
     {
         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
 
         KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 4);
+    }
+
+    /** Checks if the number of edges is correct.
+    * Checks if the number of edges is correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Edges, KratosCoreGeometriesFastSuite)
+    {
+        auto p_geom = GenerateRightQuadrilateral3D4<Node<3>>();
+
+        const auto& r_edges = p_geom->GenerateEdges();
+        KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(3))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(3))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(3))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[3])[0].X(), (p_geom->pGetPoint(3))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[3])[0].Y(), (p_geom->pGetPoint(3))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[3])[0].Z(), (p_geom->pGetPoint(3))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[3])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[3])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[3])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
     }
 
     /** Checks if the number of faces is correct.
@@ -101,7 +142,31 @@ namespace Testing
         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
 
         // That for planar geometries it also return the number of edges.
-        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 4);
+        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 1);
+    }
+
+    /** Checks if the faces are correct.
+    * Checks if the faces are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Faces, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateRightQuadrilateral3D4<Node<3>>();
+
+        const auto& r_faces = p_geom->GenerateFaces();
+        KRATOS_CHECK_NEAR((r_faces[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[2].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[2].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[2].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[3].X(), (p_geom->pGetPoint(3))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[3].Y(), (p_geom->pGetPoint(3))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[3].Z(), (p_geom->pGetPoint(3))->Z(), TOLERANCE);
     }
 
     /** Checks if the area of the quadrilateral is calculated correctly.
@@ -110,9 +175,7 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Area, KratosCoreGeometriesFastSuite)
     {
         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
-
-        KRATOS_CHECK_NEAR(geom->Area(), 1.06947235, TOLERANCE);
-//         KRATOS_CHECK_NEAR(geom->Area(), 1.08935, TOLERANCE); // NOTE: Solution from Mathematica
+        KRATOS_CHECK_NEAR(geom->Area(), 1.06948, 1.0e-5);
     }
 
     /** Tests the PointLocalCoordinates for Quadrilateral2D4.
@@ -160,16 +223,16 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4CoplanarPointIntersection, KratosCoreGeometriesFastSuite) {
         Quadrilateral3D4<Point > quadrilateral_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 2.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0),
+            std::make_shared<Point>(0.0, 1.0, 2.0)
             );
         Quadrilateral3D4<Point > quadrilateral_2(
-            GeneratePoint<NodeType >(0.00, 0.00, 0.0),
-            GeneratePoint<NodeType >(-10., 0.0, -2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00),
-            GeneratePoint<NodeType >(0.0, -1.0, -2.00)
+            std::make_shared<Point>(0.00, 0.00, 0.0),
+            std::make_shared<Point>(-10., 0.0, -2.0),
+            std::make_shared<Point>(0.0, -1.0, 0.00),
+            std::make_shared<Point>(0.0, -1.0, -2.00)
             );
 
         KRATOS_CHECK(quadrilateral_1.HasIntersection(quadrilateral_2));
@@ -177,16 +240,16 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4EdgeIntersection, KratosCoreGeometriesFastSuite) {
         Quadrilateral3D4<Point > quadrilateral_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0),
-            GeneratePoint<NodeType >(10.0, 1.0, 0.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0),
+            std::make_shared<Point>(10.0, 1.0, 0.0)
             );
         Quadrilateral3D4<Point > quadrilateral_2(
-            GeneratePoint<NodeType >(0.00, 0.00, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00),
-            GeneratePoint<NodeType >(0.0, -1.0, 2.00)
+            std::make_shared<Point>(0.00, 0.00, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, -1.0, 0.00),
+            std::make_shared<Point>(0.0, -1.0, 2.00)
             );
 
         KRATOS_CHECK(quadrilateral_1.HasIntersection(quadrilateral_2));
@@ -194,19 +257,42 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4InsideIntersection, KratosCoreGeometriesFastSuite) {
         Quadrilateral3D4<Point > quadrilateral_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(0.0, 0.0, 4.0),
-            GeneratePoint<NodeType >(0.0, 4.0, 0.0),
-            GeneratePoint<NodeType >(0.0, 4.0, 4.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0),
+            std::make_shared<Point>(0.0, 4.0, 4.0)
             );
         Quadrilateral3D4<Point > quadrilateral_2(
-            GeneratePoint<NodeType >(0.0, 1.0, 1.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 3.0),
-            GeneratePoint<NodeType >(0.0, 3.0, 1.0),
-            GeneratePoint<NodeType >(0.0, 3.0, 3.0)
+            std::make_shared<Point>(0.0, 1.0, 1.0),
+            std::make_shared<Point>(0.0, 1.0, 3.0),
+            std::make_shared<Point>(0.0, 3.0, 1.0),
+            std::make_shared<Point>(0.0, 3.0, 3.0)
             );
 
         KRATOS_CHECK(quadrilateral_1.HasIntersection(quadrilateral_2));
+    }
+
+    /** Checks the ProjectionPoint test for a given point respect to the quadrilateral
+    * Checks the ProjectionPoint test for a given point respect to the quadrilateral
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4ProjectionPoint, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateFlatQuadrilateral3D4<NodeType>();
+
+        Point point(0.25,0.35,0.2);
+
+        Geometry<Point>::CoordinatesArrayType global_coords;
+        Geometry<Point>::CoordinatesArrayType local_coords;
+
+        geom->ProjectionPointGlobalToLocalSpace(point.Coordinates(), local_coords);
+        geom->GlobalCoordinates(global_coords, local_coords);
+
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], 0.25, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], 0.35, 1.0e-4);
+        KRATOS_CHECK_NEAR(global_coords[2], 0.0, 1.0e-4);
+
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], -0.5, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], -0.3, 1.0e-4);
+        KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
     }
 
 //     /** Checks if the volume of the quadrilateral is calculated correctly.
@@ -255,7 +341,7 @@ namespace Testing
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
-//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_1 );
+//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_1 );
 //
 //         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
 //         {
@@ -272,7 +358,7 @@ namespace Testing
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
-//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_2 );
+//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 //
 //         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
 //         {
@@ -289,7 +375,7 @@ namespace Testing
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
-//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_3 );
+//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_3 );
 //
 //         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
 //         {
@@ -306,7 +392,7 @@ namespace Testing
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
-//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_4 );
+//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_4 );
 //
 //         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
 //         {
@@ -323,7 +409,7 @@ namespace Testing
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
-//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_5 );
+//         geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 //
 //         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
 //         {
@@ -339,7 +425,7 @@ namespace Testing
 //         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
 //         const double ExpectedJacobian = 1.0;
 //
-//         double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_1 );
+//         double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_1 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //     }
 //
@@ -352,10 +438,10 @@ namespace Testing
 //         double JacobianDeterminant = 0.0;
 //         const double ExpectedJacobian = 1.0;
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_2 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_2 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //     }
 //
@@ -368,13 +454,13 @@ namespace Testing
 //         double JacobianDeterminant = 0.0;
 //         const double ExpectedJacobian = 1.0;
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_3 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_3 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_3 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_3 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_3 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_3 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //     }
 //
@@ -387,16 +473,16 @@ namespace Testing
 //         double JacobianDeterminant = 0.0;
 //         const double ExpectedJacobian = 1.0;
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_4 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_4 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_4 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_4 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_4 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_4 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::GI_GAUSS_4 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_4 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //     }
 //
@@ -409,19 +495,19 @@ namespace Testing
 //         double JacobianDeterminant = 0.0;
 //         const double ExpectedJacobian = 1.0;
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_5 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_5 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_5 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::GI_GAUSS_5 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //
-//         JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::GI_GAUSS_5 );
+//         JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //     }
 

@@ -1,7 +1,7 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
+from KratosMultiphysics.process_factory import KratosProcessFactory
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -19,10 +19,10 @@ class AnalysisStage(object):
         model -- The Model to be used
         project_parameters -- The ProjectParameters used
         """
-        if (type(model) != KratosMultiphysics.Model):
+        if not isinstance(model, KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
-        if (type(project_parameters) != KratosMultiphysics.Parameters):
+        if not isinstance(project_parameters, KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.model = model
@@ -31,12 +31,12 @@ class AnalysisStage(object):
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+        is_distributed_run = KratosMultiphysics.IsDistributedRun()
 
-        if (self.parallel_type == "MPI"):
-            import KratosMultiphysics.mpi as KratosMPI
-            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
+        if self.parallel_type == "OpenMP" and is_distributed_run:
+            KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"OpenMP" is specified as "parallel_type", but Kratos is running distributed!')
+        if self.parallel_type == "MPI" and not is_distributed_run:
+            KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
 
@@ -62,7 +62,8 @@ class AnalysisStage(object):
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
+            is_converged = self._GetSolver().SolveSolutionStep()
+            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -71,6 +72,12 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
+        # Modelers:
+        self._CreateModelers()
+        self._ModelersSetupGeometryModel()
+        self._ModelersPrepareGeometryModel()
+        self._ModelersSetupModelPart()
+
         self._GetSolver().ImportModelPart()
         self._GetSolver().PrepareModelPart()
         self._GetSolver().AddDofs()
@@ -98,14 +105,14 @@ class AnalysisStage(object):
             self.time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 
         ## If the echo level is high enough, print the complete list of settings used to run the simualtion
-        if self.is_printing_rank and self.echo_level > 1:
+        if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
     def Finalize(self):
         """This function finalizes the AnalysisStage
@@ -116,20 +123,22 @@ class AnalysisStage(object):
 
         self._GetSolver().Finalize()
 
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
         """
+        self.PrintAnalysisStageProgressInformation()
+
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
+
+    def PrintAnalysisStageProgressInformation(self):
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
@@ -143,22 +152,17 @@ class AnalysisStage(object):
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
-        # first we check if one of the output processes will print output in this step
-        # this is done to save computation in case none of them will print
-        is_output_step = False
+        execute_was_called = False
         for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():
-                is_output_step = True
-                break
+                if not execute_was_called:
+                    for process in self._GetListOfProcesses():
+                        process.ExecuteBeforeOutputStep()
+                    execute_was_called = True
 
-        if is_output_step: # at least one of the output processes will print output
-            for process in self._GetListOfProcesses():
-                process.ExecuteBeforeOutputStep()
+                output_process.PrintOutput()
 
-            for output_process in self._GetListOfOutputProcesses():
-                if output_process.IsOutputStep():
-                    output_process.PrintOutput()
-
+        if execute_was_called:
             for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
 
@@ -168,6 +172,11 @@ class AnalysisStage(object):
         self._GetSolver().Check()
         for process in self._GetListOfProcesses():
             process.Check()
+
+    def Clear(self):
+        """This function clears the AnalysisStage
+        """
+        self._GetSolver().Clear()
 
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """
@@ -203,6 +212,62 @@ class AnalysisStage(object):
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
 
+    ### Modelers
+    def _ModelersSetupGeometryModel(self):
+        # Import or generate geometry models from external input.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup Geometry Model started.")
+            modeler.SetupGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup Geometry Model finished.")
+
+    def _ModelersPrepareGeometryModel(self):
+        # Prepare or update the geometry model_part.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Prepare Geometry Model started.")
+            modeler.PrepareGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Prepare Geometry Model finished.")
+
+    def _ModelersSetupModelPart(self):
+        # Convert the geometry model or import analysis suitable models.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart started.")
+            modeler.SetupModelPart()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart finished.")
+
+    ### Modelers
+    def _GetListOfModelers(self):
+        """ This function returns the list of modelers
+        """
+        if not hasattr(self, '_list_of_modelers'):
+            raise Exception("The list of modelers was not yet created!")
+        return self._list_of_modelers
+
+    def _CreateModelers(self):
+        """ List of modelers in following format:
+        "modelers" : [{
+            "modeler_name" : "geometry_import",
+            "Parameters" : {
+                "echo_level" : 0,
+                // settings for this modeler
+            }
+        },{ ... }]
+        """
+        self._list_of_modelers = []
+
+        if self.project_parameters.Has("modelers"):
+            from KratosMultiphysics.modeler_factory import KratosModelerFactory
+            factory = KratosModelerFactory()
+
+            modelers_list = self.project_parameters["modelers"]
+            self._list_of_modelers = factory.ConstructListOfModelers(self.model, modelers_list)
+
+    ### Processes
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis
         """
@@ -237,7 +302,6 @@ class AnalysisStage(object):
         """
         list_of_processes = []
 
-        from process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
 
         if self.project_parameters.Has(parameter_name):
@@ -267,6 +331,16 @@ class AnalysisStage(object):
         """
         return []
 
+    def _CheckDeprecatedOutputProcesses(self, list_of_processes):
+        deprecated_output_processes = []
+        for process in list_of_processes:
+            if issubclass(type(process), KratosMultiphysics.OutputProcess):
+                deprecated_output_processes.append(process)
+                msg  = "{} is an OutputProcess. However, it has been constructed as a regular process.\n"
+                msg += "Please, define it as an 'output_processes' in the ProjectParameters."
+                IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
+        return deprecated_output_processes
+
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
@@ -277,6 +351,24 @@ class AnalysisStage(object):
         """
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        deprecated_output_processes    = self._CheckDeprecatedOutputProcesses(self._list_of_processes)
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+        self._list_of_output_processes.extend(deprecated_output_processes)
+
+    def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
+        """In case the solver does not return the state of convergence
+        (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+
+        """
+        if is_converged is None:
+            if not hasattr(self, '_map_ret_val_depr_warnings'):
+                self._map_ret_val_depr_warnings = []
+            solver_class_name = self._GetSolver().__class__.__name__
+            # used to only print the deprecation-warning once
+            if not solver_class_name in self._map_ret_val_depr_warnings:
+                self._map_ret_val_depr_warnings.append(solver_class_name)
+                warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
+                warn_msg += 'the state of convergence from "SolveSolutionStep"'
+                IssueDeprecationWarning("AnalysisStage", warn_msg)

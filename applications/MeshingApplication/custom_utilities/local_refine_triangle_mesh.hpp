@@ -30,7 +30,7 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 
 namespace Kratos
 {
@@ -117,9 +117,9 @@ public:
 
             for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType& rDof = *iii;
+                Node < 3 > ::DofType& rDof = **iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-                if (geom[0].IsFixed(iii->GetVariable()) == true && geom[1].IsFixed(iii->GetVariable()) == true && geom[2].IsFixed(iii->GetVariable()))
+                if (geom[0].IsFixed(rDof.GetVariable()) && geom[1].IsFixed(rDof.GetVariable()) && geom[2].IsFixed(rDof.GetVariable()))
                     (p_new_dof)->FixDof();
                 else
                 {
@@ -181,7 +181,7 @@ public:
         int nint = 0;
         std::vector<int> aux;
 
-        ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
 	std::cout << "****************** REFINING MESH ******************" << std::endl;
         std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
@@ -201,7 +201,7 @@ public:
             const unsigned int dimension = geom.WorkingSpaceDimension();
 
             // It creates the new conectivities
-            create_element = Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
+            create_element = TriangleSplit::Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
             // It creates the new elements
             if (create_element == true)
@@ -225,7 +225,7 @@ public:
 
                         Element::Pointer p_element;
                         p_element = it->Create(current_id, geom, it->pGetProperties());
-                        p_element->Initialize();
+                        p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -236,7 +236,7 @@ public:
 			}
 
                         // Transfer elemental variables
-                        p_element->Data() = it->Data();
+                        p_element->GetData() = it->GetData();
                         //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
                         p_element->GetValue(SPLIT_ELEMENT) = false;
                         //p_element->SetValue(REFINEMENT_LEVEL, 1);
@@ -252,7 +252,7 @@ public:
 
                         Element::Pointer p_element;
                         p_element = it->Create(current_id, geom, it->pGetProperties());
-                        p_element->Initialize();
+                        p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -261,7 +261,7 @@ public:
                             InterpolateInteralVariables(number_elem, *it.base(), p_element, rCurrentProcessInfo);
 
                         // Transfer elemental variables
-                        p_element->Data() = it->Data();
+                        p_element->GetData() = it->GetData();
                         p_element->GetValue(SPLIT_ELEMENT) = false;
                         New_Elements.push_back(p_element);
                     }
@@ -316,7 +316,7 @@ public:
             unsigned int to_be_deleted = 0;
             unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
 	    const unsigned int dimension = it_begin->GetGeometry().WorkingSpaceDimension();
 
@@ -359,8 +359,8 @@ public:
                             Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
                             Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
 
-                            pcond1->Data() = it->Data();
-                            pcond2->Data() = it->Data();
+                            pcond1->GetData() = it->GetData();
+                            pcond2->GetData() = it->GetData();
 
                             New_Conditions.push_back(pcond1);
                             New_Conditions.push_back(pcond2);
@@ -380,8 +380,8 @@ public:
                             Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
                             Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
 
-                            pcond1->Data() = it->Data();
-                            pcond2->Data() = it->Data();
+                            pcond1->GetData() = it->GetData();
+                            pcond2->GetData() = it->GetData();
 
                             New_Conditions.push_back(pcond1);
                             New_Conditions.push_back(pcond2);
@@ -405,7 +405,7 @@ public:
             /* Adding news elements to the model part */
             for (PointerVector< Condition >::iterator it_new = New_Conditions.begin(); it_new != New_Conditions.end(); it_new++)
             {
-                it_new->Initialize();
+                it_new->Initialize(rCurrentProcessInfo);
                 it_new->InitializeSolutionStep(rCurrentProcessInfo);
                 it_new->FinalizeSolutionStep(rCurrentProcessInfo);
                 this_model_part.Conditions().push_back(*(it_new.base()));

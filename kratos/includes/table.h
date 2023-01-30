@@ -4,35 +4,30 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_TABLE_H_INCLUDED )
 #define  KRATOS_TABLE_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
 
-
 // Project includes
+#include "input_output/logger.h"
 #include "includes/define.h"
 #include "containers/variable.h"
 
-
 namespace Kratos
 {
-///@addtogroup Kratos Core
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -53,11 +48,19 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/// This class represents the value of its variable depending to other variable.
-/** Table class stores the value of its second variable respect to the value of its first variable.
-*   It also provides a double to double table with piecewise linear interpolator/extrapolator for getting intermediate values.
-*/
+    
+/** 
+ * @class Table
+ * @ingroup KratosCore
+ * @brief This class represents the value of its variable depending to other variable.
+ * @details Table class stores the value of its second variable respect to the value of its first variable.
+ * It also provides a double to double table with piecewise linear interpolator/extrapolator for getting intermediate values.
+ * @author Pooyan Dadvand
+ * @author Riccardo Rossi
+ * @tparam TArgumentType The type of argument considered
+ * @tparam TResultType The type of result obtained
+ * @tparam TResultsColumns The number of columns considered
+ */
 template<class TArgumentType, class TResultType = TArgumentType, std::size_t TResultsColumns = 1>
 class Table
 {
@@ -68,12 +71,9 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef TArgumentType argument_type; // To be STL conformance.
-    typedef TResultType result_type; // To be STL conformance.
-
     typedef std::array<TResultType, TResultsColumns>  result_row_type;
 
-    typedef std::pair<argument_type, result_row_type> RecordType;
+    typedef std::pair<TArgumentType, result_row_type> RecordType;
 
     typedef std::vector<RecordType> TableContainerType;
 
@@ -91,7 +91,6 @@ public:
     {
     }
 
-
     /// Assignment operator.
     Table& operator=(Table const& rOther)
     {
@@ -99,45 +98,42 @@ public:
         return *this;
     }
 
-
     ///@}
     ///@name Operators
     ///@{
 
-
-
     // This operator gives the first column result for the nearest argument found in table
-    result_type const& operator()(argument_type const& X) const
+    TResultType const& operator()(TArgumentType const& X) const
     {
         return GetNearestRow(X)[0];
     }
 
     // This operator gives the first column result for the nearest argument found in table
-    result_type& operator()(argument_type const& X)
+    TResultType& operator()(TArgumentType const& X)
     {
         return GetNearestRow(X)[0];
     }
 
     // This operator gives the result in the Jth column for the nearest argument found in table
-    result_type const& operator()(argument_type const& X, std::size_t J) const
+    TResultType const& operator()(TArgumentType const& X, std::size_t J) const
     {
         return GetNearestRow(X)[J];
     }
 
     // This operator gives the result in the Jth column for the nearest argument found in table
-    result_type& operator()(argument_type const& X, std::size_t J)
+    TResultType& operator()(TArgumentType const& X, std::size_t J)
     {
         return GetNearestRow(X)[J];
     }
 
     // This operator gives the row for the nearest value to argument found in table
-    result_row_type const & operator[](argument_type const& X) const
+    result_row_type const & operator[](TArgumentType const& X) const
     {
         return GetNearestRow(X);
     }
 
     // This operator gives the row for the nearest value to argument found in table
-    result_row_type & operator[](argument_type& X)
+    result_row_type & operator[](TArgumentType& X)
     {
         return GetNearestRow(X);
     }
@@ -148,12 +144,11 @@ public:
 
 
     // Get the nesrest value for the given argument
-    result_type& GetNearestRow(argument_type const& X)
+    TResultType& GetNearestRow(TArgumentType const& X)
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -170,12 +165,11 @@ public:
     }
 
     // Get the nesrest value for the given argument
-    result_type const& GetNearestRow(argument_type const& X)  const
+    TResultType const& GetNearestRow(TArgumentType const& X)  const
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -192,7 +186,7 @@ public:
     }
 
     // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
-    void insert(argument_type const& X, result_type const& Y)
+    void insert(TArgumentType const& X, TResultType const& Y)
     {
         result_row_type a = {{Y}};
         insert(X,a);
@@ -201,7 +195,7 @@ public:
     // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
     // assumes that Y has [] operator with TResultsColumns element
     template<class TArrayType>
-    void insert(argument_type const& X, TArrayType const& Y)
+    void insert(TArgumentType const& X, TArrayType const& Y)
     {
         result_row_type a;
         for(std::size_t i = 0 ; i < TResultsColumns ; i++)
@@ -210,7 +204,7 @@ public:
     }
 
     // inserts a row in a sorted position where Xi-1 < X < Xi+1
-    void insert(argument_type const& X, result_row_type const& Y)
+    void insert(TArgumentType const& X, result_row_type const& Y)
     {
         std::size_t size = mData.size();
 
@@ -219,22 +213,22 @@ public:
 
         else if(X <= mData[0].first)
             mData.insert(mData.begin(), RecordType(X,Y));
-		else if(X <= mData.back().first)
-			mData.push_back(RecordType(X,Y));
-		else
-			for(std::size_t i = 1 ; i < size ; i++)
-				if((X > mData[i-1].first) && (X <= mData[i].first))
-				{
-					mData.insert(mData.begin() + i, RecordType(X,Y));
-					break;
-				}
+        else if(X <= mData.back().first)
+            mData.push_back(RecordType(X,Y));
+        else
+            for(std::size_t i = 1 ; i < size ; i++)
+                if((X > mData[i-1].first) && (X <= mData[i].first))
+                {
+                    mData.insert(mData.begin() + i, RecordType(X,Y));
+                    break;
+                }
 
     }
 
 
     // assumes that the X is the greater than the last argument and put the row at the end.
     // faster than insert.
-    void PushBack(argument_type const& X, result_type const& Y)
+    void PushBack(TArgumentType const& X, TResultType const& Y)
     {
         result_row_type a = {{Y}};
         mData.push_back(RecordType(X,a));
@@ -244,7 +238,7 @@ public:
     // assumes that Y has [] operator with TResultsColumns element
     // faster than insert.
     template<class TArrayType>
-    void PushBack(argument_type const& X, TArrayType const& Y)
+    void PushBack(TArgumentType const& X, TArrayType const& Y)
     {
         result_row_type a;
         for(std::size_t i = 0 ; i < TResultsColumns ; i++)
@@ -255,9 +249,17 @@ public:
     // assumes that the X is the greater than the last argument and put the row at the end.
     // faster than insert.
     template<class TArrayType>
-    void PushBack(argument_type const& X, result_row_type const& Y)
+    void PushBack(TArgumentType const& X, result_row_type const& Y)
     {
         mData.push_back(RecordType(X,Y));
+    }
+    
+    /**
+     * @brief This method clears databse
+     */
+    void Clear()
+    {
+        mData.clear();
     }
 
     ///@}
@@ -434,17 +436,17 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef double argument_type; // To be STL conformance.
-    typedef double result_type; // To be STL conformance.
+    typedef double TResultType;
+    typedef double TArgumentType;
 
-    typedef std::array<result_type, 1>  result_row_type;
+    typedef std::array<TResultType, 1>  result_row_type;
 
-    typedef std::pair<argument_type, result_row_type> RecordType;
+    typedef std::pair<TArgumentType, result_row_type> RecordType;
 
     typedef std::vector<RecordType> TableContainerType;
 
-    typedef Variable<argument_type> XVariableType;
-    typedef Variable<result_type> YVariableType;
+    typedef Variable<TArgumentType> XVariableType;
+    typedef Variable<TResultType> YVariableType;
 
     ///@}
     ///@name Life Cycle
@@ -492,19 +494,19 @@ public:
 
     // This operator calculates the piecewise linear interpolation for
     // given argument
-    result_type operator()(argument_type const& X) const
+    TResultType operator()(TArgumentType const& X) const
     {
         return GetValue(X);
     }
 
     // This operator gives the result for the nearest value to argument found in table
-    result_type const & operator[](argument_type const& X) const
+    TResultType const & operator[](TArgumentType const& X) const
     {
         return GetNearestValue(X);
     }
 
     // This operator gives the result for the nearest value to argument found in table
-    result_type & operator[](argument_type& X)
+    TResultType & operator[](TArgumentType& X)
     {
         return GetNearestValue(X);
     }
@@ -514,17 +516,16 @@ public:
     ///@{
 
     // Get the value for the given argument using piecewise linear
-    result_type GetValue(argument_type const& X) const
+    TResultType GetValue(TArgumentType const& X) const
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
 
-        result_type result;
+        TResultType result;
         if(X <= mData[0].first)
             return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
 
@@ -537,12 +538,11 @@ public:
     }
 
     // Get the nesrest value for the given argument
-    result_row_type& GetNearestRow(argument_type const& X)
+    result_row_type& GetNearestRow(TArgumentType const& X)
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -559,12 +559,11 @@ public:
     }
 
     // Get the nesrest value for the given argument
-    result_type const& GetNearestValue(argument_type const& X)  const
+    TResultType const& GetNearestValue(TArgumentType const& X)  const
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
@@ -581,12 +580,11 @@ public:
     }
 
     // Get the nesrest value for the given argument
-    result_type & GetNearestValue(argument_type const& X)
+    TResultType & GetNearestValue(TArgumentType const& X)
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
@@ -602,12 +600,12 @@ public:
         return mData[size-1].second[0];
     }
 
-    result_type& Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
+    TResultType& Interpolate(TArgumentType const& X, TArgumentType const& X1, TResultType const& Y1, TArgumentType const& X2, TResultType const& Y2, TResultType& Result) const
     {
         const double epsilon = 1e-12;
 
         double dx = X2 - X1;
-        result_type dy = Y2 - Y1;
+        TResultType dy = Y2 - Y1;
 
         double scale = 0.00;
 
@@ -621,7 +619,7 @@ public:
     }
 
     // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
-    void insert(argument_type const& X, result_type const& Y)
+    void insert(TArgumentType const& X, TResultType const& Y)
     {
         result_row_type a = {{Y}};
         insert(X,a);
@@ -629,7 +627,7 @@ public:
 
 
     // inserts a row in a sorted position where Xi-1 < X < Xi+1
-    void insert(argument_type const& X, result_row_type const& Y)
+    void insert(TArgumentType const& X, result_row_type const& Y)
     {
         std::size_t size = mData.size();
 
@@ -637,40 +635,39 @@ public:
             mData.push_back(RecordType(X,Y));
         else if(X <= mData[0].first)
             mData.insert(mData.begin(), RecordType(X,Y));
-		else if(X > mData.back().first)
-			mData.push_back(RecordType(X,Y));
-		else
+        else if(X > mData.back().first)
+            mData.push_back(RecordType(X,Y));
+        else
             for(std::size_t i = 1 ; i < size ; i++)
                 if((X > mData[i-1].first) && (X <= mData[i].first))
-				{
+                {
                     mData.insert(mData.begin() + i, RecordType(X,Y));
-					break;
-				}
+                    break;
+                }
     }
 
     // assumes that the X is the greater than the last argument and put the row at the end.
     // faster than insert.
-    void PushBack(argument_type const& X, result_type const& Y)
+    void PushBack(TArgumentType const& X, TResultType const& Y)
     {
         result_row_type a = {{Y}};
         mData.push_back(RecordType(X,a));
     }
 
-	 // Get the derivative for the given argument using piecewise linear
-    result_type GetDerivative(argument_type const& X) const
+     // Get the derivative for the given argument using piecewise linear
+    TResultType GetDerivative(TArgumentType const& X) const
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return 0.0;
 
-        result_type result;
+        TResultType result;
         if(X <= mData[0].first)
             //return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
-			return 0.0;
+            return 0.0;
 
         for(std::size_t i = 1 ; i < size ; i++)
             if(X <= mData[i].first)
@@ -679,24 +676,32 @@ public:
         // If it lies outside the table values we will return 0.0.
         return 0.0;
     }
-	 result_type& InterpolateDerivative( argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
+     TResultType& InterpolateDerivative( TArgumentType const& X1, TResultType const& Y1, TArgumentType const& X2, TResultType const& Y2, TResultType& Result) const
     {
         const double epsilon = 1e-12;
-        argument_type dx = X2 - X1;
-        result_type dy = Y2 - Y1;
-		if (dx < epsilon)
-		{
-			dx=epsilon;
-			std::cout << "******************************************* " <<std::endl;
-			std::cout << "*** ATTENTION: SMALL dX WHEN COMPUTING  *** " <<std::endl;
-			std::cout << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 *** " <<std::endl;
-			std::cout << "******************************************* " <<std::endl;
-		}
+        TArgumentType dx = X2 - X1;
+        TResultType dy = Y2 - Y1;
+        if (dx < epsilon)
+        {
+            dx=epsilon;
+            KRATOS_WARNING("") 
+            << "*******************************************\n"
+            << "*** ATTENTION: SMALL dX WHEN COMPUTING  ***\n"
+            << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 ***\n"
+            << "*******************************************" <<std::endl;
+        }
         Result= dy/dx;
         return Result;
     }
-
-
+    
+    /**
+     * @brief This method clears databse
+     */
+    void Clear()
+    {
+        mData.clear();
+    }
+    
     ///@}
     ///@name Access
     ///@{

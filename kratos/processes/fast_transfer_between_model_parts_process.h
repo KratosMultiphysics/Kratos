@@ -66,12 +66,7 @@ public:
     typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
     typedef ModelPart::ElementsContainerType                           ElementsArrayType;
     typedef ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintArrayType;
-
-    // General containers iterators type definitions
-    typedef NodesArrayType::iterator                                  IteratorNodesArrayType;
-    typedef ConditionsArrayType::iterator                        IteratorConditionsArrayType;
-    typedef ElementsArrayType::iterator                            IteratorElementsArrayType;
-    typedef MasterSlaveConstraintArrayType::iterator IteratorMasterSlaveConstraintsArrayType;
+    typedef ModelPart::GeometriesMapType                               GeometriesMapType;
 
     /// The type used to identify the size
     typedef std::size_t SizeType;
@@ -88,14 +83,16 @@ public:
      * @todo Add intermediate combinations of constraints, conditions and elements
      */
     enum class EntityTransfered {
-        NODES = 0,
-        ELEMENTS = 1,
-        NODESANDELEMENTS = 2,
-        CONDITIONS = 3,
-        NODESANDCONDITIONS = 4,
-        CONSTRAINTS = 5,
+        NODES               = 0,
+        ELEMENTS            = 1,
+        NODESANDELEMENTS    = 2,
+        CONDITIONS          = 3,
+        NODESANDCONDITIONS  = 4,
+        CONSTRAINTS         = 5,
         NODESANDCONSTRAINTS = 6,
-        ALL = 7
+        GEOMETRIES          = 7,
+        NODESANDGEOMETRIES  = 8,
+        ALL                 = 9
     };
 
     ///@}

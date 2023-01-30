@@ -38,7 +38,7 @@ namespace Kratos
 
 
 
-class HenckyBorjaCamClayPlasticAxisym2DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyBorjaCamClayPlasticAxisym2DLaw
   : public HenckyElasticPlasticAxisym2DLaw
 
 {
@@ -50,9 +50,9 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef MPMFlowRule::Pointer                FlowRulePointer;
-    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
+    typedef ParticleFlowRule::Pointer                FlowRulePointer;
+    typedef ParticleYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer               PropertiesPointer;
 
     /**
@@ -114,7 +114,7 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
 
 
 

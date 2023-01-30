@@ -21,14 +21,11 @@
         },
         "contact_settings":
         {
-            "mortar_type"                    : "ALMContactFrictionless",
-            "ensure_contact"                 : true
+            "mortar_type"                    : "ALMContactFrictionless"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "block_builder"                      : true,
-        "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
@@ -37,8 +34,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1","SelfWeight3D_Self_weight_Auto1"],
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
         }
@@ -50,8 +45,7 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -62,8 +56,7 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,null],
                 "interval"        : [0.0,"End"]
@@ -76,9 +69,9 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "SelfWeight3D_Self_weight_Auto1",
+                "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,0.0,-1.0],
                 "interval"        : [0.0,"End"]
@@ -90,13 +83,12 @@
             "help"          : "This process computes the contact between different surfaces",
             "process_name"  : "ALMContactProcess",
             "Parameters"    : {
-                "mesh_id"                   : 0,
                 "contact_model_part"        : { "0" : ["CONTACT_Contact_Auto1"]},
-                "computing_model_part_name" : "computing_domain",
                 "model_part_name"           : "Structure",
                 "assume_master_slave"       : { "0" : ["Parts_Parts_Auto1"]},
                 "contact_type"              : "Frictionless",
                 "search_parameters" : {
+                    "type_search"           : "in_radius",
                     "check_gap"             : "direct_check"
                 }
             }
@@ -110,7 +102,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test.json",
-                "model_part_name"      : "CONTACT_Contact_Auto1",
+                "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
                 "time_frequency"       : 1.00
             }
         },{
@@ -121,8 +113,8 @@
             "Parameters"            : {
                 "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
                 "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
-                "model_part_name"      : "CONTACT_Contact_Auto1",
-                "check_for_flag"       : "ACTIVE",
+                "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
+                "check_for_flag"       : "SLAVE",
                 "historical_value"     : false,
                 "relative_tolerance"   : 1e-2,
                 "time_frequency"       : 1.0
@@ -139,7 +131,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test.json",
-            "model_part_name"      : "CONTACT_Contact_Auto1",
+            "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
             "time_frequency"       : 1.00
         }
     },{
@@ -150,8 +142,8 @@
         "Parameters"            : {
             "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
-            "model_part_name"      : "CONTACT_Contact_Auto1",
-            "check_for_flag"       : "ACTIVE",
+            "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
+            "check_for_flag"       : "SLAVE",
             "historical_value"     : false,
             "time_frequency"       : 1.00
         }
@@ -164,7 +156,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

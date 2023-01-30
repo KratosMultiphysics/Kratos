@@ -52,7 +52,7 @@ Element::Pointer AxisymTotalLagrangian::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymTotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<AxisymTotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //************************************************************************************
@@ -64,7 +64,7 @@ Element::Pointer AxisymTotalLagrangian::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymTotalLagrangian>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<AxisymTotalLagrangian>( NewId, pGeom, pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************

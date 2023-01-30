@@ -1,14 +1,12 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 # Other imports
-import sys
+from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_structural
 
 # Import the base structural analysis
-from structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     """
@@ -40,14 +38,14 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         if project_parameters.Has("processes"):
             if project_parameters["processes"].Has("recursive_remeshing_process"):
                 self.process_remesh = True
-        super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).Initialize()
+        super().Initialize()
         computing_model_part = self._GetSolver().GetComputingModelPart()
         if not self.process_remesh:
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
+            convergence_criteria = self._GetSolver()._GetConvergenceCriterion()
             convergence_criteria.Initialize(computing_model_part)
 
         # Ensuring to have conditions on the BC before remesh
@@ -107,9 +105,9 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         else: # Remeshing adaptively
             metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
-            builder_and_solver = self._GetSolver().get_builder_and_solver()
-            mechanical_solution_strategy = self._GetSolver().get_mechanical_solution_strategy()
+            convergence_criteria = self._GetSolver()._GetConvergenceCriterion()
+            builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
+            mechanical_solution_strategy = self._GetSolver()._GetSolutionStrategy()
 
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
@@ -121,18 +119,15 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                         self.InitializeSolutionStep()
                         self._GetSolver().Predict()
                         computing_model_part.Set(KM.MODIFIED, False)
-                        self.is_printing_rank = False
                     computing_model_part.ProcessInfo.SetValue(KM.NL_ITERATION_NUMBER, non_linear_iteration)
                     is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._GetSolver().SolveSolutionStep()
                     is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self.FinalizeSolutionStep()
                     if is_converged:
-                        self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break
                     elif non_linear_iteration == self.non_linear_iterations:
-                        self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                         break
                     else:
@@ -151,7 +146,6 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction
-        import python_solvers_wrapper_adaptative_remeshing_structural
         return python_solvers_wrapper_adaptative_remeshing_structural.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
@@ -159,7 +153,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(AdaptativeRemeshingStructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]

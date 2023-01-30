@@ -1,334 +1,522 @@
-# ==============================================================================
-#  TopologyOptimizationApplication
+# KratosTopologyOptimizationApplication
 #
-#  License:         BSD License
-#                   license: TopologyOptimizationApplication/license.txt
+# License:         BSD License
+#                  license: TopologyOptimizationApplication/license.txt
 #
-#  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
-#                   Octaviano Malfavón Farías
+# Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
+#                  Erich Wehrle, https://github.com/e-dub
+#                  based on original file from
+#                  Baumgärtner Daniel, https://github.com/dbaumgaertner
+#                  Octaviano Malfavón Farías
+#                  Eric Gonzales
 #
-# ==============================================================================
-
-# ------------------------------------------------------------------------------
-# Imports
-# ------------------------------------------------------------------------------
-
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
-
-# importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.TopologyOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-# For GID output
-from gid_output import GiDOutput
-
-# Further necessary imports
-import csv
-import math
+import KratosMultiphysics as km
+import KratosMultiphysics.TopologyOptimizationApplication as kto
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 import time
 
-# ==============================================================================
-def ConstructOptimizer( opt_model_part, config, analyzer ):
 
-    # Creat optimizer according to selected optimization method
-    if( config.optimization_method == "simp_method" ):
-        optimizer = SIMPMethod( opt_model_part, config, analyzer )
-        return optimizer
+def ConstructOptimizer(opt_model_part, config, analyzer):
+    optimizer = SIMPMethod(opt_model_part, config, analyzer)
+    return optimizer
 
-    else:
-        sys.exit( "Specified optimization_method not implemented" )
 
-# ==============================================================================
 class SIMPMethod:
-
-    # --------------------------------------------------------------------------
     def __init__(self, opt_model_part, config, analyzer):
-
         # Set Topology Optimization configurations
         self.config = config
 
         # For GID output
-        self.gid_io = GiDOutput(config.GiD_output_file_name,
-                        config.VolumeOutput,
-                        config.GiDPostMode,
-                        config.GiDMultiFileFlag,
-                        config.GiDWriteMeshFlag,
-                        config.GiDWriteConditionsFlag)
+        self.gid_io = GiDOutputProcess(
+            opt_model_part,
+            'Topology_Optimization_Results',
+            km.Parameters(
+                """
+                {
+                "result_file_configuration": {
+                    "gidpost_flags": {
+                        "GiDPostMode": "GiD_PostBinary",
+                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                        "WriteConditionsFlag": "WriteConditions",
+                        "MultiFileFlag": "SingleFile"
+                    },
+                    "file_label": "time",
+                    "output_control_type": "step",
+                    "output_interval": 1.0,
+                    "body_output": true,
+                    "node_output": false,
+                    "skin_output": false,
+                    "plane_output": [],
+                    "nodal_results": ["DISPLACEMENT","REACTION"],
+                    "nodal_nonhistorical_results": [],
+                    "nodal_flags_results": [],
+                    "gauss_point_results": ["X_PHYS","VON_MISES_STRESS"],
+                    "additional_list_files": []
+                    }
+                }
+                """
+            ),
+        )
+        vtk_parameters = km.Parameters(
+            """
+            {
+            "model_part_name": "",
+            "output_control_type": "step",
+            "output_interval": 1,
+            "file_format": "ascii",
+            "output_precision": 7,
+            "output_sub_model_parts": false,
+            "output_path": "vtk_output",
+            "save_output_files_in_folder": true,
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION"],
+            "nodal_data_value_variables": [],
+            "element_data_value_variables": ["X_PHYS","VON_MISES_STRESS"],
+            "condition_data_value_variables": [],
+            "gauss_point_variables_extrapolated_to_nodes": []
+            }
+            """
+        )
+        vtk_parameters['model_part_name'].SetString(opt_model_part.Name)
+        self.vtk_io = VtkOutputProcess(
+            opt_model_part.GetModel(), vtk_parameters
+        )
 
         # Set analyzer
         self.analyzer = analyzer
 
-        # Set response functions 
-        self.objectives = config.objectives
-        self.constraints = config.constraints     
+        # Set response functions
+        self.objectives = config['objectives'].items()
+        self.constraints = config['constraints'].items()
 
-        print("\n::[Initializing Topology Optimization Application]::")
-        print("  The following objectives are defined:")
-        for func_id in config.objectives:
-            print("   ",func_id,":",config.objectives[func_id],"\n")
+        km.Logger.Print(
+            '\n::[Initializing Topology Optimization Application]::'
+        )
+        km.Logger.Print('  The following objectives are defined:')
+        for func_id, obj_settings in config['objectives'].items():
+            obj_settings['grad'].GetString()
+            km.Logger.Print(
+                '   ',
+                func_id,
+                "-> 'grad' : ",
+                obj_settings['grad'].GetString(),
+                '\n',
+            )
 
-        print("  The following constraints are defined:")
-        for func_id in config.constraints:
-            print("   ",func_id,":",config.constraints[func_id])
+        km.Logger.Print('  The following constraints are defined:')
+        for func_id, const_settings in config['constraints'].items():
+            const_settings['grad'].GetString()
+            km.Logger.Print(
+                '   ',
+                func_id,
+                "-> 'type' : ",
+                const_settings['type'].GetString(),
+                ", 'grad' : ",
+                const_settings['grad'].GetString(),
+                '\n',
+            )
 
         # Create controller object
-        self.controller = Controller( config );  
+        self.controller = Controller(config)
 
         # Model parameters
         self.opt_model_part = opt_model_part
 
         # Initialize element variables
         for element_i in opt_model_part.Elements:
-            element_i.SetValue(E_MIN, config.E_min)
-            element_i.SetValue(PENAL, config.penalty)
-            element_i.SetValue(X_PHYS, config.initial_volume_fraction)
-            element_i.SetValue(X_PHYS_OLD, config.initial_volume_fraction)
-            element_i.SetValue(E_0, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
-            element_i.SetValue(YOUNG_MODULUS, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
+            element_i.SetValue(kto.PENAL, config['penalty'].GetInt())
+            element_i.SetValue(
+                kto.MAT_INTERP, config['material_interpolation'].GetString()
+            )
+            element_i.SetValue(
+                kto.X_PHYS, config['initial_volume_fraction'].GetDouble()
+            )
+            element_i.SetValue(
+                kto.X_PHYS_OLD, config['initial_volume_fraction'].GetDouble()
+            )
+            element_i.SetValue(
+                km.YOUNG_MODULUS,
+                opt_model_part.GetProperties()[
+                    config['simp_property'].GetInt()
+                ].GetValue(km.YOUNG_MODULUS),
+            )
+            elemental_volume = element_i.GetGeometry().DomainSize()
+            element_i.SetValue(kto.INITIAL_ELEMENT_SIZE, elemental_volume)
 
         # Only happens if continuation strategy is activated (Initialization of penalty factor)
-        if(self.config.continuation_strategy == 1):
+        if self.config['continuation_strategy'] == 1:
             for element_i in self.opt_model_part.Elements:
-                element_i.SetValue(PENAL,1)
+                element_i.SetValue(kto.PENAL, 1)
 
         # Add toolbox for topology filtering utilities
-        self.filter_utils = TopologyFilteringUtilities( opt_model_part,
-                                                        self.config.filter_radius, 
-                                                        self.config.max_elements_in_filter_radius )
+        self.filter_utils = kto.TopologyFilteringUtilities(
+            opt_model_part,
+            self.config['filter_radius'].GetDouble(),
+            self.config['max_elements_in_filter_radius'].GetInt(),
+        )
 
         # Add toolbox for topology updating utilities
-        self.design_update_utils = TopologyUpdatingUtilities( opt_model_part )
+        self.design_update_utils = kto.TopologyUpdatingUtilities(
+            opt_model_part
+        )
 
         # Add toolbox for I/O
-        self.io_utils = IOUtilities()
+        self.io_utils = kto.IOUtilities()
 
-    # --------------------------------------------------------------------------
     def optimize(self):
-
-        print("\n> ==============================================================================================================")
-        print("> Starting optimization using the following algorithm: ",self.config.optimization_algorithm)
-        print("> ==============================================================================================================")
+        km.Logger.Print('\n>' + '-' * 45)
+        km.Logger.Print('> Starting topology optimization')
+        km.Logger.Print('>' + '-' * 45 + '\n')
 
         # Start timer and assign to object such that total time of opt may be measured at each step
         self.opt_start_time = time.time()
 
         # Initialize the design output in GiD format and print initial 0 state
-        self.gid_io.initialize_results(self.opt_model_part)
-        self.gid_io.write_results(0, self.opt_model_part, self.config.nodal_results, self.config.gauss_points_results)
+        self.gid_io.ExecuteInitialize()
+        self.gid_io.ExecuteBeforeSolutionLoop()
+        self.vtk_io.ExecuteInitialize()
+        self.vtk_io.ExecuteBeforeSolutionLoop()
 
         # Call for the specified optimization algorithm
-        if(self.config.optimization_algorithm == "oc_algorithm"):
-           self.start_oc_algorithm()
+        if self.config['optimization_algorithm'].GetString() == 'oc_algorithm':
+            self.start_oc_algorithm()
 
         else:
-            raise TypeError("Specified optimization_algorithm not implemented!")
+            raise TypeError(
+                'Specified optimization_algorithm not implemented!'
+            )
 
-        # Finalize the design output in GiD format
-        self.gid_io.finalize_results()
+        # Finalize the design output in GiD and vtk formats
+        self.gid_io.PrintOutput()
+        self.gid_io.ExecuteFinalizeSolutionStep()
+        self.gid_io.ExecuteFinalize()
+
+        self.vtk_io.PrintOutput()
+        self.vtk_io.ExecuteFinalizeSolutionStep()
+        self.vtk_io.ExecuteFinalize()
 
         # Stop timer
         opt_end_time = time.time()
 
-        print("\n> ==============================================================================================================")
-        print("> Finished optimization in ",round(opt_end_time - self.opt_start_time,1)," s!")
-        print("> ==============================================================================================================")
+        km.Logger.Print('\n>' + '-' * 45)
+        km.Logger.Print('> Topology optimization complete')
+        # km.Logger.Print('> Iteration: ', opt_itr)
+        km.Logger.Print(
+            '> Duration: ', round(opt_end_time - self.opt_start_time, 1), ' s!'
+        )
+        km.Logger.Print('>' + '-' * 45 + '\n')
 
-    # --------------------------------------------------------------------------
+    # Topology Optimization with OC
     def start_oc_algorithm(self):
-
         # Get Id of objective & constraint
         only_F_id = None
         only_C_id = None
-        for F_id in self.objectives:
+        for F_id, empty_id_f in self.objectives:
             only_F_id = F_id
             break
-        for C_id in self.constraints:
+        for C_id, empty_id_c in self.constraints:
             only_C_id = C_id
-            break            
+            break
 
         # Initialize variables for comparison purposes in Topology Optimization Tool
-        pmax                          = self.config.penalty   # Maximum penalty value used for continuation strategy
-        Obj_Function                  = None
-        Obj_Function_old              = None
-        Obj_Function_initial          = None
-        Obj_Function_relative_change  = None
-        Obj_Function_absolute_change  = None
+        pmax = self.config[
+            'penalty'
+        ].GetInt()  # Maximum penalty value used for continuation strategy
+        Obj_Function = None
+        Obj_Function_old = None
+        Obj_Function_initial = None
+        Obj_Function_relative_change = None
+        Obj_Function_absolute_change = None
 
         # Print the Topology Optimization Settings that will be used in the program
-        print("\n::[Topology Optimization Settings]::")
-        print("  E_min:          ", self.config.E_min)
-        print("  Filter radius:  ", self.config.filter_radius)
-        print("  Penalty factor: ", self.config.penalty)
-        print("  Rel. Tolerance: ", self.config.relative_tolerance)
-        print("  Volume Fraction:", self.config.initial_volume_fraction)
-        print("  Max. number of iterations:", self.config.max_opt_iterations)
+        km.Logger.Print('  Topology optimization settings:')
+        km.Logger.Print(
+            '  Algorithm:         ',
+            self.config['optimization_algorithm'].GetString(),
+        )
+        km.Logger.Print(
+            '  Material interp.:  ',
+            self.config['material_interpolation'].GetString(),
+        )
+        km.Logger.Print(
+            '  Penalty factor:    ', self.config['penalty'].GetInt()
+        )
+        km.Logger.Print(
+            '  Emin:              ',
+            self.opt_model_part.GetProperties()[
+                self.config['simp_property'].GetInt()
+            ].GetValue(kto.YOUNGS_MODULUS_MIN),
+        )
+        km.Logger.Print(
+            '  Filter radius:     ', self.config['filter_radius'].GetDouble()
+        )
+        km.Logger.Print(
+            '  Relative tolerance:',
+            self.config['relative_tolerance'].GetDouble(),
+        )
+        km.Logger.Print(
+            '  Volume fraction:   ',
+            self.config['initial_volume_fraction'].GetDouble(),
+        )
+        km.Logger.Print(
+            '  Maximum iterations:', self.config['max_opt_iterations'].GetInt()
+        )
 
-        if (self.config.restart_write_frequency < self.config.max_opt_iterations):
-            if (self.config.restart_write_frequency == 1):
-                print("  Make a restart file every iteration")
-            elif (self.config.restart_write_frequency > 1):
-                print("  Make a restart file every", self.config.restart_write_frequency, "iterations")
+        if (
+            self.config['restart_write_frequency'].GetInt()
+            < self.config['max_opt_iterations'].GetInt()
+        ):
+            if self.config['restart_write_frequency'].GetInt() == 1:
+                km.Logger.Print('  Restart file every iteration')
+            elif self.config['restart_write_frequency'].GetInt() > 1:
+                km.Logger.Print(
+                    '  Restart file:       every',
+                    self.config['restart_write_frequency'].GetInt(),
+                    'iterations',
+                )
             else:
-                print("  No restart file will be done during the simulation")
+                km.Logger.Print(
+                    '  No restart file created during the simulation'
+                )
         else:
-            print("  No restart file will be done during the simulation")
+            km.Logger.Print('  No restart file created during the simulation')
 
         # Start optimization loop
-        for opt_itr in range(1,self.config.max_opt_iterations+1):
-
+        for opt_itr in range(
+            1, self.config['max_opt_iterations'].GetInt() + 1
+        ):
             # Some output
-            print("\n> ==============================================================================================")
-            print("> Starting optimization iteration ",opt_itr)
-            print("> ==============================================================================================\n")
+            km.Logger.Print('\n>' + '-' * 45)
+            km.Logger.Print('> Topology optimization iteration ', opt_itr)
+            km.Logger.Print('>' + '-' * 45 + '\n')
 
             # Start measuring time needed for current optimization step
             start_time = time.time()
-            
+
             # Initialize response container
-            response = self.controller.create_response_container()  
-            
+            response = self.controller.create_response_container()
+
             # Set controller to evaluate objective & constraint
             self.controller.initialize_controls()
-            self.controller.get_controls()[only_F_id]["calc_func"] = 1
-            self.controller.get_controls()[only_C_id]["calc_func"] = 1
+            self.controller.get_controls()[only_F_id]['calc_func'] = 1
+            self.controller.get_controls()[only_C_id]['calc_func'] = 1
 
             # Set to evaluate objective & constraint gradient if provided
-            if(self.objectives[only_F_id]["grad"]=="provided"):
-                self.controller.get_controls()[only_F_id]["calc_grad"] = 1
-            if(self.constraints[only_C_id]["grad"]=="provided"):
-                self.controller.get_controls()[only_C_id]["calc_grad"] = 1
+            if (
+                self.config['objectives'][only_F_id]['grad'].GetString()
+                == 'provided'
+            ):
+                self.controller.get_controls()[only_F_id]['calc_grad'] = 1
+            if (
+                self.config['constraints'][only_C_id]['grad'].GetString()
+                == 'provided'
+            ):
+                self.controller.get_controls()[only_C_id]['calc_grad'] = 1
 
             # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
             self.analyzer(self.controller.get_controls(), response, opt_itr)
-                       
-            # Filter sensitivities
-            print("\n::[Filter Sensitivities]::")
-            self.filter_utils.ApplyFilter(self.config.filter_type , self.config.filter_kernel )
-           
-            # Update design variables ( densities )  --> new X by:
-            print("\n::[Update Densities]::")
-            self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config.optimization_algorithm, 
-                                                                   self.config.initial_volume_fraction, 
-                                                                   self.config.grey_scale_filter, 
-                                                                   opt_itr,
-                                                                   self.config.q_max )
-       
-            # Print of results
-            print("\n::[RESULTS]::")
-            Obj_Function = response[only_F_id]["func"]
-            C_Function = response[only_C_id]["func"]
 
-            print("  Obj. function value           = ", math.ceil(Obj_Function*1000000)/1000000 )
-            print("  Const. function value         = ", math.ceil(C_Function*1000000)/1000000 )
+            # Filter sensitivities
+            km.Logger.Print('\n[TopOpt]:   ::[Filter Sensitivities]::')
+            self.filter_utils.ApplyFilterSensitivity(
+                self.config['filter_type'].GetString(),
+                self.config['filter_kernel'].GetString(),
+            )
+
+            # Update design variables ( densities )  --> new X by:
+            km.Logger.Print('\n[TopOpt]    ::[Update Densities with OC]::')
+            self.design_update_utils.UpdateDensitiesUsingOCMethod(
+                self.config['optimization_algorithm'].GetString(),
+                self.config['initial_volume_fraction'].GetDouble(),
+                self.config['grey_scale_filter'].GetInt(),
+                opt_itr,
+                self.config['q_max'].GetDouble(),
+            )
+
+            if self.config['density_filter'].GetString() == 'density':
+                km.Logger.Print('\n[TopOpt]   ::[Filter Densities]::')
+                self.filter_utils.ApplyFilterDensity(
+                    self.config['density_filter'].GetString(),
+                    self.config['filter_kernel'].GetString(),
+                )
+
+            # Print of results
+            km.Logger.Print('\n[TopOpt]:   ::[RESULTS]::')
+            Obj_Function = response[only_F_id]['func']
+            C_Function = response[only_C_id]['func']
+
+            km.Logger.Print(
+                '  Objective value:              ',
+                '{:.6f}'.format(Obj_Function),
+            )
+            km.Logger.Print(
+                '  Constraint value:             ',
+                '{:.6f}'.format(C_Function),
+            )
 
             if opt_itr == 1:
                 Obj_Function_initial = Obj_Function
 
             if opt_itr > 1:
-                Obj_Function_relative_change = (Obj_Function - Obj_Function_old) / Obj_Function_initial
-                print("  Relative Obj. Function change =", math.ceil((Obj_Function_relative_change*100)*10000)/10000, "%" )
+                Obj_Function_relative_change = (
+                    Obj_Function - Obj_Function_old
+                ) / Obj_Function_initial
+                km.Logger.Print(
+                    '  Relative change in objective: ',
+                    '{:.9f}'.format(Obj_Function_relative_change),
+                )
 
-                Obj_Function_absolute_change = (Obj_Function - Obj_Function_initial) / Obj_Function_initial
-                print("  Absolute Obj. Function change =", math.ceil((Obj_Function_absolute_change*100)*10000)/10000, "%" )
+                Obj_Function_absolute_change = (
+                    Obj_Function - Obj_Function_initial
+                ) / Obj_Function_initial
+                km.Logger.Print(
+                    '  Absolute change in objective: ',
+                    '{:.9f}'.format(Obj_Function_absolute_change),
+                )
 
             Obj_Function_old = Obj_Function
 
             # Write design in GiD format
-            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, self.config.gauss_points_results)
+            self.gid_io.ExecuteFinalizeSolutionStep()
 
             # Continuation Strategy
-            if(self.config.continuation_strategy == 1):
-                print("  Continuation Strategy for current iteration was ACTIVE")
+            if self.config['continuation_strategy'].GetInt() == 1:
+                km.Logger.Print('  Continuation strategy:         active')
                 if opt_itr < 20:
                     for element_i in self.opt_model_part.Elements:
-                        element_i.SetValue(PENAL, 1)
+                        element_i.SetValue(kto.PENAL, 1)
                 else:
                     for element_i in self.opt_model_part.Elements:
-                        element_i.SetValue(PENAL, min(pmax,1.02*element_i.GetValue(PENAL)))
+                        element_i.SetValue(
+                            kto.PENAL,
+                            min(pmax, 1.02 * element_i.GetValue(kto.PENAL)),
+                        )
             else:
-                print("  Continuation Strategy for current iteration was UNACTIVE")
+                km.Logger.Print('  Continuation strategy:         inactive')
 
             # Write restart file every selected number of iterations
-            restart_filename = self.config.restart_output_file.replace(".mdpa","_"+str(opt_itr)+".mdpa")
-            if (self.config.restart_write_frequency > 0):
-                if (opt_itr % self.config.restart_write_frequency == False):
-                    print("\n::[Restart File]::")
-                    print("  Saving file at iteration", opt_itr)
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+            restart_filename = (
+                self.config['restart_output_file']
+                .GetString()
+                .replace('.mdpa', '_' + str(opt_itr) + '.mdpa')
+            )
+            if self.config['restart_write_frequency'].GetInt() > 0:
+                if (
+                    opt_itr % self.config['restart_write_frequency'].GetInt()
+                    == False
+                ):
+                    km.Logger.Print('\n::[Restart File]::')
+                    km.Logger.Print('  Saving file at iteration', opt_itr)
+                    self.io_utils.SaveOptimizationResults(
+                        self.config['restart_input_file'].GetString(),
+                        self.opt_model_part,
+                        restart_filename,
+                    )
 
             # Check convergence
             if opt_itr > 1:
                 # Check if maximum iterations were reached
-                if(opt_itr==self.config.max_opt_iterations):
+                if opt_itr == self.config['max_opt_iterations'].GetInt():
                     end_time = time.time()
-                    print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
-                    print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
-                    print("\n  Maximal iterations of optimization problem reached!")
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+                    km.Logger.Print(
+                        '  Iteration time:               ',
+                        round(end_time - start_time, 1),
+                        's',
+                    )
+                    km.Logger.Print(
+                        '  Elapsed time:                 ',
+                        round(end_time - self.opt_start_time, 1),
+                        's',
+                    )
+                    km.Logger.Print('\n  Maximum iterations reached!')
+                    self.io_utils.SaveOptimizationResults(
+                        self.config['restart_input_file'].GetString(),
+                        self.opt_model_part,
+                        restart_filename,
+                    )
                     break
 
                 # Check for relative tolerance
-                if(abs(Obj_Function_relative_change)<self.config.relative_tolerance):
+                if (
+                    abs(Obj_Function_relative_change)
+                    < self.config['relative_tolerance'].GetDouble()
+                ):
                     end_time = time.time()
-                    print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
-                    print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
-                    print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+                    km.Logger.Print(
+                        '  Iteration time:               ',
+                        round(end_time - start_time, 1),
+                        's',
+                    )
+                    km.Logger.Print(
+                        '  Elapsed time:                 ',
+                        round(end_time - self.opt_start_time, 1),
+                        's',
+                    )
+                    km.Logger.Print(
+                        '\n  Converged to relative change in objective: ',
+                        self.config['relative_tolerance'].GetDouble(),
+                    )
+                    self.io_utils.SaveOptimizationResults(
+                        self.config['restart_input_file'].GetString(),
+                        self.opt_model_part,
+                        restart_filename,
+                    )
+
                     break
 
-            # Set X_PHYS_OLD to X_PHYS to update the value for the next simulation's "change percentage"
+            # Set X_PHYS_OLD to update the value for the next simulation's "change percentage"
             for element_i in self.opt_model_part.Elements:
-                element_i.SetValue(X_PHYS_OLD, element_i.GetValue(X_PHYS))
+                element_i.SetValue(
+                    kto.X_PHYS_OLD, element_i.GetValue(kto.X_PHYS)
+                )
 
             # Take time needed for current optimization step
             end_time = time.time()
-            print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
-            print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
-        
-# ==============================================================================
+            km.Logger.Print(
+                '  Iteration time:               ',
+                round(end_time - start_time, 1),
+                's',
+            )
+            km.Logger.Print(
+                '  Elapsed time:                 ',
+                round(end_time - self.opt_start_time, 1),
+                's',
+            )
+
+
 class Controller:
-
-    # --------------------------------------------------------------------------
-    def __init__( self, config ):
-
+    def __init__(self, config):
         # Create and initialize controller
         self.controls = {}
-        for func_id in config.objectives:
-            self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
-        for func_id in config.constraints:
-            self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}     
+        for func_id, empty in config['objectives'].items():
+            km.Logger.Print(' Print the controller input   ', func_id, '\n')
+            self.controls[func_id] = {'calc_func': 0, 'calc_grad': 0}
+            km.Logger.Print(
+                ' Print the controller output  ', self.controls[func_id], '\n'
+            )
+
+        for func_id, empty in config['constraints'].items():
+            self.controls[func_id] = {'calc_func': 0, 'calc_grad': 0}
 
         # Initialize response container to provide storage for any response
-        self.response_container = {}       
-        for func_id in config.objectives:
-            self.response_container[func_id] = {"func": None, "grad": None}
-        for func_id in config.constraints:
-            self.response_container[func_id] = {"func": None, "grad": None}            
+        self.response_container = {}
+        for func_id, empty in config['objectives'].items():
+            self.response_container[func_id] = {'func': None, 'grad': None}
+        for func_id, empty in config['constraints'].items():
+            self.response_container[func_id] = {'func': None, 'grad': None}
 
-    # --------------------------------------------------------------------------
-    def initialize_controls( self ):
-
-        # Sets 
+    def initialize_controls(self):
+        # Sets
         for func_id in self.controls:
-            self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
+            self.controls[func_id] = {'calc_func': 0, 'calc_grad': 0}
 
-    # --------------------------------------------------------------------------
-    def get_controls( self ):
-
+    def get_controls(self):
         return self.controls
 
-    # --------------------------------------------------------------------------
-    def create_response_container( self ):
-
-        # Create and initialize container to store any response defined 
+    def create_response_container(self):
+        # Create and initialize container to store any response defined
         for func_id in self.response_container:
-            self.response_container[func_id] = {"func": None, "grad": None}
+            self.response_container[func_id] = {'func': None, 'grad': None}
 
         # Return container
-        return self.response_container      
-        
-# ==============================================================================
+        return self.response_container

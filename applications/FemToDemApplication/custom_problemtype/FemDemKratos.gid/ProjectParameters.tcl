@@ -3,18 +3,23 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## Source auxiliar procedures
     source [file join $problemtypedir ProjectParametersAuxProcs.tcl]
-        
+
     ## Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
     set FileVar [open $filename w]
-    
+
     puts $FileVar "\{"
 
     ## AMR data
     puts $FileVar "   \"AMR_data\": \{"
-	puts $FileVar "        \"activate_AMR\":                    [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique]"
+	puts $FileVar "        \"activate_AMR\":                    [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique],"
+    puts $FileVar "           \"hessian_variable_parameters\":  \{"
+    puts $FileVar "              \"normalized_free_energy\":           false,"
+    puts $FileVar "              \"correct_with_displacements\":       true,"
+    puts $FileVar "              \"correction_factor\":                1.0"
+    puts $FileVar "         \}"
     puts $FileVar "    \},"
-    
+
     ## problem_data
     puts $FileVar "   \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
@@ -25,7 +30,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
-    
+    puts $FileVar "  \"pressure_load_extrapolation\":     [GiD_AccessValue get gendata Extrapolate_Pressure_Load],"
+    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"tangent_operator\":                 2,"
+    puts $FileVar "  \"create_initial_skin\":             false,"
+
+
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
@@ -36,9 +46,9 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "            \"solver_type\":                       \"FemDemDynamicSolver\","
         puts $FileVar "            \"solution_type\":                     \"Dynamic\","
         puts $FileVar "            \"time_integration_method\":           \"Implicit\","
-        puts $FileVar "            \"scheme_type\":                       \"Newmark\","
+        puts $FileVar "            \"scheme_type\":                       \"[GiD_AccessValue get gendata Scheme_Type]\","
     }
-	puts $FileVar "            \"echo_level\":                         0,"
+	puts $FileVar "            \"echo_level\":                         1,"
     puts $FileVar "            \"model_import_settings\":              \{"
     puts $FileVar "                 \"input_type\":         \"mdpa\","
     puts $FileVar "                 \"input_filename\":     \"$basename\","
@@ -54,7 +64,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"max_iteration\":                        [GiD_AccessValue get gendata Max_Iterations],"
 
     puts $FileVar "            \"linear_solver_settings\":     \{"
-    puts $FileVar "                 \"solver_type\":      \"[GiD_AccessValue get gendata Solver_Type]\","
+    puts $FileVar "                 \"solver_type\":      \"LinearSolversApplication.[GiD_AccessValue get gendata Solver_Type]\","
     puts $FileVar "                 \"scaling\":           false"
     puts $FileVar "            \},"
 
@@ -69,10 +79,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     }
 	# try
     set PutStrings [string trimright $PutStrings ,]
-	
+
     append PutStrings \]
     puts $FileVar "        \"problem_domain_sub_model_part_list\": $PutStrings,"
-   
+
     ## processes_sub_model_part_list
     set PutStrings \[
     # Solid_Displacement
@@ -89,12 +99,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $FileVar "        \"processes_sub_model_part_list\":      $PutStrings"
-    puts $FileVar "   \}," 
+    puts $FileVar "   \},"
     ## body_domain_sub_model_part_list
     set PutStrings \[
     AppendGroupNames PutStrings Body_Part
     set PutStrings [string trimright $PutStrings ,]
-    append PutStrings \]   
+    append PutStrings \]
 
     ## constraints_process_list
     set Groups [GiD_Info conditions Solid_Displacement groups]
@@ -136,24 +146,24 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     } else {
         puts $FileVar "    \"loads_process_list\":       \[\],"
     }
-    
+
     ## output_configuration
     puts $FileVar "    \"output_configuration\": \{"
     puts $FileVar "        \"result_file_configuration\": \{"
     puts $FileVar "            \"gidpost_flags\":       \{"
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostAscii\","
+    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostBinary\","
     puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
     puts $FileVar "            \},"
     puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
     puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
-    puts $FileVar "            \"output_frequency\":     [GiD_AccessValue get gendata Output_frequency],"
+    puts $FileVar "            \"output_interval\":     [GiD_AccessValue get gendata Output_frequency],"
     puts $FileVar "            \"body_output\":          [GiD_AccessValue get gendata Body_output],"
     puts $FileVar "            \"node_output\":          [GiD_AccessValue get gendata Node_output],"
     puts $FileVar "            \"skin_output\":          [GiD_AccessValue get gendata Skin_output],"
     puts $FileVar "            \"plane_output\":         \[\],"
-    
+
     # nodal_results
     set PutStrings \[
     set iGroup 0
@@ -178,8 +188,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     # gauss_point_results
     set PutStrings \[
     set iGroup 0
-    AppendOutputVariables PutStrings iGroup Write_Strain STRAIN_VECTOR
-    AppendOutputVariables PutStrings iGroup Write_Predictive_Stress STRESS_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Predictive_Stress CAUCHY_STRESS_VECTOR
     AppendOutputVariables PutStrings iGroup Write_Integrated_Stress STRESS_VECTOR_INTEGRATED
     AppendOutputVariables PutStrings iGroup Write_Damage DAMAGE_ELEMENT
     AppendOutputVariables PutStrings iGroup Stress_Threshold STRESS_THRESHOLD
@@ -221,7 +231,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     append MyString \],
 
     puts $FileVar "    \"list_of_nodes_displacement\":  $MyString"
-    
+
 
     # print Reaction nodes to plot
     set Groups [GiD_Info conditions list_of_nodes_reaction groups]
