@@ -63,7 +63,7 @@ std::string ConvertSnakeCaseToCamelCase(const std::string& rString)
                     << "Repeated underscores in snake case string '" << rString << '\'';
                 upper_switch = true;
             } else { // character != '_'
-                // At this point, the character must be in [a-z]
+                // At this point, the character must be in [a-z0-9]
                 if (upper_switch) {
                     output.push_back(std::toupper(character));
                     upper_switch = false;
