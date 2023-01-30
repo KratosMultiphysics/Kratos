@@ -2,7 +2,7 @@ from abc import ABC
 from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
+import KratosMultiphysics.OptimizationApplication as KratosOA
 
 class Control(ABC):
     def __init__(self):
@@ -21,14 +21,14 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def GetContainerType(self) -> ContainerData.ContainerEnum:
-        """Returns the container type on which the control is acted upon
+    def CreateContainerVariableDataHolder(self, model_part: Kratos.ModelPart) -> KratosOA.HistoricalContainerVariableDataHolder | KratosOA.NodalContainerVariableDataHolder | KratosOA.ConditionContainerVariableDataHolder | KratosOA.ElementContainerVariableDataHolder | KratosOA.ConditionPropertiesContainerVariableDataHolder | KratosOA.ElementPropertiesContainerVariableDataHolder:
+        """Returns a new container variable data holder object for model_part
 
-        This method returns the container type, where the sensitivites/updates
-        are carried on.
+        This returns a ContainerVariableDataHolder object of correct type for this control
+        with the model_part.
 
         Returns:
-            ContainerEnum: Controls contaienr type
+            Container data holder with the correct type
         """
         pass
 
@@ -67,7 +67,7 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def UpdateControl(self, control_data: ContainerData):
+    def UpdateControl(self, control_data: KratosOA.HistoricalContainerVariableDataHolder | KratosOA.NodalContainerVariableDataHolder | KratosOA.ConditionContainerVariableDataHolder | KratosOA.ElementContainerVariableDataHolder | KratosOA.ConditionPropertiesContainerVariableDataHolder | KratosOA.ElementPropertiesContainerVariableDataHolder):
         """Updates the corresponding controls with given control values
 
         Args:

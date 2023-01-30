@@ -7,7 +7,6 @@ import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 from KratosMultiphysics.OptimizationApplication.controls.material_properties_control import MaterialPropertiesControl
 
 class TestMaterialPropertiesControl(kratos_unittest.TestCase):
@@ -18,6 +17,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         cls.optimization_info.SetBufferSize(1)
         cls.optimization_info["step"] = 0
         cls.model_part = cls.model.CreateModelPart("Structure")
+        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
         Kratos.ModelPartIO("linear_element_test/Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 
         material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": "linear_element_test/StructuralMaterials.json"}} """)
@@ -55,7 +55,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         for element in self.model_part.GetSubModelPart("structure").Elements:
             element.Properties[Kratos.DENSITY] = element.Id
 
-        update_vector = ContainerData(self.properties_control.GetModelParts()[0], self.properties_control.GetContainerType())
+        update_vector = KratosOA.ElementPropertiesContainerVariableDataHolder(self.properties_control.GetModelParts()[0])
         update_vector.ReadDataFromContainerVariable(Kratos.DENSITY)
 
         # run for 3 iterations
@@ -81,7 +81,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         self.assertEqual(self.model_part.GetSubModelPart("structure"), self.properties_control.GetModelParts()[0])
 
     def test_GetContainerType(self):
-        self.assertEqual(self.properties_control.GetContainerType(), ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
+        self.assertTrue(isinstance(self.properties_control.CreateContainerVariableDataHolder(self.model_part), KratosOA.ElementPropertiesContainerVariableDataHolder))
 
     def test_GetControlSensitivityVariable(self):
         self.assertEqual(self.properties_control.GetControlSensitivityVariable(), KratosOA.DENSITY_SENSITIVITY)
