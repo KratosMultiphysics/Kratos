@@ -633,6 +633,10 @@ public:
             }
         }
 
+        // Global assembly
+        rb.GlobalAssemble();
+        rA.GlobalAssemble();
+
         return scale_factor;
     }
 
