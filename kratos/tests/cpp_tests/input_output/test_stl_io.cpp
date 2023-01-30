@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -15,16 +15,12 @@
 
 // External includes
 
-
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "input_output/stl_io.h"
 
-
-
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
 {
@@ -94,5 +90,4 @@ endsolid 3 triangles
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfElements(), 3);
 }
 
-}
-}  // namespace Kratos.
+}  // namespace Kratos::Testing.
