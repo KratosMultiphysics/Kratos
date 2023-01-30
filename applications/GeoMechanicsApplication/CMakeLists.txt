@@ -34,6 +34,9 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
 ## GeoMechanics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+
+    ## Avoid having a second main function in the binary
+    list(REMOVE_ITEM KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/test_main.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## GeoMechanics python interface sources
@@ -42,6 +45,12 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURR
 add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE} ${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
+
+
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    add_executable(KratosGeoMechanicsTesting ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/test_main.cpp)
+    target_link_libraries(KratosGeoMechanicsTesting PUBLIC KratosGeoMechanicsCore KratosCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 
 ###############################################################
