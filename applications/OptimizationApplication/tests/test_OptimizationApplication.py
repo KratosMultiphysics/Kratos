@@ -33,6 +33,7 @@ from test_container_data import TestConditionContainerData
 from test_container_data import TestElementContainerData
 from test_container_data import TestConditionPropertiesContainerData
 from test_container_data import TestElementPropertiesContainerData
+from test_container_data_utils import TestContainerDataUtils
 
 # Nightly tests
 
@@ -73,6 +74,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementContainerData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionPropertiesContainerData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementPropertiesContainerData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerDataUtils]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
