@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.TrilinosApplication
-from KratosMultiphysics import mpi
 import sys
 
 def run():
