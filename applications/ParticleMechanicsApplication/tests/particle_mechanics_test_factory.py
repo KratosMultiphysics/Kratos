@@ -82,10 +82,13 @@ class CooksMembraneUPIncompressibleTest(ParticleMechanicsTestFactory):
     file_name = "cooks_membrane_tests/UP_incompressible_cook_membrane_2D_test"
 
 class CooksMembraneUPCompressibleASGSTest(ParticleMechanicsTestFactory):
-    file_name = "cooks_membrane_tests/UP_asgs_stabilization/UP_compressible_cook_membrane_2D_asgs_test"
+    file_name = "cooks_membrane_tests/UP_vms_stabilization/UP_compressible_cook_membrane_2D_asgs_test"
 
 class CooksMembraneUPIncompressibleASGSTest(ParticleMechanicsTestFactory):
-    file_name = "cooks_membrane_tests/UP_asgs_stabilization/UP_incompressible_cook_membrane_2D_asgs_test"
+    file_name = "cooks_membrane_tests/UP_vms_stabilization/UP_incompressible_cook_membrane_2D_asgs_test"
+
+class CooksMembraneUPIncompressibleOSGSTest(ParticleMechanicsTestFactory):
+    file_name = "cooks_membrane_tests/UP_vms_stabilization/UP_incompressible_cook_membrane_2D_osgs_test"
 
 ### Constitutive Law Tests
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
