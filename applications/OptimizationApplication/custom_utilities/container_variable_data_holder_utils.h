@@ -18,7 +18,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_utilities/container_data.h"
+#include "custom_utilities/container_variable_data_holder.h"
 
 namespace Kratos
 {
@@ -26,7 +26,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerDataUtils
+class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerVariableDataHolderUtils
 {
 public:
     ///@name Type definitions
@@ -38,13 +38,13 @@ public:
     ///@name Static operations
     ///@{
 
-    static double NormInf(const ContainerDataBase& rContainer);
+    static double NormInf(const ContainerVariableDataHolderBase& rContainer);
 
-    static double EntityMaxNormL2(const ContainerDataBase& rContainer);
+    static double EntityMaxNormL2(const ContainerVariableDataHolderBase& rContainer);
 
     static double InnerProduct(
-        const ContainerDataBase& rContainer1,
-        const ContainerDataBase& rContainer2);
+        const ContainerVariableDataHolderBase& rContainer1,
+        const ContainerVariableDataHolderBase& rContainer2);
 
     ///@}
 };

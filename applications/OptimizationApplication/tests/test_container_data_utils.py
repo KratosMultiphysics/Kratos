@@ -7,7 +7,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 
-class TestContainerDataUtils(kratos_unittest.TestCase):
+class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
@@ -25,31 +25,31 @@ class TestContainerDataUtils(kratos_unittest.TestCase):
             node.SetSolutionStepValue(Kratos.DENSITY, id+4)
 
     def test_NormInf(self):
-        a = KratosOA.HistoricalContainerData(self.model_part)
+        a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        self.assertEqual(KratosOA.ContainerDataUtils.NormInf(a), 13)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormInf(a), 13)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        self.assertEqual(KratosOA.ContainerDataUtils.NormInf(a), 15)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormInf(a), 15)
 
     def test_EntityMaxNormL2(self):
-        a = KratosOA.HistoricalContainerData(self.model_part)
+        a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        self.assertEqual(KratosOA.ContainerDataUtils.EntityMaxNormL2(a), 13)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.EntityMaxNormL2(a), 13)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        self.assertEqual(KratosOA.ContainerDataUtils.EntityMaxNormL2(a), math.sqrt(15**2 + 14**2 + 13**2))
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.EntityMaxNormL2(a), math.sqrt(15**2 + 14**2 + 13**2))
 
     def test_InnerProduct(self):
-        a = KratosOA.HistoricalContainerData(self.model_part)
-        b = KratosOA.HistoricalContainerData(self.model_part)
+        a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
+        b = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.ReadDataFromContainerVariable(Kratos.DENSITY)
 
-        self.assertEqual(KratosOA.ContainerDataUtils.InnerProduct(a, b), 890)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.InnerProduct(a, b), 890)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

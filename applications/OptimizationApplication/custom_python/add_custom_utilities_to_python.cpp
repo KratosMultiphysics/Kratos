@@ -23,8 +23,8 @@
 // Application includes
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/solver_utilities/gradient_projection_solver_utils.h"
-#include "custom_utilities/container_data.h"
-#include "custom_utilities/container_data_utils.h"
+#include "custom_utilities/container_variable_data_holder.h"
+#include "custom_utilities/container_variable_data_holder_utils.h"
 
 // Include base h
 #include "add_custom_utilities_to_python.h"
@@ -34,13 +34,13 @@
 namespace Kratos {
 namespace Python {
 
-template<class ContainerDataType>
+template<class ContainerVariableDataHolderType>
 void AddContainerTypeToPython(pybind11::module& m, const std::string& rName)
 {
     namespace py = pybind11;
 
-    using container_type = ContainerData<ContainerDataType>;
-    py::class_<container_type, typename container_type::Pointer, ContainerDataBase>(m, rName.c_str())
+    using container_type = ContainerVariableDataHolder<ContainerVariableDataHolderType>;
+    py::class_<container_type, typename container_type::Pointer, ContainerVariableDataHolderBase>(m, rName.c_str())
         .def(py::init<ModelPart&>(), py::arg("model_part"), py::doc("Creates a new container data object with model_part."))
         .def(py::init<const container_type&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new same type container data object by copying data from other_container_data_to_copy_from."))
         .def("AssignDataToContainerVariable", &container_type::template AssignDataToContainerVariable<double>, py::arg("scalar_variable"))
@@ -73,24 +73,24 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<ContainerDataBase, ContainerDataBase::Pointer>(m, "ContainerDataBase")
-        .def("CopyDataFrom", &ContainerDataBase::CopyDataFrom, py::arg("origin_container_data"))
-        .def("GetModelPart", py::overload_cast<>(&ContainerDataBase::GetModelPart))
-        .def("IsCompatibleWithContainerData", &ContainerDataBase::IsCompatibleWithContainerData, py::arg("other_container_data"))
-        .def("__str__", &ContainerDataBase::Info)
+    py::class_<ContainerVariableDataHolderBase, ContainerVariableDataHolderBase::Pointer>(m, "ContainerVariableDataHolderBase")
+        .def("CopyDataFrom", &ContainerVariableDataHolderBase::CopyDataFrom, py::arg("origin_container_data"))
+        .def("GetModelPart", py::overload_cast<>(&ContainerVariableDataHolderBase::GetModelPart))
+        .def("IsCompatibleWithContainerVariableDataHolder", &ContainerVariableDataHolderBase::IsCompatibleWithContainerVariableDataHolder, py::arg("other_container_data"))
+        .def("__str__", &ContainerVariableDataHolderBase::Info)
         ;
 
-    AddContainerTypeToPython<HistoricalDataValueContainer>(m, "HistoricalContainerData");
-    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>(m, "NodalContainerData");
-    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionContainerData");
-    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementContainerData");
-    AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionPropertiesContainerData");
-    AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementPropertiesContainerData");
+    AddContainerTypeToPython<HistoricalDataValueContainer>(m, "HistoricalContainerVariableDataHolder");
+    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>(m, "NodalContainerVariableDataHolder");
+    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionContainerVariableDataHolder");
+    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementContainerVariableDataHolder");
+    AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionPropertiesContainerVariableDataHolder");
+    AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementPropertiesContainerVariableDataHolder");
 
-    py::class_<ContainerDataUtils>(m, "ContainerDataUtils")
-        .def_static("NormInf", &ContainerDataUtils::NormInf, py::arg("container_data"))
-        .def_static("EntityMaxNormL2", &ContainerDataUtils::EntityMaxNormL2, py::arg("container_data"))
-        .def_static("InnerProduct", &ContainerDataUtils::InnerProduct, py::arg("container_data_1"), py::arg("container_data_2"))
+    py::class_<ContainerVariableDataHolderUtils>(m, "ContainerVariableDataHolderUtils")
+        .def_static("NormInf", &ContainerVariableDataHolderUtils::NormInf, py::arg("container_data"))
+        .def_static("EntityMaxNormL2", &ContainerVariableDataHolderUtils::EntityMaxNormL2, py::arg("container_data"))
+        .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct, py::arg("container_data_1"), py::arg("container_data_2"))
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")

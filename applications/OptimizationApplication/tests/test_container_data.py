@@ -7,7 +7,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
-class TestContainerDataBase(ABC):
+class TestContainerVariableDataHolderBase(ABC):
     @classmethod
     def CreateEntities(cls):
         cls.model = Kratos.Model()
@@ -45,8 +45,8 @@ class TestContainerDataBase(ABC):
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
 
     def test_ContaienrDataAdd(self):
-        a = self._GetContainerData()
-        b = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
+        b = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
         b.ReadDataFromContainerVariable(Kratos.VELOCITY)
@@ -68,8 +68,8 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) + Kratos.Array3([300.0, 300.0, 300.0]), 12)
 
-        a = self._GetContainerData()
-        b = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
+        b = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.ReadDataFromContainerVariable(Kratos.PRESSURE)
@@ -91,9 +91,9 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) + 200.0, 12)
 
-    def test_ContainerDataMultiplyAndSubstract(self):
-        a = self._GetContainerData()
-        b = self._GetContainerData()
+    def test_ContainerVariableDataHolderMultiplyAndSubstract(self):
+        a = self._GetContainerVariableDataHolder()
+        b = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
         b.ReadDataFromContainerVariable(Kratos.VELOCITY)
@@ -116,8 +116,8 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) - Kratos.Array3([300.0, 300.0, 300.0]), 12)
 
-        a = self._GetContainerData()
-        b = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
+        b = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.ReadDataFromContainerVariable(Kratos.PRESSURE)
@@ -140,8 +140,8 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) - 200.0, 12)
 
-    def test_ContainerDataDivision(self):
-        a = self._GetContainerData()
+    def test_ContainerVariableDataHolderDivision(self):
+        a = self._GetContainerVariableDataHolder()
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
 
         c = a / 2.0
@@ -151,7 +151,7 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) / 4, 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
 
         c = a / 2.0
@@ -161,8 +161,8 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) / 4, 12)
 
-    def test_ContainerDataPow(self):
-        a = self._GetContainerData()
+    def test_ContainerVariableDataHolderPow(self):
+        a = self._GetContainerVariableDataHolder()
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
 
         c = a ** 2.0
@@ -173,7 +173,7 @@ class TestContainerDataBase(ABC):
             ref_value = self._GetValue(node, Kratos.VELOCITY)
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([ref_value[0]**4, ref_value[1]**4, ref_value[2]**4]), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
 
         c = a ** 2.0
@@ -183,8 +183,8 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) ** 4, 12)
 
-    def test_ContainerDataNeg(self):
-        a = self._GetContainerData()
+    def test_ContainerVariableDataHolderNeg(self):
+        a = self._GetContainerVariableDataHolder()
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
 
         c = -a
@@ -193,7 +193,7 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) * (-1.0), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
 
         c = -a
@@ -203,20 +203,20 @@ class TestContainerDataBase(ABC):
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) * (-1.0), 12)
 
     def test_SetDataForContainerVariable(self):
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
         a.SetDataForContainerVariable(Kratos.VELOCITY, Kratos.Array3([1, 2, 3]))
         a.AssignDataToContainerVariable(Kratos.ACCELERATION)
         for node in a.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([1, 2, 3]), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
         a.SetDataForContainerVariable(Kratos.PRESSURE, 10)
         a.AssignDataToContainerVariable(Kratos.DENSITY)
         for node in a.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 10)
 
     def test_Clone(self):
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
 
@@ -231,7 +231,7 @@ class TestContainerDataBase(ABC):
         for node in a.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([10, 11, 12]), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
 
@@ -247,11 +247,11 @@ class TestContainerDataBase(ABC):
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 12, 12)
 
     def test_GetContainer(self):
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
         self.assertEqual(self._GetContainer(), a.GetContainer())
 
     @abstractmethod
-    def _GetContainerData(self):
+    def _GetContainerVariableDataHolder(self):
         pass
 
     @abstractmethod
@@ -262,14 +262,14 @@ class TestContainerDataBase(ABC):
     def _GetValue(self, entity, variable):
         pass
 
-class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
+class TestHistoricalContainerVariableDataHolder(kratos_unittest.TestCase, TestContainerVariableDataHolderBase):
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
 
     def test_CopyData(self):
-        a = self._GetContainerData()
-        b = KratosOA.NodalContainerData(self.model_part)
+        a = self._GetContainerVariableDataHolder()
+        b = KratosOA.NodalContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
         b.CopyDataFrom(a)
@@ -278,7 +278,7 @@ class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBas
         for node in b.GetContainer():
             self.assertVectorAlmostEqual(node.GetValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -287,16 +287,16 @@ class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBas
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
-    def test_IsCompatibleWithContainerData(self):
-        a = self._GetContainerData()
-        self.assertTrue(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+    def test_IsCompatibleWithContainerVariableDataHolder(self):
+        a = self._GetContainerVariableDataHolder()
+        self.assertTrue(KratosOA.NodalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ConditionContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ElementContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
 
-    def _GetContainerData(self):
-        return KratosOA.HistoricalContainerData(self.model_part)
+    def _GetContainerVariableDataHolder(self):
+        return KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
         return self.model_part.Nodes
@@ -304,14 +304,14 @@ class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBas
     def _GetValue(self, entity, variable):
         return entity.GetSolutionStepValue(variable)
 
-class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
+class TestNodalContainerVariableDataHolder(kratos_unittest.TestCase, TestContainerVariableDataHolderBase):
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
 
     def test_CopyData(self):
-        a = self._GetContainerData()
-        b = KratosOA.HistoricalContainerData(self.model_part)
+        a = self._GetContainerVariableDataHolder()
+        b = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
         b.CopyDataFrom(a)
@@ -320,7 +320,7 @@ class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
         for node in b.GetContainer():
             self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -329,16 +329,16 @@ class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
         for node in b.GetContainer():
             self.assertEqual(node.GetSolutionStepValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
-    def test_IsCompatibleWithContainerData(self):
-        a = self._GetContainerData()
-        self.assertTrue(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+    def test_IsCompatibleWithContainerVariableDataHolder(self):
+        a = self._GetContainerVariableDataHolder()
+        self.assertTrue(KratosOA.HistoricalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ConditionContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ElementContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
 
-    def _GetContainerData(self):
-        return KratosOA.NodalContainerData(self.model_part)
+    def _GetContainerVariableDataHolder(self):
+        return KratosOA.NodalContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
         return self.model_part.Nodes
@@ -346,14 +346,14 @@ class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
     def _GetValue(self, entity, variable):
         return entity.GetValue(variable)
 
-class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase):
+class TestConditionContainerVariableDataHolder(kratos_unittest.TestCase, TestContainerVariableDataHolderBase):
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
 
     def test_CopyData(self):
-        a = self._GetContainerData()
-        b = KratosOA.ConditionPropertiesContainerData(self.model_part)
+        a = self._GetContainerVariableDataHolder()
+        b = KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
         b.CopyDataFrom(a)
@@ -362,7 +362,7 @@ class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase
         for node in b.GetContainer():
             self.assertVectorAlmostEqual(node.Properties[Kratos.ACCELERATION], self._GetValue(node, Kratos.VELOCITY), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -371,16 +371,16 @@ class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase
         for node in b.GetContainer():
             self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE), 12)
 
-    def test_IsCompatibleWithContainerData(self):
-        a = self._GetContainerData()
-        self.assertTrue(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+    def test_IsCompatibleWithContainerVariableDataHolder(self):
+        a = self._GetContainerVariableDataHolder()
+        self.assertTrue(KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.HistoricalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ElementContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.NodalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
 
-    def _GetContainerData(self):
-        return KratosOA.ConditionContainerData(self.model_part)
+    def _GetContainerVariableDataHolder(self):
+        return KratosOA.ConditionContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
         return self.model_part.Conditions
@@ -388,14 +388,14 @@ class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase
     def _GetValue(self, entity, variable):
         return entity.GetValue(variable)
 
-class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
+class TestElementContainerVariableDataHolder(kratos_unittest.TestCase, TestContainerVariableDataHolderBase):
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
 
     def test_CopyData(self):
-        a = self._GetContainerData()
-        b = KratosOA.ElementPropertiesContainerData(self.model_part)
+        a = self._GetContainerVariableDataHolder()
+        b = KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
         b.CopyDataFrom(a)
@@ -404,7 +404,7 @@ class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
         for node in b.GetContainer():
             self.assertVectorAlmostEqual(node.Properties[Kratos.ACCELERATION], self._GetValue(node, Kratos.VELOCITY), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -413,16 +413,16 @@ class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
         for node in b.GetContainer():
             self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE), 12)
 
-    def test_IsCompatibleWithContainerData(self):
-        a = self._GetContainerData()
-        self.assertTrue(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+    def test_IsCompatibleWithContainerVariableDataHolder(self):
+        a = self._GetContainerVariableDataHolder()
+        self.assertTrue(KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.HistoricalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ConditionContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.NodalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
 
-    def _GetContainerData(self):
-        return KratosOA.ElementContainerData(self.model_part)
+    def _GetContainerVariableDataHolder(self):
+        return KratosOA.ElementContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
         return self.model_part.Elements
@@ -430,14 +430,14 @@ class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
     def _GetValue(self, entity, variable):
         return entity.GetValue(variable)
 
-class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContainerDataBase):
+class TestConditionPropertiesContainerVariableDataHolder(kratos_unittest.TestCase, TestContainerVariableDataHolderBase):
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
 
     def test_CopyData(self):
-        a = self._GetContainerData()
-        b = KratosOA.ConditionContainerData(self.model_part)
+        a = self._GetContainerVariableDataHolder()
+        b = KratosOA.ConditionContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
         b.CopyDataFrom(a)
@@ -446,7 +446,7 @@ class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContain
         for node in b.GetContainer():
             self.assertVectorAlmostEqual(node.GetValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -455,16 +455,16 @@ class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContain
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
-    def test_IsCompatibleWithContainerData(self):
-        a = self._GetContainerData()
-        self.assertTrue(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+    def test_IsCompatibleWithContainerVariableDataHolder(self):
+        a = self._GetContainerVariableDataHolder()
+        self.assertTrue(KratosOA.ConditionContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.HistoricalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ElementContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.NodalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
 
-    def _GetContainerData(self):
-        return KratosOA.ConditionPropertiesContainerData(self.model_part)
+    def _GetContainerVariableDataHolder(self):
+        return KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
         return self.model_part.Conditions
@@ -472,14 +472,14 @@ class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContain
     def _GetValue(self, entity, variable):
         return entity.Properties[variable]
 
-class TestElementPropertiesContainerData(kratos_unittest.TestCase, TestContainerDataBase):
+class TestElementPropertiesContainerVariableDataHolder(kratos_unittest.TestCase, TestContainerVariableDataHolderBase):
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
 
     def test_CopyData(self):
-        a = self._GetContainerData()
-        b = KratosOA.ElementContainerData(self.model_part)
+        a = self._GetContainerVariableDataHolder()
+        b = KratosOA.ElementContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
         b.CopyDataFrom(a)
@@ -488,7 +488,7 @@ class TestElementPropertiesContainerData(kratos_unittest.TestCase, TestContainer
         for node in b.GetContainer():
             self.assertVectorAlmostEqual(node.GetValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
-        a = self._GetContainerData()
+        a = self._GetContainerVariableDataHolder()
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -497,16 +497,16 @@ class TestElementPropertiesContainerData(kratos_unittest.TestCase, TestContainer
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
-    def test_IsCompatibleWithContainerData(self):
-        a = self._GetContainerData()
-        self.assertTrue(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
-        self.assertFalse(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+    def test_IsCompatibleWithContainerVariableDataHolder(self):
+        a = self._GetContainerVariableDataHolder()
+        self.assertTrue(KratosOA.ElementContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.HistoricalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ConditionContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.NodalContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
+        self.assertFalse(KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part).IsCompatibleWithContainerVariableDataHolder(a))
 
-    def _GetContainerData(self):
-        return KratosOA.ElementPropertiesContainerData(self.model_part)
+    def _GetContainerVariableDataHolder(self):
+        return KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
         return self.model_part.Elements

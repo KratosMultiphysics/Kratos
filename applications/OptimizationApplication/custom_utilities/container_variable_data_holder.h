@@ -37,29 +37,29 @@ class NonHistoricalDataValueContainer;
 template<class TContainerType>
 class PropertiesDataValueContainer;
 
-template<class TContainerDataType>
-class ContainerData;
+template<class TContainerVariableDataHolderType>
+class ContainerVariableDataHolder;
 
 ///@}
 ///@name Class declarations
 ///@{
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerDataBase {
+class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerVariableDataHolderBase {
 public:
     ///@name Type definitions
     ///@{
 
     using IndexType = std::size_t;
 
-    /// Pointer definition of ContainerDataBase
-    KRATOS_CLASS_POINTER_DEFINITION(ContainerDataBase);
+    /// Pointer definition of ContainerVariableDataHolderBase
+    KRATOS_CLASS_POINTER_DEFINITION(ContainerVariableDataHolderBase);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Destructor.
-    virtual ~ContainerDataBase() = default;
+    virtual ~ContainerVariableDataHolderBase() = default;
 
     ///@}
     ///@name Input and output
@@ -71,13 +71,13 @@ public:
 
     const Vector& GetData() const;
 
-    void CopyDataFrom(const ContainerDataBase& rOther);
+    void CopyDataFrom(const ContainerVariableDataHolderBase& rOther);
 
     ModelPart& GetModelPart();
 
     const ModelPart& GetModelPart() const;
 
-    bool IsCompatibleWithContainerData(const ContainerDataBase& rOther) const;
+    bool IsCompatibleWithContainerVariableDataHolder(const ContainerVariableDataHolderBase& rOther) const;
 
     /// Turn back information as a string.
     virtual std::string Info() const;
@@ -90,14 +90,14 @@ protected:
     ///@name Enums
     ///@{
 
-    enum ContainerDataType
+    enum ContainerVariableDataHolderType
     {
-        HistoricalContainerData          = 0,
-        NodalContainerData               = 1,
-        ConditionContainerData           = 2,
-        ElementContainerData             = 3,
-        ConditionPropertiesContainerData = 4,
-        ElementPropertiesContainerData   = 5
+        HistoricalContainerVariableDataHolder          = 0,
+        NodalContainerVariableDataHolder               = 1,
+        ConditionContainerVariableDataHolder           = 2,
+        ElementContainerVariableDataHolder             = 3,
+        ConditionPropertiesContainerVariableDataHolder = 4,
+        ElementPropertiesContainerVariableDataHolder   = 5
     };
 
     ///@}
@@ -105,12 +105,12 @@ protected:
     ///@{
 
     /// Constructor
-    ContainerDataBase(
+    ContainerVariableDataHolderBase(
         ModelPart& rModelPart,
-        const ContainerDataType& rContainerDataType);
+        const ContainerVariableDataHolderType& rContainerVariableDataHolderType);
 
     /// Copy constructor
-    ContainerDataBase(const ContainerDataBase& rOther);
+    ContainerVariableDataHolderBase(const ContainerVariableDataHolderBase& rOther);
 
     ///@}
     ///@name Protected member variables
@@ -127,7 +127,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    const ContainerDataType mContainerDataType;
+    const ContainerVariableDataHolderType mContainerVariableDataHolderType;
 
     ///@}
     ///@name Friend classes
@@ -152,8 +152,8 @@ private:
 
     using ContainerType = ModelPart::NodesContainerType;
 
-    static constexpr ContainerDataBase::ContainerDataType ContainerDataType
-        = ContainerDataBase::ContainerDataType::HistoricalContainerData;
+    static constexpr ContainerVariableDataHolderBase::ContainerVariableDataHolderType ContainerVariableDataHolderType
+        = ContainerVariableDataHolderBase::ContainerVariableDataHolderType::HistoricalContainerVariableDataHolder;
 
     ///@}
     ///@name Private static operations
@@ -169,7 +169,7 @@ private:
     ///@name Friend classes
     ///@{
 
-    friend class ContainerData<HistoricalDataValueContainer>;
+    friend class ContainerVariableDataHolder<HistoricalDataValueContainer>;
 
     ///@}
 };
@@ -183,12 +183,12 @@ private:
 
     using ContainerType = TContainerType;
 
-    static constexpr ContainerDataBase::ContainerDataType ContainerDataType
+    static constexpr ContainerVariableDataHolderBase::ContainerVariableDataHolderType ContainerVariableDataHolderType
         = std::is_same_v<TContainerType, ModelPart::NodesContainerType>
-            ? ContainerDataBase::ContainerDataType::NodalContainerData
+            ? ContainerVariableDataHolderBase::ContainerVariableDataHolderType::NodalContainerVariableDataHolder
             : std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                ? ContainerDataBase::ContainerDataType::ConditionContainerData
-                : ContainerDataBase::ContainerDataType::ElementContainerData;
+                ? ContainerVariableDataHolderBase::ContainerVariableDataHolderType::ConditionContainerVariableDataHolder
+                : ContainerVariableDataHolderBase::ContainerVariableDataHolderType::ElementContainerVariableDataHolder;
 
     ///@}
     ///@name Private static operations
@@ -204,7 +204,7 @@ private:
     ///@name Friend classes
     ///@{
 
-    friend class ContainerData<NonHistoricalDataValueContainer<TContainerType>>;
+    friend class ContainerVariableDataHolder<NonHistoricalDataValueContainer<TContainerType>>;
 
     ///@}
 };
@@ -218,10 +218,10 @@ private:
 
     using ContainerType = TContainerType;
 
-    static constexpr ContainerDataBase::ContainerDataType ContainerDataType
+    static constexpr ContainerVariableDataHolderBase::ContainerVariableDataHolderType ContainerVariableDataHolderType
         = std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-            ? ContainerDataBase::ContainerDataType::ConditionPropertiesContainerData
-            : ContainerDataBase::ContainerDataType::ElementPropertiesContainerData;
+            ? ContainerVariableDataHolderBase::ContainerVariableDataHolderType::ConditionPropertiesContainerVariableDataHolder
+            : ContainerVariableDataHolderBase::ContainerVariableDataHolderType::ElementPropertiesContainerVariableDataHolder;
 
     ///@}
     ///@name Private static operations
@@ -237,43 +237,43 @@ private:
     ///@name Friend classes
     ///@{
 
-    friend class ContainerData<PropertiesDataValueContainer<TContainerType>>;
+    friend class ContainerVariableDataHolder<PropertiesDataValueContainer<TContainerType>>;
 
     ///@}
 };
 
-template<class TContainerDataType>
-class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerData : public ContainerDataBase
+template<class TContainerVariableDataHolderType>
+class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerVariableDataHolder : public ContainerVariableDataHolderBase
 {
 public:
     ///@name Type definitions
     ///@{
 
-    using BaseType = ContainerDataBase;
+    using BaseType = ContainerVariableDataHolderBase;
 
     using IndexType = std::size_t;
 
-    /// Pointer definition of ContainerData
-    KRATOS_CLASS_POINTER_DEFINITION(ContainerData);
+    /// Pointer definition of ContainerVariableDataHolder
+    KRATOS_CLASS_POINTER_DEFINITION(ContainerVariableDataHolder);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    ContainerData(ModelPart& rModelPart) : BaseType(rModelPart, TContainerDataType::ContainerDataType) {}
+    ContainerVariableDataHolder(ModelPart& rModelPart) : BaseType(rModelPart, TContainerVariableDataHolderType::ContainerVariableDataHolderType) {}
 
     /// Copy constructor
-    ContainerData(const ContainerData& rOther) : BaseType(rOther) {}
+    ContainerVariableDataHolder(const ContainerVariableDataHolder& rOther) : BaseType(rOther) {}
 
     /// Destructor.
-    ~ContainerData() override = default;
+    ~ContainerVariableDataHolder() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
 
-    ContainerData<TContainerDataType> Clone();
+    ContainerVariableDataHolder<TContainerVariableDataHolderType> Clone();
 
     template<class TDataType>
     void ReadDataFromContainerVariable(const Variable<TDataType>& rVariable);
@@ -288,43 +288,43 @@ public:
     ///@name Operators
     ///@{
 
-    ContainerData operator+(const ContainerData& rOther) const;
+    ContainerVariableDataHolder operator+(const ContainerVariableDataHolder& rOther) const;
 
-    ContainerData& operator+=(const ContainerData& rOther);
+    ContainerVariableDataHolder& operator+=(const ContainerVariableDataHolder& rOther);
 
-    ContainerData operator+(const double Value) const;
+    ContainerVariableDataHolder operator+(const double Value) const;
 
-    ContainerData& operator+=(const double Value);
+    ContainerVariableDataHolder& operator+=(const double Value);
 
-    ContainerData operator-(const ContainerData& rOther) const;
+    ContainerVariableDataHolder operator-(const ContainerVariableDataHolder& rOther) const;
 
-    ContainerData& operator-=(const ContainerData& rOther);
+    ContainerVariableDataHolder& operator-=(const ContainerVariableDataHolder& rOther);
 
-    ContainerData operator-(const double Value) const;
+    ContainerVariableDataHolder operator-(const double Value) const;
 
-    ContainerData& operator-=(const double Value);
+    ContainerVariableDataHolder& operator-=(const double Value);
 
-    ContainerData operator*(const double Value) const;
+    ContainerVariableDataHolder operator*(const double Value) const;
 
-    ContainerData& operator*=(const double Value);
+    ContainerVariableDataHolder& operator*=(const double Value);
 
-    ContainerData operator/(const double Value) const;
+    ContainerVariableDataHolder operator/(const double Value) const;
 
-    ContainerData& operator/=(const double Value);
+    ContainerVariableDataHolder& operator/=(const double Value);
 
-    ContainerData operator^(const double Value) const;
+    ContainerVariableDataHolder operator^(const double Value) const;
 
-    ContainerData& operator^=(const double Value);
+    ContainerVariableDataHolder& operator^=(const double Value);
 
-    ContainerData& operator=(const ContainerData& rOther);
+    ContainerVariableDataHolder& operator=(const ContainerVariableDataHolder& rOther);
 
     ///@}
     ///@name Input and output
     ///@{
 
-    typename TContainerDataType::ContainerType& GetContainer();
+    typename TContainerVariableDataHolderType::ContainerType& GetContainer();
 
-    const typename TContainerDataType::ContainerType& GetContainer() const;
+    const typename TContainerVariableDataHolderType::ContainerType& GetContainer() const;
 
     std::string Info() const override;
 
@@ -338,16 +338,16 @@ public:
 /// output stream function
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ContainerDataBase& rThis)
+    const ContainerVariableDataHolderBase& rThis)
 {
     rThis.PrintInfo(rOStream);
     return rOStream;
 }
 
-template<class TContainerDataType>
+template<class TContainerVariableDataHolderType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ContainerData<TContainerDataType>& rThis)
+    const ContainerVariableDataHolder<TContainerVariableDataHolderType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     return rOStream;

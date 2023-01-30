@@ -21,12 +21,12 @@
 #include "utilities/reduction_utilities.h"
 
 // Include base h
-#include "container_data_utils.h"
+#include "container_variable_data_holder_utils.h"
 
 namespace Kratos
 {
 
-double ContainerDataUtils::EntityMaxNormL2(const ContainerDataBase& rContainer)
+double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase& rContainer)
 {
     if (rContainer.GetDataDimension() == 0) {
         return 0.0;
@@ -48,7 +48,7 @@ double ContainerDataUtils::EntityMaxNormL2(const ContainerDataBase& rContainer)
 }
 
 
-double ContainerDataUtils::NormInf(const ContainerDataBase& rContainer)
+double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHolderBase& rContainer)
 {
     const auto& r_data = rContainer.GetData();
     return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(r_data.size()).for_each<MaxReduction<double>>([&](const IndexType Index) {
@@ -56,9 +56,9 @@ double ContainerDataUtils::NormInf(const ContainerDataBase& rContainer)
     }));
 }
 
-double ContainerDataUtils::InnerProduct(
-    const ContainerDataBase& rContainer1,
-    const ContainerDataBase& rContainer2)
+double ContainerVariableDataHolderUtils::InnerProduct(
+    const ContainerVariableDataHolderBase& rContainer1,
+    const ContainerVariableDataHolderBase& rContainer2)
 {
     const auto& r_data_1 = rContainer1.GetData();
     const auto& r_data_2 = rContainer2.GetData();
@@ -69,7 +69,7 @@ double ContainerDataUtils::InnerProduct(
         << "   Container 1: " << rContainer1 << "\n"
         << "   Container 2: " << rContainer2 << "\n";
 
-    KRATOS_ERROR_IF_NOT(rContainer1.IsCompatibleWithContainerData(rContainer2))
+    KRATOS_ERROR_IF_NOT(rContainer1.IsCompatibleWithContainerVariableDataHolder(rContainer2))
         << "Incompatible containers given for InnerProduct. "
         << "Followings are the given containers: \n"
         << "   Container 1: " << rContainer1 << "\n"
