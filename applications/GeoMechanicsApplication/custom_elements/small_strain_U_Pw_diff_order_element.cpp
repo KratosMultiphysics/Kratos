@@ -888,39 +888,57 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
             }
             else if (NumDim == 2)
             {
+                constexpr double c1 = 1.0 / 9.0;
                 const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
                 const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
                 const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
                 const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
                 const double p4 = rGeom[4].FastGetSolutionStepValue(WATER_PRESSURE);
                 const double p5 = rGeom[5].FastGetSolutionStepValue(WATER_PRESSURE);
-                ThreadSafeNodeWrite(rGeom[3], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
-                ThreadSafeNodeWrite(rGeom[4], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
-                ThreadSafeNodeWrite(rGeom[5], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
-                ThreadSafeNodeWrite(rGeom[6], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
-                ThreadSafeNodeWrite(rGeom[7], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
-                ThreadSafeNodeWrite(rGeom[8], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
-                ThreadSafeNodeWrite(rGeom[9], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+                ThreadSafeNodeWrite(rGeom[0], WATER_PRESSURE, p0);
+                ThreadSafeNodeWrite(rGeom[1], WATER_PRESSURE, p1);
+                ThreadSafeNodeWrite(rGeom[2], WATER_PRESSURE, p2);
+                ThreadSafeNodeWrite(rGeom[3], WATER_PRESSURE, (2.0 * p0 - p1 + 8.0 * p3) * c1);
+                ThreadSafeNodeWrite(rGeom[4], WATER_PRESSURE, (2.0 * p1 - p0 + 8.0 * p3) * c1);
+                ThreadSafeNodeWrite(rGeom[5], WATER_PRESSURE, (2.0 * p1 - p2 + 8.0 * p4) * c1);
+                ThreadSafeNodeWrite(rGeom[6], WATER_PRESSURE, (2.0 * p2 - p1 + 8.0 * p4) * c1);
+                ThreadSafeNodeWrite(rGeom[7], WATER_PRESSURE, (2.0 * p2 - p0 + 8.0 * p5) * c1);
+                ThreadSafeNodeWrite(rGeom[8], WATER_PRESSURE, (2.0 * p0 - p2 + 8.0 * p5) * c1);
+                ThreadSafeNodeWrite(rGeom[9], WATER_PRESSURE, (4.0 * (p3 + p4 + p5) - (p0 + p1 + p2)) * c1);
             }
             break;
         }
         case 15: //2D T15P10
         {
+            constexpr double c1 = 0.0390625;
             const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
             const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
             const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            ThreadSafeNodeWrite(rGeom[3], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
-            ThreadSafeNodeWrite(rGeom[4], WATER_PRESSURE, 0.50 * (p0 + p1));
-            ThreadSafeNodeWrite(rGeom[5], WATER_PRESSURE, 0.25 * (p0 + 3.0 * p1));
-            ThreadSafeNodeWrite(rGeom[6], WATER_PRESSURE, 0.25 * (3.0 * p1 + p2));
-            ThreadSafeNodeWrite(rGeom[7], WATER_PRESSURE, 0.50 * (p1 + p2));
-            ThreadSafeNodeWrite(rGeom[8], WATER_PRESSURE, 0.25 * (p1 + 3.0 * p2));
-            ThreadSafeNodeWrite(rGeom[9], WATER_PRESSURE, 0.25 * (3.0 * p2 + p0));
-            ThreadSafeNodeWrite(rGeom[10], WATER_PRESSURE, 0.50 * (p2 + p0));
-            ThreadSafeNodeWrite(rGeom[11], WATER_PRESSURE, 0.25 * (p2 + 3.0 * p0));
-            ThreadSafeNodeWrite(rGeom[12], WATER_PRESSURE, 0.25 * (2.0 * p0 + p1 + p2));
-            ThreadSafeNodeWrite(rGeom[13], WATER_PRESSURE, 0.50 * (2.0 * p1 + p2 + p0));
-            ThreadSafeNodeWrite(rGeom[14], WATER_PRESSURE, 0.25 * (2.0 * p2 + p0 + p1));
+            const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p4 = rGeom[4].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p5 = rGeom[5].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p6 = rGeom[6].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p7 = rGeom[7].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p8 = rGeom[8].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p9 = rGeom[9].FastGetSolutionStepValue(WATER_PRESSURE);
+            ThreadSafeNodeWrite(rGeom[0], WATER_PRESSURE, p0);
+            ThreadSafeNodeWrite(rGeom[1], WATER_PRESSURE, p1);
+            ThreadSafeNodeWrite(rGeom[2], WATER_PRESSURE, p2);
+            ThreadSafeNodeWrite(rGeom[3], WATER_PRESSURE, (3.0 * p0 + p1 + 27.0 * p3 - 5.4 * p4) * c1);
+            ThreadSafeNodeWrite(rGeom[4], WATER_PRESSURE, (14.4 * (p3 + p4) - 1.6 * (p0 + p1)) * c1);
+            ThreadSafeNodeWrite(rGeom[5], WATER_PRESSURE, (3.0 * p1 + p0 + 27.0 * p4 - 5.4 * p3) * c1);
+            ThreadSafeNodeWrite(rGeom[6], WATER_PRESSURE, (3.0 * p1 + p2 + 27.0 * p5 - 5.4 * p6) * c1);
+            ThreadSafeNodeWrite(rGeom[7], WATER_PRESSURE, (14.4 * (p5 + p6) - 1.6 * (p1 + p2)) * c1);
+            ThreadSafeNodeWrite(rGeom[8], WATER_PRESSURE, (3.0 * p2 + p1 + 27.0 * p6 - 5.4 * p5) * c1);
+            ThreadSafeNodeWrite(rGeom[9], WATER_PRESSURE, (3.0 * p2 + p0 + 27.0 * p7 - 5.4 * p8) * c1);
+            ThreadSafeNodeWrite(rGeom[10], WATER_PRESSURE, (14.4 * (p7 + p8) - 1.6 * (p0 + p2)) * c1);
+            ThreadSafeNodeWrite(rGeom[11], WATER_PRESSURE, (3.0 * p0 + p2 + 27.0 * p8 - 5.4 * p7) * c1);
+            ThreadSafeNodeWrite(rGeom[12], WATER_PRESSURE, (p1 + p2 + 7.2 * (p3 + p8) - 3.6 * (p4 + p7)
+                                                        - 1.8 * (p5 + p6) + 21.6 * p9 - 1.6 * p0) * c1);
+            ThreadSafeNodeWrite(rGeom[13], WATER_PRESSURE, (p0 + p2 + 7.2 * (p4 + p5) - 3.6 * (p3 + p6)
+                                                        - 1.8 * (p7 + p8) + 21.6 * p9 - 1.6 * p1) * c1);
+            ThreadSafeNodeWrite(rGeom[14], WATER_PRESSURE, (p1 + p2 + 7.2 * (p6 + p7) - 3.6 * (p5 + p8)
+                                                        - 1.8 * (p3 + p4) + 21.6 * p9 - 1.6 * p2) * c1);
             break;
         }
         case 20: //3D H20P8
