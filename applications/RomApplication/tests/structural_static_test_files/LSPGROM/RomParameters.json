@@ -1,7 +1,7 @@
 {
-    "train_hrom": true,
+    "train_hrom": false,
     "run_hrom": false,
-    "solving_strategy": "Galerkin",
+    "solving_strategy": "LSPG",
     "train_petrov_galerkin": {
         "train": false,
         "basis_strategy": "Residuals",
@@ -827,13 +827,5 @@
             ]
         ]
     },
-    "elements_and_weights": {
-        "Elements": {
-            "0": 116.0
-        },
-        "Conditions": {
-            "13": 0.054464904205207665,
-            "22": 0.000573026145484772
-        }
-    }
+    "elements_and_weights": {}
 }
