@@ -62,7 +62,7 @@ void StlIO::ReadSolid(ModelPart & rThisModelPart)
     if(mpInputStream->eof())
         return;
 
-    KRATOS_ERROR_IF(word != "solid") << "Invalid stl file. Solid block should begin with \"solid\" keyword but \"" << word << "\" was founded" << std::endl;
+    KRATOS_ERROR_IF(word != "solid") << "Invalid stl file. Solid block should begin with \"solid\" keyword but \"" << word << "\" was found" << std::endl;
     std::getline(*mpInputStream, word); // Reading solid name to be the model part name
 
     word.erase(word.begin(), std::find_if(word.begin(), word.end(), [](int ch) {return !std::isspace(ch);})); // Triming the leading spaces
@@ -80,7 +80,7 @@ void StlIO::ReadSolid(ModelPart & rThisModelPart)
         *mpInputStream >> word; // Reading facet or endsolid
     }
 
-    KRATOS_ERROR_IF(word != "endsolid") << "Invalid stl file. Solid block should be closed with \"endsolid\" keyword but \"" << word << "\" was founded" << std::endl;
+    KRATOS_ERROR_IF(word != "endsolid") << "Invalid stl file. Solid block should be closed with \"endsolid\" keyword but \"" << word << "\" was found" << std::endl;
     std::getline(*mpInputStream, word); // Reading solid name 
 }
 
@@ -99,7 +99,7 @@ void StlIO::ReadFacet(ModelPart & rThisModelPart)
         *mpInputStream >> word; // Reading outer or endfacet
     }
 
-    KRATOS_ERROR_IF(word != "endfacet") << "Invalid stl file. facet block should be closed with \"endfacet\" keyword but \"" << word << "\" was founded" << std::endl;
+    KRATOS_ERROR_IF(word != "endfacet") << "Invalid stl file. facet block should be closed with \"endfacet\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
 void StlIO::ReadLoop(ModelPart & rThisModelPart)
@@ -118,7 +118,7 @@ void StlIO::ReadLoop(ModelPart & rThisModelPart)
         *mpInputStream >> word; // Reading vertex or endloop
     }
     rThisModelPart.CreateNewElement("Element3D3N", element_id, temp_element_nodes, rThisModelPart.pGetProperties(0));
-    KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was founded" << std::endl;
+    KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
 Point StlIO::ReadPoint()
