@@ -23,7 +23,7 @@
 
 namespace Kratos::StringUtilities {
 
-std::string ConvertCammelCaseToSnakeCase(const std::string& rString)
+std::string ConvertCamelCaseToSnakeCase(const std::string& rString)
 {
     std::string str(1, tolower(rString[0]));
 
