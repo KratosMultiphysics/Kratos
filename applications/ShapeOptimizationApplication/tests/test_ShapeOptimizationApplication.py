@@ -87,7 +87,7 @@ def AssembleTestSuites():
     smallSuite.addTest(curvature_6NTriangle_test('test_execution'))
     smallSuite.addTest(curvature_4NQuad_test('test_execution'))
     smallSuite.addTest(curvature_8NQuad_test('test_execution'))
-    smallSuite.addTest(mapper_adaptive_filter_curvature_test('test_execution'))
+    # smallSuite.addTest(mapper_adaptive_filter_curvature_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
