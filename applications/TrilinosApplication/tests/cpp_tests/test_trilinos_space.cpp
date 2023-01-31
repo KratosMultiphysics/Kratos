@@ -58,7 +58,7 @@ SparseMatrixType GenerateDummySparseMatrix(
     // NumNz[i] is the Number of OFF-DIAGONAL term for the ith global equation
     // on this processor
     std::vector<int> NumNz(NumMyElements, 1);
-    
+
     // Create a Epetra_Matrix
     SparseMatrixType A(Copy, Map, NumNz.data());
 

@@ -31,6 +31,9 @@
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
 #include <EpetraExt_MultiVectorOut.h>
+#include <EpetraExt_MatrixMatrix.h>
+
+// NOTE: Epetra will be replaced with Tpetra in the future, there is an intermediate interface called Xpetra, which uses the interface of Toetra but allows to use Epetra
 
 // Project includes
 #include "includes/ublas_interface.h"
@@ -98,27 +101,23 @@ public:
     ///@{
 
     /// Default constructor.
-
     TrilinosSpace()
     {
     }
 
     /// Destructor.
-
     virtual ~TrilinosSpace()
     {
     }
-
 
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
-    //
+
     static MatrixPointerType CreateEmptyMatrixPointer()
     {
         return MatrixPointerType(nullptr);
@@ -173,10 +172,6 @@ public:
         KRATOS_ERROR << "GetColumn method is not currently implemented" << std::endl;
     }
 
-    ///////////////////////////////// TODO: Take a close look to this method!!!!!!!!!!!!!!!!!!!!!!!!!
-    /// rMij = rXi
-    //      static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX){rX = row(rM, j);}
-
     /// rY = rX
     static void Copy(MatrixType const& rX, MatrixType& rY)
     {
@@ -217,7 +212,7 @@ public:
     }
 
     /// ||rX||2
-    static double TwoNorm(VectorType const& rX)
+    static double TwoNorm(const VectorType& rX)
     {
         double value;
         const int sucess = rX.Norm2(&value); //it is prepared to handle vectors with multiple components
@@ -225,20 +220,59 @@ public:
         return value;
     }
 
-    static void Mult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    /// ||rA||2
+    static double TwoNorm(const MatrixType& rA)
+    {
+        double value;
+        const int sucess = rA.Norm2(&value);
+        KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing norm" <<  std::endl;
+        return value;
+    }
+
+    static void Mult(
+        const MatrixType& rA, 
+        const VectorType& rX, 
+        VectorType& rY
+        )
     {
         //y = A*x
-        bool transpose_flag = false;
+        const bool transpose_flag = false;
         rA.Multiply(transpose_flag, rX, rY);
     }
 
-    static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    static void Mult(
+        const MatrixType& rA, 
+        const MatrixType& rB, 
+        MatrixType& rC
+        )
     {
-        //y = A*x
-        bool transpose_flag = true;
-        rA.Multiply(transpose_flag, rX, rY);
-    } // rY = rAT * rX
+        //C = A*B
+        const bool transpose_flag = false;
+        EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC);
+    }
 
+    static void TransposeMult(
+        const MatrixType& rA, 
+        const VectorType& rX, 
+        VectorType& rY
+        )
+    {
+        //y = AT*x
+        const bool transpose_flag = true;
+        rA.Multiply(transpose_flag, rX, rY);
+    }
+
+    static void TransposeMult(
+        const MatrixType& rA,
+        const MatrixType& rB,
+        MatrixType& rC,
+        const std::vector<bool> TransposeFlag = {false, false}
+        )
+    {
+        //C = A*B
+        KRATOS_ERROR_IF_NOT(TransposeFlag.size() > 1) << "Size of flags must be at least 2" << std::endl;
+        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag[0], rB, TransposeFlag[1], rC);
+    }
 
     //********************************************************************
     //checks if a multiplication is needed and tries to do otherwise
@@ -283,7 +317,6 @@ public:
         rY.Update(A, rX, B);
     }
 
-
     /// rA[i] * rX
     //       static double RowDot(unsigned int i, MatrixType& rA, VectorType& rX)
     // 	{
@@ -313,7 +346,6 @@ public:
     static void Resize(MatrixType& rA, SizeType m, SizeType n)
     {
         KRATOS_ERROR << "Resize is not defined for Trilinos Sparse Matrix" << std::endl;
-
     }
 
     static void Resize(VectorType& rX, SizeType n)
