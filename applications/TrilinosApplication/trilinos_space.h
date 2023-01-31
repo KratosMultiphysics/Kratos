@@ -96,12 +96,12 @@ public:
     using SizeType = std::size_t;
 
     /// Definition of the pointer types
-    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+    using MatrixPointerType = typename Kratos::shared_ptr<TMatrixType>;
+    using VectorPointerType = typename Kratos::shared_ptr<TVectorType>;
 
     /// Some other definitions
-    typedef TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
-    typedef typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType> >::UniquePointer DofUpdaterPointerType;
+    using DofUpdaterType = TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType>>;
+    using DofUpdaterPointerType = typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType>>::UniquePointer;
 
     ///@}
     ///@name Life Cycle
