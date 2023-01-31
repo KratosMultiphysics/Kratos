@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <filesystem>
 
 // External includes
 
@@ -22,12 +23,26 @@ namespace Kratos
 {
 
 /// Constructor with  filenames.
-StlIO::StlIO(std::string const& Filename)
-    : mpInputStream(new std::fstream(Filename, std::ios::in))  {
-            KRATOS_ERROR_IF(mpInputStream->fail()) << "Could not open the input file : " << Filename << std::endl;
-    }
+StlIO::StlIO(std::filesystem::path const& Filename)
+    : IO()
+{
+    std::fstream* pFile = new std::fstream();
+    std::fstream::openmode OpenMode = std::fstream::in;
 
-StlIO::StlIO(std::iostream* pInputStream) : IO(), mpInputStream(pInputStream){}
+    pFile->open(Filename.c_str(), OpenMode);
+
+    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Could not open the input file  : " << Filename << std::endl;
+
+    // Store the pointer as a regular std::iostream
+    mpInputStream = pFile;
+}
+
+StlIO::StlIO(std::iostream* pInputStream) 
+    : IO(), 
+      mpInputStream(pInputStream)
+{
+
+}
 
 void StlIO::ReadModelPart(ModelPart & rThisModelPart)
 {
@@ -132,14 +147,13 @@ Point StlIO::ReadPoint()
     return result;
 }
 
-void StlIO::ReadKeyword(std::string const& Keyword){
+void StlIO::ReadKeyword(std::string const& Keyword)
+{
     std::string word;
 
     *mpInputStream >> word; // Reading keyword
     KRATOS_ERROR_IF(word != Keyword) << "Invalid stl file. Looking for  \"" << Keyword << "\" keyword but \"" << word << "\" were found." << std::endl;
-
 }
-
 }  // namespace Kratos.
 
 
