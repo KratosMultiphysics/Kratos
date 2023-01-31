@@ -65,8 +65,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     if constexpr (TDim == 2) { // 2D
         mesher_parameters["element_name"].SetString("Element2D3N");
         using BBReduction = CombinedReduction<MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>>;
-        double max_x, min_x, max_y, min_y;
-        std::tie(max_x, min_x, max_y, min_y) = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        auto [max_x, min_x, max_y, min_y] = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
             return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y());
         });
         if (max_x > zero_tolerance) max_x *= bounding_box_scale_factor; else max_x /= bounding_box_scale_factor;
@@ -83,8 +82,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
         StructuredMeshGeneratorProcess(geometry, r_model_part_1, mesher_parameters).Execute();
     } else { // 3D
         using BBReduction = CombinedReduction<MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>>;
-        double max_x, min_x, max_y, min_y, max_z, min_z;
-        std::tie(max_x, min_x, max_y, min_y, max_z, min_z) = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        auto [max_x, min_x, max_y, min_y, max_z, min_z] = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
             return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y(),rNode.Z(),rNode.Z());
         });
         if (max_x > zero_tolerance) max_x *= bounding_box_scale_factor; else max_x /= bounding_box_scale_factor;
