@@ -23,10 +23,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.project_parameters["solver_settings"].AddValue("rom_settings", self.rom_parameters["rom_settings"])
 
             # HROM operations flags
-            self.rom_basis_process_list_check = True
+            self.rom_basis_process_list_check = False
             self.rom_basis_output_process_check = True
             self.run_hrom = self.rom_parameters["run_hrom"].GetBool() if self.rom_parameters.Has("run_hrom") else False
             self.train_hrom = self.rom_parameters["train_hrom"].GetBool() if self.rom_parameters.Has("train_hrom") else False
+            self.multiple_simulations = self.rom_parameters["multiple_simulations"].GetBool()
             if self.run_hrom and self.train_hrom:
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
@@ -37,35 +38,35 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 self.model,
                 self.project_parameters)
 
-        def _GetListOfProcesses(self):
-            # Get the already existent processes list
-            list_of_processes = super()._GetListOfProcesses()
+        # def _GetListOfProcesses(self):
+        #     # Get the already existent processes list
+        #     list_of_processes = super()._GetListOfProcesses()
 
-            # Check if there is any instance of ROM basis output
-            if self.rom_basis_process_list_check:
-                for process in list_of_processes:
-                    if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
-                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from processes list."
-                        KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
-                        list_of_processes.remove(process)
-                self.rom_basis_process_list_check = False
+        #     # # Check if there is any instance of ROM basis output
+        #     # if self.rom_basis_process_list_check:
+        #     #     for process in list_of_processes:
+        #     #         if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
+        #     #             warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from processes list."
+        #     #             KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
+        #     #             list_of_processes.remove(process)
+        #     #     self.rom_basis_process_list_check = False
 
-            return list_of_processes
+        #     return list_of_processes
 
-        def _GetListOfOutputProcesses(self):
-            # Get the already existent output processes list
-            list_of_output_processes = super()._GetListOfOutputProcesses()
+        # def _GetListOfOutputProcesses(self):
+        #     # Get the already existent output processes list
+        #     list_of_output_processes = super()._GetListOfOutputProcesses()
 
-            # Check if there is any instance of ROM basis output
-            if self.rom_basis_output_process_check:
-                for process in list_of_output_processes:
-                    if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
-                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from output processes list."
-                        KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
-                        list_of_output_processes.remove(process)
-                self.rom_basis_output_process_check = False
+        #     # # Check if there is any instance of ROM basis output
+        #     # if self.rom_basis_output_process_check:
+        #     #     for process in list_of_output_processes:
+        #     #         if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
+        #     #             warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from output processes list."
+        #     #             KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
+        #     #             list_of_output_processes.remove(process)
+        #     #     self.rom_basis_output_process_check = False
 
-            return list_of_output_processes
+        #     return list_of_output_processes
 
         def _GetSimulationName(self):
             return "::[ROM Simulation]:: "
@@ -108,6 +109,12 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
                     computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
 
+        def GetHROM_utility(self):
+            return self.__hrom_training_utility
+
+
+
+
         def FinalizeSolutionStep(self):
             # Call the HROM training utility to append the current step residuals
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
@@ -131,7 +138,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             super().Finalize()
 
             # Once simulation is completed, calculate and save the HROM weights
-            if self.train_hrom:
+            if self.train_hrom and not self.multiple_simulations:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
                 self.__hrom_training_utility.CreateHRomModelParts()
 
