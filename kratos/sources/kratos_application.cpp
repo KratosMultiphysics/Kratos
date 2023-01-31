@@ -220,6 +220,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_MODELER("CadTessellationModeler", mCadTessellationModeler);
 #endif
     KRATOS_REGISTER_MODELER("SerialModelPartCombinatorModeler", mSerialModelPartCombinatorModeler);
+    KRATOS_REGISTER_MODELER("CombineModelPartModeler", mCombineModelPartModeler);
 
     // Register general geometries:
     // Point register:
@@ -290,6 +291,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_FLAG(BLOCKED);
     KRATOS_REGISTER_FLAG(MARKER);
     KRATOS_REGISTER_FLAG(PERIODIC);
+    KRATOS_REGISTER_FLAG(WALL);
 
     // Note: using internal macro for these two because they do not have a NOT_ version
     KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(ALL_DEFINED);
