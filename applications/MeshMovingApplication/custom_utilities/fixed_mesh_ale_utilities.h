@@ -81,6 +81,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using IndexType = std::size_t;
+
     typedef Element::NodesArrayType NodesArrayType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
@@ -213,6 +215,7 @@ private:
     unsigned int mSearchMaxResults;
 
     Parameters mEmbeddedNodalVariableSettings;
+    std::string mMeshDisplacementType;
 
     std::vector<const Variable<double>*> mScalarVariablesList;
     std::vector<const Variable<array_1d<double,3>>*> mArrayVariablesList;
@@ -312,6 +315,15 @@ private:
      * before the next mesh movement computation
      */
     void RevertMeshDisplacementFixity();
+
+    /**
+     * @brief Set the velocity based mesh displacement
+     * This method calls the utility that computes the nodal mesh
+     * displacement of the cut elements. Then
+     * it fixes such values before the ALE strategy solve call.
+     * @param DeltaTime time step value (required for the computation of the MESH_VELOCITY)
+     */
+    void SetVelocityBasedNodalMeshDisplacement(const double DeltaTime);
 
     ///@}
     ///@name Private  Access

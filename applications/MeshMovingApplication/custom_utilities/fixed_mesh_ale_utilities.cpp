@@ -61,6 +61,9 @@ namespace Kratos
         // Set the linear solver pointer
         this->SetLinearSolverPointer(rParameters["linear_solver_settings"]);
 
+        // Set Mesh displacement type
+        mMeshDisplacementType = rParameters["virtual_mesh_movement"].GetString();
+
         // Check the structure model part
         if (mrStructureModelPart.GetBufferSize() < 2) {
             (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
@@ -138,7 +141,6 @@ namespace Kratos
             {
                 auto it_virt_node       = virt_nodes_begin + index;
                 const auto it_orig_node = orig_nodes_begin + index;
-
                 for (unsigned int step = 1; step < buffer_size; ++step) {
                     for (auto p_scalar_var : mScalarVariablesList) {
                         it_virt_node->FastGetSolutionStepValue(*p_scalar_var, step) = it_orig_node->FastGetSolutionStepValue(*p_scalar_var, step);
@@ -148,21 +150,30 @@ namespace Kratos
                     }
                 }
             } );
+
     }
 
     void FixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
     {
+
         // Initialize the virtual mesh values
         this->InitializeVirtualMeshValues();
-
         // Initialize the MESH_DISPLACEMENT fixity
         this->InitializeMeshDisplacementFixity();
-
         // Get the MESH_DISPLACEMENT fixity from the origin model part
         this->SetMeshDisplacementFixityFromOriginModelPart();
 
-        // Set embedded MESH_DISPLACEMENT from the immersed structure
-        this->SetEmbeddedNodalMeshDisplacement();
+        if (mMeshDisplacementType == "from_structure")
+        {
+            // Set embedded MESH_DISPLACEMENT from the immersed structure
+            this->SetEmbeddedNodalMeshDisplacement();
+        }
+        else if (mMeshDisplacementType == "from_velocity")
+        {
+
+            // Set  MESH_DISPLACEMENT from the solid rigid movement of the cut elements. velocity based.
+            this->SetVelocityBasedNodalMeshDisplacement(DeltaTime);
+        }
 
         // Set the mesh moving strategy
         this->SolveMeshMovementStrategy(DeltaTime);
@@ -289,6 +300,7 @@ namespace Kratos
                 "tolerance": 1.0e-8,
                 "max_iteration": 1000
             },
+            "virtual_mesh_movement" : "from_structure",
             "embedded_nodal_variable_settings": {
                 "gradient_penalty_coefficient": 0.0,
                 "linear_solver_settings": {
@@ -504,6 +516,69 @@ namespace Kratos
                 rNode.Free(MESH_DISPLACEMENT_Z);
             }
         } );
+    }
+
+    void FixedMeshALEUtilities::SetVelocityBasedNodalMeshDisplacement(const double DeltaTime)
+
+    {
+        // Find the cut elements of the original model part.
+        std::vector<IndexType> elem_id_vector;
+        block_for_each(mpOriginModelPart->Elements(), [&](auto& rElem)
+                       {
+            // Find the cut elements of the original model part.
+            SizeType n_neg = 0;
+            SizeType n_pos = 0;
+            auto &r_geom = rElem.GetGeometry();
+            const unsigned int num_nodes = r_geom.PointsNumber();
+            for (unsigned int i = 0; i < num_nodes; i++){
+                double aux_dist = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+                if (aux_dist<0){
+                    n_neg++;
+                }
+                else{
+                    n_pos++;
+                }
+            }
+            // All the cuts elements are added to a element id vector
+            if (n_pos != 0 && n_neg != 0)
+            {
+                KRATOS_CRITICAL_SECTION
+                elem_id_vector.push_back(rElem.Id());
+            } });
+
+        // According to the original cut element id, assign a solid rigid displacement to corresponding virtual cut elements.
+        block_for_each(elem_id_vector, [&](const IndexType& rId)
+        {
+            auto &r_geom = mrVirtualModelPart.GetElement(rId).GetGeometry();
+            const unsigned int num_nodes = r_geom.PointsNumber();
+            for (unsigned int i = 0; i < num_nodes; i++){
+                // Take current step velocity to calculate the mesh motion
+                // Note that this is understood to be the velocity of the levelset convection
+                auto velocity = r_geom[i].FastGetSolutionStepValue(VELOCITY,1);
+
+                if (!r_geom[i].IsFixed(MESH_DISPLACEMENT_X))
+                {
+                    r_geom[i].SetLock();
+                    r_geom[i].FastGetSolutionStepValue(MESH_DISPLACEMENT_X) = velocity[0] * DeltaTime;
+                    r_geom[i].Fix(MESH_DISPLACEMENT_X);
+                    r_geom[i].UnSetLock();
+                }
+                if (!r_geom[i].IsFixed(MESH_DISPLACEMENT_Y))
+                {
+                    r_geom[i].SetLock();
+                    r_geom[i].FastGetSolutionStepValue(MESH_DISPLACEMENT_Y) = velocity[1] * DeltaTime;
+                    r_geom[i].Fix(MESH_DISPLACEMENT_Y);
+                    r_geom[i].UnSetLock();
+                }
+                if (!r_geom[i].IsFixed(MESH_DISPLACEMENT_Z))
+                {
+                    r_geom[i].SetLock();
+                    r_geom[i].FastGetSolutionStepValue(MESH_DISPLACEMENT_Z) = velocity[2] * DeltaTime;
+                    r_geom[i].Fix(MESH_DISPLACEMENT_Z);
+                    r_geom[i].UnSetLock();
+                }
+            }
+        });
     }
 
     /* External functions *****************************************************/
