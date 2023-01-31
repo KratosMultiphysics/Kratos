@@ -92,11 +92,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyConstantPhreaticMultiLinePressureProcess, ApplyConstantPhreaticMultiLinePressureProcess::Pointer, Process>
         (m, "ApplyConstantPhreaticMultiLinePressureProcess")
-        .def(init < ModelPart&, Parameters>());
+        .def(py::init < ModelPart&, Parameters>());
 
     py::class_<ApplyConstantInterpolateLinePressureProcess, ApplyConstantInterpolateLinePressureProcess::Pointer, Process>
         (m, "ApplyConstantInterpolateLinePressureProcess")
-        .def(init < ModelPart&, Parameters>());
+        .def(py::init < ModelPart&, Parameters>());
 
     py::class_<ApplyBoundaryPhreaticLinePressureTableProcess, ApplyBoundaryPhreaticLinePressureTableProcess::Pointer, Process>
         (m, "ApplyBoundaryPhreaticLinePressureTableProcess")
@@ -112,11 +112,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyPhreaticMultiLinePressureTableProcess, ApplyPhreaticMultiLinePressureTableProcess::Pointer, Process>
         (m, "ApplyPhreaticMultiLinePressureTableProcess")
-        .def(init < ModelPart&, Parameters>());
+        .def(py::init < ModelPart&, Parameters>());
 
     py::class_<ApplyBoundaryPhreaticLinePressureTableProcess, ApplyBoundaryPhreaticLinePressureTableProcess::Pointer, Process>
         (m, "ApplyBoundaryPhreaticLinePressureTableProcess")
-        .def(init < ModelPart&, Parameters>());
+        .def(py::init < ModelPart&, Parameters>());
 
     py::class_<ApplyPhreaticSurfacePressureTableProcess, ApplyPhreaticSurfacePressureTableProcess::Pointer, Process>
         (m, "ApplyPhreaticSurfacePressureTableProcess")
