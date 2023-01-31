@@ -3,7 +3,6 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
 
 class LinearStrainEnergyResponseFunction(ResponseFunction):
@@ -28,26 +27,20 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         # computes the strain energy
         return KratosOA.LinearStrainEnergyResponseUtilities.CalculateStrainEnergy(self.model_part)
 
-    def CalculateSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
-        self.primal_analysis_execution_policy_wrapper.Execute()
-
+    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart):
         # computes strain energy derivatives
-        if sensitivity_variable == Kratos.SHAPE_SENSITIVITY and sensitivity_container.GetContainerTpe() == ContainerData.ContainerEnum.NODES:
-            KratosOA.LinearStrainEnergyResponseUtilities.CalculateStrainEnergyShapeSensitivity(sensitivity_container.GetModelPart(), self.perturbation_size, sensitivity_variable)
-        elif sensitivity_container.GetContainerTpe() == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
-            variable_name: str = sensitivity_variable.Name()
-            if variable_name.endswith("_SENSITIVITY"):
-                primal_variable = Kratos.KratosGlobals.GetVariable(variable_name[:-12])
-                KratosOA.LinearStrainEnergyResponseUtilities.CalculateStrainEnergyElementPropertiesSensitivity(sensitivity_container.GetModelPart(), self.perturbation_size, primal_variable, sensitivity_variable)
-            else:
-                raise RuntimeError(f"{variable_name} is not a supported sensitivity variable.")
+        if sensitivity_variable == Kratos.SHAPE_SENSITIVITY:
+            KratosOA.LinearStrainEnergyResponseUtilities.CalculateStrainEnergyShapeSensitivity(sensitivity_model_part, self.perturbation_size, sensitivity_variable)
+        elif sensitivity_variable in [KratosOA.DENSITY_SENSITIVITY, KratosOA.YOUNG_MODULUS_SENSITIVITY, KratosOA.POISSON_RATIO_SENSITIVITY]:
+            primal_variable = Kratos.KratosGlobals.GetVariable(sensitivity_variable.Name()[:-12])
+            KratosOA.LinearStrainEnergyResponseUtilities.CalculateStrainEnergyElementPropertiesSensitivity(sensitivity_model_part, self.perturbation_size, primal_variable, sensitivity_variable)
         else:
-            msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {str(sensitivity_container)}."
+            msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {sensitivity_model_part.FullName()}."
             msg += "Followings are supported options:"
-            msg += "\n\tSHAPE_SENSITIVITY for NODES container"
-            msg += "\n\tmaterial properties for ELEMENT_PROPERTIES container"
+            msg += "\n\tSHAPE_SENSITIVITY"
+            msg += "\n\tDENSITY_SENSITIVITY"
+            msg += "\n\tYOUNG_MODULUS_SENSITIVITY"
+            msg += "\n\tPOISSON_RATIO_SENSITIVITY"
             raise RuntimeError(msg)
-
-        sensitivity_container.ReadDataFromContainerVariable(sensitivity_variable)
 
 

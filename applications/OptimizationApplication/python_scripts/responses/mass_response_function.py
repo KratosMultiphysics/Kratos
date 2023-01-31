@@ -2,7 +2,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
 
 class MassResponseFunction(ResponseFunction):
@@ -28,23 +27,21 @@ class MassResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return KratosOA.MassResponseUtilities.CalculateMass(self.model_part)
 
-    def CalculateSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
-        if sensitivity_variable == Kratos.SHAPE_SENSITIVITY and sensitivity_container.GetContainerTpe() == ContainerData.ContainerEnum.NODES:
-            KratosOA.MassResponseUtilities.CalculateMassShapeSensitivity(sensitivity_container.GetModelPart(), sensitivity_variable)
-        elif sensitivity_variable == KratosOA.DENSITY_SENSITIVITY and sensitivity_container.GetContainerTpe() == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
-            KratosOA.MassResponseUtilities.CalculateMassDensitySensitivity(sensitivity_container.GetModelPart(), sensitivity_variable)
-        elif sensitivity_variable == KratosOA.THICKNESS_SENSITIVITY and sensitivity_container.GetContainerTpe() == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
-            KratosOA.MassResponseUtilities.CalculateMassThicknessSensitivity(sensitivity_container.GetModelPart(), sensitivity_variable)
-        elif sensitivity_variable == KratosOA.CROSS_AREA_SENSITIVITY and sensitivity_container.GetContainerTpe() == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
-            KratosOA.MassResponseUtilities.CalculateMassCrossAreaSensitivity(sensitivity_container.GetModelPart(), sensitivity_variable)
+    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart):
+        if sensitivity_variable == Kratos.SHAPE_SENSITIVITY:
+            KratosOA.MassResponseUtilities.CalculateMassShapeSensitivity(sensitivity_model_part, sensitivity_variable)
+        elif sensitivity_variable == KratosOA.DENSITY_SENSITIVITY:
+            KratosOA.MassResponseUtilities.CalculateMassDensitySensitivity(sensitivity_model_part, sensitivity_variable)
+        elif sensitivity_variable == KratosOA.THICKNESS_SENSITIVITY:
+            KratosOA.MassResponseUtilities.CalculateMassThicknessSensitivity(sensitivity_model_part, sensitivity_variable)
+        elif sensitivity_variable == KratosOA.CROSS_AREA_SENSITIVITY:
+            KratosOA.MassResponseUtilities.CalculateMassCrossAreaSensitivity(sensitivity_model_part, sensitivity_variable)
         else:
-            msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {str(sensitivity_container)}."
-            msg += "Followings are supported options:"
-            msg += "\n\tSHAPE_SENSITIVITY for NODES container"
-            msg += "\n\tDENSITY_SENSITIVITY for ELEMENT_PROPERTIES container"
-            msg += "\n\tTHICKNESS_SENSITIVITY for ELEMENT_PROPERTIES container"
-            msg += "\n\tCROSS_AREA_SENSITIVITY for ELEMENT_PROPERTIES container"
+            msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {sensitivity_model_part.FullName()}. "
+            msg += "Followings are supported variables:"
+            msg += "\n\tSHAPE_SENSITIVITY"
+            msg += "\n\tDENSITY_SENSITIVITY"
+            msg += "\n\tTHICKNESS_SENSITIVITY"
+            msg += "\n\tCROSS_AREA_SENSITIVITY"
             raise RuntimeError(msg)
 
-        # read the computed sensitivities to the vector
-        sensitivity_container.ReadDataFromContainerVariable(sensitivity_variable)
