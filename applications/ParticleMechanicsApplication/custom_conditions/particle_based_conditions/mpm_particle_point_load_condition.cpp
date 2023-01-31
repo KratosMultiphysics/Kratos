@@ -267,6 +267,7 @@ namespace Kratos
                 rVariable, rValues, rCurrentProcessInfo);
         }
     }
+    
     void MPMParticlePointLoadCondition::SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         const std::vector<array_1d<double, 3 > >& rValues,
@@ -288,21 +289,5 @@ namespace Kratos
         }
     }
 
-    void MPMParticlePointLoadCondition::CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rValues.size() != 1)
-            rValues.resize(1);
-
-        if (rVariable == POINT_LOAD) {
-            rValues[0] = m_point_load;
-        }
-        else {
-            MPMParticleBaseCondition::CalculateOnIntegrationPoints(
-                rVariable, rValues, rCurrentProcessInfo);
-        }
-    }
 
 } // Namespace Kratos
