@@ -101,7 +101,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues,
 
     // Test the norm of the matrix
     double norm = 0.0;
-    norm = TrilinosSparseSpaceType::CheckAndCorrectZeroDiagonalValues(r_process_info, matrix12x12, vector12, SCALING_DIAGONAL::NO_SCALING, r_comm);
+    norm = TrilinosSparseSpaceType::CheckAndCorrectZeroDiagonalValues(r_process_info, matrix12x12, vector12, r_comm, SCALING_DIAGONAL::NO_SCALING);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
     if (r_comm.Rank() == 0) {
         const auto& raw_values = matrix12x12.ExpertExtractValues();
@@ -125,13 +125,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplic
 
     // Test the norm of the matrix
     double norm = 0.0;
-    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::NO_SCALING, r_comm);
+    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, r_comm, SCALING_DIAGONAL::NO_SCALING);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
-    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL, r_comm);
+    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, r_comm, SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 3.0);
-    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL, r_comm);
+    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, r_comm, SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL);
     KRATOS_CHECK_NEAR(norm, 2.124591464, 1.0e-6);
-    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL, r_comm);
+    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, r_comm, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 12.0);
     norm = TrilinosSparseSpaceType::GetAveragevalueDiagonal(matrix12x12, r_comm);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 6.5);
