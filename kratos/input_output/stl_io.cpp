@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <filesystem>
 
 // External includes
 

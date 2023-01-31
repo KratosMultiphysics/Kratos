@@ -15,6 +15,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <filesystem>
 
 // External includes
 
@@ -92,7 +93,7 @@ public:
     ///@{
 
     /// Constructor with filename.
-    StlIO(std::string const& Filename);
+    StlIO(std::filesystem::path const& Filename);
 
     /// Constructor with stream.
     StlIO(std::iostream* pInputStream);
