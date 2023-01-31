@@ -93,7 +93,7 @@ class ModelPartIOOperation(IOOperation):
 
     @classmethod
     def GetDefaultParameters(cls: "typing.Type[ModelPartIOOperation]") -> KratosMultiphysics.Parameters:
-        parameters = super(cls, cls).GetDefaultParameters()
+        parameters = super().GetDefaultParameters()
         parameters["prefix"].SetString("/ModelData")
         return parameters
 
@@ -123,7 +123,7 @@ class ProcessInfoIOOperation(IOOperation):
 
     @classmethod
     def GetDefaultParameters(cls: "typing.Type[ProcessInfoIOOperation]") -> KratosMultiphysics.Parameters:
-        parameters = super(cls, cls).GetDefaultParameters()
+        parameters = super().GetDefaultParameters()
         parameters["prefix"].SetString("/ProcessInfo")
         return parameters
 
@@ -154,7 +154,7 @@ class VariableIOOperation(IOOperation):
 
     @classmethod
     def GetDefaultParameters(cls: "typing.Type[VariableIOOperation]") -> KratosMultiphysics.Parameters:
-        parameters = super(cls, cls).GetDefaultParameters()
+        parameters = super().GetDefaultParameters()
         parameters["prefix"].SetString("/ResultsData")
         parameters.AddEmptyArray("list_of_variables")
         return parameters
@@ -343,7 +343,7 @@ class PrimalBossakOutput(VariableIOOperation):
 
     @classmethod
     def GetDefaultParameters(cls: "typing.Type[PrimalBossakOutput]") -> KratosMultiphysics.Parameters:
-        parameters = super(cls, cls).GetDefaultParameters()
+        parameters = super().GetDefaultParameters()
         parameters.AddDouble("alpha_bossak", -0.3)
         return parameters
 
