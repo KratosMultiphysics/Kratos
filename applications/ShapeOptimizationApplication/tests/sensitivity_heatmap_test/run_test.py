@@ -5,10 +5,9 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
-from KratosMultiphysics.KratosUnittest import TestCase
 from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
-from KratosMultiphysics.json_output_process import JsonOutputProcess
+# from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 # Read parameters
 with open("parameters.json",'r') as parameter_file:
@@ -48,6 +47,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
                 if norm > 2.0:
                     gradient[node.Id] = 2*(norm - 2) * shape_change
             communicator.reportGradient("shape_change", gradient)
+
 
 # Create optimizer and perform optimization
 optimizer = optimizer_factory.Create(model, parameters["optimization_settings"], CustomAnalyzer())
