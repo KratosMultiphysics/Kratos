@@ -755,16 +755,16 @@ public:
      * @param rProcessInfo The problem process info
      * @param rA The LHS matrix
      * @param rb The RHS vector
+     * @param rDataCommunicator The data communicator considered
      * @param ScalingDiagonal The type of caling diagonal considered
-     * @param rDataCommunicator The data coomunicator considered
      * @return The scale norm
      */
     static double CheckAndCorrectZeroDiagonalValues(
         const ProcessInfo& rProcessInfo,
         MatrixType& rA,
         VectorType& rb,
-        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
         )
     {
         KRATOS_TRY
@@ -773,7 +773,7 @@ public:
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
         // The diagonal considered
-        const double scale_factor = GetScaleNorm(rProcessInfo, rA, ScalingDiagonal, rDataCommunicator);
+        const double scale_factor = GetScaleNorm(rProcessInfo, rA, rDataCommunicator, ScalingDiagonal);
 
         for (int i = 0; i < rA.NumMyRows(); i++) {
             int numEntries; // Number of non-zero entries
@@ -814,15 +814,15 @@ public:
      * @brief This method returns the scale norm considering for scaling the diagonal
      * @param rProcessInfo The problem process info
      * @param rA The LHS matrix
+     * @param rDataCommunicator The data communicator considered
      * @param ScalingDiagonal The type of caling diagonal considered
-     * @param rDataCommunicator The data coomunicator considered
      * @return The scale norm
      */
     static double GetScaleNorm(
         const ProcessInfo& rProcessInfo,
         const MatrixType& rA,
-        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
         )
     {
         KRATOS_TRY
@@ -844,7 +844,7 @@ public:
 
         KRATOS_CATCH("");
     }
-
+    
     /**
      * @brief This method returns the diagonal norm considering for scaling the diagonal
      * @param rA The LHS matrix
@@ -875,7 +875,7 @@ public:
     /**
      * @brief This method returns the diagonal max value
      * @param rA The LHS matrix
-     * @param rDataCommunicator The data coomunicator considered
+     * @param rDataCommunicator The data communicator considered
      * @return The diagonal  max value
      */
     static double GetAveragevalueDiagonal(
@@ -893,7 +893,7 @@ public:
     /**
      * @brief This method returns the diagonal max value
      * @param rA The LHS matrix
-     * @param rDataCommunicator The data coomunicator considered
+     * @param rDataCommunicator The data communicator considered
      * @return The diagonal  max value
      */
     static double GetMaxDiagonal(
@@ -920,7 +920,7 @@ public:
     /**
      * @brief This method returns the diagonal min value
      * @param rA The LHS matrix
-     * @param rDataCommunicator The data coomunicator considered
+     * @param rDataCommunicator The data communicator considered
      * @return The diagonal min value
      */
     static double GetMinDiagonal(
