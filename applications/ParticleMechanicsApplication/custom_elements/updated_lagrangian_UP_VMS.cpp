@@ -322,7 +322,8 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
     const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
         : false;
-        //if (is_dynamic) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+    const int current_step = rCurrentProcessInfo.GetValue(STEP);
+    if (is_dynamic && current_step > 1) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
 
     // Compute Residual Projection in integration points
@@ -339,7 +340,6 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
                  rVariables.ResProjDisplGP[k] += r_N(0, j) * nodal_resprojdispl[k];
             }
         }
-
     }
 
     // Compute Shear modulus and Bulk Modulus
@@ -536,20 +536,15 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
         array_1d<double, 3 > previous_displacement = ZeroVector(3);
         previous_displacement = r_geometry[j].GetSolutionStepValue(DISPLACEMENT,1);
 
-        array_1d<double, 3 > nodal_displacement = ZeroVector(3);
-        nodal_displacement = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT,0);
-
         for (unsigned int k = 0; k < dimension; k++)
         {
             aux_MP_velocity[k] += r_N(0, j) * previous_velocity[k];
             aux_MP_acceleration[k] += r_N(0, j) * previous_acceleration[k];
             aux_MP_displacement[k] += r_N(0, j) * previous_displacement[k];
-            current_MP_displacement[k] += r_N(0, j) * nodal_displacement[k];
         }
     }
 
     rVariables.DynamicCoefficient = 1 / (beta * delta_time * delta_time);
-
     const double coeff1 = 1 / (delta_time * 0.25);
     const double coeff2 = (0.5 - beta) / beta;
 
@@ -557,8 +552,8 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
 
     for (unsigned int idime = 0; idime < dimension; idime++)
     {
-        //rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * current_MP_displacement[idime];
-        rVariables.DynamicRHS[idime] += rVariables.DynamicCoefficient * aux_MP_displacement[idime];
+        rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * aux_MP_displacement[idime];
+        rVariables.DynamicRHS[idime] -= coeff1 * aux_MP_displacement[idime];
         rVariables.DynamicRHS[idime] += coeff1 * aux_MP_velocity[idime] + coeff2 * aux_MP_acceleration[idime];
     }
 
@@ -754,7 +749,6 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMa
 
     KRATOS_CATCH( "" )
 }
-
 
 
 //***********************************************************************************
