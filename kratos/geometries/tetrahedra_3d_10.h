@@ -4,27 +4,28 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
+//  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TETRAHEDRA_3D_10_H_INCLUDED )
-#define  KRATOS_TETRAHEDRA_3D_10_H_INCLUDED
+#pragma once
 
 // System includes
+#include <numeric>
 
 // External includes
 
 // Project includes
 #include "geometries/triangle_3d_6.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "utilities/integration_utilities.h"
 #include "integration/tetrahedron_gauss_legendre_integration_points.h"
-
 
 namespace Kratos
 {
@@ -439,24 +440,18 @@ public:
         return Volume();
     }
 
-
-    double Volume() const override //Not a closed formula for a quadratic tetrahedra
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    double Volume() const override
     {
-
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        //KRATOS_WATCH(temp)
-        return Volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -543,28 +538,28 @@ public:
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 4 ),
-                                              this->pGetPoint( 1 ) ) ) );
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 5 ),
-                                              this->pGetPoint( 2 ) ) ) );
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 5 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 6 ),
-                                              this->pGetPoint( 0 ) ) ) );
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 6 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 7 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 7 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 8 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 8 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 9 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 9 ) ) ) );
 
         return edges;
     }
@@ -626,6 +621,21 @@ public:
                                               this->pGetPoint( 8 ),
                                               this->pGetPoint( 5 ) ) ) );
         return faces;
+    }
+
+    /** This method calculates and returns the average edge length of the geometry
+     *
+     * @return double value with the average edge length
+     *
+     */
+    double AverageEdgeLength() const override {
+        const GeometriesArrayType edges = this->GenerateEdges();
+        return std::accumulate(
+            edges.begin(),
+            edges.end(),
+            0.0,
+            [](double sum, const auto& rEdge) {return sum + rEdge.Length();}
+        ) * 0.16666666666666666667;
     }
 
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
@@ -758,6 +768,29 @@ public:
         rResult(9, 2) =  4.0 * rPoint[1];
 
         return rResult;
+    }
+
+    /** Tests the intersection of the geometry with
+     * a 3D box defined by rLowPoint and rHighPoint.
+     * The method is only implemented for simple tets
+     * where the faces are planar.
+     *
+     * @param  rLowPoint  Lower point of the box to test the intersection
+     * @param  rHighPoint Higher point of the box to test the intersection
+     * @return            True if the geometry intersects the box, False in any other case.
+     */
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
+    {
+        if (this->FacesArePlanar()) {
+            return Tetrahedra3D4<TPointType>(
+                this->pGetPoint(0),
+                this->pGetPoint(1),
+                this->pGetPoint(2),
+                this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint);
+        } else {
+             KRATOS_ERROR << "\"HasIntersection\" is not implemented for non-planar 10 noded tetrahedra.";
+        }
+        return false;
     }
 
 
@@ -1022,6 +1055,27 @@ private:
         return shape_functions_local_gradients;
     }
 
+    /**
+     * Checks if faces are planar. We iterate for all edges and check
+     * that the sum of 0-2 and 2-1 segments is no bigger than 0-1.
+     *
+     * @return bool faces are planar or not
+     *
+     */
+    bool FacesArePlanar() const
+    {
+        constexpr double tol = 1e-6;
+        for (auto& r_edge : this->GenerateEdges()) {
+            const double a = MathUtils<double>::Norm3(r_edge.GetPoint(0)-r_edge.GetPoint(1));
+            const double b = MathUtils<double>::Norm3(r_edge.GetPoint(1)-r_edge.GetPoint(2));
+            const double c = MathUtils<double>::Norm3(r_edge.GetPoint(2)-r_edge.GetPoint(0));
+            if (b + c > a*(1.0+tol) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     /**
      * Private Friends
@@ -1076,5 +1130,3 @@ GeometryDimension Tetrahedra3D10<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined
