@@ -134,8 +134,8 @@ public:
             
             // non-lin picard iteration, for deepening the pipe
             //Todo JDN (20220817):: Deal with Equilibrium redundancy
-            //Equilibrium = check_pipe_equilibrium(OpenPipeElements, amax, mPipingIterations);
-            check_pipe_equilibrium(OpenPipeElements, amax, mPipingIterations);
+            //Equilibrium = check_pipe_equilibrium(OpenPipeElements, amax);
+            check_pipe_equilibrium(OpenPipeElements, amax);
 
         	// check if pipe should grow in length
         	std::tie(grow, openPipeElements) = check_status_tip_element(openPipeElements, n_el, amax, PipeElements);
@@ -358,7 +358,43 @@ private:
 
     }
 
-    bool check_pipe_equilibrium(filtered_elements openPipeElements, double amax, unsigned int mPipingIterations)
+    void UpdatePipeElementEquilibrium(const Element::Pointer& OpenPipeElement, double amax, bool& equilibrium, unsigned PipeIter, double da)
+    {
+        SteadyStatePwPipingElement<2, 4>::Pointer pElement = Kratos::static_pointer_cast<SteadyStatePwPipingElement<2, 4>>(OpenPipeElement);
+
+        // get open pipe element geometry and properties
+        const auto& pGeom = pElement->GetGeometry();
+        const auto& pProp = pElement->GetProperties();
+
+        // calculate equilibrium pipe height and get current pipe height
+        double eq_height = pElement->CalculateEquilibriumPipeHeight(pProp, pGeom);
+        double current_height = pElement->GetValue(PIPE_HEIGHT);
+
+        // set erosion on true if current pipe height is greater than the equilibirum height
+        if (current_height > eq_height)
+        {
+            pElement->SetValue(PIPE_EROSION, true);
+        }
+
+        // check this if statement, I dont understand the check for pipe erosion
+        if ((!pElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax)
+        {
+            pElement->SetValue(PIPE_HEIGHT, pElement->GetValue(PIPE_HEIGHT) + da);
+            equilibrium = false;
+        }
+
+        // check if equilibrium height and current pipe heights are diverging, stop picard iterations if this is the case and set pipe height on zero
+        if (!pElement->GetValue(PIPE_EROSION) && (PipeIter > 1) && ((eq_height - current_height) > pElement->GetValue(DIFF_PIPE_HEIGHT)))
+        {
+            equilibrium = true;
+            pElement->SetValue(PIPE_HEIGHT, small_pipe_height);
+        }
+
+        // calculate difference between equilibrium height and current pipe height
+        pElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
+    }
+
+    bool check_pipe_equilibrium(const filtered_elements openPipeElements, double amax)
     {
         bool equilibrium = false;
         bool converged = true;
@@ -387,41 +423,9 @@ private:
             {
                 // Update depth of open piping Elements 
                 equilibrium = true;
-                for (Element::Pointer& OpenPipeElement : openPipeElements)
+                for (const Element::Pointer& pOpenPipeElement : openPipeElements)
                 {
-                    SteadyStatePwPipingElement<2, 4>::Pointer pElement = Kratos::static_pointer_cast<SteadyStatePwPipingElement<2, 4>>(OpenPipeElement);
-
-                    // get open pipe element geometry and properties
-                    const auto& pGeom = pElement->GetGeometry();
-                    const auto& pProp = pElement->GetProperties();
-
-                    // calculate equilibrium pipe height and get current pipe height
-                    double eq_height = pElement->CalculateEquilibriumPipeHeight(pProp, pGeom);
-                    double current_height = pElement->GetValue(PIPE_HEIGHT);
-
-                    // set erosion on true if current pipe height is greater than the equilibirum height
-                    if (current_height > eq_height)
-                    {
-                        pElement->SetValue(PIPE_EROSION, true);
-                    }
-
-                    // check this if statement, I dont understand the check for pipe erosion
-                    if ((!pElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax)
-                    {
-                        pElement->SetValue(PIPE_HEIGHT, pElement->GetValue(PIPE_HEIGHT) + da);
-                        equilibrium = false;
-                    }
-
-                    // check if equilibrium height and current pipe heights are diverging, stop picard iterations if this is the case and set pipe height on zero
-                    if (!pElement->GetValue(PIPE_EROSION) && (PipeIter > 1) && ((eq_height - current_height) > pElement->GetValue(DIFF_PIPE_HEIGHT)))
-                    {
-                        equilibrium = true;
-                        pElement->SetValue(PIPE_HEIGHT, small_pipe_height);
-                    }
-
-                    // calculate difference between equilibrium height and current pipe height
-                    pElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
-
+                    UpdatePipeElementEquilibrium(pOpenPipeElement, amax, equilibrium, PipeIter, da);
                 }
                 // increment piping iteration number
                 PipeIter += 1;
@@ -466,12 +470,12 @@ private:
     }
 
     /// <summary>
-    /// Saves pipe heights if pipe grows, else reset pipe hieghts to previous grow step.
+    /// Saves pipe heights if pipe grows, else reset pipe heights to previous grow step.
     /// </summary>
     /// <param name="open_pipe_elements"> open pipe elements</param>
     /// <param name="grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
-    void save_or_reset_pipe_heights(filtered_elements openPipeElements, bool grow)
+    void save_or_reset_pipe_heights(const filtered_elements openPipeElements, bool grow)
     {
         for (const Element::Pointer& pOpenPipeElement : openPipeElements)
         {
