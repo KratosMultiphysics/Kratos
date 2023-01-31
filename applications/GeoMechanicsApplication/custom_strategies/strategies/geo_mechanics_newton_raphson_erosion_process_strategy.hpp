@@ -394,7 +394,7 @@ private:
         pElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
     }
 
-    bool check_pipe_equilibrium(const filtered_elements openPipeElements, double amax)
+    bool check_pipe_equilibrium(const filtered_elements& openPipeElements, double amax)
     {
         bool equilibrium = false;
         bool converged = true;
@@ -472,10 +472,10 @@ private:
     /// <summary>
     /// Saves pipe heights if pipe grows, else reset pipe heights to previous grow step.
     /// </summary>
-    /// <param name="open_pipe_elements"> open pipe elements</param>
+    /// <param name="openpPipeElements"> open pipe elements</param>
     /// <param name="grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
-    void save_or_reset_pipe_heights(const filtered_elements openPipeElements, bool grow)
+    void save_or_reset_pipe_heights(const filtered_elements& openPipeElements, bool grow)
     {
         for (const Element::Pointer& pOpenPipeElement : openPipeElements)
         {

@@ -332,13 +332,11 @@ template< >
 double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const GeometryType& Geom)
 {
     KRATOS_ERROR << " hydraulic head gradient calculation of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
-    return 0;
 }
 template< >
 double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const GeometryType& Geom)
 {
     KRATOS_ERROR << " hydraulic head gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
-    return 0;
 }
 /// <summary>
 ///  Calculate the particle diameter for the particles in the pipe. The particle diameter equals d70, 
