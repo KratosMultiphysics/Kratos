@@ -36,7 +36,8 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints,
         if settings["relaxation_coefficient"].GetString() == "reciprocal":
             relax_coeff = 1 / optimization_iteration
         else:
-            raise NameError("The following relaxation coefficient for the sensitivity heatmap is not supported: " + settings["relaxation_coefficient"].GetString())
+            raise NameError("The following relaxation coefficient for the sensitivity heatmap is not supported: "
+                            + settings["relaxation_coefficient"].GetString())
     else:
         relax_coeff = settings["relaxation_coefficient"].GetDouble()
 
@@ -48,7 +49,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints,
     objective_is_weigthed = False
     if sensitivity_weighting and \
         not objectives[0]["response_settings"]["response_type"].GetString() in continuous_response_gradients:
-            objective_is_weigthed = True
+        objective_is_weigthed = True
 
     if objective_is_weigthed:
         WeightResponseGradient(design_surface, objective_gradient_name, design_variable_dimension)
@@ -73,7 +74,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints,
                 constraint_is_weigthed = False
                 if sensitivity_weighting and \
                     not constraints[itr]["response_settings"]["response_type"] in continuous_response_gradients:
-                        constraint_is_weigthed = True
+                    constraint_is_weigthed = True
                 if constraint_is_weigthed:
                     WeightResponseGradient(design_surface, constraint_gradient_name, design_variable_dimension)
                     constraint_gradient_name += "_WEIGHTED"

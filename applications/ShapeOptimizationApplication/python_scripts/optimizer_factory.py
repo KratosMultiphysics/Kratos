@@ -77,7 +77,7 @@ class Optimizer:
         # sensitivity heatmap
         if self.optimization_settings["output"].Has("sensitivity_heatmap") and \
             self.optimization_settings["output"]["sensitivity_heatmap"].GetBool():
-                self.__AddVariablesToBeUsedBySensitivityHeatmap()
+            self.__AddVariablesToBeUsedBySensitivityHeatmap()
 
     def __AddVariablesToBeUsedByDesignVariables(self):
         if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
@@ -94,8 +94,6 @@ class Optimizer:
                 model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
 
     def __AddVariablesToBeUsedBySensitivityHeatmap(self):
-        KM.Logger.PrintInfo("ShapeOpt", "VARIABLES FOR HEATMAP ARE ADDED")
-
         model_part = self.model_part_controller.GetOptimizationModelPart()
 
         model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)

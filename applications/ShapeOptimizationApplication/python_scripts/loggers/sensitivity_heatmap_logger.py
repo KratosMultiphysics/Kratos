@@ -23,26 +23,20 @@ class SensitivityHeatmapLoggerBase():
             "norm_type": "l2",
             "sensitivity_weighting": true,
             "mapping" : true,
-            "relaxation_coefficient": 0.5
+            "relaxation_coefficient": "reciprocal"
         }""")
 
-        if not optimization_settings["output"].Has("sensitivity_heatmap_settings"):
-            optimization_settings["output"].AddValue("sensitivity_heatmap_settings", default_heatmap_settings)
-
         self.heatmap_settings = optimization_settings["output"]["sensitivity_heatmap_settings"]
-
-        # TODO: change default to reciprocal
-        reciprocal = False
-        if self.heatmap_settings["relaxation_coefficient"].IsString():
-            if self.heatmap_settings["relaxation_coefficient"].GetString() == "reciprocal":
-                reciprocal = True
-                self.heatmap_settings["relaxation_coefficient"].SetDouble(-1.0)
-            else:
-                raise Exception("\"relaxation_coefficient\" either should be double value or \"reciprocal\".")
+        not_reciprocal = False
+        if self.heatmap_settings.Has("relaxation_coefficient") and \
+            self.heatmap_settings["relaxation_coefficient"].IsDouble():
+            relax_coeff = self.heatmap_settings["relaxation_coefficient"].GetDouble()
+            not_reciprocal = True
+            self.heatmap_settings["relaxation_coefficient"].SetString("not_reciprocal")
 
         self.heatmap_settings.ValidateAndAssignDefaults(default_heatmap_settings)
-        if reciprocal:
-            self.heatmap_settings["relaxation_coefficient"].SetString("reciprocal")
+        if not_reciprocal:
+            self.heatmap_settings["relaxation_coefficient"].SetDouble(relax_coeff)
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
