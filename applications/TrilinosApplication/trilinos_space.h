@@ -35,7 +35,6 @@
 // Project includes
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
-#include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "custom_utilities/trilinos_dof_updater.h"
 
@@ -98,37 +97,46 @@ public:
     ///@{
 
     /// Default constructor.
-
     TrilinosSpace()
     {
     }
 
     /// Destructor.
-
     virtual ~TrilinosSpace()
     {
     }
-
 
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
-    //
+
+    /**
+     * @brief This method creates an empty pointer to a matrix
+     * @return The pointer to the matrix
+     */
     static MatrixPointerType CreateEmptyMatrixPointer()
     {
         return MatrixPointerType(nullptr);
     }
 
+    /**
+     * @brief This method creates an empty pointer to a vector
+     * @return The pointer to the vector
+     */
     static VectorPointerType CreateEmptyVectorPointer()
     {
         return VectorPointerType(nullptr);
     }
 
+    /**
+     * @brief This method creates an empty pointer to a matrix using epetra communicator
+     * @param rComm The epetra communicator
+     * @return The pointer to the matrix
+     */
     static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& Comm)
     {
         int global_elems = 0;
@@ -136,6 +144,11 @@ public:
         return MatrixPointerType(new TMatrixType(::Copy, Map, 0));
     }
 
+    /**
+     * @brief This method creates an empty pointer to a vector using epetra communicator
+     * @param rComm The epetra communicator
+     * @return The pointer to the vector
+     */
     static VectorPointerType CreateEmptyVectorPointer(Epetra_MpiComm& Comm)
     {
         int global_elems = 0;
@@ -143,7 +156,11 @@ public:
         return VectorPointerType(new TVectorType(Map));
     }
 
-    /// return size of vector rV
+    /**
+     * @brief Returns size of vector rV
+     * @param rV The vector considered
+     * @return The size of the vector
+     */
     static IndexType Size(VectorType const& rV)
     {
         int size;
@@ -151,7 +168,11 @@ public:
         return size;
     }
 
-    /// return number of rows of rM
+    /**
+     * @brief Returns number of rows of rM
+     * @param rM The matrix considered
+     * @return The number of rows of rM
+     */
     static IndexType Size1(MatrixType const& rM)
     {
         int size1;
@@ -159,7 +180,11 @@ public:
         return size1;
     }
 
-    /// return number of columns of rM
+    /**
+     * @brief Returns number of columns of rM
+     * @param rM The matrix considered
+     * @return The number of columns of rM
+     */
     static IndexType Size2(MatrixType const& rM)
     {
         int size1;
@@ -167,7 +192,14 @@ public:
         return size1;
     }
 
-    /// rXi = rMij
+    /**
+     * @brief Returns the column of the matrix in the given position
+     * @details rXi = rMij
+     * @param j The position of the column
+     * @param rM The matrix considered
+     * @param rX The column considered
+     * @todo Implement this method
+     */
     static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
     {
         KRATOS_ERROR << "GetColumn method is not currently implemented" << std::endl;
@@ -177,19 +209,34 @@ public:
     /// rMij = rXi
     //      static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX){rX = row(rM, j);}
 
-    /// rY = rX
+    /**
+     * @brief Returns a copy of the matrix rX
+     * @details rY = rX
+     * @param rX The matrix considered
+     * @param rY The copy of the matrix rX
+     */
     static void Copy(MatrixType const& rX, MatrixType& rY)
     {
         rY = rX;
     }
 
-    /// rY = rX
+    /**
+     * @brief Returns a copy of the vector rX
+     * @details rY = rX
+     * @param rX The vector considered
+     * @param rY The copy of the vector rX
+     */
     static void Copy(VectorType const& rX, VectorType& rY)
     {
         rY = rX;
     }
 
-    /// rX * rY
+    /**
+     * @brief Returns the product of two vectors
+     * @details rX * rY
+     * @param rX The first vector considered
+     * @param rY The second vector considered
+     */
     static double Dot(VectorType& rX, VectorType& rY)
     {
         double value;
@@ -198,7 +245,11 @@ public:
         return value;
     }
 
-    /// Maximum value
+    /**
+     * @brief Returns the maximum value of the vector rX
+     * @param rX The vector considered
+     * @return The maximum value of the vector rX
+     */
     static double Max(const VectorType& rX)
     {
         double value;
@@ -207,7 +258,11 @@ public:
         return value;
     }
 
-    /// Minimum value
+    /**
+     * @brief Returns the minimum value of the vector rX
+     * @param rX The vector considered
+     * @return The minimum value of the vector rX
+     */
     static double Min(const VectorType& rX)
     {
         double value;
@@ -216,7 +271,12 @@ public:
         return value;
     }
 
-    /// ||rX||2
+    /**
+     * @brief Returns the norm of the vector rX
+     * @details ||rX||2
+     * @param rX The vector considered
+     * @return The norm of the vector rX
+     */
     static double TwoNorm(VectorType const& rX)
     {
         double value;
@@ -225,6 +285,13 @@ public:
         return value;
     }
 
+    /**
+     * @brief Returns the multiplication of a matrix by a vector
+     * @details y = A*x
+     * @param rA The matrix considered
+     * @param rX The vector considered
+     * @param rY The result of the multiplication
+     */
     static void Mult(MatrixType& rA, VectorType& rX, VectorType& rY)
     {
         //y = A*x
@@ -232,6 +299,13 @@ public:
         rA.Multiply(transpose_flag, rX, rY);
     }
 
+    /**
+     * @brief Returns the transpose multiplication of a matrix by a vector
+     * @details y = AT*x
+     * @param rA The matrix considered
+     * @param rX The vector considered
+     * @param rY The result of the multiplication
+     */
     static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
     {
         //y = A*x
@@ -239,20 +313,28 @@ public:
         rA.Multiply(transpose_flag, rX, rY);
     } // rY = rAT * rX
 
-
-    //********************************************************************
-    //checks if a multiplication is needed and tries to do otherwise
+    /**
+     * @brief Returns the multiplication of a vector by a scalar
+     * @details y = A*x
+     * Checks if a multiplication is needed and tries to do otherwise
+     * @param rX The vector considered
+     * @param A The scalar considered
+     */
     static void InplaceMult(VectorType& rX, const double A)
     {
         if (A != 1.00)
             rX.Scale(A);
     }
 
-    //********************************************************************
-    //checks if a multiplication is needed and tries to do otherwise
-    //ATTENTION it is assumed no aliasing between rX and rY
-    // X = A*y;
-
+    /**
+     * @brief Returns the multiplication of a vector by a scalar
+     * @details x = A*y
+     * Checks if a multiplication is needed and tries to do otherwise
+     * @note ATTENTION it is assumed no aliasing between rX and rY
+     * @param rX The resulting vector considered
+     * @param A The scalar considered
+     * @param rY The multiplied vector considered
+     */
     static void Assign(VectorType& rX, const double A, const VectorType& rY)
     {
         if (A != 1.00)
@@ -261,11 +343,15 @@ public:
             rX = rY;
     }
 
-    //********************************************************************
-    //checks if a multiplication is needed and tries to do otherwise
-    //ATTENTION it is assumed no aliasing between rX and rY
-    // X += A*y;
-
+    /**
+     * @brief Returns the unaliased addition of a vector by a scalar times a vector
+     * @details X += A*y;
+     * Checks if a multiplication is needed and tries to do otherwise
+     * @note ATTENTION it is assumed no aliasing between rX and rY
+     * @param rX The resulting vector considered
+     * @param A The scalar considered
+     * @param rY The multiplied vector considered
+     */
     static void UnaliasedAdd(VectorType& rX, const double A, const VectorType& rY)
     {
         rX.Update(A, rY, 1.0);
@@ -586,7 +672,7 @@ public:
         MatrixType& rA,
         VectorType& rb,
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING,
-        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        const DataCommunicator& rDataCommunicator
         )
     {
         // Define  zero value tolerance
@@ -640,7 +726,7 @@ public:
         const ProcessInfo& rProcessInfo,
         const MatrixType& rA,
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING,
-        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        const DataCommunicator& rDataCommunicator
         )
     {
         switch (ScalingDiagonal) {
@@ -666,7 +752,7 @@ public:
      */
     static double GetDiagonalNorm(
         const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        const DataCommunicator& rDataCommunicator
         )
     {
         // Generate Epetra communicator
@@ -690,7 +776,7 @@ public:
      */
     static double GetAveragevalueDiagonal(
         const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        const DataCommunicator& rDataCommunicator
         )
     {
         return 0.5 * (GetMaxDiagonal(rA, rDataCommunicator) + GetMinDiagonal(rA, rDataCommunicator));
@@ -704,7 +790,7 @@ public:
      */
     static double GetMaxDiagonal(
         const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        const DataCommunicator& rDataCommunicator
         )
     {
         // Generate Epetra communicator
@@ -727,7 +813,7 @@ public:
      */
     static double GetMinDiagonal(
         const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        const DataCommunicator& rDataCommunicator
         )
     {
         // Generate Epetra communicator
