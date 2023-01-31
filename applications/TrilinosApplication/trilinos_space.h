@@ -35,6 +35,7 @@
 // Project includes
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
+#include "includes/data_communicator.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "custom_utilities/trilinos_dof_updater.h"
 
@@ -357,24 +358,45 @@ public:
         rX.Update(A, rY, 1.0);
     }
 
-    //********************************************************************
-
+    /**
+     * @brief Returns the unaliased addition of two vectors by a scalar 
+     * @details rZ = (A * rX) + (B * rY)
+     * @param A The scalar considered
+     * @param rX The first vector considered
+     * @param B The scalar considered
+     * @param rY The second vector considered
+     * @param rZ The resulting vector considered
+     */
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, const VectorType& rY, VectorType& rZ) // rZ = (A * rX) + (B * rY)
     {
         rZ.Update(A, rX, B, rY, 0.0);
     }
 
+    /**
+     * @brief Returns the unaliased addition of two vectors by a scalar 
+     * @details rY = (A * rX) + (B * rY)
+     * @param A The scalar considered
+     * @param rX The first vector considered
+     * @param B The scalar considered
+     * @param rY The resulting vector considered
+     */
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, VectorType& rY) // rY = (A * rX) + (B * rY)
     {
         rY.Update(A, rX, B);
     }
-
 
     /// rA[i] * rX
     //       static double RowDot(unsigned int i, MatrixType& rA, VectorType& rX)
     // 	{
     // 	  return inner_prod(row(rA, i), rX);
     // 	}
+
+    /**
+     * @brief Sets a value in a vector
+     * @param rX The vector considered
+     * @param i The index of the value considered
+     * @param value The value considered
+     */
     static void SetValue(VectorType& rX, IndexType i, double value)
     {
         Epetra_IntSerialDenseVector indices(1);
@@ -389,24 +411,44 @@ public:
         KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
     }
 
-    /// rX = A
-
+    /**
+     * @brief assigns a scalar to a vector
+     * @details rX = A
+     * @param rX The vector considered
+     * @param A The scalar considered
+     */
     static void Set(VectorType& rX, DataType A)
     {
         rX.PutScalar(A);
     }
 
+    /**
+     * @brief Resizes a matrix
+     * @param rA The matrix to be resized
+     * @param m The new number of rows
+     * @param n The new number of columns
+     */
     static void Resize(MatrixType& rA, SizeType m, SizeType n)
     {
         KRATOS_ERROR << "Resize is not defined for Trilinos Sparse Matrix" << std::endl;
 
     }
 
+    /**
+     * @brief Resizes a vector
+     * @param rX The vector to be resized
+     * @param n The new size
+     */
     static void Resize(VectorType& rX, SizeType n)
     {
         KRATOS_ERROR << "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer" << std::endl;
     }
 
+    /**
+     * @brief Resizes a vector
+     * @param pA The pointer to the vector to be resized
+     * @param n The new size
+     */
     static void Resize(VectorPointerType& pX, SizeType n)
     {
         //KRATOS_ERROR_IF(pX != NULL) << "trying to resize a null pointer" << std::endl;
@@ -416,6 +458,10 @@ public:
         pX.swap(pNewEmptyX);
     }
 
+    /**
+     * @brief Clears a matrix
+     * @param pA The pointer to the matrix to be cleared
+     */
     static void Clear(MatrixPointerType& pA)
     {
         if(pA != NULL) {
@@ -426,6 +472,10 @@ public:
         }
     }
 
+    /**
+     * @brief Clears a vector
+     * @param pX The pointer to the vector to be cleared
+     */
     static void Clear(VectorPointerType& pX)
     {
         if(pX != NULL) {
@@ -436,11 +486,19 @@ public:
         }
     }
 
+    /**
+     * @brief Sets a matrix to zero
+     * @param rX The matrix to be set
+     */
     inline static void SetToZero(MatrixType& rA)
     {
         rA.PutScalar(0.0);
     }
 
+    /**
+     * @brief Sets a vector to zero
+     * @param rX The vector to be set
+     */
     inline static void SetToZero(VectorType& rX)
     {
         rX.PutScalar(0.0);
@@ -449,6 +507,12 @@ public:
     /// TODO: creating the the calculating reaction version
     // 	template<class TOtherMatrixType, class TEquationIdVectorType>
 
+    /**
+     * @brief Assembles the LHS of the system
+     * @param A The LHS matrix
+     * @param LHS_Contribution The contribution to the LHS
+     * @param EquationId The equation ids
+     */
     inline static void AssembleLHS(
         MatrixType& A,
         Matrix& LHS_Contribution,
@@ -495,6 +559,12 @@ public:
     /// TODO: creating the the calculating reaction version
     // 	template<class TOtherVectorType, class TEquationIdVectorType>
 
+    /**
+     * @brief Assembles the RHS of the system
+     * @param b The RHS vector
+     * @param RHS_Contribution The RHS contribution
+     * @param EquationId The equation ids
+     */
     inline static void AssembleRHS(
         VectorType& b,
         Vector& RHS_Contribution,
@@ -530,15 +600,21 @@ public:
         }
     }
 
-    //***********************************************************************
-
+    /**
+     * @brief This function returns if we are in a distributed system
+     * @return True if we are in a distributed system, false otherwise (always true in this case)
+     */
     inline static constexpr bool IsDistributed()
     {
         return true;
     }
 
-    //***********************************************************************
-
+    /**
+     * @brief This function returns a value from a given vector according to a given index
+     * @param rX The vector from which values are to be gathered
+     * @param I The index of the value to be gathered
+     * @return The value of the vector corresponding to the index I
+     */
     inline static double GetValue(const VectorType& x, std::size_t I)
     {
         // index must be local to this proc
@@ -548,8 +624,12 @@ public:
         return x[0][x.Map().LID(static_cast<int>(I))];
     }
 
-    //***********************************************************************
-
+    /**
+     * @brief This function gathers the values of a given vector according to a given index array
+     * @param rX The vector from which values are to be gathered
+     * @param IndexArray The array containing the indices of the values to be gathered
+     * @param pValues The array containing the gathered values
+     */
     static void GatherValues(const VectorType& rX, const std::vector<int>& IndexArray, double* pValues)
     {
         KRATOS_TRY
@@ -575,6 +655,12 @@ public:
 
     }
 
+    /**
+     * @brief Read a matrix from a MatrixMarket file
+     * @param rFileName The name of the file to read
+     * @param rComm The MPI communicator
+     * @return The matrix read from the file
+     */
     MatrixPointerType ReadMatrixMarket(const std::string FileName,Epetra_MpiComm& Comm)
     {
         KRATOS_TRY
@@ -626,6 +712,12 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Read a vector from a MatrixMarket file
+     * @param rFileName The name of the file to read
+     * @param rComm The MPI communicator
+     * @param N The size of the vector
+     */
     VectorPointerType ReadMatrixMarketVector(const std::string& rFileName, Epetra_MpiComm& rComm, int N)
     {
         KRATOS_TRY
@@ -675,6 +767,8 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        KRATOS_TRY
+
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
@@ -712,6 +806,8 @@ public:
         rA.GlobalAssemble();
 
         return scale_factor;
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -729,6 +825,8 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        KRATOS_TRY
+
         switch (ScalingDiagonal) {
             case SCALING_DIAGONAL::NO_SCALING:
                 return 1.0;
@@ -743,6 +841,8 @@ public:
             default:
                 return GetMaxDiagonal(rA, rDataCommunicator);
         }
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -755,6 +855,8 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        KRATOS_TRY
+
         // Generate Epetra communicator
         KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
         auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
@@ -766,6 +868,8 @@ public:
         rA.ExtractDiagonalCopy(diagonal);
 
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::TwoNorm(diagonal);
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -779,7 +883,11 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        KRATOS_TRY
+
         return 0.5 * (GetMaxDiagonal(rA, rDataCommunicator) + GetMinDiagonal(rA, rDataCommunicator));
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -793,6 +901,8 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        KRATOS_TRY
+
         // Generate Epetra communicator
         KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
         auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
@@ -803,6 +913,8 @@ public:
         Epetra_Vector diagonal(map);
         rA.ExtractDiagonalCopy(diagonal);
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Max(diagonal);
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -816,6 +928,8 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        KRATOS_TRY
+
         // Generate Epetra communicator
         KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
         auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
@@ -826,6 +940,8 @@ public:
         Epetra_Vector diagonal(map);
         rA.ExtractDiagonalCopy(diagonal);
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Min(diagonal);
+
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -840,26 +956,39 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-
+    /**
+     * @brief Turn back information as a string.
+     * @return Info as a string.
+     */
     virtual std::string Info() const
     {
         return "TrilinosSpace";
     }
 
-    /// Print information about this object.
-
+    /**
+     * @brief Print information about this object.
+     * @param rOStream The output stream to print on.
+     */
     virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "TrilinosSpace";
     }
 
-    /// Print object's data.
-
+    /**
+     * @brief Print object's data.
+     * @param rOStream The output stream to print on.
+     */
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
 
+    /**
+     * @brief Writes a matrix to a file in MatrixMarket format
+     * @param pFileName The name of the file to be written
+     * @param rM The matrix to be written
+     * @param Symmetric If the matrix is symmetric
+     * @return True if the file was successfully written, false otherwise
+     */
     template< class TOtherMatrixType >
     static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
     {
@@ -869,6 +998,12 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Writes a vector to a file in MatrixMarket format
+     * @param pFileName The name of the file to be written
+     * @param rV The vector to be written
+     * @return True if the file was successfully written, false otherwise
+     */
     template< class VectorType >
     static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
     {
@@ -877,7 +1012,10 @@ public:
         KRATOS_CATCH("");
     }
 
-
+    /**
+     * @brief Creates a new dof updater
+     * @return The new dof updater
+     */
     static DofUpdaterPointerType CreateDofUpdater()
     {
         DofUpdaterType tmp;
