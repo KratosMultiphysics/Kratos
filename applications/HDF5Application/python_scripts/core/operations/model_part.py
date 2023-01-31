@@ -407,7 +407,7 @@ class AggregateOperation(KratosMultiphysics.Operation):
 
     def __Add(self, operation_parameters: KratosMultiphysics.Parameters) -> None:
         # Convert input snake case name to the internal camel case name
-        operation_type = self.__SnakeToCamel(operation_parameters["operation_type"].GetString())
+        operation_type = KratosMultiphysics.StringUtilities.ConvertSnakeCaseToCamelCase(operation_parameters["operation_type"].GetString())
         operation: typing.Type[IOOperation] = next((op for op in GetSubclasses(IOOperation) if op.__name__ == operation_type), None)
 
         # Found an operation with a matching name
@@ -423,7 +423,7 @@ class AggregateOperation(KratosMultiphysics.Operation):
                 operation = module.Create(operation_parameters)
 
             if operation is None:
-                raise ValueError(f"Invalid operation type '{operation_parameters['operation_type'].GetString()}'. Available options: {[self.__CamelToSnake(op.__name__) for op in GetSubclasses(IOOperation)]}")
+                raise ValueError(f"Invalid operation type '{operation_parameters['operation_type'].GetString()}'. Available options: {[KratosMultiphysics.StringUtilities.ConvertCamelCaseToSnakeCase(op.__name__) for op in GetSubclasses(IOOperation)]}")
             else:
                 self.__operations.append((operation, operation_parameters))
 
@@ -434,15 +434,6 @@ class AggregateOperation(KratosMultiphysics.Operation):
             "list_of_operations" : [],
             "io_settings" : {}
         }""")
-
-    @staticmethod
-    def __SnakeToCamel(string: str) -> str:
-        return "".join(part.title() for part in string.split('_'))
-
-    @staticmethod
-    def __CamelToSnake(string: str) -> str:
-        capital_indices = [0] + [index for index, char in enumerate(string) if char.isupper()] + [len(string)]
-        return "_".join(string[begin:end].lower() for begin, end in zip(capital_indices[:-1], capital_indices[1:]) if begin != end)
 
 
 def Create(model: KratosMultiphysics.Model, settings: typing.Union[KratosMultiphysics.Parameters, ParametersWrapper]) -> AggregateOperation:
