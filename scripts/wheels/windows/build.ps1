@@ -64,7 +64,7 @@ function build_core ($pythonLocation, $prefixLocation) {
 
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
 
-    Write-Host "Debuging: begin cmd.exe call"
+    Write-Host "Debugging: begin cmd.exe call"
     
     cmd.exe /c "call configure.bat $($pythonLocation) $($kratosRoot) $($prefixLocation) $($numcores)"
     cmake --build "$($kratosRoot)/build/Release" --target KratosKernel -- /property:configuration=Release /p:Platform=x64 /p:CL_MPCount=24 /m:1
@@ -80,14 +80,14 @@ function build_interface ($pythonLocation, $pythonPath) {
     cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64 /p:CL_MPCount=24 /m:1
 }
 
-# Core can be build independently of the python version.
+# Core can be built independently of the python version.
 # Install path should be useless here.
 Write-Host "Starting core build"
 # build_core "$($env:pythonRoot)\39\python.exe" ${KRATOS_ROOT}/bin/core
 Write-Host "Finished core build"
 
 foreach ($python in $pythons){
-    Write-Host "Begining build for python $($python)"
+    Write-Host "Beginning build for python $($python)"
     $env:python = $python
 
     cd $kratosRoot

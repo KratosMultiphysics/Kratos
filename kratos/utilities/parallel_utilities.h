@@ -12,8 +12,7 @@
 //                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED)
-#define KRATOS_PARALLEL_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -36,17 +35,19 @@
 #include "includes/global_variables.h"
 #include "includes/lock_object.h"
 
+#define KRATOS_CRITICAL_SECTION const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
+
 #define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
 
 #define KRATOS_CATCH_THREAD_EXCEPTION \
 } catch(Exception& e) { \
-    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    KRATOS_CRITICAL_SECTION \
     err_stream << "Thread #" << i << " caught exception: " << e.what(); \
 } catch(std::exception& e) { \
-    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    KRATOS_CRITICAL_SECTION \
     err_stream << "Thread #" << i << " caught exception: " << e.what(); \
 } catch(...) { \
-    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    KRATOS_CRITICAL_SECTION \
     err_stream << "Thread #" << i << " caught unknown exception:"; \
 }
 
@@ -75,7 +76,7 @@ public:
     /** @brief Returns the current number of threads
      * @return number of threads
      */
-    static int GetNumThreads();
+    [[nodiscard]] static int GetNumThreads();
 
     /** @brief Sets the current number of threads
      * @param NumThreads - the number of threads to be used
@@ -86,7 +87,7 @@ public:
      * This can include the multiple threads per processing unit
      * @return number of processors
      */
-    static int GetNumProcs();
+    [[nodiscard]] static int GetNumProcs();
 
     ///@}
 
@@ -94,7 +95,7 @@ public:
      * Global lock that can be used for critical sections
      * @return global lock
      */
-    static LockObject& GetGlobalLock();
+    [[nodiscard]] static LockObject& GetGlobalLock();
 
     ///@}
 
@@ -206,7 +207,7 @@ public:
      * @param f - must be a unary function accepting as input TContainerType::value_type&
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::return_type for_each(TUnaryFunction &&f)
+    [[nodiscard]] inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
@@ -262,7 +263,7 @@ public:
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
-    inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    [[nodiscard]] inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -310,7 +311,7 @@ void block_for_each(TContainerType &&v, TFunctionType &&func)
  * @param func - must be a unary function accepting as input TContainerType::value_type&
  */
 template <class TReducer, class TContainerType, class TFunctionType>
-typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
+[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
 {
     return  BlockPartition<TContainerType>(v.begin(), v.end()).template for_each<TReducer>(std::forward<TFunctionType>(func));
 }
@@ -332,7 +333,7 @@ void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctio
  * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
  */
 template <class TReducer, class TContainerType, class TThreadLocalStorage, class TFunctionType>
-typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
     return BlockPartition<TContainerType>(v.begin(), v.end()).template for_each<TReducer>(tls, std::forward<TFunctionType>(func));
 }
@@ -433,7 +434,7 @@ public:
      * @param f - must be a unary function accepting as input IndexType
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::return_type for_each(TUnaryFunction &&f)
+    [[nodiscard]] inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
@@ -488,7 +489,7 @@ public:
      * @param f - must be a function accepting as input IndexType and the thread local storage
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
-    inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    [[nodiscard]] inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -527,5 +528,3 @@ private:
 #undef KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 #undef KRATOS_CATCH_THREAD_EXCEPTION
 #undef KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
-
-#endif // KRATOS_PARALLEL_UTILITIES_H_INCLUDED defined

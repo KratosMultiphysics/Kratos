@@ -411,13 +411,11 @@ class MPMSolver(PythonSolver):
     def _CreateNewtonRaphsonStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         solution_scheme = self._GetSolutionScheme()
-        linear_solver = self._GetLinearSolver()
         convergence_criterion = self._GetConvergenceCriteria()
         builder_and_solver = self._GetBuilderAndSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
         return KratosParticle.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                         solution_scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         self.settings["max_iteration"].GetInt(),

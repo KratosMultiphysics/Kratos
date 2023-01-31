@@ -61,7 +61,7 @@ public:
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void GetValue(int& rValue,
+    void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
     {
         rValue = mNearestNeighborId;
@@ -75,7 +75,7 @@ public:
 
 private:
 
-    int mNearestNeighborId = -1;
+    std::vector<int> mNearestNeighborId = {};
     double mNearestNeighborDistance = std::numeric_limits<double>::max();
 
     friend class Serializer;

@@ -113,13 +113,16 @@ void GaussPIPE_HEIGHT::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_p
 
 namespace Kratos
 {
-
     KratosExecute::KratosExecute()
     {
+        KRATOS_INFO("KratosExecute") << "Setting Up Kratos" << std::endl;
 
-        KRATOS_INFO("Execution") << "Setting Up Execution" << std::endl;
-
-        application.Register();
+    	if (!kernel.IsImported("GeoMechanicsApplication"))
+        {
+            KRATOS_INFO("KratosExecute") << "Importing GeoMechanicsApplication" << std::endl;
+    		geoApp = Kratos::make_shared<KratosGeoMechanicsApplication>();
+            kernel.ImportApplication(geoApp);
+        }
 
         Kratos::OpenMPUtils::SetNumThreads(1);
         if (this->GetEchoLevel() > 0)
@@ -600,7 +603,8 @@ namespace Kratos
                                      GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                                      double time, double delta_time, double number_iterations)
     {
-        // Initialize
+
+    	// Initialize
         for (auto process : processes)
         {
             process->ExecuteInitialize();
@@ -655,7 +659,7 @@ namespace Kratos
         std::stringstream kratosLogBuffer;
         LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
         Logger::AddOutput(p_output);
-
+        
         try
         {
             reportProgress(0.0);
