@@ -50,7 +50,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             "constrained"     : true,
             "value"           : {},
             "local_axes"      : {}
-            }
+        }
         """
         )
 
