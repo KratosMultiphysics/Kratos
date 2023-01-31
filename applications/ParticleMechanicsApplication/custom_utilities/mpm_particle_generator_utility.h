@@ -74,7 +74,7 @@ namespace MPMParticleGeneratorUtility
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsMixedFormulation = false) {
+                                        bool IsMixedFormulation = false); // {
 
         /** mpi implementation
         const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))

@@ -41,7 +41,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m){
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
     typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
     typedef ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosConvergenceCriteria;
-    typedef SolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseSolvingStrategyType;
+    typedef SolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSolvingStrategyType;
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
     typedef BuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverType;
 
@@ -49,7 +49,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m){
     typedef MPMResidualBasedNewtonRaphsonStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosMPMResidualBasedNewtonRaphsonStrategyType;
     py::class_< TrilinosMPMResidualBasedNewtonRaphsonStrategyType,typename TrilinosMPMResidualBasedNewtonRaphsonStrategyType::Pointer, TrilinosBaseSolvingStrategyType >
         (m,"TrilinosMPMResidualBasedNewtonRaphsonStrategy")
-        .def(py::init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosConvergenceCriteria::Pointer, TrilinosBuilderAndSolverType::Pointer, int, bool, bool, bool >() )
+        .def(py::init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosConvergenceCriteria::Pointer, TrilinosBuilderAndSolverType::Pointer, int, bool, bool, bool >() )
         ;
 
     // Trilinos MPM Residual Based Bossak Scheme Type

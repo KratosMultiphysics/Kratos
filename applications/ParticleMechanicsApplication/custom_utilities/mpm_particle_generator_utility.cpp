@@ -261,6 +261,9 @@ namespace MPMParticleGeneratorUtility
 
             // For submodelpart without condition, exit
             if (submodelpart.NumberOfConditions() != 0){
+
+                std::string submodelpart_name = submodelpart.Name();
+
                 // For regular conditions: straight copy all conditions
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
                     if (submodelpart.NodesBegin()->Is(SLIP)){
