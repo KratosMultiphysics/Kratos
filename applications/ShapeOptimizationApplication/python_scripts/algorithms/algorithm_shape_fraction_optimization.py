@@ -12,7 +12,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
 
@@ -31,7 +31,7 @@ import time as timer
 class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
-        default_algorithm_settings = KM.Parameters("""
+        default_algorithm_settings = Kratos.Parameters("""
         {
             "name"                    : "shape_fraction_optimization",
             "max_correction_share"    : 0.75,
@@ -43,7 +43,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
                 "tolerance"     : 0.1,
                 "inner_tolerance": 0.01,
                 "max_inner_steps": 10,
-                "start_penalty": 0.1
+                "initial_penalty_factor": 0.1
             },
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
@@ -72,8 +72,8 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         for itr, constraint in enumerate(self.constraints):
             self.constraint_gradient_variables.update({
                 constraint["identifier"].GetString() : {
-                    "gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
-                    "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+                    "gradient": Kratos.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
+                    "mapped_gradient": Kratos.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
                 }
             })
         self.max_correction_share = self.algorithm_settings["max_correction_share"].GetDouble()
@@ -88,13 +88,13 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DP1DX)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DPF1DX)
 
-        # shape fracton related settings
+        # shape fraction related settings
         self.penalty_method = self.algorithm_settings["shape_fraction"]["penalty_method"].GetString()
         self.max_shape_fraction = self.algorithm_settings["shape_fraction"]["max_fraction"].GetDouble()
         self.frac_tolerance = self.algorithm_settings["shape_fraction"]["tolerance"].GetDouble()
         self.inner_tolerance = self.algorithm_settings["shape_fraction"]["inner_tolerance"].GetDouble()
         self.max_inner_steps = self.algorithm_settings["shape_fraction"]["max_inner_steps"].GetDouble()
-        self.start_penalty = self.algorithm_settings["shape_fraction"]["start_penalty"].GetDouble()
+        self.initial_penalty_factor = self.algorithm_settings["shape_fraction"]["initial_penalty_factor"].GetDouble()
         self.inner_step = 0
         self.penalty_factor = 0.0
         self.epsilon = -0.2
@@ -103,7 +103,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.objectives.size() > 1:
-            raise RuntimeError("Gradient projection algorithm only supports one objective function!")
+            raise RuntimeError("Shape fraction algorithm only supports one objective function!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
@@ -128,10 +128,10 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         timer.StartTimer()
 
         for self.optimization_iteration in range(1,self.max_iterations):
-            KM.Logger.Print("")
-            KM.Logger.Print("===============================================================================")
-            KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ", self.optimization_iteration)
-            KM.Logger.Print("===============================================================================\n")
+            Kratos.Logger.Print("")
+            Kratos.Logger.Print("===============================================================================")
+            Kratos.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ", self.optimization_iteration)
+            Kratos.Logger.Print("===============================================================================\n")
 
             timer.StartNewLap()
 
@@ -143,9 +143,9 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
             self.__logCurrentOptimizationStep()
 
-            KM.Logger.Print("")
-            KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            Kratos.Logger.Print("")
+            Kratos.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            Kratos.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             if self.__isAlgorithmConverged():
                 break
@@ -191,13 +191,13 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         # objective gradient
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
-        objective_gradient = KM.Vector()
+        objective_gradient = Kratos.Vector()
         self.optimization_utilities.AssembleVector(self.optimization_model_part, objective_gradient, KSO.DF1DX)
         objective_gradient_norm = objective_gradient.norm_2()
 
         # response value g of penalty method
         response_value = self.__computeResponseValue()
-        KM.Logger.PrintInfo("ShapeFractionOptimization", "Response value: {}".format(response_value))
+        Kratos.Logger.PrintInfo("ShapeFractionOptimization", f"Shape Fraction value = {response_value}")
         # penalty value
         # exterior:             p = max(0, g)**2
         # extended interior:    p = -1/g                            if g =< epsilon (interior penalty)
@@ -206,57 +206,31 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
         # set up initial penalty factor
         if self.penalty_factor == 0.0:
-            if self.penalty_method == "exterior":
-                # compute penalty gradients for start penalty factor
-                penaltyGradientDict = self.__computePenaltyGradient(self.penalty_value)
-                WriteDictionaryDataOnNodalVariable(penaltyGradientDict, self.optimization_model_part, KSO.DP1DX)
-                penalty_gradient = KM.Vector()
-                self.optimization_utilities.AssembleVector(self.optimization_model_part, penalty_gradient, KSO.DP1DX)
-                penalty_gradient_norm = penalty_gradient.norm_2()
-                if penalty_gradient_norm > 0:
-                    self.penalty_factor = self.start_penalty * objective_gradient_norm / penalty_gradient_norm
-            elif self.penalty_method == "extended_interior":
-                self.penalty_factor = self.start_penalty * abs(objective_value / self.penalty_value)
-                a = 0.5
-                self.C = - self.epsilon / (self.penalty_factor**a)
-
-        if self.penalty_method == "exterior" and self.penalty_value > 0:
-            self.inner_step += 1
-        elif self.penalty_method == "extended_interior":
-            self.inner_step += 1
+            self.__SetUpInitialPenaltyFactor(objective_value, objective_gradient_norm)
+        self.__IncrementInnerStep()
 
         # pseudo objective value
-        if self.penalty_method == "exterior":
-            pseudo_objective_value = objective_value + self.penalty_factor * max(0, self.penalty_value)**2
-        elif self.penalty_method == "extended_interior":
-            pseudo_objective_value = objective_value + self.penalty_factor * self.penalty_value
+        pseudo_objective_value = self.__computePseudoObjectiveValue(objective_value)
 
         # check inner convergence
         inner_converged = self.__checkInnerConvergence(pseudo_objective_value)
-
         # update penalty factor if inner loop converged
         if inner_converged:
-            KM.Logger.PrintInfo("ShapeFractionOptimization", "Updating penalty factor:")
+            Kratos.Logger.PrintInfo("ShapeFractionOptimization", "Updating penalty factor.")
             self.__updatePenaltyFactor()
 
         # update pseudo objective value
-        if self.penalty_method == "exterior":
-            self.pseudo_objective_value = objective_value + self.penalty_factor * max(0, self.penalty_value)**2
-        elif self.penalty_method == "extended_interior":
-            self.pseudo_objective_value = objective_value + self.penalty_factor * self.penalty_value
+        self.pseudo_objective_value = self.__computePseudoObjectiveValue(objective_value)
 
         # compute penalty gradient
         # exterior:             p = 2 * g * dg/dx
         # extended interior:    p = -1/g                            if g =< epsilon (interior penalty)
         #                       p = - 2*epsilon - g / epsilon**2    if g > epsilon  (exterior penalty)
-        penaltyGradientDict = self.__computePenaltyGradient(response_value)
-        WriteDictionaryDataOnNodalVariable(penaltyGradientDict, self.optimization_model_part, KSO.DP1DX)
-        penalty_gradient = KM.Vector()
-        self.optimization_utilities.AssembleVector(self.optimization_model_part, penalty_gradient, KSO.DP1DX)
+        penalty_gradient = self.__computePenaltyGradient(response_value)
+        self.optimization_utilities.AssignVectorToVariable(self.optimization_model_part, penalty_gradient, KSO.DP1DX)
 
         # pseudo objective gradient
         pseudo_objective_gradient = objective_gradient + self.penalty_factor * penalty_gradient
-
         self.optimization_utilities.AssignVectorToVariable(self.optimization_model_part, pseudo_objective_gradient, KSO.DPF1DX)
 
         # project and damp objective gradients
@@ -313,7 +287,6 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
             if norm > quantile:
                 return 0.0
-
             else:
                 return norm
 
@@ -326,14 +299,13 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
             else:
                 return norm
 
-        KM.Logger.PrintInfo("ShapeFractionOptimization", "Starting calculation of penalty response value:")
+        Kratos.Logger.PrintInfo("ShapeFractionOptimization", "Starting calculation of penalty response value:")
 
         startTime = timer.time()
-        model_part = self.design_surface
         total_integral = 0.0
         integral_tol = 0.0
         quantile = self.__getQuantile()
-        for node in model_part.Nodes:
+        for node in self.design_surface.Nodes:
 
             if self.penalty_method == "exterior":
                 g_i = __calculateNodalValueExterior(self, node, quantile)
@@ -344,15 +316,13 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
             total_integral += g_i
 
-        KM.Logger.PrintInfo("ShapeFractionOptimization", "total integral: {}".format(total_integral))
-        KM.Logger.PrintInfo("ShapeFractionOptimization", "frac tolerance: {}".format(self.frac_tolerance))
         if self.penalty_method == "extended_interior":
             g = total_integral - integral_tol
 
         elif self.penalty_method == "exterior":
             g = total_integral
 
-        KM.Logger.PrintInfo("ShapeFractionOptimization", "Time needed for calculating the penalty response value = ",round(timer.time() - startTime,2),"s")
+        Kratos.Logger.PrintInfo("ShapeFractionOptimization", "Time needed for calculating the penalty response value = ",round(timer.time() - startTime,2),"s")
 
         return g
 
@@ -376,14 +346,13 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
             else:
                 return [0.0, 0.0, 0.0]
 
-        KM.Logger.PrintInfo("ShapeFractionOptimization", "Starting calculation of penalty gradient:")
+        Kratos.Logger.PrintInfo("ShapeFractionOptimization", "Starting calculation of penalty gradient:")
 
         startTime = timer.time()
-        penalty_gradient = {}
-        model_part = self.design_surface
+        penalty_gradient = Kratos.Vector(3*len(self.design_surface.Nodes))
         quantile = self.__getQuantile()
 
-        for node in model_part.Nodes:
+        for i, node in enumerate(self.design_surface.Nodes):
             if self.penalty_method == "exterior":
                 if penalty_value > 0.0:
                     gradient_i = __calculateNodalGradient(self, node, quantile)
@@ -401,15 +370,15 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
                     gradient_i[1] /= penalty_value**2
                     gradient_i[2] /= penalty_value**2
 
-            penalty_gradient[node.Id] = gradient_i
+            penalty_gradient[3*i:3*i+3] = gradient_i
 
-        KM.Logger.PrintInfo("ShapeFractionOptimization", "Time needed for calculating the penalty gradient = ",round(timer.time() - startTime,2),"s")
+        Kratos.Logger.PrintInfo("ShapeFractionOptimization", "Time needed for calculating the penalty gradient = ",round(timer.time() - startTime,2),"s")
 
         return penalty_gradient
 
     def __getQuantile(self):
 
-        nodal_variable = KM.KratosGlobals.GetVariable("SHAPE_CHANGE")
+        nodal_variable = Kratos.KratosGlobals.GetVariable("SHAPE_CHANGE")
         shape_change = ReadNodalVariableToList(self.design_surface, nodal_variable)
 
         shape_change_norm = []
@@ -423,7 +392,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
         quantile = shape_change_norm[index]
 
-        KM.Logger.PrintInfo("ShapeFractionOptimization: Shape change quantile {}: {}".format((1-self.max_shape_fraction), quantile))
+        Kratos.Logger.PrintInfo(f"ShapeFractionOptimization: Shape change quantile {(1-self.max_shape_fraction)} = {quantile}")
 
         return quantile
 
@@ -443,6 +412,21 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
         return shape_fraction
 
+    def __computePseudoObjectiveValue(self, objective_value):
+        if self.penalty_method == "exterior":
+            pseudo_objective_value = objective_value + self.penalty_factor * max(0, self.penalty_value)**2
+        elif self.penalty_method == "extended_interior":
+            pseudo_objective_value = objective_value + self.penalty_factor * self.penalty_value
+
+        return pseudo_objective_value
+
+    # --------------------------------------------------------------------------
+    def __IncrementInnerStep(self):
+        if self.penalty_method == "exterior" and self.penalty_value > 0:
+            self.inner_step += 1
+        elif self.penalty_method == "extended_interior":
+            self.inner_step += 1
+
     # --------------------------------------------------------------------------
     def __checkInnerConvergence(self, objective_value):
 
@@ -458,7 +442,6 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
             is_converged = True
         else:
             self.relative_change = (objective_value - self.previous_objective_value) / self.reference_objective_value
-            KM.Logger.PrintInfo("ShapeFractionOptimization", "relative_change: {}".format(self.relative_change))
             if abs(self.relative_change) < tolerance:
                 is_converged = True
 
@@ -471,6 +454,19 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         return is_converged
 
     # --------------------------------------------------------------------------
+    def __SetUpInitialPenaltyFactor(self, objective_value, objective_gradient_norm):
+        if self.penalty_method == "exterior":
+            # compute penalty gradients for start penalty factor
+            penalty_gradient = self.__computePenaltyGradient(self.penalty_value)
+            penalty_gradient_norm = penalty_gradient.norm_2()
+            if penalty_gradient_norm > 0:
+                self.penalty_factor = self.initial_penalty_factor * objective_gradient_norm / penalty_gradient_norm
+        elif self.penalty_method == "extended_interior":
+            self.penalty_factor = self.initial_penalty_factor * abs(objective_value / self.penalty_value)
+            a = 0.5
+            self.C = - self.epsilon / (self.penalty_factor**a)
+
+    # --------------------------------------------------------------------------
     def __updatePenaltyFactor(self):
 
         if self.penalty_method == "exterior" and self.penalty_value > 0.0:
@@ -480,6 +476,8 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
             self.penalty_factor *= 1.25 # increase penalty factor by 25%
             a = 0.5
             self.epsilon = - self.C * (self.penalty_factor**a)
+
+        Kratos.Logger.PrintInfo("ShapeOpt", f"New penalty factor = {self.penalty_factor}")
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -502,14 +500,14 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
         g_a, g_a_variables = self.__getActiveConstraints()
 
-        KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
-        nabla_f = KM.Vector()
+        Kratos.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
+        nabla_f = Kratos.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
 
-        s = KM.Vector()
+        s = Kratos.Vector()
 
         if len(g_a) == 0:
-            KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
+            Kratos.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             s = nabla_f * (-1.0)
             s *= self.step_size / s.norm_inf()
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
@@ -518,15 +516,15 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
             return
 
 
-        KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
-        N = KM.Matrix()
+        Kratos.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
+        N = Kratos.Matrix()
         self.optimization_utilities.AssembleMatrix(self.design_surface, N, g_a_variables)
 
-        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
+        settings = Kratos.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
 
-        KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
-        c = KM.Vector()
+        Kratos.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
+        c = Kratos.Vector()
         self.optimization_utilities.CalculateProjectedSearchDirectionAndCorrection(
             nabla_f,
             N,
@@ -540,7 +538,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
                 delta = self.step_size - c.norm_inf()
                 s *= delta/s.norm_inf()
             else:
-                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
+                Kratos.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
                 c *= self.max_correction_share * self.step_size / c.norm_inf()
                 s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
         else:
@@ -574,7 +572,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
                 self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
             )
             if math.isclose(gradient_norm, 0.0, abs_tol=1e-16):
-                KM.Logger.PrintWarning("ShapeOpt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
+                Kratos.Logger.PrintWarning("ShapeOpt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
                 return False
             return True
         else:
@@ -601,15 +599,15 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
             # Check if maximum iterations were reached
             if self.optimization_iteration == self.max_iterations:
-                KM.Logger.Print("")
-                KM.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
+                Kratos.Logger.Print("")
+                Kratos.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
                 return True
 
             # Check for relative tolerance
             relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
             if abs(relative_change_of_objective_value) < self.relative_tolerance:
-                KM.Logger.Print("")
-                KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
+                Kratos.Logger.Print("")
+                Kratos.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
                 return True
 
     # --------------------------------------------------------------------------
