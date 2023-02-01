@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -7,10 +8,6 @@ import KratosMultiphysics.kratos_utilities as KratosUtils
 
 from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
-
-
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 def BaseDistance(x, y, z):
     if (x <= 5.0):
@@ -36,7 +33,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         return KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + GetFilePath(os.path.join("auxiliary_files", "mdpa_files", "levelset_convection_process_mesh")) + """\",
+                "input_filename": \"""" + os.path.join(pathlib.Path.cwd(), "auxiliary_files", "mdpa_files", "levelset_convection_process_mesh") + """\",
                 "partition_in_memory" : false
             },
             "echo_level" : 0
@@ -50,7 +47,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ReadDistributedModelPart(GetFilePath(os.path.join("auxiliary_files", "mdpa_files", "levelset_convection_process_mesh")), self.model_part, self.GetPartitioningParameters())
+        ReadDistributedModelPart(os.path.join(pathlib.Path.cwd(), "auxiliary_files", "mdpa_files", "levelset_convection_process_mesh"), self.model_part, self.GetPartitioningParameters())
 
     def tearDown(self):
         # Remove the Metis partitioning files
@@ -189,7 +186,7 @@ class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
         return KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + GetFilePath(os.path.join("auxiliary_files", "mdpa_files", "levelset_convection_process_mesh")) + """\",
+                "input_filename": \"""" + os.path.join(pathlib.Path.cwd(), "auxiliary_files", "mdpa_files", "levelset_convection_process_mesh") + """\",
                 "partition_in_memory" : true
             },
             "echo_level" : 0

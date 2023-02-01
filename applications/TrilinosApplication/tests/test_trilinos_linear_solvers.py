@@ -3,10 +3,9 @@ import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 from KratosMultiphysics.mpi import DataCommunicatorFactory
-import os
 
-def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+import os
+import pathlib
 
 class TestLinearSolvers(KratosUnittest.TestCase):
     @classmethod
@@ -54,10 +53,10 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
-        pA = space.ReadMatrixMarketMatrix(GetFilePath(os.path.join("auxiliary_files", "matrix_market_files", matrix_name)),comm)
+        pA = space.ReadMatrixMarketMatrix(os.path.join(pathlib.Path.cwd(), "auxiliary_files", "matrix_market_files", matrix_name),comm)
         n = space.Size1(pA.GetReference())
 
-        pAoriginal = space.ReadMatrixMarketMatrix(GetFilePath(os.path.join("auxiliary_files", "matrix_market_files", matrix_name)),comm)
+        pAoriginal = space.ReadMatrixMarketMatrix(os.path.join(pathlib.Path.cwd(), "auxiliary_files", "matrix_market_files", matrix_name),comm)
         pb  = space.CreateEmptyVectorPointer(comm)
         space.ResizeVector(pb,n)
         space.SetToZeroVector(pb.GetReference())

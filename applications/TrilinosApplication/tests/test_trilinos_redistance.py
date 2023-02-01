@@ -1,4 +1,5 @@
 ﻿import os
+import pathlib
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -7,9 +8,6 @@ import KratosMultiphysics.kratos_utilities as KratosUtils
 
 from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
-
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestTrilinosRedistance(KratosUnittest.TestCase):
 
@@ -36,7 +34,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ReadDistributedModelPart(GetFilePath(os.path.join("auxiliary_files", "mdpa_files", "coarse_sphere")), self.model_part)
+        ReadDistributedModelPart(os.path.join(pathlib.Path.cwd(), "auxiliary_files", "mdpa_files", "coarse_sphere"), self.model_part)
 
     def testTrilinosRedistance(self):
         # Initialize the DISTANCE values
