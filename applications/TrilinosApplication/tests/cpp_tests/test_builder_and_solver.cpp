@@ -660,12 +660,39 @@ namespace Kratos::Testing
         KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
 
         // Values to check
-        std::vector<int> row_indexes = {0,2,2,4,4};
-        std::vector<int> column_indexes = {0,2,4,2,4};
-        std::vector<double> values = {2069000000.0000000000000000, 4138000000.0000000000000000, -2069000000.0000000000000000, -2069000000.0000000000000000, 2069000000.0000000000000000};
+        std::vector<int> row_indexes = {0, 1, 2, 2, 3, 4, 4, 5};
+        std::vector<int> column_indexes = {0, 1, 2, 4, 3, 2, 4, 5};
+        std::vector<double> values = {2069000000.0000000000000000, 1.0000000000000000, 4138000000.0000000000000000, -2069000000.0000000000000000, 1.0000000000000000, -2069000000.0000000000000000, 2069000000.0000000000000000, 1.0000000000000000};
 
         // Check assembly
         CheckAssembly(rA, row_indexes, column_indexes, values);
+
+        // Testing scale
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info",
+            "guess_row_size"                     : 15,
+            "silent_warnings"                    : false
+        })" );
+        r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
+        auto p_builder_and_solver_scale = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
+
+        const auto& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
+
+        // // To create the solution of reference
+        // DebugLHS(rA_scale, r_comm);
+
+        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalRows(), 6);
+        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalCols(), 6);
+        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalNonzeros(), 28);
+
+        // Values to check
+        row_indexes = {0, 1, 2, 2, 3, 4, 4, 5};
+        column_indexes = {0, 1, 2, 4, 3, 2, 4, 5};
+        values = {2069000000.0000000000000000, 22664800000.0000000000000000, 4138000000.0000000000000000, -2069000000.0000000000000000, 22664800000.0000000000000000, -2069000000.0000000000000000, 2069000000.0000000000000000, 22664800000.0000000000000000};
+
+        // Check assembly
+        CheckAssembly(rA_scale, row_indexes, column_indexes, values);
     }
 
     /**
