@@ -10,7 +10,7 @@
 
 # importing the Kratos Library
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_sensitivity_heatmap import ComputeSensitivityHeatmap
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_sensitivity_heatmap import SensitivityHeatmapCalculator
 
 # ==============================================================================
 class SensitivityHeatmapLoggerBase():
@@ -23,20 +23,15 @@ class SensitivityHeatmapLoggerBase():
             "norm_type": "l2",
             "sensitivity_weighting": true,
             "mapping" : true,
-            "relaxation_coefficient": "reciprocal"
+            "relaxation_method": "reciprocal",
+            "relaxation_coefficient": 0.5
         }""")
 
         self.heatmap_settings = optimization_settings["output"]["sensitivity_heatmap_settings"]
-        not_reciprocal = False
-        if self.heatmap_settings.Has("relaxation_coefficient") and \
-            self.heatmap_settings["relaxation_coefficient"].IsDouble():
-            relax_coeff = self.heatmap_settings["relaxation_coefficient"].GetDouble()
-            not_reciprocal = True
-            self.heatmap_settings["relaxation_coefficient"].SetString("not_reciprocal")
-
+        if self.heatmap_settings.Has("relaxation_method") and self.heatmap_settings["relaxation_method"].GetString() == "constant":
+            if not self.heatmap_settings.Has("relaxation_coefficient"):
+                raise RuntimeError("'relaxation_coefficient' is missing for relaxation method 'constant'!")
         self.heatmap_settings.ValidateAndAssignDefaults(default_heatmap_settings)
-        if not_reciprocal:
-            self.heatmap_settings["relaxation_coefficient"].SetDouble(relax_coeff)
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
@@ -44,8 +39,7 @@ class SensitivityHeatmapLoggerBase():
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
 
-        self.design_variable_name = None
-        self.design_variable_dimension = None
+        self.sensitivity_heatmap_calculator = None
 
     # --------------------------------------------------------------------------
     def InitializeLogging ( self ):
@@ -53,43 +47,45 @@ class SensitivityHeatmapLoggerBase():
 
     # --------------------------------------------------------------------------
     def LogSensitivityHeatmap(self, optimization_iteration, mapper):
-        ComputeSensitivityHeatmap(self.design_surface,
-                                  self.objectives, self.constraints,
-                                  optimization_iteration, mapper,
-                                  self.design_variable_name, self.design_variable_dimension,
-                                  self.heatmap_settings)
+        self.sensitivity_heatmap_calculator.ComputeHeatmaps(optimization_iteration, mapper)
 
 # ==============================================================================
 class SensitivityHeatmapLoggerSteepestDescent(SensitivityHeatmapLoggerBase):
 
     def InitializeLogging(self):
-        self.design_variable_name = "X"
-        self.design_variable_dimension = 3
+        self.heatmap_settings.AddString("design_variable_name", "X")
+        self.heatmap_settings.AddInt("design_variable_dimension", 3)
+        self.sensitivity_heatmap_calculator = SensitivityHeatmapCalculator(self.design_surface, self.objectives, self.constraints, self.heatmap_settings)
+
 
 # ==============================================================================
 class SensitivityHeatmapLoggerPenalizedProjection(SensitivityHeatmapLoggerBase):
 
     def InitializeLogging(self):
-        self.design_variable_name = "X"
-        self.design_variable_dimension = 3
+        self.heatmap_settings.AddString("design_variable_name", "X")
+        self.heatmap_settings.AddInt("design_variable_dimension", 3)
+        self.sensitivity_heatmap_calculator = SensitivityHeatmapCalculator(self.design_surface, self.objectives, self.constraints, self.heatmap_settings)
 
 # ==============================================================================
 class SensitivityHeatmapLoggerGradientProjection(SensitivityHeatmapLoggerBase):
 
     def InitializeLogging(self):
-        self.design_variable_name = "X"
-        self.design_variable_dimension = 3
+        self.heatmap_settings.AddString("design_variable_name", "X")
+        self.heatmap_settings.AddInt("design_variable_dimension", 3)
+        self.sensitivity_heatmap_calculator = SensitivityHeatmapCalculator(self.design_surface, self.objectives, self.constraints, self.heatmap_settings)
 
 # ==============================================================================
 class SensitivityHeatmapLoggerTrustRegion(SensitivityHeatmapLoggerBase):
 
     def InitializeLogging(self):
-        self.design_variable_name = "X"
-        self.design_variable_dimension = 3
+        self.heatmap_settings.AddString("design_variable_name", "X")
+        self.heatmap_settings.AddInt("design_variable_dimension", 3)
+        self.sensitivity_heatmap_calculator = SensitivityHeatmapCalculator(self.design_surface, self.objectives, self.constraints, self.heatmap_settings)
 
 # ==============================================================================
 class SensitivityHeatmapLoggerBeadOptimization(SensitivityHeatmapLoggerBase):
 
     def InitializeLogging(self):
-        self.design_variable_name = "ALPHA"
-        self.design_variable_dimension = 1
+        self.heatmap_settings.AddString("design_variable_name", "ALPHA")
+        self.heatmap_settings.AddInt("design_variable_dimension", 1)
+        self.sensitivity_heatmap_calculator = SensitivityHeatmapCalculator(self.design_surface, self.objectives, self.constraints, self.heatmap_settings)
