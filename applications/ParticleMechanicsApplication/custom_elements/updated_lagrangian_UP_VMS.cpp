@@ -323,7 +323,7 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
         : false;
     const int current_step = rCurrentProcessInfo.GetValue(STEP);
-    if (is_dynamic && current_step > 1) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+//     if (is_dynamic && current_step > 1) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
 
     // Compute Residual Projection in integration points
@@ -526,15 +526,15 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
     {
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
         array_1d<double, 3 > previous_acceleration = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
-            previous_acceleration = r_geometry[j].GetSolutionStepValue(ACCELERATION,1);
+        //if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
+            previous_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION,1);
 
         array_1d<double, 3 > previous_velocity = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
-            previous_velocity = r_geometry[j].GetSolutionStepValue(VELOCITY,1);
+        //if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
+            previous_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY,1);
 
         array_1d<double, 3 > previous_displacement = ZeroVector(3);
-        previous_displacement = r_geometry[j].GetSolutionStepValue(DISPLACEMENT,1);
+        previous_displacement = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT,1);
 
         for (unsigned int k = 0; k < dimension; k++)
         {
@@ -552,11 +552,16 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
 
     for (unsigned int idime = 0; idime < dimension; idime++)
     {
-        rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * aux_MP_displacement[idime];
-        rVariables.DynamicRHS[idime] -= coeff1 * aux_MP_displacement[idime];
-        rVariables.DynamicRHS[idime] += coeff1 * aux_MP_velocity[idime] + coeff2 * aux_MP_acceleration[idime];
+           rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * aux_MP_displacement[idime];
+           rVariables.DynamicRHS[idime] -= coeff1 * aux_MP_displacement[idime];
+           rVariables.DynamicRHS[idime] += coeff1 * aux_MP_velocity[idime] + coeff2 * aux_MP_acceleration[idime];
+/*
+        rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * mMP.displacement[idime];
+        rVariables.DynamicRHS[idime] -= coeff1 * mMP.displacement[idime];
+        rVariables.DynamicRHS[idime] += coeff1 * mMP.velocity[idime] + coeff2 * mMP.acceleration[idime];*/
     }
 
+//     rVariables.DynamicCoefficient =0;
 
  KRATOS_CATCH( "" )
 }
@@ -968,7 +973,7 @@ void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vecto
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     for (unsigned int k = 0; k < dimension; ++k) rResidualU[k] = rVolumeForce[k] + rVariables.PressureGradient[k];
-    rResidualP =   - rVariables.PressureGP/rVariables.BulkModulus + (1.0 - 1.0 / rVariables.detFT);
+    rResidualP =   - rVariables.PressureGP/rVariables.BulkModulus + (rVariables.detFT*rVariables.detF0-1);
 
 }
 

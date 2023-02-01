@@ -489,8 +489,7 @@ double& UpdatedLagrangianUP::CalculateVolumetricStrainFunction(double& rVolumetr
 {
     KRATOS_TRY
 
-    rVolumetricStrainFunction = 1-(1/rVariables.detF);
-
+    rVolumetricStrainFunction = rVariables.detF0*rVariables.detF - 1;
     return rVolumetricStrainFunction;
 
     KRATOS_CATCH( "" )
