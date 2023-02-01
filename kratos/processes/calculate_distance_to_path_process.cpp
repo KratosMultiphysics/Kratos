@@ -52,6 +52,9 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
     auto& r_comm = r_distance_model_part.GetCommunicator();
     auto& r_data_comm = r_comm.GetDataCommunicator();
     
+    // MPI not supported for the moment
+    KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "MPI not supported for the moment" << std::endl;
+
     // Initialize distance variable
     if constexpr ( THistorical) {
         VariableUtils().SetHistoricalVariableToZero(*mpDistanceVariable, r_distance_model_part.Nodes());
@@ -132,16 +135,16 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
         return pGeometry->Length();
     });
 
-    /// Type definitions for the tree
-    using PointType = PointGeometry;
-    using PointTypePointer = PointType::Pointer;
-    using PointVector = std::vector<PointTypePointer>;
-    using PointIterator = PointVector::iterator;
+    /// Type definitions for the KDtree
+    using KDtreePointType = PointGeometry;
+    using KDtreePointTypePointer = KDtreePointType::Pointer;
+    using KDtreePointVector = std::vector<KDtreePointTypePointer>;
+    using KDtreePointIterator = KDtreePointVector::iterator;
     using DistanceVector = std::vector<double>;
     using DistanceIterator = DistanceVector::iterator;
 
     /// KDtree definitions
-    using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator >;
+    using BucketType = Bucket< 3ul, KDtreePointType, KDtreePointVector, KDtreePointTypePointer, KDtreePointIterator, DistanceIterator >;
     using KDTree = Tree< KDTreePartition<BucketType> >;
 
     // Some auxiliary values
@@ -154,7 +157,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     PointVector points_vector;
     points_vector.reserve(rVectorSegments.size());
     for (auto& p_geom : rVectorSegments) {
-        points_vector.push_back(PointTypePointer(new PointType(p_geom)));
+        points_vector.push_back(KDtreePointTypePointer(new KDtreePointType(p_geom)));
     }
     KDTree tree_points(points_vector.begin(), points_vector.end(), bucket_size);
 
