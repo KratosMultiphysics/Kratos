@@ -142,6 +142,7 @@ public:
           mrComm(rComm),
           mGuessRowSize(GuessRowSize)
     {
+        mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
     }
 
     /**
