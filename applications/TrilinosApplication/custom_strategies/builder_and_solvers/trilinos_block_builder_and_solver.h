@@ -866,34 +866,35 @@ public:
         // defining a temporary vector to gather all of the values needed
         Epetra_IntVector fixed(rA.ColMap());
 
-        // importing in the new temp vector the values
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, r_data_comm, mScalingDiagonal);
+
+        // Importing in the new temp vector the values
         int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
-        if (ierr != 0)
-            KRATOS_ERROR << "Epetra failure found";
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
         for (int i = 0; i < rA.NumMyRows(); i++) {
-            int numEntries; // number of non-zero entries
-            double* vals;   // row non-zero values
-            int* cols;      // column indices of row non-zero values
+            int numEntries; // Number of non-zero entries
+            double* vals;   // Row non-zero values
+            int* cols;      // Column indices of row non-zero values
             rA.ExtractMyRowView(i, numEntries, vals, cols);
 
-            int row_gid = rA.RowMap().GID(i);
-            int row_lid = localmap.LID(row_gid);
+            const int row_gid = rA.RowMap().GID(i);
+            const int row_lid = localmap.LID(row_gid);
 
-            if (fixed_local[row_lid] == 0) // not a dirichlet row
-            {
+            if (fixed_local[row_lid] == 0) { // Not a dirichlet row
                 for (int j = 0; j < numEntries; j++) {
                     if (fixed[cols[j]] == true)
                         vals[j] = 0.0;
                 }
-            }
-            else // this IS a dirichlet row
-            {
-                // set to zero the rhs
+            } else { // This IS a dirichlet row
+                // Set to zero the rhs
                 rb[0][i] = 0.0; // note that the index of i is expected to be
                                 // coherent with the rows of A
 
-                // set to zero the whole row
+                // Set to zero the whole row
                 for (int j = 0; j < numEntries; j++) {
                     int col_gid = rA.ColMap().GID(cols[j]);
                     if (col_gid != row_gid)
