@@ -209,25 +209,23 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        // vector containing the localization in the system of the different terms
+        // Vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         BuiltinTimer build_timer;
 
-        // assemble all elements
+        // Assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            // detect if the element is active or not. If the user did not make
+            // Detect if the element is active or not. If the user did not make
             // any choice the element is active by default
             const bool element_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
 
             if (element_is_active) {
-                // calculate elemental contribution
-                pScheme->CalculateSystemContributions(
-                    **it, LHS_Contribution, RHS_Contribution,
-                    equation_ids_vector, r_current_process_info);
+                // Calculate elemental contribution
+                pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
-                // assemble the elemental contribution
+                // Assemble the elemental contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
@@ -236,24 +234,22 @@ public:
         LHS_Contribution.resize(0, 0, false);
         RHS_Contribution.resize(0, false);
 
-        // assemble all conditions
+        // Assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
             const bool condition_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
             if (condition_is_active) {
-                // calculate elemental contribution
-                pScheme->CalculateSystemContributions(
-                    **it, LHS_Contribution, RHS_Contribution,
-                    equation_ids_vector, r_current_process_info);
+                // Calculate elemental contribution
+                pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
-                // assemble the condition contribution
+                // Assemble the condition contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
         }
 
-        // finalizing the assembly
+        // Finalizing the assembly
         rA.GlobalAssemble();
         rb.GlobalAssemble();
 
@@ -283,30 +279,28 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        // vector containing the localization in the system of the different terms
+        // Vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         BuiltinTimer build_timer;
 
-        // assemble all elements
+        // Assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            pScheme->CalculateLHSContribution(**it, LHS_Contribution,
-                                                equation_ids_vector, r_current_process_info);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // assemble the elemental contribution
+            // Assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
         LHS_Contribution.resize(0, 0, false);
 
-        // assemble all conditions
+        // Assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // calculate elemental contribution
-            pScheme->CalculateLHSContribution(
-                **it, LHS_Contribution, equation_ids_vector, r_current_process_info);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // assemble the elemental contribution
+            // Assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
@@ -476,15 +470,14 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        // vector containing the localization in the system of the different terms
+        // Vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // assemble all elements
+        // Assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            // calculate elemental Right Hand Side Contribution
-            pScheme->CalculateRHSContribution(**it, RHS_Contribution,
-                                                equation_ids_vector, r_current_process_info);
+            // Calculate elemental Right Hand Side Contribution
+            pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution
             TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
@@ -492,17 +485,16 @@ public:
 
         RHS_Contribution.resize(0, false);
 
-        // assemble all conditions
+        // Assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // calculate elemental contribution
-            pScheme->CalculateRHSContribution(
-                **it, RHS_Contribution, equation_ids_vector, r_current_process_info);
+            pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // assemble the elemental contribution
+            // Assemble the elemental contribution
             TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
         }
 
-        // finalizing the assembly
+        // Finalizing the assembly
         rb.GlobalAssemble();
 
         STOP_TIMER("BuildRHS ", 0)
@@ -524,22 +516,19 @@ public:
 
         typedef Element::DofsVectorType DofsVectorType;
         // Gets the array of elements from the modeler
-        ElementsArrayType& r_elements_array =
-            rModelPart.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType& r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
         DofsVectorType dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
-        IndexType guess_num_dofs =
-            rModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * 3;
+        IndexType guess_num_dofs = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * 3;
         temp_dofs_array.reserve(guess_num_dofs);
         BaseType::mDofSet = DofsArrayType();
 
         // Taking dofs of elements
         for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
             pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
-                 i_dof != dof_list.end(); ++i_dof)
+            for (typename DofsVectorType::iterator i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
         }
 
@@ -547,18 +536,16 @@ public:
         auto& r_conditions_array = rModelPart.Conditions();
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
             pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
-                 i_dof != dof_list.end(); ++i_dof)
+            for (typename DofsVectorType::iterator i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
         }
 
         temp_dofs_array.Unique();
         BaseType::mDofSet = temp_dofs_array;
 
-        // throws an exception if there are no Degrees of freedom involved in
+        // Throws an exception if there are no Degrees of freedom involved in
         // the analysis
-        if(rModelPart.GetCommunicator().GetDataCommunicator().SumAll(BaseType::mDofSet.size()) == 0)
-            KRATOS_ERROR << "No degrees of freedom!";
+        KRATOS_ERROR_IF(rModelPart.GetCommunicator().GetDataCommunicator().SumAll(BaseType::mDofSet.size()) == 0) << "No degrees of freedom!";
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have
@@ -756,17 +743,17 @@ public:
     {
         TSparseSpace::SetToZero(rb);
 
-        // refresh RHS to have the correct reactions
+        // Refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
-        // initialize the Epetra importer
+        // Initialize the Epetra importer
         // TODO: this part of the code has been pasted until a better solution
         // is found
         int system_size = TSparseSpace::Size(rb);
         int number_of_dofs = BaseType::mDofSet.size();
         std::vector<int> index_array(number_of_dofs);
 
-        // filling the array with the global ids
+        // Filling the array with the global ids
         int counter = 0;
         int id = 0;
         for (const auto& dof : BaseType::mDofSet) {
@@ -777,8 +764,7 @@ public:
         }
 
         std::sort(index_array.begin(), index_array.end());
-        std::vector<int>::iterator NewEnd =
-            std::unique(index_array.begin(), index_array.end());
+        std::vector<int>::iterator NewEnd = std::unique(index_array.begin(), index_array.end());
         index_array.resize(NewEnd - index_array.begin());
 
         int check_size = -1;
@@ -789,21 +775,19 @@ public:
             << "Expected number of active dofs = " << system_size
             << " dofs found = " << check_size;
 
-        // defining a map as needed
+        // Defining a map as needed
         Epetra_Map dof_update_map(-1, index_array.size(),
                                   &(*(index_array.begin())), 0, rb.Comm());
 
-        // defining the importer class
-        Kratos::shared_ptr<Epetra_Import> pDofImporter =
-            Kratos::make_shared<Epetra_Import>(dof_update_map, rb.Map());
+        // Defining the importer class
+        Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map, rb.Map());
 
-        // defining a temporary vector to gather all of the values needed
+        // Defining a temporary vector to gather all of the values needed
         Epetra_Vector temp_RHS(pDofImporter->TargetMap());
 
-        // importing in the new temp_RHS vector the values
+        // Importing in the new temp_RHS vector the values
         int ierr = temp_RHS.Import(rb, *pDofImporter, Insert);
-        if (ierr != 0)
-            KRATOS_ERROR << "Epetra failure found - error code: " << ierr;
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found - error code: " << ierr << std::endl;
 
         double* temp_RHS_values; // DO NOT make delete of this one!!
         temp_RHS.ExtractView(&temp_RHS_values);
@@ -812,12 +796,11 @@ public:
 
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        // store the RHS values in the reaction variable
+        // Store the RHS values in the reaction variable
         // NOTE: dofs are assumed to be numbered consecutively in the
         // BlockBuilderAndSolver
         for (int k = 0; k < ndofs; k++) {
-            typename DofsArrayType::iterator dof_iterator =
-                BaseType::mDofSet.begin() + k;
+            auto dof_iterator = BaseType::mDofSet.begin() + k;
 
             const int i = (dof_iterator)->EquationId();
             // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
