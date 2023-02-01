@@ -77,21 +77,28 @@ public:
     /// Pointer definition of TrilinosSpace
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosSpace);
 
-    typedef double DataType;
+    /// Definition of the data type
+    using DataType = double;
 
-    typedef TMatrixType MatrixType;
+    /// Definition of the matrix type
+    using MatrixType = TMatrixType;
 
-    typedef TVectorType VectorType;
+    /// Definition of the vector type
+    using VectorType = TVectorType;
 
-    typedef std::size_t IndexType;
+    /// Definition of the index type
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    /// Definition of the size type
+    using SizeType = std::size_t;
 
-    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+    /// Definition of the pointer types
+    using MatrixPointerType = typename Kratos::shared_ptr<TMatrixType>;
+    using VectorPointerType = typename Kratos::shared_ptr<TVectorType>;
 
-    typedef TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
-    typedef typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType> >::UniquePointer DofUpdaterPointerType;
+    /// Some other definitions
+    using DofUpdaterType = TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType>>;
+    using DofUpdaterPointerType = typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType>>::UniquePointer;
 
     ///@}
     ///@name Life Cycle
