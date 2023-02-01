@@ -31,6 +31,9 @@
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
 #include <EpetraExt_MultiVectorOut.h>
+#include <EpetraExt_MatrixMatrix.h>
+
+// NOTE: Epetra will be replaced with Tpetra in the future, there is an intermediate interface called Xpetra, which uses the interface of Toetra but allows to use Epetra
 
 // Project includes
 #include "includes/ublas_interface.h"
@@ -331,6 +334,23 @@ public:
     }
 
     /**
+     * @brief Returns the multiplication matrix-matrix
+     * @details C = A*B
+     * @param rA The first matrix considered
+     * @param rB The second matrix considered
+     * @param rC The result of the multiplication
+     */
+    static void Mult(
+        const MatrixType& rA,
+        const MatrixType& rB,
+        MatrixType& rC
+        )
+    {
+        const bool transpose_flag = false;
+        EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC);
+    }
+
+    /**
      * @brief Returns the transpose multiplication of a matrix by a vector
      * @details y = AT*x
      * @param rA The matrix considered
@@ -345,6 +365,25 @@ public:
     {
         const bool transpose_flag = true;
         rA.Multiply(transpose_flag, rX, rY);
+    }
+
+    /**
+     * @brief Returns the transpose multiplication matrix-matrix
+     * @details C = A*B
+     * @param rA The first matrix considered
+     * @param rB The second matrix considered
+     * @param rC The result of the multiplication
+     * @param TransposeFlag Flags to transpose the matrices
+     */
+    static void TransposeMult(
+        const MatrixType& rA,
+        const MatrixType& rB,
+        MatrixType& rC,
+        const std::vector<bool> TransposeFlag = {false, false}
+        )
+    {
+        KRATOS_ERROR_IF_NOT(TransposeFlag.size() > 1) << "Size of flags must be at least 2" << std::endl;
+        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag[0], rB, TransposeFlag[1], rC);
     }
 
     /**
