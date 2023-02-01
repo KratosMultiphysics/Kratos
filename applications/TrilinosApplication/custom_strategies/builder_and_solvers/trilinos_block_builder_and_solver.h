@@ -8,33 +8,25 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//
+//  Collaborators:   Vicente Mataix
 //
 
 #pragma once
 
-/* System includes */
+// System includes
 #include <unordered_set>
 
-/* External includes */
+// External includes
 
-/* Project includes */
-#include "includes/define.h"
+/* Trilinos includes */
+#include <Epetra_FECrsGraph.h>
+#include <Epetra_IntVector.h>
+
+// Project includes
+#include "trilinos_space.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
-
-/* Trilinos includes */
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
-#include "Epetra_Import.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_IntVector.h"
-#include "Epetra_Map.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_SerialDenseMatrix.h"
-#include "Epetra_SerialDenseVector.h"
-#include "Epetra_Vector.h"
 
 #if !defined(START_TIMER)
 #define START_TIMER(label, rank) \
@@ -622,34 +614,38 @@ public:
                                     ModelPart& rModelPart) override
     {
         KRATOS_TRY
-        // resizing the system vectors and matrix
+
+        // Resizing the system vectors and matrix
         if (rpA == nullptr || TSparseSpace::Size1(*rpA) == 0 ||
-            BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
-        {
+            BaseType::GetReshapeMatrixFlag() == true) { // if the matrix is not initialized
             IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
             int temp_size = number_of_local_dofs;
-            if (temp_size < 1000)
+            if (temp_size < 1000) {
                 temp_size = 1000;
+            }
             std::vector<int> temp(temp_size, 0);
+
             // TODO: Check if these should be local elements and conditions
             auto& r_elements_array = rModelPart.Elements();
             auto& r_conditions_array = rModelPart.Conditions();
-            // generate map - use the "temp" array here
-            for (IndexType i = 0; i != number_of_local_dofs; i++)
+
+            // Generate map - use the "temp" array here
+            for (IndexType i = 0; i != number_of_local_dofs; i++) {
                 temp[i] = mFirstMyId + i;
+            }
             Epetra_Map my_map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
-            // create and fill the graph of the matrix --> the temp array is
+
+            // Create and fill the graph of the matrix --> the temp array is
             // reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mGuessRowSize);
             Element::EquationIdVectorType equation_ids_vector;
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            // assemble all elements
+            // Assemble all elements
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-                pScheme->EquationId(**it_elem, equation_ids_vector,
-                                    r_current_process_info);
+                pScheme->EquationId(**it_elem, equation_ids_vector, r_current_process_info);
 
-                // filling the list of active global indices (non fixed)
+                // Filling the list of active global indices (non fixed)
                 IndexType num_active_indices = 0;
                 for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
                     temp[num_active_indices] = equation_ids_vector[i];
@@ -657,20 +653,15 @@ public:
                 }
 
                 if (num_active_indices != 0) {
-                    int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
+                    const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
                 std::fill(temp.begin(), temp.end(), 0);
             }
 
             // assemble all conditions
             for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-                pScheme->EquationId(
-                    **it_cond, equation_ids_vector, r_current_process_info);
+                pScheme->EquationId(**it_cond, equation_ids_vector, r_current_process_info);
 
                 // filling the list of active global indices (non fixed)
                 IndexType num_active_indices = 0;
@@ -680,56 +671,43 @@ public:
                 }
 
                 if (num_active_indices != 0) {
-                    int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
+                    const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
                 std::fill(temp.begin(), temp.end(), 0);
             }
 
-            // finalizing graph construction
-            int ierr = Agraph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0)
-                << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
-                << std::endl;
-            // generate a new matrix pointer according to this graph
-            TSystemMatrixPointerType p_new_A =
-                TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
+            // Finalizing graph construction
+            const int ierr = Agraph.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+
+            // Generate a new matrix pointer according to this graph
+            TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
             rpA.swap(p_new_A);
-            // generate new vector pointers according to the given map
+
+            // Generate new vector pointers according to the given map
             if (rpb == nullptr || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize) {
-                TSystemVectorPointerType p_new_b =
-                    TSystemVectorPointerType(new TSystemVectorType(my_map));
+                TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(my_map));
                 rpb.swap(p_new_b);
             }
             if (rpDx == nullptr || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize) {
-                TSystemVectorPointerType p_new_Dx =
-                    TSystemVectorPointerType(new TSystemVectorType(my_map));
+                TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(my_map));
                 rpDx.swap(p_new_Dx);
             }
-            if (BaseType::mpReactionsVector == nullptr) // if the pointer is not initialized initialize it to an
-                                                        // empty matrix
-            {
-                TSystemVectorPointerType pNewReactionsVector =
-                    TSystemVectorPointerType(new TSystemVectorType(my_map));
+            if (BaseType::mpReactionsVector == nullptr) { // if the pointer is not initialized initialize it to an
+                                                          // empty matrix
+                TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map));
                 BaseType::mpReactionsVector.swap(pNewReactionsVector);
             }
-        }
-        else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag) {
+        } else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag) {
             TSystemVectorPointerType pNewReactionsVector =
                 TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
-        }
-        else {
+        } else {
             if (TSparseSpace::Size1(*rpA) == 0 ||
                 TSparseSpace::Size1(*rpA) != BaseType::mEquationSystemSize ||
                 TSparseSpace::Size2(*rpA) != BaseType::mEquationSystemSize) {
-                KRATOS_ERROR
-                    << "It should not come here resizing is not allowed this "
-                       "way!!!!!!!! ... ";
+                KRATOS_ERROR << "It should not come here resizing is not allowed this way!!!!!!!! ... " << std::endl;
             }
         }
 
@@ -943,7 +921,6 @@ protected:
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -960,8 +937,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    //**************************************************************************
-    //**************************************************************************
     void AssembleLHS_CompleteOnFreeRows(TSystemMatrixType& rA,
                                         LocalSystemMatrixType& rLHS_Contribution,
                                         Element::EquationIdVectorType& rEquationId)
