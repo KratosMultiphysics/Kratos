@@ -174,6 +174,8 @@ public:
      */
     TrilinosBlockBuilderAndSolver& operator=(const TrilinosBlockBuilderAndSolver& rOther) = delete;
 
+    // TODO: In order to create a Create method something must be done about the EpetraCommunicator. Maybe ge it from ProcessInfo
+
     ///@}
     ///@name Operators
     ///@{
