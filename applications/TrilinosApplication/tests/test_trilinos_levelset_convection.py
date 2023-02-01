@@ -36,7 +36,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         return KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + GetFilePath("levelset_convection_process_mesh") + """\",
+                "input_filename": \"""" + GetFilePath(os.path.join("auxiliary_files", "mdpa_files", "levelset_convection_process_mesh")) + """\",
                 "partition_in_memory" : false
             },
             "echo_level" : 0
@@ -50,7 +50,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ReadDistributedModelPart(GetFilePath("levelset_convection_process_mesh"), self.model_part, self.GetPartitioningParameters())
+        ReadDistributedModelPart(GetFilePath(os.path.join("auxiliary_files", "mdpa_files", "levelset_convection_process_mesh")), self.model_part, self.GetPartitioningParameters())
 
     def tearDown(self):
         # Remove the Metis partitioning files
@@ -189,7 +189,7 @@ class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
         return KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + GetFilePath("levelset_convection_process_mesh") + """\",
+                "input_filename": \"""" + GetFilePath(os.path.join("auxiliary_files", "mdpa_files", "levelset_convection_process_mesh")) + """\",
                 "partition_in_memory" : true
             },
             "echo_level" : 0

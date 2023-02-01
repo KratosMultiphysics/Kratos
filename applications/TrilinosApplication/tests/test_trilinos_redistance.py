@@ -36,7 +36,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ReadDistributedModelPart(GetFilePath("coarse_sphere"), self.model_part)
+        ReadDistributedModelPart(GetFilePath(os.path.join("auxiliary_files", "mdpa_files", "coarse_sphere")), self.model_part)
 
     def testTrilinosRedistance(self):
         # Initialize the DISTANCE values
