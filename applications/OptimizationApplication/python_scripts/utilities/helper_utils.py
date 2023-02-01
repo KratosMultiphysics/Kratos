@@ -1,6 +1,18 @@
 from importlib import import_module
+from typing import Union
+
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+
+
+ContainerVariableDataHolderUnion = Union[
+        KratosOA.HistoricalContainerVariableDataHolder,
+        KratosOA.NodalContainerVariableDataHolder,
+        KratosOA.ConditionContainerVariableDataHolder,
+        KratosOA.ElementContainerVariableDataHolder,
+        KratosOA.ConditionPropertiesContainerVariableDataHolder,
+        KratosOA.ElementPropertiesContainerVariableDataHolder]
 
 def CallOnAll(list_of_objects: 'list[any]', method: any, *args, **kwargs):
     for obj in list_of_objects:

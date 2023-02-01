@@ -77,6 +77,30 @@ void OptimizationUtils::AssignValueFromVector(
     rOutput[ValueComponentIndex] = rInput[VectoStartingIndex + ValueComponentIndex];
 }
 
+// void BroadcastVector(
+//     Vector& rSourceValue,
+//     const DataCommunicator& rCommunicator,
+//     const IndexType SourceRank)
+// {
+//     if (!rCommunicator.IsDistributed()) {
+//         return;
+//     } else {
+//         rCommunicator.Broadcast(rSourceValue, SourceRank);
+//     }
+// }
+
+// void BroadcastMatrix(
+//     Matrix& rSourceValue,
+//     const DataCommunicator& rCommunicator,
+//     const IndexType SourceRank)
+// {
+//     if (!rCommunicator.IsDistributed()) {
+//         return;
+//     } else {
+//         rCommunicator.Broadcast(rSourceValue, SourceRank);
+//     }
+// }
+
 template<class TContainerType>
 void OptimizationUtils::GetContainerIds(
     std::vector<IndexType>& rOutput,

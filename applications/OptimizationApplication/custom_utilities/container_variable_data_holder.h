@@ -295,6 +295,9 @@ public:
     template<class TDataType>
     void SetDataForContainerVariable(const Variable<TDataType>& rVariable, const TDataType& rValue);
 
+    template<class TDataType>
+    void SetDataForContainerVariableToZero(const Variable<TDataType>& rVariable);
+
     ///@}
     ///@name Operators
     ///@{

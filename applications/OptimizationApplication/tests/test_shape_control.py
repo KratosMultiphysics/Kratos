@@ -8,7 +8,6 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 from KratosMultiphysics.OptimizationApplication.controls.shape_control import ShapeControl
 
 class TestShapeControl(kratos_unittest.TestCase):

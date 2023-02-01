@@ -40,6 +40,17 @@ public:
     ///@name Static operations
     ///@{
 
+    // static void BroadcastVector(
+    //     Vector& rSourceValue,
+    //     const DataCommunicator& rCommunicator,
+    //     const IndexType SourceRank);
+
+    // static void BroadcastMatrix(
+    //     Matrix& rSourceValue,
+    //     const DataCommunicator& rCommunicator,
+    //     const IndexType SourceRank);
+
+
     template<class TContainerType>
     static void GetContainerIds(
         std::vector<IndexType>& rOutput,

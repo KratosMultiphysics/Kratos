@@ -359,6 +359,13 @@ void ContainerVariableDataHolder<TContainerVariableDataHolderType>::SetDataForCo
 }
 
 template<class TContainerVariableDataHolderType>
+template<class TDataType>
+void ContainerVariableDataHolder<TContainerVariableDataHolderType>::SetDataForContainerVariableToZero(const Variable<TDataType>& rVariable)
+{
+    this->SetDataForContainerVariable(rVariable, rVariable.Zero());
+}
+
+template<class TContainerVariableDataHolderType>
 ContainerVariableDataHolder<TContainerVariableDataHolderType> ContainerVariableDataHolder<TContainerVariableDataHolderType>::operator+(const ContainerVariableDataHolder<TContainerVariableDataHolderType>& rOther) const
 {
     KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
@@ -654,6 +661,8 @@ template void ContainerVariableDataHolder<HistoricalDataValueContainer>::ReadDat
 template void ContainerVariableDataHolder<HistoricalDataValueContainer>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
 template void ContainerVariableDataHolder<HistoricalDataValueContainer>::SetDataForContainerVariable(const Variable<double>&, const double&);
 template void ContainerVariableDataHolder<HistoricalDataValueContainer>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+template void ContainerVariableDataHolder<HistoricalDataValueContainer>::SetDataForContainerVariableToZero(const Variable<double>&);
+template void ContainerVariableDataHolder<HistoricalDataValueContainer>::SetDataForContainerVariableToZero(const Variable<array_1d<double, 3>>&);
 
 template class ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>;
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
@@ -662,6 +671,8 @@ template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelP
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::SetDataForContainerVariableToZero(const Variable<double>&);
+template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::SetDataForContainerVariableToZero(const Variable<array_1d<double, 3>>&);
 
 template class ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>;
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
@@ -670,6 +681,8 @@ template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelP
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariableToZero(const Variable<double>&);
+template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariableToZero(const Variable<array_1d<double, 3>>&);
 
 template class ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>;
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
@@ -678,6 +691,8 @@ template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelP
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
 template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariableToZero(const Variable<double>&);
+template void ContainerVariableDataHolder<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariableToZero(const Variable<array_1d<double, 3>>&);
 
 template class ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>;
 template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
@@ -686,6 +701,8 @@ template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart
 template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
 template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
 template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariableToZero(const Variable<double>&);
+template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariableToZero(const Variable<array_1d<double, 3>>&);
 
 template class ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>;
 template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
@@ -694,5 +711,7 @@ template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart
 template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
 template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
 template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariableToZero(const Variable<double>&);
+template void ContainerVariableDataHolder<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariableToZero(const Variable<array_1d<double, 3>>&);
 
 } // namespace Kratos

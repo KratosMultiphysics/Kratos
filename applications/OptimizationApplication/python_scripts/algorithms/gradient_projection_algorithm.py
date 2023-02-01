@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algo
 from KratosMultiphysics.OptimizationApplication.utilities.control_transformation_technique import ControlTransformationTechnique
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ObjectiveResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ConstraintResponseFunctionImplementor
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolderUnion
 
 class GradientProjectionAlgorithm(Algorithm):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
@@ -125,7 +125,7 @@ class GradientProjectionAlgorithm(Algorithm):
             optimization_data[control_model_part] = {}
 
             # calculate raw sensitivities
-            raw_sensitivity_container = ContainerData(control_model_part, control.GetContainerType())
+            raw_sensitivity_container = control.CreateContainerVariableDataHolder(control_model_part)
             response_function.CalculateStandardizedSensitivity(control.GetControlSensitivityVariable(), raw_sensitivity_container)
 
             # calculate transformed sensitivities
@@ -145,44 +145,79 @@ class GradientProjectionAlgorithm(Algorithm):
         active_constraints_data = [(constraint, constraint_data["standardized_value"]) for constraint, constraint_data in algorithm_data["constraints"].items() if constraint_data["is_active"]]
 
         # get active constraints values
-        active_constraint_values_vector = Kratos.Vector([data[1] for data in active_constraints_data])
+        active_constraint_values = Kratos.Vector([data[1] for data in active_constraints_data])
 
         control = controller.GetControl()
         for control_model_part in control.GetModelParts():
             # get the objective sensitivities
-            transformed_objective_sensitivities: ContainerData = algorithm_data["controls"][controller]["objectives"][control_model_part][self.objective]["transformed_sensitivities"]
+            transformed_objective_sensitivities: ContainerVariableDataHolderUnion = algorithm_data["controls"][controller]["objectives"][control_model_part][self.objective]["transformed_sensitivities"]
+
+            number_of_active_constraints = len(active_constraints_data)
 
             # get the active constraint sensitivities
-            if len(active_constraints_data) == 0:
+            if number_of_active_constraints == 0:
                 self.__PrintInfo(1, "No constraints active, use negative objective gradient as search direction.")
+                # calculate control_update, search_direction, search_correction
                 search_direction = transformed_objective_sensitivities * (-1.0)
-                search_direction *= self.step_size / search_direction.NormInf()
+                search_direction *= float(self.step_size / KratosOA.ContainerVariableDataHolderUtils.NormInf(search_direction))
+
                 control_update = search_direction.Clone()
-                search_correction = ContainerData(control_model_part, control.GetContainerType())
-                search_correction.SetData(Kratos.Vector(control_update.GetData().Size(), 0.0))
+
+                search_correction = control.CreateContainerVariableDataHolder(control_model_part)
+                search_correction.SetDataForContainerVariableToZero(control.GetControlSensitivityVariable())
             else:
                 control_model_part_constraint_data = algorithm_data["controls"][controller]["constraints"][control_model_part]
-                transformed_constraint_sensitivities = [control_model_part_constraint_data[data[0]]["transformed_sensitivities"].GetData() for data in active_constraints_data]
+                transformed_constraint_sensitivities = [control_model_part_constraint_data[data[0]]["transformed_sensitivities"] for data in active_constraints_data]
 
                 # compute the projected search direction and correction
-                search_direction = ContainerData(control_model_part, control.GetContainerType())
-                search_correction = ContainerData(control_model_part, control.GetContainerType())
-                KratosOA.GradientProjectionSolverUtils.CalculateProjectedSearchDirectionAndCorrection(
-                    search_direction.GetData(),
-                    search_correction.GetData(),
-                    self.linear_solver,
-                    active_constraint_values_vector,
-                    transformed_objective_sensitivities.GetData(),
-                    transformed_constraint_sensitivities)
+                ntn = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
+                for i in range(number_of_active_constraints):
+                    for j in range(i, number_of_active_constraints):
+                        ntn[i, j] = KratosOA.ContainerVariableDataHolderUtils.InnerProduct(transformed_constraint_sensitivities[i], transformed_constraint_sensitivities[j])
+                        ntn[j, i] = ntn[i, j]
 
-                # calculate control update
-                control_update = ContainerData(control_model_part, control.GetContainerType())
-                KratosOA.GradientProjectionSolverUtils.CalculateControlUpdate(
-                    control_update.GetData(),
-                    search_direction.GetData(),
-                    search_correction.GetData(),
-                    self.step_size,
-                    self.max_correction_share)
+                # get the inverse of ntn
+                ntn_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
+
+                if control_model_part.GetCommunicator().MyPID() == 0:
+                    # since this is a small matrix, this is done serially
+                    identity_matrix = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints, 0.0)
+                    for i in range(number_of_active_constraints):
+                        identity_matrix[i, i] = 1.0
+
+                    self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
+
+                # now broadcast the ntn_inverse to all ranks
+                ntn_inverse = control_model_part.GetCommunicator().GetDataCommunicator().Broadcast(ntn_inverse, 0)
+
+                # computing N^T\cdot\nabla{F}
+                nt_nabla_f = Kratos.Vector(number_of_active_constraints)
+                for i in range(number_of_active_constraints):
+                    nt_nabla_f[i] = KratosOA.ContainerVariableDataHolderUtils.InnerProduct(transformed_objective_sensitivities, transformed_constraint_sensitivities[i])
+
+                ntn_inv_nt_nabla_f = ntn_inverse * nt_nabla_f
+                ntn_inv_constraint_values = ntn_inverse * active_constraint_values
+
+                search_direction = -transformed_objective_sensitivities
+                search_correction = control.CreateContainerVariableDataHolder(control_model_part)
+                search_correction.SetDataForContainerVariableToZero(control.GetControlUpdateVariable())
+
+                for i in range(number_of_active_constraints):
+                    search_direction += transformed_constraint_sensitivities[i] * ntn_inv_nt_nabla_f[i]
+                    search_correction -= transformed_constraint_sensitivities[i] * ntn_inv_constraint_values[i]
+
+                search_direction_norm_inf = KratosOA.ContainerVariableDataHolderUtils.NormInf(search_direction)
+                search_correction_norm_inf = KratosOA.ContainerVariableDataHolderUtils.NormInf(search_correction)
+                if abs(search_correction_norm_inf) > 1e-12:
+                    if search_direction_norm_inf < self.max_correction_share * self.step_size:
+                        search_direction *= (self.step_size - search_correction_norm_inf) / search_direction_norm_inf
+                    else:
+                        search_correction *= self.max_correction_share * self.step_size / search_correction_norm_inf
+                        search_direction *= (1 - self.max_correction_share) * self.step_size / search_direction_norm_inf
+                else:
+                    search_direction *= self.step_size / search_direction_norm_inf
+
+                control_update = search_direction + search_correction
 
             # calculate transformed updates
             transformed_updates_container = control_update.Clone()

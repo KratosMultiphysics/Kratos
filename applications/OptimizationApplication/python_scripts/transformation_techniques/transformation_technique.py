@@ -1,7 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
 
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolderUnion
 
 class TransformationTechnique(ABC):
     def __init__(self):
@@ -20,9 +20,9 @@ class TransformationTechnique(ABC):
         pass
 
     @abstractmethod
-    def TransformSensitivity(self, container_data: ContainerData):
+    def TransformSensitivity(self, container_variable_data_holder: ContainerVariableDataHolderUnion):
         pass
 
     @abstractmethod
-    def TransformUpdate(self, container_data: ContainerData):
+    def TransformUpdate(self, container_variable_data_holder: ContainerVariableDataHolderUnion):
         pass
