@@ -121,15 +121,37 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor (empty)
+     */
+    explicit TrilinosBlockBuilderAndSolver() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor.
      */
-    TrilinosBlockBuilderAndSolver(EpetraCommunicatorType& rComm,
+    explicit TrilinosBlockBuilderAndSolver(EpetraCommunicatorType& rComm,
                                   int GuessRowSize,
                                   typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver),
+        : BaseType(pNewLinearSystemSolver),
           mrComm(rComm),
           mGuessRowSize(GuessRowSize)
     {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit TrilinosBlockBuilderAndSolver(
+        EpetraCommunicatorType& rComm,
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver),
+            mrComm(rComm)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
