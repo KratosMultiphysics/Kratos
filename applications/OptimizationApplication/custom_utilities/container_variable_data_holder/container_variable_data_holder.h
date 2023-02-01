@@ -62,6 +62,8 @@ public:
     {
     }
 
+    ~ContainerVariableDataHolder() override = default;
+
     ///@}
     ///@name Public operations
     ///@{

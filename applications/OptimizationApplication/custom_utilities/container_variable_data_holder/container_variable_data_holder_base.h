@@ -115,6 +115,12 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ContainerVariableDataHolderBase);
 
     ///@}
+    ///@name Life cycle
+    ///#{
+
+    virtual ~ContainerVariableDataHolderBase() = default;
+
+    ///@}
     ///@name Public operations
     ///@{
 
