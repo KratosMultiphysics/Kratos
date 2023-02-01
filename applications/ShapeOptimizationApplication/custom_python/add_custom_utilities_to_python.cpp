@@ -160,10 +160,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // ----------------------------------------------------------------
         .def_static("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
         .def_static("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
-            // ----------------------------------------------------------------
-        // For active subspace method
-        // ----------------------------------------------------------------
-        .def_static("ConstructActiveSubspace", &OptimizationUtilities::ConstructActiveSubspace)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------

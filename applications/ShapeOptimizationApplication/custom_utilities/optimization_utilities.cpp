@@ -315,24 +315,4 @@ void OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection(
     c = - prod(N, Vector(prod(NTN_inv, g_a)));
 }
 
-void OptimizationUtilities::ConstructActiveSubspace(
-    Vector& rObjectiveGradient,
-    Vector& rActiveSubspaceNodes,
-    LinearSolver<SparseSpace, DenseSpace>& rSolver)
-{
-    KRATOS_INFO("") << std::endl;
-    KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace starts" << std::endl;
-    CompressedMatrix C = outer_prod(rObjectiveGradient, rObjectiveGradient);
-    CompressedMatrix I = IdentityMatrix(C.size2());
-
-    // KRATOS_INFO("ShapeOpt") << "Covariance matrix:\n" << C << std::endl;
-
-    Vector eigenvalues;
-    Matrix eigenvectors;
-    rSolver.Solve(C, I, eigenvalues, eigenvectors);
-
-
-    // KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace Matrix C: " << C << std::endl;
-}
-
 }  // namespace Kratos.

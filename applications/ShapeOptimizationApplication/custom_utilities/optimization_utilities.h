@@ -24,8 +24,6 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-#include "linear_solvers/iterative_solver.h"
-// #include "LinearSolversApplication/custom_solvers/spectra_sym_g_eigs_shift_solver.h"
 
 // ==============================================================================
 
@@ -65,9 +63,6 @@ public:
 
     typedef array_1d<double,3> array_3d;
     typedef UblasSpace<double, Matrix, Vector> DenseSpace;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpace;
-    // typedef Preconditioner<SparseSpace, DenseSpace> Preconditioner;
-    // typedef Reorderer<SparseSpace, DenseSpace> Reorderer;
 
     /// Pointer definition of OptimizationUtilities
     KRATOS_CLASS_POINTER_DEFINITION(OptimizationUtilities);
@@ -157,15 +152,6 @@ public:
         LinearSolver<DenseSpace, DenseSpace>& rSolver,
         Vector& rProjectedSearchDirection,
         Vector& rRestoration);
-
-    // ==============================================================================
-    // For running active subspace method
-    // ==============================================================================
-    static void ConstructActiveSubspace(
-        Vector& rObjectiveGradient,
-        Vector& rActiveSubspaceNodes,
-        LinearSolver<SparseSpace, DenseSpace>& rSolver);
-
     // ==============================================================================
 
     ///@}
