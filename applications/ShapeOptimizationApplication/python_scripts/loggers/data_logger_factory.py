@@ -132,7 +132,7 @@ class DataLogger():
         elif AlgorithmName == "bead_optimization":
             return SensitivityHeatmapLoggerBeadOptimization( self.ModelPartController, self.OptimizationSettings )
         else:
-            raise NameError("The following optimization algorithm not supported by the response logger (name may be misspelled): " + AlgorithmName)
+            raise NameError("The following optimization algorithm is not supported by the sensitivity heatmap logger (name may be misspelled): " + AlgorithmName)
 
     # --------------------------------------------------------------------------
     def __CreateFolderToStoreOptimizationResults ( self ):

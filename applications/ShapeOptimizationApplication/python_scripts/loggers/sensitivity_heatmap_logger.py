@@ -13,7 +13,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_sensitivity_heatmap import SensitivityHeatmapCalculator
 
 # ==============================================================================
-class SensitivityHeatmapLoggerBase():
+class SensitivityHeatmapLoggerBase:
 
     # --------------------------------------------------------------------------
     def __init__( self, model_part_controller, optimization_settings ):

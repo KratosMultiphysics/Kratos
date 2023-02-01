@@ -19,7 +19,7 @@ continuous_response_gradients = ("plane_based_packaging", "mesh_based_packaging"
 
 # ==============================================================================
 # --------------------------------------------------------------------------
-class SensitivityHeatmapCalculator():
+class SensitivityHeatmapCalculator:
 
     # --------------------------------------------------------------------------
     def __init__(self, design_surface, objectives, constraints, settings):
@@ -55,37 +55,37 @@ class SensitivityHeatmapCalculator():
         if self.sensitivity_weighting:
             KSO.GeometryUtilities(self.design_surface).CalculateNodalAreasFromConditions()
 
-        self._ComputeIndividualHeatmaps(optimization_iteration, mapper)
+        self.__ComputeIndividualHeatmaps(optimization_iteration, mapper)
         if self.constraints.size() != 0:
-            self._ComputeAggregatedHeatmap(optimization_iteration, mapper)
+            self.__ComputeAggregatedHeatmap(optimization_iteration, mapper)
 
     # --------------------------------------------------------------------------
-    def _ComputeIndividualHeatmaps(self, optimization_iteration, mapper):
+    def __ComputeIndividualHeatmaps(self, optimization_iteration, mapper):
 
         objective_gradient_name = f"DF1D{self.design_variable_name}"
         objective_type = self.objectives[0]["response_settings"]["response_type"]
-        self._ComputeResponseHeatmap(objective_gradient_name, objective_type, optimization_iteration, mapper)
+        self.__ComputeResponseHeatmap(objective_gradient_name, objective_type, optimization_iteration, mapper)
 
         if self.constraints.size() != 0:
             for itr in range(self.constraints.size()):
                 constraint_gradient_name = f"DC{(itr+1)}D{self.design_variable_name}"
                 constraint_type = self.constraints[itr]["response_settings"]["response_type"]
-                self._ComputeResponseHeatmap(constraint_gradient_name, constraint_type, optimization_iteration, mapper)
+                self.__ComputeResponseHeatmap(constraint_gradient_name, constraint_type, optimization_iteration, mapper)
 
     # --------------------------------------------------------------------------
-    def _ComputeAggregatedHeatmap(self, optimization_iteration, mapper):
+    def __ComputeAggregatedHeatmap(self, optimization_iteration, mapper):
 
         # normalize objective gradient
         objective_gradient_name = f"DF1D{self.design_variable_name}"
         objective_type = self.objectives[0]["response_settings"]["response_type"]
-        df_dx_normalized = self._NormalizeResponseGradient(objective_gradient_name, objective_type)
+        df_dx_normalized = self.__NormalizeResponseGradient(objective_gradient_name, objective_type)
 
         # normalize constraints
         dc_dx_normalized = []
         for itr in range(self.constraints.size()):
             constraint_gradient_name = f"DC{(itr+1)}D{self.design_variable_name}"
             constraint_type = self.constraints[itr]["response_settings"]["response_type"]
-            dc_dx_normalized.append(self._NormalizeResponseGradient(constraint_gradient_name, constraint_type))
+            dc_dx_normalized.append(self.__NormalizeResponseGradient(constraint_gradient_name, constraint_type))
 
         # fill heat map for each node
         heat = Kratos.Vector(len(self.design_surface.Nodes))
@@ -108,7 +108,7 @@ class SensitivityHeatmapCalculator():
             heat_map_name = f"HEATMAP_L2"
 
         # relax heatmap
-        relaxation_coefficient = self._GetRelaxationCoefficient(optimization_iteration)
+        relaxation_coefficient = self.__GetRelaxationCoefficient(optimization_iteration)
         if optimization_iteration == 1:
             heat_relaxed = heat
         else:
@@ -121,7 +121,7 @@ class SensitivityHeatmapCalculator():
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, heat_relaxed, Kratos.KratosGlobals.GetVariable(heat_map_name))
 
     # --------------------------------------------------------------------------
-    def _ComputeResponseHeatmap( self, response_gradient_name, response_type, optimization_iteration, mapper):
+    def __ComputeResponseHeatmap( self, response_gradient_name, response_type, optimization_iteration, mapper):
 
         response_is_weighted = False
         if self.sensitivity_weighting and \
@@ -129,18 +129,18 @@ class SensitivityHeatmapCalculator():
             response_is_weighted = True
 
         if response_is_weighted:
-            self._WeightResponseGradient(response_gradient_name)
+            self.__WeightResponseGradient(response_gradient_name)
             response_gradient_name += "_WEIGHTED"
         if self.map_sensitivities:
             # reponse has been already mapped by the optimization algorithm if it is not weighted
             if response_is_weighted:
-                self._MapResponseGradient(response_gradient_name, mapper)
+                self.__MapResponseGradient(response_gradient_name, mapper)
             response_gradient_name += "_MAPPED"
 
-        self._RelaxResponseHeatmap(response_gradient_name, optimization_iteration )
+        self.__RelaxResponseHeatmap(response_gradient_name, optimization_iteration)
 
     # --------------------------------------------------------------------------
-    def _WeightResponseGradient( self, response_gradient_name ):
+    def __WeightResponseGradient( self, response_gradient_name ):
 
         nodal_area = Kratos.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nodal_area, Kratos.KratosGlobals.GetVariable("NODAL_AREA"))
@@ -163,21 +163,20 @@ class SensitivityHeatmapCalculator():
                                                            Kratos.KratosGlobals.GetVariable(response_gradient_weighted_name))
 
     # --------------------------------------------------------------------------
-    def _MapResponseGradient( self, response_gradient_name, mapper ):
+    def __MapResponseGradient( self, response_gradient_name, mapper ):
 
         response_gradient_mapped_name = f"{response_gradient_name}_MAPPED"
         mapper.InverseMap(Kratos.KratosGlobals.GetVariable(response_gradient_name),
                                Kratos.KratosGlobals.GetVariable(response_gradient_mapped_name))
 
     # --------------------------------------------------------------------------
-    def _RelaxResponseHeatmap( self, response_gradient_name, optimization_iteration ):
+    def __RelaxResponseHeatmap( self, response_gradient_name, optimization_iteration ):
 
-        relaxation_coefficient = self._GetRelaxationCoefficient(optimization_iteration)
+        relaxation_coefficient = self.__GetRelaxationCoefficient(optimization_iteration)
 
         dg_dx = Kratos.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, dg_dx, Kratos.KratosGlobals.GetVariable(response_gradient_name))
 
-        # DF1DX individual heatmap
         g_name = f"{response_gradient_name[0:4]}"
         heatmap_dgdx_name = f"HEATMAP_{g_name}{self.design_variable_name}"
         if optimization_iteration == 1:
@@ -194,7 +193,7 @@ class SensitivityHeatmapCalculator():
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, heat_dfdx_relaxed, Kratos.KratosGlobals.GetVariable(heatmap_dgdx_name))
 
     # --------------------------------------------------------------------------
-    def _NormalizeResponseGradient( self, response_gradient_name, response_type ):
+    def __NormalizeResponseGradient( self, response_gradient_name, response_type ):
 
         response_is_weighted = False
         if self.sensitivity_weighting and \
@@ -226,7 +225,7 @@ class SensitivityHeatmapCalculator():
         return dg_dx_normalized
 
     # --------------------------------------------------------------------------
-    def _GetRelaxationCoefficient( self, optimization_iteration ):
+    def __GetRelaxationCoefficient( self, optimization_iteration ):
 
         if self.relaxation_method == "reciprocal":
             return 1 / optimization_iteration
