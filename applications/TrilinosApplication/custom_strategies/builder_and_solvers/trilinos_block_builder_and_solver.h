@@ -72,6 +72,8 @@ namespace Kratos {
  * residual already contains this information. Calculation of the reactions
  * involves a cost very similar to the calculation of the total residual
  * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ * @note Should be TrilinosResidualBasedBlockBuilderAndSolver?
  */
 template <class TSparseSpace,
           class TDenseSpace,  //= DenseSpace<double>,
