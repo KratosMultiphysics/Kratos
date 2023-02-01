@@ -67,10 +67,10 @@
             "relative_tolerance" : 1e-2,
             "shape_fraction": {
                 "penalty_method"             : "extended_interior",
-                "tolerance"                  : 0.1,
+                "nodal_tolerance"            : 0.1,
                 "inner_tolerance"            : 0.1,
                 "max_fraction"               : 0.65,
-                "start_penalty"              : 1.5,
+                "initial_penalty_factor"     : 1.5,
                 "max_inner_steps"            : 5
             },
             "line_search" : {

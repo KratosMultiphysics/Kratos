@@ -38,12 +38,13 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
             "shape_fraction" : {
-                "penalty_method": "exterior",
-                "max_fraction"  : 0.5,
-                "tolerance"     : 0.1,
-                "inner_tolerance": 0.01,
-                "max_inner_steps": 10,
-                "initial_penalty_factor": 0.1
+                "penalty_method"      : "exterior",
+                "max_fraction"        : 0.5,
+                "nodal_tolerance"     : 0.1,
+                "inner_tolerance"     : 0.01,
+                "max_inner_steps"     : 10,
+                "initial_penalty_factor": 0.1,
+                "penalty_scale_factor": 1.25
             },
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
@@ -91,10 +92,13 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         # shape fraction related settings
         self.penalty_method = self.algorithm_settings["shape_fraction"]["penalty_method"].GetString()
         self.max_shape_fraction = self.algorithm_settings["shape_fraction"]["max_fraction"].GetDouble()
-        self.frac_tolerance = self.algorithm_settings["shape_fraction"]["tolerance"].GetDouble()
+        self.frac_tolerance = self.algorithm_settings["shape_fraction"]["nodal_tolerance"].GetDouble()
         self.inner_tolerance = self.algorithm_settings["shape_fraction"]["inner_tolerance"].GetDouble()
         self.max_inner_steps = self.algorithm_settings["shape_fraction"]["max_inner_steps"].GetDouble()
         self.initial_penalty_factor = self.algorithm_settings["shape_fraction"]["initial_penalty_factor"].GetDouble()
+        self.gamma = self.algorithm_settings["shape_fraction"]["penalty_scale_factor"].GetDouble()
+        if self.gamma <= 1.0:
+            raise RuntimeError("Shape fraction algorithm: 'penalty_scale_factor' has to be larger than 1.0!")
         self.inner_step = 0
         self.penalty_factor = 0.0
         self.epsilon = -0.2
@@ -470,10 +474,10 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
     def __updatePenaltyFactor(self):
 
         if self.penalty_method == "exterior" and self.penalty_value > 0.0:
-            self.penalty_factor *= 1.25 # increase penalty factor by 25%
+            self.penalty_factor *= self.gamma # increase penalty factor by 25%
 
         elif self.penalty_method == "extended_interior":
-            self.penalty_factor *= 1.25 # increase penalty factor by 25%
+            self.penalty_factor *= self.gamma # increase penalty factor by 25%
             a = 0.5
             self.epsilon = - self.C * (self.penalty_factor**a)
 
