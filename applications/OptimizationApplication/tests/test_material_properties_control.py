@@ -60,9 +60,6 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
 
         # run for 3 iterations
         for i in range(1, 4, 1):
-            values = Kratos.Vector()
-            KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(values, self.properties_control.GetModelParts()[0].Elements, Kratos.DENSITY, self.properties_control.GetModelParts()[0].ProcessInfo[Kratos.DOMAIN_SIZE])
-
             self.optimization_info.AdvanceSolutionStep()
             self.optimization_info["step"] = i
             self.properties_control.InitializeSolutionStep()
