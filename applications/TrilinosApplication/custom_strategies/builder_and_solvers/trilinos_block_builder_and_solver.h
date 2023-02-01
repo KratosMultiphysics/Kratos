@@ -946,11 +946,18 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    EpetraCommunicatorType& mrComm;
-    int mGuessRowSize;
-    IndexType mLocalSystemSize;
-    int mFirstMyId;
-    int mLastMyId;
+    /* Base variables */
+    EpetraCommunicatorType& mrComm;   /// The MPI communicator
+    int mGuessRowSize;                /// The guess row size
+    IndexType mLocalSystemSize;       /// The local system size
+    int mFirstMyId;                   /// Auxiliary Id (I)
+    int mLastMyId;                    /// Auxiliary Id (II)
+
+    double mScaleFactor = 1.0;         /// The manually set scale factor
+
+    /* Flags */
+    SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                    /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
