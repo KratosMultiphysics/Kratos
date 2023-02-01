@@ -146,7 +146,6 @@ public:
 
     /**
      * @brief Default constructor. (with parameters)
-     * TODO: Expose to python
      */
     explicit TrilinosBlockBuilderAndSolver(
         EpetraCommunicatorType& rComm,
