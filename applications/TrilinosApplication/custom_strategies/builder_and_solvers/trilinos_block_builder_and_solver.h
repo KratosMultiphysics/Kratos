@@ -528,7 +528,7 @@ public:
         // Taking dofs of elements
         for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
             pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
+            for (auto i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
         }
 
@@ -536,7 +536,7 @@ public:
         auto& r_conditions_array = rModelPart.Conditions();
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
             pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
+            for (auto i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
         }
 
