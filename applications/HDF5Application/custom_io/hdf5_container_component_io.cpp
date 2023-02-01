@@ -1,18 +1,31 @@
-#include "custom_io/hdf5_container_component_io.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   license: HDF5Application/license.txt
+//
 
+// --- HDF5 Includes ---
+#include "custom_io/hdf5_container_component_io.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "custom_utilities/local_ghost_splitting_utility.h"
 #include "custom_utilities/registered_component_lookup.h"
 #include "custom_utilities/vertex.h"
+
+// --- Core Includes ---
 #include "includes/communicator.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/parallel_utilities.h"
 
-namespace Kratos
-{
-namespace HDF5
-{
+// --- STL Includes ---
+#include <utility> // std::pair
+
+
+namespace Kratos::HDF5 {
 
 // Local aliases
 using Vertex = Detail::Vertex;
@@ -132,10 +145,12 @@ public:
             Matrix<double> data;
             SetDataBuffer(rComponent, rContainerItems, data);
             rFile.WriteDataSet(rPath + "/" + rComponent.Name(), data, rInfo);
-            const int size1 = rContainerItems.front()->GetValue(rComponent).size1();
-            const int size2 = rContainerItems.front()->GetValue(rComponent).size2();
-            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size1", size1);
-            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size2", size2);
+            const std::pair<int,int> sizes = rContainerItems.empty() ? std::make_pair(0, 0) : std::make_pair(
+                static_cast<int>(rContainerItems.front()->GetValue(rComponent).size1()),
+                static_cast<int>(rContainerItems.front()->GetValue(rComponent).size2())
+            );
+            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size1", sizes.first);
+            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size2", sizes.second);
         }
     };
 
@@ -607,9 +622,10 @@ void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::W
     GetContainerItemReferences(local_items, rContainer);
 
     // Write each variable.
-    for (const std::string& r_component_name : mComponentNames)
+    for (const std::string& r_component_name : mComponentNames) {
         WriteRegisteredComponent(r_component_name, local_items, *mpFile,
                                  mComponentPath, info, r_component_name);
+    }
 
     // Write block partition.
     WritePartitionTable(*mpFile, mComponentPath, info);
@@ -699,18 +715,20 @@ void SetDataBuffer(Variable<Vector<double>> const& rVariable,
 {
     KRATOS_TRY;
 
-    rData.resize(rContainerItems.size(),
-                 rContainerItems.front()->GetValue(rVariable).size(), false);
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i)
-    {
-        const TContainerItemType& r_item = *rContainerItems[i];
-        Vector<double> const& r_vec = r_item.GetValue(rVariable);
-        KRATOS_ERROR_IF(r_vec.size() != rData.size2())
-            << "Invalid dimension.\n";
-        for (std::size_t j = 0; j < rData.size2(); ++j)
-            rData(i, j) = r_vec(j);
-    }
+    if (!rContainerItems.empty()) {
+        rData.resize(rContainerItems.size(),
+                    rContainerItems.front()->GetValue(rVariable).size(), false);
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i) {
+            const TContainerItemType& r_item = *rContainerItems[i];
+            Vector<double> const& r_vec = r_item.GetValue(rVariable);
+            KRATOS_ERROR_IF(r_vec.size() != rData.size2())
+                << "Invalid dimension.\n";
+            for (std::size_t j = 0; j < rData.size2(); ++j) {
+                rData(i, j) = r_vec(j);
+            }
+        } // for item in rContainerItems
+    } // // if rContainerItems
 
     KRATOS_CATCH("");
 }
@@ -722,18 +740,20 @@ void SetDataBuffer(Variable<Matrix<double>> const& rVariable,
 {
     KRATOS_TRY;
 
-    rData.resize(rContainerItems.size(),
-                 rContainerItems.front()->GetValue(rVariable).data().size(), false);
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i)
-    {
-        const TContainerItemType& r_item = *rContainerItems[i];
-        const auto& r_data = r_item.GetValue(rVariable).data();
-        KRATOS_ERROR_IF(r_data.size() != rData.size2())
-            << "Invalid dimension.\n";
-        for (std::size_t j = 0; j < rData.size2(); ++j)
-            rData(i, j) = r_data[j];
-    }
+    if (!rContainerItems.empty()) {
+        rData.resize(rContainerItems.size(),
+                    rContainerItems.front()->GetValue(rVariable).data().size(), false);
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i) {
+            const TContainerItemType& r_item = *rContainerItems[i];
+            const auto& r_data = r_item.GetValue(rVariable).data();
+            KRATOS_ERROR_IF(r_data.size() != rData.size2())
+                << "Invalid dimension.\n";
+            for (std::size_t j = 0; j < rData.size2(); ++j) {
+                rData(i, j) = r_data[j];
+            }
+        } // for item in rContainerItems
+    } // if rContainerItems
 
     KRATOS_CATCH("");
 }
@@ -861,5 +881,4 @@ template class ContainerComponentIO<VertexContainerType,
                                     Variable<Vector<double>>,
                                     Variable<Matrix<double>>>;
 
-} // namespace HDF5.
-} // namespace Kratos.
+} // namespace Kratos::HDF5
