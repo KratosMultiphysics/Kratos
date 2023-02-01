@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 
 // Application includes
 #include "utilities/parallel_utilities.h"
@@ -26,7 +27,8 @@
 namespace Kratos
 {
 
-double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase& rContainer)
+template<class TContainerType>
+double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase<TContainerType>& rContainer)
 {
     if (rContainer.GetDataDimension() == 0) {
         return 0.0;
@@ -47,8 +49,8 @@ double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariable
     })));
 }
 
-
-double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHolderBase& rContainer)
+template<class TContainerType>
+double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHolderBase<TContainerType>& rContainer)
 {
     const auto& r_data = rContainer.GetData();
     return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(r_data.size()).for_each<MaxReduction<double>>([&](const IndexType Index) {
@@ -56,9 +58,10 @@ double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHold
     }));
 }
 
+template<class TContainerType>
 double ContainerVariableDataHolderUtils::InnerProduct(
-    const ContainerVariableDataHolderBase& rContainer1,
-    const ContainerVariableDataHolderBase& rContainer2)
+    const ContainerVariableDataHolderBase<TContainerType>& rContainer1,
+    const ContainerVariableDataHolderBase<TContainerType>& rContainer2)
 {
     const auto& r_data_1 = rContainer1.GetData();
     const auto& r_data_2 = rContainer2.GetData();
@@ -69,8 +72,8 @@ double ContainerVariableDataHolderUtils::InnerProduct(
         << "   Container 1: " << rContainer1 << "\n"
         << "   Container 2: " << rContainer2 << "\n";
 
-    KRATOS_ERROR_IF_NOT(rContainer1.IsCompatibleWithContainerVariableDataHolder(rContainer2))
-        << "Incompatible containers given for InnerProduct. "
+    KRATOS_ERROR_IF(rContainer1.GetModelPart() != rContainer2.GetModelPart())
+        << "Model part mismatch in InnerProduct calculation. "
         << "Followings are the given containers: \n"
         << "   Container 1: " << rContainer1 << "\n"
         << "   Container 2: " << rContainer2 << "\n";
@@ -79,5 +82,17 @@ double ContainerVariableDataHolderUtils::InnerProduct(
         return r_data_1[Index] * r_data_2[Index];
     }));
 }
+
+// template instantiations
+#define INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                \
+    template double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase<ContainerType>&);                                                       \
+    template double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHolderBase<ContainerType>&);                                                               \
+    template double ContainerVariableDataHolderUtils::InnerProduct(const ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&);
+
+INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ModelPart::NodesContainerType)
+INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ModelPart::ConditionsContainerType)
+INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ModelPart::ElementsContainerType)
+
+#undef INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE
 
 }
