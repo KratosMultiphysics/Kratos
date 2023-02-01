@@ -145,10 +145,10 @@ public:
      * @param rComm The epetra communicator
      * @return The pointer to the matrix
      */
-    static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& Comm)
+    static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& rComm)
     {
-        int global_elems = 0;
-        Epetra_Map Map(global_elems, 0, Comm);
+        const int global_elems = 0;
+        Epetra_Map Map(global_elems, 0, rComm);
         return MatrixPointerType(new TMatrixType(::Copy, Map, 0));
     }
 
@@ -157,10 +157,10 @@ public:
      * @param rComm The epetra communicator
      * @return The pointer to the vector
      */
-    static VectorPointerType CreateEmptyVectorPointer(Epetra_MpiComm& Comm)
+    static VectorPointerType CreateEmptyVectorPointer(Epetra_MpiComm& rComm)
     {
-        int global_elems = 0;
-        Epetra_Map Map(global_elems, 0, Comm);
+        const int global_elems = 0;
+        Epetra_Map Map(global_elems, 0, rComm);
         return VectorPointerType(new TVectorType(Map));
     }
 
@@ -169,10 +169,9 @@ public:
      * @param rV The vector considered
      * @return The size of the vector
      */
-    static IndexType Size(VectorType const& rV)
+    static IndexType Size(const VectorType& rV)
     {
-        int size;
-        size = rV.GlobalLength();
+        const int size = rV.GlobalLength();
         return size;
     }
 
@@ -183,8 +182,7 @@ public:
      */
     static IndexType Size1(MatrixType const& rM)
     {
-        int size1;
-        size1 = rM.NumGlobalRows();
+        const int size1 = rM.NumGlobalRows();
         return size1;
     }
 
@@ -195,8 +193,7 @@ public:
      */
     static IndexType Size2(MatrixType const& rM)
     {
-        int size1;
-        size1 = rM.NumGlobalCols();
+        const int size1 = rM.NumGlobalCols();
         return size1;
     }
 
@@ -208,14 +205,14 @@ public:
      * @param rX The column considered
      * @todo Implement this method
      */
-    static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
+    static void GetColumn(
+        const unsigned int j, 
+        const MatrixType& rM, 
+        VectorType& rX
+        )
     {
         KRATOS_ERROR << "GetColumn method is not currently implemented" << std::endl;
     }
-
-    ///////////////////////////////// TODO: Take a close look to this method!!!!!!!!!!!!!!!!!!!!!!!!!
-    /// rMij = rXi
-    //      static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX){rX = row(rM, j);}
 
     /**
      * @brief Returns a copy of the matrix rX
@@ -223,7 +220,10 @@ public:
      * @param rX The matrix considered
      * @param rY The copy of the matrix rX
      */
-    static void Copy(MatrixType const& rX, MatrixType& rY)
+    static void Copy(
+        const MatrixType& rX,
+        MatrixType& rY
+        )
     {
         rY = rX;
     }
@@ -234,7 +234,10 @@ public:
      * @param rX The vector considered
      * @param rY The copy of the vector rX
      */
-    static void Copy(VectorType const& rX, VectorType& rY)
+    static void Copy(
+        const VectorType& rX,
+        VectorType& rY
+        )
     {
         rY = rX;
     }
@@ -245,7 +248,10 @@ public:
      * @param rX The first vector considered
      * @param rY The second vector considered
      */
-    static double Dot(VectorType& rX, VectorType& rY)
+    static double Dot(
+        const VectorType& rX, 
+        const VectorType& rY
+        )
     {
         double value;
         const int sucess = rY.Dot(rX, &value); //it is prepared to handle vectors with multiple components
@@ -285,7 +291,7 @@ public:
      * @param rX The vector considered
      * @return The norm of the vector rX
      */
-    static double TwoNorm(VectorType const& rX)
+    static double TwoNorm(const VectorType& rX)
     {
         double value;
         const int sucess = rX.Norm2(&value); //it is prepared to handle vectors with multiple components
@@ -300,10 +306,13 @@ public:
      * @param rX The vector considered
      * @param rY The result of the multiplication
      */
-    static void Mult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    static void Mult(
+        const MatrixType& rA,
+        const VectorType& rX,
+        VectorType& rY
+        )
     {
-        //y = A*x
-        bool transpose_flag = false;
+        const bool transpose_flag = false;
         rA.Multiply(transpose_flag, rX, rY);
     }
 
@@ -314,12 +323,15 @@ public:
      * @param rX The vector considered
      * @param rY The result of the multiplication
      */
-    static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    static void TransposeMult(
+        const MatrixType& rA,
+        const VectorType& rX,
+        VectorType& rY
+        )
     {
-        //y = A*x
-        bool transpose_flag = true;
+        const bool transpose_flag = true;
         rA.Multiply(transpose_flag, rX, rY);
-    } // rY = rAT * rX
+    }
 
     /**
      * @brief Returns the multiplication of a vector by a scalar
@@ -328,7 +340,10 @@ public:
      * @param rX The vector considered
      * @param A The scalar considered
      */
-    static void InplaceMult(VectorType& rX, const double A)
+    static void InplaceMult(
+        VectorType& rX,
+        const double A
+        )
     {
         if (A != 1.00)
             rX.Scale(A);
@@ -343,7 +358,11 @@ public:
      * @param A The scalar considered
      * @param rY The multiplied vector considered
      */
-    static void Assign(VectorType& rX, const double A, const VectorType& rY)
+    static void Assign(
+        VectorType& rX,
+        const double A,
+        const VectorType& rY
+        )
     {
         if (A != 1.00)
             rX.Scale(A, rY); //not sure
@@ -360,7 +379,11 @@ public:
      * @param A The scalar considered
      * @param rY The multiplied vector considered
      */
-    static void UnaliasedAdd(VectorType& rX, const double A, const VectorType& rY)
+    static void UnaliasedAdd(
+        VectorType& rX,
+        const double A,
+        const VectorType& rY
+        )
     {
         rX.Update(A, rY, 1.0);
     }
@@ -374,7 +397,13 @@ public:
      * @param rY The second vector considered
      * @param rZ The resulting vector considered
      */
-    static void ScaleAndAdd(const double A, const VectorType& rX, const double B, const VectorType& rY, VectorType& rZ) // rZ = (A * rX) + (B * rY)
+    static void ScaleAndAdd(
+        const double A,
+        const VectorType& rX,
+        const double B,
+        const VectorType& rY,
+        VectorType& rZ
+        )
     {
         rZ.Update(A, rX, B, rY, 0.0);
     }
@@ -387,16 +416,15 @@ public:
      * @param B The scalar considered
      * @param rY The resulting vector considered
      */
-    static void ScaleAndAdd(const double A, const VectorType& rX, const double B, VectorType& rY) // rY = (A * rX) + (B * rY)
+    static void ScaleAndAdd(
+        const double A,
+        const VectorType& rX,
+        const double B,
+        VectorType& rY
+        )
     {
         rY.Update(A, rX, B);
     }
-
-    /// rA[i] * rX
-    //       static double RowDot(unsigned int i, MatrixType& rA, VectorType& rX)
-    // 	{
-    // 	  return inner_prod(row(rA, i), rX);
-    // 	}
 
     /**
      * @brief Sets a value in a vector
@@ -404,7 +432,11 @@ public:
      * @param i The index of the value considered
      * @param value The value considered
      */
-    static void SetValue(VectorType& rX, IndexType i, double value)
+    static void SetValue(
+        VectorType& rX,
+        IndexType i,
+        const double value
+        )
     {
         Epetra_IntSerialDenseVector indices(1);
         Epetra_SerialDenseVector values(1);
@@ -424,7 +456,10 @@ public:
      * @param rX The vector considered
      * @param A The scalar considered
      */
-    static void Set(VectorType& rX, DataType A)
+    static void Set(
+        VectorType& rX, 
+        const DataType A
+        )
     {
         rX.PutScalar(A);
     }
@@ -435,10 +470,13 @@ public:
      * @param m The new number of rows
      * @param n The new number of columns
      */
-    static void Resize(MatrixType& rA, SizeType m, SizeType n)
+    static void Resize(
+        MatrixType& rA,
+        const SizeType m,
+        const SizeType n
+        )
     {
         KRATOS_ERROR << "Resize is not defined for Trilinos Sparse Matrix" << std::endl;
-
     }
 
     /**
@@ -446,7 +484,10 @@ public:
      * @param rX The vector to be resized
      * @param n The new size
      */
-    static void Resize(VectorType& rX, SizeType n)
+    static void Resize(
+        VectorType& rX,
+        const SizeType n
+        )
     {
         KRATOS_ERROR << "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer" << std::endl;
     }
@@ -455,8 +496,11 @@ public:
      * @brief Resizes a vector
      * @param pA The pointer to the vector to be resized
      * @param n The new size
-     */
-    static void Resize(VectorPointerType& pX, SizeType n)
+    */
+    static void Resize(
+        VectorPointerType& pX, 
+        const SizeType n
+        )
     {
         //KRATOS_ERROR_IF(pX != NULL) << "trying to resize a null pointer" << std::endl;
         int global_elems = n;
@@ -622,13 +666,16 @@ public:
      * @param I The index of the value to be gathered
      * @return The value of the vector corresponding to the index I
      */
-    inline static double GetValue(const VectorType& x, std::size_t I)
+    inline static double GetValue(
+        const VectorType& rX,
+        const std::size_t I
+        )
     {
         // index must be local to this proc
-        KRATOS_ERROR_IF_NOT(x.Map().MyGID(static_cast<int>(I))) << " non-local id: " << I << ".";
+        KRATOS_ERROR_IF_NOT(rX.Map().MyGID(static_cast<int>(I))) << " non-local id: " << I << ".";
         // Epetra_MultiVector::operator[] is used here to get the pointer to
         // the zeroth (only) local vector.
-        return x[0][x.Map().LID(static_cast<int>(I))];
+        return rX[0][rX.Map().LID(static_cast<int>(I))];
     }
 
     /**
@@ -637,7 +684,11 @@ public:
      * @param IndexArray The array containing the indices of the values to be gathered
      * @param pValues The array containing the gathered values
      */
-    static void GatherValues(const VectorType& rX, const std::vector<int>& IndexArray, double* pValues)
+    static void GatherValues(
+        const VectorType& rX,
+        const std::vector<int>& IndexArray,
+        double* pValues
+        )
     {
         KRATOS_TRY
         double tot_size = IndexArray.size();
@@ -659,7 +710,6 @@ public:
 
         rX.Comm().Barrier();
         KRATOS_CATCH("")
-
     }
 
     /**
@@ -668,17 +718,20 @@ public:
      * @param rComm The MPI communicator
      * @return The matrix read from the file
      */
-    MatrixPointerType ReadMatrixMarket(const std::string FileName,Epetra_MpiComm& Comm)
+    MatrixPointerType ReadMatrixMarket(
+        const std::string FileName,
+        Epetra_MpiComm& rComm
+        )
     {
         KRATOS_TRY
 
         Epetra_CrsMatrix* pp = nullptr;
 
-        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), rComm, pp);
 
         KRATOS_ERROR_IF(error_code != 0) << "Eerror thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
 
-        Comm.Barrier();
+        rComm.Barrier();
 
         const Epetra_CrsGraph& rGraph = pp->Graph();
         MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
@@ -725,7 +778,11 @@ public:
      * @param rComm The MPI communicator
      * @param N The size of the vector
      */
-    VectorPointerType ReadMatrixMarketVector(const std::string& rFileName, Epetra_MpiComm& rComm, int N)
+    VectorPointerType ReadMatrixMarketVector(
+        const std::string& rFileName, 
+        Epetra_MpiComm& rComm, 
+        const int N
+        )
     {
         KRATOS_TRY
 
@@ -851,7 +908,7 @@ public:
 
         KRATOS_CATCH("");
     }
-    
+
     /**
      * @brief This method returns the diagonal norm considering for scaling the diagonal
      * @param rA The LHS matrix
@@ -997,7 +1054,11 @@ public:
      * @return True if the file was successfully written, false otherwise
      */
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
+    static bool WriteMatrixMarketMatrix(
+        const char* pFileName,
+        const TOtherMatrixType& rM,
+        const bool Symmetric
+        )
     {
         // the argument "Symmetric" does not have an effect for Trilinos => needed for compatibility with other Spaces
         KRATOS_TRY;
@@ -1012,7 +1073,10 @@ public:
      * @return True if the file was successfully written, false otherwise
      */
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
+    static bool WriteMatrixMarketVector(
+        const char* pFileName,
+        const VectorType& rV
+        )
     {
         KRATOS_TRY;
         return EpetraExt::MultiVectorToMatrixMarketFile(pFileName, rV);
@@ -1103,4 +1167,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
