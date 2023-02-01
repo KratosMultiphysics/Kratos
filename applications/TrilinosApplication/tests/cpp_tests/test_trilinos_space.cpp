@@ -122,7 +122,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeVector, KratosTrilinosApplicat
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
     // The dummy vector
-    const int size = 4;
+    const int size = 2 * r_comm.Size();
     auto vector = GenerateDummyVector(r_comm, size);
 
     // Check
@@ -135,7 +135,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeMatrix, KratosTrilinosApplicat
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
     // The dummy vector
-    const int size = 4;
+    const int size = 2 * r_comm.Size();
     auto vector = GenerateDummySparseMatrix(r_comm, size);
 
     // Check
@@ -149,7 +149,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDotProduct, KratosTrilinosApplicat
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
     // The dummy vector
-    const int size = 4;
+    const int size = 2 * r_comm.Size();
     auto vector1 = GenerateDummyVector(r_comm, size);
     auto vector2 = GenerateDummyVector(r_comm, size);
     double ref = 0.0;
@@ -167,7 +167,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMaxMin, KratosTrilinosApplicationM
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
     // The dummy vector
-    const int size = 4;
+    const int size = 2 * r_comm.Size();
     auto vector = GenerateDummyVector(r_comm, size);
 
     // Check
@@ -181,7 +181,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormVector, KratosTrilinosAppli
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
     // The dummy vector
-    const int size = 4;
+    const int size = 2 * r_comm.Size();
     auto vector = GenerateDummyVector(r_comm, size);
     double ref = 0.0;
     for (int i = 0; i < size; ++i) {
@@ -199,7 +199,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix, KratosTrilinosAppli
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
     // The dummy matrix
-    const int size = 4;
+    const int size = 2 * r_comm.Size();
     auto matrix = GenerateDummySparseMatrix(r_comm, size);
     double ref = 0.0;
     for (int i = 0; i < size; ++i) {
