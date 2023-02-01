@@ -154,7 +154,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     IndexType bucket_size = mThisParameters["search_parameters"]["bucket_size"].GetInt();                               // Bucket size for kd-tree
 
     KRATOS_ERROR_IF(rVectorSegments.size() == 0) << "Path not initialized" << std::endl;
-    PointVector points_vector;
+    KDtreePointVector points_vector;
     points_vector.reserve(rVectorSegments.size());
     for (auto& p_geom : rVectorSegments) {
         points_vector.push_back(KDtreePointTypePointer(new KDtreePointType(p_geom)));
@@ -167,7 +167,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
         double search_radius = search_factor * max_length;
 
         // Initialize values
-        PointVector points_found(allocation_size);
+        KDtreePointVector points_found(allocation_size);
         IndexType number_points_found = 0;
         while (number_points_found == 0) {
             search_radius *= search_increment_factor;
