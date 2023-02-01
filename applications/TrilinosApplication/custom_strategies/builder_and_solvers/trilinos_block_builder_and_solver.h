@@ -84,6 +84,11 @@ class TrilinosBlockBuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the flags
+    KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
+
+    /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosBlockBuilderAndSolver);
 
     /// Definition of the base class
@@ -987,6 +992,10 @@ private:
 
 ///@name Type Definitions
 ///@{
+
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(0));
 
 ///@}
 
