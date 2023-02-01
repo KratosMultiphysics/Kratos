@@ -8,33 +8,25 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//
+//  Collaborators:   Vicente Mataix
 //
 
 #pragma once
 
-/* System includes */
+// System includes
 #include <unordered_set>
 
-/* External includes */
+// External includes
 
-/* Project includes */
-#include "includes/define.h"
+/* Trilinos includes */
+#include <Epetra_FECrsGraph.h>
+#include <Epetra_IntVector.h>
+
+// Project includes
+#include "trilinos_space.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
-
-/* Trilinos includes */
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
-#include "Epetra_Import.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_IntVector.h"
-#include "Epetra_Map.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_SerialDenseMatrix.h"
-#include "Epetra_SerialDenseVector.h"
-#include "Epetra_Vector.h"
 
 #if !defined(START_TIMER)
 #define START_TIMER(label, rank) \
@@ -80,6 +72,8 @@ namespace Kratos {
  * residual already contains this information. Calculation of the reactions
  * involves a cost very similar to the calculation of the total residual
  * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ * @note Should be TrilinosResidualBasedBlockBuilderAndSolver?
  */
 template <class TSparseSpace,
           class TDenseSpace,  //= DenseSpace<double>,
@@ -90,6 +84,11 @@ class TrilinosBlockBuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the flags
+    KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
+
+    /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosBlockBuilderAndSolver);
 
     /// Definition of the base class
@@ -127,15 +126,38 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor (empty)
+     */
+    explicit TrilinosBlockBuilderAndSolver() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor.
      */
-    TrilinosBlockBuilderAndSolver(EpetraCommunicatorType& rComm,
+    explicit TrilinosBlockBuilderAndSolver(EpetraCommunicatorType& rComm,
                                   int GuessRowSize,
                                   typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver),
+        : BaseType(pNewLinearSystemSolver),
           mrComm(rComm),
           mGuessRowSize(GuessRowSize)
     {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * TODO: Expose to python
+     */
+    explicit TrilinosBlockBuilderAndSolver(
+        EpetraCommunicatorType& rComm,
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver),
+            mrComm(rComm)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -152,6 +174,8 @@ public:
      * Assignment operator
      */
     TrilinosBlockBuilderAndSolver& operator=(const TrilinosBlockBuilderAndSolver& rOther) = delete;
+
+    // TODO: In order to create a Create method something must be done about the EpetraCommunicator. Maybe ge it from ProcessInfo
 
     ///@}
     ///@name Operators
@@ -622,34 +646,38 @@ public:
                                     ModelPart& rModelPart) override
     {
         KRATOS_TRY
-        // resizing the system vectors and matrix
+
+        // Resizing the system vectors and matrix
         if (rpA == nullptr || TSparseSpace::Size1(*rpA) == 0 ||
-            BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
-        {
+            BaseType::GetReshapeMatrixFlag() == true) { // if the matrix is not initialized
             IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
             int temp_size = number_of_local_dofs;
-            if (temp_size < 1000)
+            if (temp_size < 1000) {
                 temp_size = 1000;
+            }
             std::vector<int> temp(temp_size, 0);
+
             // TODO: Check if these should be local elements and conditions
             auto& r_elements_array = rModelPart.Elements();
             auto& r_conditions_array = rModelPart.Conditions();
-            // generate map - use the "temp" array here
-            for (IndexType i = 0; i != number_of_local_dofs; i++)
+
+            // Generate map - use the "temp" array here
+            for (IndexType i = 0; i != number_of_local_dofs; i++) {
                 temp[i] = mFirstMyId + i;
+            }
             Epetra_Map my_map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
-            // create and fill the graph of the matrix --> the temp array is
+
+            // Create and fill the graph of the matrix --> the temp array is
             // reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mGuessRowSize);
             Element::EquationIdVectorType equation_ids_vector;
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            // assemble all elements
+            // Assemble all elements
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-                pScheme->EquationId(**it_elem, equation_ids_vector,
-                                    r_current_process_info);
+                pScheme->EquationId(**it_elem, equation_ids_vector, r_current_process_info);
 
-                // filling the list of active global indices (non fixed)
+                // Filling the list of active global indices (non fixed)
                 IndexType num_active_indices = 0;
                 for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
                     temp[num_active_indices] = equation_ids_vector[i];
@@ -657,20 +685,15 @@ public:
                 }
 
                 if (num_active_indices != 0) {
-                    int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
+                    const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
                 std::fill(temp.begin(), temp.end(), 0);
             }
 
             // assemble all conditions
             for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-                pScheme->EquationId(
-                    **it_cond, equation_ids_vector, r_current_process_info);
+                pScheme->EquationId(**it_cond, equation_ids_vector, r_current_process_info);
 
                 // filling the list of active global indices (non fixed)
                 IndexType num_active_indices = 0;
@@ -680,56 +703,43 @@ public:
                 }
 
                 if (num_active_indices != 0) {
-                    int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
+                    const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
                 std::fill(temp.begin(), temp.end(), 0);
             }
 
-            // finalizing graph construction
-            int ierr = Agraph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0)
-                << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
-                << std::endl;
-            // generate a new matrix pointer according to this graph
-            TSystemMatrixPointerType p_new_A =
-                TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
+            // Finalizing graph construction
+            const int ierr = Agraph.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+
+            // Generate a new matrix pointer according to this graph
+            TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
             rpA.swap(p_new_A);
-            // generate new vector pointers according to the given map
+
+            // Generate new vector pointers according to the given map
             if (rpb == nullptr || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize) {
-                TSystemVectorPointerType p_new_b =
-                    TSystemVectorPointerType(new TSystemVectorType(my_map));
+                TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(my_map));
                 rpb.swap(p_new_b);
             }
             if (rpDx == nullptr || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize) {
-                TSystemVectorPointerType p_new_Dx =
-                    TSystemVectorPointerType(new TSystemVectorType(my_map));
+                TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(my_map));
                 rpDx.swap(p_new_Dx);
             }
-            if (BaseType::mpReactionsVector == nullptr) // if the pointer is not initialized initialize it to an
-                                                        // empty matrix
-            {
-                TSystemVectorPointerType pNewReactionsVector =
-                    TSystemVectorPointerType(new TSystemVectorType(my_map));
+            if (BaseType::mpReactionsVector == nullptr) { // if the pointer is not initialized initialize it to an
+                                                          // empty matrix
+                TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map));
                 BaseType::mpReactionsVector.swap(pNewReactionsVector);
             }
-        }
-        else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag) {
+        } else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag) {
             TSystemVectorPointerType pNewReactionsVector =
                 TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
-        }
-        else {
+        } else {
             if (TSparseSpace::Size1(*rpA) == 0 ||
                 TSparseSpace::Size1(*rpA) != BaseType::mEquationSystemSize ||
                 TSparseSpace::Size2(*rpA) != BaseType::mEquationSystemSize) {
-                KRATOS_ERROR
-                    << "It should not come here resizing is not allowed this "
-                       "way!!!!!!!! ... ";
+                KRATOS_ERROR << "It should not come here resizing is not allowed this way!!!!!!!! ... " << std::endl;
             }
         }
 
@@ -857,35 +867,35 @@ public:
         // defining a temporary vector to gather all of the values needed
         Epetra_IntVector fixed(rA.ColMap());
 
-        // importing in the new temp vector the values
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, r_data_comm, mScalingDiagonal);
+
+        // Importing in the new temp vector the values
         int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
-        // NOTE: CheckAndCorrectZeroDiagonalValues would be missing in here
-
         for (int i = 0; i < rA.NumMyRows(); i++) {
-            int numEntries; // number of non-zero entries
-            double* vals;   // row non-zero values
-            int* cols;      // column indices of row non-zero values
+            int numEntries; // Number of non-zero entries
+            double* vals;   // Row non-zero values
+            int* cols;      // Column indices of row non-zero values
             rA.ExtractMyRowView(i, numEntries, vals, cols);
 
-            int row_gid = rA.RowMap().GID(i);
-            int row_lid = localmap.LID(row_gid);
+            const int row_gid = rA.RowMap().GID(i);
+            const int row_lid = localmap.LID(row_gid);
 
-            if (fixed_local[row_lid] == 0) // not a dirichlet row
-            {
+            if (fixed_local[row_lid] == 0) { // Not a dirichlet row
                 for (int j = 0; j < numEntries; j++) {
                     if (fixed[cols[j]] == true)
                         vals[j] = 0.0;
                 }
-            }
-            else // this IS a dirichlet row
-            {
-                // set to zero the rhs
+            } else { // This IS a dirichlet row
+                // Set to zero the rhs
                 rb[0][i] = 0.0; // note that the index of i is expected to be
                                 // coherent with the rows of A
 
-                // set to zero the whole row
+                // Set to zero the whole row
                 for (int j = 0; j < numEntries; j++) {
                     int col_gid = rA.ColMap().GID(cols[j]);
                     if (col_gid != row_gid)
@@ -895,6 +905,59 @@ public:
         }
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
+     */
+    void Clear() override
+    {
+        BaseType::Clear();
+    }
+
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart The model part of the problem to solve
+     * @return 0 all ok
+     */
+    int Check(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        return 0;
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                 : "trilinos_block_builder_and_solver",
+            "guess_row_size"                       : 45,
+            "block_builder"                        : true,
+            "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal",
+            "silent_warnings"                      : false
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "trilinos_block_builder_and_solver";
     }
 
     ///@}
@@ -909,6 +972,29 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "TrilinosBlockBuilderAndSolver";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -917,11 +1003,18 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    EpetraCommunicatorType& mrComm;
-    int mGuessRowSize;
-    IndexType mLocalSystemSize;
-    int mFirstMyId;
-    int mLastMyId;
+    /* Base variables */
+    EpetraCommunicatorType& mrComm;   /// The MPI communicator
+    int mGuessRowSize;                /// The guess row size
+    IndexType mLocalSystemSize;       /// The local system size
+    int mFirstMyId;                   /// Auxiliary Id (I)
+    int mLastMyId;                    /// Auxiliary Id (II)
+
+    double mScaleFactor = 1.0;         /// The manually set scale factor
+
+    /* Flags */
+    SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                    /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -930,6 +1023,42 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Get guess row size
+        mGuessRowSize = ThisParameters["guess_row_size"].GetInt();
+
+        // Setting flags
+        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
+
+        if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
+        }
+
+        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
+        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
+            mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL;
+        } else { // Otherwise we will assume we impose a numerical value
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
+        }
+        mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
+    }
 
     ///@}
     ///@name Protected  Access
@@ -944,7 +1073,6 @@ protected:
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -961,8 +1089,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    //**************************************************************************
-    //**************************************************************************
     void AssembleLHS_CompleteOnFreeRows(TSystemMatrixType& rA,
                                         LocalSystemMatrixType& rLHS_Contribution,
                                         Element::EquationIdVectorType& rEquationId)
@@ -989,6 +1115,10 @@ private:
 
 ///@name Type Definitions
 ///@{
+
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(0));
 
 ///@}
 
