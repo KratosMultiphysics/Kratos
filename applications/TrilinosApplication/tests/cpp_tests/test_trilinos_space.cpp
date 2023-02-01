@@ -175,6 +175,41 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMaxMin, KratosTrilinosApplicationM
     KRATOS_CHECK_DOUBLE_EQUAL(static_cast<double>(size - 1), TrilinosSparseSpaceType::Max(vector));
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormVector, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 4;
+    auto vector = GenerateDummyVector(r_comm, size);
+    double ref = 0.0;
+    for (int i = 0; i < size; ++i) {
+        ref += std::pow(static_cast<double>(i), 2);
+    }
+    ref = std::sqrt(ref);
+
+    // Check
+    KRATOS_CHECK_DOUBLE_EQUAL(ref, TrilinosSparseSpaceType::TwoNorm(vector));
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy matrix
+    const int size = 4;
+    auto matrix = GenerateDummySparseMatrix(r_comm, size);
+    double ref = 0.0;
+    for (int i = 0; i < size; ++i) {
+        ref += std::pow(static_cast<double>(i), 2);
+    }
+    ref = std::sqrt(ref);
+
+    // Check
+    KRATOS_CHECK_DOUBLE_EQUAL(ref, TrilinosSparseSpaceType::TwoNorm(matrix));
+}
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
