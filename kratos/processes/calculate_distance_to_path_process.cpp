@@ -53,7 +53,7 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
     auto& r_data_comm = r_comm.GetDataCommunicator();
     
     // MPI not supported for the moment
-    KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "MPI not supported for the moment" << std::endl;
+    KRATOS_ERROR_IF(r_data_comm.IsDistributed()) << "MPI not supported for the moment" << std::endl;
 
     // Initialize distance variable
     if constexpr ( THistorical) {
