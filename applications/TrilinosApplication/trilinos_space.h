@@ -300,6 +300,20 @@ public:
     }
 
     /**
+     * @brief Returns the norm of the matrix rX
+     * @details ||rA||2
+     * @param rA The matrix considered
+     * @return The norm of the matrix rX
+     */
+    static double TwoNorm(const MatrixType& rA)
+    {
+        double value;
+        const int sucess = rA.Norm2(&value);
+        KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing norm" <<  std::endl;
+        return value;
+    }
+
+    /**
      * @brief Returns the multiplication of a matrix by a vector
      * @details y = A*x
      * @param rA The matrix considered
