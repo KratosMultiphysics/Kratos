@@ -226,9 +226,9 @@ namespace Kratos {
         std::vector<NodesContainerType> send_nodes_container(size);
         NodesContainerType send_nodes;
 
-        auto& r_ghost_nodes = rModelPart.GetCommunicator().GhostMesh().Nodes();
-        const auto ghost_nodes_it_begin = rModelPart.GetCommunicator().GhostMesh().NodesBegin();
-        const unsigned int number_ghost_nodes = rModelPart.GetCommunicator().GhostMesh().NumberOfNodes();
+        //auto& r_ghost_nodes = rModelPart.GetCommunicator().GhostMesh().Nodes();
+        //const auto ghost_nodes_it_begin = rModelPart.GetCommunicator().GhostMesh().NodesBegin();
+        //const unsigned int number_ghost_nodes = rModelPart.GetCommunicator().GhostMesh().NumberOfNodes();
 
         // for( int i = 0; i < number_ghost_nodes; ++i){
         //     auto ghost_node_it = ghost_nodes_it_begin + i;
@@ -240,7 +240,7 @@ namespace Kratos {
         for( auto neighbour : neighbours_custom){
             for( unsigned int i = 0; i < number_of_interface_nodes; ++i){
                 auto node_it = node_it_begin + i;
-                int node_id = node_it->Id();
+                //int node_id = node_it->Id();
                 auto disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
                 if( norm_2(disp) != 0 ) //&&!node_it->GetValue(IS_GHOST_NODE)) //Only send and non-ghost nodes
                     send_nodes_container[neighbour].push_back(*node_it.base());
