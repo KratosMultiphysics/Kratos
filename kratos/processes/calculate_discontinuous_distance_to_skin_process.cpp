@@ -30,10 +30,6 @@
 
 namespace Kratos
 {
-    KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES, 0);
-    KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 1);
-    KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, USE_POSITIVE_EPSILON_FOR_ZERO_VALUES, 2);
-
     template<std::size_t TDim>
     CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
@@ -42,22 +38,6 @@ namespace Kratos
         , mrSkinPart(rSkinPart)
         , mrVolumePart(rVolumePart)
     {
-    }
-
-    template<std::size_t TDim>
-    CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart,
-        const Flags rOptions)
-        : mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
-        , mrSkinPart(rSkinPart)
-        , mrVolumePart(rVolumePart)
-        , mOptions(rOptions)
-    {
-        KRATOS_WARNING("DEPRECATION") << "Please use the parameter constructor instead of the flag constructor." << std::endl;
-        mCalculateElementalEdgeDistances = mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES);
-        mCalculateElementalEdgeDistancesExtrapolated = mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
-        mUsePositiveEpsilonForZeroValues = mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES);
     }
 
     template<std::size_t TDim>

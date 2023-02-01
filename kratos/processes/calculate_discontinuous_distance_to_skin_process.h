@@ -38,14 +38,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcessFlags
-{
-public:
-    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES); /// Local flag to switch on/off the elemental edge distances storage
-    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED); /// Local flag to switch on/off the extrapolated elemental edge distances storage
-    KRATOS_DEFINE_LOCAL_FLAG(USE_POSITIVE_EPSILON_FOR_ZERO_VALUES); /// Local flag to switch from positive (true) to negative (false) epsilon when replacing zero distance values.
-};
-
 /// This only calculates the distance. Calculating the inside outside should be done by a derived class of this.
 /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
      and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
@@ -69,12 +61,6 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart);
-
-    /// Constructor with option
-    CalculateDiscontinuousDistanceToSkinProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart,
-        const Flags rOptions);
 
     /// Constructor with parameters
     CalculateDiscontinuousDistanceToSkinProcess(
@@ -220,8 +206,6 @@ private:
 
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
-
-    Flags mOptions;
 
     static const std::size_t mNumNodes = TDim + 1;
     static const std::size_t mNumEdges = (TDim == 2) ? 3 : 6;
