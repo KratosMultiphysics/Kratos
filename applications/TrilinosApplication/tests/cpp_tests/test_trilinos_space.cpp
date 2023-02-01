@@ -161,6 +161,21 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDotProduct, KratosTrilinosApplicat
     KRATOS_CHECK_DOUBLE_EQUAL(ref, TrilinosSparseSpaceType::Dot(vector1, vector2));
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMaxMin, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 4;
+    auto vector = GenerateDummyVector(r_comm, size);
+
+    // Check
+    KRATOS_CHECK_DOUBLE_EQUAL(0.0, TrilinosSparseSpaceType::Min(vector));
+    KRATOS_CHECK_DOUBLE_EQUAL(static_cast<double>(size - 1), TrilinosSparseSpaceType::Max(vector));
+}
+
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
