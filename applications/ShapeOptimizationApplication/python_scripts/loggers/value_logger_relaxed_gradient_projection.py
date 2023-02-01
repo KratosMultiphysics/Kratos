@@ -55,10 +55,13 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
     def _WriteCurrentValuesToConsole( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
         Kratos.Logger.Print("")
-        Kratos.Logger.PrintInfo("ShapeOpt", "Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
+        Kratos.Logger.PrintInfo("ShapeOpt", "Current value of objective = ", "{:> .5E}".format(self.history["response_value"]
+                                                                                               [objective_id][self.current_index]))
 
-        Kratos.Logger.PrintInfo("ShapeOpt", "Absolute change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
-        Kratos.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
+        Kratos.Logger.PrintInfo("ShapeOpt", "Absolute change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index]),
+                                                                                                " [%]")
+        Kratos.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index]),
+                                                                                                " [%]\n")
 
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()

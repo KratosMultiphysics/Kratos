@@ -1,5 +1,5 @@
 # Import Kratos core and apps
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
@@ -71,14 +71,15 @@ class CustomAnalyzer(AnalyzerBaseClass):
         if communicator.isRequestingGradientOf("z_65"):
             communicator.reportGradient("z_65", CoordZ.Gradient(current_design, 65))
 
+
 # =======================================================================================================
 # Perform optimization
 # =======================================================================================================
 
 with open("parameters.json",'r') as parameter_file:
-    parameters = KM.Parameters(parameter_file.read())
+    parameters = Kratos.Parameters(parameter_file.read())
 
-model = KM.Model()
+model = Kratos.Model()
 
 optimizer = optimizer_factory.Create(model, parameters["optimization_settings"], CustomAnalyzer())
 optimizer.Optimize()
