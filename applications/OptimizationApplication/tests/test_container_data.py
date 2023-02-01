@@ -287,6 +287,12 @@ class TestHistoricalContainerVariableDataHolder(kratos_unittest.TestCase, TestCo
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
+        b = KratosOA.NodalContainerVariableDataHolder(a)
+        b += 1
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) + 1, 12)
+
     def _GetContainerVariableDataHolder(self):
         return KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
@@ -320,6 +326,12 @@ class TestNodalContainerVariableDataHolder(kratos_unittest.TestCase, TestContain
         b.AssignDataToContainerVariable(Kratos.DENSITY)
         for node in b.GetContainer():
             self.assertEqual(node.GetSolutionStepValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
+
+        b = KratosOA.HistoricalContainerVariableDataHolder(a)
+        b += 1
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.GetSolutionStepValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) + 1, 12)
 
     def _GetContainerVariableDataHolder(self):
         return KratosOA.NodalContainerVariableDataHolder(self.model_part)
@@ -355,6 +367,12 @@ class TestConditionContainerVariableDataHolder(kratos_unittest.TestCase, TestCon
         for node in b.GetContainer():
             self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE), 12)
 
+        b = KratosOA.ConditionPropertiesContainerVariableDataHolder(a)
+        b += 1
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE) + 1, 12)
+
     def _GetContainerVariableDataHolder(self):
         return KratosOA.ConditionContainerVariableDataHolder(self.model_part)
 
@@ -388,6 +406,12 @@ class TestElementContainerVariableDataHolder(kratos_unittest.TestCase, TestConta
         b.AssignDataToContainerVariable(Kratos.DENSITY)
         for node in b.GetContainer():
             self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE), 12)
+
+        b = KratosOA.ElementPropertiesContainerVariableDataHolder(a)
+        b += 1
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE) + 1, 12)
 
     def _GetContainerVariableDataHolder(self):
         return KratosOA.ElementContainerVariableDataHolder(self.model_part)
@@ -423,6 +447,12 @@ class TestConditionPropertiesContainerVariableDataHolder(kratos_unittest.TestCas
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
+        b = KratosOA.ConditionContainerVariableDataHolder(a)
+        b += 1
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) + 1, 12)
+
     def _GetContainerVariableDataHolder(self):
         return KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part)
 
@@ -456,6 +486,12 @@ class TestElementPropertiesContainerVariableDataHolder(kratos_unittest.TestCase,
         b.AssignDataToContainerVariable(Kratos.DENSITY)
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
+
+        b = KratosOA.ElementContainerVariableDataHolder(a)
+        b += 1
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) + 1, 12)
 
     def _GetContainerVariableDataHolder(self):
         return KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part)

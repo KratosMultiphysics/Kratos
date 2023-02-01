@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:         BSD License
+//                   license: HDF5Application/license.txt
 //
 //  Main author:     Suneth Warnakulasuriya
 //
