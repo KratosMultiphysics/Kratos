@@ -252,7 +252,7 @@ public:
      * @param rY The second vector considered
      */
     static double Dot(
-        const VectorType& rX, 
+        const VectorType& rX,
         const VectorType& rY
         )
     {
