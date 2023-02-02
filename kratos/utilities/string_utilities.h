@@ -51,11 +51,21 @@ namespace Kratos
 namespace StringUtilities
 {
     /**
-     * @brief This method converts CammelCase to snake_case
+     * @brief This method converts CamelCase to snake_case
      * @param rString The string to be transformed into snake_case
      * @return The string in snake_case
      */
-    std::string KRATOS_API(KRATOS_CORE) ConvertCammelCaseToSnakeCase(const std::string& rString);
+    std::string KRATOS_API(KRATOS_CORE) ConvertCamelCaseToSnakeCase(const std::string& rString);
+
+    /**
+     *  @brief Convert snake_case to CamelCase.
+     *  @param rString String to convert.
+     *  @throws If the input string
+     *          - contains capital letters                              [A-Z]
+     *          - contains special characters other than underscores    (?![a-z0-9_])
+     *          - contains repeated underscores                         __+
+     */
+    std::string KRATOS_API(KRATOS_CORE) ConvertSnakeCaseToCamelCase(const std::string& rString);
 
     /**
      * @brief Erase first occurrence of given  substring from main string.
@@ -104,8 +114,8 @@ namespace StringUtilities
      * @return The string updated with the new substring
      */
     std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(
-        const std::string& rInputString, 
-        const std::string& rStringToBeReplaced, 
+        const std::string& rInputString,
+        const std::string& rStringToBeReplaced,
         const std::string& rStringToReplace
         );
 

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -453,27 +452,38 @@ public:
         return std::sqrt(std::abs(this->DeterminantOfJacobian( PointType() ) ) );
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /** 
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     * @todo Could be replaced by something more suitable
-     * @return double value contains area or surface
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
     double Area() const override
     {
-        return std::abs(this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    // TODO: Code activated in June 2023
+    // /**
+    //  * @brief This method calculates and returns the volume of this geometry.
+    //  * @return Error, the volume of a 2D geometry is not defined
+    //  * @see Length()
+    //  * @see Area()
+    //  * @see Volume()
+    //  */
+    // double Volume() const override
+    // {
+    //     KRATOS_ERROR << "Triangle3D6:: Method not well defined. Replace with DomainSize() instead" << std::endl;
+    //     return 0.0;
+    // }
+
+    /** 
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
@@ -559,25 +569,6 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -660,9 +651,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 3 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 4 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ), this->pGetPoint( 5 ) ) );
         return edges;
     }
 
@@ -1136,5 +1127,3 @@ GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(
     2, 3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined
