@@ -54,13 +54,13 @@ namespace Kratos
                         rGeometry[c].Coordinates()[k] -= Delta;
                         const double fd_derivative = (fd_value - fd_ref_value) / Delta;
 
-                        KRATOS_CHECK_NEAR(analytical_derivative, fd_derivative, Tolerance);
+                        KRATOS_EXPECT_NEAR(analytical_derivative, fd_derivative, Tolerance);
                     }
                 }
             }
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSizeCase1, KratosCoreFastSuite)
+        TEST(Prism3D6ElementSizeCase1, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -72,11 +72,11 @@ namespace Kratos
             const auto prism1 = *GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
             const double minimum_size = ElementSizeCalculator<3, 6>::MinimumElementSize(prism1);
             const double average_size = ElementSizeCalculator<3, 6>::AverageElementSize(prism1);
-            KRATOS_CHECK_NEAR(minimum_size, std::sqrt(0.5), TOLERANCE);
-            KRATOS_CHECK_NEAR(average_size, std::pow(0.5, 1.0 / 3.0), TOLERANCE);
+            KRATOS_EXPECT_NEAR(minimum_size, std::sqrt(0.5), TOLERANCE);
+            KRATOS_EXPECT_NEAR(average_size, std::pow(0.5, 1.0 / 3.0), TOLERANCE);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSizeCase2, KratosCoreFastSuite)
+        TEST(Prism3D6ElementSizeCase2, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -88,11 +88,11 @@ namespace Kratos
             const auto prism2 = *GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
             const double minimum_size = ElementSizeCalculator<3, 6>::MinimumElementSize(prism2);
             const double average_size = ElementSizeCalculator<3, 6>::AverageElementSize(prism2);
-            KRATOS_CHECK_NEAR(minimum_size, 0.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(average_size, std::pow(0.25, 1.0 / 3.0), TOLERANCE); //
+            KRATOS_EXPECT_NEAR(minimum_size, 0.5, TOLERANCE);
+            KRATOS_EXPECT_NEAR(average_size, std::pow(0.25, 1.0 / 3.0), TOLERANCE); //
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Triangle2D3MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -104,7 +104,7 @@ namespace Kratos
                 ElementSizeCalculator<2, 3>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Triangle2D3AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Triangle2D3AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -116,7 +116,7 @@ namespace Kratos
                 ElementSizeCalculator<2, 3>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Triangle2D6MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Triangle2D6MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -131,7 +131,7 @@ namespace Kratos
                 ElementSizeCalculator<2, 6>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Triangle2D6AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Triangle2D6AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -146,7 +146,7 @@ namespace Kratos
                 ElementSizeCalculator<2, 6>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Quadrilateral2D4MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -159,7 +159,7 @@ namespace Kratos
                 ElementSizeCalculator<2, 4>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Quadrilateral2D4AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -172,7 +172,7 @@ namespace Kratos
                 ElementSizeCalculator<2, 4>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D9MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Quadrilateral2D9MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -190,7 +190,7 @@ namespace Kratos
                 ElementSizeCalculator<2, 9>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D9AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Quadrilateral2D9AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -208,7 +208,7 @@ namespace Kratos
                 ElementSizeCalculator<2, 9>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Tetrahedra3D4MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -221,7 +221,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 4>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Tetrahedra3D4AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -234,7 +234,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 4>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Tetrahedra3D10MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -253,7 +253,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 10>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Tetrahedra3D10AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -272,7 +272,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 10>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Prism3D6MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Prism3D6MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -287,7 +287,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 6>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Prism3D6AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Prism3D6AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -302,7 +302,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 6>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Hexahedra3D8MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -319,7 +319,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 8>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Hexahedra3D8AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -336,7 +336,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 8>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27MinimumElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Hexahedra3D27MinimumElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -372,7 +372,7 @@ namespace Kratos
                 ElementSizeCalculator<3, 27>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27AverageElementSizeDerivatives, KratosCoreFastSuite)
+        TEST(Hexahedra3D27AverageElementSizeDerivatives, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));

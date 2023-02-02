@@ -87,7 +87,7 @@ void CheckDeterminantOfJacobianSensitivityByFiniteDifference(double DetJ_Deriv,
     double detJ_perturbed = rGeom.DeterminantOfJacobian(IntegrationPoint, ThisMethod);
     rGeom[Deriv.NodeIndex].Coordinates()[Deriv.Direction] -= StepSize;
     double finite_difference_detJ_deriv = (detJ_perturbed - detJ) / StepSize;
-    KRATOS_CHECK_NEAR(DetJ_Deriv, finite_difference_detJ_deriv, Tolerance);
+    KRATOS_EXPECT_NEAR(DetJ_Deriv, finite_difference_detJ_deriv, Tolerance);
 }
 
 void CheckShapeFunctionsGradientSensitivityByFiniteDifference(Matrix& DN_DX_Deriv,
@@ -111,13 +111,13 @@ void CheckShapeFunctionsGradientSensitivityByFiniteDifference(Matrix& DN_DX_Deri
     rGeom[Deriv.NodeIndex].Coordinates()[Deriv.Direction] -= StepSize;
 
     // Perform some checks to avoid false positives.
-    KRATOS_CHECK(DN_DX_Deriv.size1() != 0);
-    KRATOS_CHECK(DN_DX_Deriv.size2() != 0);
+    KRATOS_EXPECT_TRUE(DN_DX_Deriv.size1() != 0);
+    KRATOS_EXPECT_TRUE(DN_DX_Deriv.size2() != 0);
     for (unsigned i = 0; i < DN_DX_Deriv.size1(); ++i)
         for (unsigned j = 0; j < DN_DX_Deriv.size2(); ++j)
             {
                 const double finite_difference_ij = (rDN_DX_perturbed(i,j) - rDN_DX(i,j)) / StepSize;
-                KRATOS_CHECK_NEAR(DN_DX_Deriv(i, j), finite_difference_ij, Tolerance);
+                KRATOS_EXPECT_NEAR(DN_DX_Deriv(i, j), finite_difference_ij, Tolerance);
             }
 }
 
@@ -157,35 +157,35 @@ void TestThisGeometry(Geometry<Point>& rGeom,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosSensitivityTestSuite)
+TEST(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
     Geometry<Point>& r_geom = *p_geom;
     TestThisGeometry(r_geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_1, KratosSensitivityTestSuite)
+TEST(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_1, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
     Geometry<Point>& r_geom = *p_geom;
     TestThisGeometry(r_geom, GeometryData::IntegrationMethod::GI_GAUSS_1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Hexahedra3D8N_GAUSS_2, KratosSensitivityTestSuite)
+TEST(GeometricalSensitivityUtility_Hexahedra3D8N_GAUSS_2, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateHexahedra3D8N();
     Geometry<Point>& r_geom = *p_geom;
     TestThisGeometry(r_geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Triangle2D3N_GAUSS_1, KratosSensitivityTestSuite)
+TEST(GeometricalSensitivityUtility_Triangle2D3N_GAUSS_1, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateTriangle2D3N();
     Geometry<Point>& r_geom = *p_geom;
     TestThisGeometry(r_geom, GeometryData::IntegrationMethod::GI_GAUSS_1, 1e-8);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Tetrahedra3D4N_GAUSS_1, KratosSensitivityTestSuite)
+TEST(GeometricalSensitivityUtility_Tetrahedra3D4N_GAUSS_1, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateTetrahedra3D4N();
     Geometry<Point>& r_geom = *p_geom;

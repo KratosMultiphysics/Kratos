@@ -26,7 +26,7 @@ namespace Kratos {
 	namespace Testing {
 
 
-		KRATOS_TEST_CASE_IN_SUITE(ThreadFixedSizeMemoryPoolAllocationDeallocation, KratosCoreFastSuite)
+		TEST(ThreadFixedSizeMemoryPoolAllocationDeallocation, KratosCoreFastSuite)
 		{
 			std::size_t block_size = 15;
 			std::size_t default_chunk_size = 1024 * 1024; // 1M
@@ -52,21 +52,21 @@ namespace Kratos {
 					thread_fixed_size_memory_pool.Deallocate(*i_pointer);
 				}
 				std::size_t number_of_chunks = i_repeat;// ((i_repeat / ParallelUtilities::GetNumThreads()) + 1) *  ParallelUtilities::GetNumThreads();
-				KRATOS_CHECK_EQUAL(thread_fixed_size_memory_pool.GetNumberOfChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
-				KRATOS_CHECK_EQUAL(thread_fixed_size_memory_pool.ChunkSize(), default_chunk_size);
+				KRATOS_EXPECT_EQ(thread_fixed_size_memory_pool.GetNumberOfChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
+				KRATOS_EXPECT_EQ(thread_fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 			}
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolConstruction, KratosCoreFastSuite)
+		TEST(FixedSizeMemoryPoolConstruction, KratosCoreFastSuite)
 		{
 			std::size_t block_size = 5;
 			std::size_t default_chunk_size = 1024 * 1024; // 1M
 			FixedSizeMemoryPool fixed_size_memory_pool(block_size);
-			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), 0);
-			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
+			KRATOS_EXPECT_EQ(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), 0);
+			KRATOS_EXPECT_EQ(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolAllocationDeallocation, KratosCoreFastSuite)
+		TEST(FixedSizeMemoryPoolAllocationDeallocation, KratosCoreFastSuite)
 		{
 			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
 			std::size_t block_size = 15;
@@ -92,8 +92,8 @@ namespace Kratos {
 					fixed_size_memory_pool.Deallocate(*i_pointer);
 				}
 				std::size_t number_of_chunks = i_repeat;// ((i_repeat / ParallelUtilities::GetNumThreads()) + 1) *  ParallelUtilities::GetNumThreads();
-				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
-				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
+				KRATOS_EXPECT_EQ(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
+				KRATOS_EXPECT_EQ(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 			}
 		}
 
@@ -112,7 +112,7 @@ namespace Kratos {
 					for (std::size_t i_block = 0; i_block < number_of_blocks; i_block++)
 					{
 						void* p = fixed_size_memory_pool.Allocate();
-						KRATOS_CHECK_NOT_EQUAL(p, nullptr) << " i_repeat : " << i_repeat << " , i_chunk : " << i_chunk << " , i_block : " << i_block;
+						KRATOS_EXPECT_NE(p, nullptr) << " i_repeat : " << i_repeat << " , i_chunk : " << i_chunk << " , i_block : " << i_block;
 						pointer_vector.push_back(p);
 
 					}
@@ -130,7 +130,7 @@ namespace Kratos {
 
 		}
 
-		//KRATOS_TEST_CASE_IN_SUITE(MemoryPool, KratosCoreFastSuite)
+		//TEST(MemoryPool, KratosCoreFastSuite)
 		//{
 		//	std::size_t block_size = 61;
 		//	auto number_of_blocks = 4096;
@@ -155,7 +155,7 @@ namespace{
 		};
 }
 
-		KRATOS_TEST_CASE_IN_SUITE(PoolObjectParallelNewDelete, KratosCoreFastSuite)
+		TEST(PoolObjectParallelNewDelete, KratosCoreFastSuite)
 		{
 			std::cout << MemoryPool::Info() << std::endl;
 			auto repeat_number = 120;

@@ -30,13 +30,13 @@ using ExplicitSolvingStrategyBFECCType = ExplicitSolvingStrategyBFECC<SparseSpac
 
 } // namespace BFECCTestInternals
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyBFECC, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyBFECC, KratosCoreFastSuite)
 {
     using namespace BFECCTestInternals;
     RunTest<ExplicitSolvingStrategyBFECCType>(1e-2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyBFECCConvergence, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyBFECCConvergence, KratosCoreFastSuite)
 {
     using namespace BFECCTestInternals;
     ConvergenceTest<ExplicitSolvingStrategyBFECCType>(2);

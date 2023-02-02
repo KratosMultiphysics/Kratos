@@ -32,7 +32,7 @@ namespace Kratos
         * Checks the correct work of the SPR metric process
         * Test triangle
         */
-        KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess1, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindNodalNeighboursProcess1)
         {
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
@@ -46,30 +46,30 @@ namespace Kratos
             FindNodalNeighboursProcess process(r_model_part);
             process.Execute();
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_NODES).size(), 3);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_NODES).size(), 3);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_NODES).size(), 3);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_NODES).size(), 3);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_NODES).size(), 5);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_ELEMENTS).size(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_NODES).size(), 5);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_ELEMENTS).size(), 4);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_NODES).size(), 2);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_NODES).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_NODES).size(), 3);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_NODES).size(), 3);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_NODES).size(), 2);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_NODES).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
         }
 
         /**
         * Checks the correct work of the nodal SPR compute
         * Test tetrahedra
         */
-        KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess2, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindNodalNeighboursProcess2)
         {
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
@@ -83,48 +83,48 @@ namespace Kratos
             FindNodalNeighboursProcess process(r_model_part);
             process.Execute();
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_NODES).size(), 4);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_NODES).size(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_NODES).size(), 4);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_NODES).size(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_NODES).size(), 7);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_ELEMENTS).size(), 6);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_NODES).size(), 7);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_ELEMENTS).size(), 6);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_NODES).size(), 5);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_ELEMENTS).size(), 3);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_NODES).size(), 5);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_ELEMENTS).size(), 3);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_NODES).size(), 4);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_NODES).size(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_NODES).size(), 9);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_ELEMENTS).size(), 9);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_NODES).size(), 9);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_ELEMENTS).size(), 9);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(7)->GetValue(NEIGHBOUR_NODES).size(), 6);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(7)->GetValue(NEIGHBOUR_ELEMENTS).size(), 5);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(7)->GetValue(NEIGHBOUR_NODES).size(), 6);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(7)->GetValue(NEIGHBOUR_ELEMENTS).size(), 5);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(8)->GetValue(NEIGHBOUR_NODES).size(), 8);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(8)->GetValue(NEIGHBOUR_ELEMENTS).size(), 7);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(8)->GetValue(NEIGHBOUR_NODES).size(), 8);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(8)->GetValue(NEIGHBOUR_ELEMENTS).size(), 7);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(9)->GetValue(NEIGHBOUR_NODES).size(), 7);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(9)->GetValue(NEIGHBOUR_ELEMENTS).size(), 6);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(9)->GetValue(NEIGHBOUR_NODES).size(), 7);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(9)->GetValue(NEIGHBOUR_ELEMENTS).size(), 6);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(10)->GetValue(NEIGHBOUR_NODES).size(), 4);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(10)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(10)->GetValue(NEIGHBOUR_NODES).size(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(10)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(11)->GetValue(NEIGHBOUR_NODES).size(), 4);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(11)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(11)->GetValue(NEIGHBOUR_NODES).size(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(11)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(12)->GetValue(NEIGHBOUR_NODES).size(), 4);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(12)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(12)->GetValue(NEIGHBOUR_NODES).size(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(12)->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
         }
 
         /**
         * Checks the correct work of the nodal SPR compute
         * Test Triangle
         */
-        KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess2_Conditions, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindNodalNeighboursProcess2_Conditions)
         {
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
@@ -140,12 +140,12 @@ namespace Kratos
                 NEIGHBOUR_CONDITION_NODES);
             process.Execute();
 
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 3);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 3);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 5);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 2);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 3);
-            KRATOS_CHECK_EQUAL(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 3);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(2)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 3);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(3)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 5);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(4)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(5)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 3);
+            KRATOS_EXPECT_EQ(r_model_part.pGetNode(6)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 2);
         }
     } // namespace Testing
 }  // namespace Kratos.

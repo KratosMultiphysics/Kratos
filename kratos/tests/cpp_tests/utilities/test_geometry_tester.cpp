@@ -20,10 +20,10 @@
 namespace Kratos {
 namespace Testing {
 
-    KRATOS_TEST_CASE_IN_SUITE(GeometryTester, KratosCoreFastSuite)
+    TEST(GeometryTester, KratosCoreFastSuite)
     {
         Model this_model;
-        KRATOS_CHECK(GeometryTesterUtility().RunTest(this_model));
+        KRATOS_EXPECT_TRUE(GeometryTesterUtility().RunTest(this_model));
     }
 
 }  // namespace Testing.

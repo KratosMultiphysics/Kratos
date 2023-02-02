@@ -27,7 +27,7 @@ namespace Kratos {
      *  Here the assigment operator is test
      */
 
-    KRATOS_TEST_CASE_IN_SUITE(NodeAssignOperator, KratosCoreFastSuite)
+    TEST_F(KernelTest, NodeAssignOperator)
     {
         Model current_model;
         ModelPart& model_part = current_model.CreateModelPart("test");
@@ -43,18 +43,18 @@ namespace Kratos {
         NodeType copy_of_node(2,1,0,0);
         copy_of_node = *p_node;
 
-        KRATOS_CHECK_EQUAL(copy_of_node.Id(), 1);
-        KRATOS_CHECK_DOUBLE_EQUAL(copy_of_node.FastGetSolutionStepValue(DISTANCE), 12.1);
-        KRATOS_CHECK_DOUBLE_EQUAL(copy_of_node.FastGetSolutionStepValue(VELOCITY_X), 32.4);
-        KRATOS_CHECK_DOUBLE_EQUAL(copy_of_node.FastGetSolutionStepValue(VELOCITY_Y), 0.00);
-        KRATOS_CHECK_DOUBLE_EQUAL(copy_of_node.FastGetSolutionStepValue(VELOCITY_Z), 0.00);
-        KRATOS_CHECK(copy_of_node.Is(ACTIVE));
+        KRATOS_EXPECT_EQ(copy_of_node.Id(), 1);
+        KRATOS_EXPECT_DOUBLE_EQ(copy_of_node.FastGetSolutionStepValue(DISTANCE), 12.1);
+        KRATOS_EXPECT_DOUBLE_EQ(copy_of_node.FastGetSolutionStepValue(VELOCITY_X), 32.4);
+        KRATOS_EXPECT_DOUBLE_EQ(copy_of_node.FastGetSolutionStepValue(VELOCITY_Y), 0.00);
+        KRATOS_EXPECT_DOUBLE_EQ(copy_of_node.FastGetSolutionStepValue(VELOCITY_Z), 0.00);
+        KRATOS_EXPECT_TRUE(copy_of_node.Is(ACTIVE));
     }
 
     /**
      *  Here the clone operator is test
      */
-    KRATOS_TEST_CASE_IN_SUITE(NodeCloneOperator, KratosCoreFastSuite)
+    TEST_F(KernelTest, NodeCloneOperator)
     {
         Model current_model;
         ModelPart& model_part = current_model.CreateModelPart("test");
@@ -69,18 +69,18 @@ namespace Kratos {
 
         NodeType::Pointer p_clone_of_node = p_node->Clone();
 
-        KRATOS_CHECK_EQUAL(p_clone_of_node->Id(), 1);
-        KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_node->FastGetSolutionStepValue(DISTANCE), 12.1);
-        KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_X), 32.4);
-        KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_Y), 0.00);
-        KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_Z), 0.00);
-        KRATOS_CHECK(p_clone_of_node->Is(ACTIVE));
+        KRATOS_EXPECT_EQ(p_clone_of_node->Id(), 1);
+        KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(DISTANCE), 12.1);
+        KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_X), 32.4);
+        KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_Y), 0.00);
+        KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_Z), 0.00);
+        KRATOS_EXPECT_TRUE(p_clone_of_node->Is(ACTIVE));
     }
 
     /**
      *  Here the DoF serialization
      */
-    KRATOS_TEST_CASE_IN_SUITE(NodeSerialization, KratosCoreFastSuite) 
+    TEST_F(KernelTest, NodeSerialization) 
     {
         Model current_model;
 
@@ -101,20 +101,20 @@ namespace Kratos {
         serializer.save("NodalData", p_node_to_be_saved);
         serializer.load("NodalData", p_node_to_be_loaded);
 
-        KRATOS_CHECK_EQUAL(p_node_to_be_saved->Id(), p_node_to_be_loaded->Id());
-        KRATOS_CHECK(p_node_to_be_loaded->IsFixed(DISTANCE));
+        KRATOS_EXPECT_EQ(p_node_to_be_saved->Id(), p_node_to_be_loaded->Id());
+        KRATOS_EXPECT_TRUE(p_node_to_be_loaded->IsFixed(DISTANCE));
         Dof<double>& dof = p_node_to_be_loaded->AddDof(DISTANCE);
         dof.GetSolutionStepValue() = 2.345;
-        KRATOS_CHECK_EQUAL(p_node_to_be_loaded->GetSolutionStepValue(DISTANCE), 2.345);
-        KRATOS_CHECK(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).IsFree());
-        KRATOS_CHECK(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).HasReaction());
-        KRATOS_CHECK_EQUAL(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).GetReaction(), REACTION_X);
+        KRATOS_EXPECT_EQ(p_node_to_be_loaded->GetSolutionStepValue(DISTANCE), 2.345);
+        KRATOS_EXPECT_TRUE(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).IsFree());
+        KRATOS_EXPECT_TRUE(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).HasReaction());
+        KRATOS_EXPECT_EQ(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).GetReaction(), REACTION_X);
     }
     
     /**
      *  Here the pGetDof position
      */
-    KRATOS_TEST_CASE_IN_SUITE(NodepGetDofPosition, KratosCoreFastSuite)
+    TEST_F(KernelTest, NodepGetDofPosition)
     {
         Model current_model;
         ModelPart& model_part = current_model.CreateModelPart("test");
@@ -127,14 +127,14 @@ namespace Kratos {
         p_node->AddDof(VELOCITY_Z);
 
         // GetDofPosition
-        KRATOS_CHECK_EQUAL(p_node->GetDofPosition(VELOCITY_X), 0);
-        KRATOS_CHECK_EQUAL(p_node->GetDofPosition(VELOCITY_Y), 1);
-        KRATOS_CHECK_EQUAL(p_node->GetDofPosition(VELOCITY_Z), 2);
+        KRATOS_EXPECT_EQ(p_node->GetDofPosition(VELOCITY_X), 0);
+        KRATOS_EXPECT_EQ(p_node->GetDofPosition(VELOCITY_Y), 1);
+        KRATOS_EXPECT_EQ(p_node->GetDofPosition(VELOCITY_Z), 2);
 
         // GetDof with position
-        KRATOS_CHECK((p_node->pGetDof(VELOCITY_X, 0))->GetVariable() == VELOCITY_X);
-        KRATOS_CHECK((p_node->pGetDof(VELOCITY_Y, 1))->GetVariable() == VELOCITY_Y);
-        KRATOS_CHECK((p_node->pGetDof(VELOCITY_Z, 2))->GetVariable() == VELOCITY_Z);
+        KRATOS_EXPECT_TRUE((p_node->pGetDof(VELOCITY_X, 0))->GetVariable() == VELOCITY_X);
+        KRATOS_EXPECT_TRUE((p_node->pGetDof(VELOCITY_Y, 1))->GetVariable() == VELOCITY_Y);
+        KRATOS_EXPECT_TRUE((p_node->pGetDof(VELOCITY_Z, 2))->GetVariable() == VELOCITY_Z);
     }
 }  // namespace Testing.
 }  // namespace Kratos.

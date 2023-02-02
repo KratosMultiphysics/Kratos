@@ -26,8 +26,8 @@
 #include "spaces/ublas_space.h"
 
 /* Element include */
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
+#include "tests/auxiliar_files_for_cpp_unnitest/test_element.h"
+#include "tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -143,7 +143,7 @@ namespace Kratos
          * Checks if the Linear strategy performs correctly the resolution of the system
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementLinearStrategy, KratosCoreFastSuite)
+        TEST(DisplacementLinearStrategy, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -173,8 +173,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -183,7 +183,7 @@ namespace Kratos
          * Checks if the Newton Rapshon strategy performs correctly the resolution of the system
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementNRStrategy, KratosCoreFastSuite)
+        TEST(DisplacementNRStrategy, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -221,13 +221,13 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(LineSearchStrategy, KratosCoreFastSuite)
+        TEST(LineSearchStrategy, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -275,8 +275,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -285,7 +285,7 @@ namespace Kratos
          * Checks if the Newton Rapshon strategy performs correctly the resolution of the system
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementArcLengthStrategy, KratosCoreFastSuite)
+        TEST(DisplacementArcLengthStrategy, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -335,7 +335,7 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
                 }
             }
         }

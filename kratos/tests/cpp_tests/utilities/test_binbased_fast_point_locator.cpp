@@ -35,7 +35,7 @@ namespace Kratos
         * Checks the correct work of the binbased fast point locator
         * Test triangle 
         */
-        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator1, KratosCoreFastSuite)
+        TEST_F(KernelTest, BinBasedFastPointLocator1)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
@@ -64,21 +64,21 @@ namespace Kratos
             ref_shape_functions[2] = 0.5;
 
             const double tolerance = 1.0e-16;
-            KRATOS_CHECK(is_found);
-            KRATOS_CHECK_EQUAL(p_element->Id(), this_model_part.pGetElement(1)->Id());
-            KRATOS_CHECK_LESS_EQUAL(norm_2(shape_functions - ref_shape_functions), tolerance);
+            KRATOS_EXPECT_TRUE(is_found);
+            KRATOS_EXPECT_EQ(p_element->Id(), this_model_part.pGetElement(1)->Id());
+            KRATOS_EXPECT_LE(norm_2(shape_functions - ref_shape_functions), tolerance);
 
             coordinates[0] = -0.5;
             coordinates[1] = -0.5;
             is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, 1000, 5.0e-2);
-            KRATOS_CHECK_IS_FALSE(is_found);
+            KRATOS_EXPECT_FALSE(is_found);
         }
         
         /** 
         * Checks the correct work of the binbased fast point locator
         * Test tetrahedra
         */
-        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator2, KratosCoreFastSuite)
+        TEST_F(KernelTest, BinBasedFastPointLocator2)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
@@ -109,15 +109,15 @@ namespace Kratos
             ref_shape_functions[3] = 0.5;
 
             const double tolerance = 1.0e-16;
-            KRATOS_CHECK(is_found);
-            KRATOS_CHECK_EQUAL(p_element->Id(), this_model_part.pGetElement(4)->Id());
-            KRATOS_CHECK_LESS_EQUAL(norm_2(shape_functions - ref_shape_functions), tolerance);
+            KRATOS_EXPECT_TRUE(is_found);
+            KRATOS_EXPECT_EQ(p_element->Id(), this_model_part.pGetElement(4)->Id());
+            KRATOS_EXPECT_LE(norm_2(shape_functions - ref_shape_functions), tolerance);
 
             coordinates[0] = -0.5;
             coordinates[1] = -0.5;
             coordinates[2] = -0.5;
             is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, 1000, 5.0e-2);
-            KRATOS_CHECK_IS_FALSE(is_found);
+            KRATOS_EXPECT_FALSE(is_found);
         }
         
         /** 
@@ -125,7 +125,7 @@ namespace Kratos
         * Test triangle for conditions
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator3, KratosCoreFastSuite)
+        TEST_F(KernelTest, BinBasedFastPointLocator3)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("test_model_part",2);
@@ -153,14 +153,14 @@ namespace Kratos
             ref_shape_functions[2] = 0.5;
 
             const double tolerance = 1.0e-16;
-            KRATOS_CHECK(is_found);
-            KRATOS_CHECK_EQUAL(p_condition->Id(), this_model_part.pGetCondition(1)->Id());
-            KRATOS_CHECK_LESS_EQUAL(norm_2(shape_functions - ref_shape_functions), tolerance);
+            KRATOS_EXPECT_TRUE(is_found);
+            KRATOS_EXPECT_EQ(p_condition->Id(), this_model_part.pGetCondition(1)->Id());
+            KRATOS_EXPECT_LE(norm_2(shape_functions - ref_shape_functions), tolerance);
 
             coordinates[0] = -0.5;
             coordinates[1] = -0.5;
             is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_condition, 1000, 5.0e-2);
-            KRATOS_CHECK_IS_FALSE(is_found);
+            KRATOS_EXPECT_FALSE(is_found);
         }
     } // namespace Testing
 }  // namespace Kratos.

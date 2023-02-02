@@ -56,46 +56,46 @@ namespace Testing {
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15EdgesNumber, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D15();
 
-        KRATOS_CHECK_EQUAL(geomRegular->EdgesNumber(), 9);
+        KRATOS_EXPECT_EQ(geomRegular->EdgesNumber(), 9);
     }
 
     /** Checks if the number of faces is correct.
      * Checks if the number of faces is correct.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15FacesNumber, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15FacesNumber, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D15();
 
-        KRATOS_CHECK_EQUAL(geomRegular->FacesNumber(), 5);
+        KRATOS_EXPECT_EQ(geomRegular->FacesNumber(), 5);
     }
 
     /** Checks if the characteristic length of the prism is calculated correctly.
      * Checks if the characteristic length of the prism is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15Length, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15Length, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D15();
 
-        KRATOS_CHECK_NEAR(geomRegular->Length(), 0.264567, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geomRegular->Length(), 0.264567, TOLERANCE);
     }
 
     /** Checks if the area of the prism is calculated correctly.
      * Checks if the area of the prism is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15Area, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15Area, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D15();
 
-        KRATOS_CHECK_NEAR(geomRegular->Area(),  0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geomRegular->Area(),  0.5, TOLERANCE);
     }
 
     /** Checks if the volume of the prism is calculated correctly.
      * Checks if the volume of the prism is calculated correctly.
      * For prism 3D6 'volume()' call defaults to 'area()'
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15Volume, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15Volume, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D15();
-        KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the prism
@@ -106,7 +106,7 @@ namespace Testing {
     * A Point over a vertex of the prism: Expected result TRUE
     * A Point over an edge of the prism: Expected result TRUE
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15IsInside, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15IsInside, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D15();
 
         Point PointInside(0.1666, 0.1666, 0.1666);
@@ -116,17 +116,17 @@ namespace Testing {
 
         Point LocalCoords;
 
-        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+        KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
     }
 
     /** Checks the point local coordinates for a given point respect to the
     * prism. The centre of the prism is selected due to its known
     * solution.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D15();
 
         // Compute the global coordinates of the centre
@@ -138,68 +138,68 @@ namespace Testing {
         array_1d<double, 3> centre_local_coords;
         geom->PointLocalCoordinates(centre_local_coords, centre);
 
-        KRATOS_CHECK_NEAR(centre_local_coords(0), 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(centre_local_coords(1), 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(centre_local_coords(0), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(centre_local_coords(1), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
     }
 
     /** Tests the area using 'GI_GAUSS_1' integration method.
     * Tests the area using 'GI_GAUSS_1' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint1, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15GaussPoint1, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D15();
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1);
     }
 
     /** Tests the area using 'GI_GAUSS_2' integration method.
     * Tests the area using 'GI_GAUSS_2' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint2, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15GaussPoint2, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D15();
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
     }
 
     /** Tests the area using 'GI_GAUSS_3' integration method.
     * Tests the area using 'GI_GAUSS_3' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint3, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15GaussPoint3, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D15();
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3);
     }
 
     /** Tests the area using 'GI_GAUSS_4' integration method.
     * Tests the area using 'GI_GAUSS_4' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint4, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15GaussPoint4, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D15();
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4);
     }
 
     /** Tests the area using 'GI_GAUSS_5' integration method.
     * Tests the area using 'GI_GAUSS_5' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint5, KratosCoreGeometriesFastSuite) {
+    TEST(Prism3D15GaussPoint5, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D15();
 
         const double expected_vol = 0.5;
 
-        KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
+        KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
     }
 }

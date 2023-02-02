@@ -21,91 +21,91 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasProd, KratosCoreFastSuite)
+TEST(TestAMatrixAliasProd, KratosCoreFastSuite)
 {
     Matrix A = ScalarMatrix(2,2,1.0);
     Matrix B = ScalarMatrix(2,2,2.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( noalias(A) = prod(A,B), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = prod(A,B), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = prod(B,A), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = A * B, "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = B * A, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( noalias(A) = prod(A,B), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = prod(A,B), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = prod(B,A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = A * B, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = B * A, "Aliasing found in assigning Matrix" );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasTranspose, KratosCoreFastSuite)
+TEST(TestAMatrixAliasTranspose, KratosCoreFastSuite)
 {
     Matrix A = ScalarMatrix(2,2,1.0);
     Matrix B = ScalarMatrix(2,2,2.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( noalias(A) = trans(A), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = trans(A), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = prod(B,trans(A)), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = trans(A) * B, "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = B * trans(A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( noalias(A) = trans(A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = trans(A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = prod(B,trans(A)), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = trans(A) * B, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = B * trans(A), "Aliasing found in assigning Matrix" );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasProdBounded, KratosCoreFastSuite)
+TEST(TestAMatrixAliasProdBounded, KratosCoreFastSuite)
 {
     BoundedMatrix<double,2,2> A = ScalarMatrix(2,2,1.0);
     BoundedMatrix<double,2,2> B = ScalarMatrix(2,2,2.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( noalias(A) = prod(A,B), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = prod(A,B), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = prod(B,A), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = A * B, "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = B * A, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( noalias(A) = prod(A,B), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = prod(A,B), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = prod(B,A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = A * B, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = B * A, "Aliasing found in assigning Matrix" );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasTransposeBounded, KratosCoreFastSuite)
+TEST(TestAMatrixAliasTransposeBounded, KratosCoreFastSuite)
 {
     BoundedMatrix<double,2,2> A = ScalarMatrix(2,2,1.0);
     BoundedMatrix<double,2,2> B = ScalarMatrix(2,2,2.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( noalias(A) = trans(A), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = trans(A), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = prod(B,trans(A)), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = trans(A) * B, "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = B * trans(A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( noalias(A) = trans(A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = trans(A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = prod(B,trans(A)), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = trans(A) * B, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = B * trans(A), "Aliasing found in assigning Matrix" );
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasProdVector, KratosCoreFastSuite)
+TEST(TestAMatrixAliasProdVector, KratosCoreFastSuite)
 {
     Matrix A = ScalarMatrix(2,2,1.0);
     Vector b = ScalarMatrix(2,1,2.0);
     Vector c = ScalarMatrix(2,1,2.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( noalias(b) = prod(A,b), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( b = prod(A,b), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( b = A * b, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( noalias(b) = prod(A,b), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( b = prod(A,b), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( b = A * b, "Aliasing found in assigning Matrix" );
     c = A * b; // This one has no alias, should not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasProdVectorBounded, KratosCoreFastSuite)
+TEST(TestAMatrixAliasProdVectorBounded, KratosCoreFastSuite)
 {
     BoundedMatrix<double,2,2> A = ScalarMatrix(2,2,1.0);
     BoundedVector<double,2> b = ScalarMatrix(2,1,2.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( noalias(b) = prod(A,b), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( b = prod(A,b), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( b = A * b, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( noalias(b) = prod(A,b), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( b = prod(A,b), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( b = A * b, "Aliasing found in assigning Matrix" );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasProdProd, KratosCoreFastSuite)
+TEST(TestAMatrixAliasProdProd, KratosCoreFastSuite)
 {
     Matrix A = ScalarMatrix(2,2,1.0);
     Matrix B = ScalarMatrix(2,2,2.0);
     Matrix C = ScalarMatrix(2,2,3.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( noalias(A) = prod(B,prod(C,A)), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = prod(B,prod(C,A)), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = B * C * A, "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = prod(B,prod(C,trans(A))), "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = B * C * trans(A), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( noalias(A) = prod(B,prod(C,A)), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = prod(B,prod(C,A)), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = B * C * A, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = prod(B,prod(C,trans(A))), "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = B * C * trans(A), "Aliasing found in assigning Matrix" );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasSum, KratosCoreFastSuite)
+TEST(TestAMatrixAliasSum, KratosCoreFastSuite)
 {
     Matrix A = ScalarMatrix(2,2,1.0);
     Matrix B = ScalarMatrix(2,2,2.0);
@@ -116,15 +116,15 @@ KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasSum, KratosCoreFastSuite)
     A -= A;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestAMatrixAliasSumTranspose, KratosCoreFastSuite)
+TEST(TestAMatrixAliasSumTranspose, KratosCoreFastSuite)
 {
     Matrix A = ScalarMatrix(2,2,1.0);
     Matrix B = ScalarMatrix(2,2,2.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( noalias(A) = trans(A) + B, "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A = trans(A) + B, "Aliasing found in assigning Matrix" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A += trans(A), "Aliasing found in += operator" );
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN( A -= trans(A), "Aliasing found in -= operator" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( noalias(A) = trans(A) + B, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A = trans(A) + B, "Aliasing found in assigning Matrix" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A += trans(A), "Aliasing found in += operator" );
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN( A -= trans(A), "Aliasing found in -= operator" );
 }
 
 }   // namespace Testing.

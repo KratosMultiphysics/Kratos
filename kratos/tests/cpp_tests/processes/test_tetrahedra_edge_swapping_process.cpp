@@ -30,7 +30,7 @@ namespace Kratos {
 	namespace Testing {
 
 
-		KRATOS_TEST_CASE_IN_SUITE(TetrahedraMeshEdgeSwappingProcess, KratosCoreFastSuite)
+		TEST_F(KernelTest, TetrahedraMeshEdgeSwappingProcess)
 		{
 			Model current_model;
 			

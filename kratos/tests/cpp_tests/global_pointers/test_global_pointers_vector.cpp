@@ -22,7 +22,7 @@ namespace Kratos {
 namespace Testing {
 
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerTest, KratosCoreFastSuite)
+TEST_F(KernelTest, GlobalPointersContainerTest)
 {
     Model current_model;
     ModelPart& mp = current_model.CreateModelPart("test");
@@ -45,11 +45,11 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerTest, KratosCoreFastSuite)
 
     for(std::size_t i=0; i<global_pointers_container.size(); ++i)
     {
-        KRATOS_CHECK_EQUAL(&new_global_pointers[i], &global_pointers_container[i]);
+        KRATOS_EXPECT_EQ(&new_global_pointers[i], &global_pointers_container[i]);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableTest, KratosCoreFastSuite)
+TEST_F(KernelTest, GlobalPointersContainerInVariableTest)
 {
     Model current_model;
     Model loaded_model;
@@ -77,11 +77,11 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableTest, KratosCoreFastS
 
     for(std::size_t i = 0; i < global_pointers_container.size(); i++)
     {
-        KRATOS_CHECK_EQUAL(&new_global_pointers[i], &global_pointers_container[i]);
+        KRATOS_EXPECT_EQ(&new_global_pointers[i], &global_pointers_container[i]);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableWithRecursion, KratosCoreFastSuite)
+TEST_F(KernelTest, GlobalPointersContainerInVariableWithRecursion)
 {
     Model current_model;
     Model loaded_model;
@@ -102,16 +102,16 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableWithRecursion, Kratos
     serializer.save("model", current_model);
     serializer.load("model", loaded_model);
 
-    KRATOS_CHECK_EQUAL(current_model.GetModelPart("test").NumberOfNodes(), loaded_model.GetModelPart("test").NumberOfNodes());
+    KRATOS_EXPECT_EQ(current_model.GetModelPart("test").NumberOfNodes(), loaded_model.GetModelPart("test").NumberOfNodes());
 
     for(std::size_t i = 1; i <= loaded_model.GetModelPart("test").NumberOfNodes(); i++) {
         auto& old_global_pointers = current_model.GetModelPart("test").pGetNode(i)->GetValue(NEIGHBOUR_NODES);
         auto& new_global_pointers = loaded_model.GetModelPart("test").pGetNode(i)->GetValue(NEIGHBOUR_NODES);
 
-        KRATOS_CHECK_EQUAL(old_global_pointers.size(), new_global_pointers.size());
+        KRATOS_EXPECT_EQ(old_global_pointers.size(), new_global_pointers.size());
 
         for(std::size_t j = 0; j < new_global_pointers.size(); j++) {
-            KRATOS_CHECK_EQUAL(&old_global_pointers[j], &new_global_pointers[j]);
+            KRATOS_EXPECT_EQ(&old_global_pointers[j], &new_global_pointers[j]);
         }
     }
 }

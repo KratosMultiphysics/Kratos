@@ -43,7 +43,7 @@ typedef DynamicBins::SearchStructureType            SearchStructureType;
  * @brief Test that the bins is constructed correctly
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsDefaultConstructorBoundigBox, KratosCoreFastSuite)
+TEST(DynamicBinsDefaultConstructorBoundigBox, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -53,20 +53,20 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsDefaultConstructorBoundigBox, KratosCoreFas
 
     DynamicBins testBins(points.begin(), points.end());
 
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[0], 0.0);
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[1], 0.0);
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[2], 0.0);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[0], 0.0);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[1], 0.0);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[2], 0.0);
 
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[0], 9.0);
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[1], 9.0);
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[2], 9.0);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[0], 9.0);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[1], 9.0);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[2], 9.0);
 }
 
 /**
  * @brief Test that the number of cells is calculated correctly
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsDefaultConstructorCellNumber, KratosCoreFastSuite)
+TEST(DynamicBinsDefaultConstructorCellNumber, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -76,16 +76,16 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsDefaultConstructorCellNumber, KratosCoreFas
 
     DynamicBins testBins(points.begin(), points.end());
 
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[0], 3);
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[1], 3);
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[2], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[0], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[1], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[2], 3);
 }
 
 /**
  * @brief Test that the size of the cells is calculated correctly
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsDefaultConstructorCellSize, KratosCoreFastSuite)
+TEST(DynamicBinsDefaultConstructorCellSize, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -95,16 +95,16 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsDefaultConstructorCellSize, KratosCoreFastS
 
     DynamicBins testBins(points.begin(), points.end());
 
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[0], 3.0);
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[1], 3.0);
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[2], 3.0);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[0], 3.0);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[1], 3.0);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[2], 3.0);
 }
 
 /**
  * @brief Test that the bins is constructed correctly with the bounding box constructor
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsBBConstructorBoundingBox, KratosCoreFastSuite)
+TEST(DynamicBinsBBConstructorBoundingBox, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -117,20 +117,20 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsBBConstructorBoundingBox, KratosCoreFastSui
 
     DynamicBins testBins(points.begin(), points.end(), testMinPoint, testMaxPoint);
 
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[0], testMinPoint[0]);
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[1], testMinPoint[1]);
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[2], testMinPoint[2]);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[0], testMinPoint[0]);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[1], testMinPoint[1]);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[2], testMinPoint[2]);
 
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[0], testMaxPoint[0]);
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[1], testMaxPoint[1]);
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[2], testMaxPoint[2]);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[0], testMaxPoint[0]);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[1], testMaxPoint[1]);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[2], testMaxPoint[2]);
 }
 
 /**
  * @brief Test that the number of cells is calculated correctly with the bounding box constructor
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsBBConstructorCellNumber, KratosCoreFastSuite)
+TEST(DynamicBinsBBConstructorCellNumber, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -143,16 +143,16 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsBBConstructorCellNumber, KratosCoreFastSuit
 
     DynamicBins testBins(points.begin(), points.end(), testMinPoint, testMaxPoint);
 
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[0], 3);
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[1], 3);
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[2], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[0], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[1], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[2], 3);
 }
 
 /**
  * @brief Test that the size of the cells is calculated correctly with the bounding box constructor
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsBBConstructorCellSize, KratosCoreFastSuite)
+TEST(DynamicBinsBBConstructorCellSize, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -165,16 +165,16 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsBBConstructorCellSize, KratosCoreFastSuite)
 
     DynamicBins testBins(points.begin(), points.end(), testMinPoint, testMaxPoint);
 
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[0], 20.0/3.0);
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[1], 20.0/3.0);
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[2], 20.0/3.0);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[0], 20.0/3.0);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[1], 20.0/3.0);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[2], 20.0/3.0);
 }
 
 /**
  * @brief Test that the bins is constructed correctly with the cell size constructor
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsCellSizeConstructorBoundingBox, KratosCoreFastSuite)
+TEST(DynamicBinsCellSizeConstructorBoundingBox, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -186,20 +186,20 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsCellSizeConstructorBoundingBox, KratosCoreF
 
     DynamicBins testBins(points.begin(), points.end(), testCellSize);
 
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[0], 0.0);
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[1], 0.0);
-    KRATOS_CHECK_EQUAL(testBins.GetMinPoint()[2], 0.0);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[0], 0.0);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[1], 0.0);
+    KRATOS_EXPECT_EQ(testBins.GetMinPoint()[2], 0.0);
 
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[0], 9.0);
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[1], 9.0);
-    KRATOS_CHECK_EQUAL(testBins.GetMaxPoint()[2], 9.0);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[0], 9.0);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[1], 9.0);
+    KRATOS_EXPECT_EQ(testBins.GetMaxPoint()[2], 9.0);
 }
 
 /**
  * @brief Test that the number of cells is calculated correctly with the cell size constructor
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsCellSizeConstructorCellNumber, KratosCoreFastSuite)
+TEST(DynamicBinsCellSizeConstructorCellNumber, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -211,16 +211,16 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsCellSizeConstructorCellNumber, KratosCoreFa
 
     DynamicBins testBins(points.begin(), points.end(), testCellSize);
 
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[0], 3);
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[1], 3);
-    KRATOS_CHECK_EQUAL(testBins.GetDivisions()[2], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[0], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[1], 3);
+    KRATOS_EXPECT_EQ(testBins.GetDivisions()[2], 3);
 }
 
 /**
  * @brief Test that the size of the cells is calculated correctly with the cell size constructor
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsCellSizeConstructorCellSize, KratosCoreFastSuite)
+TEST(DynamicBinsCellSizeConstructorCellSize, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -232,16 +232,16 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsCellSizeConstructorCellSize, KratosCoreFast
 
     DynamicBins testBins(points.begin(), points.end(), testCellSize);
 
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[0], testCellSize);
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[1], testCellSize);
-    KRATOS_CHECK_EQUAL(testBins.GetCellSize()[2], testCellSize);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[0], testCellSize);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[1], testCellSize);
+    KRATOS_EXPECT_EQ(testBins.GetCellSize()[2], testCellSize);
 }
 
 /**
  * @brief Searches the nearest point
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsExistPoint, KratosCoreFastSuite)
+TEST(DynamicBinsExistPoint, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -253,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsExistPoint, KratosCoreFastSuite)
 
     PointerType nearestPoint = testBins.ExistPoint(PointerType(new PointType(0, 4.1, 4.1, 4.1)));
 
-    KRATOS_CHECK_EQUAL(nearestPoint->Id(), 4);
+    KRATOS_EXPECT_EQ(nearestPoint->Id(), 4);
 }
 
 /**
@@ -266,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsExistPoint, KratosCoreFastSuite)
  * @brief Searches the nearest point with (including the input)
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsNearestPoint, KratosCoreFastSuite)
+TEST(DynamicBinsNearestPoint, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -281,14 +281,14 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsNearestPoint, KratosCoreFastSuite)
 
     PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch);
  
-    KRATOS_CHECK_EQUAL(nearestPoint->Id(), 10);
+    KRATOS_EXPECT_EQ(nearestPoint->Id(), 10);
 }
 
 /**
  * @brief Searches the nearest point (including the input) with distance
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsNearestPointWithDistance, KratosCoreFastSuite)
+TEST(DynamicBinsNearestPointWithDistance, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -303,15 +303,15 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsNearestPointWithDistance, KratosCoreFastSui
     double squaredDistance = 0.0;
     PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch, squaredDistance);
  
-    KRATOS_CHECK_EQUAL(nearestPoint->Id(), 4);
-    KRATOS_CHECK_EQUAL(squaredDistance, 0.1875);
+    KRATOS_EXPECT_EQ(nearestPoint->Id(), 4);
+    KRATOS_EXPECT_EQ(squaredDistance, 0.1875);
 }
 
 /**
  * @brief Searches the nearest point (including the input) with distance (threadsafe)
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(DynamicBinsNearestPointWithDistanceThreadsafe, KratosCoreFastSuite)
+TEST(DynamicBinsNearestPointWithDistanceThreadsafe, KratosCoreFastSuite)
 {
     PointVector points;
 
@@ -327,8 +327,8 @@ KRATOS_TEST_CASE_IN_SUITE(DynamicBinsNearestPointWithDistanceThreadsafe, KratosC
     double squaredDistance = 0.0;
     PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch, squaredDistance, searchBox);
  
-    KRATOS_CHECK_EQUAL(nearestPoint->Id(), 4);
-    KRATOS_CHECK_EQUAL(squaredDistance, 0.1875);
+    KRATOS_EXPECT_EQ(nearestPoint->Id(), 4);
+    KRATOS_EXPECT_EQ(squaredDistance, 0.1875);
 }
 
     

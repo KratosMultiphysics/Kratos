@@ -26,21 +26,21 @@
 namespace Kratos {
 	namespace Testing {
 
-		KRATOS_TEST_CASE_IN_SUITE(AMatrixSum, KratosCoreFastSuite)
+		TEST(AMatrixSum, KratosCoreFastSuite)
 		{
 			DenseVector<double> a{ 1.0, 2.0, 3.1 };
-			KRATOS_CHECK_EQUAL(sum(a), 6.1);
+			KRATOS_EXPECT_EQ(sum(a), 6.1);
 		}
-		KRATOS_TEST_CASE_IN_SUITE(AMatrixSwapOfVectors, KratosCoreFastSuite)
+		TEST(AMatrixSwapOfVectors, KratosCoreFastSuite)
 		{
 			DenseVector<int> a{ 1, 2, 3 };
 			DenseVector<int> b;
 			b.swap(a);
-			KRATOS_CHECK_EQUAL(b[0], 1);
-			KRATOS_CHECK_EQUAL(b[1], 2);
-			KRATOS_CHECK_EQUAL(b[2], 3);
-			KRATOS_CHECK_EQUAL(b.size(), 3);
-			KRATOS_CHECK_EQUAL(a.size(), 0);
+			KRATOS_EXPECT_EQ(b[0], 1);
+			KRATOS_EXPECT_EQ(b[1], 2);
+			KRATOS_EXPECT_EQ(b[2], 3);
+			KRATOS_EXPECT_EQ(b.size(), 3);
+			KRATOS_EXPECT_EQ(a.size(), 0);
 		}
 
     }

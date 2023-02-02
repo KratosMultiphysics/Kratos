@@ -33,7 +33,7 @@ namespace Kratos
         * Checks the correct work of the fast_transfer_between_model_parts_process
         * Test 1
         */
-        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess1, KratosCoreFastSuite)
+        TEST_F(KernelTest, FastTransferBetweenModelPartsProcess1)
         {
             Model current_model;
 
@@ -76,27 +76,27 @@ namespace Kratos
             process.Execute();
 
             std::size_t count = 0;
-            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfNodes(), r_destination_model_part.NumberOfNodes());
+            KRATOS_EXPECT_EQ(r_origin_model_part.NumberOfNodes(), r_destination_model_part.NumberOfNodes());
             for (auto& r_node : r_origin_model_part.Nodes()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_node.Id(), r_destination_model_part.GetNode(count).Id());
+                KRATOS_EXPECT_EQ(r_node.Id(), r_destination_model_part.GetNode(count).Id());
             }
 
             // Number of geometries (not ordered)
-            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfGeometries(), r_destination_model_part.NumberOfGeometries());
+            KRATOS_EXPECT_EQ(r_origin_model_part.NumberOfGeometries(), r_destination_model_part.NumberOfGeometries());
 
             count = 0;
-            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfElements(), r_destination_model_part.NumberOfElements());
+            KRATOS_EXPECT_EQ(r_origin_model_part.NumberOfElements(), r_destination_model_part.NumberOfElements());
             for (auto& r_elem : r_origin_model_part.Elements()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_elem.Id(), r_destination_model_part.GetElement(count).Id());
+                KRATOS_EXPECT_EQ(r_elem.Id(), r_destination_model_part.GetElement(count).Id());
             }
 
             count = 0;
-            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfConditions(), r_destination_model_part.NumberOfConditions());
+            KRATOS_EXPECT_EQ(r_origin_model_part.NumberOfConditions(), r_destination_model_part.NumberOfConditions());
             for (auto& r_cond : r_origin_model_part.Conditions()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_cond.Id(), r_destination_model_part.GetCondition(count).Id());
+                KRATOS_EXPECT_EQ(r_cond.Id(), r_destination_model_part.GetCondition(count).Id());
             }
         }
 
@@ -104,7 +104,7 @@ namespace Kratos
         * Checks the correct work of the fast_transfer_between_model_parts_process
         * Test 2 (with flags)
         */
-        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess2, KratosCoreFastSuite)
+        TEST_F(KernelTest, FastTransferBetweenModelPartsProcess2)
         {
             Model current_model;
 
@@ -163,14 +163,14 @@ namespace Kratos
             for (auto& r_node : r_origin_model_part.Nodes()) {
                 ++count;
                 if (r_node.Is(MASTER))
-                    KRATOS_CHECK_EQUAL(r_node.Id(), r_destination_model_part.GetNode(count).Id());
+                    KRATOS_EXPECT_EQ(r_node.Id(), r_destination_model_part.GetNode(count).Id());
             }
 
             count = 0;
             for (auto& cond : r_origin_model_part.Conditions()) {
                 ++count;
                 if (cond.Is(MASTER))
-                    KRATOS_CHECK_EQUAL(cond.Id(), r_destination_model_part.GetCondition(count).Id());
+                    KRATOS_EXPECT_EQ(cond.Id(), r_destination_model_part.GetCondition(count).Id());
             }
         }
 
@@ -178,7 +178,7 @@ namespace Kratos
         * Checks the correct work of the fast_transfer_between_model_parts_process
         * Test 3 (clone/replicate)
         */
-        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess3, KratosCoreFastSuite)
+        TEST_F(KernelTest, FastTransferBetweenModelPartsProcess3)
         {
             Model current_model;
 
@@ -216,13 +216,13 @@ namespace Kratos
             std::size_t count = 0;
             for (auto& r_node : r_destination_model_part.Nodes()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_node.Id(), r_origin_model_part.GetNode(count).Id() + 6);
+                KRATOS_EXPECT_EQ(r_node.Id(), r_origin_model_part.GetNode(count).Id() + 6);
             }
 
             count = 0;
             for (auto& r_cond : r_destination_model_part.Conditions()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_cond.Id(), r_origin_model_part.GetCondition(count).Id() + 2);
+                KRATOS_EXPECT_EQ(r_cond.Id(), r_origin_model_part.GetCondition(count).Id() + 2);
             }
         }
 
@@ -230,7 +230,7 @@ namespace Kratos
         * Checks the correct work of the fast_transfer_between_model_parts_process
         * Test 4 (clone/replicate with flags)
         */
-        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess4, KratosCoreFastSuite)
+        TEST_F(KernelTest, FastTransferBetweenModelPartsProcess4)
         {
             Model current_model;
             
@@ -289,14 +289,14 @@ namespace Kratos
             for (auto& r_node : r_origin_model_part.Nodes()) {
                 ++count;
                 if (r_node.Is(MASTER))
-                    KRATOS_CHECK_EQUAL(r_node.Id() + 6, r_destination_model_part.GetNode(count + 6).Id());
+                    KRATOS_EXPECT_EQ(r_node.Id() + 6, r_destination_model_part.GetNode(count + 6).Id());
             }
 
             count = 0;
             for (auto& r_cond : r_origin_model_part.Conditions()) {
                 ++count;
                 if (r_cond.Is(MASTER))
-                    KRATOS_CHECK_EQUAL(r_cond.Id() + 2, r_destination_model_part.GetCondition(count  + 2).Id());
+                    KRATOS_EXPECT_EQ(r_cond.Id() + 2, r_destination_model_part.GetCondition(count  + 2).Id());
             }
         }
 

@@ -23,7 +23,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutVariableInVariablesList, KratosCoreFastSuite)
+TEST_F(KernelTest, DofConstructorWtihoutVariableInVariablesList)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
@@ -32,11 +32,11 @@ KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutVariableInVariablesList, KratosCo
 
     auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(p_node->AddDof(VELOCITY_Y),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_node->AddDof(VELOCITY_Y),
         "Error: The Dof-Variable VELOCITY_Y is not in the list of variables");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutReactionInVariablesList, KratosCoreFastSuite)
+TEST_F(KernelTest, DofConstructorWtihoutReactionInVariablesList)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
@@ -47,11 +47,11 @@ KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutReactionInVariablesList, KratosCo
 
     auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(p_node->AddDof(VELOCITY_Y, REACTION_Y),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_node->AddDof(VELOCITY_Y, REACTION_Y),
         "Error: The Reaction-Variable REACTION_Y is not in the list of variables");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DofFixing, KratosCoreFastSuite)
+TEST_F(KernelTest, DofFixing)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
@@ -66,21 +66,21 @@ KRATOS_TEST_CASE_IN_SUITE(DofFixing, KratosCoreFastSuite)
     auto p_dof = p_node->pAddDof(VELOCITY_Y, REACTION_Y);
 
     // Checking default fixities
-    KRATOS_CHECK(p_dof->IsFree());
-    KRATOS_CHECK_IS_FALSE(p_dof->IsFixed());
+    KRATOS_EXPECT_TRUE(p_dof->IsFree());
+    KRATOS_EXPECT_FALSE(p_dof->IsFixed());
 
     // Checking after fixing the dof
     p_dof->FixDof();
-    KRATOS_CHECK_IS_FALSE(p_dof->IsFree());
-    KRATOS_CHECK(p_dof->IsFixed());
+    KRATOS_EXPECT_FALSE(p_dof->IsFree());
+    KRATOS_EXPECT_TRUE(p_dof->IsFixed());
 
     // Checking after freeing the dof
     p_dof->FreeDof();
-    KRATOS_CHECK(p_dof->IsFree());
-    KRATOS_CHECK_IS_FALSE(p_dof->IsFixed());
+    KRATOS_EXPECT_TRUE(p_dof->IsFree());
+    KRATOS_EXPECT_FALSE(p_dof->IsFixed());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DofVariables, KratosCoreFastSuite)
+TEST_F(KernelTest, DofVariables)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
@@ -95,13 +95,13 @@ KRATOS_TEST_CASE_IN_SUITE(DofVariables, KratosCoreFastSuite)
     auto p_dof = p_node->pAddDof(VELOCITY_Y, REACTION_Y);
     auto p_dof_2 = p_node->pAddDof(VELOCITY_Z);
 
-    KRATOS_CHECK_EQUAL(VELOCITY_Y, p_dof->GetVariable());
-    KRATOS_CHECK_EQUAL(REACTION_Y, p_dof->GetReaction());
+    KRATOS_EXPECT_EQ(VELOCITY_Y, p_dof->GetVariable());
+    KRATOS_EXPECT_EQ(REACTION_Y, p_dof->GetReaction());
 
-    KRATOS_CHECK_IS_FALSE(p_dof_2->HasReaction());
+    KRATOS_EXPECT_FALSE(p_dof_2->HasReaction());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DofEquationId, KratosCoreFastSuite)
+TEST_F(KernelTest, DofEquationId)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
@@ -119,10 +119,10 @@ KRATOS_TEST_CASE_IN_SUITE(DofEquationId, KratosCoreFastSuite)
 
     p_dof->SetEquationId(eq_id);
 
-    KRATOS_CHECK_EQUAL(eq_id, p_dof->EquationId());
+    KRATOS_EXPECT_EQ(eq_id, p_dof->EquationId());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DofId, KratosCoreFastSuite)
+TEST_F(KernelTest, DofId)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
@@ -138,9 +138,9 @@ KRATOS_TEST_CASE_IN_SUITE(DofId, KratosCoreFastSuite)
 
     auto p_dof = p_node->pAddDof(VELOCITY_Y, REACTION_Y);
 
-    KRATOS_CHECK_EQUAL(my_id, p_dof->GetId());
+    KRATOS_EXPECT_EQ(my_id, p_dof->GetId());
 
-    KRATOS_CHECK_EQUAL(p_dof->GetId(), p_dof->Id());
+    KRATOS_EXPECT_EQ(p_dof->GetId(), p_dof->Id());
 }
 }
 }  // namespace Kratos.

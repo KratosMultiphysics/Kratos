@@ -36,50 +36,50 @@ using ExplicitSolvingStrategyRungeKutta4Type = ExplicitSolvingStrategyRungeKutta
 /**
  * Checks if the Linear strategy performs correctly the resolution of the system
  */
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta1, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyRungeKutta1, KratosCoreFastSuite)
 {
     using namespace RungeKuttaTestInternals;
     RunTest<ExplicitSolvingStrategyRungeKutta1Type>(1e-1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta2, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyRungeKutta2, KratosCoreFastSuite)
 {
     using namespace RungeKuttaTestInternals;
     RunTest<ExplicitSolvingStrategyRungeKutta2Type>(1e-2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta3, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyRungeKutta3, KratosCoreFastSuite)
 {
     using namespace RungeKuttaTestInternals;
     RunTest<ExplicitSolvingStrategyRungeKutta3Type>(1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyRungeKutta4, KratosCoreFastSuite)
 {
     using namespace RungeKuttaTestInternals;
     RunTest<ExplicitSolvingStrategyRungeKutta4Type>(1e-7);
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta1Convergence, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyRungeKutta1Convergence, KratosCoreFastSuite)
 {
     using namespace RungeKuttaTestInternals;
     ConvergenceTest<ExplicitSolvingStrategyRungeKutta1Type>(1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta2Convergence, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyRungeKutta2Convergence, KratosCoreFastSuite)
 {
     using namespace RungeKuttaTestInternals;
     ConvergenceTest<ExplicitSolvingStrategyRungeKutta2Type>(2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta3Convergence, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyRungeKutta3Convergence, KratosCoreFastSuite)
 {
     using namespace RungeKuttaTestInternals;
     ConvergenceTest<ExplicitSolvingStrategyRungeKutta3Type>(3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4Convergence, KratosCoreFastSuite)
+TEST(ExplicitSolvingStrategyRungeKutta4Convergence, KratosCoreFastSuite)
 {
     using namespace RungeKuttaTestInternals;
     ConvergenceTest<ExplicitSolvingStrategyRungeKutta4Type>(4);

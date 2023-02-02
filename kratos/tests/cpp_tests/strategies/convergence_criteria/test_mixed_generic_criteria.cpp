@@ -57,7 +57,7 @@ namespace Testing
     /**
      * Checks the mixed generic criteria with two double variables
      */
-    KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaDoubleDouble, KratosCoreFastSuite)
+    TEST_F(KernelTest, MixedGenericCriteriaDoubleDouble)
     {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
@@ -109,13 +109,13 @@ namespace Testing
 
         // Check convergence
         const bool convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
-        KRATOS_CHECK(convergence)
+        KRATOS_EXPECT_TRUE(convergence)
     }
 
     /**
      * Checks the mixed generic criteria with a double and a vector variable
      */
-    KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaDoubleVector, KratosCoreFastSuite)
+    TEST_F(KernelTest, MixedGenericCriteriaDoubleVector)
     {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
@@ -173,13 +173,13 @@ namespace Testing
 
         // Check convergence
         const bool convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
-        KRATOS_CHECK(convergence)
+        KRATOS_EXPECT_TRUE(convergence)
     }
 
     /**
      * Checks the mixed generic criteria with a double and a vector variable
      */
-    KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaDoubleVectorWithParameters, KratosCoreFastSuite)
+    TEST_F(KernelTest, MixedGenericCriteriaDoubleVectorWithParameters)
     {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
@@ -247,7 +247,7 @@ namespace Testing
 
         // Check convergence
         const bool convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
-        KRATOS_CHECK(convergence)
+        KRATOS_EXPECT_TRUE(convergence)
     }
 
 } // namespace Testing

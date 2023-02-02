@@ -20,7 +20,7 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(DebugHelpersKRATOS_WATCH_VECTOR_WITH_PRECISION, KratosCoreFastSuite)
+TEST(DebugHelpersKRATOS_WATCH_VECTOR_WITH_PRECISION, KratosCoreFastSuite)
 {
     // This test is added merely to check debug_helpers.h is compilable since this header is not supposed to be
     // included in any of the production codes.
@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugHelpersKRATOS_WATCH_VECTOR_WITH_PRECISION, Kratos
     KRATOS_WATCH_VECTOR_WITH_PRECISION(temp, 12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DebugHelpersKRATOS_WATCH_MATRIX_WITH_PRECISION, KratosCoreFastSuite)
+TEST(DebugHelpersKRATOS_WATCH_MATRIX_WITH_PRECISION, KratosCoreFastSuite)
 {
     // This test is added merely to check debug_helpers.h is compilable since this header is not supposed to be
     // included in any of the production codes.    

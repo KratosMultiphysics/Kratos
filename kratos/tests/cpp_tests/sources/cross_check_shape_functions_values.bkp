@@ -1,7 +1,7 @@
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
 //#include "containers/array_1d.h"
-#include "testing/testing.h"
+#include "gtest/gtest.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
 namespace Kratos {
@@ -94,7 +94,7 @@ void Check(double N,
            array_1d<double, 3> const& rCoord)
 {
     KRATOS_TRY;
-    KRATOS_CHECK_NEAR(N, rGeom.ShapeFunctionValue(ShapeFunctionIndex, rCoord), TOLERANCE);
+    EXPECT_NEAR(N, rGeom.ShapeFunctionValue(ShapeFunctionIndex, rCoord), TOLERANCE);
     KRATOS_CATCH("");
 }
 

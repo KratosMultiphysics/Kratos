@@ -32,7 +32,7 @@ namespace Kratos {
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess2D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedElementsProcess2D)
         {
             NodeType::Pointer p_point1(new NodeType(1, 0.0, 0.0, 0.0));
             NodeType::Pointer p_point2(new NodeType(2, 0.0, 1.0, 0.0));
@@ -72,27 +72,27 @@ namespace Kratos {
             // gid_io_skin.InitializeResults(0, skin_part.GetMesh());
             // gid_io_skin.FinalizeResults();
 
-            KRATOS_CHECK((surface_part.Elements()[3]).Is(SELECTED));
-            KRATOS_CHECK((surface_part.Elements()[4]).Is(SELECTED));
-            KRATOS_CHECK((surface_part.Elements()[9]).Is(SELECTED));
-            KRATOS_CHECK((surface_part.Elements()[10]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[0]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[1]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[2]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[5]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[6]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[7]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[8]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[11]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[12]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[13]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[14]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[15]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[16]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[17]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((surface_part.Elements()[3]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((surface_part.Elements()[4]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((surface_part.Elements()[9]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((surface_part.Elements()[10]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[0]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[1]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[2]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[5]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[6]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[7]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[8]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[11]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[12]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[13]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[14]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[15]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[16]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[17]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcess2D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcess2D)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -121,10 +121,10 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection2D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedElementsProcessNoIntersection2D)
         {
             NodeType::Pointer p_point1(new NodeType(1, 0.0, 0.0, 0.0));
             NodeType::Pointer p_point2(new NodeType(2, 0.0, 1.0, 0.0));
@@ -151,11 +151,11 @@ namespace Kratos {
             find_intersections.Execute();
 
             for (auto it_elem = surface_part.ElementsBegin(); it_elem != surface_part.ElementsEnd(); ++it_elem){
-                KRATOS_CHECK_IS_FALSE(it_elem->Is(SELECTED));
+                KRATOS_EXPECT_FALSE(it_elem->Is(SELECTED));
             }
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessNoIntersection2D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessNoIntersection2D)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -184,13 +184,13 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[3]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[4]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[2]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[3]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[4]).IsNot(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessIntersectionExtendedOBB2D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessIntersectionExtendedOBB2D)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -230,13 +230,13 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[3]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[4]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[2]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[3]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[4]).IsNot(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessIntersectionExtendedOBB3D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessIntersectionExtendedOBB3D)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -311,21 +311,21 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[3]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[4]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[5]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[6]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[7]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[8]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[9]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[10]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[11]).IsNot(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[12]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[2]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[3]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[4]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[5]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[6]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[7]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[8]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[9]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[10]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[11]).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[12]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessTriangleTriangleOBB3D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessTriangleTriangleOBB3D)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -367,11 +367,11 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[2]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessTriangleTriangleOBB3DOrthogonalBase, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessTriangleTriangleOBB3DOrthogonalBase)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -453,11 +453,11 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[2]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralQuadrilateralOBB3D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessQuadrilateralQuadrilateralOBB3D)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -497,10 +497,10 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralQuadrilateralOBB3DOrthogonalBase, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessQuadrilateralQuadrilateralOBB3DOrthogonalBase)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -580,10 +580,10 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessTriangleQuadrilateralOBB3D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessTriangleQuadrilateralOBB3D)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -624,11 +624,11 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
         }
 
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessTriangleQuadrilateralOBB3DOrthogonalBase, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessTriangleQuadrilateralOBB3DOrthogonalBase)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -709,10 +709,10 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralTriangleOBB3D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessQuadrilateralTriangleOBB3D)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -753,11 +753,11 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[2]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralTriangleOBB3DOrthogonalBase, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedConditionsProcessQuadrilateralTriangleOBB3DOrthogonalBase)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
@@ -839,11 +839,11 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_EXPECT_TRUE((r_surface_part.Conditions()[2]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessBoundingBoxIntersection2D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedElementsProcessBoundingBoxIntersection2D)
         {
             Model current_model;
             ModelPart &skin_part = current_model.CreateModelPart("Boundaries");
@@ -871,12 +871,12 @@ namespace Kratos {
             FindIntersectedGeometricalObjectsProcess find_intersections(surface_part, skin_part);
             find_intersections.Execute();
 
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[0]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[5]).Is(SELECTED));
-            KRATOS_CHECK_IS_FALSE((surface_part.Elements()[6]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[0]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[5]).Is(SELECTED));
+            KRATOS_EXPECT_FALSE((surface_part.Elements()[6]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess3D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedElementsProcess3D)
         {
             NodeType::Pointer p_point1(new NodeType(1, 0.00, 0.00, 0.00));
             NodeType::Pointer p_point2(new NodeType(2, 10.00, 0.00, 0.00));
@@ -905,15 +905,15 @@ namespace Kratos {
             skin_part.CreateNewElement("Element3D3N", 1, { 1,2,3 }, p_properties);
             StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
             FindIntersectedGeometricalObjectsProcess(volume_part, skin_part).Execute();
-            KRATOS_CHECK(volume_part.GetElement(3).IsNot(SELECTED));
-            KRATOS_CHECK(volume_part.GetElement(4).IsNot(SELECTED));
-            KRATOS_CHECK(volume_part.GetElement(5).Is(SELECTED));
-            KRATOS_CHECK(volume_part.GetElement(6).Is(SELECTED));
+            KRATOS_EXPECT_TRUE(volume_part.GetElement(3).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE(volume_part.GetElement(4).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE(volume_part.GetElement(5).Is(SELECTED));
+            KRATOS_EXPECT_TRUE(volume_part.GetElement(6).Is(SELECTED));
             for (std::size_t i = 7; i < volume_part.NumberOfElements(); i++)
-                KRATOS_CHECK(volume_part.GetElement(i).IsNot(SELECTED));
+                KRATOS_EXPECT_TRUE(volume_part.GetElement(i).IsNot(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection3D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedElementsProcessNoIntersection3D)
         {
             // Generate the tetrahedron element
             Model current_model;
@@ -951,10 +951,10 @@ namespace Kratos {
             FindIntersectedGeometricalObjectsProcess(volume_part, skin_part).Execute();
 
             // Check that there is no intersection
-            KRATOS_CHECK(volume_part.GetElement(139).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE(volume_part.GetElement(139).IsNot(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsConditionsProcessNoIntersection3D, KratosCoreFastSuite)
+        TEST_F(KernelTest, FindIntersectedElementsConditionsProcessNoIntersection3D)
         {
             // Generate the tetrahedron element
             Model current_model;
@@ -992,7 +992,7 @@ namespace Kratos {
             FindIntersectedGeometricalObjectsProcess(volume_part, skin_part).Execute();
 
             // Check that there is no intersection
-            KRATOS_CHECK(volume_part.GetElement(139).IsNot(SELECTED));
+            KRATOS_EXPECT_TRUE(volume_part.GetElement(139).IsNot(SELECTED));
         }
     }
 }  // namespace Kratos.

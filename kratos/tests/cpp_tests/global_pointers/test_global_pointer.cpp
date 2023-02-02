@@ -33,25 +33,25 @@ class TestClass {
 };
 
 // Basic Type
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateRaw, KratosCoreFastSuite)
+TEST(GlobalPointerCreateRaw, KratosCoreFastSuite)
 {
     int sample_var = 1337;
 
     auto from_raw = GlobalPointer<int>(&sample_var);
 
-    KRATOS_CHECK_EQUAL(*from_raw, sample_var);
+    KRATOS_EXPECT_EQ(*from_raw, sample_var);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstRaw, KratosCoreFastSuite)
+TEST(GlobalPointerCreateConstRaw, KratosCoreFastSuite)
 {
     const int sample_var = 1337;
 
     auto from_raw = GlobalPointer<const int>(&sample_var);
 
-    KRATOS_CHECK_EQUAL(*from_raw, sample_var);
+    KRATOS_EXPECT_EQ(*from_raw, sample_var);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyRaw, KratosCoreFastSuite)
+TEST(GlobalPointerModifyRaw, KratosCoreFastSuite)
 {
     int sample_var = 1337;
     int new_value = 42;
@@ -59,31 +59,31 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyRaw, KratosCoreFastSuite)
     auto from_raw = GlobalPointer<int>(&sample_var);
     *from_raw = new_value;
 
-    KRATOS_CHECK_EQUAL(*from_raw, new_value);
+    KRATOS_EXPECT_EQ(*from_raw, new_value);
 }
 
 // Class
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuite)
+TEST(GlobalPointerCreateClass, KratosCoreFastSuite)
 {
     TestClass sample_var(1337);
 
     auto from_raw = GlobalPointer<TestClass>(&sample_var);
 
-    KRATOS_CHECK_EQUAL(from_raw->getVar(), sample_var.getVar());
-    KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
+    KRATOS_EXPECT_EQ(from_raw->getVar(), sample_var.getVar());
+    KRATOS_EXPECT_EQ((*from_raw).getVar(), sample_var.getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstClass, KratosCoreFastSuite)
+TEST(GlobalPointerCreateConstClass, KratosCoreFastSuite)
 {
     const TestClass sample_var(1337);
 
 	auto from_raw = GlobalPointer<const TestClass>(&sample_var);
 
-    KRATOS_CHECK_EQUAL(from_raw->getVar(), sample_var.getVar());
-    KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
+    KRATOS_EXPECT_EQ(from_raw->getVar(), sample_var.getVar());
+    KRATOS_EXPECT_EQ((*from_raw).getVar(), sample_var.getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuite)
+TEST(GlobalPointerModifyClass, KratosCoreFastSuite)
 {
     TestClass sample_var(1337);
 
@@ -92,34 +92,34 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuite)
     from_raw->setVar(42);
     sample_var.setVar(42);
 
-    KRATOS_CHECK_EQUAL(from_raw->getVar(), sample_var.getVar());
-    KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
+    KRATOS_EXPECT_EQ(from_raw->getVar(), sample_var.getVar());
+    KRATOS_EXPECT_EQ((*from_raw).getVar(), sample_var.getVar());
 }
 
 // Kratos::shared_ptr
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateSharedPtr, KratosCoreFastSuite)
+TEST(GlobalPointerCreateSharedPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
 
     auto sample_var = PtrType(new TestClass(1337));
     auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
 
-    KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), sample_var->getVar());
-    KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), sample_var->getVar());
+    KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), sample_var->getVar());
+    KRATOS_EXPECT_EQ((*from_shared_ptr).getVar(), sample_var->getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstSharedPtr, KratosCoreFastSuite)
+TEST(GlobalPointerCreateConstSharedPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
 
     const auto sample_var = PtrType(new TestClass(1337));
     auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
 
-    KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), sample_var->getVar());
-    KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), sample_var->getVar());
+    KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), sample_var->getVar());
+    KRATOS_EXPECT_EQ((*from_shared_ptr).getVar(), sample_var->getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifySharedPtr, KratosCoreFastSuite)
+TEST(GlobalPointerModifySharedPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
 
@@ -129,12 +129,12 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifySharedPtr, KratosCoreFastSuite)
     from_shared_ptr->setVar(42);
     sample_var->setVar(42);
 
-    KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), sample_var->getVar());
-    KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), sample_var->getVar());
+    KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), sample_var->getVar());
+    KRATOS_EXPECT_EQ((*from_shared_ptr).getVar(), sample_var->getVar());
 }
 
 // Kratos::weak_ptr
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuite)
+TEST(GlobalPointerCreateWeakPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
     typedef Kratos::weak_ptr<TestClass> WeakPtrType;
@@ -145,14 +145,14 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuite)
     auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
 
     if(weak_var.lock()) {
-        KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
-        KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
+        KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), weak_var.lock()->getVar());
+        KRATOS_EXPECT_EQ((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
+        KRATOS_EXPECT_EQ(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuite)
+TEST(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
     typedef Kratos::weak_ptr<TestClass> WeakPtrType;
@@ -163,14 +163,14 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuite)
     auto from_shared_ptr = GlobalPointer<TestClass>(weak_var);
 
     if(weak_var.lock()) {
-        KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
-        KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
+        KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), weak_var.lock()->getVar());
+        KRATOS_EXPECT_EQ((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
+        KRATOS_EXPECT_EQ(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyWeakPtr, KratosCoreFastSuite)
+TEST(GlobalPointerModifyWeakPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
     typedef Kratos::weak_ptr<TestClass> WeakPtrType;
@@ -184,24 +184,24 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyWeakPtr, KratosCoreFastSuite)
         from_shared_ptr->setVar(42);
         weak_var.lock()->setVar(42);
 
-        KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
-        KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
+        KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), weak_var.lock()->getVar());
+        KRATOS_EXPECT_EQ((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
+        KRATOS_EXPECT_EQ(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCompare, KratosCoreFastSuite)
+TEST(GlobalPointerCompare, KratosCoreFastSuite)
 {
     std::array<int,3> values={21, 1, 8};
 
     auto global_ptr_1 = GlobalPointer<int>(&values[0]);
     auto global_ptr_2 = GlobalPointer<int>(&values[1]);
     GlobalPointerCompare<int> compare;
-    KRATOS_CHECK(compare(global_ptr_1, global_ptr_2));
-    KRATOS_CHECK_IS_FALSE(compare(global_ptr_2, global_ptr_1));
-    KRATOS_CHECK_IS_FALSE(compare(global_ptr_1, global_ptr_1));
-    KRATOS_CHECK_IS_FALSE(compare(global_ptr_2, global_ptr_2));
+    KRATOS_EXPECT_TRUE(compare(global_ptr_1, global_ptr_2));
+    KRATOS_EXPECT_FALSE(compare(global_ptr_2, global_ptr_1));
+    KRATOS_EXPECT_FALSE(compare(global_ptr_1, global_ptr_1));
+    KRATOS_EXPECT_FALSE(compare(global_ptr_2, global_ptr_2));
 }
 
 

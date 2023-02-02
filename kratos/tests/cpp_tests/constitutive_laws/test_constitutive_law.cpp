@@ -26,57 +26,57 @@ namespace Kratos
         /**
         * Checks the correct work of the Has methods
         */
-        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHasMethods, KratosCoreFastSuite)
+        TEST(ConstitutiveLawHasMethods, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(IS_RESTARTED));                 // Bool
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(DOMAIN_SIZE));                  // Integer
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(NODAL_H));                      // Double
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(DISPLACEMENT));                 // Array 1D
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(INITIAL_STRAIN));               // Vector
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(GREEN_LAGRANGE_STRAIN_TENSOR)); // Matrix
+            KRATOS_EXPECT_FALSE(this_cl.Has(IS_RESTARTED));                 // Bool
+            KRATOS_EXPECT_FALSE(this_cl.Has(DOMAIN_SIZE));                  // Integer
+            KRATOS_EXPECT_FALSE(this_cl.Has(NODAL_H));                      // Double
+            KRATOS_EXPECT_FALSE(this_cl.Has(DISPLACEMENT));                 // Array 1D
+            KRATOS_EXPECT_FALSE(this_cl.Has(INITIAL_STRAIN));               // Vector
+            KRATOS_EXPECT_FALSE(this_cl.Has(GREEN_LAGRANGE_STRAIN_TENSOR)); // Matrix
         }
 
         /**
         * Checks the correct work of the GetStrainMeasure method
         */
-        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawGetStrainMeasureMethod, KratosCoreFastSuite)
+        TEST(ConstitutiveLawGetStrainMeasureMethod, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
-            KRATOS_CHECK_EQUAL(this_cl.GetStrainMeasure(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
+            KRATOS_EXPECT_EQ(this_cl.GetStrainMeasure(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
         }
 
         /**
         * Checks the correct work of the ValidateInput method
         */
-        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawValidateInputMethod, KratosCoreFastSuite)
+        TEST(ConstitutiveLawValidateInputMethod, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
             Properties prop = Properties();
 
-            KRATOS_CHECK_IS_FALSE(this_cl.ValidateInput(prop));
+            KRATOS_EXPECT_FALSE(this_cl.ValidateInput(prop));
         }
 
         /**
         * Checks the correct work of the IsIncremental method
         */
-        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIsIncrementalMethod, KratosCoreFastSuite)
+        TEST(ConstitutiveLawIsIncrementalMethod, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
-            KRATOS_CHECK_IS_FALSE(this_cl.IsIncremental());
+            KRATOS_EXPECT_FALSE(this_cl.IsIncremental());
         }
 
         /**
         * Checks the correct work of the GetStressMeasure method
         */
-        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawGetStressMeasureMethod, KratosCoreFastSuite)
+        TEST(ConstitutiveLawGetStressMeasureMethod, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
-            KRATOS_CHECK_EQUAL(this_cl.GetStressMeasure(), ConstitutiveLaw::StressMeasure_PK1);
+            KRATOS_EXPECT_EQ(this_cl.GetStressMeasure(), ConstitutiveLaw::StressMeasure_PK1);
         }
 
     } // namespace Testing

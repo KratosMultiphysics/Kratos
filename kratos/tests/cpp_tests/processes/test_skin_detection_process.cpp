@@ -41,7 +41,7 @@ void CreateSimpleGeometry(ModelPart& rModelPart)
 * Checks the correct work of the skin detection process
 * Active elements
 */
-KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess1, KratosCoreFastSuite)
+TEST_F(KernelTest, SkinDetectionProcess1)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("test_model_part",2);
@@ -62,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess1, KratosCoreFastSuite)
     // We generate in several iterations to see if it crashes
     for (int i = 0; i < 2; i++) {
         skin_process.Execute();
-        KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 4);
+        KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 4);
     }
 
     // Now we remove one element
@@ -71,14 +71,14 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess1, KratosCoreFastSuite)
 
     // We execute again
     skin_process.Execute();
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
 }
 
 /**
 * Checks the correct work of the skin detection process
 * Inactive elements
 */
-KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess2, KratosCoreFastSuite)
+TEST_F(KernelTest, SkinDetectionProcess2)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("test_model_part",2);
@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess2, KratosCoreFastSuite)
 
     // We execute again
     skin_process.Execute();
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
 }
 } // namespace Testing
 } // namespace Kratos

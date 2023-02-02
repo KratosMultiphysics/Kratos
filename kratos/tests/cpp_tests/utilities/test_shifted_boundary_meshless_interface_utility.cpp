@@ -69,7 +69,7 @@ namespace
     }
 }
 
-    KRATOS_TEST_CASE_IN_SUITE(ShiftedBoundaryMeshlessInterfaceUtilityConformingMLS, KratosCoreFastSuite)
+    TEST_F(KernelTest, ShiftedBoundaryMeshlessInterfaceUtilityConformingMLS)
     {
         // Test settings
         Model test_model;
@@ -104,11 +104,11 @@ namespace
         expected_DN_DX(9,0) = 0; expected_DN_DX(9,1) = -0.811548195663;
         expected_DN_DX(10,0) = 0; expected_DN_DX(10,1) = 0.564414010548;
         expected_DN_DX(11,0) = 0; expected_DN_DX(11,1) = 1.37539664926;
-        KRATOS_CHECK_VECTOR_NEAR(r_N, expected_N, tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_N, expected_N, tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ShiftedBoundaryMeshlessInterfaceUtilityNonConformingMLS, KratosCoreFastSuite)
+    TEST_F(KernelTest, ShiftedBoundaryMeshlessInterfaceUtilityNonConformingMLS)
     {
         // Test settings
         Model test_model;
@@ -137,11 +137,11 @@ namespace
         expected_DN_DX(3,0) = 0.351656935045; expected_DN_DX(3,1) = 2.30516369579;
         expected_DN_DX(4,0) = 2.34071044876; expected_DN_DX(4,1) = -1.40045938624;
         expected_DN_DX(5,0) = 0.071160475011; expected_DN_DX(5,1) = 1.49152032755;
-        KRATOS_CHECK_VECTOR_NEAR(r_N, expected_N, tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_N, expected_N, tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ShiftedBoundaryMeshlessInterfaceUtilityRBF, KratosCoreFastSuite)
+    TEST_F(KernelTest, ShiftedBoundaryMeshlessInterfaceUtilityRBF)
     {
         // Test settings
         Model test_model;
@@ -176,11 +176,11 @@ namespace
         expected_DN_DX(9,0) = 0; expected_DN_DX(9,1) = 1.50195182078;
         expected_DN_DX(10,0) = 0; expected_DN_DX(10,1) = -1.81337432138;
         expected_DN_DX(11,0) = 0; expected_DN_DX(11,1) = 0.378925461641;
-        KRATOS_CHECK_VECTOR_NEAR(r_N, expected_N, tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_N, expected_N, tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ShiftedBoundaryMeshlessInterfaceUtilityGradientBased, KratosCoreFastSuite)
+    TEST_F(KernelTest, ShiftedBoundaryMeshlessInterfaceUtilityGradientBased)
     {
         // Test settings
         Model test_model;
@@ -209,8 +209,8 @@ namespace
         expected_DN_DX(3,0) = 0; expected_DN_DX(3,1) = 3.0167508439;
         expected_DN_DX(4,0) = 0; expected_DN_DX(4,1) = -3.21908603841e-16;
         expected_DN_DX(5,0) = 0; expected_DN_DX(5,1) = 1.93299662441;
-        KRATOS_CHECK_VECTOR_NEAR(r_N, expected_N, tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_N, expected_N, tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
     }
 
 } // namespace Kratos::Testing

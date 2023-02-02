@@ -25,28 +25,28 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(ExceptionDefaultConstruction, KratosCoreFastSuite)
+TEST(ExceptionDefaultConstruction, KratosCoreFastSuite)
 {
     try {
         throw Exception();
     }
     catch (Exception& e) {
-        KRATOS_CHECK_C_STRING_EQUAL(e.what(), "Unknown Error\nin Unknown Location");
-        KRATOS_CHECK_EQUAL(e.where().CleanFileName(), "Unknown File");
-        KRATOS_CHECK_EQUAL(e.where().CleanFunctionName(), "Unknown Location");
-        KRATOS_CHECK_EQUAL(e.where().GetLineNumber(), 0);
+        KRATOS_EXPECT_STREQ(e.what(), "Unknown Error\nin Unknown Location");
+        KRATOS_EXPECT_EQ(e.where().CleanFileName(), "Unknown File");
+        KRATOS_EXPECT_EQ(e.where().CleanFunctionName(), "Unknown Location");
+        KRATOS_EXPECT_EQ(e.where().GetLineNumber(), 0);
     }
 }
 
 /** Checks if CPP works as exception
 * Checks if CPP works as exception
 */
-KRATOS_TEST_CASE_IN_SUITE(CPPExceptionTest, KratosCoreFastSuite)
+TEST(CPPExceptionTest, KratosCoreFastSuite)
 {
     try {
         throw 1;
     } catch (int e) {
-        KRATOS_CHECK_EQUAL(e, 1);
+        KRATOS_EXPECT_EQ(e, 1);
     } catch (...)  {
         KRATOS_ERROR << std::endl;
     }
@@ -55,12 +55,12 @@ KRATOS_TEST_CASE_IN_SUITE(CPPExceptionTest, KratosCoreFastSuite)
 /** Checks if KRATOS_ERROR works as exception
  * Checks if KRATOS_ERROR works as exception
  */
-KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERRORTest, KratosCoreFastSuite)
+TEST(KRATOS_ERRORTest, KratosCoreFastSuite)
 {
     try {
         KRATOS_ERROR << std::endl;
     } catch(Kratos::Exception& e){
-        KRATOS_CHECK(true);
+        KRATOS_EXPECT_TRUE(true);
     } catch (...)  {
         KRATOS_ERROR << "Default Exception"<< std::endl;
     }
@@ -69,12 +69,12 @@ KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERRORTest, KratosCoreFastSuite)
 /** Checks if KRATOS_ERROR_IF works as exception
  * Checks if KRATOS_ERROR_IF works as exception
  */
-KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERROR_IFTest, KratosCoreFastSuite)
+TEST(KRATOS_ERROR_IFTest, KratosCoreFastSuite)
 {
     try {
         KRATOS_ERROR_IF(true) << std::endl;
     } catch(Kratos::Exception& e){
-        KRATOS_CHECK(true);
+        KRATOS_EXPECT_TRUE(true);
     } catch (...)  {
         KRATOS_ERROR << "Default Exception"<< std::endl;
     }
@@ -83,12 +83,12 @@ KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERROR_IFTest, KratosCoreFastSuite)
 /** Checks if KRATOS_ERROR_IF_NOT works as exception
  * Checks if KRATOS_ERROR_IF_NOT works as exception
  */
-KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERROR_IF_NOTTest, KratosCoreFastSuite)
+TEST(KRATOS_ERROR_IF_NOTTest, KratosCoreFastSuite)
 {
     try {
         KRATOS_ERROR_IF_NOT(false) << std::endl;
     } catch(Kratos::Exception& e){
-        KRATOS_CHECK(true);
+        KRATOS_EXPECT_TRUE(true);
     } catch (...)  {
         KRATOS_ERROR << "Default Exception"<< std::endl;
     }

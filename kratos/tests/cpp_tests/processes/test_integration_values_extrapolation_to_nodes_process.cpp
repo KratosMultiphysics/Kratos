@@ -103,7 +103,7 @@ namespace Kratos
         * Checks the correct work of the internal variable extrapolation process
         * Test triangle
         */
-        KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosCoreFastSuite)
+        TEST_F(KernelTest, TestIntegrationValuesExtrapolationToNodesProcessTriangle)
         {
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
 
@@ -135,7 +135,7 @@ namespace Kratos
             const double tolerance = 1.0e-8;
             const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
-                KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
+                KRATOS_EXPECT_LE(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }
 
             extrapolation_process.ExecuteFinalize();
@@ -145,7 +145,7 @@ namespace Kratos
         * Checks the correct work of the internal variable extrapolation process
         * Test tetrahedra
         */
-        KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra, KratosCoreFastSuite)
+        TEST_F(KernelTest, TestIntegrationValuesExtrapolationToNodesProcessTetra)
         {
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
 
@@ -177,7 +177,7 @@ namespace Kratos
             const double tolerance = 1.0e-8;
             const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
-                KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
+                KRATOS_EXPECT_LE(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }
 
             extrapolation_process.ExecuteFinalize();
@@ -187,7 +187,7 @@ namespace Kratos
         * Checks the correct work of the internal variable extrapolation process
         * Test quadratic tetrahedra
         */
-        KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessQuadTetra, KratosCoreFastSuite)
+        TEST_F(KernelTest, TestIntegrationValuesExtrapolationToNodesProcessQuadTetra)
         {
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
 
@@ -219,7 +219,7 @@ namespace Kratos
             const double tolerance = 1.0e-6;
             const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
-                KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
+                KRATOS_EXPECT_LE(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }
 
             extrapolation_process.ExecuteFinalize();

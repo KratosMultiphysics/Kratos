@@ -22,7 +22,7 @@ namespace Kratos {
 namespace Testing {
 
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointersVectorTest, KratosCoreFastSuite)
+TEST_F(KernelTest, GlobalPointersVectorTest)
 {
     Model current_model;
     ModelPart& mp = current_model.CreateModelPart("test");
@@ -43,13 +43,13 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersVectorTest, KratosCoreFastSuite)
 
     for(std::size_t i=0; i<global_pointers_container.size(); ++i)
     {
-        KRATOS_CHECK_EQUAL(&new_global_pointers[i], &global_pointers_container[i]);
+        KRATOS_EXPECT_EQ(&new_global_pointers[i], &global_pointers_container[i]);
     }
     
 
 };
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointersUnorderedMapTest , KratosCoreFastSuite)
+TEST_F(KernelTest, GlobalPointersUnorderedMapTest)
 {
     Model current_model;
     ModelPart& mp = current_model.CreateModelPart("test");
@@ -71,16 +71,16 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersUnorderedMapTest , KratosCoreFastSuite)
     GlobalPointersUnorderedMap<Node<3>, GlobalPointersVector<Node<3>>> new_global_pointers;
     serializer.load("global_pointers_map",new_global_pointers);
 
-    KRATOS_CHECK_EQUAL(&new_global_pointers[gp1][0], &*gp1);   
-    KRATOS_CHECK_EQUAL(&new_global_pointers[gp2][0], &*gp1);
-    KRATOS_CHECK_EQUAL(&new_global_pointers[gp2][1], &*gp2);
-    KRATOS_CHECK_EQUAL(&new_global_pointers[gp3][0], &*gp1);
-    KRATOS_CHECK_EQUAL(&new_global_pointers[gp3][1], &*gp2);
-    KRATOS_CHECK_EQUAL(&new_global_pointers[gp3][2], &*gp3);
+    KRATOS_EXPECT_EQ(&new_global_pointers[gp1][0], &*gp1);   
+    KRATOS_EXPECT_EQ(&new_global_pointers[gp2][0], &*gp1);
+    KRATOS_EXPECT_EQ(&new_global_pointers[gp2][1], &*gp2);
+    KRATOS_EXPECT_EQ(&new_global_pointers[gp3][0], &*gp1);
+    KRATOS_EXPECT_EQ(&new_global_pointers[gp3][1], &*gp2);
+    KRATOS_EXPECT_EQ(&new_global_pointers[gp3][2], &*gp3);
 
 };
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointersVectorDeepSerializationTest , KratosCoreFastSuite)
+TEST(GlobalPointersVectorDeepSerializationTest , KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& mp = current_model.CreateModelPart("test");
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersVectorDeepSerializationTest , KratosCore
 
     for(std::size_t i=0; i<new_global_pointers.size(); ++i)
     {
-        KRATOS_CHECK_EQUAL(new_global_pointers[i].FastGetSolutionStepValue(TEMPERATURE), (i+1)*100.0);
+        KRATOS_EXPECT_EQ(new_global_pointers[i].FastGetSolutionStepValue(TEMPERATURE), (i+1)*100.0);
     }
 };
 

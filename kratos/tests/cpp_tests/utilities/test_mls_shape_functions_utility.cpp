@@ -138,12 +138,12 @@ namespace Testing
         }
 
         const double zero_tol = 1.0e-15;
-        KRATOS_CHECK_LESS_EQUAL(std::abs(val_error), zero_tol);
-        KRATOS_CHECK_LESS_EQUAL(std::abs(val_dx_error), zero_tol);
-        KRATOS_CHECK_LESS_EQUAL(std::abs(val_dy_error), zero_tol);
+        KRATOS_EXPECT_LE(std::abs(val_error), zero_tol);
+        KRATOS_EXPECT_LE(std::abs(val_dx_error), zero_tol);
+        KRATOS_EXPECT_LE(std::abs(val_dy_error), zero_tol);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateKernelCoordinates, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtilityCalculateKernelCoordinates)
     {
         // Set the points cloud
         Matrix pt_coords;
@@ -158,20 +158,20 @@ namespace Testing
         const std::array<double, 4> expected_values = {0.367879441171,0.367879441171,0.367879441171,0.367879441171};
         for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
             const double kernel = MLSShapeFunctionsUtility::CalculateKernel(ref_pt - row(pt_coords, i_pt), h);
-            KRATOS_CHECK_NEAR(kernel, expected_values[i_pt], tol);
+            KRATOS_EXPECT_NEAR(kernel, expected_values[i_pt], tol);
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateKernelZeroDistance, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtilityCalculateKernelZeroDistance)
     {
         // Calculate kernel value
         const double h = 0.25;
         const double tol = 1.0e-12;
         const double kernel = MLSShapeFunctionsUtility::CalculateKernel(ZeroVector(3), h);
-        KRATOS_CHECK_NEAR(kernel, 1.0, tol);
+        KRATOS_EXPECT_NEAR(kernel, 1.0, tol);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateKernelDerivative, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtilityCalculateKernelDerivative)
     {
         // Set the points cloud
         Matrix pt_coords;
@@ -191,12 +191,12 @@ namespace Testing
             -0.0861571172074,0.0861571172074};
         for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
             MLSShapeFunctionsUtility::CalculateKernelDerivative<2>(ref_pt - row(pt_coords, i_pt), h, kernel_der);
-            KRATOS_CHECK_NEAR(kernel_der[0], expected_values[2*i_pt], tol);
-            KRATOS_CHECK_NEAR(kernel_der[1], expected_values[2*i_pt+1], tol);
+            KRATOS_EXPECT_NEAR(kernel_der[0], expected_values[2*i_pt], tol);
+            KRATOS_EXPECT_NEAR(kernel_der[1], expected_values[2*i_pt+1], tol);
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctions2D, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtilityCalculateShapeFunctions2D)
     {
         // Set the points cloud
         Matrix pt_coords;
@@ -218,11 +218,11 @@ namespace Testing
         const double tol = 1.0e-12;
         const std::array<double, 4> expected_N = {0.25,0.25,0.25,0.25};
         for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
-            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_EXPECT_NEAR(N_container(i_pt), expected_N[i_pt], tol);
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctionsAndGradients2D, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtilityCalculateShapeFunctionsAndGradients2D)
     {
         // Set the points cloud
         Matrix pt_coords;
@@ -247,13 +247,13 @@ namespace Testing
         const std::array<double, 4> expected_N = {0.25,0.25,0.25,0.25};
         const std::array<double, 8> expected_DN_DX = {-0.25, -0.25, 0.25, -0.25, 0.25, 0.25, -0.25,0.25};
         for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
-            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[2*i_pt], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[2*i_pt+1], tol);
+            KRATOS_EXPECT_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[2*i_pt], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[2*i_pt+1], tol);
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctions3D, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtilityCalculateShapeFunctions3D)
     {
         // Set the points cloud
         Matrix pt_coords;
@@ -275,11 +275,11 @@ namespace Testing
         const double tol = 1.0e-12;
         const std::array<double, 8> expected_N = {0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125};
         for (std::size_t i_pt = 0; i_pt < 8; ++i_pt) {
-            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_EXPECT_NEAR(N_container(i_pt), expected_N[i_pt], tol);
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctionsAndGradients3D, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtilityCalculateShapeFunctionsAndGradients3D)
     {
         // Set the points cloud
         Matrix pt_coords;
@@ -312,14 +312,14 @@ namespace Testing
             0.125, 0.125, 0.125,
             -0.125,0.125, 0.125};
         for (std::size_t i_pt = 0; i_pt < 8; ++i_pt) {
-            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[3*i_pt], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[3*i_pt+1], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 2), expected_DN_DX[3*i_pt+2], tol);
+            KRATOS_EXPECT_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[3*i_pt], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[3*i_pt+1], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 2), expected_DN_DX[3*i_pt+2], tol);
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtility1stOrderConsistency, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtility1stOrderConsistency)
     {
         // Set the analytical solution and its gradient functions
         std::function<double(array_1d<double,3>)> sol_func = [](const array_1d<double,3>& rCoords){return rCoords[0] + rCoords[1];};
@@ -349,7 +349,7 @@ namespace Testing
         MLSShapeFunctionsUtilityConsistencyCheck(sol_func, grad_sol_func, MLS_call_1st_order);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtility2ndOrderConsistency, KratosCoreFastSuite)
+    TEST_F(KernelTest, MLSShapeFunctionsUtility2ndOrderConsistency)
     {
         // Set the analytical solution and its gradient functions
         std::function<double(array_1d<double,3>)> sol_func = [](const array_1d<double,3>& rCoords){return std::pow(rCoords[0],2) + std::pow(rCoords[1],2);};

@@ -19,7 +19,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(CreateTriangleMeshFromNodes, KratosCoreFastSuite)
+TEST_F(KernelTest, CreateTriangleMeshFromNodes)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -34,7 +34,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateTriangleMeshFromNodes, KratosCoreFastSuite)
 
     DelaunatorUtilities::CreateTriangleMeshFromNodes(r_model_part);
 
-    KRATOS_CHECK(r_model_part.Elements().size() == 4);
+    KRATOS_EXPECT_TRUE(r_model_part.Elements().size() == 4);
     
     // Check area
     double area = 0.0;
@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateTriangleMeshFromNodes, KratosCoreFastSuite)
         area += r_elem.GetGeometry().Area();
     }
     
-    KRATOS_CHECK_RELATIVE_NEAR(area, 2.0, 1.0e-12);
+    KRATOS_EXPECT_RELATIVE_NEAR(area, 2.0, 1.0e-12);
 }
 
 }   // namespace Testing

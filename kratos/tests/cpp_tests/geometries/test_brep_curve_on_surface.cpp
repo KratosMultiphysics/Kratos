@@ -76,7 +76,7 @@ namespace Testing {
     }
 
     ///// Tests
-    KRATOS_TEST_CASE_IN_SUITE(BrepCurveOnSurface, KratosCoreGeometriesFastSuite) {
+    TEST(BrepCurveOnSurface, KratosCoreGeometriesFastSuite) {
         auto p_surface = GenerateReferenceNodeSurfacePointer();
         auto p_curve = GenerateReferenceCurve2dPointer();
 
@@ -84,17 +84,17 @@ namespace Testing {
             p_surface, p_curve);
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.WorkingSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.LocalSpaceDimension(), 1);
+        KRATOS_EXPECT_EQ(brep_curve_on_surface.WorkingSpaceDimension(), 3);
+        KRATOS_EXPECT_EQ(brep_curve_on_surface.LocalSpaceDimension(), 1);
 
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(brep_curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(brep_curve_on_surface.GetGeometryType(), geometry_type);
     }
 
     ///// Test Copy Constructor
-    KRATOS_TEST_CASE_IN_SUITE(BrepCurveOnSurfaceCopy, KratosCoreGeometriesFastSuite) {
+    TEST(BrepCurveOnSurfaceCopy, KratosCoreGeometriesFastSuite) {
         auto p_surface = GenerateReferenceNodeSurfacePointer();
         auto p_curve = GenerateReferenceCurve2dPointer();
 
@@ -103,13 +103,13 @@ namespace Testing {
 
         auto brep_curve_on_surface_2 = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(brep_curve_on_surface);
 
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.WorkingSpaceDimension(), brep_curve_on_surface_2.WorkingSpaceDimension());
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.LocalSpaceDimension(), brep_curve_on_surface_2.LocalSpaceDimension());
+        KRATOS_EXPECT_EQ(brep_curve_on_surface.WorkingSpaceDimension(), brep_curve_on_surface_2.WorkingSpaceDimension());
+        KRATOS_EXPECT_EQ(brep_curve_on_surface.LocalSpaceDimension(), brep_curve_on_surface_2.LocalSpaceDimension());
 
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(brep_curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(brep_curve_on_surface.GetGeometryType(), geometry_type);
     }
 } // namespace Testing.
 } // namespace Kratos.

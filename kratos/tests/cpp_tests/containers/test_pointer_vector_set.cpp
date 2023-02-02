@@ -28,7 +28,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetCBeginAndCEnd, KratosCoreFastSuite)
+TEST_F(KernelTest, PointerVectorSetCBeginAndCEnd)
 {
     PointerVectorSet<const Element> test_container;
     auto p_element_1 = Kratos::make_intrusive<Element>(1);
@@ -38,11 +38,11 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetCBeginAndCEnd, KratosCoreFastSuite)
     test_container.push_back(p_element_2);
     test_container.push_back(p_element_3);
 
-    KRATOS_CHECK_EQUAL(test_container.cbegin()->Id(), 1);
-    KRATOS_CHECK_EQUAL((test_container.cend()-1)->Id(), 3);
+    KRATOS_EXPECT_EQ(test_container.cbegin()->Id(), 1);
+    KRATOS_EXPECT_EQ((test_container.cend()-1)->Id(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestPointerVectorSet, KratosCoreFastSuite)
+TEST_F(KernelTest, TestPointerVectorSet)
 {
     // create model and model part
     Model model;
@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerVectorSet, KratosCoreFastSuite)
 
     for(const int id : ids ) {
         const auto it = container.find(id);
-        KRATOS_CHECK(it->Id() == 2);
+        KRATOS_EXPECT_TRUE(it->Id() == 2);
     }
 }
 

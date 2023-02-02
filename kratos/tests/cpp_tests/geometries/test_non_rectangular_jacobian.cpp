@@ -43,7 +43,7 @@ namespace Kratos
          * Checks if the area of the triangle is calculated correctly using Heron equation.
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(LineJacobianTest, KratosNonRectangularJacobianFastSuite) 
+        TEST(LineJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
             Node<3>::Pointer PointA = GeneratePoint<Node<3>>();
             Node<3>::Pointer PointB = GeneratePoint<Node<3>>();
@@ -58,14 +58,14 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
         
         /** Checks if it gives you the absolute value of a given value
          * Checks if It gives you the absolute value of a given value
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(TriangleJacobianTest, KratosNonRectangularJacobianFastSuite) 
+        TEST(TriangleJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
             Node<3>::Pointer PointA = GeneratePoint<Node<3>>();
             Node<3>::Pointer PointB = GeneratePoint<Node<3>>();
@@ -81,14 +81,14 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
         
         /** Checks if it gives you the minimum value of a given value
          * Checks if It gives you the minimum value of a given value
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(QuadrilateralJacobianTest, KratosNonRectangularJacobianFastSuite) 
+        TEST(QuadrilateralJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
             Node<3>::Pointer PointA = Node<3>::Pointer(new Node<3>(1, 0.1, 0.2, 0.3));
             Node<3>::Pointer PointB = Node<3>::Pointer(new Node<3>(2, 0.4, 0.25, 0.35));
@@ -105,7 +105,7 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
     } // namespace Testing
 }  // namespace Kratos.

@@ -135,7 +135,7 @@ void CheckIntegrationPointWeightSensitivity(
             line_sensitivity.CalculateSensitivity(deriv, result);
             double obtained_sensitivity = result * integration_points[g].Weight();
 
-            KRATOS_CHECK_NEAR(obtained_sensitivity, finite_difference_sensitivity, Tolerance);
+            KRATOS_EXPECT_NEAR(obtained_sensitivity, finite_difference_sensitivity, Tolerance);
 
             // undo perturbation for next step
             r_geometry[deriv.NodeIndex].Coordinates()[deriv.Direction] -= Perturbation;
@@ -144,7 +144,7 @@ void CheckIntegrationPointWeightSensitivity(
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line2D2N, KratosCoreFastSuite)
+TEST(LineGeometricalSensitivity_Line2D2N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateLine2D2N();
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line2D2N, KratosCoreFastSui
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line2D3N, KratosCoreFastSuite)
+TEST(LineGeometricalSensitivity_Line2D3N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateLine2D3N();
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line2D3N, KratosCoreFastSui
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line3D2N, KratosCoreFastSuite)
+TEST(LineGeometricalSensitivity_Line3D2N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateLine3D2N();
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line3D2N, KratosCoreFastSui
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line3D3N, KratosCoreFastSuite)
+TEST(LineGeometricalSensitivity_Line3D3N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateLine3D3N();
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
@@ -180,7 +180,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line3D3N, KratosCoreFastSui
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceGeometricalSensitivity_Triangle3D3N, KratosCoreFastSuite)
+TEST(SurfaceGeometricalSensitivity_Triangle3D3N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateTriangle3D3N();
     CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);

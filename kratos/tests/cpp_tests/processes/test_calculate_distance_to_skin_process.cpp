@@ -23,7 +23,7 @@
 namespace Kratos {
   namespace Testing {
 
-	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessQuadrilateral2D, KratosCoreFastSuite)
+	TEST_F(KernelTest, DistanceProcessQuadrilateral2D)
 	{
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
 		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
@@ -77,12 +77,12 @@ namespace Kratos {
 		// gid_io_skin.InitializeResults(0, skin_part.GetMesh());
 		// gid_io_skin.FinalizeResults();
 
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -0.457143, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  0.542857, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  0.542857, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -0.457143, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  0.542857, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  0.542857, 1e-6);
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessSquareRing2D, KratosCoreFastSuite)
+	TEST_F(KernelTest, DistanceProcessSquareRing2D)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
@@ -130,13 +130,13 @@ namespace Kratos {
 		// Compute distance
 		CalculateDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
 
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 0.266667, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -0.1, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -0.566667, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  0.733333, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 0.266667, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -0.1, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -0.566667, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  0.733333, 1e-6);
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneDistanceProcess, KratosCoreFastSuite)
+	TEST_F(KernelTest, HorizontalPlaneDistanceProcess)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
@@ -181,11 +181,11 @@ namespace Kratos {
 		for (auto& node : volume_part.Nodes())
 			if (std::abs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
 				auto distance = std::abs(node.Z() - 2.00);
-				KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), distance, 1e-6);
+				KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), distance, 1e-6);
 			}
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDistanceProcess, KratosCoreFastSuite)
+	TEST_F(KernelTest, HorizontalPlaneZeroDistanceProcess)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
@@ -229,14 +229,14 @@ namespace Kratos {
 
 		for (auto& node : volume_part.Nodes()) {
 			if (node.Id() < 10) {
-				KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), 17.3205, 1e-4);
+				KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), 17.3205, 1e-4);
 			} else {
-				KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), std::abs(node.Z() - 5.00), 1e-6);
+				KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), std::abs(node.Z() - 5.00), 1e-6);
 			}
 		}
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(TetrahedraInCubeDistanceProcess, KratosCoreFastSuite)
+	TEST_F(KernelTest, TetrahedraInCubeDistanceProcess)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
@@ -280,12 +280,12 @@ namespace Kratos {
 		// Compute distance
 		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
-		KRATOS_CHECK_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
 
 		//GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		//gid_io_fluid.InitializeMesh(0.00);
@@ -297,7 +297,7 @@ namespace Kratos {
 
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3IntersectionDistanceProcess, KratosCoreFastSuite)
+	TEST_F(KernelTest, Tetrahedra3IntersectionDistanceProcess)
 	{
 
     Model current_model;
@@ -321,15 +321,15 @@ namespace Kratos {
 
 		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
-		KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 12.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), 8.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 12.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), 8.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
 
 
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(Tetrahedra5IntersectionDistanceProcess, KratosCoreFastSuite)
+	TEST_F(KernelTest, Tetrahedra5IntersectionDistanceProcess)
 	{
 
     Model current_model;
@@ -358,13 +358,13 @@ namespace Kratos {
 
 		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
-		KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), -0.132068, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.968496, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 0.52827, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), -0.132068, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.968496, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 0.52827, 1e-6);
 	}
 
-    KRATOS_TEST_CASE_IN_SUITE(DistanceProcessDoubleEmbeddedVariable, KratosCoreFastSuite)
+    TEST_F(KernelTest, DistanceProcessDoubleEmbeddedVariable)
     {
         Model current_model;
 
@@ -412,13 +412,13 @@ namespace Kratos {
         dist_proc.CalculateEmbeddedVariableFromSkin(TEMPERATURE, TEMPERATURE);
 
         // Check values
-        KRATOS_CHECK_NEAR(volume_part.GetElement(16).GetValue(TEMPERATURE), 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(17).GetValue(TEMPERATURE), 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(68).GetValue(TEMPERATURE), 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(TEMPERATURE), 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(TEMPERATURE), 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(TEMPERATURE), 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(TEMPERATURE), 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(TEMPERATURE), 0.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DistanceProcessArrayEmbeddedVariable, KratosCoreFastSuite)
+    TEST_F(KernelTest, DistanceProcessArrayEmbeddedVariable)
     {
         Model current_model;
 
@@ -468,21 +468,21 @@ namespace Kratos {
         dist_proc.CalculateEmbeddedVariableFromSkin(VELOCITY, EMBEDDED_VELOCITY);
 
         // Check values
-        KRATOS_CHECK_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
+        KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
     }
 
-	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessNewVariable2D, KratosCoreFastSuite)
+	TEST_F(KernelTest, DistanceProcessNewVariable2D)
 	{
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
 		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
@@ -525,19 +525,19 @@ namespace Kratos {
         })" );
 		CalculateDistanceToSkinProcess<2>(model_part, skin_part, parameters).Execute();
 		// check new variable
-		KRATOS_CHECK(model_part.pGetNode(1)->SolutionStepsDataHas(TEMPERATURE));
+		KRATOS_EXPECT_TRUE(model_part.pGetNode(1)->SolutionStepsDataHas(TEMPERATURE));
 		// check default is not defined
-		KRATOS_CHECK(!model_part.pGetNode(1)->SolutionStepsDataHas(DISTANCE));
+		KRATOS_EXPECT_TRUE(!model_part.pGetNode(1)->SolutionStepsDataHas(DISTANCE));
 		// check new variable
-		KRATOS_CHECK(model_part.pGetElement(1)->Has(EXTERNAL_FORCES_VECTOR));
+		KRATOS_EXPECT_TRUE(model_part.pGetElement(1)->Has(EXTERNAL_FORCES_VECTOR));
 		// check default is not defined
-		KRATOS_CHECK(!model_part.pGetElement(1)->Has(ELEMENTAL_DISTANCES));
-		KRATOS_CHECK_NEAR((model_part.pGetNode(2))->FastGetSolutionStepValue(TEMPERATURE), 2.4, 1e-6);
-		KRATOS_CHECK_NEAR((model_part.pGetNode(4))->FastGetSolutionStepValue(TEMPERATURE), 3.4, 1e-6);
-		KRATOS_CHECK_NEAR((model_part.pGetNode(5))->FastGetSolutionStepValue(TEMPERATURE), -1.6, 1e-6);
+		KRATOS_EXPECT_TRUE(!model_part.pGetElement(1)->Has(ELEMENTAL_DISTANCES));
+		KRATOS_EXPECT_NEAR((model_part.pGetNode(2))->FastGetSolutionStepValue(TEMPERATURE), 2.4, 1e-6);
+		KRATOS_EXPECT_NEAR((model_part.pGetNode(4))->FastGetSolutionStepValue(TEMPERATURE), 3.4, 1e-6);
+		KRATOS_EXPECT_NEAR((model_part.pGetNode(5))->FastGetSolutionStepValue(TEMPERATURE), -1.6, 1e-6);
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessNonHistorical2D, KratosCoreFastSuite)
+	TEST_F(KernelTest, DistanceProcessNonHistorical2D)
 	{
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
 		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
@@ -577,9 +577,9 @@ namespace Kratos {
 		CalculateDistanceToSkinProcess<2>(model_part, skin_part, parameters).Execute();
 
 		// Check values in non-historical database
-		KRATOS_CHECK_NEAR((model_part.pGetNode(2))->GetValue(DISTANCE), 2.4, 1e-6);
-		KRATOS_CHECK_NEAR((model_part.pGetNode(4))->GetValue(DISTANCE), 3.4, 1e-6);
-		KRATOS_CHECK_NEAR((model_part.pGetNode(5))->GetValue(DISTANCE), -1.6, 1e-6);
+		KRATOS_EXPECT_NEAR((model_part.pGetNode(2))->GetValue(DISTANCE), 2.4, 1e-6);
+		KRATOS_EXPECT_NEAR((model_part.pGetNode(4))->GetValue(DISTANCE), 3.4, 1e-6);
+		KRATOS_EXPECT_NEAR((model_part.pGetNode(5))->GetValue(DISTANCE), -1.6, 1e-6);
 	}
 
 }

@@ -86,22 +86,34 @@ public:
     /**
      * @brief Default constructor.
      */
-    TestConstitutiveLaw();
+    TestConstitutiveLaw() : ConstitutiveLaw() 
+    {
+
+    }
 
     /**
      * @brief Clone method
      */
-    ConstitutiveLaw::Pointer Clone() const override;
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        return Kratos::make_shared<TestConstitutiveLaw>(*this);
+    }
 
     /**
      * Copy constructor.
      */
-    TestConstitutiveLaw (const TestConstitutiveLaw& rOther);
+    TestConstitutiveLaw (const TestConstitutiveLaw& rOther) : ConstitutiveLaw(rOther)
+    {
+
+    }
 
     /**
      * @brief Destructor.
      */
-    ~TestConstitutiveLaw() override;
+    ~TestConstitutiveLaw() override
+    {
+
+    }
 
     ///@}
     ///@name Operators
@@ -115,7 +127,9 @@ public:
      * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures The Features of the law
      */
-    void GetLawFeatures(Features& rFeatures) override;
+    void GetLawFeatures(Features& rFeatures) override
+    {
+    }
 
     /**
     * @brief Dimension of the law:
@@ -123,7 +137,7 @@ public:
     SizeType WorkingSpaceDimension() override
     {
         return Dimension;
-    };
+    }
 
     /**
      * @brief Voigt tensor size:
@@ -131,7 +145,7 @@ public:
     SizeType GetStrainSize() const override
     {
         return VoigtSize;
-    };
+    }
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
@@ -157,7 +171,9 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
+    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override
+    {
+    }
 
     /**
      * @brief Computes the material response:
@@ -165,7 +181,9 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override
+    {
+    }
 
     /**
      * @brief Computes the material response:
@@ -173,7 +191,9 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues) override;
+    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues) override
+    {
+    }
 
     /**
      * @brief Computes the material response:
@@ -181,31 +201,41 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
+    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override
+    {
+    }
 
     /**
      * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override
+    {
+    }
 
     /**
      * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override
+    {
+    }
 
     /**
      * @brief Initialize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override
+    {
+    }
 
     /**
      * @brief Initialize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override
+    {
+    }
 
     /**
       * @brief Updates the material response:
@@ -213,7 +243,9 @@ public:
       * @param rValues The internal values of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
+    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override
+    {
+    }
 
     /**
      * @brief Updates the material response:
@@ -221,7 +253,9 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override
+    {
+    }
 
     /**
      * @brief Updates the material response:
@@ -229,7 +263,9 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues)  override;
+    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues)  override
+    {
+    }
 
     /**
      * @brief Updates the material response:
@@ -237,7 +273,9 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
+    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override
+    {
+    }
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
@@ -266,7 +304,10 @@ public:
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
         double& rValue
-        ) override;
+        ) override
+    {
+        return rValue;
+    }
 
     /**
      * @brief It calculates the value of a specified variable (Vector case)
@@ -279,7 +320,10 @@ public:
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue
-        ) override;
+        ) override
+    {
+        return rValue;
+    }
 
     /**
      * @brief It calculates the value of a specified variable (Matrix case)
@@ -292,7 +336,10 @@ public:
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
-        ) override;
+        ) override
+    {
+        return rValue;
+    }
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -306,7 +353,11 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) const override;
+        ) const override
+    {
+        return 1;
+    }
+
 
 protected:
 
@@ -329,7 +380,10 @@ protected:
     * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
-    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix);
+    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix)
+    {
+
+    }
 
     /**
     * @brief It calculates the constitutive matrix rConstitutiveMatrix
@@ -339,7 +393,10 @@ protected:
     virtual void CalculateElasticMatrix(
         Matrix& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
-        );
+        )
+    {
+
+    }
 
     /**
      * @brief It calculates the stress vector
@@ -351,7 +408,10 @@ protected:
         const Vector& rStrainVector,
         Vector& rStressVector,
         ConstitutiveLaw::Parameters& rValues
-        );
+        )
+    {
+
+    }
 
     /**
      * @brief It calculates the strain vector
@@ -361,7 +421,10 @@ protected:
     virtual void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
-        );
+        )
+    {
+        
+    }
 
     ///@}
 

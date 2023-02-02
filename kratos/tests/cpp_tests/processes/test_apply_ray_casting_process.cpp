@@ -24,7 +24,7 @@
 namespace Kratos {
   namespace Testing {
 
-	KRATOS_TEST_CASE_IN_SUITE(RayCastingProcessQuadrilateral2D, KratosCoreFastSuite)
+	TEST_F(KernelTest, RayCastingProcessQuadrilateral2D)
 	{
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
 		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
@@ -82,12 +82,12 @@ namespace Kratos {
 		// gid_io_skin.InitializeResults(0, skin_part.GetMesh());
 		// gid_io_skin.FinalizeResults();
 
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(RayCastingProcessSquareRing2D, KratosCoreFastSuite)
+	TEST_F(KernelTest, RayCastingProcessSquareRing2D)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
@@ -139,13 +139,13 @@ namespace Kratos {
 		// Compute distance
 		ApplyRayCastingProcess<2>(surface_part, skin_part).Execute();
 
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
 	}
 
-	KRATOS_TEST_CASE_IN_SUITE(TetrahedraInCubeRayCastingProcess, KratosCoreFastSuite)
+	TEST_F(KernelTest, TetrahedraInCubeRayCastingProcess)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
@@ -199,16 +199,16 @@ namespace Kratos {
 	Point dummy(0.00,0.00,0.00);
 	for(auto& node : volume_part.Nodes()){
 		if(tetrahedra.IsInside(node.Coordinates(),dummy)){
-			KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+			KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), -1.00, 1e-6);
 		}
 	}
 		// Note that we cannot check the outside because on the interface is not well defined
-		KRATOS_CHECK_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
 
 
 		//GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);

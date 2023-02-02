@@ -24,7 +24,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(ResultDatabase, KratosCoreFastSuite)
+TEST_F(KernelTest, ResultDatabase)
 {
     // Create model part
     Model current_model;
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResultDatabase, KratosCoreFastSuite)
                 const double result = it_node->FastGetSolutionStepValue(*p_var_double);
                 const double reference = r_var_database.GetValue(i, time);
 
-                KRATOS_CHECK_NEAR(result, reference, 1.0e-12);
+                KRATOS_EXPECT_NEAR(result, reference, 1.0e-12);
             }
         }
     }

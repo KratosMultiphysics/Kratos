@@ -170,9 +170,9 @@ namespace Kratos
 //                 // Debug
 //                 std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
             }
 
             // Test updates with fixed velocities and accelerations
@@ -216,9 +216,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
 
                 // Check Update (fix acceleration)
@@ -259,9 +259,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
             }
 
@@ -296,9 +296,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
 
                 // Check Predict (velocity)
@@ -332,9 +332,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
 
                 // Check Predict (acceleration)
@@ -368,9 +368,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
             }
         }
@@ -378,7 +378,7 @@ namespace Kratos
         /**
          * Checks if the Newmark scheme performs correctly the integration
          */
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementNewmarkSchemeTest, KratosCoreFastSuite)
+        TEST_F(KernelTest, DisplacementNewmarkSchemeTest)
         {
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedNewmarkDisplacementSchemeType() );
@@ -391,7 +391,7 @@ namespace Kratos
         /**
          * Checks if the Bossak scheme performs correctly the integration
          */
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementBossakSchemeTest, KratosCoreFastSuite)
+        TEST_F(KernelTest, DisplacementBossakSchemeTest)
         {
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedBossakDisplacementSchemeType() );
@@ -404,7 +404,7 @@ namespace Kratos
         /**
          * Checks if the BDF2 scheme performs correctly the integration
          */
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementBDF2SchemeTest, KratosCoreFastSuite)
+        TEST_F(KernelTest, DisplacementBDF2SchemeTest)
         {
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFDisplacementSchemeType;
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedBDFDisplacementSchemeType(2) );
@@ -417,7 +417,7 @@ namespace Kratos
         /**
          * Checks if the custom BDF2 scheme performs correctly the integration
          */
-        KRATOS_TEST_CASE_IN_SUITE(CustomBDF2SchemeTest, KratosCoreFastSuite)
+        TEST_F(KernelTest, CustomBDF2SchemeTest)
         {
             typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFCustomSchemeType;
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedBDFCustomSchemeType(2) );

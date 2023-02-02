@@ -32,7 +32,7 @@ namespace SparseSpaceTestingInternals {
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
+TEST(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
 {
     const SparseSpaceTestingInternals::IndexType size = 10;
 
@@ -54,11 +54,11 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
     mat.FinalizeAssemble();
     
 
-    KRATOS_CHECK_NEAR(16.216110045260546, SparseSpaceTestingInternals::SparseSpaceType::TwoNorm(mat), 1e-12);
-    KRATOS_CHECK_NEAR(31.131, SparseSpaceTestingInternals::SparseSpaceType::JacobiNorm(mat), 1e-12);
+    KRATOS_EXPECT_NEAR(16.216110045260546, SparseSpaceTestingInternals::SparseSpaceType::TwoNorm(mat), 1e-12);
+    KRATOS_EXPECT_NEAR(31.131, SparseSpaceTestingInternals::SparseSpaceType::JacobiNorm(mat), 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormDenseMatrix, KratosCoreFastSuite)
+TEST(KratosSpaceNormDenseMatrix, KratosCoreFastSuite)
 {
     const SparseSpaceTestingInternals::IndexType size = 10;
     SparseSpaceTestingInternals::LocalSpaceType::MatrixType mat(size, size, 0.0);
@@ -71,8 +71,8 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormDenseMatrix, KratosCoreFastSuite)
         if (i+1<mat.size2()) {mat(i,i+1) = 2.336;}
     }
 
-    KRATOS_CHECK_NEAR(16.216110045260546, SparseSpaceTestingInternals::LocalSpaceType::TwoNorm(mat), 1e-12);
-    KRATOS_CHECK_NEAR(31.131, SparseSpaceTestingInternals::LocalSpaceType::JacobiNorm(mat), 1e-12);
+    KRATOS_EXPECT_NEAR(16.216110045260546, SparseSpaceTestingInternals::LocalSpaceType::TwoNorm(mat), 1e-12);
+    KRATOS_EXPECT_NEAR(31.131, SparseSpaceTestingInternals::LocalSpaceType::JacobiNorm(mat), 1e-12);
 }
 
 } // namespace Testing

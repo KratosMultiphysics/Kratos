@@ -45,11 +45,11 @@ namespace Kratos
         /**
          * Checks if the ExplicitBuilder performs correctly the Factory
          */
-        KRATOS_TEST_CASE_IN_SUITE(ExplicitBuilderFactory, KratosCoreFastSuite)
+        TEST(ExplicitBuilderFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"name" : "explicit_builder"})");
             ExplicitBuilderType::Pointer p_explicit_builder = ExplicitBuilderFactoryType().Create(this_parameters);
-            KRATOS_CHECK_STRING_EQUAL(p_explicit_builder->Info(), "ExplicitBuilder");
+            KRATOS_EXPECT_EQ(p_explicit_builder->Info(), "ExplicitBuilder");
         }
 
     } // namespace Testing

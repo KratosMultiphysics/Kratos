@@ -109,50 +109,50 @@ namespace Kratos {
                 triangle.get());
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(QuadraturePointUtility, KratosCoreFastSuite)
+        TEST(QuadraturePointUtility, KratosCoreFastSuite)
         {
             auto triangle = GeneratePointsTriangle2D3();
 
             auto quadrature_points = CreateQuadraturePointsUtility<NodeType>::Create(
                 triangle, GeometryData::IntegrationMethod::GI_GAUSS_3);
 
-            KRATOS_CHECK_EQUAL(quadrature_points.size(), 4);
-            KRATOS_CHECK_EQUAL(quadrature_points[0]->size(), 3);
-            KRATOS_CHECK_EQUAL(quadrature_points[0]->WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(quadrature_points[0]->LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(quadrature_points[0]->Dimension(), 2);
+            KRATOS_EXPECT_EQ(quadrature_points.size(), 4);
+            KRATOS_EXPECT_EQ(quadrature_points[0]->size(), 3);
+            KRATOS_EXPECT_EQ(quadrature_points[0]->WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(quadrature_points[0]->LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(quadrature_points[0]->Dimension(), 2);
 
-            KRATOS_CHECK_MATRIX_NEAR(quadrature_points[0]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3)[0], 1e-6);
-            KRATOS_CHECK_MATRIX_NEAR(quadrature_points[1]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3)[1], 1e-6);
+            KRATOS_EXPECT_MATRIX_NEAR(quadrature_points[0]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3)[0], 1e-6);
+            KRATOS_EXPECT_MATRIX_NEAR(quadrature_points[1]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3)[1], 1e-6);
 
             const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
             const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
-            KRATOS_CHECK_EQUAL(quadrature_points[0]->GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(quadrature_points[0]->GetGeometryType(), geometry_type);
-            KRATOS_CHECK_EQUAL(quadrature_points[1]->GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(quadrature_points[1]->GetGeometryType(), geometry_type);
+            KRATOS_EXPECT_EQ(quadrature_points[0]->GetGeometryFamily(), geometry_family);
+            KRATOS_EXPECT_EQ(quadrature_points[0]->GetGeometryType(), geometry_type);
+            KRATOS_EXPECT_EQ(quadrature_points[1]->GetGeometryFamily(), geometry_family);
+            KRATOS_EXPECT_EQ(quadrature_points[1]->GetGeometryType(), geometry_type);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2d, KratosCoreFastSuite)
+        TEST(QuadraturePointGeometry2d, KratosCoreFastSuite)
         {
             auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
 
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->size(), 3);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->Dimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->size(), 3);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->Dimension(), 2);
 
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size1(), 1);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size2(), 3);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->ShapeFunctionsValues().size1(), 1);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->ShapeFunctionsValues().size2(), 3);
 
             const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
             const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
 
         /// Updates the location of the QuadraturePointGeometry
-        KRATOS_TEST_CASE_IN_SUITE(UpdateQuadraturePointGeometry2d, KratosCoreFastSuite)
+        TEST(UpdateQuadraturePointGeometry2d, KratosCoreFastSuite)
         {
             auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
 
@@ -176,28 +176,28 @@ namespace Kratos {
             p_this_quadrature_point->Points() = triangle->Points();
             p_this_quadrature_point->SetGeometryShapeFunctionContainer(data_container_2);
 
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->size(), 3);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->Dimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->size(), 3);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->Dimension(), 2);
 
-            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[0].Id(), 4);
-            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[1].Id(), 5);
-            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[2].Id(), 6);
+            KRATOS_EXPECT_EQ((*p_this_quadrature_point)[0].Id(), 4);
+            KRATOS_EXPECT_EQ((*p_this_quadrature_point)[1].Id(), 5);
+            KRATOS_EXPECT_EQ((*p_this_quadrature_point)[2].Id(), 6);
 
-            KRATOS_CHECK_MATRIX_NEAR(
+            KRATOS_EXPECT_MATRIX_NEAR(
                 p_this_quadrature_point->ShapeFunctionsValues(), N_i, 1e-6);
-            KRATOS_CHECK_MATRIX_NEAR(
+            KRATOS_EXPECT_MATRIX_NEAR(
                 p_this_quadrature_point->ShapeFunctionDerivatives(1, 0), DN_De, 1e-6);
 
             const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
             const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
 
         /// Updates the location of the QuadraturePointGeometry using the QuadraturePointUtility
-        KRATOS_TEST_CASE_IN_SUITE(UpdateQuadraturePointGeometry2dWithUtility, KratosCoreFastSuite)
+        TEST(UpdateQuadraturePointGeometry2dWithUtility, KratosCoreFastSuite)
         {
             auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
 
@@ -216,18 +216,18 @@ namespace Kratos {
             }
             Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
 
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->size(), 3);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->Dimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->size(), 3);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->Dimension(), 2);
 
-            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[0].Id(), 4);
-            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[1].Id(), 5);
-            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[2].Id(), 6);
+            KRATOS_EXPECT_EQ((*p_this_quadrature_point)[0].Id(), 4);
+            KRATOS_EXPECT_EQ((*p_this_quadrature_point)[1].Id(), 5);
+            KRATOS_EXPECT_EQ((*p_this_quadrature_point)[2].Id(), 6);
 
-            KRATOS_CHECK_MATRIX_NEAR(
+            KRATOS_EXPECT_MATRIX_NEAR(
                 p_this_quadrature_point->ShapeFunctionsValues(), N_i, 1e-6);
-            KRATOS_CHECK_MATRIX_NEAR(
+            KRATOS_EXPECT_MATRIX_NEAR(
                 p_this_quadrature_point->ShapeFunctionDerivatives(1, 0), DN_De, 1e-6);
 
             /// Check correct parent access.
@@ -235,71 +235,71 @@ namespace Kratos {
             array_1d<double, 3> coordinates;
             coordinates[0] = 0.1; coordinates[1] = 0.2; coordinates[0] = 0.0;
 
-            KRATOS_CHECK_MATRIX_NEAR(
+            KRATOS_EXPECT_MATRIX_NEAR(
                 p_this_quadrature_point->Jacobian(Jacobian1, coordinates),
                 triangle->Jacobian(Jacobian1, coordinates),
                 1e-6);
 
             Vector SF1; Vector SF2;
-            KRATOS_CHECK_VECTOR_NEAR(
+            KRATOS_EXPECT_VECTOR_NEAR(
                 p_this_quadrature_point->ShapeFunctionsValues(SF1, coordinates),
                 triangle->ShapeFunctionsValues(SF2, coordinates),
                 1e-6);
 
             const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
             const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2dCopyConstructor, KratosCoreFastSuite)
+        TEST(QuadraturePointGeometry2dCopyConstructor, KratosCoreFastSuite)
         {
             QPGeometryPointerType p_this_quadrature_point = GenerateQuadraturePointGeometry2();
 
             QPGeometryType geom(*p_this_quadrature_point);
 
-            KRATOS_CHECK_EQUAL(geom.size(), 3);
-            KRATOS_CHECK_EQUAL(geom.WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(geom.LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(geom.Dimension(), 2);
+            KRATOS_EXPECT_EQ(geom.size(), 3);
+            KRATOS_EXPECT_EQ(geom.WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(geom.LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(geom.Dimension(), 2);
 
-            KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size1(), 1);
-            KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size2(), 3);
+            KRATOS_EXPECT_EQ(geom.ShapeFunctionsValues().size1(), 1);
+            KRATOS_EXPECT_EQ(geom.ShapeFunctionsValues().size2(), 3);
 
-            KRATOS_CHECK_MATRIX_NEAR(
+            KRATOS_EXPECT_MATRIX_NEAR(
                 geom.ShapeFunctionsValues(),
                 p_this_quadrature_point->ShapeFunctionsValues(),
                 1e-6);
 
             const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
             const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2dAssignmentOperator, KratosCoreFastSuite)
+        TEST(QuadraturePointGeometry2dAssignmentOperator, KratosCoreFastSuite)
         {
             QPGeometryPointerType p_this_quadrature_point = GenerateQuadraturePointGeometry2();
 
             QPGeometryType geom = *p_this_quadrature_point;
 
-            KRATOS_CHECK_EQUAL(geom.size(), 3);
-            KRATOS_CHECK_EQUAL(geom.WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(geom.LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(geom.Dimension(), 2);
+            KRATOS_EXPECT_EQ(geom.size(), 3);
+            KRATOS_EXPECT_EQ(geom.WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(geom.LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(geom.Dimension(), 2);
 
-            KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size1(), 1);
-            KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size2(), 3);
+            KRATOS_EXPECT_EQ(geom.ShapeFunctionsValues().size1(), 1);
+            KRATOS_EXPECT_EQ(geom.ShapeFunctionsValues().size2(), 3);
 
-            KRATOS_CHECK_MATRIX_NEAR(
+            KRATOS_EXPECT_MATRIX_NEAR(
                 geom.ShapeFunctionsValues(),
                 p_this_quadrature_point->ShapeFunctionsValues(),
                 1e-6);
 
             const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
             const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_EXPECT_EQ(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
     } // namespace Testing
 }  // namespace Kratos.

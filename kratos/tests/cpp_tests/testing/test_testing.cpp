@@ -22,13 +22,13 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(TestSuite, KratosCoreFastSuite) {
+TEST(TestSuite, KratosCoreFastSuite) {
     Tester::CreateTestSuite("MyTestTestSuite");
     KRATOS_TESTING_ADD_TEST_TO_TEST_SUITE("TestTestSuite", "MyTestTestSuite");
 
     std::stringstream info;
     info << Tester::GetTestSuite("MyTestTestSuite");
-    KRATOS_CHECK_NOT_EQUAL(
+    KRATOS_EXPECT_NE(
         info.str().find("MyTestTestSuite"), std::string::npos);
 }
 }

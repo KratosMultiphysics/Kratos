@@ -117,10 +117,10 @@ void TestFastProjectDirection(const TGeometryType& rGeom)
         normal_vector,
         dir_vector);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), y_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), y_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 }
 
 template<class TGeometryType>
@@ -139,10 +139,10 @@ void TestFastProjectOnGeometry(TGeometryType& rGeom)
         point_to_proj,
         projected_point);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), y_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), y_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 }
 
 template<class TGeometryType>
@@ -160,20 +160,20 @@ void TestFastProjectOnLine2D(TGeometryType& rGeom)
         point_to_proj,
         projected_point);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), 0.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 
     proj_distance = GeometricalProjectionUtilities::FastProjectOnLine2D(
         rGeom,
         point_to_proj,
         projected_point);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), 0.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 }
 
 template<class TGeometryType>
@@ -194,10 +194,10 @@ void TestFastProjectOnLine3D(TGeometryType& rGeom)
     const double expected_coord_y = 27.0/14.0;
     const double expected_coord_z = -19.0/14.0;
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), expected_coord_x);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), expected_coord_y);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), expected_coord_z);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), expected_coord_x);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), expected_coord_y);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), expected_coord_z);
 }
 
 template<class TGeometryType>
@@ -210,7 +210,7 @@ void TestFastMinimalDistanceOnLine(TGeometryType& rGeom)
     Point projected_point;
     const double expected_proj_dist = GeometricalProjectionUtilities::FastProjectOnLine(rGeom,point, projected_point);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
 
     const Point non_inside_projected_point(-2.0, 4.0, -3.0);
 
@@ -218,7 +218,7 @@ void TestFastMinimalDistanceOnLine(TGeometryType& rGeom)
 
     const double expected_non_inside_projected_dist = 3.74166;
 
-    KRATOS_CHECK_RELATIVE_NEAR(expected_non_inside_projected_dist, non_inside_projected_distance, 1.0e-4);
+    KRATOS_EXPECT_RELATIVE_NEAR(expected_non_inside_projected_dist, non_inside_projected_distance, 1.0e-4);
 
     const Point far_point(100.0, 100.0, 100.0);
 
@@ -226,40 +226,40 @@ void TestFastMinimalDistanceOnLine(TGeometryType& rGeom)
 
     const double expected_far_dist = 168.062;
 
-    KRATOS_CHECK_RELATIVE_NEAR(expected_far_dist, far_distance, 1.0e-4);
+    KRATOS_EXPECT_RELATIVE_NEAR(expected_far_dist, far_distance, 1.0e-4);
 }
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionNode, KratosCoreFastSuite)
+TEST(GeometricalProjectionUtilitiesFastProjectDirectionNode, KratosCoreFastSuite)
 {
     GeometryNodeType::Pointer p_geom = CreateTriangle3D3NForTestNode();
 
     TestFastProjectDirection(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionPoint, KratosCoreFastSuite)
+TEST(GeometricalProjectionUtilitiesFastProjectDirectionPoint, KratosCoreFastSuite)
 {
     GeometryPointType::Pointer p_geom = CreateTriangle3D3NForTestPoint();
 
     TestFastProjectDirection(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnGeometryNode, KratosCoreFastSuite)
+TEST(GeometricalProjectionUtilitiesFastProjectOnGeometryNode, KratosCoreFastSuite)
 {
     GeometryNodeType::Pointer p_geom = CreateTriangle3D3NForTestNode();
 
     TestFastProjectOnGeometry(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnGeometryPoint, KratosCoreFastSuite)
+TEST(GeometricalProjectionUtilitiesFastProjectOnGeometryPoint, KratosCoreFastSuite)
 {
     GeometryPointType::Pointer p_geom = CreateTriangle3D3NForTestPoint();
 
     TestFastProjectOnGeometry(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnLineNode, KratosCoreFastSuite)
+TEST(GeometricalProjectionUtilitiesFastProjectOnLineNode, KratosCoreFastSuite)
 {
     GeometryNodeType::Pointer p_geom = CreateLine3D2NForTestNode2D();
     TestFastProjectOnLine2D(*p_geom);
@@ -268,7 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnLineNode, K
     TestFastProjectOnLine3D(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnLinePoint, KratosCoreFastSuite)
+TEST(GeometricalProjectionUtilitiesFastProjectOnLinePoint, KratosCoreFastSuite)
 {
     GeometryPointType::Pointer p_geom = CreateLine3D2NForTestPoint2D();
     TestFastProjectOnLine2D(*p_geom);
@@ -277,13 +277,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnLinePoint, 
     TestFastProjectOnLine3D(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastMinimalDistanceOnLine, KratosCoreFastSuite)
+TEST(GeometricalProjectionUtilitiesFastMinimalDistanceOnLine, KratosCoreFastSuite)
 {
     GeometryPointType::Pointer p_geom = CreateLine3D2NForTestPoint3D();
     TestFastMinimalDistanceOnLine(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreFastSuite)
+TEST(GeometricalProjectionUtilitiesFastProject, KratosCoreFastSuite)
 {
     const double expected_proj_dist = 1.258;
 
@@ -307,10 +307,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreF
         normal_vector,
         proj_distance);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), y_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), y_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 }
 
 } // namespace Testing.

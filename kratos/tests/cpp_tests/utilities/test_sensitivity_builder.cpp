@@ -220,8 +220,7 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivities_Double,
-                          KratosSensitivityTestSuite)
+TEST_F(KernelTest, SensitivityBuilderCalculateNodalSolutionStepSensitivitiesDouble)
 {
     using namespace test_sensitivity_builder;
     Model model;
@@ -232,16 +231,15 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivi
     auto normal_sensitivity = [&model_part](std::size_t i) -> double {
         return model_part.GetNode(i).FastGetSolutionStepValue(NORMAL_SENSITIVITY);
     };
-    KRATOS_CHECK_NEAR(normal_sensitivity(1), 100., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(2), 152., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(3), -48., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(4), 132., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(5), -80., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(6), 16., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(1), 100., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(2), 152., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(3), -48., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(4), 132., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(5), -80., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(6), 16., tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivities_Array1d,
-                          KratosSensitivityTestSuite)
+TEST_F(KernelTest, SensitivityBuilderCalculateNodalSolutionStepSensitivitiesArray1d)
 {
     using namespace test_sensitivity_builder;
     Model model;
@@ -252,8 +250,8 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivi
     auto CheckNode = [](Node<3>& rNode, std::array<double, 2> RefValue) {
         const double val_x = rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY_X);
         const double val_y = rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY_Y);
-        KRATOS_CHECK_NEAR(val_x, RefValue[0], tolerance);
-        KRATOS_CHECK_NEAR(val_y, RefValue[1], tolerance);
+        KRATOS_EXPECT_NEAR(val_x, RefValue[0], tolerance);
+        KRATOS_EXPECT_NEAR(val_y, RefValue[1], tolerance);
     };
     CheckNode(model_part.GetNode(1), {{100., -48.}});
     CheckNode(model_part.GetNode(2), {{216., 0.}});
@@ -263,8 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivi
     CheckNode(model_part.GetNode(6), {{-48., 16.}});
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivities_InactiveNodes,
-                          KratosSensitivityTestSuite)
+TEST_F(KernelTest, SensitivityBuilderCalculateNodalSolutionStepSensitivitiesInactiveNodes)
 {
     using namespace test_sensitivity_builder;
     Model model;
@@ -279,29 +276,27 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivi
     auto normal_sensitivity = [&model_part](std::size_t i) -> double {
         return model_part.GetNode(i).FastGetSolutionStepValue(NORMAL_SENSITIVITY);
     };
-    KRATOS_CHECK_NEAR(normal_sensitivity(1), 100., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(2), 152., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(3), -48., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(4), 0., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(5), 0., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(6), 0., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(1), 100., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(2), 152., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(3), -48., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(4), 0., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(5), 0., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(6), 0., tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivities_Unsupported,
-                          KratosSensitivityTestSuite)
+TEST_F(KernelTest, SensitivityBuilderCalculateNodalSolutionStepSensitivitiesUnsupported)
 {
     using namespace test_sensitivity_builder;
     Model model;
     auto& model_part = CreateModelPartWithTestElements(model);
     TestResponseFunction response_function;
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         SensitivityBuilder::CalculateNodalSolutionStepSensitivities(
             {"UPDATE_SENSITIVITIES"}, model_part, response_function, 4.);
         , "Unsupported variable: UPDATE_SENSITIVITIES");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivities_Condition,
-                          KratosSensitivityTestSuite)
+TEST_F(KernelTest, SensitivityBuilderCalculateNodalSolutionStepSensitivitiesCondition)
 {
     using namespace test_sensitivity_builder;
     Model model;
@@ -312,16 +307,15 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivi
     auto normal_sensitivity = [&model_part](std::size_t i) -> double {
         return model_part.GetNode(i).FastGetSolutionStepValue(NORMAL_SENSITIVITY);
     };
-    KRATOS_CHECK_NEAR(normal_sensitivity(1), 96., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(2), 144., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(3), -48., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(4), 128., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(5), -80., tolerance);
-    KRATOS_CHECK_NEAR(normal_sensitivity(6), 16., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(1), 96., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(2), 144., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(3), -48., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(4), 128., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(5), -80., tolerance);
+    KRATOS_EXPECT_NEAR(normal_sensitivity(6), 16., tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNonHistoricalSensitivities_Double,
-                          KratosSensitivityTestSuite)
+TEST_F(KernelTest, SensitivityBuilderCalculateNonHistoricalSensitivitiesDouble)
 {
     using namespace test_sensitivity_builder;
     Model model;
@@ -333,14 +327,13 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNonHistoricalSensitivities
     SensitivityBuilder::CalculateNonHistoricalSensitivities(
         {"SCALAR_SENSITIVITY"}, model_part.Elements(), response_function,
         model_part.GetProcessInfo(), 4.);
-    KRATOS_CHECK_NEAR(model_part.GetElement(1).GetValue(SCALAR_SENSITIVITY), 100., tolerance);
-    KRATOS_CHECK_NEAR(model_part.GetElement(2).GetValue(SCALAR_SENSITIVITY), 100., tolerance);
-    KRATOS_CHECK_NEAR(model_part.GetElement(3).GetValue(SCALAR_SENSITIVITY), 100., tolerance);
-    KRATOS_CHECK_NEAR(model_part.GetElement(4).GetValue(SCALAR_SENSITIVITY), 0., tolerance);
+    KRATOS_EXPECT_NEAR(model_part.GetElement(1).GetValue(SCALAR_SENSITIVITY), 100., tolerance);
+    KRATOS_EXPECT_NEAR(model_part.GetElement(2).GetValue(SCALAR_SENSITIVITY), 100., tolerance);
+    KRATOS_EXPECT_NEAR(model_part.GetElement(3).GetValue(SCALAR_SENSITIVITY), 100., tolerance);
+    KRATOS_EXPECT_NEAR(model_part.GetElement(4).GetValue(SCALAR_SENSITIVITY), 0., tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNonHistoricalSensitivities_Unsupported,
-                          KratosSensitivityTestSuite)
+TEST_F(KernelTest, SensitivityBuilderCalculateNonHistoricalSensitivitiesUnsupported)
 {
     using namespace test_sensitivity_builder;
     Model model;
@@ -348,15 +341,14 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNonHistoricalSensitivities
     VariableUtils().SetNonHistoricalVariable(
         SCALAR_SENSITIVITY, SCALAR_SENSITIVITY.Zero(), model_part.Elements());
     TestResponseFunction response_function;
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         SensitivityBuilder::CalculateNonHistoricalSensitivities(
             {"UPDATE_SENSITIVITIES"}, model_part.Elements(), response_function,
             model_part.GetProcessInfo(), 4.);
         , "Unsupported variable: UPDATE_SENSITIVITIES");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNonHistoricalSensitivities_Condition,
-                          KratosSensitivityTestSuite)
+TEST_F(KernelTest, SensitivityBuilderCalculateNonHistoricalSensitivitiesCondition)
 {
     using namespace test_sensitivity_builder;
     Model model;
@@ -368,10 +360,10 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNonHistoricalSensitivities
     SensitivityBuilder::CalculateNonHistoricalSensitivities(
         {"SCALAR_SENSITIVITY"}, model_part.Conditions(), response_function,
         model_part.GetProcessInfo(), 4.);
-    KRATOS_CHECK_NEAR(model_part.GetCondition(1).GetValue(SCALAR_SENSITIVITY), 96., tolerance);
-    KRATOS_CHECK_NEAR(model_part.GetCondition(2).GetValue(SCALAR_SENSITIVITY), 96., tolerance);
-    KRATOS_CHECK_NEAR(model_part.GetCondition(3).GetValue(SCALAR_SENSITIVITY), 96., tolerance);
-    KRATOS_CHECK_NEAR(model_part.GetCondition(4).GetValue(SCALAR_SENSITIVITY), 0., tolerance);
+    KRATOS_EXPECT_NEAR(model_part.GetCondition(1).GetValue(SCALAR_SENSITIVITY), 96., tolerance);
+    KRATOS_EXPECT_NEAR(model_part.GetCondition(2).GetValue(SCALAR_SENSITIVITY), 96., tolerance);
+    KRATOS_EXPECT_NEAR(model_part.GetCondition(3).GetValue(SCALAR_SENSITIVITY), 96., tolerance);
+    KRATOS_EXPECT_NEAR(model_part.GetCondition(4).GetValue(SCALAR_SENSITIVITY), 0., tolerance);
 }
 
 } // namespace Testing
