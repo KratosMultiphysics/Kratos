@@ -7,8 +7,8 @@ from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base imp
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 
 # Auxiliary imports
-from KratosMultiphysics.vtk_output_process import VtkOutputProcess
-from KratosMultiphysics.json_output_process import JsonOutputProcess
+# from KratosMultiphysics.vtk_output_process import VtkOutputProcess
+# from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 # =======================================================================================================
 # Auxiliary functions
