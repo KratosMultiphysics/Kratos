@@ -10,6 +10,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.response_function_impl
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ConstraintResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolderUnion
 
+
 class GradientProjectionAlgorithm(Algorithm):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_settings = Kratos.Parameters("""{
@@ -45,15 +46,63 @@ class GradientProjectionAlgorithm(Algorithm):
         # since we only have one objective
         self.objective = self.GetObjectives()[0]
 
-    def SolveSolutionStep(self) -> bool:
-        # iniitalize optimization info for the algorithm
+    def InitializeSolutionStep(self):
         self.optimization_info[self.GetName()] = {
             "objectives": {},
             "constraints": {},
             "controls": {}
         }
 
+    def SolveSolutionStep(self) -> bool:
         # get algorithm specific data from optimization info
+        algorithm_data = self.optimization_info[self.GetName()]
+
+        self.__ComputeResponseValues()
+
+        # calculate response gradients
+        for controller in self.GetControllers():
+            self.__PrintInfo(1, f"Computing sensitivities for {controller.GetName()} control...")
+
+            # create controller optimization info
+            algorithm_data["controls"][controller] = {
+                "objectives": {},
+                "constraints": {}
+            }
+
+            control_data = algorithm_data["controls"][controller]
+
+            # compute objective sensitivities
+            self.__ComputeResponseSensitivityForControlWrapper(controller, self.objective, control_data["objectives"])
+
+            # compute constraint sensitivities
+            for constraint, constraint_data in algorithm_data["constraints"].items():
+                if constraint_data["is_active"]:
+                    self.__ComputeResponseSensitivityForControlWrapper(controller, constraint, control_data["constraints"])
+
+            # compute control update
+            self.__ComputeControlUpdatesForControlWrapper(controller)
+
+            self.__PrintInfo(1, f"Computed sensitivities for {controller.GetName()} control.")
+
+    def IsConverged(self) -> bool:
+        if self.optimization_info["step"] > 1:
+            # check for objective convergence
+            is_converged = abs(self.optimization_info[self.GetName()]["objectives"][self.objective]["value"] / self.optimization_info.GetSolutionStepData(1)
+                               [self.GetName()]["objectives"][self.objective]["value"] - 1.0) < self.relative_tolerance
+
+            # check for constraint convergence
+            for constraint_data in self.optimization_info[self.GetName()]["constraints"].values():
+                is_converged = is_converged and not constraint_data["is_active"]
+
+            return is_converged
+        else:
+            return False
+
+    def __PrintInfo(self, required_echo_level: int, message: str, title="GradientProjectionAlgorithm"):
+        if self.echo_level >= required_echo_level:
+            Kratos.Logger.PrintInfo(title, message)
+
+    def __ComputeResponseValues(self):
         algorithm_data = self.optimization_info[self.GetName()]
 
         # calculate objective value
@@ -76,48 +125,6 @@ class GradientProjectionAlgorithm(Algorithm):
                 "is_active": constraint.IsActive()
             }
             self.__PrintInfo(1, constraint.GetResponseInfo(), "")
-
-        # calculate response gradients
-        for controller in self.GetControllers():
-            self.__PrintInfo(1, f"Computing sensitivities for {controller.GetName()} control...")
-
-            # create controller optimization info
-            algorithm_data["controls"][controller] = {
-                "objectives" : {},
-                "constraints": {}
-            }
-
-            control_data = algorithm_data["controls"][controller]
-
-            # compute objective sensitivities
-            self.__ComputeResponseSensitivityForControlWrapper(controller, self.objective, control_data["objectives"])
-
-            # compute constraint sensitivities
-            for constraint, constraint_data in algorithm_data["constraints"].items():
-                if constraint_data["is_active"]:
-                    self.__ComputeResponseSensitivityForControlWrapper(controller, constraint, control_data["constraints"])
-
-            # compute control update
-            self.__ComputeControlUpdatesForControlWrapper(controller)
-
-            self.__PrintInfo(1, f"Computed sensitivities for {controller.GetName()} control.")
-
-    def IsConverged(self) -> bool:
-        if self.optimization_info["step"] > 1:
-            # check for objective convergence
-            is_converged = abs(self.optimization_info[self.GetName()]["objectives"][self.objective]["value"] / self.optimization_info.GetSolutionStepData(1)[self.GetName()]["objectives"][self.objective]["value"] - 1.0) < self.relative_tolerance
-
-            # check for constraint convergence
-            for constraint_data in self.optimization_info[self.GetName()]["constraints"].values():
-                is_converged = is_converged and not constraint_data["is_active"]
-
-            return is_converged
-        else:
-            return False
-
-    def __PrintInfo(self, required_echo_level: int, message: str, title = "GradientProjectionAlgorithm"):
-        if self.echo_level >= required_echo_level:
-            Kratos.Logger.PrintInfo(title, message)
 
     def __ComputeResponseSensitivityForControlWrapper(self, controller: ControlTransformationTechnique, response_function: Union[ObjectiveResponseFunctionImplementor, ConstraintResponseFunctionImplementor], optimization_data: dict):
         control = controller.GetControl()
@@ -150,7 +157,8 @@ class GradientProjectionAlgorithm(Algorithm):
         control = controller.GetControl()
         for control_model_part in control.GetModelParts():
             # get the objective sensitivities
-            transformed_objective_sensitivities: ContainerVariableDataHolderUnion = algorithm_data["controls"][controller]["objectives"][control_model_part][self.objective]["transformed_sensitivities"]
+            transformed_objective_sensitivities: ContainerVariableDataHolderUnion = algorithm_data["controls"][
+                controller]["objectives"][control_model_part][self.objective]["transformed_sensitivities"]
 
             number_of_active_constraints = len(active_constraints_data)
 
@@ -233,5 +241,3 @@ class GradientProjectionAlgorithm(Algorithm):
                 "raw_control_update": control_update,
                 "transformed_control_update": transformed_updates_container
             }
-
-
