@@ -104,6 +104,30 @@ RegisterPrototype = python_registry.RegisterPrototype
 # This is required since we cannot use properties as usual due to the fact that we have no instance of CppRegistry (it is a static variable in c++)
 locals().pop("CppRegistry")
 
+# Loop and register the Python registry lists
+python_modelers_to_be_registered = [
+    "modelers.delete_model_parts_modeler.DeleteModelPartsModeler",
+    "modelers.import_mdpa_modeler.ImportMDPAModeler"
+]
+for item in python_modelers_to_be_registered:
+    class_name = item.split('.')[-1]
+    application_name = "KratosMultiphysics"
+    module_name = f'{application_name}.{".".join(item.split(".")[:-1])}'
+    print(class_name)
+    print(module_name)
+    registry_entry_point = f"Modelers.{application_name}.{class_name}"
+    print("add_empty_reg_point: ",registry_entry_point)
+    Registry.AddEmptyItem(registry_entry_point)
+
+    print(Registry[f"Modelers.KratosMultiphysics.{class_name}"])
+    print(Registry[f"Modelers.All.{class_name}"])
+
+    print("class_name add: ", f"{registry_entry_point}.ClassName")
+    Registry.AddItem(f"{registry_entry_point}.ClassName", class_name)
+    print(Registry[registry_entry_point+".ClassName"])
+    Registry.AddItem(f"{registry_entry_point}.ModuleName", module_name)
+    print(Registry[registry_entry_point+".ModuleName"])
+
 # Detect kratos library version
 python_version = KratosGlobals.Kernel.PythonVersion()
 python_version = python_version.replace("Python","")
