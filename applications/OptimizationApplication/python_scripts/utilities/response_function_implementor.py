@@ -4,7 +4,7 @@ from abc import abstractmethod
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolderUnion
 
 class ResponseFunctionImplementor(ABC):
     def __init__(self, response_name: str, optimization_info: OptimizationInfo):
@@ -28,13 +28,19 @@ class ResponseFunctionImplementor(ABC):
 
         return self.__response_value
 
-    def CalculateSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
-        sensitivity_key = (sensitivity_variable, sensitivity_container.GetModelPart(), sensitivity_container.GetContainerTpe())
+    def CalculateSensitivity(self, sensitivity_variable, sensitivity_data_container: ContainerVariableDataHolderUnion):
+        sensitivity_key = (sensitivity_variable, sensitivity_data_container.GetModelPart())
         if sensitivity_key not in self.__response_sensitivities.keys():
-            self.__response_function.CalculateSensitivity(sensitivity_variable, sensitivity_container)
-            self.__response_sensitivities[sensitivity_key] = sensitivity_container.Clone()
+            # calculate the sensitivities
+            self.__response_function.CalculateSensitivity(sensitivity_variable, sensitivity_data_container.GetModelPart())
+
+            # transfer the model part variable data to ContainerVariableDataHolder object
+            sensitivity_data_container.ReadDataFromContainerVariable(sensitivity_variable)
+
+            # store it for future use if required.
+            self.__response_sensitivities[sensitivity_key] = sensitivity_data_container.Clone()
         else:
-            sensitivity_container = self.__response_sensitivities[sensitivity_key]
+            sensitivity_data_container.CopyDataFrom(self.__response_sensitivities[sensitivity_key])
 
     def _GetInitialResponseValue(self):
         if self.__initial_response_value is None:
@@ -47,7 +53,7 @@ class ResponseFunctionImplementor(ABC):
         pass
 
     @abstractmethod
-    def CalculateStandardizedSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
+    def CalculateStandardizedSensitivity(self, sensitivity_variable, sensitivity_data_container: ContainerVariableDataHolderUnion):
         pass
 
     @abstractmethod
@@ -78,9 +84,9 @@ class ObjectiveResponseFunctionImplementor(ResponseFunctionImplementor):
     def CalculateStandardizedValue(self) -> float:
         return self.CalculateValue() * self.__scaling
 
-    def CalculateStandardizedSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
-        self.CalculateSensitivity(sensitivity_variable, sensitivity_container)
-        sensitivity_container *= self.__scaling
+    def CalculateStandardizedSensitivity(self, sensitivity_variable, sensitivity_data_container: ContainerVariableDataHolderUnion):
+        self.CalculateSensitivity(sensitivity_variable, sensitivity_data_container)
+        sensitivity_data_container *= self.__scaling
 
     def GetResponseInfo(self) -> str:
         msg = "\tObjective info:"
@@ -126,9 +132,9 @@ class ConstraintResponseFunctionImplementor(ResponseFunctionImplementor):
             self.__reference_value = self.CalculateValue()
         return self.__standardization_value * (self.CalculateValue() * self.__scaling - self.__reference_value)
 
-    def CalculateStandardizedSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
-        self.CalculateSensitivity(sensitivity_variable, sensitivity_container)
-        sensitivity_container *= (self.__standardization_value * self.__scaling)
+    def CalculateStandardizedSensitivity(self, sensitivity_variable, sensitivity_data_container: ContainerVariableDataHolderUnion):
+        self.CalculateSensitivity(sensitivity_variable, sensitivity_data_container)
+        sensitivity_data_container *= (self.__standardization_value * self.__scaling)
 
     def IsActive(self) -> bool:
         return (self.__constraint_type == "=") or self.CalculateStandardizedValue() >= 0.0

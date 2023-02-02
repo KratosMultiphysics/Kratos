@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:         BSD License
+//                   license: HDF5Application/license.txt
 //
 //  Main author:     Suneth Warnakulasuriya
 //
@@ -22,8 +22,9 @@
 
 // Application includes
 #include "custom_utilities/optimization_utils.h"
-#include "custom_utilities/solver_utilities/gradient_projection_solver_utils.h"
-#include "custom_utilities/container_data.h"
+#include "custom_utilities/container_variable_data_holder/container_variable_data_holder_base.h"
+#include "custom_utilities/container_variable_data_holder/container_variable_data_holder.h"
+#include "custom_utilities/container_variable_data_holder_utils.h"
 
 // Include base h
 #include "add_custom_utilities_to_python.h"
@@ -33,23 +34,39 @@
 namespace Kratos {
 namespace Python {
 
-template<class ContainerDataType>
-void AddContainerTypeToPython(pybind11::module& m, const std::string& rName)
+template<class TContainerType>
+void AddContainerVariableDataHolderBaseTypeToPython(pybind11::module& m, const std::string& rName)
 {
     namespace py = pybind11;
 
-    using container_type = ContainerData<ContainerDataType>;
-    py::class_<container_type, typename container_type::Pointer, ContainerDataBase>(m, rName.c_str())
-        .def(py::init<ModelPart&>(), py::arg("model_part"))
-        .def(py::init<const container_type&>(), py::arg("other_container_data_to_copy_from"))
+    using container_variable_data_holder_base = ContainerVariableDataHolderBase<TContainerType>;
+    py::class_<container_variable_data_holder_base, typename container_variable_data_holder_base::Pointer>(m, rName.c_str())
+        .def("CopyDataFrom", &container_variable_data_holder_base::CopyDataFrom, py::arg("origin_container_data"))
+        .def("GetModelPart", py::overload_cast<>(&container_variable_data_holder_base::GetModelPart), py::return_value_policy::reference)
+        .def("GetContainer", py::overload_cast<>(&container_variable_data_holder_base::GetContainer), py::return_value_policy::reference)
+        .def("__str__", &container_variable_data_holder_base::Info)
+        ;
+}
+
+template<class TContainerType, class TContainerIO>
+void AddContainerVariableDataHolderTypeToPython(pybind11::module& m, const std::string& rName)
+{
+    namespace py = pybind11;
+
+    using container_type = ContainerVariableDataHolder<TContainerType, TContainerIO>;
+    py::class_<container_type, typename container_type::Pointer, ContainerVariableDataHolderBase<TContainerType>>(m, rName.c_str())
+        .def(py::init<ModelPart&>(), py::arg("model_part"), py::doc("Creates a new container data object with model_part."))
+        .def(py::init<const container_type&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new same type container data object by copying data from other_container_data_to_copy_from."))
+        .def(py::init<const typename container_type::BaseType&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new destination type container data object by copying data from compatible other_container_data_to_copy_from."))
         .def("AssignDataToContainerVariable", &container_type::template AssignDataToContainerVariable<double>, py::arg("scalar_variable"))
         .def("AssignDataToContainerVariable", &container_type::template AssignDataToContainerVariable<array_1d<double, 3>>, py::arg("Array3_variable"))
         .def("ReadDataFromContainerVariable", &container_type::template ReadDataFromContainerVariable<double>, py::arg("scalar_variable"))
         .def("ReadDataFromContainerVariable", &container_type::template ReadDataFromContainerVariable<array_1d<double, 3>>, py::arg("Array3_variable"))
         .def("SetDataForContainerVariable", &container_type::template SetDataForContainerVariable<double>, py::arg("scalar_variable"), py::arg("scalar_value"))
         .def("SetDataForContainerVariable", &container_type::template SetDataForContainerVariable<array_1d<double, 3>>, py::arg("Array3_variable"), py::arg("Array3_value"))
+        .def("SetDataForContainerVariableToZero", &container_type::template SetDataForContainerVariableToZero<double>, py::arg("scalar_variable"))
+        .def("SetDataForContainerVariableToZero", &container_type::template SetDataForContainerVariableToZero<array_1d<double, 3>>, py::arg("Array3_variable"))
         .def("Clone", &container_type::Clone)
-        .def("GetContainer", py::overload_cast<>(&container_type::GetContainer), py::return_value_policy::reference)
         .def(py::self +  py::self)
         .def(py::self += py::self)
         .def(py::self +  float())
@@ -72,33 +89,30 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<ContainerDataBase, ContainerDataBase::Pointer>(m, "ContainerDataBase")
-        .def("CopyDataFrom", &ContainerDataBase::CopyDataFrom, py::arg("origin_container_data"))
-        .def("GetModelPart", py::overload_cast<>(&ContainerDataBase::GetModelPart))
-        .def("__str__", &ContainerDataBase::Info)
+    AddContainerVariableDataHolderBaseTypeToPython<ModelPart::NodesContainerType>(m, "NodalContainerVariableDataHolderBase");
+    AddContainerVariableDataHolderBaseTypeToPython<ModelPart::ConditionsContainerType>(m, "ConditionContainerVariableDataHolderBase");
+    AddContainerVariableDataHolderBaseTypeToPython<ModelPart::ElementsContainerType>(m, "ElementContainerVariableDataHolderBase");
+
+    AddContainerVariableDataHolderTypeToPython<ModelPart::NodesContainerType, HistoricalContainerDataIO>(m, "HistoricalContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::NodesContainerType, NonHistoricalContainerDataIO>(m, "NodalContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::ConditionsContainerType, NonHistoricalContainerDataIO>(m, "ConditionContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::ElementsContainerType, NonHistoricalContainerDataIO>(m, "ElementContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::ConditionsContainerType, PropertiesContainerDataIO>(m, "ConditionPropertiesContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::ElementsContainerType, PropertiesContainerDataIO>(m, "ElementPropertiesContainerVariableDataHolder");
+
+    py::class_<ContainerVariableDataHolderUtils>(m, "ContainerVariableDataHolderUtils")
+        .def_static("NormInf", &ContainerVariableDataHolderUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_data"))
+        .def_static("NormInf", &ContainerVariableDataHolderUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_data"))
+        .def_static("NormInf", &ContainerVariableDataHolderUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_data"))
+        .def_static("EntityMaxNormL2", &ContainerVariableDataHolderUtils::EntityMaxNormL2<ModelPart::NodesContainerType>, py::arg("container_data"))
+        .def_static("EntityMaxNormL2", &ContainerVariableDataHolderUtils::EntityMaxNormL2<ModelPart::ConditionsContainerType>, py::arg("container_data"))
+        .def_static("EntityMaxNormL2", &ContainerVariableDataHolderUtils::EntityMaxNormL2<ModelPart::ElementsContainerType>, py::arg("container_data"))
+        .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::NodesContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
+        .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::ConditionsContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
+        .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::ElementsContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
         ;
 
-    AddContainerTypeToPython<HistoricalDataValueContainer>(m, "HistoricalContainerData");
-    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>(m, "NodalContainerData");
-    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionContainerData");
-    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementContainerData");
-    AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionPropertiesContainerData");
-    AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementPropertiesContainerData");
-
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
-        .def_static("GetContainerIds", [](const ModelPart::NodesContainerType& rNodes) -> std::vector<IndexType> { std::vector<IndexType> values; OptimizationUtils::GetContainerIds(values, rNodes); return values;})
-        .def_static("GetContainerIds", [](const ModelPart::ConditionsContainerType& rConditions) -> std::vector<IndexType> { std::vector<IndexType> values; OptimizationUtils::GetContainerIds(values, rConditions); return values;})
-        .def_static("GetContainerIds", [](const ModelPart::ElementsContainerType& rElements) -> std::vector<IndexType> { std::vector<IndexType> values; OptimizationUtils::GetContainerIds(values, rElements); return values;})
-        .def_static("GetContainerVariableToVector", &OptimizationUtils::GetContainerVariableToVector<ModelPart::NodesContainerType, double>)
-        .def_static("GetContainerVariableToVector", &OptimizationUtils::GetContainerVariableToVector<ModelPart::ConditionsContainerType, double>)
-        .def_static("GetContainerVariableToVector", &OptimizationUtils::GetContainerVariableToVector<ModelPart::ElementsContainerType, double>)
-        .def_static("GetContainerVariableToVector", &OptimizationUtils::GetContainerVariableToVector<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def_static("GetContainerVariableToVector", &OptimizationUtils::GetContainerVariableToVector<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def_static("GetContainerVariableToVector", &OptimizationUtils::GetContainerVariableToVector<ModelPart::ElementsContainerType, array_1d<double, 3>>)
-        .def_static("GetContainerPropertiesVariableToVector", &OptimizationUtils::GetContainerPropertiesVariableToVector<ModelPart::ConditionsContainerType, double>)
-        .def_static("GetContainerPropertiesVariableToVector", &OptimizationUtils::GetContainerPropertiesVariableToVector<ModelPart::ElementsContainerType, double>)
-        .def_static("GetContainerPropertiesVariableToVector", &OptimizationUtils::GetContainerPropertiesVariableToVector<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def_static("GetContainerPropertiesVariableToVector", &OptimizationUtils::GetContainerPropertiesVariableToVector<ModelPart::ElementsContainerType, array_1d<double, 3>>)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, double>)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ElementsContainerType,double>)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
@@ -109,33 +123,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("IsVariableExistsInAtLeastOneContainerProperties", &OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties<ModelPart::ElementsContainerType,array_1d<double, 3>>)
         .def_static("AreAllEntitiesOfSameGeometryType", [](ModelPart::ConditionsContainerType& rContainer, const DataCommunicator& rDataCommunicator) { return OptimizationUtils::GetContainerEntityGeometryType(rContainer, rDataCommunicator) != GeometryData::KratosGeometryType::Kratos_generic_type; } )
         .def_static("AreAllEntitiesOfSameGeometryType", [](ModelPart::ElementsContainerType& rContainer, const DataCommunicator& rDataCommunicator) { return OptimizationUtils::GetContainerEntityGeometryType(rContainer, rDataCommunicator) != GeometryData::KratosGeometryType::Kratos_generic_type; } )
-        .def_static("CalculateVectorL2Norm", &OptimizationUtils::CalculateVectorL2Norm)
-        .def_static("AssignVectorToContainerPropertiesVariable", &OptimizationUtils::AssignVectorToContainerPropertiesVariable<ModelPart::ConditionsContainerType, double>)
-        .def_static("AssignVectorToContainerPropertiesVariable", &OptimizationUtils::AssignVectorToContainerPropertiesVariable<ModelPart::ElementsContainerType, double>)
-        .def_static("AssignVectorToContainerPropertiesVariable", &OptimizationUtils::AssignVectorToContainerPropertiesVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def_static("AssignVectorToContainerPropertiesVariable", &OptimizationUtils::AssignVectorToContainerPropertiesVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
-        .def_static("AssignVectorToContainerVariable", &OptimizationUtils::AssignVectorToContainerVariable<ModelPart::NodesContainerType, double>)
-        .def_static("AssignVectorToContainerVariable", &OptimizationUtils::AssignVectorToContainerVariable<ModelPart::ConditionsContainerType, double>)
-        .def_static("AssignVectorToContainerVariable", &OptimizationUtils::AssignVectorToContainerVariable<ModelPart::ElementsContainerType, double>)
-        .def_static("AssignVectorToContainerVariable", &OptimizationUtils::AssignVectorToContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def_static("AssignVectorToContainerVariable", &OptimizationUtils::AssignVectorToContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def_static("AssignVectorToContainerVariable", &OptimizationUtils::AssignVectorToContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
         .def_static("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ConditionsContainerType>)
         .def_static("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ElementsContainerType>)
-        .def_static("AssignVectorToContainerHistoricalVariable", &OptimizationUtils::AssignVectorToContainerHistoricalVariable<double>)
-        .def_static("AssignVectorToContainerHistoricalVariable", &OptimizationUtils::AssignVectorToContainerHistoricalVariable<array_1d<double, 3>>)
-        .def_static("GetHistoricalContainerVariableToVector", &OptimizationUtils::GetHistoricalContainerVariableToVector<double>)
-        .def_static("GetHistoricalContainerVariableToVector", &OptimizationUtils::GetHistoricalContainerVariableToVector<array_1d<double, 3>>)
-        .def_static("AddVectors", &OptimizationUtils::AddVectors)
-        .def_static("SubstractVectors", &OptimizationUtils::SubstractVectors)
-        .def_static("MultiplyVector", &OptimizationUtils::MultiplyVector)
-        .def_static("DivideVector", &OptimizationUtils::DivideVector)
-        .def_static("NormInf", &OptimizationUtils::NormInf)
-        ;
-
-    py::class_<GradientProjectionSolverUtils >(m, "GradientProjectionSolverUtils")
-        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection)
-        .def_static("CalculateControlUpdate", &GradientProjectionSolverUtils::CalculateControlUpdate)
         ;
 }
 

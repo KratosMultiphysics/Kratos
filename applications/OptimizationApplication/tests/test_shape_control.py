@@ -8,7 +8,6 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 from KratosMultiphysics.OptimizationApplication.controls.shape_control import ShapeControl
 
 class TestShapeControl(kratos_unittest.TestCase):
@@ -63,19 +62,21 @@ class TestShapeControl(kratos_unittest.TestCase):
         self.shape_control.Initialize()
 
         # run for 3 iterations
-        for i in range(3):
+        for i in range(1, 4, 1):
             self.optimization_info.AdvanceSolutionStep()
+            self.optimization_info["step"] = i
             self.execution_policy_wrapper.InitializeSolutionStep()
             self.shape_control.InitializeSolutionStep()
 
             if (self.optimization_info["step"] > 1):
-                test = Kratos.Vector()
-                KratosOA.OptimizationUtils.GetHistoricalContainerVariableToVector(self.model_part, Kratos.MESH_DISPLACEMENT, 3, test)
-                self.assertVectorAlmostEqual(v, test, 12)
+                test = KratosOA.HistoricalContainerVariableDataHolder(self.model_part.GetSubModelPart("structure"))
+                test.ReadDataFromContainerVariable(Kratos.MESH_DISPLACEMENT)
+                temp = KratosOA.HistoricalContainerVariableDataHolder(self.model_part.GetSubModelPart("structure"))
+                temp.CopyDataFrom(data)
+                self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormInf(test - temp), 0.0)
 
-            v = Kratos.Vector(self.model_part.NumberOfNodes() * 3, i)
-            data = ContainerData(self.model_part.GetSubModelPart("structure"), ContainerData.ContainerEnum.NODES)
-            data.SetData(v)
+            data = self.shape_control.CreateContainerVariableDataHolder(self.model_part.GetSubModelPart("structure"))
+            data.SetDataForContainerVariable(Kratos.MESH_DISPLACEMENT, Kratos.Array3([i, i, i]))
             self.shape_control.UpdateControl(data)
 
             self.execution_policy_wrapper.FinalizeSolutionStep()
@@ -88,7 +89,7 @@ class TestShapeControl(kratos_unittest.TestCase):
         self.assertEqual(self.model_part.GetSubModelPart("structure"), self.shape_control.GetModelParts()[0])
 
     def test_GetContainerType(self):
-        self.assertEqual(self.shape_control.GetContainerType(), ContainerData.ContainerEnum.NODES)
+        self.assertTrue(isinstance(self.shape_control.CreateContainerVariableDataHolder(self.model_part), KratosOA.NodalContainerVariableDataHolder))
 
     def test_GetControlSensitivityVariable(self):
         self.assertEqual(self.shape_control.GetControlSensitivityVariable(), Kratos.SHAPE_SENSITIVITY)

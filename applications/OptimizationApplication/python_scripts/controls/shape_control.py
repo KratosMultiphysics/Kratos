@@ -2,7 +2,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 
 class ShapeControl(Control):
@@ -24,16 +23,16 @@ class ShapeControl(Control):
         self.control_update_variable = Kratos.KratosGlobals.GetVariable(control_update_variable_name)
         self.mesh_moving_execution_policy_wrapper: ExecutionPolicyWrapper = optimization_info.GetOptimizationRoutine(ExecutionPolicyWrapper, parameters["mesh_moving_analysis_name"].GetString())
 
-    def UpdateControl(self, control_values: ContainerData):
-        model_part = control_values.GetModelPart()
-        KratosOA.OptimizationUtils.AssignVectorToContainerHistoricalVariable(model_part, Kratos.MESH_DISPLACEMENT, model_part.ProcessInfo[Kratos.DOMAIN_SIZE], control_values.GetData())
+    def UpdateControl(self, control_values: KratosOA.NodalContainerVariableDataHolder):
+        historical_container = KratosOA.HistoricalContainerVariableDataHolder(control_values)
+        historical_container.AssignDataToContainerVariable(Kratos.MESH_DISPLACEMENT)
         self.mesh_moving_execution_policy_wrapper.Execute()
 
     def GetModelParts(self) -> 'list[Kratos.ModelPart]':
         return self.model_parts
 
-    def GetContainerType(self) -> ContainerData.ContainerEnum:
-        return ContainerData.ContainerEnum.NODES
+    def CreateContainerVariableDataHolder(self, model_part: Kratos.ModelPart) -> KratosOA.NodalContainerVariableDataHolder:
+        return KratosOA.NodalContainerVariableDataHolder(model_part)
 
     def GetControlSensitivityVariable(self) -> any:
         return Kratos.SHAPE_SENSITIVITY

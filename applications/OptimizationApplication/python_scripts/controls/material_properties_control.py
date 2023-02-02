@@ -2,7 +2,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
 class MaterialPropertiesControl(Control):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
@@ -46,17 +45,17 @@ class MaterialPropertiesControl(Control):
                 KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements)
                 self.optimization_info["model_parts_with_element_specific_properties"].append(f"{model_part.FullName()}.Elements")
 
-    def UpdateControl(self, control_values: ContainerData):
-        current_values_container = ContainerData(control_values.GetModelPart(), control_values.GetContainerTpe())
+    def UpdateControl(self, control_values: KratosOA.ElementPropertiesContainerVariableDataHolder):
+        current_values_container = KratosOA.ElementPropertiesContainerVariableDataHolder(control_values)
         current_values_container.ReadDataFromContainerVariable(self.control_variable)
         new_values_container = current_values_container + control_values
-        new_values_container.AssignDataToContainer(self.control_variable)
+        new_values_container.AssignDataToContainerVariable(self.control_variable)
 
     def GetModelParts(self) -> 'list[Kratos.ModelPart]':
         return self.model_parts
 
-    def GetContainerType(self) -> ContainerData.ContainerEnum:
-        return ContainerData.ContainerEnum.ELEMENT_PROPERTIES
+    def CreateContainerVariableDataHolder(self, model_part: Kratos.ModelPart) -> KratosOA.ElementPropertiesContainerVariableDataHolder:
+        return KratosOA.ElementPropertiesContainerVariableDataHolder(model_part)
 
     def GetControlSensitivityVariable(self) -> any:
         return self.sensitivity_variable
