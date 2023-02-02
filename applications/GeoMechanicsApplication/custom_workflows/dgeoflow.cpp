@@ -571,30 +571,13 @@ namespace Kratos
                 auto rGeom = element.GetGeometry();
                 auto rProp = element.GetProperties();
                 
-                for (unsigned int node = 0; node < 3; ++node)
+                const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<3>(rGeom, rProp);
+
+            	for (unsigned int node = 0; node < 3; ++node)
                 {
-                    array_1d<double, 3> NodeVolumeAcceleration;
-                    noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
-                    const double g = norm_2(NodeVolumeAcceleration);
-                    if (g > std::numeric_limits<double>::epsilon())
-                    {
-                        const double FluidWeight = g * rProp[DENSITY_WATER];
-
-                        array_1d<double, 3> NodeCoordinates;
-                        noalias(NodeCoordinates) = rGeom[node].Coordinates();
-                        array_1d<double, 3> NodeVolumeAccelerationUnitVector;
-                        noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
-
-                        const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-                        rGeom[node].SetValue(*element_var, -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector) - PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight);
-                    }
-                    else
-                    {
-                        rGeom[node].SetValue(*element_var, 0.0);
-                    }
+                    rGeom[node].SetValue(*element_var, NodalHydraulicHead[node]);
                 }
             }
-
             gid_io.WriteNodalResultsNonHistorical(*element_var, model_part.Nodes(), 0);
     }
 
