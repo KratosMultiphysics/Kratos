@@ -25,6 +25,11 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif(POLICY CMP0057)
 
+# ::Includes (for Gtest, ONEApi...)
+if(POLICY CMP0028)
+  cmake_policy(SET CMP0028 NEW)
+endif(POLICY CMP0028)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 2)
@@ -59,6 +64,13 @@ set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
+if(KRATOS_BUILD_TESTING MATCHES ON)
+  option(INSTALL_GTEST OFF)
+  add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/googletest)
+  include_directories(${KRATOS_SOURCE_DIR}/external_libraries/googletest/googletest/include)
+  include_directories(${KRATOS_SOURCE_DIR}/external_libraries/googletest/googlemock/include)
+  enable_testing()
+endif(KRATOS_BUILD_TESTING MATCHES ON)
 
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)

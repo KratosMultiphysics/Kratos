@@ -7,7 +7,7 @@ else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
-SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes response_functions solving_strategies spaces spatial_containers utilities)
+SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes response_functions solving_strategies spaces spatial_containers utilities testing)
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
@@ -45,6 +45,27 @@ if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
+#### GTEST ####
+SET(CPP_TEST_PATH "tests/cpp_tests")
+FILE(GLOB_RECURSE gtest_sources "${CPP_TEST_PATH}/*.cpp")
+FOREACH(TEST_FILE ${gtest_sources})
+    file(RELATIVE_PATH TEST_FILE_REL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${CPP_TEST_PATH}" "${TEST_FILE}")
+
+    get_filename_component(TEST_NAME ${TEST_FILE_REL_PATH} NAME_WE)
+    get_filename_component(TEST_DIR  ${TEST_FILE_REL_PATH} DIRECTORY)
+
+    string(REPLACE "/" "_" TEST_DIR_MANGLED ${TEST_DIR})
+
+    set(TEST_FULL_NAME "${TEST_DIR_MANGLED}_${TEST_NAME}")
+
+    add_executable(${TEST_FULL_NAME} ${TEST_FILE})
+    target_link_libraries(${TEST_FULL_NAME} KratosCore GTest::gtest GTest::gtest_main)
+
+    add_test(${TEST_FULL_NAME} ${TEST_FULL_NAME})
+    install(TARGETS ${TEST_FULL_NAME} DESTINATION "tests/kratos_core" )
+ENDFOREACH(TEST_FILE ${gtest_sources})
+###############
+
 ## Kratos python interface code
 FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp") #all .cpp
 
@@ -58,11 +79,6 @@ file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}
 
 ## Kratos I/o sources
 file(GLOB_RECURSE KRATOS_CORE_INPUT_OUTPUT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/input_output/*.cpp)
-
-## Kratos tests sources. Enabled by default
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object
 add_library(KratosVersion OBJECT ${KRATOS_VERSION_SOURCES})
