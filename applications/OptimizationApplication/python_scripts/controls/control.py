@@ -3,6 +3,8 @@ from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolderUnion
+
 
 class Control(ABC):
     def __init__(self):
@@ -21,7 +23,7 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def CreateContainerVariableDataHolder(self, model_part: Kratos.ModelPart) -> KratosOA.HistoricalContainerVariableDataHolder | KratosOA.NodalContainerVariableDataHolder | KratosOA.ConditionContainerVariableDataHolder | KratosOA.ElementContainerVariableDataHolder | KratosOA.ConditionPropertiesContainerVariableDataHolder | KratosOA.ElementPropertiesContainerVariableDataHolder:
+    def CreateContainerVariableDataHolder(self, model_part: Kratos.ModelPart) -> ContainerVariableDataHolderUnion:
         """Returns a new container variable data holder object for model_part
 
         This returns a ContainerVariableDataHolder object of correct type for this control
@@ -67,11 +69,10 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def UpdateControl(self, control_data: KratosOA.HistoricalContainerVariableDataHolder | KratosOA.NodalContainerVariableDataHolder | KratosOA.ConditionContainerVariableDataHolder | KratosOA.ElementContainerVariableDataHolder | KratosOA.ConditionPropertiesContainerVariableDataHolder | KratosOA.ElementPropertiesContainerVariableDataHolder):
+    def UpdateControl(self, control_data: ContainerVariableDataHolderUnion):
         """Updates the corresponding controls with given control values
 
         Args:
             control_values (Kratos.Vector): Given updated control values
         """
         pass
-
