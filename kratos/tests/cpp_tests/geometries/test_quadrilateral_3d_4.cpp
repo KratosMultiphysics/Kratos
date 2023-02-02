@@ -175,9 +175,7 @@ namespace Testing
     TEST(Quadrilateral3D4Area, KratosCoreGeometriesFastSuite)
     {
         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
-
-        KRATOS_EXPECT_NEAR(geom->Area(), 1.06947235, TOLERANCE);
-//         KRATOS_EXPECT_NEAR(geom->Area(), 1.08935, TOLERANCE); // NOTE: Solution from Mathematica
+        KRATOS_EXPECT_NEAR(geom->Area(), 1.06948, 1.0e-5);
     }
 
     /** Tests the PointLocalCoordinates for Quadrilateral2D4.

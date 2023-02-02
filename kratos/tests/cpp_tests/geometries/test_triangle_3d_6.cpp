@@ -61,7 +61,10 @@ namespace {
 
     TEST(Triangle3D6Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle3D6();
+        // TODO: Remove code in June 2023
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+        // TODO: Activate code in June 2023
+        //KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Volume(), "Triangle3D6:: Method not well defined. Replace with DomainSize() instead.");
     }
 
     TEST(Triangle3D6MinEdgeLength, KratosCoreGeometriesFastSuite) {

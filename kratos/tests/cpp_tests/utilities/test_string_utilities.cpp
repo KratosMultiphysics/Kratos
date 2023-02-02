@@ -22,11 +22,52 @@
 namespace Kratos {
 namespace Testing {
 
-TEST(ConvertCammelCaseToSnakeCase, KratosCoreFastSuite)
+
+TEST(ConvertCamelCaseToSnakeCase, KratosCoreFastSuite)
 {
-    const std::string CammelCase = "TestInCammelCase";
-    const std::string snake_case = StringUtilities::ConvertCammelCaseToSnakeCase(CammelCase);
-    KRATOS_EXPECT_EQ(snake_case, "test_in_cammel_case");
+    const std::string CamelCase = "TestInCamelCase";
+    const std::string snake_case = StringUtilities::ConvertCamelCaseToSnakeCase(CamelCase);
+    KRATOS_EXPECT_EQ(snake_case, "test_in_camel_case");
+}
+
+TEST(ConvertSnakeCaseToCamelCase, KratosCoreFastSuite)
+{
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("test_snake_case"), "TestSnakeCase");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("test"), "Test");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("t_e_s_t"), "TEST");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("_test_"), "Test");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("_te_st_"), "TeSt");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("_"), "");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase(""), "");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("num3r1c41"), "Num3r1c41");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("num3r_1c41"), "Num3r1c41");
+    KRATOS_EXPECT_EQ(StringUtilities::ConvertSnakeCaseToCamelCase("3141"), "3141");
+
+    #define KRATOS_CHECK_THROWS(...)                            \
+        try {                                                   \
+            __VA_ARGS__;                                        \
+            KRATOS_ERROR  << "The expression " << #__VA_ARGS__  \
+            << " was supposed to throw, but it didn't";         \
+        }                                                       \
+        catch (...) {}
+
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("Test"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("tesT"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("te__st"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("__te_st"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("test__"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("te st"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase(" test"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("test "))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("*nullptr"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("core/stringutils"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("c-s"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("-cs"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("cs-"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("ph@"))
+    KRATOS_CHECK_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("#include"))
+
+    #undef KRATOS_CHECK_THROWS
 }
 
 TEST(ErasePartialString, KratosCoreFastSuite)

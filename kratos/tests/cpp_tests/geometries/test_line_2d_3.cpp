@@ -104,7 +104,7 @@ namespace {
 
         p_geometry = GeneratePointsParabolaLine2D3();
 
-        KRATOS_EXPECT_NEAR(p_geometry->Length(), 1.46884, 1.0e-5); // NOTE: Analytic 1.47894
+        KRATOS_EXPECT_NEAR(p_geometry->Length(), 1.468838273033, TOLERANCE); // NOTE: Analytic 1.47894
     }
 
     /** Checks if the bounding box of the line is calculated correctly.
@@ -116,19 +116,19 @@ namespace {
         Point low_point, high_point;
         p_geom->BoundingBox(low_point, high_point);
 
-        KRATOS_EXPECT_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-        KRATOS_EXPECT_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-        KRATOS_EXPECT_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-        KRATOS_EXPECT_NEAR(high_point.Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), ZERO_TOLERANCE);
+        KRATOS_EXPECT_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), ZERO_TOLERANCE);
+        KRATOS_EXPECT_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), ZERO_TOLERANCE);
+        KRATOS_EXPECT_NEAR(high_point.Y(), (p_geom->pGetPoint(1))->Y(), ZERO_TOLERANCE);
 
         p_geom = GeneratePointsParabolaLine2D3();
 
         p_geom->BoundingBox(low_point, high_point);
 
-        KRATOS_EXPECT_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-        KRATOS_EXPECT_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-        KRATOS_EXPECT_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-        KRATOS_EXPECT_NEAR(high_point.Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), ZERO_TOLERANCE);
+        KRATOS_EXPECT_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), ZERO_TOLERANCE);
+        KRATOS_EXPECT_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), ZERO_TOLERANCE);
+        KRATOS_EXPECT_NEAR(high_point.Y(), (p_geom->pGetPoint(2))->Y(), ZERO_TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the line
