@@ -41,7 +41,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
             "normal": [0.0, 0.0, 0.0]
         },
         "adaptive_filter_settings"   : {
-            "adaptive_filter_method: "curvature_based",
+            "adaptive_filter_method": "curvature_based",
             "radius_function": "analytic",
             "radius_function_parameter": 1,
             "minimum_filter_radius": 1e-3,
@@ -54,23 +54,22 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
     mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegration
     mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetric
     mapper_vertex_morphing = KSO.MapperVertexMorphing
-    if mapper_settings.Has("filter_radius"):
-        if mapper_settings["filter_radius"].IsString():
-            if mapper_settings["filter_radius"].GetString() == "adaptive":
-                if mapper_settings.Has("adaptive_filter_method") and mapper_settings["adaptive_filter_method"].GetString() == "curvature_based":
-                    mapper_vertex_morphing_matrix_free = KSO.MapperVertexMorphingMatrixFreeAdaptiveRadius
-                    mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegrationAdaptiveRadius
-                    mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetricAdaptiveRadius
-                    mapper_vertex_morphing = KSO.MapperVertexMorphingAdaptiveRadius
-
-                    if mapper_settings.Has("in_plane_morphing"):
-                        if mapper_settings["in_plane_morphing"].GetBool():
-                            raise Exception("\"in_plane_morphing\" is not yet supported with \"adaptive\" filter radius.")
-                    mapper_settings["filter_radius"].SetDouble(-1.0)
-                else:
-                    raise Exception("For now, only \"curvature_based\" is available for \"adaptive_filter_method\".")
+    if mapper_settings.Has("filter_radius") and mapper_settings["filter_radius"].IsString():
+        if mapper_settings["filter_radius"].GetString() == "adaptive":
+            if mapper_settings.Has("adaptive_filter_method") and mapper_settings["adaptive_filter_method"].GetString() != "curvature_based":
+                raise Exception("For now, only \"curvature_based\" is available for \"adaptive_filter_method\".")
             else:
-                raise Exception("\"filter_radius\" either should be double value or \"adaptive\".")
+                mapper_vertex_morphing_matrix_free = KSO.MapperVertexMorphingMatrixFreeAdaptiveRadius
+                mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegrationAdaptiveRadius
+                mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetricAdaptiveRadius
+                mapper_vertex_morphing = KSO.MapperVertexMorphingAdaptiveRadius
+
+                if mapper_settings.Has("in_plane_morphing"):
+                    if mapper_settings["in_plane_morphing"].GetBool():
+                        raise Exception("\"in_plane_morphing\" is not yet supported with \"adaptive\" filter radius.")
+                mapper_settings["filter_radius"].SetDouble(-1.0)
+        else:
+            raise Exception("\"filter_radius\" either should be double value or \"adaptive\".")
 
     mapper_settings.ValidateAndAssignDefaults(default_settings)
 
