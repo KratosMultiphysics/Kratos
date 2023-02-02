@@ -19,7 +19,7 @@ continuous_response_gradients = ("plane_based_packaging", "mesh_based_packaging"
 
 # ==============================================================================
 # --------------------------------------------------------------------------
-class SensitivityHeatmapCalculator:
+class SensitivityHeatmapCalculator(object):
 
     # --------------------------------------------------------------------------
     def __init__(self, design_surface, objectives, constraints, settings):
@@ -125,7 +125,7 @@ class SensitivityHeatmapCalculator:
 
         response_is_weighted = False
         if self.sensitivity_weighting and \
-            not response_type in continuous_response_gradients:
+            response_type not in continuous_response_gradients:
             response_is_weighted = True
 
         if response_is_weighted:
@@ -197,7 +197,7 @@ class SensitivityHeatmapCalculator:
 
         response_is_weighted = False
         if self.sensitivity_weighting and \
-            not response_type in continuous_response_gradients:
+            response_type not in continuous_response_gradients:
             response_is_weighted = True
 
         if response_is_weighted:

@@ -11,7 +11,7 @@
 
 
 # Kratos Core and Apps
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 
 # Additional imports
 import shutil
@@ -45,7 +45,7 @@ class DataLogger():
         self.Communicator = Communicator
         self.OptimizationSettings = OptimizationSettings
 
-        default_logger_settings = KM.Parameters("""
+        default_logger_settings = Kratos.Parameters("""
         {
             "output_directory"          : "Optimization_Results",
             "optimization_log_filename" : "optimization_log",
@@ -88,12 +88,12 @@ class DataLogger():
 
         # backward compatibility
         if output_mode == "WriteDesignSurface":
-            KM.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteDesignSurface' is deprecated and replaced with 'write_design_surface'.")
+            Kratos.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteDesignSurface' is deprecated and replaced with 'write_design_surface'.")
             self.OptimizationSettings["output"]["design_output_mode"].SetString("write_design_surface")
             output_mode = self.OptimizationSettings["output"]["design_output_mode"].GetString()
 
         if output_mode == "WriteOptimizationModelPart":
-            KM.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteOptimizationModelPart' is deprecated and replaced with 'write_optimization_model_part'.")
+            Kratos.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteOptimizationModelPart' is deprecated and replaced with 'write_optimization_model_part'.")
             self.OptimizationSettings["output"]["design_output_mode"].SetString("write_optimization_model_part")
             output_mode = self.OptimizationSettings["output"]["design_output_mode"].GetString()
 
@@ -101,8 +101,8 @@ class DataLogger():
             raise RuntimeError("Invalid 'design_output_mode', available options are: {}".format(valid_output_modes))
 
         if output_mode == "none":
-            KM.Logger.Print("")
-            KM.Logger.PrintInfo("ShapeOpt", "No design output will be created because 'design_output_mode' = 'None'.")
+            Kratos.Logger.Print("")
+            Kratos.Logger.PrintInfo("ShapeOpt", "No design output will be created because 'design_output_mode' = 'None'.")
             return None
 
         outputFormatName = self.OptimizationSettings["output"]["output_format"]["name"].GetString()
@@ -146,17 +146,17 @@ class DataLogger():
         numberOfObjectives = self.OptimizationSettings["objectives"].size()
         numberOfConstraints = self.OptimizationSettings["constraints"].size()
 
-        KM.Logger.Print("")
-        KM.Logger.PrintInfo("ShapeOpt", "The following objectives are defined:\n")
+        Kratos.Logger.Print("")
+        Kratos.Logger.PrintInfo("ShapeOpt", "The following objectives are defined:\n")
         for objectiveNumber in range(numberOfObjectives):
-            KM.Logger.Print(self.OptimizationSettings["objectives"][objectiveNumber])
+            Kratos.Logger.Print(self.OptimizationSettings["objectives"][objectiveNumber])
 
         if numberOfConstraints != 0:
-            KM.Logger.PrintInfo("ShapeOpt", "The following constraints are defined:\n")
+            Kratos.Logger.PrintInfo("ShapeOpt", "The following constraints are defined:\n")
             for constraintNumber in range(numberOfConstraints):
-                KM.Logger.Print(self.OptimizationSettings["constraints"][constraintNumber],"\n")
+                Kratos.Logger.Print(self.OptimizationSettings["constraints"][constraintNumber],"\n")
         else:
-            KM.Logger.PrintInfo("ShapeOpt", "No constraints defined.\n")
+            Kratos.Logger.PrintInfo("ShapeOpt", "No constraints defined.\n")
 
     # --------------------------------------------------------------------------
     def InitializeDataLogging( self ):
