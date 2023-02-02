@@ -103,9 +103,9 @@ class SensitivityHeatmapCalculator:
             heat[i] = heat_i
 
         if self.norm_type == "max":
-            heat_map_name = f"HEATMAP_MAX"
+            heat_map_name = "HEATMAP_MAX"
         elif self.norm_type == "l2":
-            heat_map_name = f"HEATMAP_L2"
+            heat_map_name = "HEATMAP_L2"
 
         # relax heatmap
         relaxation_coefficient = self.__GetRelaxationCoefficient(optimization_iteration)
