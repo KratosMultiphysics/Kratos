@@ -1,7 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
 
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
+import KratosMultiphysics as Kratos
 
 class ResponseFunction(ABC):
     def __init__(self):
@@ -28,6 +28,6 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
+    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart):
         pass
 

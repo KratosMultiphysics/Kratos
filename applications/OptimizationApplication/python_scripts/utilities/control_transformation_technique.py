@@ -1,11 +1,14 @@
+from typing import Union
+
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.transformation_techniques.transformation_technique import TransformationTechnique
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import Factory
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import CallOnAll
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolderUnion
 
 class ControlTransformationTechnique:
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
@@ -56,21 +59,21 @@ class ControlTransformationTechnique:
         self.__control.Finalize()
         CallOnAll(self.__transformation_techniques, TransformationTechnique.Finalize)
 
-    def TransformSensitivity(self, container_data: ContainerData):
-        CallOnAll(self.__transformation_techniques, TransformationTechnique.Finalize, container_data)
+    def TransformSensitivity(self, container_variable_data_holder: ContainerVariableDataHolderUnion):
+        CallOnAll(self.__transformation_techniques, TransformationTechnique.TransformSensitivity, container_variable_data_holder)
 
-    def TransformUpdate(self, container_data: ContainerData):
-        CallOnAll(self.__transformation_techniques, TransformationTechnique.Finalize, container_data)
+    def TransformUpdate(self, container_variable_data_holder: ContainerVariableDataHolderUnion):
+        CallOnAll(self.__transformation_techniques, TransformationTechnique.TransformUpdate, container_variable_data_holder)
 
-    def SetControlUpdate(self, container_data: ContainerData):
+    def SetControlUpdate(self, container_variable_data_holder: ContainerVariableDataHolderUnion):
         # check whether container data is valid for the updates
-        if container_data.GetModelPart() not in self.GetControl().GetModelParts():
-            raise RuntimeError(f"The control update for {container_data.GetModelPart().FullName()} is not one of the controlled model parts in control with name \"{self.GetName()}\". Followings are allowd model parts: \n\t" + "\n\t".join([v.FullName() for v in self.GetControl().GetModelParts()]))
+        if container_variable_data_holder.GetModelPart() not in self.GetControl().GetModelParts():
+            raise RuntimeError(f"The control update for {container_variable_data_holder.GetModelPart().FullName()} is not one of the controlled model parts in control with name \"{self.GetName()}\". Followings are allowd model parts: \n\t" + "\n\t".join([v.FullName() for v in self.GetControl().GetModelParts()]))
 
-        if container_data.GetContainerTpe() != self.GetControl().GetContainerType():
-            raise RuntimeError(f"The control type {container_data.GetContainerTpe().name} mismatch with the required control type {self.GetControl().GetContainerType().name} in \"{self.GetName()}\" control.")
+        if not isinstance(container_variable_data_holder, self.GetControl().CreateContainerVariableDataHolder(container_variable_data_holder.GetModelPart()).__class__):
+            raise RuntimeError(f"The control type {container_variable_data_holder.__class__.__name__} mismatch with the required control type {self.GetControl().CreateContainerVariableDataHolder(container_variable_data_holder.GetModelPart()).__class__.__name__} in \"{self.GetName()}\" control.")
 
-        self.__control_updates[container_data.GetModelPart()] = container_data
+        self.__control_updates[container_variable_data_holder.GetModelPart()] = container_variable_data_holder.Clone()
 
     def ApplyControlUpdate(self):
         for model_part in self.GetControl().GetModelParts():

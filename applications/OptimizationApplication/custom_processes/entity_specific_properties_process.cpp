@@ -5,9 +5,9 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: HDF5Application/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main author:     Suneth Warnakulasuriya
 //
 
 // System includes
