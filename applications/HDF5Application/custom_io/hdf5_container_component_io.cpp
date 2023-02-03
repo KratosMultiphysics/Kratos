@@ -718,16 +718,16 @@ void SetDataBuffer(Variable<Vector<double>> const& rVariable,
     if (!rContainerItems.empty()) {
         rData.resize(rContainerItems.size(),
                     rContainerItems.front()->GetValue(rVariable).size(), false);
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i) {
-            const TContainerItemType& r_item = *rContainerItems[i];
+
+        IndexPartition<int>(rContainerItems.size()).for_each([&rVariable, &rContainerItems, &rData](int i_item){
+            const TContainerItemType& r_item = *rContainerItems[i_item];
             Vector<double> const& r_vec = r_item.GetValue(rVariable);
             KRATOS_ERROR_IF(r_vec.size() != rData.size2())
                 << "Invalid dimension.\n";
             for (std::size_t j = 0; j < rData.size2(); ++j) {
-                rData(i, j) = r_vec(j);
+                rData(i_item, j) = r_vec(j);
             }
-        } // for item in rContainerItems
+        }); // for item in rContainerItems
     } // // if rContainerItems
 
     KRATOS_CATCH("");
@@ -742,17 +742,16 @@ void SetDataBuffer(Variable<Matrix<double>> const& rVariable,
 
     if (!rContainerItems.empty()) {
         rData.resize(rContainerItems.size(),
-                    rContainerItems.front()->GetValue(rVariable).data().size(), false);
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i) {
-            const TContainerItemType& r_item = *rContainerItems[i];
+                     rContainerItems.front()->GetValue(rVariable).data().size(), false);
+        IndexPartition<int>(rContainerItems.size()).for_each([&rVariable, &rContainerItems, &rData](int i_item){
+            const TContainerItemType& r_item = *rContainerItems[i_item];
             const auto& r_data = r_item.GetValue(rVariable).data();
             KRATOS_ERROR_IF(r_data.size() != rData.size2())
                 << "Invalid dimension.\n";
             for (std::size_t j = 0; j < rData.size2(); ++j) {
-                rData(i, j) = r_data[j];
+                rData(i_item, j) = r_data[j];
             }
-        } // for item in rContainerItems
+        }); // for item in rContainerItems
     } // if rContainerItems
 
     KRATOS_CATCH("");
