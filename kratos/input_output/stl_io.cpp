@@ -92,7 +92,7 @@ void StlIO::WriteModelPart(ModelPart & rThisModelPart)
     
         (*mpInputStream) << "        outer loop\n";
 
-        for( auto i = 0; i < rGeom.size(); i++ )
+        for(std::size_t i = 0; i < rGeom.size(); i++ )
         {
             auto & rNode = rGeom.GetPoint(i);
             (*mpInputStream) << "           vertex " << rNode.X() << " " << rNode.Y() << " " << rNode.Z() << "\n";
