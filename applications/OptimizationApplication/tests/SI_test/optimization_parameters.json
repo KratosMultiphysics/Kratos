@@ -41,7 +41,8 @@
                 "name": "displacement",
                 "type": "DisplacementResponseFunction",
                 "settings": {
-                    "evaluated_model_part_name": "Structure"
+                    "evaluated_model_part_name": "Structure_primal",
+                    "primal_analysis_name": "Structure_static"
                 }
             }
         ],
