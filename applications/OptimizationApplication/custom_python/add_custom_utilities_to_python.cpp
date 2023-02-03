@@ -17,6 +17,7 @@
 #include <pybind11/operators.h>
 
 // Project includes
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
 
@@ -26,8 +27,8 @@
 #include "custom_utilities/container_variable_data_holder/container_variable_data_holder.h"
 #include "custom_utilities/container_variable_data_holder_utils.h"
 
-// #include "custom_utilities/mappers/container_data_mapper.h"
-// #include "custom_utilities/mappers/vertex_morphing_container_data_mapper.h"
+#include "custom_utilities/mappers/container_variable_data_mapper.h"
+#include "custom_utilities/mappers/vertex_morphing_container_variable_data_mapper.h"
 
 // Include base h
 #include "add_custom_utilities_to_python.h"
@@ -131,16 +132,34 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // add mappers
-    // py::class_<ContainerDataMapper, ContainerDataMapper::Pointer>(m, "ContainerDataMapper")
-    //     .def(py::init<>())
-    //     .def("Update", &ContainerDataMapper::Update)
-    //     .def("Map", &ContainerDataMapper::Map)
-    //     .def("InverseMap", &ContainerDataMapper::InverseMap)
-    //     ;
+    using nodal_container_variable_data_mapper = ContainerVariableDataMapper<ModelPart::NodesContainerType>;
+    py::class_<nodal_container_variable_data_mapper, typename nodal_container_variable_data_mapper::Pointer>(m, "NodalContainerVariableDataMapper")
+        .def(py::init<>())
+        .def("Update", &nodal_container_variable_data_mapper::Update)
+        .def("Map", &nodal_container_variable_data_mapper::Map)
+        .def("InverseMap", &nodal_container_variable_data_mapper::InverseMap)
+        ;
 
-    // py::class_<VertexMorphingContainerDataMapper, VertexMorphingContainerDataMapper::Pointer, ContainerDataMapper>(m, "VertexMorphingContainerDataMapper")
-    //     .def(py::init<ModelPart&, ModelPart&, const ContainerData::ContainerDataType&>())
-    //     ;
+    using condition_container_variable_data_mapper = ContainerVariableDataMapper<ModelPart::ConditionsContainerType>;
+    py::class_<condition_container_variable_data_mapper, typename condition_container_variable_data_mapper::Pointer>(m, "ConditionContainerVariableDataMapper")
+        .def(py::init<>())
+        .def("Update", &condition_container_variable_data_mapper::Update)
+        .def("Map", &condition_container_variable_data_mapper::Map)
+        .def("InverseMap", &condition_container_variable_data_mapper::InverseMap)
+        ;
+
+    using element_container_variable_data_mapper = ContainerVariableDataMapper<ModelPart::ElementsContainerType>;
+    py::class_<element_container_variable_data_mapper, typename element_container_variable_data_mapper::Pointer>(m, "ElementContainerVariableDataMapper")
+        .def(py::init<>())
+        .def("Update", &element_container_variable_data_mapper::Update)
+        .def("Map", &element_container_variable_data_mapper::Map)
+        .def("InverseMap", &element_container_variable_data_mapper::InverseMap)
+        ;
+
+    using vertex_morphing_nodal_container_variable_data_mapper = VertexMorphingContainerVariableDataMapper<ModelPart::NodesContainerType>;
+    py::class_<vertex_morphing_nodal_container_variable_data_mapper, typename vertex_morphing_nodal_container_variable_data_mapper::Pointer, nodal_container_variable_data_mapper>(m, "VertexMorphingNodalContainerVariableDataMapper")
+        .def(py::init<Model&, Parameters>())
+        ;
 }
 
 }  // namespace Python.
