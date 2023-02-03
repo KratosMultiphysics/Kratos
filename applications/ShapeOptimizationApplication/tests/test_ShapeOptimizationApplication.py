@@ -37,6 +37,7 @@ from shape_optimization_test_factory import packaging_mesh_based_test
 from shape_optimization_test_factory import packaging_plane_based_test
 from shape_optimization_test_factory import remeshing_opt_process_test
 from shape_optimization_test_factory import sliding_opt_test
+from shape_optimization_test_factory import sensitivity_heatmap_test
 from wrl_io_test.test_wrl_io import WrlIOTest
 from surface_normal_shape_change_response_test.test_surface_normal_shape_change_response import SurfaceNormalShapeChangeTest
 from face_angle_response_test.test_face_angle_response import FaceAngleTest
@@ -83,6 +84,7 @@ def AssembleTestSuites():
     smallSuite.addTest(direction_damping_test('test_execution'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTotalVolumeResponseFunction2D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTotalVolumeResponseFunction3D]))
+    smallSuite.addTest(sensitivity_heatmap_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']

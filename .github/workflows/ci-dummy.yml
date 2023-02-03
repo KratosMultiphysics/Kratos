@@ -16,6 +16,8 @@ on:
       - '.github/workflows/nightly_build.yml'
       - 'kratos/templates/**'
       - 'kratos/python_scripts/application_generator/**'
+      - 'docs/**'
+      - '.github/workflows/jekyll-gh-pages.yml'
 
 permissions:
   contents: read

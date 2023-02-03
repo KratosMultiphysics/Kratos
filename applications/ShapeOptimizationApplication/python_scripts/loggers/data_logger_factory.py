@@ -11,7 +11,7 @@
 
 
 # Kratos Core and Apps
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 
 # Additional imports
 import shutil
@@ -27,6 +27,12 @@ from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_trust_
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_bead_optimization import ValueLoggerBeadOptimization
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_gradient_projection import ValueLoggerGradientProjection
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_relaxed_gradient_projection import ValueLoggerRelaxedGradientProjection
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.sensitivity_heatmap_logger import (
+    SensitivityHeatmapLoggerSteepestDescent,
+    SensitivityHeatmapLoggerPenalizedProjection,
+    SensitivityHeatmapLoggerGradientProjection,
+    SensitivityHeatmapLoggerTrustRegion,
+    SensitivityHeatmapLoggerBeadOptimization)
 
 # ==============================================================================
 def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
@@ -40,11 +46,13 @@ class DataLogger():
         self.Communicator = Communicator
         self.OptimizationSettings = OptimizationSettings
 
-        default_logger_settings = KM.Parameters("""
+        default_logger_settings = Kratos.Parameters("""
         {
             "output_directory"          : "Optimization_Results",
             "optimization_log_filename" : "optimization_log",
             "design_output_mode"        : "write_optimization_model_part",
+            "sensitivity_heatmap"       : false,
+            "sensitivity_heatmap_settings": {},
             "nodal_results"             : [ "SHAPE_CHANGE" ],
             "output_format"             : { "name": "vtk" }
         }""")
@@ -53,6 +61,7 @@ class DataLogger():
 
         self.ValueLogger = self.__CreateValueLogger()
         self.DesignLogger = self.__CreateDesignLogger()
+        self.SensitivityHeatmapLogger = self.__CreateSensitivityHeatmapLogger()
 
         self.__CreateFolderToStoreOptimizationResults()
         self.__OutputInformationAboutResponseFunctions()
@@ -82,12 +91,12 @@ class DataLogger():
 
         # backward compatibility
         if output_mode == "WriteDesignSurface":
-            KM.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteDesignSurface' is deprecated and replaced with 'write_design_surface'.")
+            Kratos.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteDesignSurface' is deprecated and replaced with 'write_design_surface'.")
             self.OptimizationSettings["output"]["design_output_mode"].SetString("write_design_surface")
             output_mode = self.OptimizationSettings["output"]["design_output_mode"].GetString()
 
         if output_mode == "WriteOptimizationModelPart":
-            KM.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteOptimizationModelPart' is deprecated and replaced with 'write_optimization_model_part'.")
+            Kratos.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteOptimizationModelPart' is deprecated and replaced with 'write_optimization_model_part'.")
             self.OptimizationSettings["output"]["design_output_mode"].SetString("write_optimization_model_part")
             output_mode = self.OptimizationSettings["output"]["design_output_mode"].GetString()
 
@@ -95,8 +104,8 @@ class DataLogger():
             raise RuntimeError("Invalid 'design_output_mode', available options are: {}".format(valid_output_modes))
 
         if output_mode == "none":
-            KM.Logger.Print("")
-            KM.Logger.PrintInfo("ShapeOpt", "No design output will be created because 'design_output_mode' = 'None'.")
+            Kratos.Logger.Print("")
+            Kratos.Logger.PrintInfo("ShapeOpt", "No design output will be created because 'design_output_mode' = 'None'.")
             return None
 
         outputFormatName = self.OptimizationSettings["output"]["output_format"]["name"].GetString()
@@ -108,6 +117,25 @@ class DataLogger():
             return DesignLoggerVTK( self.ModelPartController, self.OptimizationSettings )
         else:
             raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
+
+    # -----------------------------------------------------------------------------
+    def __CreateSensitivityHeatmapLogger( self ):
+        if not self.OptimizationSettings["output"]["sensitivity_heatmap"].GetBool():
+            return None
+
+        AlgorithmName = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
+        if AlgorithmName == "steepest_descent":
+            return SensitivityHeatmapLoggerSteepestDescent( self.ModelPartController, self.OptimizationSettings )
+        elif AlgorithmName == "penalized_projection":
+            return SensitivityHeatmapLoggerPenalizedProjection( self.ModelPartController, self.OptimizationSettings )
+        elif AlgorithmName == "gradient_projection":
+            return SensitivityHeatmapLoggerGradientProjection( self.ModelPartController, self.OptimizationSettings )
+        elif AlgorithmName == "trust_region":
+            return SensitivityHeatmapLoggerTrustRegion( self.ModelPartController, self.OptimizationSettings )
+        elif AlgorithmName == "bead_optimization":
+            return SensitivityHeatmapLoggerBeadOptimization( self.ModelPartController, self.OptimizationSettings )
+        else:
+            raise NameError("The following optimization algorithm is not supported by the sensitivity heatmap logger (name may be misspelled): " + AlgorithmName)
 
     # --------------------------------------------------------------------------
     def __CreateFolderToStoreOptimizationResults ( self ):
@@ -121,23 +149,25 @@ class DataLogger():
         numberOfObjectives = self.OptimizationSettings["objectives"].size()
         numberOfConstraints = self.OptimizationSettings["constraints"].size()
 
-        KM.Logger.Print("")
-        KM.Logger.PrintInfo("ShapeOpt", "The following objectives are defined:\n")
+        Kratos.Logger.Print("")
+        Kratos.Logger.PrintInfo("ShapeOpt", "The following objectives are defined:\n")
         for objectiveNumber in range(numberOfObjectives):
-            KM.Logger.Print(self.OptimizationSettings["objectives"][objectiveNumber])
+            Kratos.Logger.Print(self.OptimizationSettings["objectives"][objectiveNumber])
 
         if numberOfConstraints != 0:
-            KM.Logger.PrintInfo("ShapeOpt", "The following constraints are defined:\n")
+            Kratos.Logger.PrintInfo("ShapeOpt", "The following constraints are defined:\n")
             for constraintNumber in range(numberOfConstraints):
-                KM.Logger.Print(self.OptimizationSettings["constraints"][constraintNumber],"\n")
+                Kratos.Logger.Print(self.OptimizationSettings["constraints"][constraintNumber],"\n")
         else:
-            KM.Logger.PrintInfo("ShapeOpt", "No constraints defined.\n")
+            Kratos.Logger.PrintInfo("ShapeOpt", "No constraints defined.\n")
 
     # --------------------------------------------------------------------------
     def InitializeDataLogging( self ):
         if self.DesignLogger:
             self.DesignLogger.InitializeLogging()
         self.ValueLogger.InitializeLogging()
+        if self.SensitivityHeatmapLogger:
+            self.SensitivityHeatmapLogger.InitializeLogging()
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, current_iteration ):
@@ -147,6 +177,11 @@ class DataLogger():
     # --------------------------------------------------------------------------
     def LogCurrentValues( self, current_iteration, additional_values ):
         self.ValueLogger.LogCurrentValues( current_iteration, additional_values )
+
+    # --------------------------------------------------------------------------
+    def LogSensitivityHeatmap( self, current_iteration, mapper ):
+        if self.SensitivityHeatmapLogger:
+            self.SensitivityHeatmapLogger.LogSensitivityHeatmap( current_iteration, mapper )
 
     # --------------------------------------------------------------------------
     def FinalizeDataLogging( self ):

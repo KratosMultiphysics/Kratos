@@ -340,17 +340,8 @@ public:
     */
     double Length() const override
     {
-        Vector temp;
         const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
-        this->DeterminantOfJacobian( temp, integration_method );
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
-        double length = 0.0;
-
-        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-            length += temp[i] * r_integration_points[i].Weight();
-        }
-
-        return length;
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /** This method calculate and return area or surface area of
