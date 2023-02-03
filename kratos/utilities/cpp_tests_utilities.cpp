@@ -85,7 +85,7 @@ void CreatePure2DGeometry(ModelPart& rModelPart)
     auto p_node_5 = rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
     auto p_node_6 = rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
 
-    // Now we create the "conditions"
+    // Now we create the "elements"
     std::vector<NodeType::Pointer> element_nodes_0 ({p_node_1, p_node_2, p_node_3});
     Triangle2D3 <NodeType>::Pointer p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
 
@@ -222,7 +222,7 @@ void CreatePure3DGeometry(ModelPart& rModelPart)
     auto p_node_11 = rModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
     auto p_node_12 = rModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
 
-    // Now we create the "conditions"
+    // Now we create the "elements"
     std::vector<NodeType::Pointer> element_nodes_0 ({p_node_12, p_node_10, p_node_8, p_node_9});
     Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
 
