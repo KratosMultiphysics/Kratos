@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:   BSD License
-//      Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -19,17 +19,15 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
-
 #include "elements/distance_calculation_element_simplex.h"
+
 /* Processes */
 #include "processes/replace_elements_and_condition_process.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-typedef Node<3> NodeType;
+using NodeType = Node<3>;
 
 /**
 * Checks if the replacement works with triangles (aka 2D geometries)
@@ -414,7 +412,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
     // Compute process
     Parameters settings( R"(
     {
-        "element_name":"Element2D3N",
+        "element_name"  :"Element2D3N",
         "condition_name": "LineCondition2D2N"
     }  )" );
 
@@ -432,24 +430,19 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         if (std::find(modified_elems_ids.begin(), modified_elems_ids.end(), r_element.Id()) != modified_elems_ids.end()) {
             KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
-        }
-        else {
+        } else {
             KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D3N");
         }
-        
     }
 
     for (auto& r_element : parent_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         if (std::find(modified_elems_ids.begin(), modified_elems_ids.end(), r_element.Id()) != modified_elems_ids.end()) {
             KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
-        }
-        else {
+        }else {
             KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D3N");
         }
-        
     }
 }
 
-} // namespace Testing
-}  // namespace Kratos.
+} // namespace Kratos::Testing
