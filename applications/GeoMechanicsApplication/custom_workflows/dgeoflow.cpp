@@ -569,7 +569,7 @@ namespace Kratos
             for (Element element : model_part.Elements())
             {
                 auto rGeom = element.GetGeometry();
-                auto rProp = element.GetProperties();
+                const auto rProp = element.GetProperties();
                 
                 const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<3>(rGeom, rProp);
 
