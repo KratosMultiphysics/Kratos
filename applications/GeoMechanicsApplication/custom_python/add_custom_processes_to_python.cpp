@@ -110,10 +110,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m, "ApplyPhreaticMultiLinePressureTableProcess")
         .def(py::init < ModelPart&, Parameters>());
 
-    py::class_<ApplyBoundaryPhreaticLinePressureTableProcess, ApplyBoundaryPhreaticLinePressureTableProcess::Pointer, Process>
-        (m, "ApplyBoundaryPhreaticLinePressureTableProcess")
-        .def(py::init < ModelPart&, Parameters>());
-
     py::class_<ApplyPhreaticSurfacePressureTableProcess, ApplyPhreaticSurfacePressureTableProcess::Pointer, Process>
         (m, "ApplyPhreaticSurfacePressureTableProcess")
         .def(py::init < ModelPart&, Parameters>());
