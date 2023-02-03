@@ -122,7 +122,6 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
                     self.particle_id = mp.Id
                     mp_coord_minor_distance = mp_coord
             if (minor_distance !=0) :
-                self.particle_id = mp.Id
                 print("----------------------------------------------")
                 print("----Tracking of a material particle in time---")
                 print("----------------------------------------------")
@@ -166,6 +165,6 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
         self.output_file.close()
 
 def ComputeEucledianDistance(particle, point):
-    distance = math.sqrt(math.pow(particle[0] - point[0],2)+ math.pow(particle[1] - point[1],2)+ math.pow(particle[2] - point[2],2))
+    distance = math.sqrt(math.pow(particle[0] - point[0],2) + math.pow(particle[1] - point[1],2) + math.pow(particle[2] - point[2],2))
     return distance
 
