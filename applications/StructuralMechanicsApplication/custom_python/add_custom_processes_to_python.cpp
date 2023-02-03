@@ -35,6 +35,7 @@
 #include "custom_processes/set_cylindrical_local_axes_process.h"
 #include "custom_processes/set_spherical_local_axes_process.h"
 #include "custom_processes/set_automated_initial_variable_process.h"
+#include "custom_processes/impose_rbe3_movement_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -95,6 +96,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init< ModelPart&, Parameters >())
         ;
 
+    py::class_<ImposeRBE3RigidMovementProcess, ImposeRBE3RigidMovementProcess::Pointer, Process>(m, "ImposeRBE3RigidMovementProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
+        ;
+
     py::class_<ImposeZStrainProcess, ImposeZStrainProcess::Pointer, Process>(m, "ImposeZStrainProcess")
         .def(py::init< ModelPart&, Parameters >())
         ;
@@ -113,7 +119,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SetSphericalLocalAxesProcess, SetSphericalLocalAxesProcess::Pointer, Process>(m,"SetSphericalLocalAxesProcess")
         .def(py::init<ModelPart&, Parameters>());
-        
+
     py::class_<SetAutomatedInitialVariableProcess, SetAutomatedInitialVariableProcess::Pointer, Process>(m,"SetAutomatedInitialVariableProcess")
     .def(py::init<ModelPart&, Parameters>());
 }
