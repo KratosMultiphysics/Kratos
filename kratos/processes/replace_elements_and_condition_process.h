@@ -19,9 +19,10 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "geometries/geometry_data.h"
 
 namespace Kratos
 {
@@ -52,6 +53,26 @@ public:
 
     /**
      * @brief Default constructor
+     * @param rModel The model containing the model part where to assign the conditions and elements
+     * @param Settings The parameters containing the names of the conditions and elements
+     */
+    ReplaceElementsAndConditionsProcess(
+        Model& rModel,
+        Parameters Settings
+        ) : Process(Flags()) ,
+            mrModelPart(rModel.GetModelPart(Settings["model_part_name"].GetString())),
+            mSettings( Settings)
+    {
+        KRATOS_TRY
+
+        // Initialize member variables
+        InitializeMemberVariables();
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Default constructor
      * @param rModelPart The model part where to assign the conditions and elements
      * @param Settings The parameters containing the names of the conditions and elements
      */
@@ -64,16 +85,8 @@ public:
     {
         KRATOS_TRY
 
-        const std::string element_name = Settings["element_name"].GetString();
-        const std::string condition_name = Settings["condition_name"].GetString();
-
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        // so that an error is thrown if they don't exist
-        KRATOS_ERROR_IF(element_name != "" && !KratosComponents<Element>::Has(element_name)) << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
-        KRATOS_ERROR_IF(condition_name != "" && !KratosComponents<Condition>::Has(condition_name)) << "Condition name not found in KratosComponents< Condition > -- name is " << condition_name << std::endl;
-
-        // Now validate agains defaults -- this also ensures no type mismatch
-        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
+        // Initialize member variables
+        InitializeMemberVariables();
 
         KRATOS_CATCH("")
     }
@@ -91,17 +104,28 @@ public:
     /// Assignment operator.
     ReplaceElementsAndConditionsProcess& operator=(ReplaceElementsAndConditionsProcess const& rOther) = delete;
 
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
-
     ///@}
     ///@name Operations
     ///@{
 
-    /// Execute method is used to execute the ReplaceElementsAndConditionsProcess algorithms.
+    /**
+     * @brief This method creates an pointer of the process
+     * @details We consider as input a Model and a set of Parameters for the sake of generality
+     * @warning Must be overrided in each process implementation
+     * @param rModel The model to be consider
+     * @param ThisParameters The configuration parameters
+     */
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override
+    {
+        return Kratos::make_shared<ReplaceElementsAndConditionsProcess>(rModel, ThisParameters);
+    }
+
+    /**
+     * @brief Execute method is used to execute the ReplaceElementsAndConditionsProcess algorithms.
+     */
     void Execute() override;
 
     /**
@@ -110,8 +134,9 @@ public:
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters( R"({
-            "element_name"   : "PLEASE_CHOOSE_MODEL_PART_NAME",
-            "condition_name" : "PLEASE_PRESCRIBE_VARIABLE_NAME"
+            "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
+            "element_name"    : "PLEASE_CHOOSE_ELEMENT_NAME",
+            "condition_name"  : "PLEASE_CHOOSE_CONDITION_NAME"
         } )" );
         return default_parameters;
     }
@@ -142,8 +167,57 @@ protected:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart; /// The main model part where the elements and conditions will be replaced
-    Parameters mSettings;   /// The settings of the problem (names of the conditions and elements)
+    ModelPart& mrModelPart;                         /// The main model part where the elements and conditions will be replaced
+    Parameters mSettings;                           /// The settings of the problem (names of the conditions and elements)
+    std::array<bool, 2> mOnlyOneElementOrCondition; /// This array stores if only one element or condition type is going to be replaced
+
+    /// Equivalent types definition
+    const std::unordered_map<GeometryData::KratosGeometryType, std::string> mGeometryTypesToStrings = {
+        {GeometryData::KratosGeometryType::Kratos_Point2D, "Point2D"},
+        {GeometryData::KratosGeometryType::Kratos_Point3D, "Point3D"},
+        {GeometryData::KratosGeometryType::Kratos_Line2D2, "Line2D2"},
+        {GeometryData::KratosGeometryType::Kratos_Line2D3, "Line2D3"},
+        {GeometryData::KratosGeometryType::Kratos_Line2D4, "Line2D4"},
+        {GeometryData::KratosGeometryType::Kratos_Line2D5, "Line2D5"},
+        {GeometryData::KratosGeometryType::Kratos_Line3D2, "Line3D2"},
+        {GeometryData::KratosGeometryType::Kratos_Line3D3, "Line3D3"},
+        {GeometryData::KratosGeometryType::Kratos_Triangle2D3, "Triangle2D3"},
+        {GeometryData::KratosGeometryType::Kratos_Triangle2D6, "Triangle2D6"},
+        {GeometryData::KratosGeometryType::Kratos_Triangle2D10, "Triangle2D10"},
+        {GeometryData::KratosGeometryType::Kratos_Triangle2D15, "Triangle2D15"},
+        {GeometryData::KratosGeometryType::Kratos_Triangle3D3, "Triangle3D3"},
+        {GeometryData::KratosGeometryType::Kratos_Triangle3D6, "Triangle3D6"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, "Quadrilateral2D4"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, "Quadrilateral2D8"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9, "Quadrilateral2D9"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, "Quadrilateral3D4"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, "Quadrilateral3D8"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, "Quadrilateral3D9"},
+        {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, "Tetrahedra3D4"},
+        {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10, "Tetrahedra3D10"},
+        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D8, "Hexahedra3D8"},
+        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D20, "Hexahedra3D20"},
+        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D27, "Hexahedra3D27"},
+        {GeometryData::KratosGeometryType::Kratos_Prism3D6, "Prism3D6"},
+        {GeometryData::KratosGeometryType::Kratos_Prism3D15, "Prism3D15"},
+        {GeometryData::KratosGeometryType::Kratos_Pyramid3D5, "Pyramid3D5"},
+        {GeometryData::KratosGeometryType::Kratos_Pyramid3D13, "Pyramid3D13"}
+    };
+    
+    ///@}
+
+private:
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief This method initializes the member variables
+     */
+    void InitializeMemberVariables();
 
     ///@}
 
