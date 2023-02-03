@@ -240,9 +240,6 @@ void GetTotalFlux(pybind11::list &times,
 
 virtual void MakeMeasurements();
 
-void GetRadiiDataBase(std::vector<pybind11::array> &radii_db,
-                    pybind11::list &radii);
-
 virtual FaceHistoryDatabase& GetFaceDataBase(int id);
 
 /// Turn back information as a string

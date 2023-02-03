@@ -159,19 +159,6 @@ void AnalyticFaceWatcher::GetTotalFlux(pybind11::list &times,
     }
 }
 
-void AnalyticFaceWatcher::GetRadiiDataBase(std::vector<pybind11::array> &radii_db,
-                                            pybind11::list &radii)
-{
-    size_t size = radii.size();
-    std::vector<pybind11::array> sub_radii_db = radii_db;
-    //radii_db.resize(size);
-
-    for (size_t i = 0; i < size; ++i){
-        radii_db[i] = radii[i];
-    }
-    //radii_db = sub_radii_db;
-    pybind11::print(radii_db);
-}
 
 AnalyticFaceWatcher::FaceHistoryDatabase& AnalyticFaceWatcher::GetFaceDataBase(int id)
 {

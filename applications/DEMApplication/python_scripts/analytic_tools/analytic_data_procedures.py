@@ -2,6 +2,8 @@ import os
 import numpy as np
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+from datetime import datetime
+import h5py
 
 class SurfaceAnalyzer:
     def __init__(self, smp):
@@ -59,11 +61,6 @@ class SurfaceAnalyzer:
             avg_vel_nr = [0.] * len(mass)
         return shape, time, n_particles, mass, radii, avg_vel_nr
 
-    def GetRadiiDataBase(self, radii_db, radii):
-        #db = np.array(radii_db,dtype='object')
-        print(type(radii_db))
-        self.face_watcher.GetRadiiDataBase(radii_db, radii)
-        print(radii_db)
 
     def MakeInletMassPlot(self):
         self.MakeInletReading()
@@ -133,7 +130,6 @@ class SurfacesAnalyzerClass:
             self.RemoveOldFile()
 
     def CreateNewFile(self):
-        import h5py
         if os.path.exists(self.new_path):
             os.rename(self.new_path, self.old_path)
 
@@ -154,7 +150,6 @@ class SurfacesAnalyzerClass:
             self.CreateDataFile(time)
 
     def UpdateDataFile(self, time):
-        import h5py
         with h5py.File(self.new_path, 'a') as f, h5py.File(self.old_path, 'r') as f_old:
             for analyzer in self.surface_analyzers_list:
                 shape, time, n_particles, mass, radii, avg_vel_nr = analyzer.UpdateData(time)
@@ -166,19 +161,22 @@ class SurfacesAnalyzerClass:
                 surface_data.attrs['Surface Identifier'] = analyzer.smp_name
 
                 time_db[:shape_old[0]] = f_old['/' + analyzer.smp_name + '/time'][:]
-                time_db[shape_old[0]:] = time[:]
+                time_db[shape_old[0]:] = time
                 n_particles_db[:shape_old[0]] = f_old['/' + analyzer.smp_name + '/' + self.name_n_particles][:]
-                n_particles_db[shape_old[0]:] = n_particles[:]
+                n_particles_db[shape_old[0]:] = n_particles
                 mass_db[:shape_old[0]] = f_old['/' + analyzer.smp_name + '/' + self.name_mass][:]
-                mass_db[shape_old[0]:] = mass[:]
+                mass_db[shape_old[0]:] = mass
 
+                start_time = datetime.now()
                 radii_db[:shape_old[0]] = f_old['/' + analyzer.smp_name + '/' + self.name_radii][:]
+                end_time = datetime.now()
+                print('Duration: {}'.format(end_time - start_time))
 
-                #analyzer.GetRadiiDataBase(radii_db[shape_old[0]:,0], radii[:])
-                radii_db[shape_old[0]:,0] = radii[:]
+
+                radii_db[shape_old[0]:,0] = radii
 
                 avg_vel_nr_db[:shape_old[0]] = f_old['/' + analyzer.smp_name + '/' + self.name_avg_vel_nr][:]
-                avg_vel_nr_db[shape_old[0]:] = avg_vel_nr[:]
+                avg_vel_nr_db[shape_old[0]:] = avg_vel_nr
                 if self.do_clear_data:
                     if len(n_particles):
                         (analyzer).UpdateVariables(n_particles[-1], mass[-1])
@@ -194,7 +192,6 @@ class SurfacesAnalyzerClass:
         # how to create subgrouped datasets with variable name:
         # group2 = f.create_group('group2/subfolder')
         # group2.create_dataset('data',data=d)
-        import h5py
         with h5py.File(self.new_path, 'a') as f:
             for analyzer in self.surface_analyzers_list:
                     shape, time, n_particles, mass, radii, avg_vel_nr = analyzer.UpdateData(time)
@@ -221,7 +218,6 @@ class SurfacesAnalyzerClass:
         return time_db, n_particles_db, mass_db, avg_vel_nr_db
 
     def CreateDataSetOfRadii(self, f, shape, sp_name):
-        import h5py
         dt = h5py.special_dtype(vlen=np.dtype('float64'))
         surface_data = f.require_group(sp_name)
         radii_db = surface_data.create_dataset(self.name_radii, shape=(shape,1) , maxshape = (None,1), dtype = dt)
@@ -235,7 +231,6 @@ class SurfacesAnalyzerClass:
     # Currently not being used
     def GetJointData(self, data_base_names):
         data_list = []
-        import h5py
         with h5py.File(self.new_path, 'r') as f:
             if self.do_clear_data: # join all databases
                 for name in data_base_names:
@@ -253,7 +248,6 @@ class SurfacesAnalyzerClass:
     # Currently not being used
     def MakeTotalFluxPlot(self):
         import matplotlib.pyplot as plt
-        import h5py
         with h5py.File(self.file_path) as f:
             times = f['/' + self.face_watcher_name + '/' + '/time'].value
             mass_flux = f['/' + self.face_watcher_name + '/' + '/m_accum'].value
