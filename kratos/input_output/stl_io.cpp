@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/define.h"
 #include "input_output/stl_io.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -27,6 +28,33 @@ StlIO::StlIO(std::filesystem::path const& Filename)
 {
     std::fstream* pFile = new std::fstream();
     std::fstream::openmode OpenMode = std::fstream::in;
+
+    pFile->open(Filename.c_str(), OpenMode);
+
+    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Could not open the input file  : " << Filename << std::endl;
+
+    // Store the pointer as a regular std::iostream
+    mpInputStream = pFile;
+}
+
+StlIO::StlIO(std::filesystem::path const& Filename, const Flags Options)
+    : mOptions(Options)
+{
+    std::fstream* pFile = new std::fstream();
+    std::fstream::openmode OpenMode = std::fstream::in;
+
+    // Set the mode
+    if (mOptions.Is(IO::READ)) {
+        OpenMode = std::fstream::in;
+    } else if (mOptions.Is(IO::APPEND)) {
+        OpenMode = std::fstream::in | std::fstream::app;
+    } else if (mOptions.Is(IO::WRITE)) {
+        OpenMode = std::fstream::out;
+    } else {
+        // If none of the READ, WRITE or APPEND are defined we will take READ as
+        // default.
+        OpenMode = std::fstream::in;
+    }
 
     pFile->open(Filename.c_str(), OpenMode);
 
@@ -51,6 +79,33 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
     while(!mpInputStream->eof())
         ReadSolid(rThisModelPart);
 }
+
+void StlIO::WriteModelPart(ModelPart & rThisModelPart)
+{    
+    (*mpInputStream) << "solid compensated_skin_part\n";
+
+
+    for (auto & rElem : rThisModelPart.Elements()) {
+        const auto & rGeom = rElem.GetGeometry();
+        const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
+        (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
+    
+        (*mpInputStream) << "        outer loop\n";
+
+        for( auto i = 0; i < rGeom.size(); i++ )
+        {
+            auto & rNode = rGeom.GetPoint(i);
+            (*mpInputStream) << "           vertex " << rNode.X() << " " << rNode.Y() << " " << rNode.Z() << "\n";
+        }
+
+        (*mpInputStream) << "        endloop\n";
+        (*mpInputStream) << "    endfacet\n";
+    }
+
+    (*mpInputStream) << "endsolid\n";
+}
+
+
 
 /// Turn back information as a string.
 std::string StlIO::Info() const

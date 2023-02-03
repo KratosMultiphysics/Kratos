@@ -95,6 +95,8 @@ public:
     /// Constructor with filename.
     StlIO(std::filesystem::path const& Filename);
 
+    StlIO(std::filesystem::path const& Filename, const Flags Options);
+
     /// Constructor with stream.
     StlIO(std::iostream* pInputStream);
 
@@ -113,6 +115,7 @@ public:
 
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
+    void WriteModelPart(ModelPart & rThisModelPart) override;
     ///@}
     ///@name Access
     ///@{
@@ -177,6 +180,7 @@ private:
     ///@{
 
     std::iostream* mpInputStream;
+    Flags mOptions;
 
     ///@}
     ///@name Private Operators
