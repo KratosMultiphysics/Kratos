@@ -1,18 +1,3 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
-//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
-//        | |  | | |___ ___) |  _  || || |\  | |_| |
-//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
-//
-//  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
-//
-//  Main authors:    Nelson Lafontaine
-//                   Jordi Cotela Dalmau
-//                   Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrandiz
-//
-
 #if !defined(KRATOS_LOCAL_REFINE_TRIANGLE_MESH_GENERIC)
 #define  KRATOS_LOCAL_REFINE_TRIANGLE_MESH_GENERIC
 
