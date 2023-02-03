@@ -214,19 +214,6 @@ class PythonRegistry(object):
             err_msg = f"Wrong registry context '{Context}'"
             raise Exception(err_msg)
 
-    def AddEmptyItem(self, Name):
-        # First check if it is already registered in the c++ and Python registries
-        # If not registered, add it to the Python registry (note that we do an "All" registry as well as the module one)
-        if self.HasItem(Name, RegistryContext.ALL):
-            err_msg = f"Trying to add empty item '{Name}' but it is already registered."
-            raise Exception(err_msg)
-        else:
-            # Call the internal add item methods with an empty dictionary
-            # Add to the corresponding item All block
-            self.__AddItemToAll(Name, dict())
-            # Add item to the corresponding module
-            self.__AddItem(Name, dict())
-
     def AddItem(self, Name, ModuleName):
         # Add current item
         # First check if it is already registered in the c++ and Python registries
@@ -313,7 +300,6 @@ class PythonRegistry(object):
         item_keyword = split_name[0]
         class_name = split_name[-1]
         all_full_name = f"{item_keyword}.All.{class_name}"
-        print("all_full_name: ", all_full_name)
         if self.HasItem(all_full_name, RegistryContext.ALL):
             err_msg = f"Trying to register '{Name}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."
             raise Exception(err_msg)
