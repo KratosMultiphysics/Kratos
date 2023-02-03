@@ -20,6 +20,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "local_refine_geometry_mesh.hpp"
 
 namespace Kratos

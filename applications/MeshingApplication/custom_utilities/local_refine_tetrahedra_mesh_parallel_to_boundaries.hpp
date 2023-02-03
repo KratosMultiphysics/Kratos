@@ -87,7 +87,7 @@ public:
             } 
         });
 
-        LocalRefineGeometryMesh::LocalRefineMesh(refine_on_reference,interpolate_internal_variables);
+        LocalRefineGeometryMesh::LocalRefineMesh(RefineOnReference,InterpolateInternalVariables);
 
 
         KRATOS_CATCH("");
