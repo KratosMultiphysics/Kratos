@@ -177,8 +177,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("ComputeMaxNormOfNodalVariable", [](ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable){
                                                         return OptimizationUtilities::ComputeMaxNormOfNodalVariable(rModelPart, rVariable);
                                                         })
-        .def_static("AssembleVector", &OptimizationUtilities::AssembleVector)
-        .def_static("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
+        .def_static("AssembleVector", [](ModelPart& rModelPart, Vector& rVector, const Variable< double >& rVariable){
+                                         OptimizationUtilities::AssembleVector(rModelPart, rVector, rVariable);
+                                         })
+        .def_static("AssembleVector", [](ModelPart& rModelPart, Vector& rVector, const Variable< array_1d<double, 3> >& rVariable){
+                                         OptimizationUtilities::AssembleVector(rModelPart, rVector, rVariable);
+                                         })
+        .def_static("AssignVectorToVariable", [](ModelPart& rModelPart, Vector& rVector, const Variable< double >& rVariable) {
+                                                 OptimizationUtilities::AssignVectorToVariable(rModelPart, rVector, rVariable);
+                                                 })
+        .def_static("AssignVectorToVariable", [](ModelPart& rModelPart, Vector& rVector, const Variable< array_1d<double, 3> >& rVariable){
+                                                 OptimizationUtilities::AssignVectorToVariable(rModelPart, rVector, rVariable);
+                                                 })
         .def_static("AssembleMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
                                             std::size_t list_length = pybind11::len(rVariables);
                                             std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);
@@ -196,6 +206,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // ========================================================================
     py::class_<GeometryUtilities >(m, "GeometryUtilities")
         .def(py::init<ModelPart&>())
+        .def("CalculateNodalAreasFromConditions", &GeometryUtilities::CalculateNodalAreasFromConditions)
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
         .def("ProjectNodalVariableOnDirection", &GeometryUtilities::ProjectNodalVariableOnDirection)
