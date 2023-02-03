@@ -42,7 +42,7 @@ void ReplaceEntities(
         auto it_entity = rEntityContainer.begin() + Index;
         if (rSetOfIds.find(it_entity->Id()) != rSetOfIds.end()) {
             auto p_geometry = it_entity->pGetGeometry();
-            KRATOS_DEBUG_ERROR_IF_NOT(p_geometry->GetGeometryType() == r_reference_geometry_type) << "Trying to replace an element with a different geometry type" << std::endl;
+            KRATOS_DEBUG_ERROR_IF_NOT(p_geometry->GetGeometryType() == r_reference_geometry_type) << "Trying to replace an element with a different geometry type. Reference entity " << r_reference_geometry.Info() << " vs  " << p_geometry->Info() << "\n Entity info: " << rReferenceEntity.Info() << std::endl;
             auto p_new_entity = rReferenceEntity.Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());
             // Deep copy data and flags
             p_new_entity->Set(Flags(*it_entity));
