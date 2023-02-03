@@ -2002,12 +2002,25 @@ namespace Kratos {
 
         if (mRVE_FlatWalls) {
           ModelPart& fem_model_part = GetFemModelPart();
+          ModelPart::ConditionsContainerType& r_conditions = fem_model_part.GetCommunicator().LocalMesh().Conditions();
+
           for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
             ModelPart& submp = *sub_model_part;
             array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
             linear_velocity[0] = 0.0;
             linear_velocity[1] = 0.0;
             linear_velocity[2] = 0.0;
+          }
+          
+          // This is to vanish with the wall velocities, otherwise it continues to be computed in the damping force from walls.
+          // However, this leads to a stress decrease after the walls stop.
+          for (unsigned int i = 0; i < r_conditions.size(); i++) {
+            ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+            DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+            for (unsigned int inode = 0; inode < p_wall->GetGeometry().size(); inode++) {
+              array_1d<double, 3>& wall_velocity = p_wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
+              noalias(wall_velocity) = ZeroVector(3);
+            }
           }
         }
         else {
