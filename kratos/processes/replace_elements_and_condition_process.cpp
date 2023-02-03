@@ -162,33 +162,33 @@ void ReplaceElementsAndConditionsProcess::InitializeMemberVariables()
     // We can provide a list of replacements instead of a single one
 
     /* Elements */
-    if (mSettings["element_name"].IsSubParameter()) {
+    if (mSettings["element_name"].IsString()) {
+        const std::string& r_element_name = mSettings["element_name"].GetString();
+        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
+        KRATOS_ERROR_IF(r_element_name != "" && !KratosComponents<Element>::Has(r_element_name)) << "Element name not found in KratosComponents< Element > -- name is " << r_element_name << std::endl;
+        mOnlyOneElementOrCondition[0] = true;
+    } else if (mSettings["element_name"].IsSubParameter()) {
         for (auto& r_sub_parameter : mSettings["element_name"]) {
             const std::string& r_element_name = r_sub_parameter.GetString();
             KRATOS_ERROR_IF(r_element_name != "" && !KratosComponents<Element>::Has(r_element_name)) << "Element name not found in KratosComponents< Element > -- name is " << r_element_name << std::endl;
         }
         mOnlyOneElementOrCondition[0] = false;
-    } else if (mSettings["element_name"].IsString()) {
-        const std::string& r_element_name = mSettings["element_name"].GetString();
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
-        KRATOS_ERROR_IF(r_element_name != "" && !KratosComponents<Element>::Has(r_element_name)) << "Element name not found in KratosComponents< Element > -- name is " << r_element_name << std::endl;
-        mOnlyOneElementOrCondition[0] = true;
     } else {
         KRATOS_ERROR << "The element_name should be either a string or a list of strings" << std::endl;
     }
 
     /* Conditions */
-    if (mSettings["condition_name"].IsSubParameter()) {
+    if (mSettings["condition_name"].IsString()) {
+        const std::string& r_condition_name = mSettings["condition_name"].GetString();
+        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
+        KRATOS_ERROR_IF(r_condition_name != "" && !KratosComponents<Condition>::Has(r_condition_name)) << "Element name not found in KratosComponents< Condition > -- name is " << r_condition_name << std::endl;
+        mOnlyOneElementOrCondition[1] = true;
+    } else if (mSettings["condition_name"].IsSubParameter()) {
         for (auto& r_sub_parameter : mSettings["condition_name"]) {
             const std::string& r_condition_name = r_sub_parameter.GetString();
             KRATOS_ERROR_IF(r_condition_name != "" && !KratosComponents<Condition>::Has(r_condition_name)) << "Condition name not found in KratosComponents< Condition > -- name is " << r_condition_name << std::endl;
         }
         mOnlyOneElementOrCondition[1] = false;
-    } else if (mSettings["condition_name"].IsString()) {
-        const std::string& r_condition_name = mSettings["condition_name"].GetString();
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
-        KRATOS_ERROR_IF(r_condition_name != "" && !KratosComponents<Element>::Has(r_condition_name)) << "Element name not found in KratosComponents< Element > -- name is " << r_condition_name << std::endl;
-        mOnlyOneElementOrCondition[1] = true;
     } else {
         KRATOS_ERROR << "The condition_name should be either a string or a list of strings" << std::endl;
     }
