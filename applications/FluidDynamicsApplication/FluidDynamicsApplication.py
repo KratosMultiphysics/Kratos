@@ -1,6 +1,6 @@
 from KratosFluidDynamicsApplication import *
 
-from KratosMultiphysics import Registry, _ImportApplication, python_registry_utilities
+from KratosMultiphysics import _ImportApplication, python_registry_utilities
 
 application = KratosFluidDynamicsApplication()
 application_name = "KratosFluidDynamicsApplication"
