@@ -246,6 +246,7 @@ protected:
     ///@name Protected member Variables
     ///@{
         ModelPart& mModelPart;
+        int mCurrentRefinementLevel;
     ///@}
     ///@name Protected Operators
     ///@{

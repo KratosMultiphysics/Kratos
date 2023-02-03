@@ -45,14 +45,24 @@ namespace Kratos
         std::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
 
         PointerVector< Element > New_Elements;
-	New_Elements.reserve(20);
+	    New_Elements.reserve(20);
 
-	// Initial renumber of nodes and elemetns
-	unsigned int id = 1;
-        for (ModelPart::NodesContainerType::iterator it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); it++)
-	{
-	  it->SetId(id++);
-	}
+        // Initial renumber of nodes and elements and finding refinement level
+        mCurrentRefinementLevel=0;
+        unsigned int id = 1;
+        for (auto it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); ++it) {
+            it->SetId(id++);
+            int node_refinement_level = 0;
+            if(it->Has(REFINEMENT_LEVEL)){
+                node_refinement_level=  it->GetValue(REFINEMENT_LEVEL);
+            }else {
+                it->SetValue(REFINEMENT_LEVEL,0);
+            }
+            if(node_refinement_level>mCurrentRefinementLevel) {
+                mCurrentRefinementLevel=node_refinement_level;
+            }
+        }
+        mCurrentRefinementLevel++;
 
 	id = 1;
         for (ModelPart::ElementsContainerType::iterator it = mModelPart.ElementsBegin(); it != mModelPart.ElementsEnd(); it++)
@@ -93,6 +103,12 @@ namespace Kratos
 
         RenumeringElementsAndNodes(mModelPart, New_Elements);
 
+        //assigning refinement level to newly created nodes
+        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+            if(!rNode.Has(REFINEMENT_LEVEL)){
+                rNode.SetValue(REFINEMENT_LEVEL,mCurrentRefinementLevel);
+            }
+        });
 
         if (refine_on_reference == true)
         {
