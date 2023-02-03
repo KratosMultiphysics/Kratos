@@ -67,6 +67,12 @@ namespace CppTestsUtilities
         );
 
     /**
+     * @brief This method creates a pure (Element) simple geometry in 2D (triangles)
+     * @param rModelPart Reference to the ModelPart containing the problem
+     */
+    void KRATOS_API(KRATOS_CORE) CreatePure2DGeometry(ModelPart& rModelPart);
+
+    /**
      * @brief This method creates a simple geometry in 2D (quadrilaterals)
      * @param rModelPart Reference to the ModelPart containing the problem
      * @param rEntityName The entity name considered
@@ -91,6 +97,12 @@ namespace CppTestsUtilities
         const std::string& rElementName = "Element3D4N",
         const bool Initialize = true
         );
+
+    /**
+     * @brief This method creates a pure (Element) simple geometry in 3D (tetrahedra)
+     * @param rModelPart Reference to the ModelPart containing the problem
+     */
+    void KRATOS_API(KRATOS_CORE) CreatePure3DGeometry(ModelPart& rModelPart);
 
     /**
      * @brief This method creates a simple geometry in 3D (hexahedra)
