@@ -19,6 +19,7 @@
 #include "trilinos_space.h"
 #include "containers/model.h"
 #include "mpi/includes/mpi_data_communicator.h"
+#include "custom_utilities/trilinos_cpp_test_utilities.h"
 
 namespace Kratos::Testing
 {
@@ -28,94 +29,6 @@ using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVecto
 using SparseMatrixType = TrilinosSparseSpaceType::MatrixType;
 using VectorType = TrilinosSparseSpaceType::VectorType;
 
-/**
- * @brief Generates a dummy diagonal sparse matrix for Trilinos
- * @param rDataCommunicator The data communicator considered
- * @param NumGlobalElements The global dimension of the matrix
- * @param Offset The offset considered
- */
-SparseMatrixType GenerateDummySparseMatrix(
-    const DataCommunicator& rDataCommunicator,
-    const int NumGlobalElements = 12,
-    const double Offset = 0.0
-    )
-{
-    // Generate Epetra communicator
-    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
-    Epetra_MpiComm epetra_comm(raw_mpi_comm);
-
-    // Create a map
-    Epetra_Map Map(NumGlobalElements,0,epetra_comm);
-
-    // Local number of rows
-    const int NumMyElements = Map.NumMyElements();
-
-    // Get update list
-    int* MyGlobalElements = Map.MyGlobalElements( );
-
-    // Create an integer vector NumNz that is used to build the EPetra Matrix.
-    // NumNz[i] is the Number of OFF-DIAGONAL term for the ith global equation
-    // on this processor
-    std::vector<int> NumNz(NumMyElements, 1);
-
-    // Create a Epetra_Matrix
-    SparseMatrixType A(Copy, Map, NumNz.data());
-
-    double value;
-    for( int i=0 ; i<NumMyElements; ++i ) {
-        // Put in the diagonal entry
-        value = Offset + static_cast<double>(MyGlobalElements[i]);
-        A.InsertGlobalValues(MyGlobalElements[i], 1, &value, MyGlobalElements+i);
-    }
-
-    // Finish up, trasforming the matrix entries into local numbering,
-    // to optimize data transfert during matrix-vector products
-    A.FillComplete();
-
-    return A;
-}
-
-/**
- * @brief Generates a dummy vector for Trilinos
- * @param rDataCommunicator The data communicator considered
- * @param NumGlobalElements The global dimension of the matrix
- * @param Offset The offset considered
- */
-VectorType GenerateDummyVector(
-    const DataCommunicator& rDataCommunicator,
-    const int NumGlobalElements = 12,
-    const double Offset = 0.0
-    )
-{
-    // Generate Epetra communicator
-    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
-    Epetra_MpiComm epetra_comm(raw_mpi_comm);
-
-    // Create a map
-    Epetra_Map Map(NumGlobalElements,0,epetra_comm);
-
-    // Local number of rows
-    const int NumMyElements = Map.NumMyElements();
-
-    // Get update list
-    int* MyGlobalElements = Map.MyGlobalElements( );
-
-    // Create a Epetra_Matrix
-    VectorType b(Map);
-
-    double value;
-    for( int i=0 ; i<NumMyElements; ++i ) {
-        value = Offset + static_cast<double>(MyGlobalElements[i]);
-        b[0][i]= value;
-    }
-
-    b.GlobalAssemble();
-
-    return b;
-}
-
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeVector, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
@@ -123,7 +36,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeVector, KratosTrilinosApplicat
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector = GenerateDummyVector(r_comm, size);
+    auto vector = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
 
     // Check
     KRATOS_CHECK_EQUAL(size, TrilinosSparseSpaceType::Size(vector));
@@ -136,7 +49,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeMatrix, KratosTrilinosApplicat
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector = GenerateDummySparseMatrix(r_comm, size);
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
 
     // Check
     KRATOS_CHECK_EQUAL(size, TrilinosSparseSpaceType::Size1(vector));
@@ -150,8 +63,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDotProduct, KratosTrilinosApplicat
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector1 = GenerateDummyVector(r_comm, size);
-    auto vector2 = GenerateDummyVector(r_comm, size);
+    auto vector1 = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
+    auto vector2 = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
     double ref = 0.0;
     for (int i = 0; i < size; ++i) {
         ref += std::pow(static_cast<double>(i), 2);
@@ -168,7 +81,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMaxMin, KratosTrilinosApplicationM
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector = GenerateDummyVector(r_comm, size);
+    auto vector = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
 
     // Check
     KRATOS_CHECK_DOUBLE_EQUAL(0.0, TrilinosSparseSpaceType::Min(vector));
@@ -182,7 +95,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormVector, KratosTrilinosAppli
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector = GenerateDummyVector(r_comm, size);
+    auto vector = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
     double ref = 0.0;
     for (int i = 0; i < size; ++i) {
         ref += std::pow(static_cast<double>(i), 2);
@@ -200,7 +113,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix, KratosTrilinosAppli
 
     // The dummy matrix
     const int size = 2 * r_comm.Size();
-    auto matrix = GenerateDummySparseMatrix(r_comm, size);
+    auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
     double ref = 0.0;
     for (int i = 0; i < size; ++i) {
         ref += std::pow(static_cast<double>(i), 2);
@@ -223,7 +136,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues,
 
     // The dummy matrix
     const int size = 12;
-    auto matrix12x12 = GenerateDummySparseMatrix(r_comm, size);
+    auto matrix12x12 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
 
     // Generate Epetra communicator
     KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
@@ -256,7 +169,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplic
 
     // The dummy matrix
     const int size = 12;
-    auto matrix12x12 = GenerateDummySparseMatrix(r_comm, size, 1.0);
+    auto matrix12x12 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
 
     // Test the norm of the matrix
     double norm = 0.0;
