@@ -2011,9 +2011,7 @@ namespace Kratos {
             linear_velocity[1] = 0.0;
             linear_velocity[2] = 0.0;
           }
-          
-          // This is to vanish with the wall velocities, otherwise it continues to be computed in the damping force from walls.
-          // However, this leads to a stress decrease after the walls stop.
+
           for (unsigned int i = 0; i < r_conditions.size(); i++) {
             ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
             DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
