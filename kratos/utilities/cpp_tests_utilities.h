@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_CPP_TESTS_UTILITIES)
-#define KRATOS_CPP_TESTS_UTILITIES
+#pragma once
 
 // System includes
 
@@ -119,4 +118,3 @@ namespace CppTestsUtilities
 
 }; // namespace CppTestsUtilities
 }  // namespace Kratos
-#endif /* KRATOS_CPP_TESTS_UTILITIES defined */
