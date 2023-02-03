@@ -153,4 +153,8 @@ class sliding_opt_test(ShapeOptimizationTestFactory):
 class direction_damping_test(ShapeOptimizationTestFactory):
     execution_directory = "direction_damping_test"
     execution_file = "run_test"
+
+class sensitivity_heatmap_test(ShapeOptimizationTestFactory):
+    execution_directory = "sensitivity_heatmap_test"
+    execution_file = "run_test"
 # ==============================================================================
