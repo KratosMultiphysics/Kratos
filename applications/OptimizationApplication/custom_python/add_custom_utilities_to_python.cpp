@@ -20,6 +20,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
+#include "spaces/ublas_space.h"
 
 // Application includes
 #include "custom_utilities/optimization_utils.h"
@@ -93,6 +94,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+    using SparseMatrixType = SparseSpaceType::MatrixType;
+
     AddContainerVariableDataHolderBaseTypeToPython<ModelPart::NodesContainerType>(m, "NodalContainerVariableDataHolderBase");
     AddContainerVariableDataHolderBaseTypeToPython<ModelPart::ConditionsContainerType>(m, "ConditionContainerVariableDataHolderBase");
     AddContainerVariableDataHolderBaseTypeToPython<ModelPart::ElementsContainerType>(m, "ElementContainerVariableDataHolderBase");
@@ -114,9 +119,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::NodesContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
         .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::ConditionsContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
         .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::ElementsContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
+        .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const Matrix&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
+        .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::ConditionsContainerType>&, const Matrix&, const ContainerVariableDataHolderBase<ModelPart::ConditionsContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
+        .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::ElementsContainerType>&, const Matrix&, const ContainerVariableDataHolderBase<ModelPart::ElementsContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::ElementsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
+        .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const SparseMatrixType&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
+        .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::ConditionsContainerType>&, const SparseMatrixType&, const ContainerVariableDataHolderBase<ModelPart::ConditionsContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
+        .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::ElementsContainerType>&, const SparseMatrixType&, const ContainerVariableDataHolderBase<ModelPart::ElementsContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::ElementsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
+        .def_static("Transpose", py::overload_cast<SparseMatrixType&,const SparseMatrixType&>(&ContainerVariableDataHolderUtils::Transpose), py::arg("output_matrix"), py::arg("input_matrix"))
+        .def_static("Transpose", py::overload_cast<Matrix&,const Matrix&>(&ContainerVariableDataHolderUtils::Transpose), py::arg("output_matrix"), py::arg("input_matrix"))
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
+        .def_static("IsSameModelPart", &OptimizationUtils::IsSameModelPart)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, double>)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ElementsContainerType,double>)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
@@ -136,29 +150,42 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<nodal_container_variable_data_mapper, typename nodal_container_variable_data_mapper::Pointer>(m, "NodalContainerVariableDataMapper")
         .def(py::init<>())
         .def("Update", &nodal_container_variable_data_mapper::Update)
-        .def("Map", &nodal_container_variable_data_mapper::Map)
-        .def("InverseMap", &nodal_container_variable_data_mapper::InverseMap)
+        .def("Map", &nodal_container_variable_data_mapper::Map, py::arg("origin_container_data"), py::arg("destination_container_data"))
+        .def("InverseMap", &nodal_container_variable_data_mapper::InverseMap, py::arg("origin_container_data"), py::arg("destination_container_data"))
+        .def("__str__", &nodal_container_variable_data_mapper::Info)
         ;
 
     using condition_container_variable_data_mapper = ContainerVariableDataMapper<ModelPart::ConditionsContainerType>;
     py::class_<condition_container_variable_data_mapper, typename condition_container_variable_data_mapper::Pointer>(m, "ConditionContainerVariableDataMapper")
         .def(py::init<>())
         .def("Update", &condition_container_variable_data_mapper::Update)
-        .def("Map", &condition_container_variable_data_mapper::Map)
-        .def("InverseMap", &condition_container_variable_data_mapper::InverseMap)
+        .def("Map", &condition_container_variable_data_mapper::Map, py::arg("origin_container_data"), py::arg("destination_container_data"))
+        .def("InverseMap", &condition_container_variable_data_mapper::InverseMap, py::arg("origin_container_data"), py::arg("destination_container_data"))
+        .def("__str__", &condition_container_variable_data_mapper::Info)
         ;
 
     using element_container_variable_data_mapper = ContainerVariableDataMapper<ModelPart::ElementsContainerType>;
     py::class_<element_container_variable_data_mapper, typename element_container_variable_data_mapper::Pointer>(m, "ElementContainerVariableDataMapper")
         .def(py::init<>())
         .def("Update", &element_container_variable_data_mapper::Update)
-        .def("Map", &element_container_variable_data_mapper::Map)
-        .def("InverseMap", &element_container_variable_data_mapper::InverseMap)
+        .def("Map", &element_container_variable_data_mapper::Map, py::arg("origin_container_data"), py::arg("destination_container_data"))
+        .def("InverseMap", &element_container_variable_data_mapper::InverseMap, py::arg("origin_container_data"), py::arg("destination_container_data"))
+        .def("__str__", &element_container_variable_data_mapper::Info)
         ;
 
     using vertex_morphing_nodal_container_variable_data_mapper = VertexMorphingContainerVariableDataMapper<ModelPart::NodesContainerType>;
     py::class_<vertex_morphing_nodal_container_variable_data_mapper, typename vertex_morphing_nodal_container_variable_data_mapper::Pointer, nodal_container_variable_data_mapper>(m, "VertexMorphingNodalContainerVariableDataMapper")
-        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>(), py::arg("origin_model_part"), py::arg("destination_model_part"), py::arg("parameters"))
+        ;
+
+    using vertex_morphing_condition_container_variable_data_mapper = VertexMorphingContainerVariableDataMapper<ModelPart::ConditionsContainerType>;
+    py::class_<vertex_morphing_condition_container_variable_data_mapper, typename vertex_morphing_condition_container_variable_data_mapper::Pointer, condition_container_variable_data_mapper>(m, "VertexMorphingConditionContainerVariableDataMapper")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>(), py::arg("origin_model_part"), py::arg("destination_model_part"), py::arg("parameters"))
+        ;
+
+    using vertex_morphing_element_container_variable_data_mapper = VertexMorphingContainerVariableDataMapper<ModelPart::ElementsContainerType>;
+    py::class_<vertex_morphing_element_container_variable_data_mapper, typename vertex_morphing_element_container_variable_data_mapper::Pointer, element_container_variable_data_mapper>(m, "VertexMorphingElementContainerVariableDataMapper")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>(), py::arg("origin_model_part"), py::arg("destination_model_part"), py::arg("parameters"))
         ;
 }
 

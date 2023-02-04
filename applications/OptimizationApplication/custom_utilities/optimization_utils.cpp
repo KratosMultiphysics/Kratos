@@ -118,6 +118,13 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
     KRATOS_CATCH("");
 }
 
+bool OptimizationUtils::IsSameModelPart(
+    const ModelPart& rModelPart1,
+    const ModelPart& rModelPart2)
+{
+    return (&rModelPart1 == &rModelPart2);
+}
+
 // template instantiations
 template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);

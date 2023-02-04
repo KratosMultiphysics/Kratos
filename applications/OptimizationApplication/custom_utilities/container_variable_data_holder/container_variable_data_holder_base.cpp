@@ -79,6 +79,22 @@ const Vector& ContainerVariableDataHolderBase<TContainerType>::GetData() const
 }
 
 template <class TContainerType>
+void ContainerVariableDataHolderBase<TContainerType>::SetDataToZero(const IndexType DataDimension)
+{
+    this->mDataDimension = DataDimension;
+
+    const IndexType total_values = DataDimension * this->GetContainer().size();
+
+    if (this->mData.size() != total_values) {
+        this->mData.resize(total_values, false);
+    }
+
+    IndexPartition<IndexType>(total_values).for_each([&](const IndexType Index) {
+        this->mData[Index] = 0.0;
+    });
+}
+
+template <class TContainerType>
 ModelPart& ContainerVariableDataHolderBase<TContainerType>::GetModelPart()
 {
     return *mpModelPart;

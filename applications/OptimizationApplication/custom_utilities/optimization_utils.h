@@ -66,6 +66,10 @@ public:
         ModelPart& rModelPart,
         TContainerType& rContainer);
 
+    static bool IsSameModelPart(
+        const ModelPart& rModelPart1,
+        const ModelPart& rModelPart2);
+
     ///@}
 };
 

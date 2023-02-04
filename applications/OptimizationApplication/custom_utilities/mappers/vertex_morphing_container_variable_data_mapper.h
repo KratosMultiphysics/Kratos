@@ -13,8 +13,9 @@
 #pragma once
 
 // System includes
-#include <variant>
+#include <string>
 #include <functional>
+#include <vector>
 
 // Project includes
 #include "includes/define.h"
@@ -24,6 +25,7 @@
 // Application includes
 #include "custom_utilities/mappers/container_variable_data_mapper.h"
 #include "custom_utilities/mappers/entity_point.h"
+#include "custom_utilities/mappers/mapping_filter_functions.h"
 
 namespace Kratos {
 
@@ -53,9 +55,13 @@ public:
 
     using DoubleVectorIterator = std::vector<double>::iterator;
 
-    using  BucketType = Bucket<3, EntityPointType, EntityPointVector, EntityPointTypePointer, EntityPointIterator, DoubleVectorIterator>;
+    using BucketType = Bucket<3, EntityPointType, EntityPointVector, EntityPointTypePointer, EntityPointIterator, DoubleVectorIterator>;
 
     using KDTree = Tree<KDTreePartition<BucketType>>;
+
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+    using SparseMatrixType = SparseSpaceType::MatrixType;
 
     /// Pointer definition of ContainerMapper
     KRATOS_CLASS_POINTER_DEFINITION(VertexMorphingContainerVariableDataMapper);
@@ -65,7 +71,8 @@ public:
     ///@{
 
     VertexMorphingContainerVariableDataMapper(
-        Model& rModel,
+        const ModelPart& rOriginModelPart,
+        const ModelPart& rDestinationModelPart,
         Parameters Params);
 
     ~VertexMorphingContainerVariableDataMapper() override = default;
@@ -76,22 +83,85 @@ public:
     void Update() override;
 
     void Map(
-        ContainerVariableDataHolderType& rOutputDataContainer,
-        const ContainerVariableDataHolderType& rInputDataContainer) override;
+        const ContainerVariableDataHolderType& rOriginDataContainer,
+        ContainerVariableDataHolderType& rDestinationDataContainer) const override;
 
     void InverseMap(
-        ContainerVariableDataHolderType& rOutputDataContainer,
-        const ContainerVariableDataHolderType& rInputDataContainer) override;
+        ContainerVariableDataHolderType& rOriginDataContainer,
+        const ContainerVariableDataHolderType& rDestinationDataContainer) const override;
+
+    std::string Info() const override;
 
     ///@}
 private:
     ///@name Private member variables
     ///@{
 
-    Model& mrModel;
+    const ModelPart& mrOriginModelPart;
+
+    const ModelPart& mrDestinationModelPart;
+
+    IndexType mMaxEntitiesInFilterRadius;
+
+    std::string mFilterFunctionType;
+
+    double mFilterRadius;
+
+    bool mIsConsistentMapping;
+
+    EntityPointVector mOriginEntityPointsVector;
+
+    EntityPointVector mDestinationEntityPointsVector;
+
+    MappingFilterFunction::Pointer mpMappingFilterFunction;
+
+    SparseMatrixType mMappingMatrix;
+
+    IndexType mBucketSize = 100;
+
+    typename KDTree::Pointer mpSearchTree;
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    void InitializeEntityPoints(
+        EntityPointVector& rEntityPointsVector,
+        const ModelPart& rModelPart) const;
+
+    void CreateSearchTreeWithAllNodesInOriginModelPart();
+
+    void ComputeWeightForAllNeighbors(
+        double& rSumOfWeights,
+        std::vector<double>& rListOfWeights,
+        const IndexType NumberOfNeighbours,
+        const EntityPointType& rEntityPoint,
+        const EntityPointVector& rNeighbourEntityPoints) const;
+
+    void FillMappingMatrixWithWeights(
+        const EntityPointType& rEntityPoint,
+        const EntityPointVector& rNeighbourEntityPoints,
+        const std::vector<double>& rListOfWeights,
+        const double WeightSum,
+        const IndexType NumberOfNeighbours);
+
+    void ComputeMappingMatrix(const EntityPointVector& rDestinationEntityPointsVector);
 
     ///@}
 };
+
+///@}
+///@name Input and output
+///@{
+
+/// output stream function
+template<class TContainerType>
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const VertexMorphingContainerVariableDataMapper<TContainerType>& rThis)
+{
+    return rOStream << rThis.Info();
+}
 
 ///@}
 } // namespace Kratos

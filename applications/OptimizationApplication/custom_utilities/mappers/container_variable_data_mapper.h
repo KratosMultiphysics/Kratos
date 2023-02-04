@@ -14,6 +14,7 @@
 #pragma once
 
 // System includes
+#include <string>
 
 // Project includes
 #include "includes/define.h"
@@ -56,23 +57,43 @@ public:
     }
 
     virtual void Map(
-        ContainerVariableDataHolderType& rOutputDataContainer,
-        const ContainerVariableDataHolderType& rInputDataContainer)
+        const ContainerVariableDataHolderType& rOriginDataContainer,
+        ContainerVariableDataHolderType& rDestinationDataContainer) const
     {
         KRATOS_ERROR << "Calling ContainerVariableDataMapper::Map. This needs to be "
                         "implemented in the derrived class.";
     }
 
     virtual void InverseMap(
-        ContainerVariableDataHolderType& rOutputDataContainer,
-        const ContainerVariableDataHolderType& rInputDataContainer)
+        ContainerVariableDataHolderType& rOriginDataContainer,
+        const ContainerVariableDataHolderType& rDestinationDataContainer) const
     {
         KRATOS_ERROR << "Calling ContainerVariableDataMapper::Map. This needs to be "
                         "implemented in the derrived class.";
     }
 
+    virtual std::string Info() const
+    {
+        KRATOS_ERROR << "Calling ContainerVariableDataMapper::Info. This needs to be "
+                        "implemented in the derrived class.";
+        return "";
+    }
+
     ///@}
 };
+
+///@}
+///@name Input and output
+///@{
+
+/// output stream function
+template<class TContainerType>
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const ContainerVariableDataMapper<TContainerType>& rThis)
+{
+    return rOStream << rThis.Info();
+}
 
 ///@}
 } // namespace Kratos

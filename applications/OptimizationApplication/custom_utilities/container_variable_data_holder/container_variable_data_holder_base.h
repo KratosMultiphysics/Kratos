@@ -136,6 +136,8 @@ public:
 
     const Vector& GetData() const;
 
+    void SetDataToZero(const IndexType DataDimension);
+
     ModelPart& GetModelPart();
 
     const ModelPart& GetModelPart() const;

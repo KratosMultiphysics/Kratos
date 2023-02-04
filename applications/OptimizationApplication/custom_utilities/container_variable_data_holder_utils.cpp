@@ -16,10 +16,11 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-
-// Application includes
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+
+// Application includes
+#include "custom_utilities/optimization_utils.h"
 
 // Include base h
 #include "container_variable_data_holder_utils.h"
@@ -72,7 +73,7 @@ double ContainerVariableDataHolderUtils::InnerProduct(
         << "   Container 1: " << rContainer1 << "\n"
         << "   Container 2: " << rContainer2 << "\n";
 
-    KRATOS_ERROR_IF(rContainer1.GetModelPart() != rContainer2.GetModelPart())
+    KRATOS_ERROR_IF_NOT(OptimizationUtils::IsSameModelPart(rContainer1.GetModelPart(), rContainer2.GetModelPart()))
         << "Model part mismatch in InnerProduct calculation. "
         << "Followings are the given containers: \n"
         << "   Container 1: " << rContainer1 << "\n"
@@ -83,11 +84,139 @@ double ContainerVariableDataHolderUtils::InnerProduct(
     }));
 }
 
+template<class TContainerType>
+void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(
+    ContainerVariableDataHolderBase<TContainerType>& rOutput,
+    const SparseMatrixType& rMatrix,
+    const ContainerVariableDataHolderBase<TContainerType>& rInput)
+{
+    KRATOS_ERROR_IF(rInput.GetModelPart().IsDistributed() ||
+                    rOutput.GetModelPart().IsDistributed())
+        << "ProductWithEntityMatrix does not support MPI yet.\n";
+
+    KRATOS_ERROR_IF_NOT(rInput.GetContainer().size() == rMatrix.size2())
+        << "Input container size and matrix size2 mismatch. [ Container size = "
+        << rOutput.GetContainer().size() << ", Matrix.size1() = " << rMatrix.size2()
+        << "Followings are the given containers:"
+        << "\n\tInput data container : " << rInput
+        << "\n\tOutput data contaienr: " << rOutput << "\n\t";
+
+    KRATOS_ERROR_IF_NOT(rOutput.GetContainer().size() == rMatrix.size1())
+        << "Output container size and matrix size1 mismatch. [ Container size = "
+        << rOutput.GetContainer().size() << ", Matrix.size1() = " << rMatrix.size1()
+        << "Followings are the given containers:"
+        << "\n\tInput data container : " << rInput
+        << "\n\tOutput data contaienr: " << rOutput << "\n\t";
+
+    const IndexType data_dimension = rInput.GetDataDimension();
+
+    rOutput.SetDataToZero(data_dimension);
+
+    auto& r_output_data = rOutput.GetData();
+    const auto& r_input_data = rInput.GetData();
+
+    const double* a_values = rMatrix.value_data().begin();
+    const IndexType* a_row_indices = rMatrix.index1_data().begin();
+    const IndexType* a_col_indices = rMatrix.index2_data().begin();
+
+    IndexPartition<IndexType>(rMatrix.size1()).for_each([&](const IndexType i) {
+        const IndexType col_begin = a_row_indices[i];
+        const IndexType col_end = a_row_indices[i + 1];
+
+        for (IndexType d = 0; d < data_dimension; ++d) {
+            auto& r_value = r_output_data[i * data_dimension + d];
+            for (IndexType j = col_begin; j < col_end; ++j) {
+                r_value += a_values[j] * r_input_data[a_col_indices[j] * data_dimension + d];
+            }
+        }
+    });
+}
+
+template<class TContainerType>
+void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(
+    ContainerVariableDataHolderBase<TContainerType>& rOutput,
+    const Matrix& rMatrix,
+    const ContainerVariableDataHolderBase<TContainerType>& rInput)
+{
+    KRATOS_ERROR_IF(rInput.GetModelPart().IsDistributed() ||
+                    rOutput.GetModelPart().IsDistributed())
+        << "ProductWithEntityMatrix does not support MPI yet.\n";
+
+    KRATOS_ERROR_IF_NOT(rInput.GetContainer().size() == rMatrix.size2())
+        << "Input container size and matrix size2 mismatch. [ Container size = "
+        << rOutput.GetContainer().size() << ", Matrix.size1() = " << rMatrix.size2()
+        << "Followings are the given containers:"
+        << "\n\tInput data container : " << rInput
+        << "\n\tOutput data contaienr: " << rOutput << "\n\t";
+
+    KRATOS_ERROR_IF_NOT(rOutput.GetContainer().size() == rMatrix.size1())
+        << "Output container size and matrix size1 mismatch. [ Container size = "
+        << rOutput.GetContainer().size() << ", Matrix.size1() = " << rMatrix.size1()
+        << "Followings are the given containers:"
+        << "\n\tInput data container : " << rInput
+        << "\n\tOutput data contaienr: " << rOutput << "\n\t";
+
+    const IndexType data_dimension = rInput.GetDataDimension();
+
+    rOutput.SetDataToZero(data_dimension);
+
+    auto& r_output_data = rOutput.GetData();
+    const auto& r_input_data = rInput.GetData();
+
+    IndexPartition<IndexType>(rMatrix.size1()).for_each([&](const IndexType i) {
+        for (IndexType d = 0; d < data_dimension; ++d) {
+            auto& r_value = r_output_data[i * data_dimension + d];
+            for (IndexType j = 0; j < rMatrix.size2(); ++j) {
+                r_value += rMatrix(i, j) * r_input_data[j * data_dimension + d];
+            }
+        }
+    });
+}
+
+void ContainerVariableDataHolderUtils::Transpose(
+    Matrix& rOutput,
+    const Matrix& rInput)
+{
+    if (rOutput.size1() != rInput.size2() || rOutput.size2() != rInput.size1()) {
+        rOutput.resize(rInput.size2(), rInput.size1(), false);
+    }
+
+    IndexPartition<IndexType>(rInput.size1()).for_each([&](const IndexType i){
+        for (IndexType j = 0; j < rInput.size2(); ++j) {
+            rOutput(j, i) = rInput(i, j);
+        }
+    });
+}
+
+void ContainerVariableDataHolderUtils::Transpose(
+    SparseMatrixType& rOutput,
+    const SparseMatrixType& rInput)
+{
+    if (rOutput.size1() != rInput.size2() || rOutput.size2() != rInput.size1()) {
+        rOutput.resize(rInput.size2(), rInput.size1(), false);
+    }
+
+    const double* a_values = rInput.value_data().begin();
+    const IndexType* a_row_indices = rInput.index1_data().begin();
+    const IndexType* a_col_indices = rInput.index2_data().begin();
+
+    for (IndexType i = 0; i < rInput.size1(); ++i) {
+        const IndexType col_begin = a_row_indices[i];
+        const IndexType col_end = a_row_indices[i + 1];
+
+        for (IndexType j = col_begin; j < col_end; ++j) {
+            rOutput.insert_element(a_col_indices[j], i, a_values[j]);
+        }
+    }
+}
+
 // template instantiations
-#define INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                \
-    template double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase<ContainerType>&);                                                       \
-    template double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHolderBase<ContainerType>&);                                                               \
-    template double ContainerVariableDataHolderUtils::InnerProduct(const ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&);
+#define INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                           \
+    template double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase<ContainerType>&);                                                                                                                  \
+    template double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHolderBase<ContainerType>&);                                                                                                                          \
+    template double ContainerVariableDataHolderUtils::InnerProduct(const ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&);                                                              \
+    template void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(ContainerVariableDataHolderBase<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerVariableDataHolderBase<ContainerType>&); \
+    template void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(ContainerVariableDataHolderBase<ContainerType>&, const Matrix&, const ContainerVariableDataHolderBase<ContainerType>&);
 
 INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ModelPart::NodesContainerType)
 INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ModelPart::ConditionsContainerType)

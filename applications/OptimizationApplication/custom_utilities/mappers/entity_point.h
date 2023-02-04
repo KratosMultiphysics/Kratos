@@ -45,16 +45,12 @@ public:
         const TEntityType& rEntity,
         const IndexType Id);
 
-    const TEntityType& GetEntity() const;
-
     IndexType Id() const;
 
     ///@}
 private:
     ///@name Private member variables
     ///@{
-
-    const TEntityType* const mpEntity = nullptr;
 
     const IndexType mId = 0;
 

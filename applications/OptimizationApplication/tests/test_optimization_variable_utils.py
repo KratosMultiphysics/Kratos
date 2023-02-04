@@ -51,6 +51,11 @@ class TestOptimizationVariableUtils(kratos_unittest.TestCase):
         self.model_part.GetCondition(4).Properties[Kratos.DENSITY] = 1.0
         self.assertTrue(self.utils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Conditions, Kratos.DENSITY, self.model_part.GetCommunicator().GetDataCommunicator()))
 
+    def test_IsSameModelPart(self):
+        new_model_part = self.model.CreateModelPart("new")
+        self.assertFalse(self.utils.IsSameModelPart(new_model_part, self.model_part))
+        self.assertTrue(self.utils.IsSameModelPart(self.model_part, self.model["test"]))
+        self.assertTrue(self.utils.IsSameModelPart(new_model_part, self.model["new"]))
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
