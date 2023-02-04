@@ -88,6 +88,14 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
             transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.rigid_model_part, self.model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES)
             transfer_process.Execute()
 
+        sub_model_part = self.main_model_part.CreateSubModelPart("{:s}_Constraints".format(settings["model_part_name"].GetString()))
+        sub_model_part.AddNode(self.main_model_part.GetNode(settings["slave_node_id"].GetInt()), 0)
+        initial_id = 1000
+        for node in self.model_part.Nodes:
+            sub_model_part.AddNode(node, 0)
+            sub_model_part.CreateNewCondition("LineCondition3D2N", initial_id, [settings["slave_node_id"].GetInt(), node.Id], self.model_part.GetProperties()[0])
+            initial_id += 1
+
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
 
@@ -95,6 +103,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         self.rigid_movement_process.ExecuteInitialize()
+
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
