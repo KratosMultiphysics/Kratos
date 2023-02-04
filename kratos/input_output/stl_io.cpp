@@ -80,7 +80,7 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
         ReadSolid(rThisModelPart);
 }
 
-void StlIO::WriteModelPart(ModelPart & rThisModelPart)
+void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
 {    
     (*mpInputStream) << "solid compensated_skin_part\n";
 
