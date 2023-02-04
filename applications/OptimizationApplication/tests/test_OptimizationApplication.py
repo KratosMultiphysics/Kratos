@@ -34,6 +34,9 @@ from test_container_data import TestElementContainerVariableDataHolder
 from test_container_data import TestConditionPropertiesContainerVariableDataHolder
 from test_container_data import TestElementPropertiesContainerVariableDataHolder
 from test_container_data_utils import TestContainerVariableDataHolderUtils
+from test_vertex_morphing_mappers import TestVertexMorphingNodalContainerVariableDataMapper
+from test_vertex_morphing_mappers import TestVertexMorphingConditionContainerVariableDataMapper
+from test_vertex_morphing_mappers import TestVertexMorphingElementContainerVariableDataMapper
 
 # Nightly tests
 
@@ -75,6 +78,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionPropertiesContainerVariableDataHolder]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementPropertiesContainerVariableDataHolder]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerVariableDataHolderUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertexMorphingNodalContainerVariableDataMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertexMorphingConditionContainerVariableDataMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertexMorphingElementContainerVariableDataMapper]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
