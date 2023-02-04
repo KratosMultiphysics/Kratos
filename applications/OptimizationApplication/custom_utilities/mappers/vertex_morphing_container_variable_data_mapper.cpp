@@ -62,9 +62,9 @@ VertexMorphingContainerVariableDataMapper<TContainerType>::VertexMorphingContain
 
     Parameters default_parameters = Parameters(R"(
     {
-        "filter_function_type"      : "linear",
-        "filter_radius"             : 1.0,
-        "max_nodes_in_filter_radius": 10000
+        "filter_function_type"         : "linear",
+        "filter_radius"                : 1.0,
+        "max_entities_in_filter_radius": 10000
     })" );
 
     Params.ValidateAndAssignDefaults(default_parameters);
@@ -72,7 +72,7 @@ VertexMorphingContainerVariableDataMapper<TContainerType>::VertexMorphingContain
     mFilterFunctionType = Params["filter_function_type"].GetString();
     mpMappingFilterFunction = Kratos::make_shared<MappingFilterFunction>(mFilterFunctionType);
     mFilterRadius = Params["filter_radius"].GetDouble();
-    mMaxEntitiesInFilterRadius = Params["max_nodes_in_filter_radius"].GetInt();
+    mMaxEntitiesInFilterRadius = Params["max_entities_in_filter_radius"].GetInt();
     mIsConsistentMapping = (mrOriginModelPart.FullName() == mrDestinationModelPart.FullName());
 
     KRATOS_CATCH("");

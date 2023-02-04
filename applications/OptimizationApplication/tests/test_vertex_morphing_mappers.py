@@ -1,3 +1,5 @@
+from typing import Union
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
@@ -7,6 +9,8 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 class TestVertexMoprhingContainerVariableDataMapper(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls.KratosEntity = Union[Kratos.Node, Kratos.Condition, Kratos.Element]
+
         cls.model = Kratos.Model()
         cls.origin_model_part = cls.model.CreateModelPart("origin")
         cls.origin_model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
@@ -36,108 +40,103 @@ class TestVertexMoprhingContainerVariableDataMapper(kratos_unittest.TestCase):
             node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([node.Id + 1, node.Id + 2, node.Id + 3]))
 
         cls.mapper_parameters = Kratos.Parameters("""{
-            "filter_function_type"      : "linear",
-            "filter_radius"             : 1.0,
-            "max_nodes_in_filter_radius": 10000
+            "filter_function_type"          : "linear",
+            "filter_radius"                 : 1.0,
+            "max_entities_in_filter_radius": 10000
         }""")
 
+        cls.neighbour_entitys_map = {
+            1: [1, 2, 4, 5],
+            2: [2, 3, 5, 6],
+            3: [4, 5, 7, 8],
+            4: [5, 6, 8, 9]
+        }
+
+        cls.inverse_neighbour_map = {
+            1: [1],
+            2: [1, 2],
+            3: [2],
+            4: [1, 3],
+            5: [1, 2, 3, 4],
+            6: [2, 4],
+            7: [3],
+            8: [3, 4],
+            9: [4]
+        }
+
+    def _GetMapper(self):
+        return KratosOA.VertexMorphingNodalContainerVariableDataMapper(self.origin_model_part, self.destination_model_part, self.mapper_parameters.Clone())
+
+    def _GetContainerDataHolder(self, model_part: Kratos.ModelPart):
+        return KratosOA.HistoricalContainerVariableDataHolder(model_part)
+
+    def _GetEntity(self, model_part: Kratos.ModelPart, id: int):
+        return model_part.GetNode(id)
+
+    def _GetValue(self, entity, variable):
+        return entity.GetSolutionStepValue(variable)
+
     def test_MapScalar(self):
-        mapper = KratosOA.VertexMorphingNodalContainerVariableDataMapper(self.origin_model_part, self.destination_model_part, self.mapper_parameters.Clone())
+        mapper = self._GetMapper()
         mapper.Update()
 
-        origin_data = KratosOA.HistoricalContainerVariableDataHolder(self.origin_model_part)
+        origin_data = self._GetContainerDataHolder(self.origin_model_part)
         origin_data.ReadDataFromContainerVariable(Kratos.PRESSURE)
 
-        destination_data = KratosOA.HistoricalContainerVariableDataHolder(self.destination_model_part)
+        destination_data = self._GetContainerDataHolder(self.destination_model_part)
         mapper.Map(origin_data, destination_data)
         destination_data.AssignDataToContainerVariable(Kratos.PRESSURE)
 
-        neighbour_nodes_map = {
-            1: [1, 2, 4, 5],
-            2: [2, 3, 5, 6],
-            3: [4, 5, 7, 8],
-            4: [5, 6, 8, 9]
-        }
-        for dest_id, orig_ids in neighbour_nodes_map.items():
-            dest_node: Kratos.Node = self.destination_model_part.GetNode(dest_id)
+        for dest_id, orig_ids in self.neighbour_entitys_map.items():
+            dest_entity: self.KratosEntity = self._GetEntity(self.destination_model_part, dest_id)
             v = 0.0
             for orig_id in orig_ids:
-                orig_node: Kratos.Node = self.origin_model_part.GetNode(orig_id)
-                v += orig_node.GetSolutionStepValue(Kratos.PRESSURE) * 0.25
-            self.assertAlmostEqual(dest_node.GetSolutionStepValue(Kratos.PRESSURE), v, 12)
+                orig_entity: self.KratosEntity = self._GetEntity(self.origin_model_part, orig_id)
+                v += self._GetValue(orig_entity, Kratos.PRESSURE) * 0.25
+            self.assertAlmostEqual(self._GetValue(dest_entity, Kratos.PRESSURE), v, 12)
 
-        inverse_neighbour_map = {
-            1: [1],
-            2: [1, 2],
-            3: [2],
-            4: [1, 3],
-            5: [1, 2, 3, 4],
-            6: [2, 4],
-            7: [3],
-            8: [3, 4],
-            9: [4]
-        }
-
-        inverse_origin_data = KratosOA.HistoricalContainerVariableDataHolder(self.origin_model_part)
+        inverse_origin_data = self._GetContainerDataHolder(self.origin_model_part)
         mapper.InverseMap(inverse_origin_data, destination_data)
         inverse_origin_data.AssignDataToContainerVariable(Kratos.DENSITY)
 
-        for orig_id, dest_ids in inverse_neighbour_map.items():
-            orig_node: Kratos.Node = self.origin_model_part.GetNode(orig_id)
+        for orig_id, dest_ids in self.inverse_neighbour_map.items():
+            orig_entity: self.KratosEntity = self._GetEntity(self.origin_model_part, orig_id)
             v = 0.0
             for dest_id in dest_ids:
-                dest_node: Kratos.Node = self.destination_model_part.GetNode(dest_id)
-                v += dest_node.GetSolutionStepValue(Kratos.PRESSURE) * 0.25
-            self.assertAlmostEqual(orig_node.GetSolutionStepValue(Kratos.DENSITY), v, 12)
+                dest_entity: self.KratosEntity = self._GetEntity(self.destination_model_part, dest_id)
+                v += self._GetValue(dest_entity, Kratos.PRESSURE) * 0.25
+            self.assertAlmostEqual(self._GetValue(orig_entity, Kratos.DENSITY), v, 12)
 
     def test_MapArray(self):
-        mapper = KratosOA.VertexMorphingNodalContainerVariableDataMapper(self.origin_model_part, self.destination_model_part, self.mapper_parameters.Clone())
+        mapper = self._GetMapper()
         mapper.Update()
 
-        origin_data = KratosOA.HistoricalContainerVariableDataHolder(self.origin_model_part)
+        origin_data = self._GetContainerDataHolder(self.origin_model_part)
         origin_data.ReadDataFromContainerVariable(Kratos.VELOCITY)
 
-        destination_data = KratosOA.HistoricalContainerVariableDataHolder(self.destination_model_part)
+        destination_data = self._GetContainerDataHolder(self.destination_model_part)
         mapper.Map(origin_data, destination_data)
         destination_data.AssignDataToContainerVariable(Kratos.VELOCITY)
 
-        neighbour_nodes_map = {
-            1: [1, 2, 4, 5],
-            2: [2, 3, 5, 6],
-            3: [4, 5, 7, 8],
-            4: [5, 6, 8, 9]
-        }
-        for dest_id, orig_ids in neighbour_nodes_map.items():
-            dest_node: Kratos.Node = self.destination_model_part.GetNode(dest_id)
+        for dest_id, orig_ids in self.neighbour_entitys_map.items():
+            dest_entity: self.KratosEntity = self._GetEntity(self.destination_model_part, dest_id)
             v = Kratos.Array3([0, 0, 0])
             for orig_id in orig_ids:
-                orig_node: Kratos.Node = self.origin_model_part.GetNode(orig_id)
-                v += orig_node.GetSolutionStepValue(Kratos.VELOCITY) * 0.25
-            self.assertVectorAlmostEqual(dest_node.GetSolutionStepValue(Kratos.VELOCITY), v, 12)
+                orig_entity: self.KratosEntity = self._GetEntity(self.origin_model_part, orig_id)
+                v += self._GetValue(orig_entity, Kratos.VELOCITY) * 0.25
+            self.assertVectorAlmostEqual(self._GetValue(dest_entity, Kratos.VELOCITY), v, 12)
 
-        inverse_neighbour_map = {
-            1: [1],
-            2: [1, 2],
-            3: [2],
-            4: [1, 3],
-            5: [1, 2, 3, 4],
-            6: [2, 4],
-            7: [3],
-            8: [3, 4],
-            9: [4]
-        }
-
-        inverse_origin_data = KratosOA.HistoricalContainerVariableDataHolder(self.origin_model_part)
+        inverse_origin_data = self._GetContainerDataHolder(self.origin_model_part)
         mapper.InverseMap(inverse_origin_data, destination_data)
         inverse_origin_data.AssignDataToContainerVariable(Kratos.ACCELERATION)
 
-        for orig_id, dest_ids in inverse_neighbour_map.items():
-            orig_node: Kratos.Node = self.origin_model_part.GetNode(orig_id)
+        for orig_id, dest_ids in self.inverse_neighbour_map.items():
+            orig_entity: self.KratosEntity = self._GetEntity(self.origin_model_part, orig_id)
             v = Kratos.Array3([0, 0, 0])
             for dest_id in dest_ids:
-                dest_node: Kratos.Node = self.destination_model_part.GetNode(dest_id)
-                v += dest_node.GetSolutionStepValue(Kratos.VELOCITY) * 0.25
-            self.assertVectorAlmostEqual(orig_node.GetSolutionStepValue(Kratos.ACCELERATION), v, 12)
+                dest_entity: self.KratosEntity = self._GetEntity(self.destination_model_part, dest_id)
+                v += self._GetValue(dest_entity, Kratos.VELOCITY) * 0.25
+            self.assertVectorAlmostEqual(self._GetValue(orig_entity, Kratos.ACCELERATION), v, 12)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
