@@ -42,7 +42,7 @@ def __FindCPPModuleImportsInPythonModules(current_path: Path, cpp_module_names_l
 
                 data = data.replace(" ", "")
                 for i, cpp_module_name in enumerate(cpp_module_names_list):
-                    if "\nfrom{:s}import*".format(cpp_module_name) in data:
+                    if "\nfrom{:s}import*".format(cpp_module_name) in data or "from{:s}import*".format(cpp_module_name) in data:
                         cpp_python_modules_dict[cpp_module_name] = sub_path
                         print(f"--- Found {cpp_module_name} binary module include in {str(sub_path)}.")
                         del cpp_module_names_list[i]
@@ -99,8 +99,16 @@ def __GenerateStubFilesForModule(
         shutil.rmtree(str(python_module_file_path.parent.absolute()))
 
         # now append cpp module stub file
-        with open(str(cpp_module_file_path), "a") as file_output:
+        with open(str(cpp_module_file_path), "r") as file_input:
+            lines = file_input.read()
+
+        lines = lines.replace("\nimport Kratos\n", "\nimport KratosMultiphysics as Kratos\n")
+
+        with open(str(cpp_module_file_path), "w") as file_output:
+            file_output.write(lines)
             file_output.write("\n\n#   ---- start of includes of python modules --- \n\n")
+            data = data.replace("from Kratos", "from KratosMultiphysics.")
+            data = data.replace("from KratosMultiphysics. import", "from KratosMultiphysics import")
             file_output.write(data)
             file_output.write("\n#   ---- end of includes of python modules --- \n\n")
 

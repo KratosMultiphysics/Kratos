@@ -2,7 +2,7 @@ set(KRATOS_GENERATE_PYTHON_STUBS OFF CACHE BOOL "Generate hints for binary pytho
 
 if (${KRATOS_GENERATE_PYTHON_STUBS})
     if(${CMAKE_VERSION} VERSION_LESS "3.20.0")
-        message("Generating python stubs requires minimum cmake 3.20.0 which is not satisfied. Hence ignoring stubs generation...")
+        install(CODE "message(WARNING \"Current cmake version is less than the required minimum cmake version of 3.20.0 for python stubs generation. Hence ignoring stubs generation...\")")
     else(${CMAKE_VERSION} VERSION_LESS "3.20.0")
         install(CODE "message(STATUS \"Trying to install python stub files to enable python hinting support for cpp libraries in IDEs...\")")
         cmake_path(CONVERT ${PYTHON_EXECUTABLE} TO_CMAKE_PATH_LIST CONVERTED_PY_EXEC)
