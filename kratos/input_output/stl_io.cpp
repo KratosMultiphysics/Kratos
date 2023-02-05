@@ -82,8 +82,7 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
 
 void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
 {    
-    (*mpInputStream) << "solid compensated_skin_part\n";
-
+    (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
 
     for (auto & rElem : rThisModelPart.Elements()) {
         const auto & rGeom = rElem.GetGeometry();
