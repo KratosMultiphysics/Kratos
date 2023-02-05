@@ -1,13 +1,17 @@
 from abc import ABC
 from abc import abstractmethod
 
+import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 from KratosMultiphysics.OptimizationApplication.utilities.control_transformation_technique import ControlTransformationTechnique
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ObjectiveResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ConstraintResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import CallOnAll
 
-class Algorithm(ABC):
-    def __init__(self):
+class Algorithm(OptimizationRoutine, ABC):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+        super().__init__(model, parameters, optimization_info)
         self.__list_of_objectives: 'list[ObjectiveResponseFunctionImplementor]' = []
         self.__list_of_constraints: 'list[ConstraintResponseFunctionImplementor]' = []
         self.__list_of_controllers: 'list[ControlTransformationTechnique]' = []
@@ -28,18 +32,9 @@ class Algorithm(ABC):
     def AddDofs(self):
         pass
 
-    def Initialize(self):
-        pass
-
     def InitializeSolutionStep(self):
         CallOnAll(self.GetObjectives(), ObjectiveResponseFunctionImplementor.ResetResponseData)
         CallOnAll(self.GetConstraints(), ConstraintResponseFunctionImplementor.ResetResponseData)
-
-    def FinalizeSolutionStep(self):
-        pass
-
-    def Finalize(self):
-        pass
 
     def SetObjectives(self, list_of_objectives: 'list[ObjectiveResponseFunctionImplementor]'):
         self.__list_of_objectives = list_of_objectives

@@ -4,9 +4,10 @@ import KratosMultiphysics as Kratos
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 
 class TestOptimizationInfo(kratos_unittest.TestCase):
-    class TestRoutine:
+    class TestRoutine(OptimizationRoutine):
         def __init__(self):
             pass
 

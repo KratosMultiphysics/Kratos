@@ -9,7 +9,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import Factory
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import OptimizationRoutineFactory
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
@@ -59,7 +59,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
                     "perturbation_size"        : 1e-8
                 }
             }""")
-            cls.response_function: ResponseFunction = Factory(response_function_settings["module"].GetString(), response_function_settings["type"].GetString(), cls.model, response_function_settings["settings"], cls.optimization_info, ResponseFunction)
+            cls.response_function: ResponseFunction = OptimizationRoutineFactory(response_function_settings["module"].GetString(), response_function_settings["type"].GetString(), cls.model, response_function_settings["settings"], cls.optimization_info, ResponseFunction)
             cls.optimization_info.AddOptimizationRoutine(ResponseFunction, response_function_settings["name"].GetString(), cls.response_function)
 
             # now replace the properties

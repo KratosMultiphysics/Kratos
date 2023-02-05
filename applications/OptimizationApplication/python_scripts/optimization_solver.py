@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.python_solver import PythonSolver
 
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import Factory
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import OptimizationRoutineFactory
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ObjectiveResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ConstraintResponseFunctionImplementor
@@ -124,7 +124,7 @@ class OptimizationSolver(PythonSolver):
                 "settings": {}
             }""")
             model_part_controller_settings.ValidateAndAssignDefaults(default_model_part_controller_settings)
-            routine: ModelPartController = Factory(model_part_controller_settings["module"].GetString(), model_part_controller_settings["type"].GetString(), self.model, model_part_controller_settings["settings"], self.optimization_info, ModelPartController)
+            routine: ModelPartController = OptimizationRoutineFactory(model_part_controller_settings["module"].GetString(), model_part_controller_settings["type"].GetString(), self.model, model_part_controller_settings["settings"], self.optimization_info, ModelPartController)
             self.optimization_info.AddOptimizationRoutine(ModelPartController, model_part_controller_settings["name"].GetString(), routine)
 
     def _CreateAnalyses(self):
@@ -141,7 +141,7 @@ class OptimizationSolver(PythonSolver):
         }""")
         for response_settings in self.settings["responses"]:
             response_settings.ValidateAndAssignDefaults(default_settings)
-            routine: ResponseFunction = Factory(response_settings["module"].GetString(), response_settings["type"].GetString(), self.model, response_settings["settings"], self.optimization_info, ResponseFunction)
+            routine: ResponseFunction = OptimizationRoutineFactory(response_settings["module"].GetString(), response_settings["type"].GetString(), self.model, response_settings["settings"], self.optimization_info, ResponseFunction)
             self.optimization_info.AddOptimizationRoutine(ResponseFunction, response_settings["name"].GetString(), routine)
 
     def _CreateControlTechniques(self):
@@ -161,7 +161,7 @@ class OptimizationSolver(PythonSolver):
         }""")
         for algorithm_settings in self.settings["algorithms"]:
             algorithm_settings.ValidateAndAssignDefaults(default_settings)
-            algorithm: Algorithm = Factory(algorithm_settings["module"].GetString(), algorithm_settings["type"].GetString(), self.model, algorithm_settings["settings"], self.optimization_info, Algorithm)
+            algorithm: Algorithm = OptimizationRoutineFactory(algorithm_settings["module"].GetString(), algorithm_settings["type"].GetString(), self.model, algorithm_settings["settings"], self.optimization_info, Algorithm)
             algorithm.SetName(algorithm_settings["name"].GetString())
             self.optimization_info.AddOptimizationRoutine(Algorithm, algorithm.GetName(), algorithm)
 
