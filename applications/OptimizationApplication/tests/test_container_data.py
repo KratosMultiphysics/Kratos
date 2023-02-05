@@ -267,6 +267,9 @@ class TestHistoricalContainerVariableDataHolder(kratos_unittest.TestCase, TestCo
     def setUpClass(cls):
         cls.CreateEntities()
 
+    def test_GetContainer(self):
+        self.assertTrue(isinstance(self._GetContainerVariableDataHolder().GetContainer(), Kratos.NodesArray))
+
     def test_CopyData(self):
         a = self._GetContainerVariableDataHolder()
         b = KratosOA.NodalContainerVariableDataHolder(self.model_part)
@@ -306,6 +309,9 @@ class TestNodalContainerVariableDataHolder(kratos_unittest.TestCase, TestContain
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
+
+    def test_GetContainer(self):
+        self.assertTrue(isinstance(self._GetContainerVariableDataHolder().GetContainer(), Kratos.NodesArray))
 
     def test_CopyData(self):
         a = self._GetContainerVariableDataHolder()
@@ -347,6 +353,9 @@ class TestConditionContainerVariableDataHolder(kratos_unittest.TestCase, TestCon
     def setUpClass(cls):
         cls.CreateEntities()
 
+    def test_GetContainer(self):
+        self.assertTrue(isinstance(self._GetContainerVariableDataHolder().GetContainer(), Kratos.ConditionsArray))
+
     def test_CopyData(self):
         a = self._GetContainerVariableDataHolder()
         b = KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part)
@@ -386,6 +395,9 @@ class TestElementContainerVariableDataHolder(kratos_unittest.TestCase, TestConta
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
+
+    def test_GetContainer(self):
+        self.assertTrue(isinstance(self._GetContainerVariableDataHolder().GetContainer(), Kratos.ElementsArray))
 
     def test_CopyData(self):
         a = self._GetContainerVariableDataHolder()
@@ -427,6 +439,9 @@ class TestConditionPropertiesContainerVariableDataHolder(kratos_unittest.TestCas
     def setUpClass(cls):
         cls.CreateEntities()
 
+    def test_GetContainer(self):
+        self.assertTrue(isinstance(self._GetContainerVariableDataHolder().GetContainer(), Kratos.ConditionsArray))
+
     def test_CopyData(self):
         a = self._GetContainerVariableDataHolder()
         b = KratosOA.ConditionContainerVariableDataHolder(self.model_part)
@@ -466,6 +481,9 @@ class TestElementPropertiesContainerVariableDataHolder(kratos_unittest.TestCase,
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
+
+    def test_GetContainer(self):
+        self.assertTrue(isinstance(self._GetContainerVariableDataHolder().GetContainer(), Kratos.ElementsArray))
 
     def test_CopyData(self):
         a = self._GetContainerVariableDataHolder()
