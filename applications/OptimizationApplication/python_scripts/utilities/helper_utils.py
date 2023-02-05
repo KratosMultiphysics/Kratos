@@ -14,6 +14,12 @@ ContainerVariableDataHolderUnion = Union[
         KratosOA.ConditionPropertiesContainerVariableDataHolder,
         KratosOA.ElementPropertiesContainerVariableDataHolder]
 
+ContainerTypes = Union[
+    Kratos.NodesArray,
+    Kratos.ConditionsArray,
+    Kratos.ElementsArray
+]
+
 def CallOnAll(list_of_objects: 'list[any]', method: any, *args, **kwargs):
     for obj in list_of_objects:
         getattr(obj, method.__name__)(*args, **kwargs)
