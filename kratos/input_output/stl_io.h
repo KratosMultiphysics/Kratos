@@ -115,7 +115,7 @@ public:
 
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
-    void WriteModelPart(ModelPart & rThisModelPart) override;
+    void WriteModelPart(const ModelPart & rThisModelPart) override;
     ///@}
     ///@name Access
     ///@{
