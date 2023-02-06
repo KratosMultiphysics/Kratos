@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_processes/entity_specific_properties_process.h"
+#include "custom_processes/extract_boundary_nodes_process.h"
 
 // Include base h
 #include "add_custom_processes_to_python.h"
@@ -31,6 +32,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<EntitySpecificPropertiesProcess, EntitySpecificPropertiesProcess::Pointer, Process>(m, "EntitySpecificPropertiesProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    py::class_<ExtractBoundaryNodesProcess, ExtractBoundaryNodesProcess::Pointer, Process>(m, "ExtractBoundaryNodesProcess")
         .def(py::init<Model&, Parameters&>());
 }
 
