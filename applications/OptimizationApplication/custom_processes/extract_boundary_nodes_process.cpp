@@ -51,6 +51,8 @@ ExtractBoundaryNodesProcess::ExtractBoundaryNodesProcess(
     mModelPartName = rParameters["model_part_name"].GetString();
     mBoundaryNodesSubModelPartName = rParameters["boundary_sub_model_part_name"].GetString();
     mEchoLevel = rParameters["echo_level"].GetInt();
+
+    Execute();
 }
 
 int ExtractBoundaryNodesProcess::Check()
@@ -58,7 +60,7 @@ int ExtractBoundaryNodesProcess::Check()
     return 0;
 }
 
-void ExtractBoundaryNodesProcess::ExecuteInitialize()
+void ExtractBoundaryNodesProcess::Execute()
 {
     KRATOS_TRY
 

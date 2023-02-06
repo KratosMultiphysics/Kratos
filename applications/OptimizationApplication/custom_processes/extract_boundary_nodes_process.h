@@ -66,7 +66,7 @@ public:
 
     int Check() override;
 
-    void ExecuteInitialize() override;
+    void Execute() override;
 
     const Parameters GetDefaultParameters() const override;
 
