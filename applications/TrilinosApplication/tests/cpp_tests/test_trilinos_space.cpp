@@ -36,7 +36,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeVector, KratosTrilinosApplicat
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
 
     // Check
     KRATOS_CHECK_EQUAL(size, TrilinosSparseSpaceType::Size(vector));
@@ -63,8 +63,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDotProduct, KratosTrilinosApplicat
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector1 = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
-    auto vector2 = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
+    auto vector1 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    auto vector2 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
     double ref = 0.0;
     for (int i = 0; i < size; ++i) {
         ref += std::pow(static_cast<double>(i), 2);
@@ -81,7 +81,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMaxMin, KratosTrilinosApplicationM
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
 
     // Check
     KRATOS_CHECK_DOUBLE_EQUAL(0.0, TrilinosSparseSpaceType::Min(vector));
@@ -95,7 +95,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormVector, KratosTrilinosAppli
 
     // The dummy vector
     const int size = 2 * r_comm.Size();
-    auto vector = TrilinosCPPTestUtilities::GenerateDummyVector(r_comm, size);
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
     double ref = 0.0;
     for (int i = 0; i < size; ++i) {
         ref += std::pow(static_cast<double>(i), 2);
