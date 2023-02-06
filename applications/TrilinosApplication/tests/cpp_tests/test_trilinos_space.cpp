@@ -143,6 +143,36 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix2, KratosTrilinosAppl
     KRATOS_CHECK_DOUBLE_EQUAL(TrilinosLocalSpaceType::TwoNorm(local_matrix), TrilinosSparseSpaceType::TwoNorm(matrix));
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMultMatrixVector, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy matrix
+    const int size = 2 * r_comm.Size();
+    auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto local_matrix = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 0.0);
+    auto local_vector = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size, 0.0);
+
+    // Epetra coomunicator
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+    // Create a map
+    Epetra_Map Map(size,0,epetra_comm);
+
+    // Create a Epetra_Vector
+    TrilinosVectorType mult(Map);
+
+    // Solution
+    TrilinosSparseSpaceType::Mult(matrix, vector, mult);
+
+    // Check
+    const TrilinosLocalVectorType multiply_reference = prod(local_matrix, local_vector);
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(mult, multiply_reference);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
