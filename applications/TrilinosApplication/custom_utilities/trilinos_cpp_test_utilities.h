@@ -229,36 +229,28 @@ public:
     }
 
     /**
-    * @brief This method checks the values of a sparse vector with the given indices and values
-    * @param rA The matrix to check
-    * @param rRowIndexes The row indices
-    * @param rColumnIndexes The column indices
-    * @param rValues The values
+    * @brief This method checks the values of a sparse vector with the given serial vector
+    * @param vector The matrix to check
+    * @param vector The reference matrix
     * @param Tolerance The tolerance considered
     */
-    static void CheckSparseMatrixFromLocalMatrix(
-        const TrilinosSparseMatrixType& rA,
-        const TrilinosLocalMatrixType& rB,
+    static void CheckSparseVectorFromLocalVector(
+        const TrilinosVectorType& rA,
+        const TrilinosLocalVectorType& rB,
         const double Tolerance = 1e-8
         )
     {
-        const std::size_t total_size = rB.size1() * rB.size2();
-        std::vector<int> row_indexes;
-        row_indexes.reserve(total_size);
-        std::vector<int> column_indexes;
-        column_indexes.reserve(total_size);
+        const std::size_t total_size = rB.size();
+        std::vector<int> indexes;
+        indexes.reserve(total_size);
         std::vector<double> values;
         values.reserve(total_size);
-        for (std::size_t i = 0; i < rB.size1(); ++i) {
-            for (std::size_t j = 0; j < rB.size2(); ++j) {
-                row_indexes.push_back(i);
-                column_indexes.push_back(j);
-                values.push_back(rB(i, j));
-            }
+        for (std::size_t i = 0; i < rB.size(); ++i) {
+            indexes.push_back(i);
+            values.push_back(rB[i]);
         }
-        CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+        CheckSparseVector(rA, indexes, values);
     }
-
 
     /**
     * @brief This method checks the values of a sparse vector with the given indices and values
@@ -281,7 +273,6 @@ public:
             index = rIndexes[counter];
             value = rValues[counter];
             if (r_map.MyGID(index)) {
-                rA.ExtractMyRowView(i, numEntries, vals, cols);
                 const double ref_value = rb[0][r_map.LID(index)];
                 KRATOS_CHECK_RELATIVE_NEAR(value, ref_value, Tolerance);
             }
@@ -289,11 +280,9 @@ public:
     }
 
     /**
-    * @brief This method checks the values of a sparse matrix with the given indices and values
+    * @brief This method checks the values of a sparse matrix with the given serial matrix
     * @param rA The matrix to check
-    * @param rRowIndexes The row indices
-    * @param rColumnIndexes The column indices
-    * @param rValues The values
+    * @param rB The reference matrix
     * @param Tolerance The tolerance considered
     */
     static void CheckSparseMatrixFromLocalMatrix(
