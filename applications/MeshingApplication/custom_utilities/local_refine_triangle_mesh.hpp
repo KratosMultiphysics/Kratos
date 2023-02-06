@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
@@ -13,18 +13,15 @@
 //    Co-authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LOCAL_REFINE_TRIANGLE_MESH_ELEMENTS)
-#define  KRATOS_LOCAL_REFINE_TRIANGLE_MESH_ELEMENTS
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#pragma once
 
 // NOTE: Before compute the remeshing it is necessary to compute the neighbours
 
 // System includes
 
-/* Project includes */
+// External includes
+
+// Project includes
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "custom_utilities/local_refine_triangle_mesh_generic.hpp"
@@ -309,5 +306,3 @@ public:
 };
 
 } // namespace Kratos.
-
-#endif // KRATOS_LOCAL_REFINE_TRIANGLE_MESH  defined

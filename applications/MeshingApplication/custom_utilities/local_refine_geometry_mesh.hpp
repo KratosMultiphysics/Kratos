@@ -245,11 +245,14 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-        ModelPart& mModelPart;
-        int mCurrentRefinementLevel;
+
+        ModelPart& mModelPart;       /// The model part to be refined
+        int mCurrentRefinementLevel; /// The current refinement level
+
     ///@}
     ///@name Protected Operators
     ///@{
+
     template<typename TIteratorType>
     void SearchEdgeToBeRefinedGeneric(
             TIteratorType GeometricalObjectsBegin,
@@ -259,17 +262,13 @@ protected:
     {
         KRATOS_TRY;
 
-        for (TIteratorType it = GeometricalObjectsBegin; it != GeometricalObjectsEnd; ++it)
-        {
-            if (it->GetValue(SPLIT_ELEMENT) == true)
-            {
-                Element::GeometryType& geom = it->GetGeometry(); // Nodes of the element
-                for (unsigned int i = 0; i < geom.size(); i++)
-                {
-                    int index_i = geom[i].Id() - 1;
-                    for (unsigned int j = 0; j < geom.size(); j++)
-                    {
-                        int index_j = geom[j].Id() - 1;
+        for (TIteratorType it = GeometricalObjectsBegin; it != GeometricalObjectsEnd; ++it) {
+            if (it->GetValue(SPLIT_ELEMENT)) {
+                auto& r_geom = it->GetGeometry(); // Nodes of the element
+                for (unsigned int i = 0; i < r_geom.size(); i++) {
+                    int index_i = r_geom[i].Id() - 1;
+                    for (unsigned int j = 0; j < r_geom.size(); j++) {
+                        int index_j = r_geom[j].Id() - 1;
                         if (index_j > index_i)
                         {
                             rCoord(index_i, index_j) = -2;
@@ -281,7 +280,6 @@ protected:
 
         KRATOS_CATCH("");
     }
-
 
     ///@}
     ///@name Protected Operations
@@ -327,8 +325,8 @@ private:
     ///@}
     ///@name Private LifeCycle
     ///@{
+        
     ///@}
-
 };
 
 } // namespace Kratos.
