@@ -610,40 +610,39 @@ public:
 
     /**
      * @brief Assembles the LHS of the system
-     * @param A The LHS matrix
-     * @param LHS_Contribution The contribution to the LHS
-     * @param EquationId The equation ids
+     * @param rA The LHS matrix
+     * @param rLHSContribution The contribution to the LHS
+     * @param rEquationId The equation ids
      */
     inline static void AssembleLHS(
-        MatrixType& A,
-        Matrix& LHS_Contribution,
-        std::vector<std::size_t>& EquationId
+        MatrixType& rA,
+        const Matrix& rLHSContribution,
+        const std::vector<std::size_t>& rEquationId
         )
     {
-        unsigned int system_size = Size1(A);
-        //unsigned int local_size = LHS_Contribution.size1();
+        const unsigned int system_size = Size1(rA);
 
-        //count active indices
+        // Ccount active indices
         unsigned int active_indices = 0;
-        for (unsigned int i = 0; i < EquationId.size(); i++)
-            if (EquationId[i] < system_size)
+        for (unsigned int i = 0; i < rEquationId.size(); i++)
+            if (rEquationId[i] < system_size)
                 active_indices += 1;
 
         if (active_indices > 0) {
-            //size Epetra vectors
+            // Size Epetra vectors
             Epetra_IntSerialDenseVector indices(active_indices);
             Epetra_SerialDenseMatrix values(active_indices, active_indices);
 
-            //fill epetra vectors
+            // Fill epetra vectors
             int loc_i = 0;
-            for (unsigned int i = 0; i < EquationId.size(); i++) {
-                if (EquationId[i] < system_size) {
-                    indices[loc_i] = EquationId[i];
+            for (unsigned int i = 0; i < rEquationId.size(); i++) {
+                if (rEquationId[i] < system_size) {
+                    indices[loc_i] = rEquationId[i];
 
                     int loc_j = 0;
-                    for (unsigned int j = 0; j < EquationId.size(); j++) {
-                        if (EquationId[j] < system_size) {
-                            values(loc_i, loc_j) = LHS_Contribution(i, j);
+                    for (unsigned int j = 0; j < rEquationId.size(); j++) {
+                        if (rEquationId[j] < system_size) {
+                            values(loc_i, loc_j) = rLHSContribution(i, j);
                             loc_j += 1;
                         }
                     }
@@ -651,7 +650,7 @@ public:
                 }
             }
 
-            int ierr = A.SumIntoGlobalValues(indices, values);
+            int ierr = rA.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -662,41 +661,40 @@ public:
 
     /**
      * @brief Assembles the RHS of the system
-     * @param b The RHS vector
-     * @param RHS_Contribution The RHS contribution
-     * @param EquationId The equation ids
+     * @param rb The RHS vector
+     * @param rRHSContribution The RHS contribution
+     * @param rEquationId The equation ids
      */
     inline static void AssembleRHS(
-        VectorType& b,
-        Vector& RHS_Contribution,
-        std::vector<std::size_t>& EquationId
+        VectorType& rb,
+        const Vector& rRHSContribution,
+        const std::vector<std::size_t>& rEquationId
         )
     {
-        unsigned int system_size = Size(b);
-        //unsigned int local_size = RHS_Contribution.size();
+        const unsigned int system_size = Size(rb);
 
-        //count active indices
+        // Count active indices
         int active_indices = 0;
-        for (unsigned int i = 0; i < EquationId.size(); i++)
-            if (EquationId[i] < system_size)
+        for (unsigned int i = 0; i < rEquationId.size(); i++)
+            if (rEquationId[i] < system_size)
                 active_indices += 1;
 
         if (active_indices > 0) {
-            //size Epetra vectors
+            // Size Epetra vectors
             Epetra_IntSerialDenseVector indices(active_indices);
             Epetra_SerialDenseVector values(active_indices);
 
-            //fill epetra vectors
+            // Fill epetra vectors
             int loc_i = 0;
-            for (unsigned int i = 0; i < EquationId.size(); i++) {
-                if (EquationId[i] < system_size) {
-                    indices[loc_i] = EquationId[i];
-                    values[loc_i] = RHS_Contribution[i];
+            for (unsigned int i = 0; i < rEquationId.size(); i++) {
+                if (rEquationId[i] < system_size) {
+                    indices[loc_i] = rEquationId[i];
+                    values[loc_i] = rRHSContribution[i];
                     loc_i += 1;
                 }
             }
 
-            int ierr = b.SumIntoGlobalValues(indices, values);
+            int ierr = rb.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -722,7 +720,7 @@ public:
         )
     {
         // index must be local to this proc
-        KRATOS_ERROR_IF_NOT(rX.Map().MyGID(static_cast<int>(I))) << " non-local id: " << I << ".";
+        KRATOS_ERROR_IF_NOT(rX.Map().MyGID(static_cast<int>(I))) << " non-local id: " << I << "." << std::endl;
         // Epetra_MultiVector::operator[] is used here to get the pointer to
         // the zeroth (only) local vector.
         return rX[0][rX.Map().LID(static_cast<int>(I))];
@@ -829,8 +827,8 @@ public:
      * @param N The size of the vector
      */
     VectorPointerType ReadMatrixMarketVector(
-        const std::string& rFileName, 
-        Epetra_MpiComm& rComm, 
+        const std::string& rFileName,
+        Epetra_MpiComm& rComm,
         const int N
         )
     {
