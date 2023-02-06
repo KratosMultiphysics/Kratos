@@ -107,11 +107,11 @@ public:
         PointerVector< TGeometricalObjectType > Old_Objects;
 
         unsigned int current_id = (GeometricalObjectsEnd - 1)->Id() + 1;
-        for (TArrayType::iterator it = GeometricalObjectsBegin; it != GeometricalObjectsEnd; ++it) {
+        for (typename TArrayType::iterator it = GeometricalObjectsBegin; it != GeometricalObjectsEnd; ++it) {
             for (int & i : t) {
                 i = -1;
             }
-            TGeometricalObjectType::GeometryType& rGeom = it->GetGeometry();
+            typename TGeometricalObjectType::GeometryType& rGeom = it->GetGeometry();
             CalculateEdges(rGeom, rCoord, EdgeIds, rAux);
 
             const unsigned int dimension = rGeom.WorkingSpaceDimension();
@@ -137,7 +137,7 @@ public:
                             rThisModelPart.Nodes()(i2)
                         );
 
-                        TGeometricalObjectType::Pointer p_object;
+                        typename TGeometricalObjectType::Pointer p_object;
                         p_object = it->Create(current_id, rGeom, it->pGetProperties());
                         p_object->Initialize(rCurrentProcessInfo);
                         p_object->InitializeSolutionStep(rCurrentProcessInfo);
@@ -154,7 +154,7 @@ public:
                         p_object->GetValue(SPLIT_ELEMENT) = false;
                         //p_element->SetValue(REFINEMENT_LEVEL, 1);
                         rNewObjects.push_back(p_object);
-                        r_child_objects.push_back( TGeometricalObjectType::WeakPointer(p_object) );
+                        r_child_objects.push_back(typename TGeometricalObjectType::WeakPointer(p_object) );
                     } else {
                         Triangle3D3<Node < 3 > > rGeom(
                             rThisModelPart.Nodes()(i0),
@@ -162,7 +162,7 @@ public:
                             rThisModelPart.Nodes()(i2)
                         );
 
-                        TGeometricalObjectType::Pointer p_object;
+                        typename TGeometricalObjectType::Pointer p_object;
                         p_object = it->Create(current_id, rGeom, it->pGetProperties());
                         p_object->Initialize(rCurrentProcessInfo);
                         p_object->InitializeSolutionStep(rCurrentProcessInfo);
@@ -176,7 +176,7 @@ public:
                         p_object->GetData() = it->GetData();
                         p_object->GetValue(SPLIT_ELEMENT) = false;
                         rNewObjects.push_back(p_object);
-                        r_child_objects.push_back( TGeometricalObjectType::WeakPointer(p_object) );
+                        r_child_objects.push_back(typename TGeometricalObjectType::WeakPointer(p_object) );
                     }
 
                     current_id++;
