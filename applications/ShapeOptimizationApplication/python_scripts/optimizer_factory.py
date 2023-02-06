@@ -95,6 +95,7 @@ class Optimizer:
             model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS)
             model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS_RAW)
             model_part.AddNodalSolutionStepVariable(KSO.GAUSSIAN_CURVATURE)
+            model_part.AddNodalSolutionStepVariable(KSO.MAX_NEIGHBOUR_DISTANCE)
 
 
     # --------------------------------------------------------------------------

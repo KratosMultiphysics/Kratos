@@ -21,7 +21,7 @@ from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResul
 #         "file_format"            : "binary",
 #         "output_sub_model_parts" : false,
 #         "output_path"            : "Optimization_Results",
-#         "nodal_solution_step_data_variables": ["GAUSSIAN_CURVATURE","VERTEX_MORPHING_RADIUS_RAW","VERTEX_MORPHING_RADIUS", "DF1DX","DF1DX_MAPPED", "CONTROL_POINT_UPDATE", "SHAPE_UPDATE"]
+#         "nodal_solution_step_data_variables": ["MAX_NEIGHBOUR_DISTANCE", "GAUSSIAN_CURVATURE","VERTEX_MORPHING_RADIUS_RAW","VERTEX_MORPHING_RADIUS", "DF1DX","DF1DX_MAPPED", "CONTROL_POINT_UPDATE", "SHAPE_UPDATE"]
 #     }
 #     """)
 #     vtk_output_original = VtkOutputProcess(model, output_parameters)

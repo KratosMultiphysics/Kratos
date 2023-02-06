@@ -68,7 +68,6 @@ template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::Initialize()
 {
     BaseType::Initialize();
-    CalculateAdaptiveVertexMorphingRadius();
 
     KRATOS_INFO("ShapeOpt") << "minimum_filter_radius: " << mMinimumFilterRadius  << std::endl;
     KRATOS_INFO("ShapeOpt") << "radius_function: " << mRadiusFunctionType  << std::endl;
@@ -120,7 +119,7 @@ double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CurvatureF
 
         double b = (mRadiusFunctionParameter * mCurvatureLimit) / (delta_K_max - mRadiusFunctionParameter);
         double a = b * delta_K_max;
-        double delta_K = a / (abs(rCurvature) + b);
+        double delta_K = a / (std::abs(rCurvature) + b);
 
         double filter_radius = (delta_K > 0) ? rElementSize * pow(4/delta_K, 0.25) : mMinimumFilterRadius;
         return filter_radius;
@@ -128,15 +127,15 @@ double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CurvatureF
     // Using linear function r = r_min + a * h * kappa
     else if (mRadiusFunctionType == "linear")
     {
-        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * abs(rCurvature);
+        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * std::abs(rCurvature);
     }
     // Using square root function r = r_min + a * h * sqrt(kappa)
     else if (mRadiusFunctionType == "square_root") {
-        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * sqrt(abs(rCurvature));
+        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * sqrt(std::abs(rCurvature));
     }
     // Using fourth root function r = r_min + a * h * kappa**0.25
     else if (mRadiusFunctionType == "fourth_root") {
-        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * pow(abs(rCurvature), 0.25);
+        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * pow(std::abs(rCurvature), 0.25);
     } else {
         KRATOS_ERROR << "ShapeOpt Adaptive Filter: Curvature function type " << mRadiusFunctionType << " not supported for adaptive filter vertex morphing method." << std::endl;
     }
@@ -216,12 +215,12 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
             const double distance = norm_2(r_coordinates_origin_node - r_coordinates_neighbour_node);
             max_distance = std::max(max_distance, distance);
         }
-        double& r_gaussian_curvature = rNode.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
+        double gaussian_curvature = rNode.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
 
-        double& vm_radius = rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS);
-        vm_radius = this->CurvatureFunction(r_gaussian_curvature, max_distance);
-        double& vm_radius_raw = rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS_RAW);
-        vm_radius_raw = this->CurvatureFunction(r_gaussian_curvature, max_distance);
+        double vm_radius = this->CurvatureFunction(gaussian_curvature, max_distance);
+        rNode.FastGetSolutionStepValue(MAX_NEIGHBOUR_DISTANCE) = max_distance;
+        rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS_RAW) = vm_radius;
+        rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS) = vm_radius;
     });
 
     KRATOS_INFO("ShapeOpt") << "Finished calculation of curvature based filter radius " << timer.ElapsedSeconds() << " s." << std::endl;
