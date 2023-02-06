@@ -24,10 +24,15 @@
 namespace Kratos::Testing
 {
 
-/// The sparse matrix type
+/// Basic definitions
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-using SparseMatrixType = TrilinosSparseSpaceType::MatrixType;
-using VectorType = TrilinosSparseSpaceType::VectorType;
+using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
+using TrilinosSparseMatrixType = TrilinosSparseSpaceType::MatrixType;
+using TrilinosVectorType = TrilinosSparseSpaceType::VectorType;
+
+using TrilinosLocalMatrixType = TrilinosLocalSpaceType::MatrixType;
+using TrilinosLocalVectorType = TrilinosLocalSpaceType::VectorType;
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeVector, KratosTrilinosApplicationMPITestSuite)
 {
@@ -106,7 +111,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormVector, KratosTrilinosAppli
     KRATOS_CHECK_DOUBLE_EQUAL(ref, TrilinosSparseSpaceType::TwoNorm(vector));
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix, KratosTrilinosApplicationMPITestSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix1, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -122,6 +127,20 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix, KratosTrilinosAppli
 
     // Check
     KRATOS_CHECK_DOUBLE_EQUAL(ref, TrilinosSparseSpaceType::TwoNorm(matrix));
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix2, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy matrix
+    const int size = 2 * r_comm.Size();
+    auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto local_matrix = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
+
+    // Check
+    KRATOS_CHECK_DOUBLE_EQUAL(TrilinosLocalSpaceType::TwoNorm(local_matrix), TrilinosSparseSpaceType::TwoNorm(matrix));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
@@ -145,7 +164,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues,
 
     // Dummy vector
     Epetra_Map map(size, 0, epetra_comm);
-    VectorType vector12(map);
+    TrilinosVectorType vector12(map);
 
     // Test the norm of the matrix
     double norm = 0.0;
