@@ -141,9 +141,7 @@ public:
         : BaseType(pNewLinearSystemSolver),
           mrComm(rComm),
           mGuessRowSize(GuessRowSize)
-    {
-        mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
-    }
+    { }
 
     /**
      * @brief Default constructor. (with parameters)
@@ -159,11 +157,6 @@ public:
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
     }
-
-    /**
-     * @brief Default destructor.
-     */
-    ~TrilinosBlockBuilderAndSolver() override = default;
 
     /**
      * Copy constructor
@@ -996,7 +989,7 @@ protected:
     double mScaleFactor = 1.0;         /// The manually set scale factor
 
     /* Flags */
-    SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;; /// We identify the scaling considered for the dirichlet dofs
     Flags mOptions;                    /// Some flags used internally
 
     ///@}
