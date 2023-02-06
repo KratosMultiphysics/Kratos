@@ -157,7 +157,7 @@ TrilinosCPPTestUtilities::TrilinosVectorType TrilinosCPPTestUtilities::GenerateD
     // Get update list
     int* MyGlobalElements = Map.MyGlobalElements( );
 
-    // Create a Epetra_Matrix
+    // Create a Epetra_Vector
     TrilinosVectorType b(Map);
 
     double value;
