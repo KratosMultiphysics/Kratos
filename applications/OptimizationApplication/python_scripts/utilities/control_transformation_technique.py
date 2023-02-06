@@ -6,11 +6,12 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.transformation_techniques.transformation_technique import TransformationTechnique
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import Factory
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import OptimizationRoutineFactory
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolderUnion
+from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 
-class ControlTransformationTechnique:
+class ControlTransformationTechnique(OptimizationRoutine):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_parameters = Kratos.Parameters("""{
             "name"                     : "",
@@ -23,7 +24,7 @@ class ControlTransformationTechnique:
         parameters.ValidateAndAssignDefaults(default_parameters)
 
         self.__name = parameters["name"].GetString()
-        self.__control: Control = Factory(parameters["module"].GetString(), parameters["type"].GetString(), model, parameters["settings"], optimization_info, Control)
+        self.__control: Control = OptimizationRoutineFactory(parameters["module"].GetString(), parameters["type"].GetString(), model, parameters["settings"], optimization_info, Control)
         self.__transformation_techniques: 'list[TransformationTechnique]' = []
         self.__control_updates = {}
 
@@ -34,7 +35,7 @@ class ControlTransformationTechnique:
         }""")
         for transformation_technique_settings in parameters["transformation_techniques"]:
             transformation_technique_settings.ValidateAndAssignDefaults(default_transformation_settings)
-            self.__transformation_techniques.append(Factory(transformation_technique_settings["module"].GetString(), transformation_technique_settings["type"].GetString(), model, transformation_technique_settings["settings"], optimization_info, TransformationTechnique))
+            self.__transformation_techniques.append(OptimizationRoutineFactory(transformation_technique_settings["module"].GetString(), transformation_technique_settings["type"].GetString(), model, transformation_technique_settings["settings"], optimization_info, TransformationTechnique))
 
     def GetName(self) -> str:
         return self.__name

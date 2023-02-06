@@ -15,6 +15,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import FileLogger
+from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 
 def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters, object_type = object):
     default_settings = Kratos.Parameters("""{
@@ -66,7 +67,7 @@ def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters, object_ty
         else:
             raise RuntimeError("Invalid \"module\" and/or \"type\" fields.")
 
-class ExecutionPolicyWrapper:
+class ExecutionPolicyWrapper(OptimizationRoutine):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
         default_parameters = Kratos.Parameters("""{
             "name"                     : "",

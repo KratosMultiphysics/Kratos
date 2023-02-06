@@ -2,25 +2,14 @@ from abc import ABC
 from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolderUnion
 
 
-class Control(ABC):
-    def __init__(self):
-        pass
-
-    def Initialize(self):
-        pass
-
-    def InitializeSolutionStep(self):
-        pass
-
-    def FinalizeSolutionStep(self):
-        pass
-
-    def Finalize(self):
-        pass
+class Control(OptimizationRoutine, ABC):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+        super().__init__(model, parameters, optimization_info)
 
     @abstractmethod
     def CreateContainerVariableDataHolder(self, model_part: Kratos.ModelPart) -> ContainerVariableDataHolderUnion:

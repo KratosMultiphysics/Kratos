@@ -1,4 +1,5 @@
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 
 class OptimizationInfo:
     class __SolutionStepData(dict):
@@ -24,14 +25,17 @@ class OptimizationInfo:
 
     def __init__(self, echo_level: int = 0):
         # objects registry
-        self.__optimization_routines = {}
+        self.__optimization_routines: 'dict[str, OptimizationRoutine]' = {}
 
         # initializing the buffer variables
         self.__iteration_data = []
         self.__buffer_index = 0
         self.__echo_level = echo_level
 
-    def AddOptimizationRoutine(self, category: any, routine_name: str, routine: any):
+    def AddOptimizationRoutine(self, category: any, routine_name: str, routine: OptimizationRoutine):
+        if not isinstance(routine, OptimizationRoutine):
+            raise RuntimeError(f"Only allowed to add objects derrived from OptimizationRoutine. [ Type of added routine: {routine.__class__.__name__}]")
+
         if not isinstance(routine, category):
             raise RuntimeError(f"The provided routine with name \"{routine_name}\" is not derrived from the provided category type \"{category.__name__}\".")
 
@@ -50,7 +54,7 @@ class OptimizationInfo:
 
         return routine_name in [v[0] for v in self.__optimization_routines[category]]
 
-    def GetOptimizationRoutine(self, category: any, routine_name: str) -> any:
+    def GetOptimizationRoutine(self, category: any, routine_name: str) -> OptimizationRoutine:
         if not self.HasOptimizationRoutineType(category):
             raise RuntimeError(f"No objects of type \"{category.__name__}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
@@ -62,7 +66,7 @@ class OptimizationInfo:
     def HasOptimizationRoutineType(self, category: any) -> bool:
         return category in self.__optimization_routines.keys()
 
-    def GetOptimizationRoutines(self, category: any) -> list:
+    def GetOptimizationRoutines(self, category: any) -> 'list[OptimizationRoutine]':
         if not self.HasOptimizationRoutineType(category):
             raise RuntimeError(f"No objects of type \"{category.__name__}\". Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
