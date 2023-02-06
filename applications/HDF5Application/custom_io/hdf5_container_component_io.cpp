@@ -22,7 +22,7 @@
 #include "utilities/parallel_utilities.h"
 
 // --- STL Includes ---
-#include <utility> // std::pair
+#include <array> // std::array
 
 
 namespace Kratos::HDF5 {
@@ -145,12 +145,21 @@ public:
             Matrix<double> data;
             SetDataBuffer(rComponent, rContainerItems, data);
             rFile.WriteDataSet(rPath + "/" + rComponent.Name(), data, rInfo);
-            const std::pair<int,int> sizes = rContainerItems.empty() ? std::make_pair(0, 0) : std::make_pair(
-                static_cast<int>(rContainerItems.front()->GetValue(rComponent).size1()),
-                static_cast<int>(rContainerItems.front()->GetValue(rComponent).size2())
-            );
-            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size1", sizes.first);
-            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size2", sizes.second);
+
+            // Get matrix sizes
+            std::array<int,2> sizes = rContainerItems.empty() ?
+                std::array<int, 2> {0, 0}
+                :
+                std::array<int,2> {static_cast<int>(rContainerItems.front()->GetValue(rComponent).size1()),
+                                   static_cast<int>(rContainerItems.front()->GetValue(rComponent).size2())};
+
+            // The sizes must be maxed across ranks to avoid
+            // those without data writing 0 sizes.
+            std::array<int,2> send = sizes;
+            MPI_Allreduce(send.data(), sizes.data(), 2, MPI_INT, MPI_MAX, MPI_COMM_WORLD); // <== this needs a revamp with DataCommunicator @matekelemen
+
+            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size1", sizes[0]);
+            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size2", sizes[1]);
         }
     };
 
