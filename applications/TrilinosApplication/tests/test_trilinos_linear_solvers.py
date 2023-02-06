@@ -7,6 +7,9 @@ from KratosMultiphysics.mpi import DataCommunicatorFactory
 import os
 import pathlib
 
+def GetFilePath(fileName): 
+    return os.path.join(pathlib.Path(__file__).absolute().parent, fileName)
+
 class TestLinearSolvers(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -53,10 +56,10 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
-        pA = space.ReadMatrixMarketMatrix(os.path.join(pathlib.Path.cwd(), "auxiliary_files", "matrix_market_files", matrix_name),comm)
+        pA = space.ReadMatrixMarketMatrix(GetFilePath( "auxiliary_files/matrix_market_files/" + matrix_name),comm)
         n = space.Size1(pA.GetReference())
 
-        pAoriginal = space.ReadMatrixMarketMatrix(os.path.join(pathlib.Path.cwd(), "auxiliary_files", "matrix_market_files", matrix_name),comm)
+        pAoriginal = space.ReadMatrixMarketMatrix(GetFilePath( "auxiliary_files/matrix_market_files/" + matrix_name),comm)
         pb  = space.CreateEmptyVectorPointer(comm)
         space.ResizeVector(pb,n)
         space.SetToZeroVector(pb.GetReference())
@@ -689,4 +692,5 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
 
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

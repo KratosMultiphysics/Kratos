@@ -26,6 +26,9 @@ def ConvectionVelocity(x, y, z):
     vel[0] = 1.0
     return vel
 
+def GetFilePath(fileName): 
+    return os.path.join(pathlib.Path(__file__).absolute().parent, fileName)
+
 class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
     @classmethod
@@ -33,7 +36,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         return KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + os.path.join(pathlib.Path.cwd(), "auxiliary_files", "mdpa_files", "levelset_convection_process_mesh") + """\",
+                "input_filename": \"""" + GetFilePath("auxiliary_files/mdpa_files/levelset_convection_process_mesh") + """\",
                 "partition_in_memory" : false
             },
             "echo_level" : 0
@@ -47,11 +50,11 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ReadDistributedModelPart(os.path.join(pathlib.Path.cwd(), "auxiliary_files", "mdpa_files", "levelset_convection_process_mesh"), self.model_part, self.GetPartitioningParameters())
+        ReadDistributedModelPart(GetFilePath( "auxiliary_files/mdpa_files/levelset_convection_process_mesh"), self.model_part, self.GetPartitioningParameters())
 
     def tearDown(self):
         # Remove the Metis partitioning files
-        KratosUtils.DeleteDirectoryIfExisting("levelset_convection_process_mesh_partitioned")
+        KratosUtils.DeleteDirectoryIfExisting("auxiliary_files/mdpa_files/levelset_convection_process_mesh_partitioned")
         # next test can only start after all the processes arrived here, otherwise race conditions with deleting the files can occur
         self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
@@ -186,11 +189,12 @@ class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
         return KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + os.path.join(pathlib.Path.cwd(), "auxiliary_files", "mdpa_files", "levelset_convection_process_mesh") + """\",
+                "input_filename": \"""" + GetFilePath( "auxiliary_files/mdpa_files/levelset_convection_process_mesh") + """\",
                 "partition_in_memory" : true
             },
             "echo_level" : 0
         }""")
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
