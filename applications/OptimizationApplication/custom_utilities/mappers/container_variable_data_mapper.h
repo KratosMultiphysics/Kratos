@@ -43,8 +43,6 @@ public:
     ///@name Life cycle
     ///@{
 
-    ContainerVariableDataMapper() = default;
-
     virtual ~ContainerVariableDataMapper() = default;
 
     ///@}
@@ -78,6 +76,13 @@ public:
                         "implemented in the derrived class.";
         return "";
     }
+
+    ///@}
+protected:
+    ///@name Life cycle
+    ///@{
+
+    ContainerVariableDataMapper() = default;
 
     ///@}
 };

@@ -148,7 +148,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // add mappers
     using nodal_container_variable_data_mapper = ContainerVariableDataMapper<ModelPart::NodesContainerType>;
     py::class_<nodal_container_variable_data_mapper, typename nodal_container_variable_data_mapper::Pointer>(m, "NodalContainerVariableDataMapper")
-        .def(py::init<>())
         .def("Update", &nodal_container_variable_data_mapper::Update)
         .def("Map", &nodal_container_variable_data_mapper::Map, py::arg("origin_container_data"), py::arg("destination_container_data"))
         .def("InverseMap", &nodal_container_variable_data_mapper::InverseMap, py::arg("origin_container_data"), py::arg("destination_container_data"))
@@ -157,7 +156,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     using condition_container_variable_data_mapper = ContainerVariableDataMapper<ModelPart::ConditionsContainerType>;
     py::class_<condition_container_variable_data_mapper, typename condition_container_variable_data_mapper::Pointer>(m, "ConditionContainerVariableDataMapper")
-        .def(py::init<>())
         .def("Update", &condition_container_variable_data_mapper::Update)
         .def("Map", &condition_container_variable_data_mapper::Map, py::arg("origin_container_data"), py::arg("destination_container_data"))
         .def("InverseMap", &condition_container_variable_data_mapper::InverseMap, py::arg("origin_container_data"), py::arg("destination_container_data"))
@@ -166,7 +164,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     using element_container_variable_data_mapper = ContainerVariableDataMapper<ModelPart::ElementsContainerType>;
     py::class_<element_container_variable_data_mapper, typename element_container_variable_data_mapper::Pointer>(m, "ElementContainerVariableDataMapper")
-        .def(py::init<>())
         .def("Update", &element_container_variable_data_mapper::Update)
         .def("Map", &element_container_variable_data_mapper::Map, py::arg("origin_container_data"), py::arg("destination_container_data"))
         .def("InverseMap", &element_container_variable_data_mapper::InverseMap, py::arg("origin_container_data"), py::arg("destination_container_data"))
