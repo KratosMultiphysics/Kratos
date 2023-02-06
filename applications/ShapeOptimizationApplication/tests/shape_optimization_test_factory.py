@@ -172,6 +172,7 @@ class curvature_8NQuad_test(ShapeOptimizationTestFactory):
 
 class mapper_adaptive_filter_curvature_test(ShapeOptimizationTestFactory):
     execution_directory = "mapper_adaptive_filter_curvature_test"
+    execution_file = "run_test"
 
 class sensitivity_heatmap_test(ShapeOptimizationTestFactory):
     execution_directory = "sensitivity_heatmap_test"
