@@ -92,10 +92,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with filename.
-    StlIO(std::filesystem::path const& Filename);
-
-    StlIO(std::filesystem::path const& Filename, const Flags Options);
+    /// Constructor with filename, and open option with default being read mode
+    StlIO(std::filesystem::path const& Filename, const Flags Options = IO::READ);
 
     /// Constructor with stream.
     StlIO(std::iostream* pInputStream);
@@ -199,6 +197,8 @@ private:
     Point ReadPoint();
 
     void ReadKeyword(std::string const& Keyword);
+
+    void WriteModelPartElements(const ModelPart & rThisModelPart);
 
     ///@}
     ///@name Private  Access

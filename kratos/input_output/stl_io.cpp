@@ -22,38 +22,21 @@
 namespace Kratos
 {
 
-/// Constructor with  filenames.
-StlIO::StlIO(std::filesystem::path const& Filename)
-    : IO()
-{
-    std::fstream* pFile = new std::fstream();
-    std::fstream::openmode OpenMode = std::fstream::in;
-
-    pFile->open(Filename.c_str(), OpenMode);
-
-    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Could not open the input file  : " << Filename << std::endl;
-
-    // Store the pointer as a regular std::iostream
-    mpInputStream = pFile;
-}
-
 StlIO::StlIO(std::filesystem::path const& Filename, const Flags Options)
     : mOptions(Options)
 {
     std::fstream* pFile = new std::fstream();
+
+    // set default mode to read
     std::fstream::openmode OpenMode = std::fstream::in;
 
-    // Set the mode
-    if (mOptions.Is(IO::READ)) {
-        OpenMode = std::fstream::in;
-    } else if (mOptions.Is(IO::APPEND)) {
+    // handle other mode options
+    if (mOptions.Is(IO::APPEND)) {
         OpenMode = std::fstream::in | std::fstream::app;
     } else if (mOptions.Is(IO::WRITE)) {
         OpenMode = std::fstream::out;
     } else {
-        // If none of the READ, WRITE or APPEND are defined we will take READ as
-        // default.
-        OpenMode = std::fstream::in;
+        KRATOS_ERROR << "Unsupported IO options: " << Options << std::endl;
     }
 
     pFile->open(Filename.c_str(), OpenMode);
@@ -80,20 +63,37 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
         ReadSolid(rThisModelPart);
 }
 
+
 void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
-{    
+{
+    KRATOS_ERROR_IF(rThisModelPart.NumberOfElements() == 0) << "Model part " << rThisModelPart.Name() << " has 0 elements. " << std::endl;
+    WriteModelPartElements(rThisModelPart);
+}
+
+
+void StlIO::WriteModelPartElements(const ModelPart & rThisModelPart)
+{
+
+    KRATOS_INFO("StlIO") << "Writing elements to STL file." << std::endl;
+
     (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
 
     for (auto & rElem : rThisModelPart.Elements()) {
         const auto & rGeom = rElem.GetGeometry();
+        
+        // restrict to triangles only for now
+        int number_of_nodes = rGeom.size();
+        KRATOS_ERROR_IF_NOT(number_of_nodes == 3) << "Found unsupported element geometry. ID = " << rElem.Id() << ". Size = " << number_of_nodes << std::endl; 
+        
         const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
         (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
     
         (*mpInputStream) << "        outer loop\n";
 
-        for(std::size_t i = 0; i < rGeom.size(); i++ )
+        
+        for (auto & rNode : rGeom)
         {
-            auto & rNode = rGeom.GetPoint(i);
+            // auto & rNode = rGeom.GetPoint(i);
             (*mpInputStream) << "           vertex " << rNode.X() << " " << rNode.Y() << " " << rNode.Z() << "\n";
         }
 
@@ -103,8 +103,6 @@ void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
 
     (*mpInputStream) << "endsolid\n";
 }
-
-
 
 /// Turn back information as a string.
 std::string StlIO::Info() const
