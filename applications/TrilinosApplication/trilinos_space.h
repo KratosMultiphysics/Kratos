@@ -209,8 +209,8 @@ public:
      * @todo Implement this method
      */
     static void GetColumn(
-        const unsigned int j, 
-        const MatrixType& rM, 
+        const unsigned int j,
+        const MatrixType& rM,
         VectorType& rX
         )
     {
