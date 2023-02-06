@@ -20,6 +20,7 @@
 #include "containers/model.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "custom_utilities/trilinos_cpp_test_utilities.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos::Testing
 {
@@ -162,7 +163,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMultMatrixVector, KratosTrilinosAp
     // Create a map
     Epetra_Map Map(size,0,epetra_comm);
 
-    // Create a Epetra_Vector
+    // Create an Epetra_Vector
     TrilinosVectorType mult(Map);
 
     // Solution
@@ -192,7 +193,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMultMatrixMatrix, KratosTrilinosAp
     // Create a map
     Epetra_Map Map(size,0,epetra_comm);
 
-    // Create a Epetra_Matrix
+    // Create an Epetra_Matrix
     std::vector<int> NumNz;
     TrilinosSparseMatrixType mult(Copy, Map, NumNz.data());
 
@@ -223,7 +224,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTransposeMultMatrixVector, KratosT
     // Create a map
     Epetra_Map Map(size,0,epetra_comm);
 
-    // Create a Epetra_Vector
+    // Create an Epetra_Vector
     TrilinosVectorType mult(Map);
 
     // Solution
@@ -253,7 +254,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTransposeMultMatrixMatrix, KratosT
     // Create a map
     Epetra_Map Map(size,0,epetra_comm);
 
-    // Create a Epetra_Matrix
+    // Create an Epetra_Matrix
     std::vector<int> NumNz;
     TrilinosSparseMatrixType mult(Copy, Map, NumNz.data());
 
