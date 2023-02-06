@@ -1,4 +1,3 @@
-import os
 import pathlib
 
 import KratosMultiphysics
@@ -26,8 +25,8 @@ def ConvectionVelocity(x, y, z):
     vel[0] = 1.0
     return vel
 
-def GetFilePath(fileName): 
-    return os.path.join(pathlib.Path(__file__).absolute().parent, fileName)
+def GetFilePath(fileName):
+    return str(pathlib.Path(__file__).absolute().parent / fileName)
 
 class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 

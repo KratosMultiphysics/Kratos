@@ -4,11 +4,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 from KratosMultiphysics.mpi import DataCommunicatorFactory
 
-import os
 import pathlib
 
-def GetFilePath(fileName): 
-    return os.path.join(pathlib.Path(__file__).absolute().parent, fileName)
+def GetFilePath(fileName):
+    return str(pathlib.Path(__file__).absolute().parent / fileName)
 
 class TestLinearSolvers(KratosUnittest.TestCase):
     @classmethod

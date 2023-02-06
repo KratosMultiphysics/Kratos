@@ -1,5 +1,4 @@
-﻿import os
-import pathlib
+﻿import pathlib
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,8 +8,8 @@ import KratosMultiphysics.kratos_utilities as KratosUtils
 from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-def GetFilePath(fileName): 
-    return os.path.join(pathlib.Path(__file__).absolute().parent, fileName)
+def GetFilePath(fileName):
+    return str(pathlib.Path(__file__).absolute().parent / fileName)
 
 class TestTrilinosRedistance(KratosUnittest.TestCase):
 
