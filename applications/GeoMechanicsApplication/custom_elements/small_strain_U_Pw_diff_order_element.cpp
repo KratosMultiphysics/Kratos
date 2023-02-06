@@ -937,7 +937,7 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
                                                         - 1.8 * (p5 + p6) + 21.6 * p9 - 1.6 * p0) * c1);
             ThreadSafeNodeWrite(rGeom[13], WATER_PRESSURE, (p0 + p2 + 7.2 * (p4 + p5) - 3.6 * (p3 + p6)
                                                         - 1.8 * (p7 + p8) + 21.6 * p9 - 1.6 * p1) * c1);
-            ThreadSafeNodeWrite(rGeom[14], WATER_PRESSURE, (p1 + p2 + 7.2 * (p6 + p7) - 3.6 * (p5 + p8)
+            ThreadSafeNodeWrite(rGeom[14], WATER_PRESSURE, (p0 + p1 + 7.2 * (p6 + p7) - 3.6 * (p5 + p8)
                                                         - 1.8 * (p3 + p4) + 21.6 * p9 - 1.6 * p2) * c1);
             break;
         }
