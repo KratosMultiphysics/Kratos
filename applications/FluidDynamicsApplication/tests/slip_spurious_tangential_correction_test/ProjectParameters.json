@@ -1,0 +1,84 @@
+{
+    "analysis_stage"   : "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis",
+    "problem_data"     : {
+        "problem_name"  : "slip_spurious_tangential_correction_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.99
+    },
+    "output_processes" : {
+        "gid_output" : []
+    },
+    "solver_settings"  : {
+        "model_part_name"             : "FluidModelPart",
+        "domain_size"                 : 2,
+        "solver_type"                 : "Monolithic",
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "slip_spurious_tangential_correction"
+        },
+        "material_import_settings"    : {
+            "materials_filename" : "FluidMaterials.json"
+        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : false,
+        "maximum_iterations"          : 10,
+        "relative_velocity_tolerance" : 0.001,
+        "absolute_velocity_tolerance" : 1e-5,
+        "relative_pressure_tolerance" : 0.001,
+        "absolute_pressure_tolerance" : 1e-5,
+        "volume_model_part_name"      : "FluidParts_Fluid",
+        "skin_parts"                  : ["Outlet2D_Top","Slip2D"],
+        "no_skin_parts"               : [],
+        "time_scheme"                 : "bossak",
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 1.0
+        },
+        "formulation"                 : {
+            "element_type"             : "qsvms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 1.0
+        },
+        "reform_dofs_at_each_step"    : false
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyOutletProcess",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Outlet2D_Top",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+            }
+        },{
+            "python_module" : "apply_slip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplySlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Slip2D",
+		        "slip_tangential_correction" : true
+            }
+        }],
+        "gravity"                          : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 10,
+                "constrained"     : false,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }],
+        "auxiliar_process_list"            : [],
+        "json_check_process_list"          : []
+    }
+}

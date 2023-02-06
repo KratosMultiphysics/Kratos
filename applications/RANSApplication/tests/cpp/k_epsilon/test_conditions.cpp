@@ -35,6 +35,8 @@ ModelPart& RansKEpsilonEpsilonKBasedWall2D2NSetUp(
     auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2NSetUp(
         rModel, "RansKEpsilonEpsilonKBasedWall2D2N");
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 
@@ -43,6 +45,8 @@ ModelPart& RansKEpsilonEpsilonUBasedWall2D2NSetUp(
 {
     auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2NSetUp(
         rModel, "RansKEpsilonEpsilonUBasedWall2D2N");
+
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
     return r_model_part;
 }
