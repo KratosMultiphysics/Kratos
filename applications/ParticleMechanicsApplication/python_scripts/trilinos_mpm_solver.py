@@ -34,8 +34,8 @@ class TrilinosMPMSolver(MPMSolver):
         # Make local copy of import settings and rename "grid_model_import settings" to "model_import_settings"
         # DistributedImportModelPartUtility only allows "model_import_settings"
         grid_model_import_settings = self.settings["grid_model_import_settings"]
-        input_type = grid_model_import_settings["input_type"].GetString()
-        file_name = grid_model_import_settings["input_filename"].GetString()
+        # input_type = grid_model_import_settings["input_type"].GetString()
+        # file_name = grid_model_import_settings["input_filename"].GetString()
         local_import_settings = KratosMultiphysics.Parameters("""{
                     "model_import_settings" : {},
                     "echo_level"            : 0
@@ -97,8 +97,8 @@ class TrilinosMPMSolver(MPMSolver):
         R_RT = self.settings["residual_relative_tolerance"].GetDouble()
         R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
         convergence_criterion = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
-        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-        D_AT = self.settings["displacement_relative_tolerance"].GetDouble()
+        #D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
+        #D_AT = self.settings["displacement_relative_tolerance"].GetDouble()
         #convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
         convergence_criterion.SetEchoLevel(1)
         #convergence_criterion = convergence_criteria_factory.convergence_criterion(self._GetConvergenceCriterionSettings())

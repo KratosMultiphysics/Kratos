@@ -1,15 +1,10 @@
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/TrilinosApplication)
+
 include_directories(
   ${CMAKE_SOURCE_DIR}/kratos
   ${CMAKE_SOURCE_DIR}/applications/ParticleMechanicsApplication
   ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication
 )
-
-if (NOT TRILINOS_FOUND)
-  find_package(TRILINOS REQUIRED)
-endif()
-
-include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-link_directories(${TRILINOS_LIBRARIES})
 
 file(
   GLOB_RECURSE

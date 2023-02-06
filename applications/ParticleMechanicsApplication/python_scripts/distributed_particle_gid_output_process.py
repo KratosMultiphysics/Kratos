@@ -28,7 +28,7 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
         # Initiate Output Mesh
         self.mesh_file_name = self.base_file_name + ".post.msh"
         # Write initial mesh to file
-        KratosParticle.MPM_MPI_Utilities.WriteGlobalParticlesToFile(self.model_part, self.mesh_file_name ) 
+        KratosParticle.MPM_MPI_Utilities.WriteGlobalParticlesToFile(self.model_part, self.mesh_file_name )
         # Initiate Output File
         self.result_file = open(self.base_file_name + ".post.res",'w')
         self.result_file.write("GiD Post Results File 1.0\n")
@@ -85,7 +85,7 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
         # Get a name for the GiD list file
         # if the model folder is model.gid, the list file should be called
         # model.post.lst
-        path, folder_name = os.path.split(os.getcwd())
+        folder_name = os.path.split(os.getcwd())[1]
         model_name, ext = os.path.splitext(folder_name)
         name_base = model_name
         name_ext = ".post.rest"
@@ -115,5 +115,5 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
         return KratosTrilinos.TrilinosCuttingApplication(self.epetra_comm)
 
     def _SetCurrentTimeParameters(self, additional_list_files):
-        ''' doing nothing here in MPI'''
+        # doing nothing here in MPI
         pass

@@ -165,10 +165,10 @@ namespace Kratos {
         fprintf(file, "MESH \"outmesh\" dimension 3 ElemType Point Nnode 1\n");
         fprintf(file, "Coordinates \n");
         const Kratos::ProcessInfo process_info;
-        for( int i = 0; i < size; ++i){
+        for( unsigned int i = 0; i < size; ++i){
             const auto it_elements_begin = recv_elements_container[i].begin();
             const unsigned int number_elements = recv_elements_container[i].size();
-            for( int j = 0; j < number_elements; ++j){
+            for( unsigned int j = 0; j < number_elements; ++j){
                 auto it_element = it_elements_begin + j;
                 std::vector<array_1d<double, 3>> coordinates;
                 it_element->CalculateOnIntegrationPoints(MP_COORD, coordinates, process_info);
@@ -177,10 +177,10 @@ namespace Kratos {
         }  
         fprintf(file, "End Coordinates \n");
         fprintf(file, "Elements \n");
-        for( int i = 0; i < size; ++i){
+        for( unsigned int i = 0; i < size; ++i){
             const auto it_elements_begin = recv_elements_container[i].begin();
             const unsigned int number_elements = recv_elements_container[i].size();
-            for( int j = 0; j < number_elements; ++j){
+            for( unsigned int j = 0; j < number_elements; ++j){
                 auto it_element = it_elements_begin + j;
                 fprintf(file, "%li %li \n", it_element->Id(), it_element->Id());
             }
@@ -211,7 +211,7 @@ namespace Kratos {
     // ##############################################################################################
     void MPM_MPI_Utilities::SynchronizeNodalDisplacementAtInterface(ModelPart& rModelPart)
     {
-        const unsigned int rank = rModelPart.GetCommunicator().MyPID();
+        // const unsigned int rank = rModelPart.GetCommunicator().MyPID();
         const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
 
         // Get neigbours of each rank

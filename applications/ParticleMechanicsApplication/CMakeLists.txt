@@ -20,13 +20,6 @@ file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-# If there is mpi support, use..
-if((${USE_MPI} MATCHES ON) )
-  file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
-  )
-endif((${USE_MPI} MATCHES ON) )
-
 # Define python interface sources
 file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
@@ -94,10 +87,10 @@ set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosParticleMechanicsCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosParticleMechanicsApplication" PARENT_SCOPE)
 ## If trilinos is avaliable, switch on the ParticleMecchanics trilinos extension
 
-if((${USE_MPI} MATCHES ON) )
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling trilinos extension for KratosParticleMechanicsApplication")
   add_subdirectory(trilinos_extension)
   file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE}
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
   )
-endif((${USE_MPI} MATCHES ON) )
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))

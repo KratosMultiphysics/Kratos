@@ -2,7 +2,7 @@
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+#import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Import base class file
 from KratosMultiphysics.ParticleMechanicsApplication.trilinos_mpm_solver import TrilinosMPMSolver
