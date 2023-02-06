@@ -96,6 +96,8 @@ public:
     ///@name Operations
     ///@{
 
+    void CalculateNodalAreasFromConditions();
+
     void ComputeUnitSurfaceNormals();
 
     void ProjectNodalVariableOnUnitSurfaceNormals( const Variable<array_3d> &rNodalVariable );

@@ -92,6 +92,11 @@ class algorithm_bead_optimization_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_bead_optimization_test"
     execution_file = "run_test"
 
+@kratos_unittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+class algorithm_shape_fraction_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_shape_fraction_test"
+    execution_file = "run_test"
+
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class opt_process_step_adaption_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_step_adaption_test"
@@ -167,5 +172,8 @@ class curvature_8NQuad_test(ShapeOptimizationTestFactory):
 
 class mapper_adaptive_filter_curvature_test(ShapeOptimizationTestFactory):
     execution_directory = "mapper_adaptive_filter_curvature_test"
+
+class sensitivity_heatmap_test(ShapeOptimizationTestFactory):
+    execution_directory = "sensitivity_heatmap_test"
     execution_file = "run_test"
 # ==============================================================================

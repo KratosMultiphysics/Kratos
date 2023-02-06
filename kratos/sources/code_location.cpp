@@ -179,7 +179,7 @@ namespace Kratos
 	std::ostream & operator <<(std::ostream& rOStream,
 		const CodeLocation& Location)
 	{
-		rOStream << Location.CleanFileName() << ":" << Location.GetLineNumber() << ":" << Location.CleanFunctionName();
+		rOStream << Location.CleanFileName() << ":" << Location.GetLineNumber() << ": " << Location.CleanFunctionName();
 		return rOStream;
 	}
 
