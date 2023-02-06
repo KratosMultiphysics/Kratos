@@ -19,6 +19,7 @@
 #include "trilinos_space.h"
 #include "containers/model.h"
 #include "mpi/includes/mpi_data_communicator.h"
+#include "custom_utilities/trilinos_cpp_test_utilities.h"
 
 namespace Kratos::Testing
 {
@@ -27,54 +28,6 @@ namespace Kratos::Testing
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
 using SparseMatrixType = TrilinosSparseSpaceType::MatrixType;
 using VectorType = TrilinosSparseSpaceType::VectorType;
-
-/**
- * @brief Generates a dummy diagonal sparse matrix for Trilinos
- * @param rDataCommunicator The data communicator considered
- * @param NumGlobalElements The global dimension of the matrix
- * @param Offset The offset considered
- */
-SparseMatrixType GenerateDummySparseMatrix(
-    const DataCommunicator& rDataCommunicator,
-    const int NumGlobalElements = 12,
-    const double Offset = 0.0
-    )
-{
-    // Generate Epetra communicator
-    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
-    Epetra_MpiComm epetra_comm(raw_mpi_comm);
-
-    // Create a map
-    Epetra_Map Map(NumGlobalElements,0,epetra_comm);
-
-    // Local number of rows
-    const int NumMyElements = Map.NumMyElements();
-
-    // Get update list
-    int* MyGlobalElements = Map.MyGlobalElements( );
-
-    // Create an integer vector NumNz that is used to build the EPetra Matrix.
-    // NumNz[i] is the Number of OFF-DIAGONAL term for the ith global equation
-    // on this processor
-    std::vector<int> NumNz(NumMyElements, 1);
-
-    // Create a Epetra_Matrix
-    SparseMatrixType A(Copy, Map, NumNz.data());
-
-    double value;
-    for( int i=0 ; i<NumMyElements; ++i ) {
-        // Put in the diagonal entry
-        value = Offset + static_cast<double>(MyGlobalElements[i]);
-        A.InsertGlobalValues(MyGlobalElements[i], 1, &value, MyGlobalElements+i);
-    }
-
-    // Finish up, trasforming the matrix entries into local numbering,
-    // to optimize data transfert during matrix-vector products
-    A.FillComplete();
-
-    return A;
-}
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
@@ -88,7 +41,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues,
 
     // The dummy matrix
     const int size = 12;
-    SparseMatrixType matrix12x12 = GenerateDummySparseMatrix(r_comm, size);
+    SparseMatrixType matrix12x12 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
 
     // Generate Epetra communicator
     KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
@@ -121,7 +74,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplic
 
     // The dummy matrix
     const int size = 12;
-    SparseMatrixType matrix12x12 = GenerateDummySparseMatrix(r_comm, size, 1.0);
+    SparseMatrixType matrix12x12 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
 
     // Test the norm of the matrix
     double norm = 0.0;
