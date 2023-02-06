@@ -73,8 +73,8 @@ class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) MappingFilterFunction
     ///@{
 
     double inline GetDistance(
-        const Array3DType ICoord,
-        const Array3DType JCoord) const;
+        const Array3DType& ICoord,
+        const Array3DType& JCoord) const;
 
     ///@}
 

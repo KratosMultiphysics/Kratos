@@ -57,8 +57,8 @@ MappingFilterFunction::MappingFilterFunction(const std::string& rFilterFunctionT
 }
 
 double MappingFilterFunction::GetDistance(
-    const Array3DType ICoord,
-    const Array3DType JCoord) const
+    const Array3DType& ICoord,
+    const Array3DType& JCoord) const
 {
     const Array3DType dist_vector = ICoord - JCoord;
     return sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
