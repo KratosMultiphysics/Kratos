@@ -30,6 +30,7 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_adaptive_radius.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/damping/direction_damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
@@ -132,6 +133,42 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Map", MapVector<MapperVertexMorphingSymmetric>)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphingSymmetric>) // TODO
         .def("InverseMap", InverseMapVector<MapperVertexMorphingSymmetric>)
+        ;
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing> >(m, "MapperVertexMorphingAdaptiveRadius")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>::Initialize)
+        .def("Update", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>::Update)
+        .def("Map", MapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>>)
+        .def("Map", MapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>>)
+        ;
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree> >(m, "MapperVertexMorphingMatrixFreeAdaptiveRadius")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>::Initialize)
+        .def("Update", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>::Update)
+        .def("Map", MapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>>)
+        .def("Map", MapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>>)
+        ;
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration> >(m, "MapperVertexMorphingImprovedIntegrationAdaptiveRadius")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>::Initialize)
+        .def("Update", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>::Update)
+        .def("Map", MapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>>)
+        .def("Map", MapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>>)
+        ;
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric> >(m, "MapperVertexMorphingSymmetricAdaptiveRadius")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>::Initialize)
+        .def("Update", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>::Update)
+        .def("Map", MapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>>)
+        .def("Map", MapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>>)
         ;
 
     // ================================================================
