@@ -12,42 +12,56 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import Co
 
 
 class GradientProjectionAlgorithm(Algorithm):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
-        default_settings = Kratos.Parameters("""{
-            "max_correction_share"  : 0.75,
-            "relative_tolerance"    : 1e-3,
-            "step_size"             : 1e-3,
-            "linear_solver_settings": {},
-            "echo_level"            : 0
+    @classmethod
+    def GetDefaultParameters(cls):
+        return Kratos.Parameters("""{
+            "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
+            "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
+            "model_part_name"   : "OptimizationModelPart",
+            "control_names"     : [],
+            "objectives"        : [],
+            "constraints"       : [],
+            "echo_level"        : 0,
+            "settings"          : {
+                "max_correction_share"  : 0.75,
+                "relative_tolerance"    : 1e-3,
+                "step_size"             : 1e-3,
+                "linear_solver_settings": {},
+                "echo_level"            : 0
+            }
         }""")
-        parameters.ValidateAndAssignDefaults(default_settings)
+
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+        super().__init__(model, parameters, optimization_info)
 
         self.optimization_info = optimization_info
+        algorithm_settings = parameters["settings"]
+        algorithm_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
 
-        self.max_correction_share = parameters["max_correction_share"].GetDouble()
-        self.relative_tolerance = parameters["relative_tolerance"].GetDouble()
-        self.step_size = parameters["step_size"].GetDouble()
-        self.echo_level = parameters["echo_level"].GetInt()
+        self.max_correction_share = algorithm_settings["max_correction_share"].GetDouble()
+        self.relative_tolerance = algorithm_settings["relative_tolerance"].GetDouble()
+        self.step_size = algorithm_settings["step_size"].GetDouble()
+        self.echo_level = algorithm_settings["echo_level"].GetInt()
 
         default_linear_solver_settings = Kratos.Parameters("""{
             "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"
         }""")
-        parameters["linear_solver_settings"].ValidateAndAssignDefaults(default_linear_solver_settings)
-        self.linear_solver = ConstructSolver(parameters["linear_solver_settings"])
+        algorithm_settings["linear_solver_settings"].ValidateAndAssignDefaults(default_linear_solver_settings)
+        self.linear_solver = ConstructSolver(algorithm_settings["linear_solver_settings"])
 
     def GetMinimumBufferSize(self) -> int:
         return 2
 
     def Check(self):
         if len(self.GetObjectives()) > 1:
-            raise RuntimeError(f"{self.GetName()} algorithm of type {self.__class__.__name__} only supports single objective optimizations.")
+            raise RuntimeError(f"{self.__class__.__name__} only supports single objective optimizations.")
 
     def Initialize(self):
         # since we only have one objective
         self.objective = self.GetObjectives()[0]
 
     def InitializeSolutionStep(self):
-        self.optimization_info[self.GetName()] = {
+        self.optimization_info["algorithm"] = {
             "objectives": {},
             "constraints": {},
             "controls": {}
@@ -55,7 +69,7 @@ class GradientProjectionAlgorithm(Algorithm):
 
     def SolveSolutionStep(self) -> bool:
         # get algorithm specific data from optimization info
-        algorithm_data = self.optimization_info[self.GetName()]
+        algorithm_data = self.optimization_info["algorithm"]
 
         self.__ComputeResponseValues()
 
@@ -87,11 +101,11 @@ class GradientProjectionAlgorithm(Algorithm):
     def IsConverged(self) -> bool:
         if self.optimization_info["step"] > 1:
             # check for objective convergence
-            is_converged = abs(self.optimization_info[self.GetName()]["objectives"][self.objective]["value"] / self.optimization_info.GetSolutionStepData(1)
-                               [self.GetName()]["objectives"][self.objective]["value"] - 1.0) < self.relative_tolerance
+            is_converged = abs(self.optimization_info["algorithm"]["objectives"][self.objective]["value"] / self.optimization_info.GetSolutionStepData(1)
+                               ["algorithm"]["objectives"][self.objective]["value"] - 1.0) < self.relative_tolerance
 
             # check for constraint convergence
-            for constraint_data in self.optimization_info[self.GetName()]["constraints"].values():
+            for constraint_data in self.optimization_info["algorithm"]["constraints"].values():
                 is_converged = is_converged and not constraint_data["is_active"]
 
             return is_converged
@@ -103,7 +117,7 @@ class GradientProjectionAlgorithm(Algorithm):
             Kratos.Logger.PrintInfo(title, message)
 
     def __ComputeResponseValues(self):
-        algorithm_data = self.optimization_info[self.GetName()]
+        algorithm_data = self.optimization_info["algorithm"]
 
         # calculate objective value
         algorithm_data["objectives"][self.objective] = {
@@ -113,7 +127,7 @@ class GradientProjectionAlgorithm(Algorithm):
 
         relative_change = 0.0
         if self.optimization_info["step"] > 1:
-            relative_change = (self.objective.CalculateValue() / self.optimization_info.GetSolutionStepData(1)[self.GetName()]["objectives"][self.objective]["value"] - 1.0) * 100.0
+            relative_change = (self.objective.CalculateValue() / self.optimization_info.GetSolutionStepData(1)["algorithm"]["objectives"][self.objective]["value"] - 1.0) * 100.0
 
         self.__PrintInfo(1, self.objective.GetResponseInfo() + f"\n\t\t rel_change [%]: {relative_change}", "")
 
@@ -145,7 +159,7 @@ class GradientProjectionAlgorithm(Algorithm):
             }
 
     def __ComputeControlUpdatesForControlWrapper(self, controller: ControlTransformationTechnique):
-        algorithm_data = self.optimization_info[self.GetName()]
+        algorithm_data = self.optimization_info["algorithm"]
         algorithm_data["controls"]["update"] = {}
 
         # get active constraints list

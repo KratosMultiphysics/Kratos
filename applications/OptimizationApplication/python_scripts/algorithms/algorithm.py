@@ -2,48 +2,38 @@ from abc import ABC
 from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
+from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 from KratosMultiphysics.OptimizationApplication.utilities.control_transformation_technique import ControlTransformationTechnique
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ObjectiveResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ConstraintResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import CallOnAll
 
-class Algorithm(OptimizationRoutine, ABC):
+class Algorithm(PythonSolver, OptimizationRoutine, ABC):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
-        super().__init__(model, parameters, optimization_info)
-        self.__list_of_objectives: 'list[ObjectiveResponseFunctionImplementor]' = []
-        self.__list_of_constraints: 'list[ConstraintResponseFunctionImplementor]' = []
-        self.__list_of_controllers: 'list[ControlTransformationTechnique]' = []
-        self.__name = None
+        PythonSolver.__init__(self, model, parameters)
+        self.optimization_info = optimization_info
+        self.optimization_info.SetBufferSize(self.GetMinimumBufferSize())
+        self.step = 0
+        self.optimization_info["step"] = self.step
 
-    def SetName(self, name: str):
-        self.__name = name
+        self.__list_of_controllers = [self.optimization_info.GetOptimizationRoutine(ControlTransformationTechnique, control_name) for control_name in parameters["control_names"].GetStringArray()]
+        self.__list_of_objectives = [ObjectiveResponseFunctionImplementor(objective_settings, self.optimization_info) for objective_settings in parameters["objectives"]]
+        self.__list_of_constraints = [ConstraintResponseFunctionImplementor(constraint_settings, self.optimization_info) for constraint_settings in parameters["constraints"]]
 
-    def GetName(self) -> str:
-        if self.__name is None:
-            raise RuntimeError("Algorithm name is not set.")
+    def ImportModelPart(self):
+        CallOnAll(self.optimization_info.GetOptimizationRoutines(ModelPartController), ModelPartController.ImportModelPart)
 
-        return self.__name
-
-    def AddVariables(self):
-        pass
-
-    def AddDofs(self):
-        pass
+    def AdvanceInTime(self, _):
+        self.optimization_info.AdvanceSolutionStep()
+        self.step += 1
+        self.optimization_info["step"] = self.step
 
     def InitializeSolutionStep(self):
         CallOnAll(self.GetObjectives(), ObjectiveResponseFunctionImplementor.ResetResponseData)
         CallOnAll(self.GetConstraints(), ConstraintResponseFunctionImplementor.ResetResponseData)
-
-    def SetObjectives(self, list_of_objectives: 'list[ObjectiveResponseFunctionImplementor]'):
-        self.__list_of_objectives = list_of_objectives
-
-    def SetConstraints(self, list_of_constraints: 'list[ConstraintResponseFunctionImplementor]'):
-        self.__list_of_constraints = list_of_constraints
-
-    def SetControllers(self, list_of_controllers: 'list[ControlTransformationTechnique]'):
-        self.__list_of_controllers = list_of_controllers
 
     def GetObjectives(self) -> 'list[ObjectiveResponseFunctionImplementor]':
         return self.__list_of_objectives
@@ -54,6 +44,13 @@ class Algorithm(OptimizationRoutine, ABC):
     def GetControllers(self) -> 'list[ControlTransformationTechnique]':
         return self.__list_of_controllers
 
+    def GetComputingModelPart(self):
+        model_part_name = self.settings["model_part_name"].GetString()
+        if not self.model.HasModelPart(model_part_name):
+            self.model.CreateModelPart(model_part_name)
+
+        return self.model[model_part_name]
+
     @abstractmethod
     def GetMinimumBufferSize(self) -> int:
         pass
@@ -63,7 +60,7 @@ class Algorithm(OptimizationRoutine, ABC):
         pass
 
     @abstractmethod
-    def SolveSolutionStep(self):
+    def SolveSolutionStep(self) -> bool:
         pass
 
     @abstractmethod

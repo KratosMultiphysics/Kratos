@@ -5,93 +5,88 @@
         "start_time": 0,
         "end_time": 10
     },
-    "optimization_settings": {
-        "model_parts": [
-            {
-                "name": "StructuralModelPart",
-                "settings": {
-                    "model_part_name": "Structure",
-                    "domain_size": 3,
-                    "input_filename": "Structure"
-                }
+    "model_parts": [
+        {
+            "name": "StructuralModelPart",
+            "settings": {
+                "model_part_name": "Structure",
+                "domain_size": 3,
+                "input_filename": "Structure"
             }
-        ],
-        "analyses": [
-            {
-                "name": "Structure_static",
-                "execution_policy_settings": {
-                    "type": "SteppingAnalysisExecutionPolicy",
-                    "settings": {
-                        "model_part_names": [
-                            "Structure"
-                        ],
-                        "analysis_settings": {
-                            "module": "KratosMultiphysics.StructuralMechanicsApplication",
-                            "type": "StructuralMechanicsAnalysis",
-                            "settings": {
-                                "@include_json": "primal_parameters.json"
-                            }
-                        }
-                    }
-                }
-            }
-        ],
-        "responses": [
-            {
-                "name": "mass_Structure",
-                "type": "MassResponseFunction",
-                "settings": {
-                    "evaluated_model_part_name": "Structure"
-                }
-            },
-            {
-                "name": "strain_energy",
-                "type": "LinearStrainEnergyResponseFunction",
-                "settings": {
-                    "evaluated_model_part_name": "Structure",
-                    "primal_analysis_name": "Structure_static"
-                }
-            }
-        ],
-        "controls": [
-            {
-                "name": "density",
-                "type": "MaterialPropertiesControl",
+        }
+    ],
+    "analyses": [
+        {
+            "name": "Structure_static",
+            "execution_policy_settings": {
+                "type": "SteppingAnalysisExecutionPolicy",
                 "settings": {
                     "model_part_names": [
                         "Structure"
                     ],
-                    "control_variable_name": "DENSITY"
-                },
-                "transformation_techniques": []
+                    "analysis_settings": {
+                        "module": "KratosMultiphysics.StructuralMechanicsApplication",
+                        "type": "StructuralMechanicsAnalysis",
+                        "settings": {
+                            "@include_json": "primal_parameters.json"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "responses": [
+        {
+            "name": "mass_Structure",
+            "type": "MassResponseFunction",
+            "settings": {
+                "evaluated_model_part_name": "Structure"
+            }
+        },
+        {
+            "name": "strain_energy",
+            "type": "LinearStrainEnergyResponseFunction",
+            "settings": {
+                "evaluated_model_part_name": "Structure",
+                "primal_analysis_name": "Structure_static"
+            }
+        }
+    ],
+    "controls": [
+        {
+            "name": "density",
+            "type": "MaterialPropertiesControl",
+            "settings": {
+                "model_part_names": [
+                    "Structure"
+                ],
+                "control_variable_name": "DENSITY"
+            },
+            "transformation_techniques": []
+        }
+    ],
+    "algorithm_settings": {
+        "type": "GradientProjectionAlgorithm",
+        "settings": {
+            "max_correction_share": 0.75,
+            "relative_tolerance": 1e-3,
+            "step_size": 1e-3,
+            "echo_level": 2
+        },
+        "control_names": [
+            "density"
+        ],
+        "objectives": [
+            {
+                "response_name": "mass_Structure",
+                "type": "minimization"
             }
         ],
-        "algorithms": [
+        "constraints": [
             {
-                "name": "algorithm_1",
-                "type": "GradientProjectionAlgorithm",
-                "settings": {
-                    "max_correction_share": 0.75,
-                    "relative_tolerance": 1e-3,
-                    "step_size": 1e-3,
-                    "echo_level": 2
-                },
-                "control_names": [
-                    "density"
-                ],
-                "objectives": [
-                    {
-                        "response_name": "mass_Structure",
-                        "type": "minimization"
-                    }
-                ],
-                "constraints": [
-                    {
-                        "response_name": "strain_energy",
-                        "type": "<",
-                        "ref_type": "initial_value"
-                    }
-                ]
+                "response_name": "strain_energy",
+                "type": "<",
+                "ref_type": "initial_value"
             }
         ]
     },
