@@ -295,18 +295,6 @@ protected:
     ///@{
     /**
 
-     * @brief This method computes derivatives of invariants
-     * @param StressVector Stresses in vector form
-     * @param dI1dS 
-     * @param dJ2ddS 
-     * @param dJ2dS 
-     */
-    void GetDerivatives(BoundedVectorVoigtType& dI1dS,
-                        BoundedMatrixVoigtType& dJ2ddS,
-                        BoundedVectorVoigtType& dJ2dS,
-                        const Vector& StressVector);
-    /**
-
      * @brief This method computes principal values of stresses/strains
      * @param VectorForm Stresses/Strains in vector form
      * @param Pri_Values principal values in vector form
@@ -316,7 +304,6 @@ protected:
     void GetEigenValues(BoundedVectorType& Pri_Values,
                         double MaxValue,
                         const Variable<Vector>& rThisVariable,
-                        const bool Sorted,
                         const Vector& VectorForm); 
         
     ///@}
