@@ -226,7 +226,7 @@ protected:
         int index = 0;
     	for(index; index < mHorizontalDirectionCoordinates.size(); index++)
         {
-	        if (mHorizontalDirectionCoordinates[index] > rNode.Coordinates()[mHorizontalDirection])
+	        if (mHorizontalDirectionCoordinates[index] >= rNode.Coordinates()[mHorizontalDirection])
 	        {
 	        	break;
 	        }
