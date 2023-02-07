@@ -384,6 +384,56 @@ public:
     }
 
     /**
+     * @brief Calculates the product operation B'DB
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     */
+    static void BtDBProductOperation(
+        MatrixType& rA,
+        const MatrixType& rD,
+        const MatrixType& rB,
+        Epetra_MpiComm& rComm
+        )
+    {
+        // Create a map
+        const int size = Size2(rB);
+        Epetra_Map Map(size, 0, rComm);
+
+        // Create an Epetra_Matrix
+        std::vector<int> NumNz;
+        MatrixType aux(::Copy, Map, NumNz.data());
+
+        TransposeMult(rB, rD, aux, {true, false});
+        Mult(aux, rB, rA);
+    }
+
+    /**
+     * @brief Calculates the product operation BDB'
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     */
+    static void BDBtProductOperation(
+        MatrixType& rA,
+        const MatrixType& rD,
+        const MatrixType& rB,
+        Epetra_MpiComm& rComm
+        )
+    {
+        // Create a map
+        const int size = Size1(rB);
+        Epetra_Map Map(size, 0, rComm);
+
+        // Create an Epetra_Matrix
+        std::vector<int> NumNz;
+        MatrixType aux(::Copy, Map, NumNz.data());
+
+        Mult(rB, rD, aux);
+        TransposeMult(aux, rB, rA, {false, true});
+    }
+
+    /**
      * @brief Returns the multiplication of a vector by a scalar
      * @details y = A*x
      * Checks if a multiplication is needed and tries to do otherwise

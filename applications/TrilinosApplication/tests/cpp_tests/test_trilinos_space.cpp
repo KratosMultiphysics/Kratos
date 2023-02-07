@@ -266,6 +266,70 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTransposeMultMatrixMatrix, KratosT
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy matrix
+    const int size = 2 * r_comm.Size();
+    auto matrix_1 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto local_matrix_1 = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
+    auto matrix_2 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0, true);
+    auto local_matrix_2 = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 1.0, true);
+
+    // Epetra coomunicator
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+    // Create a map
+    Epetra_Map Map(size,0,epetra_comm);
+
+    // Create an Epetra_Matrix
+    std::vector<int> NumNz;
+    TrilinosSparseMatrixType mult(Copy, Map, NumNz.data());
+
+    // Solution
+    TrilinosSparseSpaceType::BtDBProductOperation(mult, matrix_1, matrix_2, epetra_comm);
+
+    // Check
+    TrilinosLocalMatrixType multiply_reference;
+    MathUtils<double>::BtDBProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy matrix
+    const int size = 2 * r_comm.Size();
+    auto matrix_1 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto local_matrix_1 = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
+    auto matrix_2 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0, true);
+    auto local_matrix_2 = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 1.0, true);
+
+    // Epetra coomunicator
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+    // Create a map
+    Epetra_Map Map(size,0,epetra_comm);
+
+    // Create an Epetra_Matrix
+    std::vector<int> NumNz;
+    TrilinosSparseMatrixType mult(Copy, Map, NumNz.data());
+
+    // Solution
+    TrilinosSparseSpaceType::BDBtProductOperation(mult, matrix_1, matrix_2, epetra_comm);
+
+    // Check
+    TrilinosLocalMatrixType multiply_reference;
+    MathUtils<double>::BDBtProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
