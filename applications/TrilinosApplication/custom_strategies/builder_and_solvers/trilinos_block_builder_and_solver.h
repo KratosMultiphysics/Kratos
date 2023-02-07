@@ -93,34 +93,33 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosBlockBuilderAndSolver);
 
     /// Definition of the base class
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    using BaseType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// The size_t types
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
 
     /// Definition of the classes from the base class
-    typedef typename BaseType::TSchemeType TSchemeType;
-    typedef typename BaseType::TDataType TDataType;
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-    typedef typename BaseType::NodesArrayType NodesArrayType;
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-    typedef typename BaseType::ElementsContainerType ElementsContainerType;
+    using TSchemeType = typename BaseType::TSchemeType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// Epetra definitions
-    typedef Epetra_MpiComm EpetraCommunicatorType;
+    using EpetraCommunicatorType = Epetra_MpiComm;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
-    typedef typename NodeType::DofType DofType;
-    typedef DofType::Pointer DofPointerType;
+    using NodeType = Node<3>;
+
+    /// Defining the sparse matrices and vectors
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+
+    /// Defining the local matrices and vectors
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+
+    /// Definition of the pointer types
+    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -510,7 +509,7 @@ public:
 
         typedef Element::DofsVectorType DofsVectorType;
         // Gets the array of elements from the modeler
-        ElementsArrayType& r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
+        auto& r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
         DofsVectorType dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -684,11 +683,11 @@ public:
                 std::fill(temp.begin(), temp.end(), 0);
             }
 
-            // assemble all conditions
+            // Assemble all conditions
             for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
                 pScheme->EquationId(**it_cond, equation_ids_vector, r_current_process_info);
 
-                // filling the list of active global indices (non fixed)
+                // Filling the list of active global indices (non fixed)
                 IndexType num_active_indices = 0;
                 for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
                     temp[num_active_indices] = equation_ids_vector[i];
@@ -736,8 +735,7 @@ public:
             }
         }
 
-        // TODO
-        // ConstructMasterSlaveConstraintsStructure(rModelPart);
+        ConstructMasterSlaveConstraintsStructure(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -782,7 +780,7 @@ public:
         KRATOS_ERROR_IF(check_size < system_size)
             << "Dof count is not correct. There are less dofs than expected.\n"
             << "Expected number of active dofs = " << system_size
-            << " dofs found = " << check_size;
+            << " dofs found = " << check_size << std::endl;
 
         // Defining a map as needed
         Epetra_Map dof_update_map(-1, index_array.size(),
@@ -913,25 +911,25 @@ public:
     {
         KRATOS_TRY
 
-        // if (rModelPart.MasterSlaveConstraints().size() != 0) {
-        //     BuildMasterSlaveConstraints(rModelPart);
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            BuildMasterSlaveConstraints(rModelPart);
 
-        //     // We compute the transposed matrix of the global relation matrix
-        //     TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
-        //     SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
+            // // We compute the transposed matrix of the global relation matrix
+            // TSystemMatrixType T_transpose_matrix(mpT.size2(), mpT.size1());
+            // SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mpT, 1.0);
 
-        //     TSystemVectorType b_modified(rb.size());
-        //     TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
-        //     TSparseSpace::Copy(b_modified, rb);
+            // TSystemVectorType b_modified(rb.size());
+            // TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
+            // TSparseSpace::Copy(b_modified, rb);
 
-        //     // Apply diagonal values on slaves
-        //     IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
-        //         const IndexType slave_equation_id = mSlaveIds[Index];
-        //         if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-        //             rb[slave_equation_id] = 0.0;
-        //         }
-        //     });
-        // }
+            // // Apply diagonal values on slaves
+            // IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+            //     const IndexType slave_equation_id = mSlaveIds[Index];
+            //     if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+            //         rb[slave_equation_id] = 0.0;
+            //     }
+            // });
+        }
 
         KRATOS_CATCH("")
     }
@@ -952,22 +950,22 @@ public:
     {
         KRATOS_TRY
 
-        // if (rModelPart.MasterSlaveConstraints().size() != 0) {
-        //     BuildMasterSlaveConstraints(rModelPart);
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            BuildMasterSlaveConstraints(rModelPart);
 
         //     // We compute the transposed matrix of the global relation matrix
-        //     TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
-        //     SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
+        //     TSystemMatrixType T_transpose_matrix(mpT.size2(), mpT.size1());
+        //     SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mpT, 1.0);
 
         //     TSystemVectorType b_modified(rb.size());
         //     TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
         //     TSparseSpace::Copy(b_modified, rb);
 
-        //     TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
+        //     TSystemMatrixType auxiliar_A_matrix(mpT.size2(), rA.size2());
         //     SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
         //     T_transpose_matrix.resize(0, 0, false);                                                             //free memory
 
-        //     SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
+        //     SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mpT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
         //     auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
         //     const double max_diag = GetMaxDiagonal(rA);
@@ -980,7 +978,7 @@ public:
         //             rb[slave_equation_id] = 0.0;
         //         }
         //     });
-        // }
+        }
 
         KRATOS_CATCH("")
     }
@@ -995,8 +993,8 @@ public:
         mSlaveIds.clear();
         mMasterIds.clear();
         mInactiveSlaveDofs.clear();
-        mT.resize(0,0,false);
-        mConstantVector.resize(0,false);
+        // mpT.resize(0,0,false);
+        // mpConstantVector.resize(0,false);
     }
 
     /**
@@ -1088,23 +1086,23 @@ protected:
     ///@{
 
     /* Base variables */
-    EpetraCommunicatorType& mrComm;   /// The MPI communicator
-    int mGuessRowSize;                /// The guess row size
-    IndexType mLocalSystemSize;       /// The local system size
-    int mFirstMyId;                   /// Auxiliary Id (I)
-    int mLastMyId;                    /// Auxiliary Id (II)
+    EpetraCommunicatorType& mrComm; /// The MPI communicator
+    int mGuessRowSize;              /// The guess row size
+    IndexType mLocalSystemSize;     /// The local system size
+    int mFirstMyId;                 /// Auxiliary Id (I)
+    int mLastMyId;                  /// Auxiliary Id (II)
 
     /* MPC variables */
-    TSystemMatrixType mT;              /// This is matrix containing the global relation for the constraints
-    TSystemVectorType mConstantVector; /// This is vector containing the rigid movement of the constraint
-    std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
-    std::vector<IndexType> mMasterIds; /// The equation ids of the master
-    std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
-    double mScaleFactor = 1.0;         /// The manually set scale factor
+    TSystemMatrixPointerType mpT =  nullptr;              /// This is matrix containing the global relation for the constraints
+    TSystemVectorPointerType mpConstantVector =  nullptr; /// This is vector containing the rigid movement of the constraint
+    std::vector<IndexType> mSlaveIds;                     /// The equation ids of the slaves
+    std::vector<IndexType> mMasterIds;                    /// The equation ids of the master
+    std::unordered_set<IndexType> mInactiveSlaveDofs;     /// The set containing the inactive slave dofs
+    double mScaleFactor = 1.0;                            /// The manually set scale factor
 
     /* Flags */
     SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;; /// We identify the scaling considered for the dirichlet dofs
-    Flags mOptions;                    /// Some flags used internally
+    Flags mOptions;                                                    /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -1114,9 +1112,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
-    // {
-    //     if (rModelPart.MasterSlaveConstraints().size() > 0) {
+    virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
+    {
+        if (rModelPart.MasterSlaveConstraints().size() > 0) {
     //         Timer::Start("ConstraintsRelationMatrixStructure");
     //         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -1179,19 +1177,19 @@ protected:
     //         for (IndexType i = 0; i < indices.size(); ++i)
     //             nnz += indices[i].size();
 
-    //         mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
-    //         mConstantVector.resize(indices.size(), false);
+    //         mpT = TSystemMatrixType(indices.size(), indices.size(), nnz);
+    //         mpConstantVector.resize(indices.size(), false);
 
-    //         double *Tvalues = mT.value_data().begin();
-    //         IndexType *Trow_indices = mT.index1_data().begin();
-    //         IndexType *Tcol_indices = mT.index2_data().begin();
+    //         double *Tvalues = mpT.value_data().begin();
+    //         IndexType *Trow_indices = mpT.index1_data().begin();
+    //         IndexType *Tcol_indices = mpT.index2_data().begin();
 
     //         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
     //         Trow_indices[0] = 0;
-    //         for (int i = 0; i < static_cast<int>(mT.size1()); i++)
+    //         for (int i = 0; i < static_cast<int>(mpT.size1()); i++)
     //             Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
 
-    //         IndexPartition<std::size_t>(mT.size1()).for_each([&](std::size_t Index){
+    //         IndexPartition<std::size_t>(mpT.size1()).for_each([&](std::size_t Index){
     //             const IndexType row_begin = Trow_indices[Index];
     //             const IndexType row_end = Trow_indices[Index + 1];
     //             IndexType k = row_begin;
@@ -1206,18 +1204,18 @@ protected:
     //             std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
     //         });
 
-    //         mT.set_filled(indices.size() + 1, nnz);
+    //         mpT.set_filled(indices.size() + 1, nnz);
 
     //         Timer::Stop("ConstraintsRelationMatrixStructure");
-    //     }
-    // }
+        }
+    }
 
-    // virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
-    // {
-    //     KRATOS_TRY
+    virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
 
-    //     TSparseSpace::SetToZero(mT);
-    //     TSparseSpace::SetToZero(mConstantVector);
+    //     TSparseSpace::SetToZero(mpT);
+    //     TSparseSpace::SetToZero(mpConstantVector);
 
     //     // The current process info
     //     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -1259,11 +1257,11 @@ protected:
     //                     const IndexType i_global = slave_equation_ids[i];
 
     //                     // Assemble matrix row
-    //                     AssembleRowContribution(mT, transformation_matrix, i_global, i, master_equation_ids);
+    //                     AssembleRowContribution(mpT, transformation_matrix, i_global, i, master_equation_ids);
 
     //                     // Assemble constant vector
     //                     const double constant_value = constant_vector[i];
-    //                     double& r_value = mConstantVector[i_global];
+    //                     double& r_value = mpConstantVector[i_global];
     //                     AtomicAdd(r_value, constant_value);
     //                 }
     //             } else { // Taking into account inactive constraints
@@ -1281,25 +1279,25 @@ protected:
 
     //     // Setting the master dofs into the T and C system
     //     for (auto eq_id : mMasterIds) {
-    //         mConstantVector[eq_id] = 0.0;
-    //         mT(eq_id, eq_id) = 1.0;
+    //         mpConstantVector[eq_id] = 0.0;
+    //         mpT(eq_id, eq_id) = 1.0;
     //     }
 
     //     // Setting inactive slave dofs in the T and C system
     //     for (auto eq_id : mInactiveSlaveDofs) {
-    //         mConstantVector[eq_id] = 0.0;
-    //         mT(eq_id, eq_id) = 1.0;
+    //         mpConstantVector[eq_id] = 0.0;
+    //         mpT(eq_id, eq_id) = 1.0;
     //     }
 
-    //     KRATOS_CATCH("")
-    // }
+        KRATOS_CATCH("")
+    }
 
-    // virtual void ConstructMatrixStructure(
-    //     typename TSchemeType::Pointer pScheme,
-    //     TSystemMatrixType& A,
-    //     ModelPart& rModelPart)
-    // {
-    //     //filling with zero the matrix (creating the structure)
+    virtual void ConstructMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
+        TSystemMatrixType& A,
+        ModelPart& rModelPart)
+    {
+    //     // Filling with zero the matrix (creating the structure)
     //     Timer::Start("MatrixStructure");
 
     //     const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -1404,7 +1402,7 @@ protected:
     //     A.set_filled(indices.size()+1, nnz);
 
     //     Timer::Stop("MatrixStructure");
-    // }
+    }
 
     /**
      * @brief This method assigns settings to member variables
