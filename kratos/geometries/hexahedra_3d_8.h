@@ -707,9 +707,10 @@ public:
         const std::vector<unsigned int> faces_1 = {1,1,3,3,1,1,3,3};
         const std::vector<unsigned int> faces_2 = {4,2,2,4,4,2,2,4};
         for (unsigned int i = 0; i < 8; ++i) {
-            const auto normal_0 = faces[faces_0[i]].UnitNormal(this->GetPoint(i));
-            const auto normal_1 = faces[faces_1[i]].UnitNormal(this->GetPoint(i));
-            const auto normal_2 = faces[faces_2[i]].UnitNormal(this->GetPoint(i));
+            const TPointType& point_i = this->GetPoint(i);
+            const auto normal_0 = faces[faces_0[i]].UnitNormal(point_i);
+            const auto normal_1 = faces[faces_1[i]].UnitNormal(point_i);
+            const auto normal_2 = faces[faces_2[i]].UnitNormal(point_i);
             const double dihedral_angle_0 = std::acos(inner_prod(normal_0, -normal_1));
             const double dihedral_angle_1 = std::acos(inner_prod(normal_0, -normal_2));
             const double dihedral_angle_2 = std::acos(inner_prod(normal_2, -normal_1));
