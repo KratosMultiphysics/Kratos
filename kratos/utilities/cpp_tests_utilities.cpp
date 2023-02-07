@@ -71,7 +71,7 @@ void Create2DGeometry(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CreatePure2DGeometry(ModelPart& rModelPart)
+void Create2DGeometryDummyElements(ModelPart& rModelPart)
 {
     Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
@@ -201,7 +201,7 @@ void Create3DGeometry(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CreatePure3DGeometry(ModelPart& rModelPart)
+void Create3DGeometryDummyElements(ModelPart& rModelPart)
 {
     Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 

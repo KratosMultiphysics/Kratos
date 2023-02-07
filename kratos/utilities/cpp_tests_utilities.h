@@ -59,7 +59,7 @@ namespace CppTestsUtilities
      * @param Initialize If initialize the entities
      * @param Elements If create elements or conditions
      */
-    void KRATOS_API(KRATOS_CORE) Create2DGeometry(
+    void Create2DGeometry(
         ModelPart& rModelPart,
         const std::string& rEntityName = "Element2D3N",
         const bool Initialize = true,
@@ -70,7 +70,7 @@ namespace CppTestsUtilities
      * @brief This method creates a pure (Element) simple geometry in 2D (triangles)
      * @param rModelPart Reference to the ModelPart containing the problem
      */
-    void KRATOS_API(KRATOS_CORE) CreatePure2DGeometry(ModelPart& rModelPart);
+    void Create2DGeometryDummyElements(ModelPart& rModelPart);
 
     /**
      * @brief This method creates a simple geometry in 2D (quadrilaterals)
@@ -79,7 +79,7 @@ namespace CppTestsUtilities
      * @param Initialize If initialize the entities
      * @param Elements If create elements or conditions
      */
-    void KRATOS_API(KRATOS_CORE) Create2DQuadrilateralsGeometry(
+    void Create2DQuadrilateralsGeometry(
         ModelPart& rModelPart, 
         const std::string& rEntityName = "Element2D4N",
         const bool Initialize = true,
@@ -92,7 +92,7 @@ namespace CppTestsUtilities
      * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
-    void KRATOS_API(KRATOS_CORE) Create3DGeometry(
+    void Create3DGeometry(
         ModelPart& rModelPart,
         const std::string& rElementName = "Element3D4N",
         const bool Initialize = true
@@ -102,7 +102,7 @@ namespace CppTestsUtilities
      * @brief This method creates a pure (Element) simple geometry in 3D (tetrahedra)
      * @param rModelPart Reference to the ModelPart containing the problem
      */
-    void KRATOS_API(KRATOS_CORE) CreatePure3DGeometry(ModelPart& rModelPart);
+    void Create3DGeometryDummyElements(ModelPart& rModelPart);
 
     /**
      * @brief This method creates a simple geometry in 3D (hexahedra)
@@ -110,7 +110,7 @@ namespace CppTestsUtilities
      * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
-    void KRATOS_API(KRATOS_CORE) Create3DHexahedraGeometry(
+    void Create3DHexahedraGeometry(
         ModelPart& rModelPart,
         const std::string& rElementName = "Element3D8N",
         const bool Initialize = true
@@ -122,7 +122,7 @@ namespace CppTestsUtilities
      * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
-    void KRATOS_API(KRATOS_CORE) Create3DQuadraticGeometry(
+    void Create3DQuadraticGeometry(
         ModelPart& rModelPart, 
         const std::string& rElementName = "Element3D10N",
         const bool Initialize = true
