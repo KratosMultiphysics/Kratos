@@ -27,6 +27,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
+// #include "utilities/atomic_utilities.h" # TODO
 
 #if !defined(START_TIMER)
 #define START_TIMER(label, rank) \
@@ -72,7 +73,7 @@ namespace Kratos {
  * residual already contains this information. Calculation of the reactions
  * involves a cost very similar to the calculation of the total residual
  * @author Riccardo Rossi
- * @author Vicente Mataix Ferrandiz
+ * @author Vicente Mataix Ferrandiz (MPC)
  * @note Should be TrilinosResidualBasedBlockBuilderAndSolver?
  */
 template <class TSparseSpace,
@@ -533,6 +534,8 @@ public:
                 temp_dofs_array.push_back(*i_dof);
         }
 
+        // TODO: Add constraints
+
         temp_dofs_array.Unique();
         BaseType::mDofSet = temp_dofs_array;
 
@@ -595,6 +598,14 @@ public:
             if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
                 r_dof.SetEquationId(free_offset++);
 
+        // TODO
+        // BaseType::mEquationSystemSize = BaseType::mDofSet.size();
+
+        // IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&, this](std::size_t Index){
+        //     typename DofsArrayType::iterator dof_iterator = this->mDofSet.begin() + Index;
+        //     dof_iterator->SetEquationId(Index);
+        // });
+
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
         KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 1)
@@ -626,6 +637,8 @@ public:
                                     ModelPart& rModelPart) override
     {
         KRATOS_TRY
+
+        // TODO: Move to ConstructMatrixStructure
 
         // Resizing the system vectors and matrix
         if (rpA == nullptr || TSparseSpace::Size1(*rpA) == 0 ||
@@ -722,6 +735,9 @@ public:
                 KRATOS_ERROR << "It should not come here resizing is not allowed this way!!!!!!!! ... " << std::endl;
             }
         }
+
+        // TODO
+        // ConstructMasterSlaveConstraintsStructure(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -884,11 +900,103 @@ public:
     }
 
     /**
+     * @brief Applies the constraints with master-slave relation matrix (RHS only)
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
+     */
+    void ApplyRHSConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        // if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        //     BuildMasterSlaveConstraints(rModelPart);
+
+        //     // We compute the transposed matrix of the global relation matrix
+        //     TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
+        //     SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
+
+        //     TSystemVectorType b_modified(rb.size());
+        //     TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
+        //     TSparseSpace::Copy(b_modified, rb);
+
+        //     // Apply diagonal values on slaves
+        //     IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+        //         const IndexType slave_equation_id = mSlaveIds[Index];
+        //         if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+        //             rb[slave_equation_id] = 0.0;
+        //         }
+        //     });
+        // }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Applies the constraints with master-slave relation matrix
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     */
+    void ApplyConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        // if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        //     BuildMasterSlaveConstraints(rModelPart);
+
+        //     // We compute the transposed matrix of the global relation matrix
+        //     TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
+        //     SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
+
+        //     TSystemVectorType b_modified(rb.size());
+        //     TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
+        //     TSparseSpace::Copy(b_modified, rb);
+
+        //     TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
+        //     SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
+        //     T_transpose_matrix.resize(0, 0, false);                                                             //free memory
+
+        //     SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
+        //     auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
+
+        //     const double max_diag = GetMaxDiagonal(rA);
+
+        //     // Apply diagonal values on slaves
+        //     IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+        //         const IndexType slave_equation_id = mSlaveIds[Index];
+        //         if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+        //             rA(slave_equation_id, slave_equation_id) = max_diag;
+        //             rb[slave_equation_id] = 0.0;
+        //         }
+        //     });
+        // }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
      */
     void Clear() override
     {
         BaseType::Clear();
+
+        mSlaveIds.clear();
+        mMasterIds.clear();
+        mInactiveSlaveDofs.clear();
+        mT.resize(0,0,false);
+        mConstantVector.resize(0,false);
     }
 
     /**
@@ -986,6 +1094,12 @@ protected:
     int mFirstMyId;                   /// Auxiliary Id (I)
     int mLastMyId;                    /// Auxiliary Id (II)
 
+    /* MPC variables */
+    TSystemMatrixType mT;              /// This is matrix containing the global relation for the constraints
+    TSystemVectorType mConstantVector; /// This is vector containing the rigid movement of the constraint
+    std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
+    std::vector<IndexType> mMasterIds; /// The equation ids of the master
+    std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
     double mScaleFactor = 1.0;         /// The manually set scale factor
 
     /* Flags */
@@ -999,6 +1113,298 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    // virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
+    // {
+    //     if (rModelPart.MasterSlaveConstraints().size() > 0) {
+    //         Timer::Start("ConstraintsRelationMatrixStructure");
+    //         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+    //         // Vector containing the localization in the system of the different terms
+    //         DofsVectorType slave_dof_list, master_dof_list;
+
+    //         // Constraint initial iterator
+    //         const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+    //         std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
+
+    //         std::vector<LockObject> lock_array(indices.size());
+
+    //         #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
+    //         {
+    //             Element::EquationIdVectorType slave_ids(3);
+    //             Element::EquationIdVectorType master_ids(3);
+    //             std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
+
+    //             #pragma omp for schedule(guided, 512) nowait
+    //             for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
+    //                 auto it_const = it_const_begin + i_const;
+
+    //                 // Detect if the constraint is active or not. If the user did not make any choice the constraint
+    //                 // It is active by default
+    //                 bool constraint_is_active = true;
+    //                 if( it_const->IsDefined(ACTIVE) ) {
+    //                     constraint_is_active = it_const->Is(ACTIVE);
+    //                 }
+
+    //                 if(constraint_is_active) {
+    //                     it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+
+    //                     // Slave DoFs
+    //                     for (auto &id_i : slave_ids) {
+    //                         temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
+    //                     }
+    //                 }
+    //             }
+
+    //             // Merging all the temporal indexes
+    //             for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
+    //                 lock_array[i].lock();
+    //                 indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
+    //                 lock_array[i].unlock();
+    //             }
+    //         }
+
+    //         mSlaveIds.clear();
+    //         mMasterIds.clear();
+    //         for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+    //             if (indices[i].size() == 0) // Master dof!
+    //                 mMasterIds.push_back(i);
+    //             else // Slave dof
+    //                 mSlaveIds.push_back(i);
+    //             indices[i].insert(i); // Ensure that the diagonal is there in T
+    //         }
+
+    //         // Count the row sizes
+    //         std::size_t nnz = 0;
+    //         for (IndexType i = 0; i < indices.size(); ++i)
+    //             nnz += indices[i].size();
+
+    //         mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
+    //         mConstantVector.resize(indices.size(), false);
+
+    //         double *Tvalues = mT.value_data().begin();
+    //         IndexType *Trow_indices = mT.index1_data().begin();
+    //         IndexType *Tcol_indices = mT.index2_data().begin();
+
+    //         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+    //         Trow_indices[0] = 0;
+    //         for (int i = 0; i < static_cast<int>(mT.size1()); i++)
+    //             Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
+
+    //         IndexPartition<std::size_t>(mT.size1()).for_each([&](std::size_t Index){
+    //             const IndexType row_begin = Trow_indices[Index];
+    //             const IndexType row_end = Trow_indices[Index + 1];
+    //             IndexType k = row_begin;
+    //             for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
+    //                 Tcol_indices[k] = *it;
+    //                 Tvalues[k] = 0.0;
+    //                 k++;
+    //             }
+
+    //             indices[Index].clear(); //deallocating the memory
+
+    //             std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
+    //         });
+
+    //         mT.set_filled(indices.size() + 1, nnz);
+
+    //         Timer::Stop("ConstraintsRelationMatrixStructure");
+    //     }
+    // }
+
+    // virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
+    // {
+    //     KRATOS_TRY
+
+    //     TSparseSpace::SetToZero(mT);
+    //     TSparseSpace::SetToZero(mConstantVector);
+
+    //     // The current process info
+    //     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+    //     // Vector containing the localization in the system of the different terms
+    //     DofsVectorType slave_dof_list, master_dof_list;
+
+    //     // Contributions to the system
+    //     Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
+    //     Vector constant_vector = LocalSystemVectorType(0);
+
+    //     // Vector containing the localization in the system of the different terms
+    //     Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
+
+    //     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
+    //     // We clear the set
+    //     mInactiveSlaveDofs.clear();
+
+    //     #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
+    //     {
+    //         std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+
+    //         #pragma omp for schedule(guided, 512)
+    //         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+    //             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+    //             // Detect if the constraint is active or not. If the user did not make any choice the constraint
+    //             // It is active by default
+    //             bool constraint_is_active = true;
+    //             if (it_const->IsDefined(ACTIVE))
+    //                 constraint_is_active = it_const->Is(ACTIVE);
+
+    //             if (constraint_is_active) {
+    //                 it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+    //                 it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+
+    //                 for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
+    //                     const IndexType i_global = slave_equation_ids[i];
+
+    //                     // Assemble matrix row
+    //                     AssembleRowContribution(mT, transformation_matrix, i_global, i, master_equation_ids);
+
+    //                     // Assemble constant vector
+    //                     const double constant_value = constant_vector[i];
+    //                     double& r_value = mConstantVector[i_global];
+    //                     AtomicAdd(r_value, constant_value);
+    //                 }
+    //             } else { // Taking into account inactive constraints
+    //                 it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+    //                 auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
+    //             }
+    //         }
+
+    //         // We merge all the sets in one thread
+    //         #pragma omp critical
+    //         {
+    //             mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
+    //         }
+    //     }
+
+    //     // Setting the master dofs into the T and C system
+    //     for (auto eq_id : mMasterIds) {
+    //         mConstantVector[eq_id] = 0.0;
+    //         mT(eq_id, eq_id) = 1.0;
+    //     }
+
+    //     // Setting inactive slave dofs in the T and C system
+    //     for (auto eq_id : mInactiveSlaveDofs) {
+    //         mConstantVector[eq_id] = 0.0;
+    //         mT(eq_id, eq_id) = 1.0;
+    //     }
+
+    //     KRATOS_CATCH("")
+    // }
+
+    // virtual void ConstructMatrixStructure(
+    //     typename TSchemeType::Pointer pScheme,
+    //     TSystemMatrixType& A,
+    //     ModelPart& rModelPart)
+    // {
+    //     //filling with zero the matrix (creating the structure)
+    //     Timer::Start("MatrixStructure");
+
+    //     const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+    //     const std::size_t equation_size = BaseType::mEquationSystemSize;
+
+    //     std::vector< LockObject > lock_array(equation_size);
+
+    //     std::vector<std::unordered_set<std::size_t> > indices(equation_size);
+
+    //     block_for_each(indices, [](std::unordered_set<std::size_t>& rIndices){
+    //         rIndices.reserve(40);
+    //     });
+
+    //     Element::EquationIdVectorType ids(3, 0);
+
+    //     block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIdsTLS){
+    //         pScheme->EquationId(rElem, rIdsTLS, CurrentProcessInfo);
+    //         for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
+    //             lock_array[rIdsTLS[i]].lock();
+    //             auto& row_indices = indices[rIdsTLS[i]];
+    //             row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
+    //             lock_array[rIdsTLS[i]].unlock();
+    //         }
+    //     });
+
+    //     block_for_each(rModelPart.Conditions(), ids, [&](Condition& rCond, Element::EquationIdVectorType& rIdsTLS){
+    //         pScheme->EquationId(rCond, rIdsTLS, CurrentProcessInfo);
+    //         for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
+    //             lock_array[rIdsTLS[i]].lock();
+    //             auto& row_indices = indices[rIdsTLS[i]];
+    //             row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
+    //             lock_array[rIdsTLS[i]].unlock();
+    //         }
+    //     });
+
+    //     if (rModelPart.MasterSlaveConstraints().size() != 0) {
+    //         struct TLS
+    //         {
+    //             Element::EquationIdVectorType master_ids = Element::EquationIdVectorType(3,0);
+    //             Element::EquationIdVectorType slave_ids = Element::EquationIdVectorType(3,0);
+    //         };
+    //         TLS tls;
+
+    //         block_for_each(rModelPart.MasterSlaveConstraints(), tls, [&](MasterSlaveConstraint& rConst, TLS& rTls){
+    //             rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, CurrentProcessInfo);
+
+    //             for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
+    //                 lock_array[rTls.slave_ids[i]].lock();
+    //                 auto& row_indices = indices[rTls.slave_ids[i]];
+    //                 row_indices.insert(rTls.slave_ids[i]);
+    //                 lock_array[rTls.slave_ids[i]].unlock();
+    //             }
+
+    //             for (std::size_t i = 0; i < rTls.master_ids.size(); i++) {
+    //                 lock_array[rTls.master_ids[i]].lock();
+    //                 auto& row_indices = indices[rTls.master_ids[i]];
+    //                 row_indices.insert(rTls.master_ids[i]);
+    //                 lock_array[rTls.master_ids[i]].unlock();
+    //             }
+    //         });
+
+    //     }
+
+    //     //destroy locks
+    //     lock_array = std::vector< LockObject >();
+
+    //     //count the row sizes
+    //     unsigned int nnz = 0;
+    //     for (unsigned int i = 0; i < indices.size(); i++) {
+    //         nnz += indices[i].size();
+    //     }
+
+    //     A = CompressedMatrixType(indices.size(), indices.size(), nnz);
+
+    //     double* Avalues = A.value_data().begin();
+    //     std::size_t* Arow_indices = A.index1_data().begin();
+    //     std::size_t* Acol_indices = A.index2_data().begin();
+
+    //     //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+    //     Arow_indices[0] = 0;
+    //     for (int i = 0; i < static_cast<int>(A.size1()); i++) {
+    //         Arow_indices[i+1] = Arow_indices[i] + indices[i].size();
+    //     }
+
+    //     IndexPartition<std::size_t>(A.size1()).for_each([&](std::size_t i){
+    //         const unsigned int row_begin = Arow_indices[i];
+    //         const unsigned int row_end = Arow_indices[i+1];
+    //         unsigned int k = row_begin;
+    //         for (auto it = indices[i].begin(); it != indices[i].end(); it++) {
+    //             Acol_indices[k] = *it;
+    //             Avalues[k] = 0.0;
+    //             k++;
+    //         }
+
+    //         indices[i].clear(); //deallocating the memory
+
+    //         std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
+
+    //     });
+
+    //     A.set_filled(indices.size()+1, nnz);
+
+    //     Timer::Stop("MatrixStructure");
+    // }
 
     /**
      * @brief This method assigns settings to member variables
