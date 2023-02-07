@@ -535,6 +535,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues,
     }
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosIsDistributed, KratosTrilinosApplicationMPITestSuite)
+{
+    KRATOS_CHECK(TrilinosSparseSpaceType::IsDistributed());
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
