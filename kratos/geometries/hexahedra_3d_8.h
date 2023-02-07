@@ -690,6 +690,34 @@ public:
         return false;
     }
 
+    /** Implements the calculus of the 8 solid angles of the hexa
+     *Implements the calculus of the 8 solid angles of the hexa
+     *
+     * @return   The solid angles of the geometry
+    */
+    void ComputeSolidAngles(Vector& rSolidAngles) const override
+    {
+        if(rSolidAngles.size() != 8) {
+          rSolidAngles.resize(8, false);
+        }
+        const auto faces = this->GenerateFaces();
+        // The three faces that contain the node i can be obtained by doing:
+        // faces[faces_0[i]], faces[faces_1[i]], faces[faces_2[i]]
+        const std::vector<unsigned int> faces_0 = {0,0,0,0,5,5,5,5};
+        const std::vector<unsigned int> faces_1 = {1,1,3,3,1,1,3,3};
+        const std::vector<unsigned int> faces_2 = {4,2,2,4,4,2,2,4};
+        for (unsigned int i = 0; i < 8; ++i) {
+            const auto normal_0 = faces[faces_0[i]].UnitNormal(this->GetPoint(i));
+            const auto normal_1 = faces[faces_1[i]].UnitNormal(this->GetPoint(i));
+            const auto normal_2 = faces[faces_2[i]].UnitNormal(this->GetPoint(i));
+            const double dihedral_angle_0 = std::acos(inner_prod(normal_0, -normal_1));
+            const double dihedral_angle_1 = std::acos(inner_prod(normal_0, -normal_2));
+            const double dihedral_angle_2 = std::acos(inner_prod(normal_2, -normal_1));
+            rSolidAngles[i] = dihedral_angle_0 + dihedral_angle_1 + dihedral_angle_2  - Globals::Pi;
+        }
+
+    }
+
     /**
      * Shape Function
      */

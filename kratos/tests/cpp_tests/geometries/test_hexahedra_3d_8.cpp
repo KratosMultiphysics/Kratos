@@ -81,6 +81,23 @@ namespace Kratos {
       ));
     }
 
+    /** Generates a sample Hexahedra3D8.
+     * Generates a hexahedra with side 1 where faces are not parallel to main planes.
+     * @return  Pointer to a Hexahedra3D8
+     */
+    HexaGeometryPtrType GenerateDeformedCenterLen1Hexahedra3D8() {
+      return HexaGeometryPtrType(new HexaGeometryType(
+        GeneratePoint<PointType>(-0.5, -0.5, -0.5),
+        GeneratePoint<PointType>( 0.5, -0.5, -0.5),
+        GeneratePoint<PointType>( 0.5,  0.5, -0.5),
+        GeneratePoint<PointType>(-0.5,  0.5, -0.5),
+        GeneratePoint<PointType>( 0.5, -0.5,  0.5),
+        GeneratePoint<PointType>( 1.5, -0.5,  0.5),
+        GeneratePoint<PointType>( 1.5,  0.5,  0.5),
+        GeneratePoint<PointType>( 0.5,  0.5,  0.5)
+      ));
+    }
+
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
@@ -275,10 +292,33 @@ namespace Kratos {
       TestAllShapeFunctionsLocalGradients(*geom);
   }
 
-  /** Checks the average edge length */
+    /** Checks the average edge length */
     KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8AverageEdgeLength, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateOriginCenterLen2Hexahedra3D8();
         KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 2.0, TOLERANCE);
+    }
+
+    /** Checks the solid angles */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8SolidAngles, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateOriginCenterLen2Hexahedra3D8();
+        Vector solid_angles;
+        geom->ComputeSolidAngles(solid_angles);
+        for (int i = 0; i < 8; i++) {
+          KRATOS_CHECK_NEAR(solid_angles[i], Globals::Pi/2.0, TOLERANCE);
+        }
+
+        auto geom2 = GenerateDeformedCenterLen1Hexahedra3D8();
+        geom2->ComputeSolidAngles(solid_angles);
+        Vector result_solid_angles = ZeroVector(8);
+        result_solid_angles[0] = Globals::Pi/4.0;
+        result_solid_angles[1] = 3.0*Globals::Pi/4.0;
+        result_solid_angles[2] = 3.0*Globals::Pi/4.0;
+        result_solid_angles[3] = Globals::Pi/4.0;
+        result_solid_angles[4] = 3.0*Globals::Pi/4.0;
+        result_solid_angles[5] = Globals::Pi/4.0;
+        result_solid_angles[6] = Globals::Pi/4.0;
+        result_solid_angles[7] = 3.0*Globals::Pi/4.0;
+        KRATOS_CHECK_VECTOR_NEAR(solid_angles, result_solid_angles, TOLERANCE);
     }
 	}
 }  // namespace Kratos.
