@@ -228,17 +228,18 @@ protected:
         {
 	        if (mHorizontalDirectionCoordinates[index] >= rNode.Coordinates()[mHorizontalDirection])
 	        {
-	        	break;
+                if (index == 0)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return index - 1;
+                }
 	        }
         }
-        if (index == 0) 
-        {
-            return 0;
-        }
-        else
-        {
-            return index - 1;
-        }
+        return index - 1;
+        
     }
 
     double CalculatePressure(const Node<3> &rNode) const
