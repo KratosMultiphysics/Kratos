@@ -3,7 +3,6 @@ import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
-import numpy as np
 
 
 class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
