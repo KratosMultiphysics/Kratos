@@ -68,7 +68,9 @@ public:
     ///@name Public operations
     ///@{
 
-    ContainerVariableDataHolder Clone();
+    ContainerVariableDataHolder::Pointer Clone() const;
+
+    ContainerVariableDataHolder::Pointer CloneWithDataInitializedToZero() const;
 
     template <class TDataType>
     void ReadDataFromContainerVariable(

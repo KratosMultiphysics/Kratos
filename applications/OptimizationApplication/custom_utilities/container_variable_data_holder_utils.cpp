@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include <variant>
 
 // Project includes
 #include "includes/define.h"
@@ -58,6 +59,39 @@ double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHold
     }));
 }
 
+double ContainerVariableDataHolderUtils::NormInf(
+    const CollectiveVariableDataHolder& rContainer)
+{
+    double max_norm = 0.0;
+    for (const auto& p_variable_data_container : rContainer.GetVariableDataHolders()) {
+        std::visit([&](auto&& v) { max_norm = std::max(max_norm, NormInf(*v));}, p_variable_data_container);
+    }
+
+    return max_norm;
+}
+
+template<class TContainerType>
+double ContainerVariableDataHolderUtils::NormL2(
+    const ContainerVariableDataHolderBase<TContainerType>& rContainer)
+{
+    const double local_l2_norm_square = IndexPartition<IndexType>(rContainer.GetData().size()).for_each<SumReduction<double>>([&](const IndexType Index) {
+        return rContainer.GetData()[Index];
+    });
+
+    return std::sqrt(rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_l2_norm_square));
+}
+
+double ContainerVariableDataHolderUtils::NormL2(
+    const CollectiveVariableDataHolder& rContainer)
+{
+    double l2_norm_square = 0.0;
+    for (const auto& p_variable_data_container : rContainer.GetVariableDataHolders()) {
+        std::visit([&](auto&& v) { l2_norm_square += std::pow(NormL2(*v), 2);}, p_variable_data_container);
+    }
+
+    return std::sqrt(l2_norm_square);
+}
+
 template<class TContainerType>
 double ContainerVariableDataHolderUtils::InnerProduct(
     const ContainerVariableDataHolderBase<TContainerType>& rContainer1,
@@ -83,10 +117,29 @@ double ContainerVariableDataHolderUtils::InnerProduct(
     }));
 }
 
+double ContainerVariableDataHolderUtils::InnerProduct(
+    const CollectiveVariableDataHolder& rContainer1,
+    const CollectiveVariableDataHolder& rContainer2)
+{
+    KRATOS_ERROR_IF_NOT(rContainer1.IsCompatibleWith(rContainer2))
+        << "Unsupported collective variable data holders provided for \"+\" operation."
+        << "\nLeft operand : " << rContainer1 << "\nRight operand: " << rContainer2 << std::endl;
+
+    double inner_product_value = 0.0;
+    for (IndexType i = 0; i < rContainer1.GetVariableDataHolders().size(); ++i) {
+        std::visit([&](auto&& v) {
+            using v_type = std::decay_t<decltype(v)>;
+            inner_product_value += InnerProduct(*v, *std::get<v_type>(rContainer2.GetVariableDataHolders()[i]));
+        }, rContainer1.GetVariableDataHolders()[i]);
+    }
+    return inner_product_value;
+}
+
 // template instantiations
 #define INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                \
     template double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase<ContainerType>&);                                                       \
     template double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHolderBase<ContainerType>&);                                                               \
+    template double ContainerVariableDataHolderUtils::NormL2(const ContainerVariableDataHolderBase<ContainerType>&);                                                                \
     template double ContainerVariableDataHolderUtils::InnerProduct(const ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&);
 
 INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ModelPart::NodesContainerType)

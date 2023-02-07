@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_utilities/container_variable_data_holder/container_variable_data_holder_base.h"
+#include "custom_utilities/container_variable_data_holder/collective_variable_data_holder.h"
 
 namespace Kratos
 {
@@ -41,6 +42,13 @@ public:
     template<class TContainerType>
     static double NormInf(const ContainerVariableDataHolderBase<TContainerType>& rContainer);
 
+    static double NormInf(const CollectiveVariableDataHolder& rContainer);
+
+    template<class TContainerType>
+    static double NormL2(const ContainerVariableDataHolderBase<TContainerType>& rContainer);
+
+    static double NormL2(const CollectiveVariableDataHolder& rContainer);
+
     template<class TContainerType>
     static double EntityMaxNormL2(const ContainerVariableDataHolderBase<TContainerType>& rContainer);
 
@@ -48,6 +56,10 @@ public:
     static double InnerProduct(
         const ContainerVariableDataHolderBase<TContainerType>& rContainer1,
         const ContainerVariableDataHolderBase<TContainerType>& rContainer2);
+
+    static double InnerProduct(
+        const CollectiveVariableDataHolder& rContainer1,
+        const CollectiveVariableDataHolder& rContainer2);
 
     ///@}
 };
