@@ -234,19 +234,13 @@ bool SmallStrainUMAT3DLaw::loadUMAT(const Properties &rMaterialProperties)
 {
    KRATOS_TRY;
 
-   bool isLoaded = false;
-
 #ifdef KRATOS_COMPILED_IN_WINDOWS
    return loadUMATWindows(rMaterialProperties);
-#endif
-
-#if defined(KRATOS_COMPILED_IN_LINUX) || defined(KRATOS_COMPILED_IN_OS)
+#elif defined(KRATOS_COMPILED_IN_LINUX) || defined(KRATOS_COMPILED_IN_OS)
    return loadUMATLinux(rMaterialProperties);
-#endif
-
+#else
    KRATOS_ERROR << "loadUMAT is not supported yet for Mac OS applications" << std::endl;
-
-   return isLoaded;
+#endif
 
    KRATOS_CATCH(" ");
 }
@@ -295,7 +289,6 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties &rMaterialProperties)
 
 #else
    KRATOS_ERROR << "loadUMATLinux should be called in Linux applications" << rMaterialProperties[UDSM_NAME] << std::endl;
-   return false;
 #endif
 }
 
@@ -322,7 +315,6 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
    {
       KRATOS_INFO("Error in loadUMATWindows") << "cannot load the specified UMAT: " << rMaterialProperties[UDSM_NAME] << std::endl;
       KRATOS_ERROR << "cannot load the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
-      return false;
    }
 
    pUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
@@ -330,7 +322,6 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
    {
       KRATOS_INFO("Error in loadUMATWindows") << "cannot load function umat in the specified UMAT: "<< rMaterialProperties[UDSM_NAME] << std::endl;
       KRATOS_ERROR << "cannot load function umat in the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
-      return false;
    }
 
    return true;

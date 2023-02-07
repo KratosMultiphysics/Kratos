@@ -130,7 +130,7 @@ namespace Kratos {
 
         // Now replace the elements in SubModelParts
         if ( NewElements.size() > 0 ) {
-            ReplaceElementsInSubModelPart(rThisModelPart);
+            ReplaceElementsInSubModelPart(rThisModelPart.GetRootModelPart());
         }
     }
 
@@ -197,7 +197,7 @@ namespace Kratos {
 
             // Replace the conditions in SubModelParts
             if (NewConditions.size() > 0) {
-                ReplaceConditionsInSubModelPart(rThisModelPart);
+                ReplaceConditionsInSubModelPart(rThisModelPart.GetRootModelPart());
             }
         }
         KRATOS_CATCH("");

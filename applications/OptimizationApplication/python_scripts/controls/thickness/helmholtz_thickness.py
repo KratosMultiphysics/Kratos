@@ -29,6 +29,7 @@ class HelmholtzThickness(ThicknessControl):
                         "increase_fac" : 1.5,
                         "update_period" : 20
                     },
+                    "SIMP_power_fac": 3,
                     "initial_thickness":0.000001,
                     "physical_thicknesses": [],
                     "fixed_model_parts": [],
