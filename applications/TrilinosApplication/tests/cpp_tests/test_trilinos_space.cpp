@@ -45,7 +45,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeVector, KratosTrilinosApplicat
     auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
 
     // Check
-    KRATOS_CHECK_EQUAL(size, TrilinosSparseSpaceType::Size(vector));
+    KRATOS_CHECK_EQUAL(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size(vector));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeMatrix, KratosTrilinosApplicationMPITestSuite)
@@ -58,8 +58,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeMatrix, KratosTrilinosApplicat
     auto vector = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
 
     // Check
-    KRATOS_CHECK_EQUAL(size, TrilinosSparseSpaceType::Size1(vector));
-    KRATOS_CHECK_EQUAL(size, TrilinosSparseSpaceType::Size2(vector));
+    KRATOS_CHECK_EQUAL(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size1(vector));
+    KRATOS_CHECK_EQUAL(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size2(vector));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDotProduct, KratosTrilinosApplicationMPITestSuite)
