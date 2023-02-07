@@ -40,9 +40,9 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"jacobi",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             return gko::preconditioner::Jacobi<TValueType, TIndexType>::build()
-                .with_max_block_size(rSettings["jacobi_max_block_size"].GetDouble())
+                .with_max_block_size(rSettings["max_block_size"].GetDouble())
                 // .with_storage_optimization(parse_storage_optimization(rSettings["jacobi_storage"].GetDouble()))
-                .with_accuracy(static_cast<rc_etype>(rSettings["jacobi_accuracy"].GetDouble()))
+                .with_accuracy(static_cast<rc_etype>(rSettings["accuracy"].GetDouble()))
                 .with_skip_sorting(true)
                 .on(exec);
         }},
@@ -230,7 +230,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
             return gko::preconditioner::SpdIsai<TValueType, TIndexType>::build()
                 .with_sparsity_power(rSettings["isai_power"].GetDouble())
                 .on(exec);
-        }} //,
+        }}
     // {"overhead", 
     //     [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
     //         return gko::Overhead<TValueType>::build()
@@ -279,8 +279,8 @@ public:
             "tolerance"             : 1e-6,
             "residual_mode"         : "rhs_norm",
             "preconditioner"        : "none",
-            "jacobi_max_block_size" : 0,
-            "jacobi_accuracy"       : 0.0,
+            "max_block_size"        : 0,
+            "accuracy"              : 0.0,
             "parilu_iterations"     : 1,
             "parilut_approx_select" : 0,
             "parilut_limit"         : 1,
@@ -313,7 +313,7 @@ public:
         mMaxIterationsNumber = settings["max_iteration"].GetDouble();
         mResidualMode = settings["residual_mode"].GetString();
 
-        mPrecond = GinkoSolverPreconditioners<double, std::int64_t>::mFactory.at("none")(mExec, settings["solver"]);
+        mPrecond = GinkoSolverPreconditioners<double, std::int64_t>::mFactory.at(settings["preconditioner"].GetString())(mExec, settings);
 
         auto FLAGS_nrhs = 1; // TODO: No clue what is this.
 
@@ -331,16 +331,21 @@ public:
         } else if (settings["solver"].GetString() == "idr") {
             mSolver = add_criteria_precond_finalize(gko::solver::Idr<double>::build(), mPrecond);
         } else if (settings["solver"].GetString() == "gmres") {
-            mSolver = add_criteria_precond_finalize(gko::solver::Gmres<double>::build().with_krylov_dim(100u), mPrecond);
-        // TODO: Doesn't seem to work
-        // } else if (settings["solver"].GetString() == "overhead") {
-        //     mSolver = add_criteria_precond_finalize(gko::Overhead<double>::build(), mPrecond);
+            mSolver = add_criteria_precond_finalize(gko::solver::Gmres<double>::build()
+                .with_krylov_dim(100u)
+                ,mPrecond
+            );
+        } else if (settings["solver"].GetString() == "cb_gmres"){
+            mSolver = add_criteria_precond_finalize(gko::solver::CbGmres<double>::build()
+                .with_krylov_dim(100u)
+                ,mPrecond
+            );
         } else if (settings["solver"].GetString() == "lower_trs") {
             mSolver = gko::solver::LowerTrs<double>::build().with_num_rhs(FLAGS_nrhs).on(mExec);
         } else if (settings["solver"].GetString() == "upper_trs") {
             mSolver = gko::solver::UpperTrs<double>::build().with_num_rhs(FLAGS_nrhs).on(mExec);
         } else {
-            KRATOS_ERROR << "Invalid solver. Values are: (bicgstab, bicg, cg, cgs, fcg, idr, gmres, lower_trs, upper_trs)" << std::endl; 
+            KRATOS_ERROR << "Invalid solver. Values are: (bicgstab, bicg, cg, cgs, fcg, idr, gmres, cb_gmres, lower_trs, upper_trs)" << std::endl; 
         }
     }
 
@@ -355,18 +360,25 @@ public:
             ? gko::stop::mode::initial_resnorm 
             : gko::stop::mode::rhs_norm;
 
-        auto residual_stop = gko::share(
-            gko::stop::ResidualNorm<double>::build()
-                .with_baseline(residual_stop_mode)
-                .with_reduction_factor(mTolerance)
-            .on(mExec)
-        );
-
         auto iteration_stop = gko::share(
             gko::stop::Iteration::build().with_max_iters(mMaxIterationsNumber).on(mExec)
         );
 
-        std::vector<std::shared_ptr<const gko::stop::CriterionFactory>> criterion_vector{residual_stop, iteration_stop};
+        auto residual_stop = gko::share(
+            gko::stop::ResidualNorm<double>::build()
+                .with_reduction_factor(mTolerance)
+            .on(mExec)
+        );
+
+        auto rel_residual_stop = gko::share(
+            gko::stop::RelativeResidualNorm<double>::build()
+                .with_tolerance(mTolerance)
+            .on(mExec)
+        );
+
+        std::vector<std::shared_ptr<const gko::stop::CriterionFactory>> criterion_vector{rel_residual_stop, iteration_stop};
+
+        if s
 
         return gko::stop::combine(criterion_vector);
     }
@@ -381,7 +393,8 @@ public:
     template <typename SolverIntermediate>
     std::unique_ptr<gko::LinOpFactory> add_criteria_precond_finalize(SolverIntermediate inter, std::shared_ptr<const gko::LinOpFactory> precond)
     {
-        return inter.with_criteria(create_stop_criterion())
+        return inter
+            .with_criteria(create_stop_criterion())
             .with_preconditioner(give(precond))
             .on(mExec);
     }
