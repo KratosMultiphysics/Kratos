@@ -710,7 +710,7 @@ public:
         array_1d<double, 3> normal_0, normal_1, normal_2;
         double dihedral_angle_0, dihedral_angle_1, dihedral_angle_2;
         for (unsigned int i = 0; i < 8; ++i) {
-			const TPointType& r_point_i = this->GetPoint(i);
+            const TPointType& r_point_i = this->GetPoint(i);
             noalias(normal_0) = faces[faces_0[i]].UnitNormal(r_point_i);
             noalias(normal_1) = faces[faces_1[i]].UnitNormal(r_point_i);
             noalias(normal_2) = faces[faces_2[i]].UnitNormal(r_point_i);
