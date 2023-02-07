@@ -295,6 +295,12 @@ public:
     void Reset();
 
     ///@}
+    ///@name Operators
+    ///@{
+    
+    bool operator==(ModelPart const& rOther) const == delete;
+    
+    ///@}
     ///@name Solution Steps
     ///@{
 
