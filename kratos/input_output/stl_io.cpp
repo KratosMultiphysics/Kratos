@@ -28,10 +28,12 @@ StlIO::StlIO(std::filesystem::path const& Filename, const Flags Options)
     std::fstream* pFile = new std::fstream();
 
     // set default mode to read
-    std::fstream::openmode OpenMode = std::fstream::in;
+    std::fstream::openmode OpenMode;
 
     // handle other mode options
-    if (mOptions.Is(IO::APPEND)) {
+    if (mOptions.Is(IO::READ)) {
+        OpenMode = std::fstream::in;
+    } else if (mOptions.Is(IO::APPEND)) {
         OpenMode = std::fstream::in | std::fstream::app;
     } else if (mOptions.Is(IO::WRITE)) {
         OpenMode = std::fstream::out;
