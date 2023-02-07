@@ -254,7 +254,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mDisplacementControlCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
 
       // Adding the SBM displacement conditions
-      mDisplacementShiftedBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node<3>>())){}
+      mDisplacementShiftedBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node<3>>())),
 
       // Adding moving load conditions
       mMovingLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
