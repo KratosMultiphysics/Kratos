@@ -117,11 +117,25 @@ public:
     static double ComputeCorrectionFactor(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, double& CorrectionScaling, const bool IsAdaptive);
 
     /**
+     * Assemble the values of the scalar variable into a vector
+     */
+    static void AssembleVector( ModelPart& rModelPart,
+        Vector& rVector,
+        const Variable<double> &rVariable);
+
+    /**
      * Assemble the values of the nodal vector variable into a vector
      */
     static void AssembleVector( ModelPart& rModelPart,
         Vector& rVector,
         const Variable<array_3d> &rVariable);
+
+    /**
+     * Assigns the values of a vector to the scalar variables
+     */
+    static void AssignVectorToVariable(ModelPart& rModelPart,
+        const Vector& rVector,
+        const Variable<double> &rVariable);
 
     /**
      * Assigns the values of a vector to the nodal vector variables
