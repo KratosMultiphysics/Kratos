@@ -629,11 +629,13 @@ public:
      * @param rpd The RHS vector
      * @param rModelPart The model part of the problem to solve
      */
-    void ResizeAndInitializeVectors(typename TSchemeType::Pointer pScheme,
-                                    TSystemMatrixPointerType& rpA,
-                                    TSystemVectorPointerType& rpDx,
-                                    TSystemVectorPointerType& rpb,
-                                    ModelPart& rModelPart) override
+    void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
+        TSystemMatrixPointerType& rpA,
+        TSystemVectorPointerType& rpDx,
+        TSystemVectorPointerType& rpb,
+        ModelPart& rModelPart
+        ) override
     {
         KRATOS_TRY
 
@@ -742,11 +744,14 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void CalculateReactions(typename TSchemeType::Pointer pScheme,
-                            ModelPart& rModelPart,
-                            TSystemMatrixType& rA,
-                            TSystemVectorType& rDx,
-                            TSystemVectorType& rb) override
+
+    void CalculateReactions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         TSparseSpace::SetToZero(rb);
 
@@ -828,11 +833,13 @@ public:
      * @param Dx The Unknowns vector
      * @param b The RHS vector
      */
-    void ApplyDirichletConditions(typename TSchemeType::Pointer pScheme,
-                                  ModelPart& rModelPart,
-                                  TSystemMatrixType& rA,
-                                  TSystemVectorType& rDx,
-                                  TSystemVectorType& rb) override
+    void ApplyDirichletConditions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
