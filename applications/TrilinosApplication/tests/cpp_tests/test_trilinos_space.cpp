@@ -330,6 +330,27 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilin
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosInplaceMult, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    auto local_vector = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size);
+
+    // Multiply
+    const double mult = 2.0;
+
+    // Solution
+    TrilinosSparseSpaceType::InplaceMult(vector, mult);
+
+    // Check
+    local_vector *= mult;
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
