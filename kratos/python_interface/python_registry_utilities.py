@@ -1,5 +1,10 @@
 import KratosMultiphysics
 
+def RegisterAll(PythonModuleName, PythonRegistryListModule):
+    RegisterModelersList(PythonModuleName, PythonRegistryListModule)
+    RegisterOperationsList(PythonModuleName, PythonRegistryListModule)
+    RegisterProcessesList(PythonModuleName, PythonRegistryListModule)
+
 def RegisterModelersList(PythonModuleName, PythonRegistryListModule):
     __CheckRegistryListIsInModule(PythonRegistryListModule, "modelers")
     __RegisterItemList(PythonModuleName, PythonRegistryListModule.python_modelers_to_be_registered, "Modelers")

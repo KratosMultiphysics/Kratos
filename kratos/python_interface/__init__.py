@@ -107,9 +107,7 @@ RegisterPrototype = python_registry.RegisterPrototype
 locals().pop("CppRegistry")
 
 # Loop and register the Python registry lists
-python_registry_utilities.RegisterModelersList("KratosMultiphysics", python_registry_lists)
-python_registry_utilities.RegisterOperationsList("KratosMultiphysics", python_registry_lists)
-python_registry_utilities.RegisterProcessesList("KratosMultiphysics", python_registry_lists)
+python_registry_utilities.RegisterAll("KratosMultiphysics", python_registry_lists)
 
 # Detect kratos library version
 python_version = KratosGlobals.Kernel.PythonVersion()
