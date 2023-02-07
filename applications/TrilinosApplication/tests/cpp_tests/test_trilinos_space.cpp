@@ -351,6 +351,102 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosInplaceMult, KratosTrilinosApplica
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosAssign, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto vector_1 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    auto vector_2 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 1.0);
+    auto local_vector_1 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size);
+    auto local_vector_2 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size, 1.0);
+
+    // Multiply
+    const double mult = 2.0;
+
+    // Solution
+    TrilinosSparseSpaceType::Assign(vector_1, mult, vector_2);
+
+    // Check
+    local_vector_1 = mult * local_vector_2;
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector_1, local_vector_1);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosUnaliasedAdd, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto vector_1 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    auto vector_2 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 1.0);
+    auto local_vector_1 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size);
+    auto local_vector_2 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size, 1.0);
+
+    // Multiply
+    const double mult = 2.0;
+
+    // Solution
+    TrilinosSparseSpaceType::UnaliasedAdd(vector_1, mult, vector_2);
+
+    // Check
+    local_vector_1 += mult * local_vector_2;
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector_1, local_vector_1);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosScaleAndAdd1, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto vector_1 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    auto vector_2 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 1.0);
+    auto vector_3 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 2.0);
+    auto local_vector_1 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size);
+    auto local_vector_2 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size, 1.0);
+    auto local_vector_3 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size, 2.0);
+
+    // Multiply
+    const double mult_1 = 2.0;
+    const double mult_2 = 1.5;
+
+    // Solution
+    TrilinosSparseSpaceType::ScaleAndAdd(mult_1, vector_2, mult_2, vector_3, vector_1);
+
+    // Check
+    local_vector_1 = mult_1 * local_vector_2 + mult_2 * local_vector_3;
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector_1, local_vector_1);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosScaleAndAdd2, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto vector_1 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    auto vector_2 = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size, 1.0);
+    auto local_vector_1 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size);
+    auto local_vector_2 = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size, 1.0);
+
+    // Multiply
+    const double mult_1 = 2.0;
+    const double mult_2 = 1.5;
+
+    // Solution
+    TrilinosSparseSpaceType::ScaleAndAdd(mult_1, vector_2, mult_2, vector_1);
+
+    // Check
+    local_vector_1 = mult_1 * local_vector_2 + mult_2 * local_vector_1;
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector_1, local_vector_1);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
