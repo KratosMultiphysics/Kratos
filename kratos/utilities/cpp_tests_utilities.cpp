@@ -77,6 +77,9 @@ void CreateTestModelPartTriangle2D3N(ModelPart& rModelPart)
 
     using NodeType = Node<3>;
 
+    // Clear the model part
+    rModelPart.Clear();
+
     // First we create the nodes
     auto p_node_1 = rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
     auto p_node_2 = rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
@@ -161,6 +164,9 @@ void Create3DGeometry(
     )
 {
     Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
+
+    // Clear the model part
+    rModelPart.Clear();
 
     // First we create the nodes
     rModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
