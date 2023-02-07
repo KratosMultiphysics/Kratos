@@ -96,12 +96,10 @@ public:
     StlIO(std::filesystem::path const& Filename, const Flags Options = IO::READ);
 
     /// Constructor with stream.
-    StlIO(std::iostream* pInputStream);
+    StlIO(Kratos::shared_ptr<std::iostream> pInputStream);
 
     /// Destructor.
-    virtual ~StlIO(){
-        delete mpInputStream;
-    }
+    virtual ~StlIO(){}
 
     ///@}
     ///@name Operators
@@ -177,7 +175,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::iostream* mpInputStream;
+    Kratos::shared_ptr<std::iostream> mpInputStream;
     Flags mOptions;
 
     ///@}

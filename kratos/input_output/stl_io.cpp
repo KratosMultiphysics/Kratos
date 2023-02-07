@@ -25,7 +25,7 @@ namespace Kratos
 StlIO::StlIO(std::filesystem::path const& Filename, const Flags Options)
     : mOptions(Options)
 {
-    std::fstream* pFile = new std::fstream();
+    Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
 
     // set default mode to read
     std::fstream::openmode OpenMode;
@@ -49,7 +49,7 @@ StlIO::StlIO(std::filesystem::path const& Filename, const Flags Options)
     mpInputStream = pFile;
 }
 
-StlIO::StlIO(std::iostream* pInputStream) 
+StlIO::StlIO(Kratos::shared_ptr<std::iostream> pInputStream) 
     : IO(), 
       mpInputStream(pInputStream)
 {

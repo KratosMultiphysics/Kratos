@@ -26,7 +26,7 @@ namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
 {
-    std::stringstream* p_input = new std::stringstream(R"input(
+    Kratos::shared_ptr<std::stringstream> p_input = Kratos::make_shared<std::stringstream>(R"input(
     solid 1 triangle
         facet normal  1.000000 0.000000 0.000000 
             outer loop 
@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
 {
-    std::stringstream* p_input = new std::stringstream(R"input(
+    Kratos::shared_ptr<std::stringstream> p_input = Kratos::make_shared<std::stringstream>(R"input(
     solid 3 triangles
         facet normal  1.000000 0.000000 0.000000 
             outer loop 
