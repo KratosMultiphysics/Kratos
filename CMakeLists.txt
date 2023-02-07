@@ -60,6 +60,22 @@ set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
 
+if(KRATOS_BUILD_TESTING MATCHES ON)
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  )
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+  FetchContent_MakeAvailable(googletest)
+  enable_testing()
+endif(KRATOS_BUILD_TESTING MATCHES ON)
+
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
   message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")

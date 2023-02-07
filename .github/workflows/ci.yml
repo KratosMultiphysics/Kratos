@@ -276,6 +276,13 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
 
+    - name: Run C++ Through CMake
+      shell: bash
+      run: |
+        export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
+        export KRATOS_BUILD="${KRATOS_SOURCE}/build"
+        cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target test -- -j2
+
     - name: Running MPICore C++ tests (2 Cores)
       shell: bash
       timeout-minutes : 10

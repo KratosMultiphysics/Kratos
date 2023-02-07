@@ -14,6 +14,9 @@
 #if !defined(KRATOS_TESTING_H_INCLUDED )
 #define  KRATOS_TESTING_H_INCLUDED
 
+#include "includes/kernel.h"
+#include "includes/expects.h"  // It is almost always necessary. includes the exception
+
 #include "testing/test_suite.h" // This includes the test_case.h which includes tester.h
 #include "includes/checks.h"  // It is almost always necessary. includes the exception
 #include "includes/data_communicator.h"
