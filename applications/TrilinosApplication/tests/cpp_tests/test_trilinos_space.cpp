@@ -447,6 +447,61 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosScaleAndAdd2, KratosTrilinosApplic
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector_1, local_vector_1);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSet, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    auto local_vector = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size);
+
+    // Set
+    const double value = 2.0;
+
+    // Solution
+    TrilinosSparseSpaceType::Set(vector, value);
+
+    // Check
+    for (int i = 0; i < size; ++i) local_vector[i] = value;
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSetToZeroMatrix, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
+    TrilinosLocalMatrixType local_matrix = ZeroMatrix(size, size);
+
+    // Solution
+    TrilinosSparseSpaceType::SetToZero(matrix);
+
+    // Check
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSetToZeroVector, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    TrilinosLocalVectorType local_vector = ZeroVector(size);
+
+    // Solution
+    TrilinosSparseSpaceType::SetToZero(vector);
+
+    // Check
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
