@@ -214,7 +214,7 @@ void ReplaceElementsAndConditionsProcess::Execute()
     }
     if (replace_elements) {
         std::unordered_set<std::size_t> set_element_ids (mrModelPart.NumberOfElements());
-        for(auto& r_elem : mrModelPart.Elements()) {
+        for(const auto& r_elem : mrModelPart.Elements()) {
             set_element_ids.insert(r_elem.Id());
         }
         if (mOnlyOneElementOrCondition[0]) {
@@ -241,7 +241,7 @@ void ReplaceElementsAndConditionsProcess::Execute()
     }
     if (replace_conditions) {
         std::unordered_set<std::size_t> set_conditions_ids (mrModelPart.NumberOfConditions());
-        for(auto& r_cond : mrModelPart.Conditions()) {
+        for(const auto& r_cond : mrModelPart.Conditions()) {
             set_conditions_ids.insert(r_cond.Id());
         }
         if (mOnlyOneElementOrCondition[1]) {
