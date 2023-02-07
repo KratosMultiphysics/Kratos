@@ -93,6 +93,15 @@ class Optimizer:
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
                 model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
 
+        if self.optimization_settings["design_variables"]["filter"]["filter_radius"].IsString() and \
+            self.optimization_settings["design_variables"]["filter"]["filter_radius"].GetString() == "adaptive":
+            # variables required for adaptive
+            model_part = self.model_part_controller.GetOptimizationModelPart()
+            model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS)
+            model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS_RAW)
+            model_part.AddNodalSolutionStepVariable(KSO.GAUSSIAN_CURVATURE)
+            model_part.AddNodalSolutionStepVariable(KSO.MAX_NEIGHBOUR_DISTANCE)
+
     def __AddVariablesToBeUsedBySensitivityHeatmap(self):
         model_part = self.model_part_controller.GetOptimizationModelPart()
 

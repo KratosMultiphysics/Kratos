@@ -11,8 +11,8 @@
 //  Collaborators:   Vicente Mataix
 //
 //
-#if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
-#define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
+
+#pragma once
 
 /* System includes */
 #include <unordered_set>
@@ -59,7 +59,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedEliminationBuilderAndSolver
+ * @class ResidualBasedBlockBuilderAndSolver
  * @ingroup KratosCore
  * @brief Current class provides an implementation for standard builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
@@ -155,7 +155,6 @@ public:
     explicit ResidualBasedBlockBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
-        mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
     }
 
     /** Destructor.
@@ -1190,15 +1189,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TSystemMatrixType mT;              /// This is matrix containing the global relation for the constraints
-    TSystemVectorType mConstantVector; /// This is vector containing the rigid movement of the constraint
-    std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
-    std::vector<IndexType> mMasterIds; /// The equation ids of the master
+    TSystemMatrixType mT;                             /// This is matrix containing the global relation for the constraints
+    TSystemVectorType mConstantVector;                /// This is vector containing the rigid movement of the constraint
+    std::vector<IndexType> mSlaveIds;                 /// The equation ids of the slaves
+    std::vector<IndexType> mMasterIds;                /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
-    double mScaleFactor = 1.0;         /// The manually set scale factor
+    double mScaleFactor = 1.0;                        /// The manually set scale factor
 
-    SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
-    Flags mOptions;                    /// Some flags used internally
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                                                   /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -1812,5 +1811,3 @@ const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER  defined */
