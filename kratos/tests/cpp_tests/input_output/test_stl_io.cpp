@@ -11,11 +11,13 @@
 //
 
 // System includes
+#include <fstream>
 #include <sstream>
 
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "input_output/stl_io.h"
@@ -104,12 +106,33 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
     Properties::Pointer p_properties(new Properties(0));
     r_model_part.CreateNewElement("Element3D3N", 101, {1, 2, 3}, p_properties);
 
-    // 
-    StlIO stl_io ("test_stl_write.stl");
-    stl_io.WriteModelPart(r_model_part);
+    // write stl
+    std::string filename = "test_stl_write.stl";
+    StlIO * stl_write = new StlIO(filename, IO::WRITE);
+    stl_write->WriteModelPart(r_model_part);
+    delete stl_write; // force to write to file
 
-    // intentional failure
-    KRATOS_CHECK_EQUAL(true, false);
+    // read the stl back...
+    StlIO stl_read (filename);
+    ModelPart & r_output_model_part = current_model.CreateModelPart("OutputModelPart");
+    stl_read.ReadModelPart(r_output_model_part);
+
+    // ... and check
+    KRATOS_CHECK(r_output_model_part.HasSubModelPart("Main"));
+    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfProperties(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfSubModelParts() ,1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfConditions(), 0);
+
+    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfConditions(), 0);
+    
+    // remove the generated files
+    if (remove(filename.c_str()) != 0) {
+        KRATOS_ERROR << "Error deleting test output file: " << filename << "\n";
+    }
 }
 
 }  // namespace Kratos::Testing.
