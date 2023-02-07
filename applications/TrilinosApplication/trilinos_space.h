@@ -489,7 +489,7 @@ public:
     }
 
     /**
-     * @brief Returns the unaliased addition of two vectors by a scalar 
+     * @brief Returns the unaliased addition of two vectors by a scalar
      * @details rZ = (A * rX) + (B * rY)
      * @param A The scalar considered
      * @param rX The first vector considered
@@ -509,7 +509,7 @@ public:
     }
 
     /**
-     * @brief Returns the unaliased addition of two vectors by a scalar 
+     * @brief Returns the unaliased addition of two vectors by a scalar
      * @details rY = (A * rX) + (B * rY)
      * @param A The scalar considered
      * @param rX The first vector considered
@@ -557,7 +557,7 @@ public:
      * @param A The scalar considered
      */
     static void Set(
-        VectorType& rX, 
+        VectorType& rX,
         const DataType A
         )
     {
@@ -598,11 +598,11 @@ public:
      * @param n The new size
     */
     static void Resize(
-        VectorPointerType& pX, 
+        VectorPointerType& pX,
         const SizeType n
         )
     {
-        //KRATOS_ERROR_IF(pX != NULL) << "trying to resize a null pointer" << std::endl;
+        //KRATOS_ERROR_IF(pX != NULL) << "Trying to resize a null pointer" << std::endl;
         int global_elems = n;
         Epetra_Map Map(global_elems, 0, pX->Comm());
         VectorPointerType pNewEmptyX = Kratos::make_shared<VectorType>(Map);
@@ -1192,64 +1192,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
