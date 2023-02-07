@@ -70,7 +70,7 @@ namespace CppTestsUtilities
      * @brief This method creates a pure (Element) simple geometry in 2D (triangles)
      * @param rModelPart Reference to the ModelPart containing the problem
      */
-    void KRATOS_API(KRATOS_CORE) Create2DGeometryDummyElements(ModelPart& rModelPart);
+    void KRATOS_API(KRATOS_CORE) CreateTestModelPartTriangle2D3N(ModelPart& rModelPart);
 
     /**
      * @brief This method creates a simple geometry in 2D (quadrilaterals)
@@ -102,7 +102,7 @@ namespace CppTestsUtilities
      * @brief This method creates a pure (Element) simple geometry in 3D (tetrahedra)
      * @param rModelPart Reference to the ModelPart containing the problem
      */
-    void KRATOS_API(KRATOS_CORE) Create3DGeometryDummyElements(ModelPart& rModelPart);
+    void KRATOS_API(KRATOS_CORE) CreateTestModelPartTetrahedra3D4N(ModelPart& rModelPart);
 
     /**
      * @brief This method creates a simple geometry in 3D (hexahedra)

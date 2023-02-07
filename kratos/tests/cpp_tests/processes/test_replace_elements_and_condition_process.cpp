@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess1, KratosCoreFastSu
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
     // Generate a simple mesh
-    CppTestsUtilities::Create2DGeometryDummyElements(r_model_part);
+    CppTestsUtilities::CreateTestModelPartTriangle2D3N(r_model_part);
 
     const double pressure = 3.0;
     for (auto& r_element : r_model_part.Elements()) {
@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess2, KratosCoreFastSu
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
     // Generate a simple mesh
-    CppTestsUtilities::Create3DGeometryDummyElements(r_model_part);
+    CppTestsUtilities::CreateTestModelPartTetrahedra3D4N(r_model_part);
 
     // Compute process
     Parameters settings( R"(
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess3, KratosCoreFastSu
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
     // Generate a simple mesh
-    CppTestsUtilities::Create2DGeometryDummyElements(r_model_part);
+    CppTestsUtilities::CreateTestModelPartTriangle2D3N(r_model_part);
 
     auto p_prop = r_model_part.pGetProperties(0);
     auto p_cond_0 = Kratos::make_intrusive<Condition>(1, r_model_part.pGetElement(1)->pGetGeometry(), p_prop);
