@@ -27,6 +27,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 // #include "utilities/atomic_utilities.h" # TODO
 
 #if !defined(START_TIMER)
@@ -960,30 +961,37 @@ public:
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             BuildMasterSlaveConstraints(rModelPart);
 
-            // Gets the Epetra_Communicator
-            auto& r_comm = rb.Comm();
-
             // Reference to T
             const TSystemMatrixType& r_T = *mpT;
 
             // Compute T' A T
             const TSystemMatrixType copy_A(rA);
-            //TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, r_comm);
+            TSparseSpace::BtDBProductOperation(rA, copy_A, r_T);
 
             // Compute T b
             const TSystemVectorType copy_b(rb);
             TSparseSpace::Mult(r_T, copy_b, rb);
 
-        //     const double max_diag = TSparseSpace::GetMaxDiagonal(rA);
-
-        //     // Apply diagonal values on slaves
-        //     IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
-        //         const IndexType slave_equation_id = mSlaveIds[Index];
-        //         if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-        //             rA(slave_equation_id, slave_equation_id) = max_diag;
-        //             rb[slave_equation_id] = 0.0;
-        //         }
-        //     });
+            // Apply diagonal values on slaves
+            IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+                const IndexType local_slave_equation_id = mSlaveIds[Index];
+                if (mInactiveSlaveDofs.find(local_slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    int numEntries; // Number of non-zero entries
+                    double* vals;   // Row non-zero values
+                    int* cols;      // Column indices of row non-zero values
+                    rA.ExtractMyRowView(local_slave_equation_id, numEntries, vals, cols);
+                    const int row_gid = rA.RowMap().GID(local_slave_equation_id);
+                    int j;
+                    for (j = 0; j < numEntries; j++) {
+                        const int col_gid = rA.ColMap().GID(cols[j]);
+                        // Set diagonal value
+                        if (col_gid == row_gid) {
+                            vals[j] = mScaleFactor; /// NOTE: We may consider the maximum value of the diagonal instead
+                            rb[0][local_slave_equation_id] = 0.0;
+                        }
+                    }
+                }
+            });
         }
 
         KRATOS_CATCH("")
