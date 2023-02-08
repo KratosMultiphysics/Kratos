@@ -82,7 +82,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
         }
     }
 
-    // Create a Epetra_Matrix
+    // Create an Epetra_Matrix
     TrilinosSparseMatrixType A(Copy, Map, NumNz.data());
 
     std::vector<double> non_diagonal_values(2);
@@ -157,7 +157,7 @@ TrilinosCPPTestUtilities::TrilinosVectorType TrilinosCPPTestUtilities::GenerateD
     // Get update list
     int* MyGlobalElements = Map.MyGlobalElements( );
 
-    // Create a Epetra_Matrix
+    // Create an Epetra_Vector
     TrilinosVectorType b(Map);
 
     double value;
