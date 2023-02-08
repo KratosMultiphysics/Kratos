@@ -12,20 +12,16 @@
         ],
         "analyses": [
             {
-                "name": "Structure_static",
+                "execution_policy_name": "Structure_static",
+                "execution_policy_type": "SteppingAnalysisExecutionPolicy",
                 "execution_policy_settings": {
-                    "type": "SteppingAnalysisExecutionPolicy",
-                    "settings": {
-                        "model_part_names": [
-                            "Structure"
-                        ],
-                        "analysis_settings": {
-                            "module": "KratosMultiphysics.StructuralMechanicsApplication",
-                            "type": "StructuralMechanicsAnalysis",
-                            "settings": {
-                                "@include_json": "primal_parameters.json"
-                            }
-                        }
+                    "model_part_names": [
+                        "Structure"
+                    ],
+                    "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
+                    "analysis_type": "StructuralMechanicsAnalysis",
+                    "analysis_settings": {
+                        "@include_json": "primal_parameters.json"
                     }
                 }
             }

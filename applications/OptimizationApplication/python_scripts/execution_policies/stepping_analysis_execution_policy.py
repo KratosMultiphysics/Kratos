@@ -1,42 +1,33 @@
-# ==============================================================================
-#  KratosOptimizationApplication
-#
-#  License:         BSD License
-#                   license: OptimizationApplication/license.txt
-#
-#  Main authors:    Suneth Warnakulasuriya
-#
-# ==============================================================================
-
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
-from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import RetrieveObject
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationProcessFactory
 
 class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
-        super().__init__(model, parameters)
+        super().__init__()
 
         default_settings = Kratos.Parameters("""{
             "model_part_names" : [],
-            "analysis_settings": {
-                "module"  : "",
-                "type"    : "",
-                "settings": {}
-            }
+            "analysis_module"  : "",
+            "analysis_type"    : "",
+            "analysis_settings": {}
         }""")
-        parameters.ValidateAndAssignDefaults(default_settings)
+        self.model = model
+        self.parameters = parameters
+        self.parameters.ValidateAndAssignDefaults(default_settings)
+
 
         self.model_parts = []
-        self.analysis = RetrieveObject(self.model, parameters["analysis_settings"], AnalysisStage)
+        self.analysis: AnalysisStage = OptimizationProcessFactory(self.parameters["analysis_module"].GetString(), self.parameters["analysis_type"].GetString(), self.model, self.parameters["analysis_settings"].Clone(), required_object_type=AnalysisStage)
 
-    def Initialize(self, _: dict):
+    def ExecuteInitialize(self):
         self.analysis.Initialize()
 
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
 
-    def Execute(self, _: dict):
+    def Execute(self):
         time_before_analysis = []
         step_before_analysis = []
         delta_time_before_analysis = []
