@@ -374,11 +374,10 @@ public:
         const MatrixType& rA,
         const MatrixType& rB,
         MatrixType& rC,
-        const std::vector<bool> TransposeFlag = {false, false}
+        const std::pair<bool, bool> TransposeFlag = {false, false}
         )
     {
-        KRATOS_ERROR_IF_NOT(TransposeFlag.size() > 1) << "Size of flags must be at least 2" << std::endl;
-        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag[0], rB, TransposeFlag[1], rC);
+        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag.first, rB, TransposeFlag.second, rC);
     }
 
     /**
