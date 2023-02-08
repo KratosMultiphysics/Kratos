@@ -1000,8 +1000,8 @@ public:
         mSlaveIds.clear();
         mMasterIds.clear();
         mInactiveSlaveDofs.clear();
-        // mpT.resize(0,0,false);
-        // mpConstantVector.resize(0,false);
+        TSparseSpace::Clear(mpT);
+        TSparseSpace::Clear(mpConstantVector);
     }
 
     /**
