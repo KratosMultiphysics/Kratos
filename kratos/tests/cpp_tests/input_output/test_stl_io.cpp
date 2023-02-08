@@ -114,9 +114,11 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
         // force to write to file
     }
     // read the stl back...
-    StlIO stl_read (filename);
     ModelPart & r_output_model_part = current_model.CreateModelPart("OutputModelPart");
-    stl_read.ReadModelPart(r_output_model_part);
+    {
+        StlIO stl_read (filename);
+        stl_read.ReadModelPart(r_output_model_part);
+    }
 
     // ... and check
     KRATOS_CHECK(r_output_model_part.HasSubModelPart("Main"));
