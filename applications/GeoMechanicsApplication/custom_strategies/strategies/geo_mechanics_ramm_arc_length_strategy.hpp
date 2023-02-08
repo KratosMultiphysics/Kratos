@@ -450,10 +450,7 @@ protected:
     {
         KRATOS_TRY
 
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        return ierr;
+        return MotherType::Check();
 
         KRATOS_CATCH( "" )
     }
