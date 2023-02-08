@@ -33,8 +33,6 @@
 #include <EpetraExt_MultiVectorOut.h>
 #include <EpetraExt_MatrixMatrix.h>
 
-// NOTE: Epetra will be replaced with Tpetra in the future, there is an intermediate interface called Xpetra, which uses the interface of Toetra but allows to use Epetra
-
 // Project includes
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
