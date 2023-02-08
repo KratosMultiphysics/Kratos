@@ -960,22 +960,21 @@ public:
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             BuildMasterSlaveConstraints(rModelPart);
 
-        //     // We compute the transposed matrix of the global relation matrix
-        //     TSystemMatrixType T_transpose_matrix(mpT.size2(), mpT.size1());
-        //     SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mpT, 1.0);
+            // Gets the Epetra_Communicator
+            auto& r_comm = rb.Comm();
 
-        //     TSystemVectorType b_modified(rb.size());
-        //     TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
-        //     TSparseSpace::Copy(b_modified, rb);
+            // Reference to T
+            const TSystemMatrixType& r_T = *mpT;
 
-        //     TSystemMatrixType auxiliar_A_matrix(mpT.size2(), rA.size2());
-        //     SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
-        //     T_transpose_matrix.resize(0, 0, false);                                                             //free memory
+            // Compute T' A T
+            const TSystemMatrixType copy_A(rA);
+            //TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, r_comm);
 
-        //     SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mpT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
-        //     auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
+            // Compute T b
+            const TSystemVectorType copy_b(rb);
+            TSparseSpace::Mult(r_T, copy_b, rb);
 
-        //     const double max_diag = GetMaxDiagonal(rA);
+        //     const double max_diag = TSparseSpace::GetMaxDiagonal(rA);
 
         //     // Apply diagonal values on slaves
         //     IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
