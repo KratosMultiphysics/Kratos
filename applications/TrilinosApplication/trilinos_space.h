@@ -31,6 +31,7 @@
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
 #include <EpetraExt_MultiVectorOut.h>
+#include <EpetraExt_MatrixMatrix.h>
 
 // Project includes
 #include "includes/ublas_interface.h"
@@ -300,6 +301,17 @@ public:
     }
 
     /**
+     * @brief Returns the Frobenius norm of the matrix rX
+     * @details ||rA||2
+     * @param rA The matrix considered
+     * @return The Frobenius norm of the matrix rX
+     */
+    static double TwoNorm(const MatrixType& rA)
+    {
+        return rA.NormFrobenius();
+    }
+
+    /**
      * @brief Returns the multiplication of a matrix by a vector
      * @details y = A*x
      * @param rA The matrix considered
@@ -317,6 +329,23 @@ public:
     }
 
     /**
+     * @brief Returns the multiplication matrix-matrix
+     * @details C = A*B
+     * @param rA The first matrix considered
+     * @param rB The second matrix considered
+     * @param rC The result of the multiplication
+     */
+    static void Mult(
+        const MatrixType& rA,
+        const MatrixType& rB,
+        MatrixType& rC
+        )
+    {
+        constexpr bool transpose_flag = false;
+        EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC);
+    }
+
+    /**
      * @brief Returns the transpose multiplication of a matrix by a vector
      * @details y = AT*x
      * @param rA The matrix considered
@@ -331,6 +360,78 @@ public:
     {
         constexpr bool transpose_flag = true;
         rA.Multiply(transpose_flag, rX, rY);
+    }
+
+    /**
+     * @brief Returns the transpose multiplication matrix-matrix
+     * @details C = A*B
+     * @param rA The first matrix considered
+     * @param rB The second matrix considered
+     * @param rC The result of the multiplication
+     * @param TransposeFlag Flags to transpose the matrices
+     */
+    static void TransposeMult(
+        const MatrixType& rA,
+        const MatrixType& rB,
+        MatrixType& rC,
+        const std::pair<bool, bool> TransposeFlag = {false, false}
+        )
+    {
+        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag.first, rB, TransposeFlag.second, rC);
+    }
+
+    /**
+     * @brief Calculates the product operation B'DB
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     */
+    static void BtDBProductOperation(
+        MatrixType& rA,
+        const MatrixType& rD,
+        const MatrixType& rB
+        )
+    {
+        // Gets the Epetra_Communicator
+        auto& r_comm = rA.Comm();
+
+        // Create a map
+        const int size = Size2(rB);
+        Epetra_Map Map(size, 0, r_comm);
+
+        // Create an Epetra_Matrix
+        std::vector<int> NumNz;
+        MatrixType aux(::View, Map, NumNz.data());
+
+        TransposeMult(rB, rD, aux, {true, false});
+        Mult(aux, rB, rA);
+    }
+
+    /**
+     * @brief Calculates the product operation BDB'
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     */
+    static void BDBtProductOperation(
+        MatrixType& rA,
+        const MatrixType& rD,
+        const MatrixType& rB
+        )
+    {
+        // Gets the Epetra_Communicator
+        auto& r_comm = rA.Comm();
+
+        // Create a map
+        const int size = Size1(rB);
+        Epetra_Map Map(size, 0, r_comm);
+
+        // Create an Epetra_Matrix
+        std::vector<int> NumNz;
+        MatrixType aux(::View, Map, NumNz.data());
+
+        Mult(rB, rD, aux);
+        TransposeMult(aux, rB, rA, {false, true});
     }
 
     /**
