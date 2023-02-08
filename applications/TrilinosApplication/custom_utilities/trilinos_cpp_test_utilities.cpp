@@ -85,9 +85,9 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     // Create an Epetra_Matrix
     TrilinosSparseMatrixType A(Copy, Map, NumNz.data());
 
-    double* non_diagonal_values = new double[2];
+    std::vector<double> non_diagonal_values(2);
     non_diagonal_values[0] = -1.0; non_diagonal_values[1] = -1.0;
-    int* non_diagonal_indices = new int[2];
+    std::vector<int> non_diagonal_indices(2);
     int num_non_diagonal_entries;
     double value;
     for( int i=0 ; i<NumMyElements; ++i ) {
@@ -104,7 +104,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
                 non_diagonal_indices[1] = MyGlobalElements[i]+1;
                 num_non_diagonal_entries = 2;
             }
-            A.InsertGlobalValues(MyGlobalElements[i], num_non_diagonal_entries, non_diagonal_values, non_diagonal_indices);
+            A.InsertGlobalValues(MyGlobalElements[i], num_non_diagonal_entries, non_diagonal_values.data(), non_diagonal_indices.data());
         }
         // Put in the diagonal entry
         value = Offset + static_cast<double>(MyGlobalElements[i]);
