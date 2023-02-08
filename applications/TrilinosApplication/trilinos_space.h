@@ -206,8 +206,8 @@ public:
      * @todo Implement this method
      */
     static void GetColumn(
-        const unsigned int j, 
-        const MatrixType& rM, 
+        const unsigned int j,
+        const MatrixType& rM,
         VectorType& rX
         )
     {
@@ -249,7 +249,7 @@ public:
      * @param rY The second vector considered
      */
     static double Dot(
-        const VectorType& rX, 
+        const VectorType& rX,
         const VectorType& rY
         )
     {
@@ -312,7 +312,7 @@ public:
         VectorType& rY
         )
     {
-        const bool transpose_flag = false;
+        constexpr bool transpose_flag = false;
         rA.Multiply(transpose_flag, rX, rY);
     }
 
@@ -329,7 +329,7 @@ public:
         VectorType& rY
         )
     {
-        const bool transpose_flag = true;
+        constexpr bool transpose_flag = true;
         rA.Multiply(transpose_flag, rX, rY);
     }
 
