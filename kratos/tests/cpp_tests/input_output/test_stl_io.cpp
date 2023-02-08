@@ -107,11 +107,12 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
     r_model_part.CreateNewElement("Element3D3N", 101, {1, 2, 3}, p_properties);
 
     // write stl
-    std::string filename = "test_stl_write.stl";
-    StlIO * stl_write = new StlIO(filename, IO::WRITE);
-    stl_write->WriteModelPart(r_model_part);
-    delete stl_write; // force to write to file
-
+    std::filesystem::path filename = "test_stl_write.stl";
+    {
+        StlIO stl_write(filename, IO::WRITE);
+        stl_write.WriteModelPart(r_model_part);
+        // force to write to file
+    }
     // read the stl back...
     StlIO stl_read (filename);
     ModelPart & r_output_model_part = current_model.CreateModelPart("OutputModelPart");
@@ -130,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfConditions(), 0);
     
     // remove the generated files
-    if (remove(filename.c_str()) != 0) {
+    if (std::filesystem::remove(filename) != true) {
         KRATOS_ERROR << "Error deleting test output file: " << filename << "\n";
     }
 }
