@@ -390,7 +390,15 @@ public:
 
         STOP_TIMER("Build", 0)
 
-        // apply dirichlet conditions
+        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            const auto timer_constraints = BuiltinTimer();
+            START_TIMER("ApplyConstraints", 0)
+            ApplyConstraints(pScheme, rModelPart, rA, rb);
+            STOP_TIMER("ApplyConstraints", 0)
+            KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
+        }
+
+        // Apply dirichlet conditions
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
@@ -400,7 +408,7 @@ public:
 
         START_TIMER("Solve", 0)
 
-        BuiltinTimer solve_timer;
+        const auto solve_timer = BuiltinTimer();
 
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
@@ -434,11 +442,22 @@ public:
 
         BuildRHS(pScheme, rModelPart, rb);
 
-        BuiltinTimer solve_timer;
+        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            START_TIMER("ApplyRHSConstraints", 0)
+            ApplyRHSConstraints(pScheme, rModelPart, rb);
+            STOP_TIMER("ApplyRHSConstraints", 0)
+        }
+
+        const auto solve_timer = BuiltinTimer();
+        START_TIMER("Solve", 0)
 
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
+        STOP_TIMER("Solve", 0)
+
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer.ElapsedSeconds() << std::endl;
+
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -974,7 +993,7 @@ public:
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
-                const IndexType local_slave_equation_id = mSlaveIds[Index];
+                const IndexType local_slave_equation_id = mSlaveIds[Index]; /// TODO: I am assuming these are local dofs ids, maybe I change it later, please check it!
                 if (mInactiveSlaveDofs.find(local_slave_equation_id) == mInactiveSlaveDofs.end()) {
                     int numEntries; // Number of non-zero entries
                     double* vals;   // Row non-zero values
@@ -1129,7 +1148,7 @@ protected:
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
-    //         Timer::Start("ConstraintsRelationMatrixStructure");
+            START_TIMER("ConstraintsRelationMatrixStructure", 0)
     //         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
     //         // Vector containing the localization in the system of the different terms
@@ -1220,7 +1239,7 @@ protected:
 
     //         mpT.set_filled(indices.size() + 1, nnz);
 
-    //         Timer::Stop("ConstraintsRelationMatrixStructure");
+            STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
     }
 
@@ -1311,8 +1330,8 @@ protected:
         TSystemMatrixType& A,
         ModelPart& rModelPart)
     {
-    //     // Filling with zero the matrix (creating the structure)
-    //     Timer::Start("MatrixStructure");
+        // Filling with zero the matrix (creating the structure)
+        START_TIMER("MatrixStructure", 0)
 
     //     const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -1415,7 +1434,7 @@ protected:
 
     //     A.set_filled(indices.size()+1, nnz);
 
-    //     Timer::Stop("MatrixStructure");
+        STOP_TIMER("MatrixStructure", 0)
     }
 
     /**
