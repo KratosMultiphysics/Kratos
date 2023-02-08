@@ -389,13 +389,15 @@ public:
     static void BtDBProductOperation(
         MatrixType& rA,
         const MatrixType& rD,
-        const MatrixType& rB,
-        Epetra_MpiComm& rComm
+        const MatrixType& rB
         )
     {
+        // Gets the Epetra_Communicator
+        auto& r_comm = rA.Comm();
+
         // Create a map
         const int size = Size2(rB);
-        Epetra_Map Map(size, 0, rComm);
+        Epetra_Map Map(size, 0, r_comm);
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
@@ -414,13 +416,15 @@ public:
     static void BDBtProductOperation(
         MatrixType& rA,
         const MatrixType& rD,
-        const MatrixType& rB,
-        Epetra_MpiComm& rComm
+        const MatrixType& rB
         )
     {
+        // Gets the Epetra_Communicator
+        auto& r_comm = rA.Comm();
+
         // Create a map
         const int size = Size1(rB);
-        Epetra_Map Map(size, 0, rComm);
+        Epetra_Map Map(size, 0, r_comm);
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
