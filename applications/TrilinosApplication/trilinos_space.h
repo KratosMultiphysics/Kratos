@@ -324,7 +324,7 @@ public:
         VectorType& rY
         )
     {
-        const bool transpose_flag = false;
+        constexpr bool transpose_flag = false;
         rA.Multiply(transpose_flag, rX, rY);
     }
 
@@ -341,7 +341,7 @@ public:
         MatrixType& rC
         )
     {
-        const bool transpose_flag = false;
+        constexpr bool transpose_flag = false;
         EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC);
     }
 
@@ -358,7 +358,7 @@ public:
         VectorType& rY
         )
     {
-        const bool transpose_flag = true;
+        constexpr bool transpose_flag = true;
         rA.Multiply(transpose_flag, rX, rY);
     }
 
