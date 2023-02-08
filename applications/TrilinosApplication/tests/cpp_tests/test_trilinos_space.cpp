@@ -290,7 +290,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilin
     TrilinosSparseMatrixType mult(Copy, Map, NumNz.data());
 
     // Solution
-    TrilinosSparseSpaceType::BtDBProductOperation(mult, matrix_1, matrix_2, epetra_comm);
+    TrilinosSparseSpaceType::BtDBProductOperation(mult, matrix_1, matrix_2);
 
     // Check
     TrilinosLocalMatrixType multiply_reference;
@@ -322,7 +322,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilin
     TrilinosSparseMatrixType mult(Copy, Map, NumNz.data());
 
     // Solution
-    TrilinosSparseSpaceType::BDBtProductOperation(mult, matrix_1, matrix_2, epetra_comm);
+    TrilinosSparseSpaceType::BDBtProductOperation(mult, matrix_1, matrix_2);
 
     // Check
     TrilinosLocalMatrixType multiply_reference;
