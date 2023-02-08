@@ -399,7 +399,7 @@ public:
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
-        MatrixType aux(::Copy, Map, NumNz.data());
+        MatrixType aux(::View, Map, NumNz.data());
 
         TransposeMult(rB, rD, aux, {true, false});
         Mult(aux, rB, rA);
@@ -424,7 +424,7 @@ public:
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
-        MatrixType aux(::Copy, Map, NumNz.data());
+        MatrixType aux(::View, Map, NumNz.data());
 
         Mult(rB, rD, aux);
         TransposeMult(aux, rB, rA, {false, true});
