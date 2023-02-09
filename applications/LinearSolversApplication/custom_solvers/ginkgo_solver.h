@@ -378,8 +378,6 @@ public:
 
         std::vector<std::shared_ptr<const gko::stop::CriterionFactory>> criterion_vector{rel_residual_stop, iteration_stop};
 
-        if s
-
         return gko::stop::combine(criterion_vector);
     }
 
