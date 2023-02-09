@@ -224,9 +224,11 @@ protected:
     int findIndex(const Node<3>& rNode) const
     {
         int index = 0;
-    	for(index; index < mHorizontalDirectionCoordinates.size(); index++)
+        auto coords = rNode.Coordinates();
+        auto noCoordinates = mHorizontalDirectionCoordinates.size();
+    	for ( ; index < noCoordinates; ++index)
         {
-	        if (mHorizontalDirectionCoordinates[index] >= rNode.Coordinates()[mHorizontalDirection])
+	        if (mHorizontalDirectionCoordinates[index] >= coords[mHorizontalDirection])
 	        {
                 if (index == 0)
                 {
@@ -238,7 +240,7 @@ protected:
                 }
 	        }
         }
-        return index - 1;
+        return noCoordinates - 1;
         
     }
 
