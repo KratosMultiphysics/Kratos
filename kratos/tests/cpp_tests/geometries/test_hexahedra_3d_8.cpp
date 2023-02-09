@@ -309,16 +309,52 @@ namespace Kratos {
 
         auto geom2 = GenerateDeformedCenterLen1Hexahedra3D8();
         geom2->ComputeSolidAngles(solid_angles);
-        Vector result_solid_angles = ZeroVector(8);
-        result_solid_angles[0] = Globals::Pi/4.0;
-        result_solid_angles[1] = 3.0*Globals::Pi/4.0;
-        result_solid_angles[2] = 3.0*Globals::Pi/4.0;
-        result_solid_angles[3] = Globals::Pi/4.0;
-        result_solid_angles[4] = 3.0*Globals::Pi/4.0;
-        result_solid_angles[5] = Globals::Pi/4.0;
-        result_solid_angles[6] = Globals::Pi/4.0;
-        result_solid_angles[7] = 3.0*Globals::Pi/4.0;
+        const double pi = Globals::Pi; 
+        std::vector<double> result_solid_angles = {
+          pi*0.25, pi*0.75, pi*0.75, pi*0.25,
+          pi*0.75, pi*0.25, pi*0.25, pi*0.75
+        };
         KRATOS_CHECK_VECTOR_NEAR(solid_angles, result_solid_angles, TOLERANCE);
+    }
+
+    /** Checks the diahedral angles */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8DihedralAngles, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateDeformedCenterLen1Hexahedra3D8();
+        Vector diahedral_angles;
+        geom->ComputeDihedralAngles(diahedral_angles);
+        const double pi = Globals::Pi; 
+        std::vector<double> result_diahedral_angles = {
+          pi*0.5, pi*0.25, pi*0.5,
+          pi*0.5, pi*0.75, pi*0.5,
+          pi*0.5, pi*0.75, pi*0.5,
+          pi*0.5, pi*0.25, pi*0.5,
+          pi*0.5, pi*0.75, pi*0.5,
+          pi*0.5, pi*0.25, pi*0.5,
+          pi*0.5, pi*0.25, pi*0.5,
+          pi*0.5, pi*0.75, pi*0.5
+        };
+        KRATOS_CHECK_VECTOR_NEAR(diahedral_angles, result_diahedral_angles, TOLERANCE);
+
+        double min_dihedral = geom->MinDihedralAngle();
+        KRATOS_CHECK_NEAR(min_dihedral, 0.25*pi, TOLERANCE);
+        double max_dihedral = geom->MaxDihedralAngle();
+        KRATOS_CHECK_NEAR(max_dihedral, 0.75*pi, TOLERANCE);
+    }
+
+    /** Checks the VolumeToRMSEdgeLength */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8VolumeToRMSEdgeLength, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateOriginCenterLen1Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom->VolumeToRMSEdgeLength(), 1.0, TOLERANCE);
+        auto geom_2 = GenerateDeformedCenterLen1Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom_2->VolumeToRMSEdgeLength(), 0.6495190528383, TOLERANCE);
+    }
+
+    /** Checks the VolumeToRMSEdgeLength */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShortestToLongestEdgeQuality, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateOriginCenterLen1Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom->ShortestToLongestEdgeQuality(), 1.0, TOLERANCE);
+        auto geom_2 = GenerateDeformedCenterLen1Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom_2->ShortestToLongestEdgeQuality(), 0.70710678118, TOLERANCE);
     }
 	}
 }  // namespace Kratos.
