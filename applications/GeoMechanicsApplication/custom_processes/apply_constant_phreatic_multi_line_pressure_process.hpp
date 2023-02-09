@@ -127,7 +127,7 @@ public:
         else
           mPressureTensionCutOff = 0.0;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------

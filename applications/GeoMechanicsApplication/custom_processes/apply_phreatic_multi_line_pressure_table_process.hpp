@@ -52,7 +52,7 @@ public:
 
         mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -109,7 +109,7 @@ public:
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
