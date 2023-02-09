@@ -309,7 +309,7 @@ namespace Kratos {
 
         auto geom2 = GenerateDeformedCenterLen1Hexahedra3D8();
         geom2->ComputeSolidAngles(solid_angles);
-        const double pi = Globals::Pi; 
+        constexpr double pi = Globals::Pi; 
         std::vector<double> result_solid_angles = {
           pi*0.25, pi*0.75, pi*0.75, pi*0.25,
           pi*0.75, pi*0.25, pi*0.25, pi*0.75
@@ -322,7 +322,7 @@ namespace Kratos {
         auto geom = GenerateDeformedCenterLen1Hexahedra3D8();
         Vector diahedral_angles;
         geom->ComputeDihedralAngles(diahedral_angles);
-        const double pi = Globals::Pi; 
+        constexpr double pi = Globals::Pi; 
         std::vector<double> result_diahedral_angles = {
           pi*0.5, pi*0.25, pi*0.5,
           pi*0.5, pi*0.75, pi*0.5,
