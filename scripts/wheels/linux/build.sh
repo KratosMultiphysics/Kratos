@@ -1,6 +1,6 @@
 #!/bin/bash
 PYTHONS=("cp36")
-export KRATOS_VERSION="9.2.2.dev"
+export KRATOS_VERSION="9.2.2.dev0"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
