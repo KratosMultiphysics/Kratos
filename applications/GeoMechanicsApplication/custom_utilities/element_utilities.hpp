@@ -669,32 +669,32 @@ public:
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    static inline array_1d<double, TNumNodes> CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom, const Properties& rProp)
+    static array_1d<double, TNumNodes> CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom, const Properties& rProp)
     {
-        const double NumericalLimit = std::numeric_limits<double>::epsilon();
+        const auto NumericalLimit = std::numeric_limits<double>::epsilon();
     	//Defining necessary variables
-        array_1d<double, TNumNodes> NodalHydraulicHead;
+        array_1d<double, TNumNodes> nodal_hydraulic_heads;
         for (unsigned int node = 0; node < TNumNodes; ++node) {
-            array_1d<double, 3> NodeVolumeAcceleration;
-            noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
-            const double g = norm_2(NodeVolumeAcceleration);
+            array_1d<double, 3> node_volume_acceleration;
+            noalias(node_volume_acceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
+            const double g = norm_2(node_volume_acceleration);
             if (g > NumericalLimit) {
                 const double FluidWeight = g * rProp[DENSITY_WATER];
 
                 array_1d<double, 3> NodeCoordinates;
                 noalias(NodeCoordinates) = rGeom[node].Coordinates();
                 array_1d<double, 3> NodeVolumeAccelerationUnitVector;
-                noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
+                noalias(NodeVolumeAccelerationUnitVector) = node_volume_acceleration / g;
 
                 const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-                NodalHydraulicHead[node] = -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector)
+                nodal_hydraulic_heads[node] = -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector)
                     - PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight;
             }
             else {
-                NodalHydraulicHead[node] = 0.0;
+                nodal_hydraulic_heads[node] = 0.0;
             }
         }
-        return NodalHydraulicHead;
+        return nodal_hydraulic_heads;
     }
 
 }; /* Class GeoElementUtilities*/

@@ -564,21 +564,21 @@ namespace Kratos
     }
 
     void KratosExecute::calculateNodalHydraulicHead(GidIO<> &gid_io, ModelPart &model_part) {
-            auto element_var = &(KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD"));
+            const auto& element_var = KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD");
 
             for (Element element : model_part.Elements())
             {
-                auto rGeom = element.GetGeometry();
-                const auto rProp = element.GetProperties();
+                auto& rGeom = element.GetGeometry();
+                const auto& rProp = element.GetProperties();
                 
                 const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<3>(rGeom, rProp);
 
             	for (unsigned int node = 0; node < 3; ++node)
                 {
-                    rGeom[node].SetValue(*element_var, NodalHydraulicHead[node]);
+                    rGeom[node].SetValue(element_var, NodalHydraulicHead[node]);
                 }
             }
-            gid_io.WriteNodalResultsNonHistorical(*element_var, model_part.Nodes(), 0);
+            gid_io.WriteNodalResultsNonHistorical(element_var, model_part.Nodes(), 0);
     }
 
     int KratosExecute::mainExecution(ModelPart &model_part,
