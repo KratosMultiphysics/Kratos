@@ -4,7 +4,9 @@
 	"included_binaries": [],
 	"dependencies": [
         "KratosMultiphysics==${KRATOS_VERSION}",
+        "KratosContactStructuralMechanicsApplication==${KRATOS_VERSION}",
         "KratosLinearSolversApplication==${KRATOS_VERSION}",
+        "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
         "KratosMappingApplication==${KRATOS_VERSION}",
         "KratosStructuralMechanicsApplication==${KRATOS_VERSION}",
         "KratosShapeOptimizationApplication==${KRATOS_VERSION}",
