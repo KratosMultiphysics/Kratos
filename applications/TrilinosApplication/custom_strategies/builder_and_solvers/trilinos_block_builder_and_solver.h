@@ -991,6 +991,9 @@ public:
             const TSystemVectorType copy_b(rb);
             TSparseSpace::Mult(r_T, copy_b, rb);
 
+            /// NOTE: We may consider the scale factor instead
+            const double max_diag = TSparseSpace::GetMaxDiagonal(rA);
+
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType local_slave_equation_id = mSlaveIds[Index]; /// TODO: I am assuming these are local dofs ids, maybe I change it later, please check it!
@@ -1005,7 +1008,7 @@ public:
                         const int col_gid = rA.ColMap().GID(cols[j]);
                         // Set diagonal value
                         if (col_gid == row_gid) {
-                            vals[j] = mScaleFactor; /// NOTE: We may consider the maximum value of the diagonal instead
+                            vals[j] = max_diag;// mScaleFactor; /// NOTE: We may consider the scale factor instead
                             rb[0][local_slave_equation_id] = 0.0;
                         }
                     }
