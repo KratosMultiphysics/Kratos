@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
 
@@ -79,6 +78,11 @@ class algorithm_gradient_projection_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_gradient_projection_test"
     execution_file = "run_test"
 
+@kratos_unittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+class algorithm_qn_bb_relaxed_gradient_projection_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_qn_bb_relaxed_gradient_projection_test"
+    execution_file = "run_test"
+
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class algorithm_trust_region_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_trust_region_test"
@@ -91,6 +95,11 @@ class trust_region_projector_test(ShapeOptimizationTestFactory):
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class algorithm_bead_optimization_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_bead_optimization_test"
+    execution_file = "run_test"
+
+@kratos_unittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+class algorithm_shape_fraction_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_shape_fraction_test"
     execution_file = "run_test"
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
@@ -148,5 +157,29 @@ class sliding_opt_test(ShapeOptimizationTestFactory):
 
 class direction_damping_test(ShapeOptimizationTestFactory):
     execution_directory = "direction_damping_test"
+    execution_file = "run_test"
+
+class curvature_3NTriangle_test(ShapeOptimizationTestFactory):
+    execution_directory = "geom_util_curvature_3NTriangle_test"
+    execution_file = "run_test"
+
+class curvature_6NTriangle_test(ShapeOptimizationTestFactory):
+    execution_directory = "geom_util_curvature_6NTriangle_test"
+    execution_file = "run_test"
+
+class curvature_4NQuad_test(ShapeOptimizationTestFactory):
+    execution_directory = "geom_util_curvature_4NQuad_test"
+    execution_file = "run_test"
+
+class curvature_8NQuad_test(ShapeOptimizationTestFactory):
+    execution_directory = "geom_util_curvature_8NQuad_test"
+    execution_file = "run_test"
+
+class mapper_adaptive_filter_curvature_test(ShapeOptimizationTestFactory):
+    execution_directory = "mapper_adaptive_filter_curvature_test"
+    execution_file = "run_test"
+
+class sensitivity_heatmap_test(ShapeOptimizationTestFactory):
+    execution_directory = "sensitivity_heatmap_test"
     execution_file = "run_test"
 # ==============================================================================

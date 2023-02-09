@@ -31,12 +31,11 @@ namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite)
 {
-    Parameters file_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_access_mode": "exclusive",
-            "file_driver": "core"
-        })");
+    Parameters file_params(R"({
+        "file_name" : "test.h5",
+        "file_access_mode": "exclusive",
+        "file_driver": "core"
+    })");
     auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
 
     Model this_model;
@@ -50,31 +49,42 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     r_write_model_part.SetBufferSize(2);
 
     std::vector<std::string> variables_list = {
-        {"DISPLACEMENT"}, {"PRESSURE"}, {"REFINEMENT_LEVEL"}, {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
+        "DISPLACEMENT",
+        "PRESSURE",
+        "REFINEMENT_LEVEL",
+        "GREEN_LAGRANGE_STRAIN_TENSOR"
+    };
 
-    for (auto& r_element : r_write_model_part.Elements())
-    {
+    // "shuffle" the list of variables to check whether it's handled
+    // without deadlocks.
+    std::rotate(
+        variables_list.begin(),
+        variables_list.begin() + (r_read_model_part.GetCommunicator().GetDataCommunicator().Rank() % variables_list.size()),
+        variables_list.end()
+    );
+
+
+    for (auto& r_element : r_write_model_part.Elements()) {
         TestModelPartFactory::AssignDataValueContainer(
-            r_element.Data(), r_element, variables_list);
+            r_element.GetData(), r_element, variables_list);
     }
 
-    Parameters io_params(R"(
-        {
-            "prefix": "/Step",
-            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL", "GREEN_LAGRANGE_STRAIN_TENSOR"]
-        })");
+    Parameters io_params(R"({
+        "prefix": "/Step",
+        "list_of_variables": []
+    })");
+    io_params["list_of_variables"].SetStringArray(variables_list);
 
     HDF5::ElementDataValueIO data_io(io_params, p_test_file);
     data_io.WriteElementResults(r_write_model_part.Elements());
     data_io.ReadElementResults(r_read_model_part.Elements(),
                                r_read_model_part.GetCommunicator());
 
-    for (auto& r_write_element : r_write_model_part.Elements())
-    {
+    for (auto& r_write_element : r_write_model_part.Elements()) {
         HDF5::ElementType& r_read_element =
             r_read_model_part.Elements()[r_write_element.Id()];
-        CompareDataValueContainers(r_read_element.Data(), r_read_element,
-                                   r_write_element.Data(), r_write_element);
+        CompareDataValueContainers(r_read_element.GetData(), r_read_element,
+                                   r_write_element.GetData(), r_write_element);
     }
 }
 

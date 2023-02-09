@@ -1,11 +1,11 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -23,6 +23,7 @@
 
 #include "includes/model_part_io.h"
 #include "includes/reorder_consecutive_model_part_io.h"
+#include "input_output/stl_io.h"
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
@@ -70,8 +71,9 @@ void  AddIOToPython(pybind11::module& m)
     .def("ReadInitialValues",&ReadInitialValues2)
     .def("ReadMesh",&IO::ReadMesh)
     .def("ReadModelPart",&IO::ReadModelPart)
-    .def("WriteModelPart",&IO::WriteModelPart)
+    .def("WriteModelPart", py::overload_cast<const ModelPart&>(&IO::WriteModelPart)) // overload_cast can be removed once the legacy version is removed
     ;
+
     io_python_interface.attr("READ") = IO::READ;
     io_python_interface.attr("WRITE") =IO::WRITE;
     io_python_interface.attr("APPEND") = IO::APPEND;
@@ -82,15 +84,16 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<ModelPartIO, ModelPartIO::Pointer, IO>(
        m, "ModelPartIO")
-        .def(py::init<std::string const&>())
-        .def(py::init<std::string const&, const Flags>())
+        .def(py::init<const std::filesystem::path&>())
+        .def(py::init<const std::filesystem::path&, const Flags>())
     ;
 
 
     py::class_<ReorderConsecutiveModelPartIO, ReorderConsecutiveModelPartIO::Pointer, ModelPartIO>(m,"ReorderConsecutiveModelPartIO")
-        .def(py::init<std::string const&>())
-        .def(py::init<std::string const&, const Flags>())
+        .def(py::init<const std::filesystem::path&>())
+        .def(py::init<const std::filesystem::path&, const Flags>())
     ;
+
 #ifdef JSON_INCLUDED
     py::class_<KratosJsonIO, KratosJsonIO::Pointer, IO>(m,
          "JsonIO",init<std::string const&>())
@@ -179,6 +182,12 @@ void  AddIOToPython(pybind11::module& m)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
         ;
+
+
+    py::class_<StlIO, StlIO::Pointer, IO>(m, "StlIO")
+        .def(py::init<std::filesystem::path const& >())
+        ;
+
 
     // Import of CAD models to the model part
     py::class_<CadJsonInput<>, CadJsonInput<>::Pointer>(m, "CadJsonInput")

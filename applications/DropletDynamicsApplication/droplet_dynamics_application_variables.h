@@ -23,7 +23,8 @@
 
 namespace Kratos
 {
-
+    // External interfacial force, e.g. for including the electromagentic coupling
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( DROPLET_DYNAMICS_APPLICATION, EXT_INT_FORCE)
 }
 
 #endif	/* KRATOS_DROPLET_DYNAMICS_APPLICATION_VARIABLES_H_INCLUDED */

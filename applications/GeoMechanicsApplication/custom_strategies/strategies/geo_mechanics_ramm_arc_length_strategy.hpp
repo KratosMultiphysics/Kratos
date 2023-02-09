@@ -52,7 +52,6 @@ public:
     using GrandMotherType::mpDx; //Delta x of iteration i
     using GrandMotherType::mReformDofSetAtEachStep;
     using GrandMotherType::mCalculateReactionsFlag;
-    using GrandMotherType::mSolutionStepIsInitialized;
     using GrandMotherType::mMaxIterationNumber;
     using GrandMotherType::mInitializeWasPerformed;
     using MotherType::mSubModelPartList;
@@ -157,16 +156,13 @@ public:
     {
         KRATOS_TRY
 
-        if (mSolutionStepIsInitialized == false)
-        {
-            GrandMotherType::InitializeSolutionStep();
+        GrandMotherType::InitializeSolutionStep();
 
-            this->SaveInitializeSystemVector(mpf);
-            this->InitializeSystemVector(mpDxf);
-            this->InitializeSystemVector(mpDxb);
-            this->InitializeSystemVector(mpDxPred);
-            this->InitializeSystemVector(mpDxStep);
-        }
+        this->SaveInitializeSystemVector(mpf);
+        this->InitializeSystemVector(mpDxf);
+        this->InitializeSystemVector(mpDxb);
+        this->InitializeSystemVector(mpDxPred);
+        this->InitializeSystemVector(mpDxStep);
 
         KRATOS_CATCH( "" )
     }
@@ -355,9 +351,6 @@ public:
         //Cleaning memory after the solution
         mpScheme->Clean();
 
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
-
         if (mReformDofSetAtEachStep) //deallocate the systemvectors
         {
             this->ClearStep();
@@ -457,10 +450,7 @@ protected:
     {
         KRATOS_TRY
 
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        return ierr;
+        return MotherType::Check();
 
         KRATOS_CATCH( "" )
     }

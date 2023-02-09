@@ -25,7 +25,7 @@ namespace Kratos
 SmallStrainUDSM3DInterfaceLaw::SmallStrainUDSM3DInterfaceLaw()
    : SmallStrainUDSM3DLaw()
    {
-    KRATOS_TRY;
+    KRATOS_TRY
     //KRATOS_INFO("SmallStrainUDSM3DInterfaceLaw()") << std::endl;
 
     KRATOS_CATCH("")
@@ -38,22 +38,22 @@ SmallStrainUDSM3DInterfaceLaw::
    SmallStrainUDSM3DInterfaceLaw(const SmallStrainUDSM3DInterfaceLaw &rOther)
    : SmallStrainUDSM3DLaw(rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    //KRATOS_INFO("SmallStrainUDSM3DInterfaceLaw(const...)") << std::endl;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************CLONE***********************************************
 //************************************************************************************
 ConstitutiveLaw::Pointer SmallStrainUDSM3DInterfaceLaw::Clone() const
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    //KRATOS_INFO("Clone()") << std::endl;
 
    return Kratos::make_shared<SmallStrainUDSM3DInterfaceLaw>(*this);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************ASSIGNMENT******************************************
@@ -61,7 +61,7 @@ ConstitutiveLaw::Pointer SmallStrainUDSM3DInterfaceLaw::Clone() const
 SmallStrainUDSM3DInterfaceLaw 
   &SmallStrainUDSM3DInterfaceLaw::operator=(SmallStrainUDSM3DInterfaceLaw const &rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    SmallStrainUDSM3DLaw::operator=(rOther);
 
@@ -69,7 +69,7 @@ SmallStrainUDSM3DInterfaceLaw
 
    return *this;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -106,7 +106,7 @@ void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVecto
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
    // KRATOS_INFO("SetInternalStressVector:rStressVector") << rStressVector << std::endl;
-   KRATOS_TRY;
+   KRATOS_TRY
    std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
 
    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_3D_INTERFACE_ZZ);

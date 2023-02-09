@@ -256,7 +256,7 @@ void MixedLaplacianElement<TDim, TNumNodes>::EquationIdVector(
         rResult[local_index++] = r_geom[i_node].GetDof(r_unknown_var, unknown_pos).EquationId();
         rResult[local_index++] = r_geom[i_node].GetDof(r_gradient_var_x, gradient_x_pos).EquationId();
         rResult[local_index++] = r_geom[i_node].GetDof(r_gradient_var_y, gradient_x_pos + 1).EquationId();
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             rResult[local_index++] = r_geom[i_node].GetDof(r_gradient_var_z, gradient_x_pos + 2).EquationId();
         }
     }
@@ -288,7 +288,7 @@ void MixedLaplacianElement<TDim, TNumNodes>::GetDofList(
         rElementalDofList[local_index++] = r_geom[i_node].pGetDof(r_unknown_var, unknown_pos);
         rElementalDofList[local_index++] = r_geom[i_node].pGetDof(r_gradient_var_x, gradient_x_pos);
         rElementalDofList[local_index++] = r_geom[i_node].pGetDof(r_gradient_var_y, gradient_x_pos + 1);
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             rElementalDofList[local_index++] = r_geom[i_node].pGetDof(r_gradient_var_z, gradient_x_pos + 2);
         }
     }
@@ -324,7 +324,7 @@ int MixedLaplacianElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
         KRATOS_CHECK_DOF_IN_NODE(r_unknown_var, r_node);
         KRATOS_CHECK_DOF_IN_NODE(KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_X"), r_node);
         KRATOS_CHECK_DOF_IN_NODE(KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_Y"), r_node);
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             KRATOS_CHECK_DOF_IN_NODE(KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_Z"), r_node);
         }
     }

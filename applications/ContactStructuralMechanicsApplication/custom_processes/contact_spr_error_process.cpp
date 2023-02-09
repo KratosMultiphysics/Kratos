@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Anna Rehr
 //  Co-author   :    Vicente Mataix Ferrandiz
@@ -93,7 +93,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
                 p_k(j, j * (TDim+1) + 0) = 1.0;
                 p_k(j, j * (TDim+1) + 1) = coordinates_vector[0][0] - r_coordinates_patch_node[0];
                 p_k(j, j * (TDim+1) + 2) = coordinates_vector[0][1] - r_coordinates_patch_node[1];
-                if(TDim == 3)
+                if constexpr (TDim == 3)
                     p_k(j, j * (TDim+1) + 3) = coordinates_vector[0][2] - r_coordinates_patch_node[2];
             }
 
@@ -108,7 +108,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         for (IndexType j = 0; j < SigmaSize; ++j){
             p_k(j,j * (TDim + 1) + 1)= r_coordinates[0] - r_coordinates_patch_node[0];
             p_k(j,j * (TDim + 1) + 2)= r_coordinates[1] - r_coordinates_patch_node[1];
-            if(TDim == 3)
+            if constexpr (TDim == 3)
                 p_k(j,j * (TDim + 1) + 3)= r_coordinates[2] - r_coordinates_patch_node[2];
         }
 
@@ -138,7 +138,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         // Patch center node:
         const double patch_contact_pressure = itNode->Has(AUGMENTED_NORMAL_CONTACT_PRESSURE) ? itPatchNode->GetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE) : itPatchNode->GetValue(CONTACT_PRESSURE);
         if (std::abs(patch_contact_pressure) > tolerance) {
-            if (TDim == 2) {
+            if constexpr (TDim == 2) {
                 p_k(0,1)=0.0;
                 p_k(0,2)=0.0;
                 p_k(1,4)=0.0;
@@ -197,7 +197,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         for( auto& r_neighbour_node : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
             const double neighbour_node_contact_pressure = r_neighbour_node.Has(AUGMENTED_NORMAL_CONTACT_PRESSURE) ? r_neighbour_node.GetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE) : r_neighbour_node.GetValue(CONTACT_PRESSURE);
             if (std::abs(neighbour_node_contact_pressure) > tolerance) {
-                if (TDim == 2) {
+                if constexpr (TDim == 2) {
                     const double x_patch_minus_x_neigh = r_coordinates_patch_node[0] - r_neighbour_node.X();
                     const double y_patch_minus_y_neigh = r_coordinates_patch_node[1] - r_neighbour_node.Y();
                     p_k(0,1)= x_patch_minus_x_neigh;
@@ -263,7 +263,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         for (IndexType j = 0; j < SigmaSize;++j){
             p_k(j,j*(TDim + 1) + 1) = r_coordinates[0] - r_coordinates_patch_node[0];
             p_k(j,j*(TDim + 1) + 2) = r_coordinates[1] - r_coordinates_patch_node[1];
-            if (TDim == 3)
+            if constexpr (TDim == 3)
                 p_k(j,j*(TDim + 1) + 3) = r_coordinates[2] - r_coordinates_patch_node[2];
         }
 

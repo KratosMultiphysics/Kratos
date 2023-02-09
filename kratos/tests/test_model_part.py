@@ -1,8 +1,6 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
-import sys
-
 class TestModelPart(KratosUnittest.TestCase):
     def test_model_part_sub_model_parts(self):
         current_model = KratosMultiphysics.Model()
@@ -302,7 +300,6 @@ class TestModelPart(KratosUnittest.TestCase):
 
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.GetProperties()[1].Id, 1)
-        self.assertEqual(model_part.GetProperties(0)[1].Id, 1)
         self.assertEqual(len(model_part.Properties), 1)
 
         model_part.AddProperties(KratosMultiphysics.Properties(2000))
@@ -393,6 +390,48 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.HasProperties("1.3.2"), True)
         self.assertEqual(model_part.HasProperties("1.2.3"), False)
         self.assertEqual(model_part.HasProperties("3.1.1"), False)
+
+    def test_model_part_flag(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.Set(KratosMultiphysics.ACTIVE)
+        self.assertTrue(model_part.Is(KratosMultiphysics.ACTIVE))
+        self.assertFalse(model_part.Is(KratosMultiphysics.BOUNDARY))
+
+    def test_model_part_datavaluecontainer(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.SetValue(KratosMultiphysics.DENSITY, 1.2)
+        self.assertTrue(model_part.Has(KratosMultiphysics.DENSITY))
+        self.assertFalse(model_part.Has(KratosMultiphysics.TEMPERATURE))
+        self.assertEqual(model_part.GetValue(KratosMultiphysics.DENSITY), 1.2)
+
+    def test_model_part_properties_container(self):
+        current_model = KratosMultiphysics.Model()
+        model_part_1 = current_model.CreateModelPart("Main")
+        model_part_2 = current_model.CreateModelPart("Destination")
+        model_part_3 = current_model.CreateModelPart("Other")
+
+        prop_3 = model_part_1.CreateNewProperties(3)
+        prop_3.SetValue(KratosMultiphysics.DENSITY, 1.05)
+
+        model_part_2.Properties = model_part_1.Properties
+        self.assertEqual(model_part_2.NumberOfProperties(), 1)
+        self.assertEqual(model_part_2.GetProperties(3).Id, 3)
+        self.assertEqual(model_part_2.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.05)
+
+        model_part_3.SetProperties(model_part_1.Properties)
+        self.assertEqual(model_part_3.NumberOfProperties(), 1)
+        self.assertEqual(model_part_3.GetProperties(3).Id, 3)
+        self.assertEqual(model_part_3.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.05)
+
+        model_part_3.CreateNewProperties(5)
+        model_part_3.GetProperties(3).SetValue(KratosMultiphysics.DENSITY, 1.2)
+        self.assertEqual(model_part_1.NumberOfProperties(), 2)
+        self.assertEqual(model_part_1.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.2)
+        self.assertEqual(model_part_2.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.2)
+        self.assertEqual(model_part_3.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.2)
+
 
     def test_model_part_elements(self):
         current_model = KratosMultiphysics.Model()

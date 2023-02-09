@@ -141,6 +141,8 @@ public:
         // Converged values to be storaged
         const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
+        const auto &r_properties = rValues.GetMaterialProperties();
+        const bool symmetrize_operator = (r_properties.Has(SYMMETRIZE_TANGENT_OPERATOR)) ? r_properties[SYMMETRIZE_TANGENT_OPERATOR] : false;
 
         // The number of components
         const SizeType num_components = unperturbed_stress_vector_gp.size();
@@ -148,12 +150,12 @@ public:
         // The tangent tensor
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
-        Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
+        Matrix auxiliary_tensor = ZeroMatrix(num_components,num_components);
 
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
-        if (rValues.GetMaterialProperties().Has(PERTURBATION_SIZE)) {
-            pertubation = rValues.GetMaterialProperties()[PERTURBATION_SIZE];
+        if (r_properties.Has(PERTURBATION_SIZE)) {
+            pertubation = r_properties[PERTURBATION_SIZE];
             if (pertubation == -1.0)
                 pertubation = std::sqrt(tolerance);
         } else {
@@ -180,7 +182,7 @@ public:
 
                 // Compute tangent moduli
                 const Vector delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
-                CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain-unperturbed_strain_vector_gp, delta_stress, i_component);
+                CalculateComponentsToTangentTensorFirstOrder(auxiliary_tensor, r_perturbed_strain-unperturbed_strain_vector_gp, delta_stress, i_component);
 
                 // Reset the values to the initial ones
                 noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
@@ -213,7 +215,7 @@ public:
                 const Vector stress_minus = r_perturbed_integrated_stress;
 
                 // Finally we compute the components
-                CalculateComponentsToTangentTensorSecondOrder(auxiliar_tensor, strain_plus, strain_minus, stress_plus, stress_minus, i_component);
+                CalculateComponentsToTangentTensorSecondOrder(auxiliary_tensor, strain_plus, strain_minus, stress_plus, stress_minus, i_component);
 
                 // Reset the values to the initial ones
                 noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
@@ -248,7 +250,7 @@ public:
                 // Finally we compute the components
                 const SizeType voigt_size = stress_plus.size();
                 for (IndexType row = 0; row < voigt_size; ++row) {
-                    auxiliar_tensor(row, i_component) = (stress_plus[row] - unperturbed_stress_vector_gp[row]) / pertubation - (stress_2_plus[row] - 2.0 * stress_plus[row] + unperturbed_stress_vector_gp[row]) / (2.0 * pertubation);
+                    auxiliary_tensor(row, i_component) = (stress_plus[row] - unperturbed_stress_vector_gp[row]) / pertubation - (stress_2_plus[row] - 2.0 * stress_plus[row] + unperturbed_stress_vector_gp[row]) / (2.0 * pertubation);
                 }
 
                 // Reset the values to the initial ones
@@ -256,7 +258,10 @@ public:
                 noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
             }
         }
-        noalias(r_tangent_tensor) = auxiliar_tensor;
+        if (symmetrize_operator)
+            noalias(r_tangent_tensor) = 0.5*(auxiliary_tensor + trans(auxiliary_tensor));
+        else
+            noalias(r_tangent_tensor) = auxiliary_tensor;
     }
 
     /**
@@ -277,6 +282,9 @@ public:
         const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
+        const auto &r_properties = rValues.GetMaterialProperties();
+        const bool symmetrize_operator = (r_properties.Has(SYMMETRIZE_TANGENT_OPERATOR)) ? r_properties[SYMMETRIZE_TANGENT_OPERATOR] : false;
+
         // The number of components
         const SizeType num_components = unperturbed_stress_vector_gp.size();
 
@@ -287,7 +295,7 @@ public:
         // The tangent tensor
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
-        Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
+        Matrix auxiliary_tensor = ZeroMatrix(num_components,num_components);
 
         const std::size_t size1 = unperturbed_deformation_gradient_gp.size1();
         const std::size_t size2 = unperturbed_deformation_gradient_gp.size2();
@@ -296,8 +304,8 @@ public:
 
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
-        if (rValues.GetMaterialProperties().Has(PERTURBATION_SIZE)) {
-            pertubation = rValues.GetMaterialProperties()[PERTURBATION_SIZE];
+        if (r_properties.Has(PERTURBATION_SIZE)) {
+            pertubation = r_properties[PERTURBATION_SIZE];
         } else {
             for (IndexType i_component = 0; i_component < num_components; ++i_component) {
                 double component_perturbation;
@@ -328,7 +336,7 @@ public:
 
                     // Finally we compute the components
                     const IndexType voigt_index = CalculateVoigtIndex(delta_stress.size(), i_component, j_component);
-                    CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain-unperturbed_strain_vector_gp, delta_stress, voigt_index);
+                    CalculateComponentsToTangentTensorFirstOrder(auxiliary_tensor, r_perturbed_strain-unperturbed_strain_vector_gp, delta_stress, voigt_index);
 
                     // Reset the values to the initial ones
                     noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
@@ -366,7 +374,7 @@ public:
 
                     // Finally we compute the components
                     const IndexType voigt_index = CalculateVoigtIndex(stress_plus.size(), i_component, j_component);
-                    CalculateComponentsToTangentTensorSecondOrder(auxiliar_tensor, strain_plus, strain_minus, stress_plus, stress_minus, voigt_index);
+                    CalculateComponentsToTangentTensorSecondOrder(auxiliary_tensor, strain_plus, strain_minus, stress_plus, stress_minus, voigt_index);
 
                     // Reset the values to the initial ones
                     noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
@@ -375,7 +383,10 @@ public:
                 }
             }
         }
-        noalias(r_tangent_tensor) = auxiliar_tensor;
+        if (symmetrize_operator)
+            noalias(r_tangent_tensor) = 0.5*(auxiliary_tensor + trans(auxiliary_tensor));
+        else
+            noalias(r_tangent_tensor) = auxiliary_tensor;
     }
 
     /**

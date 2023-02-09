@@ -235,21 +235,24 @@ class GiDOutputProcess(KM.OutputProcess):
             mesh_name = 0.0
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
-
-            if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
-                self.__write_step_to_list()
-            else:
-                self.__write_step_to_list(0)
+            self.__write_step_to_list()
 
         if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
             label = 0.0
             self.__write_mesh(label)
             self.__initialize_results(label)
             self.__write_nodal_results(label)
+            self.__write_gp_results(label)
             self.__write_nonhistorical_nodal_results(label)
             self.__write_nodal_flags(label)
             self.__write_elemental_conditional_flags(label)
             self.__finalize_results()
+
+            if self.output_label_is_time:
+                file_label = 0.0
+            else:
+                file_label = 0
+            self.__write_step_to_list(file_label)
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
@@ -752,6 +755,6 @@ class GiDOutputProcess(KM.OutputProcess):
 
         # Make sure that the path to the desired output folder exists
         output_path = Path(file_name).parent
-        KM.FilesystemExtensions.MPISafeCreateDirectories(str(output_path))
+        KM.FilesystemExtensions.MPISafeCreateDirectories(output_path)
 
         return file_name

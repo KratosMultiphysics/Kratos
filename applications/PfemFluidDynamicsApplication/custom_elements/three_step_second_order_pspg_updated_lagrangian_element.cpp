@@ -138,7 +138,7 @@ namespace Kratos
 
           dynamicRHSi += rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1)) / TimeStep;
           dynamicRHSi += rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1)) / TimeStep;
-          if (TDim == 3)
+          if constexpr (TDim == 3)
           {
             dynamicRHSi += rDN_DX(i, 2) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1)) / TimeStep;
           }

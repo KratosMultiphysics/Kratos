@@ -287,7 +287,8 @@ private:
     static InfNormData ComputeElementalInfNormData(
         const Element& rElement,
         const double DeltaTime,
-        const double HeatCapacityRatio);
+        const double HeatCapacityRatio,
+        const double SpecificHeatCV);
 
     /**
      * @brief Buidls the TotalDerivativeUtil objects that will be used to compute inf norms
@@ -298,7 +299,8 @@ private:
     static std::tuple<TotalDerivativeUtil, TotalDerivativeUtil, Vector> BuildTotalDerivativeUtils(
         const Element& rElement,
         const double DeltaTime,
-        const double HeatCapacityRatio);
+        const double HeatCapacityRatio,
+        const double SpecificHeatCV);
 
     /**
      * @brief Computes entropy max value of residual, density and total velocity over all gauss points.
