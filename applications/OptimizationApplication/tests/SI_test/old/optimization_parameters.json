@@ -10,7 +10,7 @@
             {
                 "name": "StructuralModelPart",
                 "settings": {
-                    "model_part_name": "Structure_optimization",
+                    "model_part_name": "Structure",
                     "domain_size": 3,
                     "input_filename": "rectangular_plate"
                 }
@@ -18,7 +18,7 @@
         ],
         "analyses": [
             {
-                "name": "Structure_static_analysis",
+                "name": "Structure_static",
                 "execution_policy_settings": {
                     "type": "SteppingAnalysisExecutionPolicy",
                     "settings": {
@@ -29,7 +29,7 @@
                             "module": "KratosMultiphysics.StructuralMechanicsApplication",
                             "type": "StructuralMechanicsAnalysis",
                             "settings": {
-                                "@include_json": "linear_shell_test_parameters.json"
+                                "@include_json": "primal_parameters.json"
                             }
                         }
                     }
@@ -38,17 +38,17 @@
         ],
         "responses": [
             {
-                "name": "displacement_response",
+                "name": "displacement",
                 "type": "DisplacementResponseFunction",
                 "settings": {
-                    "evaluated_model_part_name": "Structure",
-                    "primal_analysis_name": "Structure_static_analysis"
+                    "evaluated_model_part_name": "Structure_primal",
+                    "primal_analysis_name": "Structure_static"
                 }
             }
         ],
         "controls": [
             {
-                "name": "young_modulus_control",
+                "name": "young_modulus",
                 "type": "MaterialPropertiesControl",
                 "settings": {
                     "model_part_names": [
@@ -61,7 +61,7 @@
         ],
         "algorithms": [
             {
-                "name": "gradient_projection_algorithm",
+                "name": "algorithm_1",
                 "type": "GradientProjectionAlgorithm",
                 "settings": {
                     "max_correction_share": 0.75,
@@ -70,11 +70,11 @@
                     "echo_level": 2
                 },
                 "control_names": [
-                    "young_modulus_control"
+                    "young_modulus"
                 ],
                 "objectives": [
                     {
-                        "response_name": "displacement_response",
+                        "response_name": "displacement",
                         "type": "minimization"
                     }
                 ],

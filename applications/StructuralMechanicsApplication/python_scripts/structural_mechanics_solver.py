@@ -16,6 +16,7 @@ from KratosMultiphysics import kratos_utilities
 # Other imports
 from importlib import import_module
 
+
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
 
@@ -42,6 +43,7 @@ class MechanicalSolver(PythonSolver):
     model -- the model containing the modelpart used to construct the solver.
     settings -- Kratos parameters containing solver settings.
     """
+
     def __init__(self, model, custom_settings):
         old_unused_settings = [
             "use_computing_model_part",
@@ -54,7 +56,6 @@ class MechanicalSolver(PythonSolver):
             if custom_settings.Has(old_setting):
                 KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", 'Settings contain no longer used setting, please remove it: "{}"'.format(old_setting))
                 custom_settings.RemoveValue(old_setting)
-
 
         settings_have_use_block_builder = custom_settings.Has("block_builder")
         if settings_have_use_block_builder:
@@ -76,7 +77,7 @@ class MechanicalSolver(PythonSolver):
                 custom_settings["solving_strategy_settings"]["type"].SetString("line_search")
             custom_settings.RemoveValue("line_search")
 
-        self._validate_settings_in_baseclass=True # To be removed eventually
+        self._validate_settings_in_baseclass = True  # To be removed eventually
         super().__init__(model, custom_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
@@ -247,7 +248,7 @@ class MechanicalSolver(PythonSolver):
     def InitializeSolutionStep(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-            self.Initialize() #required after clearing
+            self.Initialize()  # required after clearing
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -256,9 +257,9 @@ class MechanicalSolver(PythonSolver):
     def SolveSolutionStep(self):
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         if not is_converged:
-            msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-            KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ",msg)
+            KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", msg)
         return is_converged
 
     def FinalizeSolutionStep(self):
@@ -296,7 +297,7 @@ class MechanicalSolver(PythonSolver):
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
-        file = open(name_out_file + ".mdpa","w")
+        file = open(name_out_file + ".mdpa", "w")
         file.close()
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
@@ -328,7 +329,7 @@ class MechanicalSolver(PythonSolver):
 
     def _GetBuilderAndSolver(self):
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
-            self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+                self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             self.settings["multi_point_constraints_used"].SetBool(True)
             self._builder_and_solver = self._CreateBuilderAndSolver()
         if not hasattr(self, '_builder_and_solver'):
@@ -337,18 +338,18 @@ class MechanicalSolver(PythonSolver):
 
     def _GetSolutionStrategy(self):
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
-            self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+                self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
-        if self.settings["material_import_settings"].Has("custom_reader"): # We use our own file for reading
+        if self.settings["material_import_settings"].Has("custom_reader"):  # We use our own file for reading
             custom_reader = import_module(self.settings["material_import_settings"]["custom_reader"].GetString())
             custom_reader.ReadMaterials(self.model, self.settings["material_import_settings"])
             materials_imported = True
-        else: # We follow the normal path
+        else:  # We follow the normal path
             materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
             if materials_filename != "":
                 # Add constitutive laws and material properties from json file to model parts.
@@ -393,31 +394,31 @@ class MechanicalSolver(PythonSolver):
 
     def _add_dynamic_dofs(self):
         # For being consistent for Serial and Trilinos
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
-        if(self.settings["rotation_dofs"].GetBool()):
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z, self.main_model_part)
+        if (self.settings["rotation_dofs"].GetBool()):
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z, self.main_model_part)
 
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
-        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("volumetric_strain_dofs",self.settings["volumetric_strain_dofs"])
-        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
-        conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
-        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+        conv_params.AddValue("convergence_criterion", self.settings["convergence_criterion"])
+        conv_params.AddValue("volumetric_strain_dofs", self.settings["volumetric_strain_dofs"])
+        conv_params.AddValue("rotation_dofs", self.settings["rotation_dofs"])
+        conv_params.AddValue("echo_level", self.settings["echo_level"])
+        conv_params.AddValue("displacement_relative_tolerance", self.settings["displacement_relative_tolerance"])
+        conv_params.AddValue("displacement_absolute_tolerance", self.settings["displacement_absolute_tolerance"])
+        conv_params.AddValue("residual_relative_tolerance", self.settings["residual_relative_tolerance"])
+        conv_params.AddValue("residual_absolute_tolerance", self.settings["residual_absolute_tolerance"])
 
         return conv_params
 
@@ -427,7 +428,7 @@ class MechanicalSolver(PythonSolver):
 
     def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
-        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+        if linear_solver_configuration.Has("solver_type"):  # user specified a linear solver
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
             KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: No linear solver was specified, using fastest available solver')
@@ -467,7 +468,7 @@ class MechanicalSolver(PythonSolver):
                 mechanical_solution_strategy = self._create_arc_length_strategy()
 
         else:
-            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+            err_msg = "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
         return mechanical_solution_strategy
@@ -490,13 +491,13 @@ class MechanicalSolver(PythonSolver):
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
-                                                                     mechanical_scheme,
-                                                                     mechanical_convergence_criterion,
-                                                                     builder_and_solver,
-                                                                     self.settings["max_iteration"].GetInt(),
-                                                                     self.settings["compute_reactions"].GetBool(),
-                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     self.settings["move_mesh_flag"].GetBool())
+                                                                         mechanical_scheme,
+                                                                         mechanical_convergence_criterion,
+                                                                         builder_and_solver,
+                                                                         self.settings["max_iteration"].GetInt(),
+                                                                         self.settings["compute_reactions"].GetBool(),
+                                                                         self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                         self.settings["move_mesh_flag"].GetBool())
         strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
         return strategy
 
@@ -507,14 +508,14 @@ class MechanicalSolver(PythonSolver):
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,
-                                                     mechanical_scheme,
-                                                     linear_solver,
-                                                     mechanical_convergence_criterion,
-                                                     builder_and_solver,
-                                                     self.settings["max_iteration"].GetInt(),
-                                                     self.settings["compute_reactions"].GetBool(),
-                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                     self.settings["move_mesh_flag"].GetBool())
+                                                         mechanical_scheme,
+                                                         linear_solver,
+                                                         mechanical_convergence_criterion,
+                                                         builder_and_solver,
+                                                         self.settings["max_iteration"].GetInt(),
+                                                         self.settings["compute_reactions"].GetBool(),
+                                                         self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                         self.settings["move_mesh_flag"].GetBool())
         strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
         return strategy
 

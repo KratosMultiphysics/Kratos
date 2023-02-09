@@ -7,6 +7,7 @@ class PythonSolver:
     """The base class for the Python Solvers in the applications
     Changes to this BaseClass have to be discussed first!
     """
+
     def __init__(self, model, settings):
         """The constructor of the PythonSolver-Object.
 
@@ -151,7 +152,8 @@ class PythonSolver:
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         input_type = model_part_import_settings["input_type"].GetString()
 
-        if input_type == "mdpa": # NOTE: Add more types in the future
+        if input_type == "mdpa":  # NOTE: Add more types in the future
+            print(f"model part: {model_part.Name}")
             KratosMultiphysics.SingleImportModelPart.Import(model_part, model_part_import_settings, input_type)
         elif input_type == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")

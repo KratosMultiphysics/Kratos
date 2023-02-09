@@ -8,6 +8,9 @@ from KratosMultiphysics.StructuralMechanicsApplication import structural_mechani
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 
+import os
+
+
 class DisplacementResponseFunction(ResponseFunction):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_settings = Kratos.Parameters("""{
@@ -20,17 +23,17 @@ class DisplacementResponseFunction(ResponseFunction):
         self.primal_analysis_execution_policy_wrapper: ExecutionPolicyWrapper = optimization_info.GetOptimizationRoutine(ExecutionPolicyWrapper, parameters["primal_analysis_name"].GetString())
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
-        self.adjoint_model = Kratos.Model()
-        adjoint_file_name = "sensitivity_parameters.json"
-        with open(adjoint_file_name, 'r') as parameter_file:
-            self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
+        # self.adjoint_model = Kratos.Model()
+        # adjoint_file_name = "sensitivity_parameters.json"
+        # with open(adjoint_file_name, 'r') as parameter_file:
+        #     self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
 
-        self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
-        print(self.adjoint_model)
-        print(self.adjoint_analysis)
+        # self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
+        # print(self.adjoint_model)
+        # print(self.adjoint_analysis)
 
-        names = self.adjoint_model.GetModelPartNames()
-        print(names)
+        # names = self.adjoint_model.GetModelPartNames()
+        # print(names)
 
     def Check(self):
         pass
@@ -52,18 +55,50 @@ class DisplacementResponseFunction(ResponseFunction):
 
         if sensitivity_variable == KratosOA.YOUNG_MODULUS_SENSITIVITY:
 
-            self.adjoint_analysis.Run()
-            adjoint_model_part = self.adjoint_analysis.model.GetModelPart("Structure_sensitivity")
+            self.primal_file_name = "/home/meister/GitKrakenRepos/Kratos/applications/OptimizationApplication/tests/SI_test/linear_shell_test_parameters.json"
+            self.adjoint_file_name = "/home/meister/GitKrakenRepos/Kratos/applications/OptimizationApplication/tests/SI_test/linear_shell_test_nodal_disp_adjoint_parameters.json"
 
-            counter = 0
-            for element in adjoint_model_part.GetElements():
-                print(element.GetValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT))
-                print(element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))
-                counter += 1
+            # Reading the ProjectParameters
+            with open(self.primal_file_name, 'r') as parameter_file:
+                primal_parameters = Kratos.Parameters(parameter_file.read())
+            with open(self.adjoint_file_name, 'r') as parameter_file:
+                self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
+            self.problem_name = primal_parameters["problem_data"]["problem_name"].GetString()
+            self.model_part_name = self.adjoint_parameters["solver_settings"]["model_part_name"].GetString()
 
-            print(self.adjoint_model)
-            print(self.adjoint_analysis)
-            print(f"Number of total elements: {counter}")
+            # solve primal problem
+            model_primal = Kratos.Model()
+            primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, primal_parameters)
+            # primal_analysis.Run()
+            # create adjoint analysis
+            model_adjoint = Kratos.Model()
+            self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, self.adjoint_parameters)
+            self.adjoint_analysis.Initialize()
+            self.adjoint_analysis.RunSolutionLoop()
+
+            reference_values = [1.7135092490964121, -6.860092387341681, 0.14749301178647778, -0.0823339298948347]
+            sensitivities_to_check = []
+            element_list = [1, 2, 8]
+            adjoint_model_part = self.adjoint_analysis.model.GetModelPart(self.model_part_name)
+            for element_id in element_list:
+                sensitivities_to_check.append(adjoint_model_part.Elements[element_id].GetValue(StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
+            sensitivities_to_check.append(adjoint_model_part.Conditions[1].GetValue(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)[2])
+
+            print(f"reference: {reference_values}")
+            print(f"result: {sensitivities_to_check}")
+
+            # self.adjoint_analysis.Run()
+            # adjoint_model_part = self.adjoint_analysis.model.GetModelPart("Structure_sensitivity")
+
+            # counter = 0
+            # for element in adjoint_model_part.GetElements():
+            #     print(element.GetValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT))
+            #     print(element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))
+            #     counter += 1
+
+            # print(self.adjoint_model)
+            # print(self.adjoint_analysis)
+            # print(f"Number of total elements: {counter}")
 
             # print(sensitivity_model_part)
             # print(self.adjoint_parameters["solver_settings"]["response_function_settings"])
