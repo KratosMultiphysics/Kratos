@@ -22,8 +22,8 @@ export PYTHON_EXECUTABLE=$1
 # Set applications to compile
 export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
+# add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
+# add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
