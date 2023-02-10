@@ -1829,8 +1829,10 @@ namespace Kratos {
       mRVE_NumParticles = mListOfSphericParticles.size() - mRVE_NumParticlesWalls;
 
       // Particles movement
-      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++)
+      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
         mListOfSphericParticles[i]->mMoving = true;
+        mListOfSphericParticles[i]->mResetOldTangentForce = false;
+      }
 
       // Open files
       RVEOpenFiles();
@@ -2037,6 +2039,12 @@ namespace Kratos {
               mListOfSphericParticles[i]->mMoving = false;
         }
       }
+
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      const int time_step = r_process_info[TIME_STEPS];
+      if (time_step > 60000000)
+        for (int i = 0; i < mListOfSphericParticles.size(); i++)
+          mListOfSphericParticles[i]->mResetOldTangentForce = true;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
