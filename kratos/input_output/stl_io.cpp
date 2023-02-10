@@ -35,8 +35,8 @@ StlIO::StlIO(std::filesystem::path const& Filename)
     mpInputStream = pFile;
 }
 
-StlIO::StlIO(std::iostream* pInputStream) 
-    : IO(), 
+StlIO::StlIO(std::iostream* pInputStream)
+    : IO(),
       mpInputStream(pInputStream)
 {
 
@@ -46,7 +46,7 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
 {
     if(!rThisModelPart.HasProperties(0))
         rThisModelPart.CreateNewProperties(0);
-        
+
     while(!mpInputStream->eof())
         ReadSolid(rThisModelPart);
 }
@@ -86,7 +86,7 @@ void StlIO::ReadSolid(ModelPart & rThisModelPart)
     auto& sub_model_part = rThisModelPart.CreateSubModelPart(word);
 
     *mpInputStream >> word; // Reading facet or endsolid
-    
+
     KRATOS_WATCH(word);
     while(word == "facet"){
         ReadFacet(sub_model_part);
@@ -94,7 +94,7 @@ void StlIO::ReadSolid(ModelPart & rThisModelPart)
     }
 
     KRATOS_ERROR_IF(word != "endsolid") << "Invalid stl file. Solid block should be closed with \"endsolid\" keyword but \"" << word << "\" was found" << std::endl;
-    std::getline(*mpInputStream, word); // Reading solid name 
+    std::getline(*mpInputStream, word); // Reading solid name
 }
 
 void StlIO::ReadFacet(ModelPart & rThisModelPart)

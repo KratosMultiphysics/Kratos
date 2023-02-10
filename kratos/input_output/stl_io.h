@@ -55,31 +55,31 @@ namespace Kratos
  * For definition STL format please check https://en.wikipedia.org/wiki/STL_(file_format)
  * A sample file format with 3 triangles:
    solid 3 triangles
-   facet normal  1.000000 0.000000 0.000000 
-       outer loop 
+   facet normal  1.000000 0.000000 0.000000
+       outer loop
           vertex 0.1 -2.56114e-08 0.1
           vertex 0.1 -0.499156 -0.0352136
           vertex 0.1 -0.473406 -0.0446259
-       endloop 
-   endfacet 
-   facet normal  1.000000 -0.000000 0.000000 
-       outer loop 
+       endloop
+   endfacet
+   facet normal  1.000000 -0.000000 0.000000
+       outer loop
           vertex 0.1 -0.473406 -0.0446259
           vertex 0.1 -0.447464 -0.0534931
           vertex 0.1 -2.56114e-08 0.1
-       endloop 
-   endfacet 
-   facet normal  1.000000 0.000000 0.000000 
-       outer loop 
+       endloop
+   endfacet
+   facet normal  1.000000 0.000000 0.000000
+       outer loop
           vertex 0.1 -0.6 0.1
           vertex 0.1 -0.524702 -0.0252604
           vertex 0.1 -0.499156 -0.0352136
-       endloop 
-   endfacet 
+       endloop
+   endfacet
    endsolid 3 triangles
 
 */
-class KRATOS_API(KRATOS_CORE) StlIO 
+class KRATOS_API(KRATOS_CORE) StlIO
     : public IO
 {
 public:
@@ -188,7 +188,7 @@ private:
     ///@{
 
     void ReadSolid(ModelPart & rThisModelPart);
-    
+
     void ReadFacet(ModelPart & rThisModelPart);
 
     void ReadLoop(ModelPart & rThisModelPart);
