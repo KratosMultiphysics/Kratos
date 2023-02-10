@@ -62,11 +62,6 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Execute method is used to execute the ApplyPhreaticMultiLinePressureTableProcess algorithms.
-    void Execute() override
-    {
-    }
-
     /// this function will be executed at every time step BEFORE performing the solve phase
     void ExecuteInitializeSolutionStep() override
     {
@@ -122,11 +117,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyPhreaticMultiLinePressureTableProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

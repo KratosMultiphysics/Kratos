@@ -137,11 +137,6 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Execute method is used to execute the ApplyConstantPhreaticMultiLinePressureProcess algorithms.
-    void Execute() override
-    {
-    }
-
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     void ExecuteInitialize() override
@@ -190,11 +185,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyConstantPhreaticMultiLinePressureProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
