@@ -16,6 +16,7 @@
 #include <string>
 #include <iostream>
 #include <filesystem>
+#include <cctype>
 
 // External includes
 
