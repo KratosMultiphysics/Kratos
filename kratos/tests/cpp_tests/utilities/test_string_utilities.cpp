@@ -22,11 +22,11 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(ConvertCammelCaseToSnakeCase, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConvertCamelCaseToSnakeCase, KratosCoreFastSuite)
 {
-    const std::string CammelCase = "TestInCammelCase";
-    const std::string snake_case = StringUtilities::ConvertCammelCaseToSnakeCase(CammelCase);
-    KRATOS_CHECK_STRING_EQUAL(snake_case, "test_in_cammel_case");
+    const std::string CamelCase = "TestInCamelCase";
+    const std::string snake_case = StringUtilities::ConvertCamelCaseToSnakeCase(CamelCase);
+    KRATOS_CHECK_STRING_EQUAL(snake_case, "test_in_camel_case");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConvertSnakeCaseToCamelCase, KratosCoreFastSuite)

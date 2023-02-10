@@ -367,6 +367,7 @@ namespace Kratos::Testing
         constexpr double tolerance = 1e-8;
         KRATOS_CHECK(rA.size1() == 6);
         KRATOS_CHECK(rA.size2() == 6);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 4138000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,4), -2069000000.0, tolerance);

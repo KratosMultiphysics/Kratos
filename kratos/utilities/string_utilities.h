@@ -51,11 +51,11 @@ namespace Kratos
 namespace StringUtilities
 {
     /**
-     * @brief This method converts CammelCase to snake_case
+     * @brief This method converts CamelCase to snake_case
      * @param rString The string to be transformed into snake_case
      * @return The string in snake_case
      */
-    std::string KRATOS_API(KRATOS_CORE) ConvertCammelCaseToSnakeCase(const std::string& rString);
+    std::string KRATOS_API(KRATOS_CORE) ConvertCamelCaseToSnakeCase(const std::string& rString);
 
     /**
      *  @brief Convert snake_case to CamelCase.
