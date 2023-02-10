@@ -755,6 +755,6 @@ class GiDOutputProcess(KM.OutputProcess):
 
         # Make sure that the path to the desired output folder exists
         output_path = Path(file_name).parent
-        KM.FilesystemExtensions.MPISafeCreateDirectories(str(output_path))
+        KM.FilesystemExtensions.MPISafeCreateDirectories(output_path)
 
         return file_name

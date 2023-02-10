@@ -915,7 +915,7 @@ protected:
      * @brief This method checks is an element has to be rotated
      * according to a set of local axes
      */
-    bool IsElementRotated() const;
+    virtual bool IsElementRotated() const;
 
     /**
      * @brief This method rotates the F or strain according to local axis from

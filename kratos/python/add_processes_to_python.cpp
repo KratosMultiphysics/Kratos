@@ -10,7 +10,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
@@ -35,6 +34,7 @@
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
+#include "processes/calculate_distance_to_path_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
@@ -67,15 +67,12 @@
 #include "processes/split_internal_interfaces_process.h"
 #include "processes/parallel_distance_calculation_process.h"
 #include "processes/generic_find_elements_neighbours_process.h"
-
+#include "processes/check_same_modelpart_using_skin_distance_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 typedef Node<3> NodeType;
 
@@ -117,13 +114,11 @@ void CalculateEmbeddedVariableFromSkinArray(
     rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
-
-
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<Process, Process::Pointer>(m,"Process")
+    py::class_<Process, Process::Pointer, Flags>(m,"Process")
     .def(py::init<>())
     .def("Create",&Process::Create)
     .def("Execute",&Process::Execute)
@@ -252,6 +247,14 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<EliminateIsolatedNodesProcess, EliminateIsolatedNodesProcess::Pointer, Process>(m,"EliminateIsolatedNodesProcess")
     .def(py::init<ModelPart&>())
+    ;
+
+    py::class_<CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsHistoricalVariable>, CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsHistoricalVariable>::Pointer, Process>(m, "CalculateDistanceToPathProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsNonHistoricalVariable>, CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m, "CalculateDistanceToPathNonHistoricalProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 
     py::class_<CalculateSignedDistanceTo3DSkinProcess, CalculateSignedDistanceTo3DSkinProcess::Pointer, Process>(m,"CalculateSignedDistanceTo3DSkinProcess")
@@ -407,6 +410,14 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool, const bool >())
     ;
+
+    // Check the same model part using skin distance
+    py::class_<CheckSameModelPartUsingSkinDistanceProcess<2>, CheckSameModelPartUsingSkinDistanceProcess<2>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess2D")
+        .def(py::init<Model&, Parameters&>())
+        ;
+    py::class_<CheckSameModelPartUsingSkinDistanceProcess<3>, CheckSameModelPartUsingSkinDistanceProcess<3>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess3D")
+        .def(py::init<Model&, Parameters&>())
+        ;
 
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
@@ -728,6 +739,4 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
