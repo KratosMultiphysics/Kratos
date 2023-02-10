@@ -1,14 +1,16 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//			 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Daniel Diez, Pablo Becker
+//  Main authors:    Daniel Diez
+//                   Pablo Becker
 //
+
 #include "includes/kratos_flags.h"
 #include "distance_calculation_flux_based_element.h"
 #include "includes/checks.h"
@@ -100,7 +102,6 @@ void DistanceCalculationFluxBasedElement<TDim,TNumNodes>::CalculateGaussPointsDa
     )
 {
     Vector det_j_vector(TNumNodes);
-    // const auto& r_geom = this->GetGeometry();
     const auto integration_method = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2;
     rNContainer = rGeometry.ShapeFunctionsValues(integration_method);
     ShapeFunctionsGradientsType DN_DXContainer_unbounded;
@@ -109,10 +110,10 @@ void DistanceCalculationFluxBasedElement<TDim,TNumNodes>::CalculateGaussPointsDa
 
 
     const unsigned int number_of_gauss_points = rGeometry.IntegrationPointsNumber(integration_method);
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeometry.IntegrationPoints(integration_method);
+    const auto& r_integration_points = rGeometry.IntegrationPoints(integration_method);
 
     for (unsigned int g = 0; g < number_of_gauss_points; ++g){
-        rGaussWeights[g] = det_j_vector[g] * integration_points[g].Weight();
+        rGaussWeights[g] = det_j_vector[g] * r_integration_points[g].Weight();
         rDN_DXContainer[g] = DN_DXContainer_unbounded[g];
     }
 }
@@ -130,7 +131,7 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateLocalSystem
     KRATOS_TRY
 
     // Resize and intialize output
-    if (rLeftHandSideMatrix.size1() != LocalSize)
+    if (rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
     if (rRightHandSideVector.size() != LocalSize)
@@ -142,14 +143,16 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateLocalSystem
     const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
     
     if(step == 1){ //solve a transcient diffusion problem
-        CalculatePotentialFlowSystem(rLeftHandSideMatrix, 
-                                     rRightHandSideVector,
-                                     rCurrentProcessInfo);
+        CalculatePotentialFlowSystem(
+            rLeftHandSideMatrix, 
+            rRightHandSideVector,
+            rCurrentProcessInfo);
     }
     else if (step == 2){ // solve convection + source
-        CalculateDistanceSystem(rLeftHandSideMatrix, 
-                                     rRightHandSideVector,
-                                     rCurrentProcessInfo);
+        CalculateDistanceSystem(
+            rLeftHandSideMatrix, 
+            rRightHandSideVector,
+            rCurrentProcessInfo);
     }
     else{
         KRATOS_ERROR << "FRACTIONAL_STEP must be 1 or 2" << std::endl;
@@ -171,8 +174,8 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculatePotentialFl
 
     CalculateGaussPointsData( GetGeometry(), gauss_weights, N_container, DN_DX_container);
 
-    array_1d<double, NumNodes > nodal_values;
-    for(unsigned int i=0; i<NumNodes; i++){
+    array_1d<double, TNumNodes > nodal_values;
+    for(unsigned int i=0; i<TNumNodes; i++){
         nodal_values[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
     }
 
@@ -183,13 +186,14 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculatePotentialFl
 
     
     //Looping Gauss Points
-    for (unsigned int igauss = 0; igauss<NumNodes; igauss++) {
+    const std::size_t n_gauss = gauss_weights.size();
+    for (unsigned int igauss = 0; igauss<n_gauss; igauss++) {
         array_1d<double, TNumNodes > N = row(N_container, igauss);
         noalias(rLeftHandSideMatrix) += gauss_weights[igauss]*prod(DN_DX_container[igauss],trans(DN_DX_container[igauss]));
         const double mass_factor = density*gauss_weights[igauss];
         const double d_gauss = inner_prod(N,nodal_values);
-        const double initial_value = d_gauss > 0.0 ? domain_length*10.0 : -domain_length*10.0 ;
-        for(unsigned int j=0; j<NumNodes; j++){
+        const double initial_value = d_gauss > 0.0 ? domain_length : -domain_length ;
+        for(unsigned int j=0; j<TNumNodes; j++){
             rLeftHandSideMatrix(j,j)+= mass_factor*N[j];
             rRightHandSideVector[j] += mass_factor*N[j]*initial_value;
         }
@@ -212,13 +216,13 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
 
     CalculateGaussPointsData( GetGeometry(), gauss_weights, N_container, DN_DX_container);
 
-    array_1d<double, NumNodes > nodal_values;
-    array_1d< array_1d<double, TDim >, NumNodes> v; //convection velocity
-    array_1d< array_1d<double, TDim >, NumNodes> v_unit; //to decide if convection must be turned off
+    array_1d<double, TNumNodes > nodal_values;
+    array_1d< array_1d<double, TDim >, TNumNodes> v; //convection velocity
+    array_1d< array_1d<double, TDim >, TNumNodes> v_unit; //to decide if convection must be turned off
     array_1d<double, TDim > avg_v_unit = ZeroVector(TDim); //to decide if convection must be turned off
     bool has_fixed_node = false;
 
-    for(unsigned int i=0; i<NumNodes; i++){
+    for(unsigned int i=0; i<TNumNodes; i++){
         nodal_values[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         const auto& rVel_i = GetGeometry()[i].GetValue(POTENTIAL_GRADIENT);
         for(unsigned int j=0; j<TDim; j++){
@@ -228,28 +232,10 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
         avg_v_unit += v_unit[i];
         has_fixed_node = has_fixed_node || GetGeometry()[i].IsFixed(DISTANCE);
     }
-    avg_v_unit/=static_cast<double>(NumNodes);
-
-    BoundedMatrix<double, TNumNodes, TDim> avg_DN_DX = ZeroMatrix(TNumNodes, TDim);
-    for(unsigned int i=0; i<TNumNodes; i++){
-        avg_DN_DX += DN_DX_container[i] /static_cast<double>(TNumNodes);
-    }
-    
-    //adjusting RHS to get |grad|=1
-    if(rCurrentProcessInfo[NL_ITERATION_NUMBER] > 1) {
-        const array_1d<double, TDim> avg_grad = prod(trans(avg_DN_DX), nodal_values);
-        const double grad_modulus = norm_2(avg_grad);
-
-        const double new_correction_coeff = 1.0/grad_modulus;
-        const double relaxation_factor = 0.5;
-        mCorrectionCoefficient = mCorrectionCoefficient *(1.0-relaxation_factor) + new_correction_coeff*relaxation_factor;
-    }
-    else {
-        mCorrectionCoefficient = 1.0;
-    }
+    avg_v_unit/=static_cast<double>(TNumNodes);
 
     //computing element size(for Tau)
-    const double h = ComputeH(avg_DN_DX);
+    const double h = ElementSizeCalculator<TDim,TNumNodes>::AverageElementSize(this->GetGeometry());
 
     //DECIDE IF CONVECTION IS ACTIVE/INACTIVE
    //we decide by checking if flow converges to /diverges from this element
@@ -257,21 +243,21 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
    //but if the element acts as a "sink" or "source", convection is turned off to avoid instabiliities.
     bool add_convection = true;
     double average_unit_vel_misaligment = 0.0;
-    for(unsigned int i=0; i<NumNodes; i++) {
+    for(unsigned int i=0; i<TNumNodes; i++) {
         average_unit_vel_misaligment += norm_2( v_unit[i]  - avg_v_unit );
     }
-    average_unit_vel_misaligment/=static_cast<double>(NumNodes);
+    average_unit_vel_misaligment/=static_cast<double>(TNumNodes);
     if(average_unit_vel_misaligment>0.33) add_convection=false;
 
     //checking if the flow comes from face that has neighbour element (only if it is not inlet)
-    if( !has_fixed_node && this->Has(NEIGHBOUR_ELEMENTS) && this->GetValue(NEIGHBOUR_ELEMENTS).size()==GetGeometry().FacesNumber())
-    {
+    if( !has_fixed_node )
+    {   
         double value_lowest_prod = 0.0;
         unsigned int face_lowest_prod = 0;
         const auto elem_boundaries = GetGeometry().LocalSpaceDimension()==3 ? GetGeometry().GenerateFaces() : GetGeometry().GenerateEdges() ;
 
         for(unsigned int i=0; i<elem_boundaries.size(); i++) {
-            Point cond_center = elem_boundaries[i].Center();
+            const auto cond_center = elem_boundaries[i].Center();
             const array_1d<double,3> unit_normal = elem_boundaries[i].UnitNormal(cond_center);
             const double face_result = inner_prod(avg_v_unit,unit_normal);
             if(face_result<value_lowest_prod){
@@ -286,22 +272,23 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
 
     //TERMS TO BE ASSEMBLED
     //terms which multiply the gradient of phi
-    BoundedMatrix<double,NumNodes, NumNodes> aux2 = ZeroMatrix(NumNodes, NumNodes); //terms multiplying phi
+    BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
     
     //source term
-    array_1d<double, NumNodes> rhs_volumetric_heat = ZeroVector(NumNodes);
+    array_1d<double, TNumNodes> rhs_volumetric_heat = ZeroVector(TNumNodes);
 
     //Gauss point container (using nodal integration)
-    const bounded_matrix<double, NumNodes, NumNodes> Ncontainer=IdentityMatrix(NumNodes); 
+    const bounded_matrix<double, TNumNodes, TNumNodes> Ncontainer=IdentityMatrix(TNumNodes); 
 
     //Looping Gauss Points
-    for (unsigned int igauss = 0; igauss<NumNodes; igauss++) {
+    const std::size_t n_gauss = gauss_weights.size();
+    for (unsigned int igauss = 0; igauss<TNumNodes; igauss++) {
         //Getting the correct GP
         array_1d<double, TNumNodes > N = row(Ncontainer, igauss);
 
         //Velocity in GP
         array_1d<double, TDim > vel_gauss = ZeroVector(TDim);
-        for (unsigned int i = 0; i < NumNodes; i++)
+        for (unsigned int i = 0; i < TNumNodes; i++)
         {
             for (unsigned int k = 0; k<TDim; k++)
                 vel_gauss[k] += N[i] * v[i][k];
@@ -315,12 +302,12 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
 
         const double norm_vel = norm_2(vel_gauss);
 
-        array_1d<double, NumNodes > a_dot_grad = prod(DN_DX_container[igauss], vel_gauss);
+        array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX_container[igauss], vel_gauss);
 
         const double tau_denom = std::max(2.0 * norm_vel / h ,  1e-3); 
         const double tau = 1.0 / (tau_denom);
 
-        const double source_term = d_gauss > 0 ? norm_vel*mCorrectionCoefficient : -norm_vel*mCorrectionCoefficient;
+        const double source_term = d_gauss > 0 ? norm_vel : -norm_vel;
 
         if(add_convection){
             //convection + convection stabilization
@@ -362,21 +349,23 @@ int DistanceCalculationFluxBasedElement<TDim, TNumNodes >::Check(const ProcessIn
     if (out != 0) {
         return out;
     }
+    
+    KRATOS_ERROR_IF( !rCurrentProcessInfo.Has(CHARACTERISTIC_LENGTH) || rCurrentProcessInfo[CHARACTERISTIC_LENGTH]<std::numeric_limits<double>::epsilon() ) << "CHARACTERISTIC_LENGTH is zero or undefined" << std::endl;
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
-    for(unsigned int i=0; i<NumNodes; ++i){
+    const unsigned int n_expected_neighbours = r_geometry.LocalSpaceDimension()==3 ? r_geometry.FacesNumber() : r_geometry.EdgesNumber() ;
+    KRATOS_ERROR_IF( !this->Has(NEIGHBOUR_ELEMENTS) || this->GetValue(NEIGHBOUR_ELEMENTS).size()!=n_expected_neighbours ) << "Neighbour elements not defined" << std::endl;
+
+    for(unsigned int i=0; i<TNumNodes; ++i){
         const Node<3>& rNode = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rNode);
-        // KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_VECTOR_1,rNode);
-
-        // Check that required dofs exist
         KRATOS_CHECK_DOF_IN_NODE(DISTANCE,rNode);
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
     if ( TDim == 2){
-        for (unsigned int i=0; i<NumNodes; ++i) {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
             if (std::abs(r_geometry[i].Z())>1e-9)
                 KRATOS_ERROR << "Node " << r_geometry[i].Id() << "has non-zero Z coordinate." << std::endl;
         }
@@ -394,7 +383,7 @@ template <unsigned int TDim , unsigned int TNumNodes >
 std::string DistanceCalculationFluxBasedElement<TDim, TNumNodes >::Info() const
 {
     std::stringstream buffer;
-    buffer << "DistanceCalculationFluxBasedElement" << Dim << "D" << NumNodes << "N #" << this->Id();
+    buffer << "DistanceCalculationFluxBasedElement" << TDim << "D" << TNumNodes << "N #" << this->Id();
     return buffer.str();
 }
 
@@ -408,14 +397,14 @@ void DistanceCalculationFluxBasedElement<TDim,TNumNodes>::PrintInfo(
 template <unsigned int TDim , unsigned int TNumNodes >
 void DistanceCalculationFluxBasedElement< TDim, TNumNodes  >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     unsigned int LocalIndex = 0;
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
-    for (unsigned int i = 0; i < NumNodes; ++i){
+    for (unsigned int i = 0; i < TNumNodes; ++i){
         rResult[LocalIndex++] = r_geometry[i].GetDof(DISTANCE).EquationId();
     }
 }
@@ -424,49 +413,34 @@ void DistanceCalculationFluxBasedElement< TDim, TNumNodes  >::EquationIdVector(E
 template <unsigned int TDim , unsigned int TNumNodes >
 void DistanceCalculationFluxBasedElement< TDim , TNumNodes >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
      if (rElementalDofList.size() != LocalSize)
-         rElementalDofList.resize(LocalSize);
+        rElementalDofList.resize(LocalSize);
 
      unsigned int LocalIndex = 0;
 
-     for (unsigned int i = 0; i < NumNodes; ++i){
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(DISTANCE);
+     for (unsigned int i = 0; i < TNumNodes; ++i){
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(DISTANCE);
      }
 }
 
-template <unsigned int TDim , unsigned int TNumNodes >
-double DistanceCalculationFluxBasedElement< TDim, TNumNodes >::ComputeH(BoundedMatrix<double,NumNodes, TDim>& DN_DX)
-{
-        double h=0.0;
-        for(unsigned int i=0; i<NumNodes; i++){
-            double h_inv = 0.0;
-            for(unsigned int k=0; k<TDim; k++)
-            {
-                h_inv += DN_DX(i,k)*DN_DX(i,k);
-            }
-            h = std::max(h, 1.0 / h_inv);
-        }
-        h = std::sqrt(h);
-        return h;
-}
 
 template <unsigned int TDim , unsigned int TNumNodes >
 void DistanceCalculationFluxBasedElement< TDim, TNumNodes >::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
-   	GeometryType& rGeometry = this->GetGeometry();
+    auto& rGeometry = this->GetGeometry();
 
-	BoundedVector<double,TNumNodes> gauss_weights;
+    BoundedVector<double,TNumNodes> gauss_weights;
     BoundedMatrix<double,TNumNodes,TNumNodes> N_container;
     array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes> DN_DX_container;
 
     CalculateGaussPointsData( rGeometry , gauss_weights, N_container, DN_DX_container);
 
 
-	//get the nodal values
-    array_1d<double, NumNodes > nodal_values;
-    for(unsigned int i=0; i<NumNodes; i++){
+    //get the nodal values
+    array_1d<double, TNumNodes > nodal_values;
+    for(unsigned int i=0; i<TNumNodes; i++){
         nodal_values[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
     }
 
@@ -477,19 +451,19 @@ void DistanceCalculationFluxBasedElement< TDim, TNumNodes >::AddExplicitContribu
     
     const array_1d<double, TDim> avg_grad = prod(trans(avg_DN_DX), nodal_values);
     const double grad_modulus = norm_2(avg_grad);
-	array_1d<double, 3> vel = ZeroVector(3);
-     for (unsigned int k = 0; k<TDim; k++) {
+    array_1d<double, 3> vel = ZeroVector(3);
+    for (unsigned int k = 0; k<TDim; k++) {
             vel[k] = avg_grad[k]/grad_modulus;
      }
 
-	//saving data
-	const double vol_factor =  rGeometry.DomainSize()/static_cast<double>(NumNodes);
-	for (unsigned int j = 0; j < NumNodes; j++){ //looping 4 nodes of the elem:
-		rGeometry[j].SetLock();
-		rGeometry[j].FastGetSolutionStepValue(NODAL_VOLUME)+=vol_factor;
-		rGeometry[j].GetValue(POTENTIAL_GRADIENT)+= vel*vol_factor;      
-		rGeometry[j].UnSetLock();
-	}
+    //saving data
+    const double vol_factor =  rGeometry.DomainSize()/static_cast<double>(TNumNodes);
+    for (unsigned int j = 0; j < TNumNodes; j++){ //looping 4 nodes of the elem:
+        rGeometry[j].SetLock();
+        rGeometry[j].FastGetSolutionStepValue(NODAL_VOLUME)+=vol_factor;
+        rGeometry[j].GetValue(POTENTIAL_GRADIENT)+= vel*vol_factor;      
+        rGeometry[j].UnSetLock();
+    }
 }
 
 

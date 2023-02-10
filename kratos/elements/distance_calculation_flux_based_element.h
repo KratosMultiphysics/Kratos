@@ -1,17 +1,17 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//			 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Daniel Diez, Pablo Becker
+//  Main authors:    Daniel Diez
+//                   Pablo Becker
 //
 
-#if !defined(KRATOS_DISTANCE_CALCULATION_FLUX_BASED_ELEMENT)
-#define  KRATOS_DISTANCE_CALCULATION_FLUX_BASED_ELEMENT
+#pragma once
 
 // System includes
 
@@ -63,29 +63,19 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
-    typedef std::vector<std::size_t> EquationIdVectorType;
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-
-    static constexpr unsigned int Dim = TDim;
-
-    static constexpr unsigned int NumNodes = TNumNodes;
-
     static constexpr unsigned int BlockSize = 1;
 
-    static constexpr unsigned int LocalSize = NumNodes * BlockSize;
+    static constexpr unsigned int LocalSize = TNumNodes * BlockSize;
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /// Default constructor.
+    DistanceCalculationFluxBasedElement() = delete;
+
+    /// Copy constructor.
+    DistanceCalculationFluxBasedElement(DistanceCalculationFluxBasedElement const& rOther) = delete;
 
     /// Default constuctor.
     /**
@@ -100,7 +90,9 @@ public:
     * @param NewId Index of the new element
     * @param ThisNodes An array containing the nodes of the new element
     */
-    DistanceCalculationFluxBasedElement(IndexType NewId, const NodesArrayType& ThisNodes):
+    DistanceCalculationFluxBasedElement(
+        IndexType NewId, 
+        const NodesArrayType& ThisNodes):
         Element(NewId, ThisNodes)
     {}
 
@@ -109,7 +101,9 @@ public:
     * @param NewId Index of the new element
     * @param pGeometry Pointer to a geometry object
     */
-    DistanceCalculationFluxBasedElement(IndexType NewId, GeometryType::Pointer pGeometry):
+    DistanceCalculationFluxBasedElement(
+        IndexType NewId,
+         GeometryType::Pointer pGeometry):
         Element(NewId, pGeometry)
     {}
 
@@ -119,13 +113,15 @@ public:
     * @param pGeometry Pointer to a geometry object
     * @param pProperties Pointer to the element's properties
     */
-    DistanceCalculationFluxBasedElement(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties) :
+    DistanceCalculationFluxBasedElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        Properties::Pointer pProperties) :
         Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    virtual ~DistanceCalculationFluxBasedElement() override
-    {}
+    virtual ~DistanceCalculationFluxBasedElement() override = default;
 
     ///@}
     ///@name Operators
@@ -143,11 +139,12 @@ public:
     * @param pProperties the properties assigned to the new element
     * @return a Pointer to the new element
     */
-    Element::Pointer Create(IndexType NewId,
+    Element::Pointer Create(
+        IndexType NewId,
         NodesArrayType const& ThisNodes,
         Properties::Pointer pProperties)const override
     {
-        return Element::Pointer(new DistanceCalculationFluxBasedElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_intrusive<DistanceCalculationFluxBasedElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /// Create a new element of this type using given geometry
@@ -158,11 +155,12 @@ public:
     * @param pProperties the properties assigned to the new element
     * @return a Pointer to the new element
     */
-    Element::Pointer Create(IndexType NewId,
+    Element::Pointer Create(
+        IndexType NewId,
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override 
     {
-        return Element::Pointer(new DistanceCalculationFluxBasedElement(NewId, pGeom, pProperties));
+        return Kratos::make_intrusive<DistanceCalculationFluxBasedElement>(NewId, pGeom, pProperties);
     }
 
     /// Computes the elemental LHS and RHS elemental contributions
@@ -186,7 +184,8 @@ public:
         const ProcessInfo &rCurrentProcessInfo) override;
 
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
+    int Check(
+        const ProcessInfo &rCurrentProcessInfo) const override;
 
     /**
      * @brief EquationIdVector Returns the global system rows corresponding to each local row.
@@ -246,7 +245,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    double mCorrectionCoefficient=1.0;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -255,19 +253,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * @brief Assembles the local system for a laplacian, no coeffs
-     * @return A laplacian systes
-     */
-    // void CalculateLaplacianSystem(
-    //     MatrixType &rLeftHandSideMatrix,
-    //     VectorType &rRightHandSideVector,
-    //     const ProcessInfo &rCurrentProcessInfo);
 
     /**
      * @brief Assembles the local system to get a gradient in the direction of the flow
-     * @return A transient diffusion system whose solution can be used to construct a velocity field
-     * this velocity will then be used to compute the flowlenght/filltime in a second step
+     * @return A transient diffusion system whose solution can be used to construct a potential field
+     * this potential will then be used to compute the distance in a second step
      */
     void CalculatePotentialFlowSystem(
         MatrixType &rLeftHandSideMatrix,
@@ -275,27 +265,28 @@ protected:
         const ProcessInfo &rCurrentProcessInfo);
 
     /**
-     * @brief Assembles the local system to get a the flowlength/filltime
-     * @return A pure convection + sorce term system that solves the flowlength/filltime.
-     * For the FlowLength, the assembled source term is the same as |vel|,
-     * therefore obtaining a gradient if 1 in the direction of the velocity
-     * For the FillTime, the assembled source term is 1.0
-     * therefore the gradient is 1/|vel| in the directiion of the velocity
+     * @brief Assembles the local system to get a the distance field
+     * @return A pure convection + sorce term system that solves the distance.
      */
     void CalculateDistanceSystem(
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo);
-        
-    //computes characteristic length
-    double ComputeH(BoundedMatrix<double,NumNodes, TDim>& DN_DX);
 
-    void CalculateGaussPointsData(  const GeometryType& rGeometry,
-                                    BoundedVector<double,TNumNodes> &rGaussWeights,
-                                    BoundedMatrix<double,TNumNodes,TNumNodes> &rNContainer,
-                                    array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes>& rDN_DXContainer 
-                                 );
+    /**
+     * @brief Computes gauss points
+     * @return gauss weights and positions
+     */
+    void CalculateGaussPointsData(
+        const GeometryType& rGeometry,
+        BoundedVector<double,TNumNodes> &rGaussWeights,
+        BoundedMatrix<double,TNumNodes,TNumNodes> &rNContainer,
+        array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes>& rDN_DXContainer);
     
+    /**
+     * @brief Computes gauss points for simplex geometries
+     * @return gauss points coords
+     */
     void GetSimplexShapeFunctionsOnGauss(BoundedMatrix<double,TNumNodes, TNumNodes>& Ncontainer);
 
 
@@ -340,12 +331,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
-    /// Assignment operator.
-    DistanceCalculationFluxBasedElement& operator=(DistanceCalculationFluxBasedElement const& rOther);
-
-    /// Copy constructor.
-    DistanceCalculationFluxBasedElement(DistanceCalculationFluxBasedElement const& rOther);
-
     ///@}
 
 }; // Class DistanceCalculationFluxBasedElement
@@ -355,5 +340,3 @@ private:
 
 
 } // namespace Kratos.
-
-#endif 
