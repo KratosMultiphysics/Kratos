@@ -301,8 +301,6 @@ Matrix mFabricTensor;             // Fabric tensor with unique contacts
 Matrix mCauchyTensor;             // Cauchy stress tensor with unique contacts
 Matrix mTangentTensor;            // Tangent operator tensor with unique contacts
 
-bool mResetOldTangentForce;
-
 //==========================================================================================================================================
 // HIERARCHICAL MULTISCALE RVE - FINISH
 //==========================================================================================================================================
