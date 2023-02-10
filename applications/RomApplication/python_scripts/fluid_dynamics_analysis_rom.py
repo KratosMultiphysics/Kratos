@@ -13,10 +13,12 @@ import pdb
 
 class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
 
-    def __init__(self,model,project_parameters, path = '.',rom_parameters=None,  hyper_reduction_element_selector = None):
+    def __init__(self,model,project_parameters, path = '.',rom_parameters=None,  hyper_reduction_element_selector = None, Modes=1, Nodes=1):
         KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'FluidDynamicsAnalysisROM\'", "class is deprecated. Use the \'RomAnalysis\' one instead.")
         self.path = path
         self.rom_parameters = rom_parameters
+        self.Modes = Modes
+        self.Nodes = Nodes
         super().__init__(model,project_parameters)
         if hyper_reduction_element_selector != None :
             if hyper_reduction_element_selector == "EmpiricalCubature":
@@ -48,19 +50,22 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
     def ModifyAfterSolverInitialize(self):
         """Here is where the ROM_BASIS is imposed to each node"""
         super().ModifyAfterSolverInitialize()
+
+
+
         computing_model_part = self._solver.GetComputingModelPart()
         nodal_dofs = len(self.rom_parameters["rom_settings"]["nodal_unknowns"].GetStringArray())
-        nodal_modes = self.rom_parameters["nodal_modes"]
+        #nodal_modes = self.rom_parameters["nodal_modes"]
         counter = 0
         rom_dofs= self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
-        for node in computing_model_part.Nodes:
-            aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
-            for j in range(nodal_dofs):
-                Counter=str(node.Id)
-                for i in range(rom_dofs):
-                    aux[j,i] = nodal_modes[Counter][j][i].GetDouble()
-            node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
-            counter+=1
+
+        self.Modes = self.Modes[:,:rom_dofs]
+        self.Nodes
+
+        for node_id in self.Nodes:
+            node_id = int(node_id)
+            computing_model_part.GetNode(node_id).SetValue(romapp.ROM_BASIS, KratosMultiphysics.Matrix(self.Modes[(node_id-1)*nodal_dofs:((node_id-1)*nodal_dofs)+nodal_dofs, :]) ) # ROM basis
+
 
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
