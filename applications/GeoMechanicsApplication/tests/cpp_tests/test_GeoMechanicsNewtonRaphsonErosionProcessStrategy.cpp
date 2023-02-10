@@ -20,6 +20,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include <gtest/gtest.h>
+
 /* Project includes */
 #include "testing/testing.h"
 #include "custom_workflows/dgeoflow.h"
@@ -30,7 +32,7 @@ namespace Kratos
     namespace Testing
     {
 
-        KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
+        TEST(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
             auto projectFile = "ProjectParameters.json";
@@ -39,10 +41,10 @@ namespace Kratos
             int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
             &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
+            KRATOS_EXPECT_EQ(status, 0);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeoMechanicsFastSuite)
+        TEST(ErosionProcessStrategyTextualProgressReport, KratosGeoMechanicsFastSuite)
         {
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
             auto projectFile = "ProjectParameters.json";
@@ -70,13 +72,13 @@ namespace Kratos
             int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
             &flow_stubs::emptyLog, &flow_stubs::emptyProgress, reportTextualProgress, &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
-            KRATOS_CHECK_EQUAL(firstMessageFound, true);
-            KRATOS_CHECK_EQUAL(finalMessageFound, true);
-            KRATOS_CHECK_EQUAL(messageCount, 9);
+            KRATOS_EXPECT_EQ(status, 0);
+            KRATOS_EXPECT_EQ(firstMessageFound, true);
+            KRATOS_EXPECT_EQ(finalMessageFound, true);
+            KRATOS_EXPECT_EQ(messageCount, 9);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechanicsFastSuite)
+        TEST(ErosionProcessStrategyProgressReport, KratosGeoMechanicsFastSuite)
         {
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
             auto projectFile = "ProjectParameters.json";
@@ -104,10 +106,10 @@ namespace Kratos
             int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
             &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
-            KRATOS_CHECK_EQUAL(startProgressFound, true);
-            KRATOS_CHECK_EQUAL(endProgressFound, true);
-            KRATOS_CHECK_EQUAL(progressUpdates, 10);
+            KRATOS_EXPECT_EQ(status, 0);
+            KRATOS_EXPECT_EQ(startProgressFound, true);
+            KRATOS_EXPECT_EQ(endProgressFound, true);
+            KRATOS_EXPECT_EQ(progressUpdates, 10);
         }
     }
 }

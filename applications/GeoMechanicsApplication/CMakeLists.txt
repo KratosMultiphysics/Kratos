@@ -31,18 +31,20 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp		
 )
 
-## GeoMechanics testing sources
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-
 ## GeoMechanics python interface sources
 file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE} ${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES})
+add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE})
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
 
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    add_executable(KratosGeoMechanicsTesting ${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES})
+    target_link_libraries(KratosGeoMechanicsTesting PUBLIC KratosGeoMechanicsCore KratosCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
+    target_link_libraries(KratosGeoMechanicsTesting PUBLIC GTest::gmock )
+    add_test(KratosGeoMechanicsTesting KratosGeoMechanicsTesting)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

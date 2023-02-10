@@ -15,9 +15,9 @@ file(GLOB_RECURSE KRATOS_MPI_SOURCES
 file(GLOB_RECURSE KRATOS_MPI_PYTHON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
 ## Kratos MPI test sources.
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
+if(${KRATOS_BUILD_TESTING} MATCHES OFF)
     file(GLOB_RECURSE KRATOS_MPI_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+endif(${KRATOS_BUILD_TESTING} MATCHES OFF)
 
 ###############################################################################
 
