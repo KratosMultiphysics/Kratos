@@ -1,6 +1,10 @@
 import KratosMultiphysics as Kratos
 
 class OptimizationInfo:
+    class __KeyErrorMessage(str):
+        def __repr__(self):
+            return str(self)
+
     def __init__(self, echo_level: int = 0):
         # objects registry
         self.__optimization_processes: 'dict[str, Kratos.Process]' = {}
@@ -76,10 +80,60 @@ class OptimizationInfo:
         current_step_index = (self.__buffer_index - solution_step_index) % len(self.__iteration_data)
         return self.__iteration_data[current_step_index]
 
+    def HasValue(self, key: str, solution_step_index: int = 0) -> bool:
+        if not isinstance(key, str):
+            raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
+
+        current_opt_info = self.GetSolutionStepData(solution_step_index)
+
+        sub_keys = key.split("/")
+        for sub_key in sub_keys:
+            if not sub_key in current_opt_info.keys():
+                return False
+            current_opt_info = current_opt_info[sub_key]
+
+        return True
+
+    def GetValue(self, key: str, solution_step_index: int = 0) -> any:
+        if not isinstance(key, str):
+            raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
+
+        current_opt_info = self.GetSolutionStepData(solution_step_index)
+
+        sub_keys = key.split("/")
+        for i, sub_key in enumerate(sub_keys):
+            try:
+                current_opt_info = current_opt_info[sub_key]
+            except KeyError as k:
+                cur_path = f"\n\t" + "/".join(sub_keys[:i]) + "/"
+                msg = f"Subkey {sub_key} not found for {key} for solution step index = {solution_step_index}. Followings are available keys:{cur_path}" + (cur_path).join(current_opt_info.keys())
+                raise KeyError(OptimizationInfo.__KeyErrorMessage(msg)) from k
+
+        return current_opt_info
+
+    def SetValue(self, key: str, value: any, solution_step_index: int = 0):
+        if not isinstance(key, str):
+            raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
+
+        current_opt_info = self.GetSolutionStepData(solution_step_index)
+
+        sub_keys = key.split("/")
+        for sub_key in sub_keys[:-1]:
+            if sub_key not in current_opt_info.keys():
+                current_opt_info[sub_key] = {}
+            current_opt_info = current_opt_info[sub_key]
+
+            if not isinstance(current_opt_info, dict):
+                raise RuntimeError(f"Subkey \"{sub_key} of {key} is not a dictionary in solution step index = {solution_step_index}. Hence failing to add sub items.\"")
+
+        current_opt_info[sub_keys[-1]] = value
+
     def __getitem__(self, key):
         return self.GetSolutionStepData(0)[key]
 
     def __setitem__(self, key, v):
+        if not isinstance(key, str):
+            raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
         self.GetSolutionStepData(0)[key] = v
 
     def __PrintInfo(self, required_echo_level, msg, title = "OptimizationInfo"):

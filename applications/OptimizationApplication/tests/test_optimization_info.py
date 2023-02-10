@@ -73,6 +73,23 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertEqual(temp, optimization_info.GetOptimizationProcess(TestOptimizationInfo.TestRoutine, "temp"))
         self.assertEqual([temp], optimization_info.GetOptimizationProcesses(TestOptimizationInfo.TestRoutine))
 
+    def test_HasSetGetValue(self):
+        optimization_info = OptimizationInfo()
+        optimization_info.SetBufferSize(3)
+
+        self.assertFalse(optimization_info.HasValue("test/hello/there/3"))
+        optimization_info.SetValue("test/hello/there/3", 20)
+        self.assertTrue(optimization_info.HasValue("test"))
+        self.assertTrue(optimization_info.HasValue("test/hello"))
+        self.assertTrue(optimization_info.HasValue("test/hello/there"))
+        self.assertTrue(optimization_info.HasValue("test/hello/there/3"))
+        self.assertEqual(optimization_info.GetValue("test/hello/there/3"), 20)
+
+        optimization_info.SetValue("test/hello/there/3", 40)
+        self.assertEqual(optimization_info.GetValue("test/hello/there/3"), 40)
+
+        optimization_info.SetValue("test/hello/there/8", 60, 1)
+        self.assertEqual(optimization_info.GetValue("test/hello/there/8", 1), 60)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
