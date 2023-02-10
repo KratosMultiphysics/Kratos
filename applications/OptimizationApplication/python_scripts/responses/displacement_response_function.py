@@ -69,19 +69,22 @@ class DisplacementResponseFunction(ResponseFunction):
             # solve primal problem
             model_primal = Kratos.Model()
             primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, primal_parameters)
-            # primal_analysis.Run()
+            primal_analysis.Run()
+
             # create adjoint analysis
             model_adjoint = Kratos.Model()
             self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, self.adjoint_parameters)
             self.adjoint_analysis.Initialize()
             self.adjoint_analysis.RunSolutionLoop()
+            self.adjoint_analysis.Finalize()
 
-            reference_values = [1.7135092490964121, -6.860092387341681, 0.14749301178647778, -0.0823339298948347]
+            reference_values = [-0.09916013365433643, -0.23348175177098657, -0.04942512089147077, 0.012125502238309537]
             sensitivities_to_check = []
             element_list = [1, 2, 8]
             adjoint_model_part = self.adjoint_analysis.model.GetModelPart(self.model_part_name)
             for element_id in element_list:
                 sensitivities_to_check.append(adjoint_model_part.Elements[element_id].GetValue(StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
+                # sensitivities_to_check.append(adjoint_model_part.Elements[element_id].GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))
             sensitivities_to_check.append(adjoint_model_part.Conditions[1].GetValue(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)[2])
 
             print(f"reference: {reference_values}")
