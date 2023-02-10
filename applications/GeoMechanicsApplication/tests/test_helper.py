@@ -186,14 +186,14 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
         if add_var:
             if line.startswith("Values"):
                 continue;
-            lineSplit = line.split()
-            lineSplit[0] = int(lineSplit[0])
-            for ind, strVal in enumerate(lineSplit[1:]):
-                lineSplit[ind+1] = float(strVal)
-            if (len(lineSplit[1:])==1):
-                res[time_step][lineSplit[0]] = lineSplit[1]
+            line_split = line.split()
+            line_split[0] = int(line_split[0])
+            for ind, str_val in enumerate(line_split[1:]):
+                line_split[ind+1] = float(str_val)
+            if (len(line_split[1:])==1):
+                res[time_step][line_split[0]] = line_split[1]
             else:
-                res[time_step][lineSplit[0]] = lineSplit[1:]
+                res[time_step][line_split[0]] = line_split[1:]
 
         if r'"' + variable + r'"' in line:
             time_step = float(line.split()[3])

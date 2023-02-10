@@ -163,21 +163,21 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         water_pressures = test_helper.get_nodal_variable_from_ascii(res_path, 'WATER_PRESSURE')
         
         times = [x * 0.25 for x in range(1,16)]
-        dHeadCentre = [0.5, -0.5, -0.5, 0.5]
+        d_head_centre = [0.5, -0.5, -0.5, 0.5]
         for ind, time in enumerate(times):
             
             # Central Head
-            dHeadInd = int(ind/4) # slope
-            if dHeadInd == 0:
-                lastHead = -5000
+            d_head_ind = int(ind/4) # slope
+            if d_head_ind == 0:
+                last_head = -5000
             else:
-                lastHead = (sum(dHeadCentre[0:dHeadInd]) * -10000) - 5000
-            expectedBottomCentreHead = lastHead - (dHeadCentre[dHeadInd] * 10000) * (time - (4 * dHeadInd * 0.25))
+                last_head = (sum(d_head_centre[0:d_head_ind]) * -10000) - 5000
+            expected_bottom_centre_head = last_head - (d_head_centre[d_head_ind] * 10000) * (time - (4 * d_head_ind * 0.25))
             
       
             # Bottom Row
             self.assertAlmostEqual(-5000, water_pressures[time][1])
-            self.assertAlmostEqual(expectedBottomCentreHead, water_pressures[time][48])
+            self.assertAlmostEqual(expected_bottom_centre_head, water_pressures[time][48])
             self.assertAlmostEqual(-5000, water_pressures[time][186])
 
             # Top Row
@@ -201,30 +201,30 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         water_pressures = test_helper.get_nodal_variable_from_ascii(res_path, 'WATER_PRESSURE')
         
         times = [x * 0.25 for x in range(1,16)]
-        dHeadLeft  = [0.5, -0.5, -0.5, 0.5]
-        dHeadRight = [0.25, -0.25, -0.25, 0.25]
+        d_head_left  = [0.5, -0.5, -0.5, 0.5]
+        d_head_right = [0.25, -0.25, -0.25, 0.25]
         for ind, time in enumerate(times):
             
-            dHeadInd = int(ind/4) # slope
+            d_head_ind = int(ind/4) # slope
             
             # Left Head
-            if dHeadInd == 0:
-                lastHead = -5000
+            if d_head_ind == 0:
+                last_head = -5000
             else:
-                lastHead = (sum(dHeadLeft[0:dHeadInd]) * -10000) - 5000
-            expectedBottomLeftHead = lastHead - (dHeadLeft[dHeadInd] * 10000) * (time - (4 * dHeadInd * 0.25))
+                last_head = (sum(d_head_left[0:d_head_ind]) * -10000) - 5000
+            expected_bottom_left_head = last_head - (d_head_left[d_head_ind] * 10000) * (time - (4 * d_head_ind * 0.25))
             
             # Left Head
-            if dHeadInd == 0:
-                lastHead = -5000
+            if d_head_ind == 0:
+                last_head = -5000
             else:
-                lastHead = (sum(dHeadRight[0:dHeadInd]) * -10000) - 5000
-            expectedBottomRightHead = lastHead - (dHeadRight[dHeadInd] * 10000) * (time - (4 * dHeadInd * 0.25))
+                last_head = (sum(d_head_right[0:d_head_ind]) * -10000) - 5000
+            expected_bottom_right_head = last_head - (d_head_right[d_head_ind] * 10000) * (time - (4 * d_head_ind * 0.25))
          
             # Bottom Row
-            self.assertAlmostEqual(expectedBottomLeftHead, water_pressures[time][1])
+            self.assertAlmostEqual(expected_bottom_left_head, water_pressures[time][1])
             self.assertAlmostEqual(-5000, water_pressures[time][48])
-            self.assertAlmostEqual(expectedBottomRightHead, water_pressures[time][186])
+            self.assertAlmostEqual(expected_bottom_right_head, water_pressures[time][186])
 
             # Top Row
             self.assertAlmostEqual(0, water_pressures[time][187])
