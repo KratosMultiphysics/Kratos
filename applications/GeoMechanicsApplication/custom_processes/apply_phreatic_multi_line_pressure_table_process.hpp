@@ -29,7 +29,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPhreaticMultiLinePressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
+    using TableType = Table<double, double>;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -40,8 +40,9 @@ public:
     {
         KRATOS_TRY
 
-    	for(unsigned int TableId: rParameters["table"].GetVector())
-    	{
+        for (auto value : rParameters["table"].GetVector())
+        {
+            const auto TableId = static_cast<unsigned int>(value);
             if (TableId > 0) {
                 auto pTable = model_part.pGetTable(TableId);
                 mpTable.push_back(pTable);
@@ -60,6 +61,12 @@ public:
     /// Destructor
     ~ApplyPhreaticMultiLinePressureTableProcess() override = default;
 
+    /// Assignment operator.
+    ApplyPhreaticMultiLinePressureTableProcess& operator=(ApplyPhreaticMultiLinePressureTableProcess const&) = delete;
+
+    /// Copy constructor.
+    ApplyPhreaticMultiLinePressureTableProcess(ApplyPhreaticMultiLinePressureTableProcess const&) = delete;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// this function will be executed at every time step BEFORE performing the solve phase
@@ -67,41 +74,38 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() > 0) {
-            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        if (mrModelPart.NumberOfNodes() <= 0) {
+            return;
+        }
 
-            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-            std::vector<double> deltaH;
-            for (unsigned int i=0; i < mpTable.size(); ++i) {
-                if (!mpTable[i]) {
-                deltaH.push_back(0.0);
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+
+        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
+        std::vector<double> deltaH;
+        std::transform(mpTable.begin(), mpTable.end(), std::back_inserter(deltaH),
+                       [Time](auto element){return element ? element->GetValue(Time) : 0.0;});
+
+        if (mIsSeepage) {
+            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                const double pressure = CalculateTimeDependentPressure(rNode, deltaH);
+
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                    if (mIsFixed) rNode.Fix(var);
                 } else {
-                    deltaH.push_back(mpTable[i]->GetValue(Time));
+                    rNode.Free(var);
                 }
-            }
+            });
+        } else {
+            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                const double pressure = CalculateTimeDependentPressure(rNode, deltaH);
 
-            if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
-                    const double pressure = CalculatePressure(rNode, deltaH);
-
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                        if (mIsFixed) rNode.Fix(var);
-                    } else {
-                        rNode.Free(var);
-                    }
-                });
-            } else {
-                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
-                    const double pressure = CalculatePressure(rNode, deltaH);
-
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                    } else {
-                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                    }
-                });
-            }
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                } else {
+                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                }
+            });
         }
 
         KRATOS_CATCH("")
@@ -128,7 +132,7 @@ protected:
     std::vector<TableType::Pointer> mpTable;
     double mTimeUnitConverter;
 
-    double CalculatePressure(const Node<3> &rNode, std::vector<double> &deltaH) const
+    double CalculateTimeDependentPressure(const Node<3> &rNode, std::vector<double> &deltaH) const
     {
 
         double height = 0.0;
@@ -155,16 +159,6 @@ protected:
         const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
         return pressure;
     }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-private:
-
-    /// Assignment operator.
-    ApplyPhreaticMultiLinePressureTableProcess& operator=(ApplyPhreaticMultiLinePressureTableProcess const& rOther);
-
-    /// Copy constructor.
-    //ApplyPhreaticMultiLinePressureTableProcess(ApplyPhreaticMultiLinePressureTableProcess const& rOther);
 }; // Class ApplyPhreaticMultiLinePressureTableProcess
 
 /// input stream function

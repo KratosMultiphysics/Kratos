@@ -55,7 +55,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         """
         test_name = 'test_inclinded_phreatic_line_time_dependent'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
 
         res_path = os.path.join(file_path, test_name + '.post.res')
         
@@ -156,7 +156,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         """
         test_name = 'test_inclinded_phreatic_multi_line_time_dependent_centre'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
 
         res_path = os.path.join(file_path, test_name + '.post.res')
         
@@ -194,7 +194,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         """
         test_name = 'test_inclinded_phreatic_multi_line_time_dependent_edges'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
 
         res_path = os.path.join(file_path, test_name + '.post.res')
         

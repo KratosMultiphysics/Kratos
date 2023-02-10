@@ -109,9 +109,7 @@ public:
             mGravityDirectionCoordinates = mZCoordinates;
         }
 
-    	bool mHorizontalDirectionCoordindatesSorted = std::is_sorted(mHorizontalDirectionCoordinates.begin(), mHorizontalDirectionCoordinates.end());
-
-    	if (!mHorizontalDirectionCoordindatesSorted)
+        if (!std::is_sorted(mHorizontalDirectionCoordinates.begin(), mHorizontalDirectionCoordinates.end()))
         {
             KRATOS_ERROR << "The Horizontal Elements Coordinates are not ordered."
                          << rParameters
@@ -135,6 +133,12 @@ public:
     /// Destructor
     ~ApplyConstantPhreaticMultiLinePressureProcess() override = default;
 
+    /// Assignment operator.
+    ApplyConstantPhreaticMultiLinePressureProcess& operator=(ApplyConstantPhreaticMultiLinePressureProcess const&) = delete;
+
+    /// Copy constructor.
+    ApplyConstantPhreaticMultiLinePressureProcess(ApplyConstantPhreaticMultiLinePressureProcess const&) = delete;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// this function is designed for being called at the beginning of the computations
@@ -143,33 +147,35 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() > 0) {
-            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        if (mrModelPart.NumberOfNodes() <= 0) {
+            return;
+        }
 
-            if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
-                    const double pressure = CalculatePressure(rNode);
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                        if (mIsFixed) rNode.Fix(var);
-                    } else {
-                        rNode.Free(var);
-                    }
-                });
-            } else {
-                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+        if (mIsSeepage) {
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                const double pressure = CalculatePressure(rNode);
+
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
                     if (mIsFixed) rNode.Fix(var);
-                    else          rNode.Free(var);
-                    const double pressure = CalculatePressure(rNode);
+                } else {
+                    rNode.Free(var);
+                }
+            });
+        } else {
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                if (mIsFixed) rNode.Fix(var);
+                else          rNode.Free(var);
+                const double pressure = CalculatePressure(rNode);
 
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                    } else {
-                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                    }
-                });
-            }
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                } else {
+                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                }
+            });
         }
 
         KRATOS_CATCH("")
@@ -215,7 +221,7 @@ protected:
     {
         int index = 0;
         auto coords = rNode.Coordinates();
-        auto noCoordinates = mHorizontalDirectionCoordinates.size();
+        auto noCoordinates = static_cast<int>(mHorizontalDirectionCoordinates.size());
     	for ( ; index < noCoordinates; ++index)
         {
 	        if (mHorizontalDirectionCoordinates[index] >= coords[mHorizontalDirection])
@@ -255,16 +261,6 @@ protected:
         const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
         return pressure;
     }
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-private:
-
-    /// Assignment operator.
-    ApplyConstantPhreaticLinePressureProcess& operator=(ApplyConstantPhreaticMultiLinePressureProcess const& rOther);
-
-    /// Copy constructor.
-    //ApplyConstantPhreaticLinePressureProcess(ApplyConstantPhreaticMultiLinePressureProcess const& rOther);
-
 }; // Class ApplyConstantPhreaticMultiLinePressureProcess
 
 /// input stream function
