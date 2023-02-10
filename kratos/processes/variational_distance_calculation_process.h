@@ -225,115 +225,8 @@ public:
         // Step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
         r_distance_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
 
-        // Unfix the distances
-        const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
+        this->ResetDistanceValuesAndFixities();
 
-        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
-            double& d = rNode.FastGetSolutionStepValue(DISTANCE);
-
-            // Free the DISTANCE values
-            rNode.Free(DISTANCE);
-            // Set the fix flag to 0
-            rNode.Set(BLOCKED, false);
-
-            // Save the distances
-            rNode.SetValue(DISTANCE, d);
-
-            if(d == 0){
-                d = 1.0e-15;
-                rNode.Set(BLOCKED, true);
-                rNode.Fix(DISTANCE);
-            } else {
-                if(d > 0.0){
-                    d = 1.0e15; // Set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
-                } else {
-                    d = -1.0e15;
-                }
-            }
-        });
-
-        block_for_each(r_distance_model_part.Elements(), [this](Element& rElem){
-            array_1d<double,TDim+1> distances;
-            auto& geom = rElem.GetGeometry();
-
-            for(unsigned int i=0; i<TDim+1; i++){
-                distances[i] = geom[i].GetValue(DISTANCE);
-            }
-
-            const array_1d<double,TDim+1> original_distances = distances;
-
-            // The element is cut by the interface
-            if(this->IsSplit(distances)){
-                // Compute the unsigned distance using GeometryUtils
-                if (mOptions.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE)) {
-                    GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
-                }
-                else {
-                    if constexpr (TDim==3){
-                        GeometryUtils::CalculateTetrahedraDistances(geom, distances);
-                    }
-                    else {
-                        GeometryUtils::CalculateTriangleDistances(geom, distances);
-                    }
-                }
-
-                // Assign the sign using the original distance values
-                for(unsigned int i = 0; i < TDim+1; ++i){
-                    if(original_distances[i] < 0){
-                        distances[i] = -distances[i];
-                    }
-                }
-
-                for(unsigned int i = 0; i < TDim+1; ++i){
-                    double &d = geom[i].FastGetSolutionStepValue(DISTANCE);
-                    geom[i].SetLock();
-                    if(std::abs(d) > std::abs(distances[i])){
-                        d = distances[i];
-                    }
-                    geom[i].Set(BLOCKED, true);
-                    geom[i].Fix(DISTANCE);
-                    geom[i].UnSetLock();
-                }
-            }
-        });
-
-        // SHALL WE SYNCHRONIZE SOMETHING IN HERE?¿?¿??¿ WE'VE CHANGED THE NODAL DISTANCE VALUES FROM THE ELEMENTS...
-        this->SynchronizeFixity();
-        this->SynchronizeDistance();
-
-        // Compute the maximum and minimum distance for the fixed nodes
-        double max_dist = 0.0;
-        double min_dist = 0.0;
-        for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = r_distance_model_part.NodesBegin() + i_node;
-            if(it_node->IsFixed(DISTANCE)){
-                const double& d = it_node->FastGetSolutionStepValue(DISTANCE);
-                if(d > max_dist){
-                    max_dist = d;
-                }
-                if(d < min_dist){
-                    min_dist = d;
-                }
-            }
-        }
-
-        // Synchronize the maximum and minimum distance values
-        const auto &r_communicator = r_distance_model_part.GetCommunicator().GetDataCommunicator();
-        max_dist = r_communicator.MaxAll(max_dist);
-        min_dist = r_communicator.MinAll(min_dist);
-
-        // Assign the max dist to all of the non-fixed positive nodes
-        // and the minimum one to the non-fixed negatives
-        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node<3>& rNode){
-            if(!rNode.IsFixed(DISTANCE)){
-                double& d = rNode.FastGetSolutionStepValue(DISTANCE);
-                if(d>0){
-                    d = max_dist;
-                } else {
-                    d = min_dist;
-                }
-            }
-        });
         mpSolvingStrategy->Solve();
 
         // Step2 - minimize the target residual
@@ -509,6 +402,121 @@ protected:
         mDistancePartIsInitialized = true;
 
         KRATOS_CATCH("")
+    }
+
+    virtual void ResetDistanceValuesAndFixities();
+    {
+        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
+
+        // Unfix the distances
+        const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
+
+        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
+            double& d = rNode.FastGetSolutionStepValue(DISTANCE);
+
+            // Free the DISTANCE values
+            rNode.Free(DISTANCE);
+            // Set the fix flag to 0
+            rNode.Set(BLOCKED, false);
+
+            // Save the distances
+            rNode.SetValue(DISTANCE, d);
+
+            if(d == 0){
+                d = 1.0e-15;
+                rNode.Set(BLOCKED, true);
+                rNode.Fix(DISTANCE);
+            } else {
+                if(d > 0.0){
+                    d = 1.0e15; // Set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
+                } else {
+                    d = -1.0e15;
+                }
+            }
+        });
+
+        block_for_each(r_distance_model_part.Elements(), [this](Element& rElem){
+            array_1d<double,TDim+1> distances;
+            auto& geom = rElem.GetGeometry();
+
+            for(unsigned int i=0; i<TDim+1; i++){
+                distances[i] = geom[i].GetValue(DISTANCE);
+            }
+
+            const array_1d<double,TDim+1> original_distances = distances;
+
+            // The element is cut by the interface
+            if(this->IsSplit(distances)){
+                // Compute the unsigned distance using GeometryUtils
+                if (mOptions.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE)) {
+                    GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
+                }
+                else {
+                    if constexpr (TDim==3){
+                        GeometryUtils::CalculateTetrahedraDistances(geom, distances);
+                    }
+                    else {
+                        GeometryUtils::CalculateTriangleDistances(geom, distances);
+                    }
+                }
+
+                // Assign the sign using the original distance values
+                for(unsigned int i = 0; i < TDim+1; ++i){
+                    if(original_distances[i] < 0){
+                        distances[i] = -distances[i];
+                    }
+                }
+
+                for(unsigned int i = 0; i < TDim+1; ++i){
+                    double &d = geom[i].FastGetSolutionStepValue(DISTANCE);
+                    geom[i].SetLock();
+                    if(std::abs(d) > std::abs(distances[i])){
+                        d = distances[i];
+                    }
+                    geom[i].Set(BLOCKED, true);
+                    geom[i].Fix(DISTANCE);
+                    geom[i].UnSetLock();
+                }
+            }
+        });
+
+        // SHALL WE SYNCHRONIZE SOMETHING IN HERE?¿?¿??¿ WE'VE CHANGED THE NODAL DISTANCE VALUES FROM THE ELEMENTS...
+        this->SynchronizeFixity();
+        this->SynchronizeDistance();
+
+        // Compute the maximum and minimum distance for the fixed nodes
+        double max_dist = 0.0;
+        double min_dist = 0.0;
+        for(int i_node = 0; i_node < nnodes; ++i_node){
+            auto it_node = r_distance_model_part.NodesBegin() + i_node;
+            if(it_node->IsFixed(DISTANCE)){
+                const double& d = it_node->FastGetSolutionStepValue(DISTANCE);
+                if(d > max_dist){
+                    max_dist = d;
+                }
+                if(d < min_dist){
+                    min_dist = d;
+                }
+            }
+        }
+
+        // Synchronize the maximum and minimum distance values
+        const auto &r_communicator = r_distance_model_part.GetCommunicator().GetDataCommunicator();
+        max_dist = r_communicator.MaxAll(max_dist);
+        min_dist = r_communicator.MinAll(min_dist);
+
+        // Assign the max dist to all of the non-fixed positive nodes
+        // and the minimum one to the non-fixed negatives
+        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node<3>& rNode){
+            if(!rNode.IsFixed(DISTANCE)){
+                double& d = rNode.FastGetSolutionStepValue(DISTANCE);
+                if(d>0){
+                    d = max_dist;
+                } else {
+                    d = min_dist;
+                }
+            }
+        });    
     }
 
     ///@}
