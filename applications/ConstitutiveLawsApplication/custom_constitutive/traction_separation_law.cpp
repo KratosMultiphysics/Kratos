@@ -2364,7 +2364,7 @@ void TractionSeparationLaw3D<TDim>::CalculateRotationMatrix(
 
         if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
             AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, euler_angle_theta, euler_angle_hi, rotation_matrix);
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
+            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
         } else {
             noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
