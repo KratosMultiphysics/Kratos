@@ -5,6 +5,9 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
+# disable python version check
+export KRATOS_ENFORCE_PYTHON_VERSION=False
+
 # Set compiler
 export CC=gcc
 export CXX=g++
