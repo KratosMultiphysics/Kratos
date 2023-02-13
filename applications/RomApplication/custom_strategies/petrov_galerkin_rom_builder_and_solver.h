@@ -199,14 +199,14 @@ public:
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
     {
-        KRATOS_TRY
+        // KRATOS_TRY
         PetrovGalerkinSystemMatrixType Arom = ZeroMatrix(mNumberOfPetrovGalerkinRomModes, this->GetNumberOfROMModes());
         PetrovGalerkinSystemVectorType brom = ZeroVector(mNumberOfPetrovGalerkinRomModes);
         BuildROM(pScheme, rModelPart, Arom, brom);
         SolveROM(rModelPart, Arom, brom, Dx);
 
 
-        KRATOS_CATCH("")
+        // KRATOS_CATCH("")
     }
 
     Parameters GetDefaultParameters() const override
@@ -379,7 +379,7 @@ protected:
         PetrovGalerkinSystemMatrixType &rA,
         PetrovGalerkinSystemVectorType &rb) override
     {
-        KRATOS_TRY
+        // KRATOS_TRY
         // Define a dense matrix to hold the reduced problem
         rA = ZeroMatrix(mNumberOfPetrovGalerkinRomModes, this->GetNumberOfROMModes());
         rb = ZeroVector(mNumberOfPetrovGalerkinRomModes);
@@ -429,7 +429,7 @@ protected:
         KRATOS_INFO_IF("PetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("PetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
 
-        KRATOS_CATCH("")
+        // KRATOS_CATCH("")
     }
 
     /**
