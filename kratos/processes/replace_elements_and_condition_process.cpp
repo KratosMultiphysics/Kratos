@@ -80,7 +80,7 @@ void ReplaceEntities(
                 auto it_find = rGeometryTypesToStrings.find(r_geometry_type);
                 KRATOS_ERROR_IF(it_find == rGeometryTypesToStrings.end()) << "Trying to replace an element with a different geometry type. No compatible geometry type: " << static_cast<int>(r_geometry_type) << std::endl;
                 const std::string& r_type = it_find->second;
-                KRATOS_ERROR_IF_NOT(ListReferenceEntity.Has(r_type)) << "Trying to replace an element with a different geometry type. No reference entity found for geometry type: " << r_type << std::endl;
+                KKRATOS_ERROR_IF_NOT(ListReferenceEntity.Has(r_type)) << "Trying to replace an element with a different geometry type. No reference entity found for geometry type: " << r_type << "\nReference list: " << ListReferenceEntity << std::endl;
                 const auto& r_reference_entity = KratosComponents<TEntity>::Get(ListReferenceEntity[r_type].GetString());
                 p_reference_entity = r_reference_entity.Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());;
                 current_geometry_type = r_geometry_type;
