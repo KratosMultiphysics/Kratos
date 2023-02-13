@@ -1,5 +1,5 @@
 {
-    "train_hrom": true,
+    "train_hrom": false,
     "run_hrom": false,
     "solving_strategy": "Galerkin",
     "train_petrov_galerkin": {

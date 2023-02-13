@@ -1,11 +1,6 @@
 import os
 import types
-
-try:
-    import numpy as np
-    numpy_available = True
-except:
-    numpy_available = False
+import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -20,7 +15,6 @@ class TestThermalLSPGRom(KratosUnittest.TestCase):
     def setUp(self):
         self.relative_tolerance = 1.0e-12
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testConvDiffStationaryLSPGRom2D(self):
         self.work_folder = "thermal_static_test_files/LSPGROM/"
         parameters_filename = "ProjectParametersLSPGROM.json"
@@ -44,7 +38,6 @@ class TestThermalLSPGRom(KratosUnittest.TestCase):
             l2 = np.sqrt((sum(nodal_area*((1 - obtained_output/expected_output )**2)))/(sum(nodal_area)))*100
             self.assertLess(l2, self.relative_tolerance)
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testConvDiffDynamicRom2D(self):
         self.work_folder = "thermal_dynamic_test_files/LSPGROM/"
         parameters_filename = "ProjectParametersLSPGROM.json"

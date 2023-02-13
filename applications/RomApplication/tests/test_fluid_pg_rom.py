@@ -1,11 +1,6 @@
 import os
 import types
-
-try:
-    import numpy as np
-    numpy_available = True
-except:
-    numpy_available = False
+import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -20,7 +15,6 @@ class TestFluidPGRom(KratosUnittest.TestCase):
     def setUp(self):
         self.relative_tolerance = 1.0e-12
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testFluidPGRom2D(self):
         self.work_folder = "fluid_dynamics_test_files/PGROM/"
         parameters_filename = "ProjectParametersPGROM.json"

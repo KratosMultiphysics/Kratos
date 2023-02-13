@@ -1,5 +1,6 @@
 import os
 import types
+import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest

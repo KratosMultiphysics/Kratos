@@ -1,12 +1,6 @@
 import os
 import types
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
-
-try:
-    import numpy as np
-    numpy_available = True
-except:
-    numpy_available = False
+import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -21,7 +15,6 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
     def setUp(self):
         self.relative_tolerance = 1.0e-10
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testStructuralStaticLSPGRom2D(self):
         self.work_folder = "structural_static_test_files/LSPGROM/"
         parameters_filename = "ProjectParametersLSPGROM.json"
@@ -64,7 +57,6 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
                 self.PostProcess("test_rbf_shape_functions_utility_1x1_square_G")
         
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testStructuralDynamicLSPGRom2D(self):
         self.work_folder = "structural_dynamic_test_files/LSPGROM/"
         parameters_filename = "ProjectParametersLSPGROM.json"
