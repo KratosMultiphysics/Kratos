@@ -9,8 +9,8 @@ import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCoupling
 import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
 import math
 import os
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.MeshingApplication.mmg_process as MMG
+# import KratosMultiphysics.MeshingApplication as MeshingApplication
+# import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 
 def Wait():
     input("Press Something")
