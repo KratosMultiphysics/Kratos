@@ -13,7 +13,6 @@ include(pybind11Tools)
 
 include_directories(${KRATOS_SOURCE_DIR}/kratos )
 include_directories(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
-include_directories(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
 include_directories(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
 include_directories(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 include_directories(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
