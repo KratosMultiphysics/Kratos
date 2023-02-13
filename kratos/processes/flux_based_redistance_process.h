@@ -107,7 +107,6 @@ public:
 
         //checking model part is correct;
         ValidateInput();
-        VariableUtils().CheckVariableExists<Variable<double>>(NODAL_VOLUME, rBaseModelPart.Nodes());
 		//TODO:override this function so that non-simplex geometries can be used
 		KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().size()!=TDim+1 )<< "Only simplex geometries supported" << std::endl;
 
