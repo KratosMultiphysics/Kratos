@@ -11,12 +11,7 @@ def GetFilePath(fileName):
 class TestFluxBasedRedistance(KratosUnittest.TestCase):
 
     def _ExpectedDistance(self,x,y,z):
-        d = x
-        if( d > 0.2):
-            d = 0.2
-        if( d < -0.2):
-            d = -0.2
-        return x
+        return x-0.1
 
     def test_model_part_sub_model_parts(self):
         current_model = KratosMultiphysics.Model()
@@ -64,15 +59,15 @@ class TestFluxBasedRedistance(KratosUnittest.TestCase):
 
         vtk_output_parameters["Parameters"]["model_part_name"].SetString("Main")
         vtk_output_parameters["Parameters"]["file_format"].SetString("ascii")
-        #output_process = vtk_output_process.Factory(vtk_output_parameters, current_model)
-        #output_process.ExecuteInitialize()
-        #output_process.ExecuteInitializeSolutionStep()
-        #output_process.ExecuteFinalizeSolutionStep()
-        #output_process.PrintOutput()
+        output_process = vtk_output_process.Factory(vtk_output_parameters, current_model)
+        output_process.ExecuteInitialize()
+        output_process.ExecuteInitializeSolutionStep()
+        output_process.ExecuteFinalizeSolutionStep()
+        output_process.PrintOutput()
 
 
-        self.assertAlmostEqual(max_distance, 0.49554221316850783)
-        self.assertAlmostEqual(min_distance, -0.4950998362886954)
+        self.assertAlmostEqual(max_distance, 0.43576526541264005)
+        self.assertAlmostEqual(min_distance, -0.6005235027856062)
 
 
 if __name__ == '__main__':
