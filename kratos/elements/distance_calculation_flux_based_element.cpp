@@ -283,7 +283,7 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
 
     //Looping Gauss Points
     const std::size_t n_gauss = gauss_weights.size();
-    for (unsigned int igauss = 0; igauss<TNumNodes; igauss++) {
+    for (unsigned int igauss = 0; igauss<n_gauss; igauss++) {
         //Getting the correct GP
         array_1d<double, TNumNodes > N = row(Ncontainer, igauss);
 
