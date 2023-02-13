@@ -181,7 +181,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
         if (rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize( mat_size, false);
 
-        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
     }
 
     // Reading integration points and local gradients
@@ -235,10 +235,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
                 noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
- 
+
                 damages_edges[edge] = this->mDamages[edge];
                 double threshold    = this->mThresholds[edge];
-                
+
                 this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
                                                      average_stress_edge, edge, characteristic_length, cl_values, 
                                                      is_damaging);
