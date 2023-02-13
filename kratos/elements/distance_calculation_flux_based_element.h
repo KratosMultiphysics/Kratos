@@ -63,6 +63,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Geometry<NodeType> GeometryType;
+    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
     static constexpr unsigned int BlockSize = 1;
 
     static constexpr unsigned int LocalSize = TNumNodes * BlockSize;
@@ -70,12 +73,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /// Default constructor.
-    DistanceCalculationFluxBasedElement() = delete;
-
-    /// Copy constructor.
-    DistanceCalculationFluxBasedElement(DistanceCalculationFluxBasedElement const& rOther) = delete;
 
     /// Default constuctor.
     /**
@@ -122,6 +119,7 @@ public:
 
     /// Destructor.
     virtual ~DistanceCalculationFluxBasedElement() override = default;
+
 
     ///@}
     ///@name Operators
@@ -313,10 +311,7 @@ protected:
     ///@}
     ///@name Serialization
     ///@{
-    
 
-
-    ///@}
 private:
 
     friend class Serializer;
@@ -330,6 +325,18 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
+
+    ///@}
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    DistanceCalculationFluxBasedElement & operator=(DistanceCalculationFluxBasedElement const& rOther) = delete;
+
+    /// Copy constructor.
+    DistanceCalculationFluxBasedElement(DistanceCalculationFluxBasedElement const& rOther) = delete;
 
     ///@}
 

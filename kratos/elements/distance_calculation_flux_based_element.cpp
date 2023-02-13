@@ -12,6 +12,7 @@
 //
 
 #include "includes/kratos_flags.h"
+#include "utilities/element_size_calculator.h"
 #include "distance_calculation_flux_based_element.h"
 #include "includes/checks.h"
 

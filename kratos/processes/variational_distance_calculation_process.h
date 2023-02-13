@@ -404,7 +404,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    virtual void ResetDistanceValuesAndFixities();
+    virtual void ResetDistanceValuesAndFixities()
     {
         ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
 
@@ -530,6 +530,13 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
+    
+    //default constructor
+    VariationalDistanceCalculationProcess(ModelPart& rBaseModelPart)
+    :
+        mrModel( rBaseModelPart.GetModel() ),
+        mrBaseModelPart (rBaseModelPart)
+    {}
 
     ///@}
 private:

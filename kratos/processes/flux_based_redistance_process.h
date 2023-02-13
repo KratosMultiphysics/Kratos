@@ -91,8 +91,7 @@ public:
         ModelPart &rBaseModelPart,
         typename TLinearSolver::Pointer pLinearSolver,
         Parameters Settings) :
-		mrBaseModelPart(rBaseModelPart),
-		mrModel(rBaseModelPart.GetModel())
+        VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(rBaseModelPart)
     {
         KRATOS_TRY
 
@@ -107,20 +106,21 @@ public:
 		mAuxModelPartName = Settings["redistance_model_part_name"].GetString();
 
         //checking model part is correct;
-        ValidateInput(rBaseModelPart);
+        ValidateInput();
         VariableUtils().CheckVariableExists<Variable<double>>(NODAL_VOLUME, rBaseModelPart.Nodes());
 		//TODO:override this function so that non-simplex geometries can be used
-		KRATOS_ERROR_IF(rBaseModelPart->ElementsBegin().GetGeometry().size()!=TDim+1 )<< "Only simplex geometries supported" << std::endl;
+		KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().size()!=TDim+1 )<< "Only simplex geometries supported" << std::endl;
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         ReGenerateDistanceModelPart(rBaseModelPart);
+        ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
         //compute density to get a Fo=1
         mDomainLength = CalculateDomainLength();
-        mpModelPart->pGetProcessInfo()->SetValue(CHARACTERISTIC_LENGTH, mDomainLength);
+        r_distance_model_part.GetProcessInfo().SetValue(CHARACTERISTIC_LENGTH, mDomainLength);
 
 		//finding neigh elems to see if elems have other elems in the upwind direction
-        auto neigh_proc = GenericFindElementalNeighboursProcess(*mpModelPart);
+        auto neigh_proc = GenericFindElementalNeighboursProcess(r_distance_model_part);
         neigh_proc.ExecuteInitialize();
 
         auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
@@ -174,14 +174,14 @@ public:
         ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
 
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving first redistance step\n";
-		r_distance_model_part.GetProcessInfo()->SetValue(FRACTIONAL_STEP, 1);
+		r_distance_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
         mpSolvingStrategy->Solve();
 
         //step 1.2: compute velocity using the gradient of the potential field:
         ComputeVelocities();
 
         //step 2: compute distance
-        r_distance_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP, 2);
+        r_distance_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 2);
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving second redistance step\n";
         mpSolvingStrategy->Solve();
 
@@ -241,13 +241,13 @@ protected:
         ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
         //varibles
-        MergeVariableListsUtility().Merge(*mpModelPart, rBaseModelPart);  
+        MergeVariableListsUtility().Merge(r_distance_model_part, rBaseModelPart);  
 
         // Generating the model part
         Element::Pointer p_element = Kratos::make_intrusive<DistanceCalculationFluxBasedElement<TDim,TNumNodes>>();
         
 		ConnectivityPreserveModeler modeler;
-        modeler.GenerateModelPart(rBaseModelPart, *mpModelPart, *p_element);
+        modeler.GenerateModelPart(rBaseModelPart, r_distance_model_part, *p_element);
 
         mDistancePartIsInitialized = true;
 
@@ -265,20 +265,22 @@ protected:
     {
         KRATOS_TRY
 
-        const ProcessInfo &rCurrentProcessInfo = mpModelPart->GetProcessInfo();
+        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
+
+        const ProcessInfo &rCurrentProcessInfo = r_distance_model_part.GetProcessInfo();
 
         //not using variable utils to do the two tasks in the same loop
-        block_for_each(mpModelPart->Nodes(), [&](Node<3> &rNode) {
+        block_for_each(r_distance_model_part.Nodes(), [&](Node<3> &rNode) {
             rNode.FastGetSolutionStepValue(NODAL_VOLUME) = 0.0;
             rNode.SetValue(POTENTIAL_GRADIENT, ZeroVector(3));
         });
 
-        block_for_each(mpModelPart->Elements(), [&](ModelPart::ElementType &rElement) {
+        block_for_each(r_distance_model_part.Elements(), [&](ModelPart::ElementType &rElement) {
             rElement.AddExplicitContribution(rCurrentProcessInfo);
         });
 
         //not using variable utils to do the two tasks in the same loop
-        block_for_each(mpModelPart->Nodes(), [&](Node<3> &rNode) {
+        block_for_each(r_distance_model_part.Nodes(), [&](Node<3> &rNode) {
             array_1d<double, 3> &vel = rNode.GetValue(POTENTIAL_GRADIENT);
             vel /= rNode.FastGetSolutionStepValue(NODAL_VOLUME);
         });
@@ -297,13 +299,15 @@ protected:
             MultipleReduction;
         double x_min, y_min, z_min, x_max, y_max, z_max;
 
+        ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
+
         std::tie(
             x_min,
             y_min,
             z_min,
             x_max,
             y_max,
-            z_max) = block_for_each<MultipleReduction>(mpModelPart->Nodes(), [&](Node<3> &rNode) {
+            z_max) = block_for_each<MultipleReduction>(r_distance_model_part.Nodes(), [&](Node<3> &rNode) {
             const array_1d<double, 3> coord = rNode.Coordinates();
             return std::make_tuple(
                 coord[0],
