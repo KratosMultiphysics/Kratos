@@ -9,8 +9,8 @@ import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
 import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
 import math
 import os
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.MeshingApplication.mmg_process as MMG
+# import KratosMultiphysics.MeshingApplication as MeshingApplication
+# import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 import KratosMultiphysics.DEMApplication as KratosDEM
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 import KratosMultiphysics.FemToDemApplication.fem_dem_coupled_gid_output as gid_output
@@ -322,7 +322,7 @@ class MainCoupledFemDem_Solution:
 
         utils = KratosMultiphysics.VariableUtils()
         nodes = self.FEM_Solution.main_model_part.Nodes
-        utils.SetNonHistoricalVariable(MeshingApplication.AUXILIAR_GRADIENT, ZeroVector3, nodes)
+        # utils.SetNonHistoricalVariable(MeshingApplication.AUXILIAR_GRADIENT, ZeroVector3, nodes)
 
 #InitializeDummyNodalForces============================================================================================================================
     def InitializeDummyNodalForces(self):
@@ -363,7 +363,7 @@ class MainCoupledFemDem_Solution:
         if debug_metric:
             params = KratosMultiphysics.Parameters("""{}""")
             KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]).Execute()
-            MeshingApplication.ComputeHessianSolMetricProcess(self.FEM_Solution.main_model_part, KratosFemDem.EQUIVALENT_NODAL_STRESS, params).Execute()
+            # MeshingApplication.ComputeHessianSolMetricProcess(self.FEM_Solution.main_model_part, KratosFemDem.EQUIVALENT_NODAL_STRESS, params).Execute()
 
         if self.DoRemeshing:
             is_remeshing = self.CheckIfHasRemeshed()
