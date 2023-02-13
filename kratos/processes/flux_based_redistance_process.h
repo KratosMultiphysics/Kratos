@@ -271,7 +271,7 @@ protected:
 
         //not using variable utils to do the two tasks in the same loop
         block_for_each(r_distance_model_part.Nodes(), [&](Node<3> &rNode) {
-            rNode.FastGetSolutionStepValue(NODAL_VOLUME) = 0.0;
+            rNode.SetValue(NODAL_VOLUME, 0.0);
             rNode.SetValue(POTENTIAL_GRADIENT, ZeroVector(3));
         });
 
@@ -282,7 +282,7 @@ protected:
         //not using variable utils to do the two tasks in the same loop
         block_for_each(r_distance_model_part.Nodes(), [&](Node<3> &rNode) {
             array_1d<double, 3> &vel = rNode.GetValue(POTENTIAL_GRADIENT);
-            vel /= rNode.FastGetSolutionStepValue(NODAL_VOLUME);
+            vel /= rNode.GetValue(NODAL_VOLUME);
         });
 
         KRATOS_CATCH("")

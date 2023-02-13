@@ -461,7 +461,7 @@ void DistanceCalculationFluxBasedElement< TDim, TNumNodes >::AddExplicitContribu
     const double vol_factor =  rGeometry.DomainSize()/static_cast<double>(TNumNodes);
     for (unsigned int j = 0; j < TNumNodes; j++){ //looping 4 nodes of the elem:
         rGeometry[j].SetLock();
-        rGeometry[j].FastGetSolutionStepValue(NODAL_VOLUME)+=vol_factor;
+        rGeometry[j].GetValue(NODAL_VOLUME)+=vol_factor;
         rGeometry[j].GetValue(POTENTIAL_GRADIENT)+= vel*vol_factor;      
         rGeometry[j].UnSetLock();
     }
