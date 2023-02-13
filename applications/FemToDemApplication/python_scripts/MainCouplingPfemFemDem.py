@@ -110,9 +110,6 @@ class MainCouplingPfemFemDem_Solution:
         self.FEMDEM_Solution.DEM_Solution.time           = 0.0
         self.FEMDEM_Solution.DEM_Solution.time_old_print = 0.0
 
-        if self.FEMDEM_Solution.DoRemeshing:
-            self.FEMDEM_Solution.RemeshingProcessMMG.ExecuteBeforeSolutionLoop()
-
 #============================================================================================================================
     def FinalizeSolutionStep(self):
         self.PFEM_Solution.FinalizeSolutionStep()
