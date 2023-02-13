@@ -11,8 +11,7 @@
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_CONVERGENCE_ACCELERATORS_PYTHON_H_INCLUDED )
-#define  KRATOS_CONVERGENCE_ACCELERATORS_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -28,5 +27,3 @@ void AddConvergenceAcceleratorsToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
-
-#endif // KRATOS_CONVERGENCE_ACCELERATORS_PYTHON_H_INCLUDED  defined

@@ -17,9 +17,7 @@
 
 // External includes
 
-
 // Project includes
-
 
 namespace Kratos
 {

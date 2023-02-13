@@ -10,8 +10,7 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_ADD_DATA_COMMUNICATOR_TO_PYTHON_H_INCLUDED
-#define KRATOS_ADD_DATA_COMMUNICATOR_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -29,5 +28,3 @@ void AddDataCommunicatorToPython(pybind11::module &m);
 } // namespace Python.
 
 } // namespace Kratos.
-
-#endif // KRATOS_ADD_DATA_COMMUNICATOR_TO_PYTHON_H_INCLUDED  defined
