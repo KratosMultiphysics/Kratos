@@ -39,20 +39,32 @@ class EmpiricalCubatureMethod():
 
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
-        total_number_of_entities = np.shape(self.G)[1]
-        conditions_begin = total_number_of_entities - number_of_conditions
-        elements_constraint = np.ones(total_number_of_entities)
         self.add_constrain_count = None
-        if constrain_sum_of_weights and constrain_conditions:#Only for models which contains conditions
-            elements_constraint[conditions_begin:] = 0
-            self.G = np.vstack([ self.G , elements_constraint ] )
+        total_number_of_entities = np.shape(self.G)[1]
+        elements_constraint = np.ones(total_number_of_entities)
+        conditions_begin = total_number_of_entities - number_of_conditions
+        elements_constraint[conditions_begin:] = 0
+
+        if constrain_sum_of_weights and not constrain_conditions:
+            """
+            -This is necessary in case the sum of the columns of self.G equals the 0 vector,to avoid the trivial solution
+            -It is enforcing that the sum of the weights equals the number of columns in self.G (total number of elements)
+            """
+            projection_of_constant_vector_elements = elements_constraint - self.G.T@( self.G @ elements_constraint)
+            projection_of_constant_vector_elements/= np.linalg.norm(projection_of_constant_vector_elements)
+            self.G = np.vstack([ self.G , projection_of_constant_vector_elements] )
+            self.add_constrain_count = -1
+        elif constrain_sum_of_weights and constrain_conditions:#Only for models which contains conditions
+            projection_of_constant_vector_elements = elements_constraint - self.G.T@( self.G @ elements_constraint)
+            projection_of_constant_vector_elements/= np.linalg.norm(projection_of_constant_vector_elements)
+            self.G = np.vstack([ self.G , projection_of_constant_vector_elements] )
+            # # # # # # # # #
             conditions_constraint = np.ones(total_number_of_entities)
             conditions_constraint[:conditions_begin] = 0
-            self.G = np.vstack([ self.G , conditions_constraint ] )
+            projection_of_constant_vector_conditions = conditions_constraint - self.G.T@( self.G @ conditions_constraint)
+            projection_of_constant_vector_conditions/= np.linalg.norm(projection_of_constant_vector_conditions)
+            self.G = np.vstack([ self.G , projection_of_constant_vector_conditions ] )
             self.add_constrain_count = -2
-        elif constrain_sum_of_weights:
-            self.G = np.vstack([ self.G , elements_constraint ] )
-            self.add_constrain_count = -1
         self.b = self.G @ self.W
 
 
@@ -140,7 +152,7 @@ class EmpiricalCubatureMethod():
 
             k = k+1
 
-        self.w = alpha.T * np.sqrt(self.W[self.z])
+        self.w = alpha.T * np.sqrt(self.W[self.z]) #TODO FIXME cope with weights vectors different from 1
 
         print(f'Total number of iterations = {k}')
 
