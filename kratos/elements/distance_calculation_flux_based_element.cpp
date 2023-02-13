@@ -451,18 +451,13 @@ void DistanceCalculationFluxBasedElement< TDim, TNumNodes >::AddExplicitContribu
     }
     
     const array_1d<double, TDim> avg_grad = prod(trans(avg_DN_DX), nodal_values);
-    const double grad_modulus = norm_2(avg_grad);
-    array_1d<double, 3> vel = ZeroVector(3);
-    for (unsigned int k = 0; k<TDim; k++) {
-            vel[k] = avg_grad[k]/grad_modulus;
-     }
 
     //saving data
     const double vol_factor =  rGeometry.DomainSize()/static_cast<double>(TNumNodes);
     for (unsigned int j = 0; j < TNumNodes; j++){ //looping 4 nodes of the elem:
         rGeometry[j].SetLock();
         rGeometry[j].GetValue(NODAL_VOLUME)+=vol_factor;
-        rGeometry[j].GetValue(POTENTIAL_GRADIENT)+= vel*vol_factor;      
+        rGeometry[j].GetValue(POTENTIAL_GRADIENT)+= avg_grad*vol_factor;      
         rGeometry[j].UnSetLock();
     }
 }
