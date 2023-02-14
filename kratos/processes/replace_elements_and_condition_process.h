@@ -44,6 +44,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Enum for the type of definition
+    enum class DefinitionType {Single, Multiple, Templated};
+
     /// Pointer definition of ReplaceElementsAndConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ReplaceElementsAndConditionsProcess);
 
@@ -61,7 +64,7 @@ public:
         Parameters Settings
         ) : Process(Flags()) ,
             mrModelPart(rModel.GetModelPart(Settings["model_part_name"].GetString())),
-            mSettings( Settings)
+            mSettings( Settings.WriteJsonString())
     {
         KRATOS_TRY
 
@@ -81,7 +84,7 @@ public:
         Parameters Settings
         ) : Process(Flags()) ,
             mrModelPart(rModelPart),
-            mSettings( Settings)
+            mSettings( Settings.WriteJsonString())
     {
         KRATOS_TRY
 
@@ -169,43 +172,9 @@ protected:
 
     ModelPart& mrModelPart;                         /// The main model part where the elements and conditions will be replaced
     Parameters mSettings;                           /// The settings of the problem (names of the conditions and elements)
-    std::array<bool, 2> mOnlyOneElementOrCondition; /// This array stores if only one element or condition type is going to be replaced
-
-    /// Equivalent types definition
-    const std::unordered_map<GeometryData::KratosGeometryType, std::string> mGeometryTypesToStrings = {
-        {GeometryData::KratosGeometryType::Kratos_Point2D, "Point2D"},
-        {GeometryData::KratosGeometryType::Kratos_Point3D, "Point3D"},
-        {GeometryData::KratosGeometryType::Kratos_Line2D2, "Line2D2"},
-        {GeometryData::KratosGeometryType::Kratos_Line2D3, "Line2D3"},
-        {GeometryData::KratosGeometryType::Kratos_Line2D4, "Line2D4"},
-        {GeometryData::KratosGeometryType::Kratos_Line2D5, "Line2D5"},
-        {GeometryData::KratosGeometryType::Kratos_Line3D2, "Line3D2"},
-        {GeometryData::KratosGeometryType::Kratos_Line3D3, "Line3D3"},
-        {GeometryData::KratosGeometryType::Kratos_Triangle2D3, "Triangle2D3"},
-        {GeometryData::KratosGeometryType::Kratos_Triangle2D6, "Triangle2D6"},
-        {GeometryData::KratosGeometryType::Kratos_Triangle2D10, "Triangle2D10"},
-        {GeometryData::KratosGeometryType::Kratos_Triangle2D15, "Triangle2D15"},
-        {GeometryData::KratosGeometryType::Kratos_Triangle3D3, "Triangle3D3"},
-        {GeometryData::KratosGeometryType::Kratos_Triangle3D6, "Triangle3D6"},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, "Quadrilateral2D4"},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, "Quadrilateral2D8"},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9, "Quadrilateral2D9"},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, "Quadrilateral3D4"},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, "Quadrilateral3D8"},
-        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, "Quadrilateral3D9"},
-        {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, "Tetrahedra3D4"},
-        {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10, "Tetrahedra3D10"},
-        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D8, "Hexahedra3D8"},
-        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D20, "Hexahedra3D20"},
-        {GeometryData::KratosGeometryType::Kratos_Hexahedra3D27, "Hexahedra3D27"},
-        {GeometryData::KratosGeometryType::Kratos_Prism3D6, "Prism3D6"},
-        {GeometryData::KratosGeometryType::Kratos_Prism3D15, "Prism3D15"},
-        {GeometryData::KratosGeometryType::Kratos_Pyramid3D5, "Pyramid3D5"},
-        {GeometryData::KratosGeometryType::Kratos_Pyramid3D13, "Pyramid3D13"}
-    };
+    std::array<DefinitionType, 2> mDefinitionElementCondition; /// This array stores the type of definition of the elements and conditions
     
     ///@}
-
 private:
     ///@name Member Variables
     ///@{

@@ -29,6 +29,74 @@
 namespace Kratos::Testing
 {
 
+void GenerateMixedModelPart(ModelPart& rModelPart)
+{
+    Properties::Pointer p_prop = rModelPart.CreateNewProperties(0);
+
+    using NodeType = Node<3>;
+
+    // First we create the nodes
+    auto p_node_1 = rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    auto p_node_2 = rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    auto p_node_3 = rModelPart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+    auto p_node_4 = rModelPart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+    auto p_node_5 = rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
+    auto p_node_6 = rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+
+    // Now we create the "elements"
+    {
+        std::vector<NodeType::Pointer> element_nodes_0 ({p_node_1, p_node_2, p_node_3});
+        Triangle2D3 <NodeType>::Pointer p_geom_0 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
+
+        std::vector<NodeType::Pointer> element_nodes_1 ({p_node_1, p_node_3, p_node_4});
+        Triangle2D3 <NodeType>::Pointer p_geom_1 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_1} );
+
+        std::vector<NodeType::Pointer> element_nodes_2 ({p_node_2, p_node_5, p_node_6, p_node_3});
+        Quadrilateral2D4 <NodeType>::Pointer p_geom_2 = Kratos::make_shared<Quadrilateral2D4 <NodeType>>( PointerVector<NodeType>{element_nodes_2} );
+
+        auto p_elem_0 = Kratos::make_intrusive<Element>(1, p_geom_0, p_prop);
+        auto p_elem_1 = Kratos::make_intrusive<Element>(2, p_geom_1, p_prop);
+        auto p_elem_2 = Kratos::make_intrusive<Element>(3, p_geom_2, p_prop);
+        rModelPart.AddElement(p_elem_0);
+        rModelPart.AddElement(p_elem_1);
+        rModelPart.AddElement(p_elem_2);
+    }
+
+    // Now we create the "conditions"
+    {
+        std::vector<NodeType::Pointer> conditions_nodes_0 ({p_node_1, p_node_2});
+        Line2D2 <NodeType>::Pointer p_geom_0 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_0} );
+
+        std::vector<NodeType::Pointer> conditions_nodes_1 ({p_node_1, p_node_5});
+        Line2D2 <NodeType>::Pointer p_geom_1 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_1} );
+
+        std::vector<NodeType::Pointer> conditions_nodes_2 ({p_node_5, p_node_6});
+        Line2D2 <NodeType>::Pointer p_geom_2 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_2} );
+
+        std::vector<NodeType::Pointer> conditions_nodes_3 ({p_node_6, p_node_3});
+        Line2D2 <NodeType>::Pointer p_geom_3 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_3} );
+
+        std::vector<NodeType::Pointer> conditions_nodes_4 ({p_node_3, p_node_4});
+        Line2D2 <NodeType>::Pointer p_geom_4 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_4} );
+
+        std::vector<NodeType::Pointer> conditions_nodes_5 ({p_node_4, p_node_1});
+        Line2D2 <NodeType>::Pointer p_geom_5 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_5} );
+
+        auto p_cond_0 = Kratos::make_intrusive<Condition>(1, p_geom_0, p_prop);
+        auto p_cond_1 = Kratos::make_intrusive<Condition>(2, p_geom_1, p_prop);
+        auto p_cond_2 = Kratos::make_intrusive<Condition>(3, p_geom_2, p_prop);
+        auto p_cond_3 = Kratos::make_intrusive<Condition>(4, p_geom_3, p_prop);
+        auto p_cond_4 = Kratos::make_intrusive<Condition>(5, p_geom_4, p_prop);
+        auto p_cond_5 = Kratos::make_intrusive<Condition>(6, p_geom_5, p_prop);
+        rModelPart.AddCondition(p_cond_0);
+        rModelPart.AddCondition(p_cond_1);
+        rModelPart.AddCondition(p_cond_2);
+        rModelPart.AddCondition(p_cond_3);
+        rModelPart.AddCondition(p_cond_4);
+        rModelPart.AddCondition(p_cond_5);
+    }
+}
+
 /**
 * Checks if the replacement works with triangles (aka 2D geometries)
 */
@@ -238,81 +306,51 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess5, KratosCoreFastSu
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    Properties::Pointer p_prop = r_model_part.CreateNewProperties(0);
-
-    using NodeType = Node<3>;
-
-    // First we create the nodes
-    auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-    auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-    auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-    auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-    auto p_node_5 = r_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-    auto p_node_6 = r_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-
-    // Now we create the "elements"
-    {
-        std::vector<NodeType::Pointer> element_nodes_0 ({p_node_1, p_node_2, p_node_3});
-        Triangle2D3 <NodeType>::Pointer p_geom_0 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
-
-        std::vector<NodeType::Pointer> element_nodes_1 ({p_node_1, p_node_3, p_node_4});
-        Triangle2D3 <NodeType>::Pointer p_geom_1 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_1} );
-
-        std::vector<NodeType::Pointer> element_nodes_2 ({p_node_2, p_node_5, p_node_6, p_node_3});
-        Quadrilateral2D4 <NodeType>::Pointer p_geom_2 = Kratos::make_shared<Quadrilateral2D4 <NodeType>>( PointerVector<NodeType>{element_nodes_2} );
-
-        auto p_elem_0 = Kratos::make_intrusive<Element>(1, p_geom_0, p_prop);
-        auto p_elem_1 = Kratos::make_intrusive<Element>(2, p_geom_1, p_prop);
-        auto p_elem_2 = Kratos::make_intrusive<Element>(3, p_geom_2, p_prop);
-        r_model_part.AddElement(p_elem_0);
-        r_model_part.AddElement(p_elem_1);
-        r_model_part.AddElement(p_elem_2);
-    }
-
-    // Now we create the "conditions"
-    {
-        std::vector<NodeType::Pointer> conditions_nodes_0 ({p_node_1, p_node_2});
-        Line2D2 <NodeType>::Pointer p_geom_0 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_0} );
-
-        std::vector<NodeType::Pointer> conditions_nodes_1 ({p_node_1, p_node_5});
-        Line2D2 <NodeType>::Pointer p_geom_1 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_1} );
-
-        std::vector<NodeType::Pointer> conditions_nodes_2 ({p_node_5, p_node_6});
-        Line2D2 <NodeType>::Pointer p_geom_2 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_2} );
-
-        std::vector<NodeType::Pointer> conditions_nodes_3 ({p_node_6, p_node_3});
-        Line2D2 <NodeType>::Pointer p_geom_3 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_3} );
-
-        std::vector<NodeType::Pointer> conditions_nodes_4 ({p_node_3, p_node_4});
-        Line2D2 <NodeType>::Pointer p_geom_4 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_4} );
-
-        std::vector<NodeType::Pointer> conditions_nodes_5 ({p_node_4, p_node_1});
-        Line2D2 <NodeType>::Pointer p_geom_5 = Kratos::make_shared<Line2D2 <NodeType>>( PointerVector<NodeType>{conditions_nodes_5} );
-
-        auto p_cond_0 = Kratos::make_intrusive<Condition>(1, p_geom_0, p_prop);
-        auto p_cond_1 = Kratos::make_intrusive<Condition>(2, p_geom_1, p_prop);
-        auto p_cond_2 = Kratos::make_intrusive<Condition>(3, p_geom_2, p_prop);
-        auto p_cond_3 = Kratos::make_intrusive<Condition>(4, p_geom_3, p_prop);
-        auto p_cond_4 = Kratos::make_intrusive<Condition>(5, p_geom_4, p_prop);
-        auto p_cond_5 = Kratos::make_intrusive<Condition>(6, p_geom_5, p_prop);
-        r_model_part.AddCondition(p_cond_0);
-        r_model_part.AddCondition(p_cond_1);
-        r_model_part.AddCondition(p_cond_2);
-        r_model_part.AddCondition(p_cond_3);
-        r_model_part.AddCondition(p_cond_4);
-        r_model_part.AddCondition(p_cond_5);
-    }
+    // Generated mixed model part
+    GenerateMixedModelPart(r_model_part);
 
     // Compute process
     Parameters settings( R"(
     {
-        "element_name"   : {
-            "Triangle2D3"      : "Element2D3N",
-            "Quadrilateral2D4" : "Element2D4N"
-        },
-        "condition_name" : {
-            "Line2D2" : "LineCondition2D2N"
+        "element_name"   : "Element2D3N;Element2D4N",
+        "condition_name" : "LineCondition2D2N"
+    }  )" );
+
+    ReplaceElementsAndConditionsProcess process(r_model_part, settings);
+    process.Execute();
+
+    // Same element type, same geometry type
+    std::string component_name;
+    for (auto& r_element : r_model_part.Elements()) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
+        if (r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
+            KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+        } else if (r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
+            KRATOS_CHECK_EQUAL(component_name, "Element2D4N");
         }
+    }
+    for (auto& r_condition : r_model_part.Conditions()) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(r_condition, component_name);
+        KRATOS_CHECK_EQUAL(component_name, "LineCondition2D2N");
+    }
+}
+
+/**
+* Checks if the replacement works with triangles combined geometries
+*/
+KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess6, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    // Generated mixed model part
+    GenerateMixedModelPart(r_model_part);
+
+    // Compute process
+    Parameters settings( R"(
+    {
+        "element_name"   : "Element#D#N",
+        "condition_name" : "LineCondition2D2N"
     }  )" );
 
     ReplaceElementsAndConditionsProcess process(r_model_part, settings);
