@@ -35,7 +35,7 @@ namespace Kratos
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
             auto projectFile = "ProjectParameters.json";
 
-            auto execute = KratosExecute();
+            auto execute = KratosGeoFlow();
             int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
             &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
@@ -47,7 +47,7 @@ namespace Kratos
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
             auto projectFile = "ProjectParameters.json";
 
-            auto execute = KratosExecute();
+            auto execute = KratosGeoFlow();
             
             bool firstMessageFound = false;
             bool finalMessageFound = false;
@@ -81,7 +81,7 @@ namespace Kratos
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
             auto projectFile = "ProjectParameters.json";
 
-            auto execute = KratosExecute();
+            auto execute = KratosGeoFlow();
             
             bool startProgressFound = false;
             bool endProgressFound = false;

@@ -45,11 +45,11 @@
 
 namespace Kratos
 {
-    class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
+    class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoFlow
     {
     public:
-        KratosExecute();
-        ~KratosExecute(){};
+        KratosGeoFlow();
+        ~KratosGeoFlow(){};
 
         int execute_flow_analysis(std::string workingDirectory, std::string parameterName,
                                   double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
@@ -118,12 +118,12 @@ namespace Kratos
         shared_ptr<Process> FindRiverBoundaryByName(std::string criticalHeadBoundaryModelPartName,
                                                     std::vector<std::shared_ptr<Process>> processes);
 
-        shared_ptr<Process> FindRiverBoundaryAutomatically(KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
+        shared_ptr<Process> FindRiverBoundaryAutomatically(KratosGeoFlow::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                                                            std::vector<std::shared_ptr<Process>> processes);
 
         int mainExecution(ModelPart &model_part,
                           std::vector<std::shared_ptr<Process>> processes,
-                          KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
+                          KratosGeoFlow::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                           double time, double delta_time, double number_iterations);
     };
 }

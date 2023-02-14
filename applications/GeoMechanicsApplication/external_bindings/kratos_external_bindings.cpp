@@ -6,12 +6,12 @@ extern "C"
 
 #if defined(KRATOS_COMPILED_IN_WINDOWS)
 
-    EXPORT Kratos::KratosExecute *KratosExecute_CreateInstance()
+    EXPORT Kratos::KratosGeoFlow *KratosGeoFlow_CreateInstance()
     {
-        return new Kratos::KratosExecute();
+        return new Kratos::KratosGeoFlow();
     }
 
-    EXPORT int __stdcall execute_flow_analysis(Kratos::KratosExecute *instance,
+    EXPORT int __stdcall execute_flow_analysis(Kratos::KratosGeoFlow *instance,
                                                char *workingDirectory,
                                                char *projectFile,
                                                double minCriticalHead,

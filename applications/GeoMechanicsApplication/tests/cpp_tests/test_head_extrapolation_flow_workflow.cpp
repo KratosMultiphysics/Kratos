@@ -56,7 +56,7 @@ namespace Kratos
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
             auto projectFile = "ProjectParameters_1.json";
 
-            auto execute = Kratos::KratosExecute();
+            auto execute = KratosGeoFlow();
             int status = execute.execute_flow_analysis(workingDirectory, projectFile,
                                                        0, 0, 0,
                                                        "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
@@ -76,7 +76,7 @@ namespace Kratos
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
             auto projectFile = "ProjectParameters_2.json";
 
-            auto execute = Kratos::KratosExecute();
+            auto execute = KratosGeoFlow();
             int status = execute.execute_flow_analysis(workingDirectory, projectFile,
                                                        0, 0, 0,
                                                        "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
@@ -96,7 +96,7 @@ namespace Kratos
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
             auto projectFile = "ProjectParameters_3.json";
 
-            auto execute = Kratos::KratosExecute();
+            auto execute = KratosGeoFlow();
             int status = execute.execute_flow_analysis(workingDirectory, projectFile,
                                                        0, 0, 0,
                                                        "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
@@ -116,7 +116,7 @@ namespace Kratos
             auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
             auto projectFile = "ProjectParameters_4.json";
 
-            auto execute = Kratos::KratosExecute();
+            auto execute = KratosGeoFlow();
             int status = execute.execute_flow_analysis(workingDirectory, projectFile,
                                                        0, 0, 0,
                                                        "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,

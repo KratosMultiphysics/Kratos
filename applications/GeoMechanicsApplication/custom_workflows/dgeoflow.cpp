@@ -76,13 +76,13 @@ public:
 
 namespace Kratos
 {
-    KratosExecute::KratosExecute()
+    KratosGeoFlow::KratosGeoFlow()
     {
-        KRATOS_INFO("KratosExecute") << "Setting Up Kratos" << std::endl;
+        KRATOS_INFO("KratosGeoFlow") << "Setting Up Kratos" << std::endl;
 
     	if (!kernel.IsImported("GeoMechanicsApplication"))
         {
-            KRATOS_INFO("KratosExecute") << "Importing GeoMechanicsApplication" << std::endl;
+            KRATOS_INFO("KratosGeoFlow") << "Importing GeoMechanicsApplication" << std::endl;
     		geoApp = Kratos::make_shared<KratosGeoMechanicsApplication>();
             kernel.ImportApplication(geoApp);
         }
@@ -96,33 +96,33 @@ namespace Kratos
         this->SetEchoLevel(0);
     }
 
-    int KratosExecute::GetEchoLevel()
+    int KratosGeoFlow::GetEchoLevel()
     {
         return echoLevel;
     }
 
-    void KratosExecute::SetEchoLevel(int level)
+    void KratosGeoFlow::SetEchoLevel(int level)
     {
         echoLevel = level;
     }
 
-    void KratosExecute::ResetModelParts()
+    void KratosGeoFlow::ResetModelParts()
     {
         KRATOS_INFO("Resetting Model") << "Setting Up Execution" << std::endl;
         current_model.Reset();
     }
 
-    KratosExecute::ConvergenceCriteriaType::Pointer KratosExecute::setup_criteria_dgeoflow()
+    KratosGeoFlow::ConvergenceCriteriaType::Pointer KratosGeoFlow::setup_criteria_dgeoflow()
     {
         const double rel_tol = 1.0e-4;
         const double abs_tol = 1.0e-9;
         VariableData *p_water_pres = &WATER_PRESSURE;
-        KratosExecute::ConvergenceVariableListType convergence_settings;
+        KratosGeoFlow::ConvergenceVariableListType convergence_settings;
         convergence_settings.push_back(std::make_tuple(p_water_pres, rel_tol, abs_tol));
-        return KratosExecute::ConvergenceCriteriaType::Pointer(new KratosExecute::MixedGenericCriteriaType(convergence_settings));
+        return KratosGeoFlow::ConvergenceCriteriaType::Pointer(new KratosGeoFlow::MixedGenericCriteriaType(convergence_settings));
     }
 
-    KratosExecute::LinearSolverType::Pointer KratosExecute::setup_solver_dgeoflow()
+    KratosGeoFlow::LinearSolverType::Pointer KratosGeoFlow::setup_solver_dgeoflow()
     {
         // Parameters linear_solver_settings(R"({"solver_type": "sparse_lu"})");
         // return linear_solver_factory.Create(linear_solver_settings);
@@ -132,14 +132,14 @@ namespace Kratos
         return p_solver;
     }
 
-    KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer KratosExecute::setup_strategy_dgeoflow(ModelPart &model_part)
+    KratosGeoFlow::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer KratosGeoFlow::setup_strategy_dgeoflow(ModelPart &model_part)
     {
         // Create the linear strategy
         auto p_solver = setup_solver_dgeoflow();
 
         Scheme<SparseSpaceType, LocalSpaceType>::Pointer p_scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
 
-        auto p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(p_solver);
+        auto p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, KratosGeoFlow::LinearSolverType>>(p_solver);
         p_builder_and_solver->SetEchoLevel(0);
 
         auto p_criteria = setup_criteria_dgeoflow();
@@ -170,7 +170,7 @@ namespace Kratos
         bool ReformDofSetAtEachStep = false;
         bool MoveMeshFlag = false;
 
-        auto p_solving_strategy = Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
+        auto p_solving_strategy = Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosGeoFlow::LinearSolverType>>(
             model_part,
             p_scheme,
             p_solver,
@@ -183,7 +183,7 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    int KratosExecute::mainExecution(ModelPart &model_part,
+    int KratosGeoFlow::mainExecution(ModelPart &model_part,
                                      std::vector<std::shared_ptr<Process>> processes,
                                      GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                                      double time, double delta_time, double number_iterations)
@@ -231,7 +231,7 @@ namespace Kratos
         return 0;
     }
 
-    int KratosExecute::execute_flow_analysis(std::string workingDirectory, std::string projectName,
+    int KratosGeoFlow::execute_flow_analysis(std::string workingDirectory, std::string projectName,
                                              double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                                              std::string criticalHeadBoundaryModelPartName,
                                              std::function<void(char *)> logCallback,
@@ -491,7 +491,7 @@ namespace Kratos
         }
     };
 
-    shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(std::string criticalHeadBoundaryModelPartName,
+    shared_ptr<Process> KratosGeoFlow::FindRiverBoundaryByName(std::string criticalHeadBoundaryModelPartName,
                                                                std::vector<std::shared_ptr<Process>> processes)
     {
         shared_ptr<Process> RiverBoundary;
@@ -520,7 +520,7 @@ namespace Kratos
         return RiverBoundary;
     }
 
-    shared_ptr<Process> KratosExecute::FindRiverBoundaryAutomatically(KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
+    shared_ptr<Process> KratosGeoFlow::FindRiverBoundaryAutomatically(KratosGeoFlow::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                                                                       std::vector<std::shared_ptr<Process>> processes)
     {
         shared_ptr<Process> RiverBoundary;
