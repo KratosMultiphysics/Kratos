@@ -233,7 +233,7 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
         avg_v_unit += v_unit[i];
         has_fixed_node = has_fixed_node || GetGeometry()[i].IsFixed(DISTANCE);
     }
-    avg_v_unit/=static_cast<double>(TNumNodes);
+    avg_v_unit/=TNumNodes;
 
     //computing element size(for Tau)
     const double h = ElementSizeCalculator<TDim,TNumNodes>::AverageElementSize(this->GetGeometry());
@@ -247,7 +247,7 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
     for(unsigned int i=0; i<TNumNodes; i++) {
         average_unit_vel_misaligment += norm_2( v_unit[i]  - avg_v_unit );
     }
-    average_unit_vel_misaligment/=static_cast<double>(TNumNodes);
+    average_unit_vel_misaligment/=TNumNodes;
     if(average_unit_vel_misaligment>0.33) add_convection=false;
 
     //checking if the flow comes from face that has neighbour element (only if it is not inlet)
@@ -447,13 +447,13 @@ void DistanceCalculationFluxBasedElement< TDim, TNumNodes >::AddExplicitContribu
 
     BoundedMatrix<double, TNumNodes, TDim> avg_DN_DX = ZeroMatrix(TNumNodes, TDim);
     for(unsigned int i=0; i<TNumNodes; i++){
-        avg_DN_DX += DN_DX_container[i] /static_cast<double>(TNumNodes);
+        avg_DN_DX += DN_DX_container[i] /TNumNodes;
     }
     
     const array_1d<double, TDim> avg_grad = prod(trans(avg_DN_DX), nodal_values);
 
     //saving data
-    const double vol_factor =  rGeometry.DomainSize()/static_cast<double>(TNumNodes);
+    const double vol_factor =  rGeometry.DomainSize()/TNumNodes;
     for (unsigned int j = 0; j < TNumNodes; j++){ //looping 4 nodes of the elem:
         rGeometry[j].SetLock();
         rGeometry[j].GetValue(NODAL_VOLUME)+=vol_factor;

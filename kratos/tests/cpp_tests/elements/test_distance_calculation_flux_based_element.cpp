@@ -59,7 +59,7 @@ namespace Testing
         ElementPointerVector& rElemNeighbours = p_element->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i = 0; i < 4; i++) {
             r_geom[i].AddDof(DISTANCE);
-            r_geom[i].FastGetSolutionStepValue(DISTANCE) = static_cast<double>(i);
+            r_geom[i].FastGetSolutionStepValue(DISTANCE) = i;
             rElemNeighbours.push_back(GlobalPointer<Element>(p_element));
         }
 
