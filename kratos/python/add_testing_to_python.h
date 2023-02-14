@@ -16,14 +16,9 @@
 // Project includes
 #include <pybind11/pybind11.h>
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void  AddTestingToPython(pybind11::module& m);
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

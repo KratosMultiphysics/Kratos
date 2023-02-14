@@ -25,8 +25,8 @@
 #include "factories/mapper_factory.h"
 #include "mappers/mapper_flags.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python
+{
 namespace {
 
 // Wrapper functions for taking a default argument for the flags
@@ -188,5 +188,4 @@ void AddMappingToPython(pybind11::module& m)
 
 void AddMapperToPython(pybind11::module& m);
 
-}  // namespace Python.
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

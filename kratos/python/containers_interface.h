@@ -22,10 +22,7 @@
 // Project includes
 #include "includes/define_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -119,8 +116,6 @@ public:
     }
 };
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.
 
 

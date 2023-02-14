@@ -18,14 +18,10 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -74,11 +70,9 @@ public:
     /// Destructor.
     virtual ~VariableIndexingPython() {}
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -103,39 +97,30 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -167,9 +152,6 @@ private:
         return rData.Has(rV);
     }
 
-
-
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -187,7 +169,6 @@ private:
     /// Assignment operator.
     VariableIndexingPython& operator=(const VariableIndexingPython& rOther);
 
-
     ///@}
 
 }; // Class VariableIndexingPython
@@ -197,15 +178,12 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 ///@}
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.
 
 

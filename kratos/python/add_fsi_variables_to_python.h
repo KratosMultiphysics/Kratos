@@ -7,8 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:   Jordi Cotela
-//                  Ruben Zorrilla
+//  Main authors:    Jordi Cotela
+//                   Ruben Zorrilla
 //
 
 #pragma once
@@ -20,14 +20,9 @@
 
 // Project includes
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void  AddFSIVariablesToPython(pybind11::module& m);
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

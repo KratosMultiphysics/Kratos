@@ -20,16 +20,9 @@
 
 // Project includes
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void  AddKratosApplicationToPython(pybind11::module& m);
 
-}  // namespace Python.
-
-}  // namespace Kratos.
-
-#endif // KRATOS_ADD_KRATOS_APPLICATION_TO_PYTHON_H_INCLUDED  defined 
+}  // namespace Kratos::Python.
