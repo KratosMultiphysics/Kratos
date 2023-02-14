@@ -265,7 +265,7 @@ public:
         rOStream << Info();
     }
 
-    /// Print object's data.GetNumberOfROMModes()
+    /// Print object's 
     virtual void PrintData(std::ostream &rOStream) const override
     {
         rOStream << Info();
