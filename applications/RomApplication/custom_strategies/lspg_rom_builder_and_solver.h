@@ -23,7 +23,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_strategies/rom_builder_and_solver.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/reduction_utilities.h"
