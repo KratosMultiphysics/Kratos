@@ -20,7 +20,6 @@
 #include "includes/element.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
-#include "utilities/geometry_utilities.h"
 #include "geometries/geometry_data.h"
 
 namespace Kratos
