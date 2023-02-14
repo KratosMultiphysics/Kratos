@@ -7,8 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Pooyand Dadvand
+//  Main authors:    Pooyan Dadvand
 //
 
 #pragma once

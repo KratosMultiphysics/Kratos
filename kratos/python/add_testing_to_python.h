@@ -7,8 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Carlos A. Roig
-//                   Pooyand Dadvand
+//  Main authors:    Pooyan Dadvand, Carlos A. Roig
 //
 
 #pragma once
