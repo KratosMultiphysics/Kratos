@@ -78,20 +78,20 @@ public:
             return;
         }
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(VariableName());
 
         const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
         std::vector<double> deltaH;
         std::transform(mpTable.begin(), mpTable.end(), std::back_inserter(deltaH),
                        [Time](auto element){return element ? element->GetValue(Time) : 0.0;});
 
-        if (mIsSeepage) {
+        if (IsSeepage()) {
             block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
                 const double pressure = CalculateTimeDependentPressure(rNode, deltaH);
 
                 if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
                     rNode.FastGetSolutionStepValue(var) = pressure;
-                    if (mIsFixed) rNode.Fix(var);
+                    if (IsFixed()) rNode.Fix(var);
                 } else {
                     rNode.Free(var);
                 }
@@ -100,10 +100,10 @@ public:
             block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
                 const double pressure = CalculateTimeDependentPressure(rNode, deltaH);
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < PressureTensionCutOff()) {
                     rNode.FastGetSolutionStepValue(var) = pressure;
                 } else {
-                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    rNode.FastGetSolutionStepValue(var) = PressureTensionCutOff();
                 }
             });
         }
@@ -126,12 +126,6 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
-    /// Member Variables
-
-    std::vector<TableType::Pointer> mpTable;
-    double mTimeUnitConverter;
-
     double CalculateTimeDependentPressure(const Node<3> &rNode, std::vector<double> &deltaH) const
     {
 
@@ -146,19 +140,23 @@ protected:
         firstPointIndex = findIndex(rNode);
         secondPointIndex = firstPointIndex + 1;
 
-        y[0] = deltaH[firstPointIndex] + mGravityDirectionCoordinates[firstPointIndex];
-        y[1] = deltaH[secondPointIndex] + mGravityDirectionCoordinates[secondPointIndex];
+        y[0] = deltaH[firstPointIndex] + GravityDirectionCoordinates()[firstPointIndex];
+        y[1] = deltaH[secondPointIndex] + GravityDirectionCoordinates()[secondPointIndex];
 
         slope = (y[1] - y[0])
-            / (mHorizontalDirectionCoordinates[secondPointIndex] - mHorizontalDirectionCoordinates[firstPointIndex]);
+            / (HorizontalDirectionCoordinates()[secondPointIndex] - HorizontalDirectionCoordinates()[firstPointIndex]);
 
 
-        height = slope * (rNode.Coordinates()[mHorizontalDirection] - mHorizontalDirectionCoordinates[firstPointIndex]) + y[0];
+        height = slope * (rNode.Coordinates()[HorizontalDirection()] - HorizontalDirectionCoordinates()[firstPointIndex]) + y[0];
 
-        const double distance = height - rNode.Coordinates()[mGravityDirection];
-        const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
+        const double distance = height - rNode.Coordinates()[GravityDirection()];
+        const double pressure = - PORE_PRESSURE_SIGN_FACTOR * SpecificWeight() * distance;
         return pressure;
     }
+
+private:
+    std::vector<TableType::Pointer> mpTable;
+    double mTimeUnitConverter;
 }; // Class ApplyPhreaticMultiLinePressureTableProcess
 
 /// input stream function

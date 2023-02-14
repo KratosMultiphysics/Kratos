@@ -172,33 +172,33 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
 
     # read data
     with open(filename, "r") as f:
-        all_data = f.readlines()
+        all_lines = f.readlines()
 
-    add_var = False
+    process_values = False
     res = {}
 
     # read all data at each time step of variable
-    for line in all_data:
+    for line in all_lines:
+        if not process_values:
+            if f'"{variable}"' in line:
+                time_step = float(line.split()[3])
+                res[time_step] = {}
+                process_values = True
+            continue
 
-        if "End Values" in line and add_var:
-            add_var = False
-            
-        if add_var:
-            if line.startswith("Values"):
-                continue;
-            line_split = line.split()
-            line_split[0] = int(line_split[0])
-            for ind, str_val in enumerate(line_split[1:]):
-                line_split[ind+1] = float(str_val)
-            if (len(line_split[1:])==1):
-                res[time_step][line_split[0]] = line_split[1]
-            else:
-                res[time_step][line_split[0]] = line_split[1:]
+        if line.startswith("Values"):
+            continue
 
-        if r'"' + variable + r'"' in line:
-            time_step = float(line.split()[3])
-            res[time_step] = {}
-            add_var=True
+        if "End Values" in line:
+            process_values = False
+            continue
+
+        words = line.split()
+        node_index = int(words[0])
+        values = [float(word) for word in words[1:]]
+        if len(values) == 1:
+            values = values[0]
+        res[time_step][node_index] = values
 
     return res
 

@@ -72,52 +72,49 @@ public:
         mIsSeepage = rParameters["is_seepage"].GetBool();
         mGravityDirection = rParameters["gravity_direction"].GetInt();
         mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
-        if (mGravityDirection == mOutOfPlaneDirection)
+        if (GravityDirection() == OutOfPlaneDirection())
             KRATOS_ERROR << "Gravity direction cannot be the same as Out-of-Plane directions"
                          << rParameters
                          << std::endl;
 
         mHorizontalDirection = 0;
         for (unsigned int i=0; i<N_DIM_3D; ++i)
-           if (i!=mGravityDirection && i!=mOutOfPlaneDirection) mHorizontalDirection = i;
+           if (i!=GravityDirection() && i != OutOfPlaneDirection()) mHorizontalDirection = i;
 
         mXCoordinates = rParameters["x_coordinates"].GetVector();
-        mYCoordinates= rParameters["y_coordinates"].GetVector();
+        mYCoordinates = rParameters["y_coordinates"].GetVector();
         mZCoordinates = rParameters["z_coordinates"].GetVector();
 
-        if (mHorizontalDirection == 0) {
-            mHorizontalDirectionCoordinates = mXCoordinates;
+        if (HorizontalDirection() == 0) {
+            mHorizontalDirectionCoordinates = XCoordinates();
         }
-        else if (mHorizontalDirection == 1)
+        else if (HorizontalDirection() == 1)
         {
-            mHorizontalDirectionCoordinates = mYCoordinates;
+            mHorizontalDirectionCoordinates = YCoordinates();
         }
-        else if (mHorizontalDirection == 2)
+        else if (HorizontalDirection() == 2)
         {
-            mHorizontalDirectionCoordinates = mZCoordinates;
+            mHorizontalDirectionCoordinates = ZCoordinates();
         }
 
-        if (mGravityDirection == 0) {
-            mGravityDirectionCoordinates = mXCoordinates;
+        if (GravityDirection() == 0) {
+            mGravityDirectionCoordinates = XCoordinates();
         }
-        else if (mGravityDirection == 1)
+        else if (GravityDirection() == 1)
         {
-            mGravityDirectionCoordinates = mYCoordinates;
+            mGravityDirectionCoordinates = YCoordinates();
         }
-        else if (mGravityDirection == 2)
+        else if (GravityDirection() == 2)
         {
-            mGravityDirectionCoordinates = mZCoordinates;
+            mGravityDirectionCoordinates = ZCoordinates();
         }
 
-        if (!std::is_sorted(mHorizontalDirectionCoordinates.begin(), mHorizontalDirectionCoordinates.end()))
+        if (!std::is_sorted(HorizontalDirectionCoordinates().begin(), HorizontalDirectionCoordinates().end()))
         {
             KRATOS_ERROR << "The Horizontal Elements Coordinates are not ordered."
                          << rParameters
                          << std::endl;
         }
-
-        mMinHorizontalCoordinate = *std::min_element(mHorizontalDirectionCoordinates.begin(), mHorizontalDirectionCoordinates.end());
-        mMaxHorizontalCoordinate = *std::max_element(mHorizontalDirectionCoordinates.begin(), mHorizontalDirectionCoordinates.end());
 
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
         if (rParameters.Has("pressure_tension_cut_off"))
@@ -151,29 +148,29 @@ public:
             return;
         }
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(VariableName());
 
-        if (mIsSeepage) {
+        if (IsSeepage()) {
             block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
                 const double pressure = CalculatePressure(rNode);
 
                 if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
                     rNode.FastGetSolutionStepValue(var) = pressure;
-                    if (mIsFixed) rNode.Fix(var);
+                    if (IsFixed()) rNode.Fix(var);
                 } else {
                     rNode.Free(var);
                 }
             });
         } else {
             block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
-                if (mIsFixed) rNode.Fix(var);
-                else          rNode.Free(var);
+                if (IsFixed()) rNode.Fix(var);
+                else           rNode.Free(var);
                 const double pressure = CalculatePressure(rNode);
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < PressureTensionCutOff()) {
                     rNode.FastGetSolutionStepValue(var) = pressure;
                 } else {
-                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    rNode.FastGetSolutionStepValue(var) = PressureTensionCutOff();
                 }
             });
         }
@@ -193,6 +190,71 @@ public:
         rOStream << "ApplyConstantPhreaticMultiLinePressureProcess";
     }
 
+    const std::string& VariableName() const
+    {
+        return mVariableName;
+    }
+
+    bool IsFixed() const
+    {
+        return mIsFixed;
+    }
+
+    bool IsSeepage() const
+    {
+        return mIsSeepage;
+    }
+
+    unsigned int GravityDirection() const
+    {
+        return mGravityDirection;
+    }
+
+    double SpecificWeight() const
+    {
+        return mSpecificWeight;
+    }
+
+    unsigned int OutOfPlaneDirection() const
+    {
+        return mOutOfPlaneDirection;
+    }
+
+    unsigned int HorizontalDirection() const
+    {
+        return mHorizontalDirection;
+    }
+
+    const Vector& HorizontalDirectionCoordinates() const
+    {
+        return mHorizontalDirectionCoordinates;
+    }
+
+    const Vector& GravityDirectionCoordinates() const
+    {
+        return mGravityDirectionCoordinates;
+    }
+
+    const Vector& XCoordinates() const
+    {
+        return mXCoordinates;
+    }
+
+    const Vector& YCoordinates() const
+    {
+        return mYCoordinates;
+    }
+
+    const Vector& ZCoordinates() const
+    {
+        return mZCoordinates;
+    }
+
+    double PressureTensionCutOff() const
+    {
+        return mPressureTensionCutOff;
+    }
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -200,31 +262,15 @@ protected:
     /// Member Variables
 
     ModelPart& mrModelPart;
-    std::string mVariableName;
-    bool mIsFixed;
-    bool mIsSeepage;
-    unsigned int mGravityDirection;
-    double mSpecificWeight;
-    unsigned int mOutOfPlaneDirection;
-    unsigned int mHorizontalDirection;
-    Vector mHorizontalDirectionCoordinates;
-    Vector mGravityDirectionCoordinates;
-    Vector mXCoordinates;
-    Vector mYCoordinates;
-    Vector mZCoordinates;
-    
-    double mMinHorizontalCoordinate;
-    double mMaxHorizontalCoordinate;
-    double mPressureTensionCutOff;
 
     int findIndex(const Node<3>& rNode) const
     {
         int index = 0;
         auto coords = rNode.Coordinates();
-        auto noCoordinates = static_cast<int>(mHorizontalDirectionCoordinates.size());
+        auto noCoordinates = static_cast<int>(HorizontalDirectionCoordinates().size());
     	for ( ; index < noCoordinates; ++index)
         {
-	        if (mHorizontalDirectionCoordinates[index] >= coords[mHorizontalDirection])
+	        if (HorizontalDirectionCoordinates()[index] >= coords[HorizontalDirection()])
 	        {
                 if (index == 0)
                 {
@@ -252,15 +298,32 @@ protected:
         firstPointIndex = findIndex(rNode);
         secondPointIndex = firstPointIndex + 1;
 
-        slope = (mGravityDirectionCoordinates[secondPointIndex] - mGravityDirectionCoordinates[firstPointIndex]) /
-            (mHorizontalDirectionCoordinates[secondPointIndex] - mHorizontalDirectionCoordinates[firstPointIndex]);
+        slope = (GravityDirectionCoordinates()[secondPointIndex] - GravityDirectionCoordinates()[firstPointIndex]) /
+            (HorizontalDirectionCoordinates()[secondPointIndex] - HorizontalDirectionCoordinates()[firstPointIndex]);
 
-    	height = slope * (rNode.Coordinates()[mHorizontalDirection] - mHorizontalDirectionCoordinates[firstPointIndex]) + mGravityDirectionCoordinates[firstPointIndex];
+        height = slope * (rNode.Coordinates()[HorizontalDirection()] - HorizontalDirectionCoordinates()[firstPointIndex]) + GravityDirectionCoordinates()[firstPointIndex];
 
-        const double distance = height - rNode.Coordinates()[mGravityDirection];
-        const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
+        const double distance = height - rNode.Coordinates()[GravityDirection()];
+        const double pressure = - PORE_PRESSURE_SIGN_FACTOR * SpecificWeight() * distance;
         return pressure;
     }
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+private:
+    std::string mVariableName;
+    bool mIsFixed;
+    bool mIsSeepage;
+    unsigned int mGravityDirection;
+    double mSpecificWeight;
+    unsigned int mOutOfPlaneDirection;
+    unsigned int mHorizontalDirection;
+    Vector mHorizontalDirectionCoordinates;
+    Vector mGravityDirectionCoordinates;
+    Vector mXCoordinates;
+    Vector mYCoordinates;
+    Vector mZCoordinates;
+    double mPressureTensionCutOff;
 }; // Class ApplyConstantPhreaticMultiLinePressureProcess
 
 /// input stream function
