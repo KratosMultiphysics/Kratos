@@ -477,7 +477,7 @@ void RomAuxiliaryUtilities::GetPsiElemental(
     {
         for(std::size_t i = 0; i < rDofs.size(); ++i)
         {
-            const Dof<double>& r_dof = *rDofs[i];
+            const auto& r_dof = *rDofs[i];
             if (r_dof.IsFixed())
             {
                 noalias(row(rPsiElemental, i)) = ZeroVector(rPsiElemental.size2());
