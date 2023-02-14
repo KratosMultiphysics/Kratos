@@ -139,7 +139,7 @@ ModelPart& FillModel(Model& model)
     const auto phi_1 = [](Node<3> const&){ return 1.0; };
     const auto phi_2 = [](Node<3> const& r_node){ return r_node.X(); };
     Matrix phi_3 = ZeroMatrix(1,3);
-    // Setting the 3rd mode to be de residual
+    // Setting the 3rd mode to be the residual
     phi_3(0,0) = 0.5;
     phi_3(0,1) = 1.0;
     phi_3(0,2) = 0.5;
