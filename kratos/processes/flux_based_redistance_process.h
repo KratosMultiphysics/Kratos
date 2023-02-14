@@ -112,7 +112,7 @@ public:
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->ReGenerateDistanceModelPart(rBaseModelPart);
-        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( this->mAuxModelPartName );
 
         //compute density to get a Fo=1
         this->mDomainLength = CalculateDomainLength();
@@ -165,12 +165,12 @@ public:
         KRATOS_TRY;
 
 		if(this->mDistancePartIsInitialized == false){
-            this->ReGenerateDistanceModelPart(mrBaseModelPart);
+            this->ReGenerateDistanceModelPart(this->mrBaseModelPart);
         }
 
 		this->ResetDistanceValuesAndFixities();
 
-        ModelPart& r_distance_model_part = this->mrModel.GetModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.GetModelPart( this->mAuxModelPartName );
 
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving first redistance step\n";
 		r_distance_model_part.GetProcessInfo().SetValue(REDISTANCE_STEP, 1);
@@ -223,14 +223,14 @@ protected:
     {
         KRATOS_TRY
 
-        if(this->mrModel.HasModelPart( mAuxModelPartName ))
-            this->mrModel.DeleteModelPart( mAuxModelPartName );
+        if(this->mrModel.HasModelPart( this->mAuxModelPartName ))
+            this->mrModel.DeleteModelPart( this->mAuxModelPartName );
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof<Variable<double> >(DISTANCE, rBaseModelPart);
 
         // Generate
-        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( this->mAuxModelPartName );
 
         //varibles
         MergeVariableListsUtility().Merge(r_distance_model_part, rBaseModelPart);  
@@ -257,7 +257,7 @@ protected:
     {
         KRATOS_TRY
 
-        ModelPart& r_distance_model_part = this->mrModel.GetModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.GetModelPart( this->mAuxModelPartName );
 
         const ProcessInfo &rCurrentProcessInfo = r_distance_model_part.GetProcessInfo();
 
@@ -291,7 +291,7 @@ protected:
             MultipleReduction;
         double x_min, y_min, z_min, x_max, y_max, z_max;
 
-        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( this->mAuxModelPartName );
 
         std::tie(
             x_min,
