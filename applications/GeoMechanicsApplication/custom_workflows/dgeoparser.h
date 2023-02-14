@@ -21,6 +21,7 @@ namespace Kratos
         ~KratosGeoParser() {};
         static void parseMaterial(Model& model, std::string filepath);
         static void parseMesh(ModelPart& model_part, std::string filepath);
+        static Parameters openProjectParamsFile(std::string filepath);
         static std::vector<std::shared_ptr<Process>> parseProcess(ModelPart& model_part, Parameters projFile);
     };
 }

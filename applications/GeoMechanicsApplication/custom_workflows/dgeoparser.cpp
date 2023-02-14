@@ -12,9 +12,22 @@
 
 #pragma once
 
+#include "dgeoparser.h"
+#include <sstream>
+
 namespace Kratos
 {
-    void KratosGeoParser::parseMaterial(Model& model, std::string filepath)
+
+    Parameters KratosGeoParser::openProjectParamsFile(std::string filepath)
+    {
+        std::ifstream t(filepath);
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        Parameters projFile{ buffer.str() };
+        return projFile;
+    }
+
+	void KratosGeoParser::parseMaterial(Model& model, std::string filepath)
     {
         std::string parameters = "{ \"Parameters\" : { \"materials_filename\" :\"" + filepath + "\"}}";
         Parameters material_file{ parameters };
@@ -216,6 +229,7 @@ namespace Kratos
     std::vector<std::shared_ptr<Process>> KratosGeoParser::parseProcess(ModelPart& model_part, Parameters projFile)
     {
         // Currently: In DGeoflow only fixed hydrostatic head has been , also need load of gravity.
+        //            Note this only works for DGeoflow this needs rewriting if it is required after refactoring.
 
         std::vector<std::shared_ptr<Process>> processes;
 

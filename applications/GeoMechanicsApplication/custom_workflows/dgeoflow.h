@@ -35,8 +35,6 @@
 // The strategies to test
 #include <custom_processes/apply_component_table_process.hpp>
 #include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
-//#include <ghc/filesystem.hpp>
-#include <includes/gid_io.h>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
 
 #include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
@@ -102,7 +100,6 @@ namespace Kratos
         ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         LinearSolverType::Pointer setup_solver_dgeoflow();
         GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        Parameters openProjectParamsFile(std::string filepath);
 
     private:
         // Initial Setup

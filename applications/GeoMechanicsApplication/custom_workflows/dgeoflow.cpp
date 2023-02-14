@@ -12,8 +12,7 @@
 
 #pragma once
 
-#include <sstream>
-#include <iomanip>
+
 #include "dgeoflow.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "utilities/read_materials_utility.h"
@@ -184,15 +183,6 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    Parameters KratosExecute::openProjectParamsFile(std::string filepath)
-    {
-        std::ifstream t(filepath);
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        Parameters projFile{buffer.str()};
-        return projFile;
-    }
-
     int KratosExecute::mainExecution(ModelPart &model_part,
                                      std::vector<std::shared_ptr<Process>> processes,
                                      GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
@@ -260,7 +250,7 @@ namespace Kratos
             reportProgress(0.0);
 
             std::string projectpath = workingDirectory + "/" + projectName;
-            auto projectfile = openProjectParamsFile(projectpath);
+            auto projectfile = KratosGeoParser::openProjectParamsFile(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             auto meshname = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString() + "." +
@@ -346,7 +336,7 @@ namespace Kratos
             if (!hasPiping)
             {
                 mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
-                KratosGeoOutput::KratosGeoOutput::outputGiD(current_model, model_part, projectfile, workingDirectory);
+                KratosGeoOutput::outputGiD(current_model, model_part, projectfile, workingDirectory);
             }
             else
             {
