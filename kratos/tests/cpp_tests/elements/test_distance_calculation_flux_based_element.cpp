@@ -69,7 +69,7 @@ namespace Testing
 
         //Checking the potential system
         p_element->Check(r_process_info);
-        r_process_info.SetValue(FRACTIONAL_STEP,1);
+        r_process_info.SetValue(REDISTANCE_STEP,1);
         p_element->CalculateLocalSystem(lhs, rhs, r_process_info);
         const double tolerance = 1.0e-5;
         Vector rhs_reference = ZeroVector(4);
@@ -105,7 +105,7 @@ namespace Testing
         }
 
         //Checking the distance system
-        r_process_info.SetValue(FRACTIONAL_STEP,2);
+        r_process_info.SetValue(REDISTANCE_STEP,2);
         p_element->CalculateLocalSystem(lhs, rhs, r_process_info);
         rhs_reference[0] = 0.0535326;
         rhs_reference[1] = -0.0237635;

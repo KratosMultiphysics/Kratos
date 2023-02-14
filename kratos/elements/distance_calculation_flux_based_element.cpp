@@ -142,7 +142,7 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateLocalSystem
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const unsigned int step = rCurrentProcessInfo[REDISTANCE_STEP];
     
     if(step == 1){ //solve a transcient diffusion problem
         CalculatePotentialFlowSystem(

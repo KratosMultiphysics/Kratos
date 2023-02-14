@@ -173,14 +173,14 @@ public:
         ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
 
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving first redistance step\n";
-		r_distance_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
+		r_distance_model_part.GetProcessInfo().SetValue(REDISTANCE_STEP, 1);
         mpSolvingStrategy->Solve();
 
         //step 1.2: compute velocity using the gradient of the potential field:
         ComputeVelocities();
 
         //step 2: compute distance
-        r_distance_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 2);
+        r_distance_model_part.GetProcessInfo().SetValue(REDISTANCE_STEP, 2);
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving second redistance step\n";
         mpSolvingStrategy->Solve();
 
