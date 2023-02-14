@@ -26,7 +26,7 @@ class TestConsecutivePipeLines(KratosUnittest.TestCase):
         with open(parameter_file_name, 'r') as parameter_file:
             parameters = json.load(parameter_file)
             for process in parameters['processes']['constraints_process_list']:
-                if "Left_head" in "Left_head" in process["Parameters"]["model_part_name"]:
+                if "Left_head" in process["Parameters"]["model_part_name"]:
                     process['Parameters']['reference_coordinate'] = head_level
             parameters['processes']['constraints_process_list'][0]['Parameters']['reference_coordinate'] = head_level
         with open(parameter_file_name, 'w') as parameter_file:
