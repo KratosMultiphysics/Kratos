@@ -29,9 +29,20 @@ class TestKratosGlobals(KratosUnittest.TestCase):
         flag_name = "STRUCTURE2"
         self.assertFalse(KratosMultiphysics.KratosGlobals.HasFlag(flag_name))
 
-    # def test_get_flag(self):
-        # flag_name = "STRUCTURE"
-        # self.assertEqual(, KratosMultiphysics.STRUCTURE) # TODO: Pointer is different, check why
+    def test_get_flag(self):
+        flag_name = "STRUCTURE"
+        KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
+        # self.assertEqual(KratosMultiphysics.KratosGlobals.GetFlag(flag_name), KratosMultiphysics.STRUCTURE) # TODO: This should work, they are different objects
+
+    def test_has_constitutive_law(self):
+        law_name = "ConstitutiveLaw"
+        self.assertTrue(KratosMultiphysics.KratosGlobals.HasConstitutiveLaw(law_name))
+        law_name = "ConstitutiveLaw2"
+        self.assertFalse(KratosMultiphysics.KratosGlobals.HasConstitutiveLaw(law_name))
+
+    def test_get_constitutive_law(self):
+        law_name = "ConstitutiveLaw"
+        KratosMultiphysics.KratosGlobals.GetConstitutiveLaw(law_name)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
