@@ -103,19 +103,19 @@ public:
             }  )");
         Settings.ValidateAndAssignDefaults(default_parameters);
 
-		mAuxModelPartName = Settings["redistance_model_part_name"].GetString();
+		this->mAuxModelPartName = Settings["redistance_model_part_name"].GetString();
 
         //checking model part is correct;
-        ValidateInput();
+        this->ValidateInput();
 		//TODO:override this function so that non-simplex geometries can be used
 		KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().size()!=TDim+1 )<< "Only simplex geometries supported" << std::endl;
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
-        ReGenerateDistanceModelPart(rBaseModelPart);
-        ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
+        this->ReGenerateDistanceModelPart(rBaseModelPart);
+        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( mAuxModelPartName );
 
         //compute density to get a Fo=1
-        mDomainLength = CalculateDomainLength();
+        this->mDomainLength = CalculateDomainLength();
         r_distance_model_part.GetProcessInfo().SetValue(CHARACTERISTIC_LENGTH, mDomainLength);
 
 		//finding neigh elems to see if elems have other elems in the upwind direction
@@ -123,7 +123,7 @@ public:
         neigh_proc.ExecuteInitialize();
 
         auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
-        InitializeSolutionStrategy(p_builder_solver);
+        this->InitializeSolutionStrategy(p_builder_solver);
 
 
         KRATOS_CATCH("")
@@ -164,17 +164,17 @@ public:
     {
         KRATOS_TRY;
 
-		if(mDistancePartIsInitialized == false){
-            ReGenerateDistanceModelPart(mrBaseModelPart);
+		if(this->mDistancePartIsInitialized == false){
+            this->ReGenerateDistanceModelPart(mrBaseModelPart);
         }
 
 		this->ResetDistanceValuesAndFixities();
 
-        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.GetModelPart( mAuxModelPartName );
 
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving first redistance step\n";
 		r_distance_model_part.GetProcessInfo().SetValue(REDISTANCE_STEP, 1);
-        mpSolvingStrategy->Solve();
+        this->mpSolvingStrategy->Solve();
 
         //step 1.2: compute velocity using the gradient of the potential field:
         ComputeVelocities();
@@ -182,7 +182,7 @@ public:
         //step 2: compute distance
         r_distance_model_part.GetProcessInfo().SetValue(REDISTANCE_STEP, 2);
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving second redistance step\n";
-        mpSolvingStrategy->Solve();
+        this->mpSolvingStrategy->Solve();
 
         VariableUtils().ApplyFixity(DISTANCE, false, r_distance_model_part.Nodes());
 
@@ -215,13 +215,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    /// Constructor without linear solver for derived classes
-    FluxBasedRedistanceProcess(
-        ModelPart &rBaseModelPart) : mrBaseModelPart(rBaseModelPart), mrModel(rBaseModelPart.GetModel())
-    {
-        mDistancePartIsInitialized = false;
-    }
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -230,14 +223,14 @@ protected:
     {
         KRATOS_TRY
 
-        if(mrModel.HasModelPart( mAuxModelPartName ))
-            mrModel.DeleteModelPart( mAuxModelPartName );
+        if(this->mrModel.HasModelPart( mAuxModelPartName ))
+            this->mrModel.DeleteModelPart( mAuxModelPartName );
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof<Variable<double> >(DISTANCE, rBaseModelPart);
 
         // Generate
-        ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( mAuxModelPartName );
 
         //varibles
         MergeVariableListsUtility().Merge(r_distance_model_part, rBaseModelPart);  
@@ -248,7 +241,7 @@ protected:
 		ConnectivityPreserveModeler modeler;
         modeler.GenerateModelPart(rBaseModelPart, r_distance_model_part, *p_element);
 
-        mDistancePartIsInitialized = true;
+        this->mDistancePartIsInitialized = true;
 
         KRATOS_CATCH("")
     }
@@ -264,7 +257,7 @@ protected:
     {
         KRATOS_TRY
 
-        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.GetModelPart( mAuxModelPartName );
 
         const ProcessInfo &rCurrentProcessInfo = r_distance_model_part.GetProcessInfo();
 
@@ -298,7 +291,7 @@ protected:
             MultipleReduction;
         double x_min, y_min, z_min, x_max, y_max, z_max;
 
-        ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = this->mrModel.CreateModelPart( mAuxModelPartName );
 
         std::tie(
             x_min,
