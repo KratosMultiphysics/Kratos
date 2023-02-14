@@ -240,9 +240,10 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
     const double h = ElementSizeCalculator<TDim,TNumNodes>::AverageElementSize(this->GetGeometry());
 
     //DECIDE IF CONVECTION IS ACTIVE/INACTIVE
-   //we decide by checking if flow converges to /diverges from this element
-   //if all velocity vectors are oriented in the same direction, then convection is valid
-   //but if the element acts as a "sink" or "source", convection is turned off to avoid instabiliities.
+    //we decide by checking if flow converges to /diverges from this element
+    //if all velocity vectors are oriented in the same direction, then convection is valid
+    //but if the element acts as a "sink" or "source", convection is turned off to avoid instabiliities.
+    //using 1/3 based on tests done with some geometries
     bool add_convection = true;
     double average_unit_vel_misaligment = 0.0;
     for(unsigned int i=0; i<TNumNodes; i++) {
