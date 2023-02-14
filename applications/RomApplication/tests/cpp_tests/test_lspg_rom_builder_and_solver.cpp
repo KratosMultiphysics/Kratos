@@ -29,13 +29,13 @@
 
 namespace Kratos {
 namespace Testing {
-namespace LSPGROMBuilderAndSolverTestingInternal {
+namespace LeastSquaresPetrovGalerkinROMBuilderAndSolverTestingInternal {
 
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
 using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
-using LSPGROMBuilderAndSolverType = LSPGROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+using LeastSquaresPetrovGalerkinROMBuilderAndSolverType = LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
 using SchemeType = Scheme< SparseSpaceType, LocalSpaceType >;
 using ResidualBasedIncrementalUpdateStaticSchemeType =  ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>;
@@ -183,9 +183,9 @@ SparseSpaceType::VectorType BuildAndSolve(
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LSPGROMBuilderAndSolver, RomApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(LeastSquaresPetrovGalerkinROMBuilderAndSolver, RomApplicationFastSuite)
 {
-    using namespace LSPGROMBuilderAndSolverTestingInternal;
+    using namespace LeastSquaresPetrovGalerkinROMBuilderAndSolverTestingInternal;
 
     Model model{};
     ModelPart& model_part = FillModel(model);
@@ -200,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(LSPGROMBuilderAndSolver, RomApplicationFastSuite)
 
     auto plinear_solver = std::make_shared<LinearSolverType>();
     SchemeType::Pointer p_scheme = std::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
-    auto romBnS = LSPGROMBuilderAndSolverType(plinear_solver, parameters);
+    auto romBnS = LeastSquaresPetrovGalerkinROMBuilderAndSolverType(plinear_solver, parameters);
 
     const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
     const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);

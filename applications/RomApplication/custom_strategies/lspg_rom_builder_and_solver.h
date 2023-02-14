@@ -60,7 +60,7 @@ namespace Kratos
 ///@{
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class LSPGROMBuilderAndSolver : public ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
+class LeastSquaresPetrovGalerkinROMBuilderAndSolver : public ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
 
@@ -77,14 +77,14 @@ public:
     ///@{
 
     // Class pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(LSPGROMBuilderAndSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(LeastSquaresPetrovGalerkinROMBuilderAndSolver);
 
     // The size_t types
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
     /// The definition of the current class
-    typedef LSPGROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    typedef LeastSquaresPetrovGalerkinROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     /// Definition of the classes from the base class
     typedef ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
@@ -127,7 +127,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    explicit LSPGROMBuilderAndSolver(
+    explicit LeastSquaresPetrovGalerkinROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters) : BaseType(pNewLinearSystemSolver) 
     {
@@ -137,7 +137,7 @@ public:
         this->AssignSettings(this_parameters_copy);
     } 
 
-    ~LSPGROMBuilderAndSolver() = default;
+    ~LeastSquaresPetrovGalerkinROMBuilderAndSolver() = default;
 
     ///@}
     ///@name Operators
@@ -154,9 +154,9 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
         // Get model part data
         if (this->mHromWeightsInitialized == false) {
@@ -166,7 +166,7 @@ public:
         auto dof_queue = this->ExtractDofSet(pScheme, rModelPart);
 
         // Fill a sorted auxiliary array of with the DOFs set
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
         auto dof_array = this->SortAndRemoveDuplicateDofs(dof_queue);
 
         // Update base builder and solver DOFs array and set corresponding flag
@@ -175,8 +175,8 @@ public:
 
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -255,7 +255,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "LSPGROMBuilderAndSolver";
+        return "LeastSquaresPetrovGalerkinROMBuilderAndSolver";
     }
 
     /// Print information about this object.
@@ -378,8 +378,8 @@ protected:
             });
         }
 
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -403,7 +403,7 @@ protected:
         //                              ^Correct after properly defining LSPGSystemMatrixType
         qr_decomposition.Compute(rA);
         qr_decomposition.Solve(rb, dxrom);
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
@@ -412,7 +412,7 @@ protected:
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
         this->ProjectToFineBasis(dxrom, rModelPart, rDx);
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -463,7 +463,7 @@ protected:
         matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".res.mm";
         SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), rb);
 
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Write residuals to train Petrov Galerkin time: " << residual_writing_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Write residuals to train Petrov Galerkin time: " << residual_writing_timer.ElapsedSeconds() << std::endl;
         KRATOS_CATCH("")
     }
 
@@ -572,7 +572,7 @@ private:
 
 
     ///@}
-}; /* Class LSPGROMBuilderAndSolver */
+}; /* Class LeastSquaresPetrovGalerkinROMBuilderAndSolver */
 
 ///@}
 ///@name Type Definitions
