@@ -23,16 +23,6 @@
 
 namespace Kratos::Python {
 
-bool HasFlag(Kernel& rKernel, const std::string& flag_name)
-{
-    return KratosComponents<Flags>::Has(flag_name);
-}
-
-Flags GetFlag(Kernel& rKernel, const std::string& flag_name)
-{
-    return KratosComponents<Flags>::Get(flag_name);
-}
-
 template <class TVariableType>
 bool HasVariable(Kernel& rKernel, const std::string& variable_name)
 {
@@ -47,16 +37,6 @@ const TVariableType& GetVariable(Kernel& rKernel, const std::string& variable_na
     }
 
     return TVariableType::StaticObject();
-}
-
-bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
-{
-    return KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name);
-}
-
-const ConstitutiveLaw& GetConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
-{
-    return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
 }
 
 template <class TVariableType>
@@ -87,8 +67,8 @@ void AddKernelToPython(pybind11::module& m)
         .def("InitializeApplication",  [](Kernel& self, KratosApplication& App){ self.Initialize(); })
         .def("IsImported", &Kernel::IsImported)
         .def_static("IsDistributedRun", &Kernel::IsDistributedRun)
-        .def("HasFlag", HasFlag)
-        .def("GetFlag", GetFlag)
+        .def("HasFlag", [](Kernel& rKernel, const std::string& rFlagName){KratosComponents<Flags>::Has(rFlagName);})
+        .def("GetFlag", [](Kernel& rKernel, const std::string& rFlagName){KratosComponents<Flags>::Get(rFlagName);}, py::return_value_policy::reference_internal)
         .def("HasBoolVariable", HasVariable<Variable<bool> >)
         .def("GetBoolVariable", GetVariable<Variable<bool> >, py::return_value_policy::reference_internal)
         .def("HasIntVariable", HasVariable<Variable<int> >)
@@ -141,8 +121,8 @@ void AddKernelToPython(pybind11::module& m)
         .def("GetStringVariableNames", GetVariableNames<Variable<std::string> >)
         .def("GetFlagsVariableNames", GetVariableNames<Variable<Flags> >)
         .def("__str__", PrintObject<Kernel>)
-        .def("HasConstitutiveLaw", HasConstitutiveLaw)
-        .def("GetConstitutiveLaw", GetConstitutiveLaw, py::return_value_policy::reference_internal)
+        .def("HasConstitutiveLaw", [](Kernel& rKernel, const std::string& rConstitutiveLawName){KratosComponents<ConstitutiveLaw>::Has(rConstitutiveLawName);})
+        .def("GetConstitutiveLaw", [](Kernel& rKernel, const std::string& rConstitutiveLawName){KratosComponents<ConstitutiveLaw>::Get(rConstitutiveLawName);}, py::return_value_policy::reference_internal)
         .def_static("Version", &Kernel::Version)
         .def_static("BuildType", &Kernel::BuildType)
         .def_static("OSName", &Kernel::OSName)
