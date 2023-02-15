@@ -4,13 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#pragma once
+#if !defined(KRATOS_SPECIFICATIONS_UTILITIES)
+#define KRATOS_SPECIFICATIONS_UTILITIES
 
 // System includes
 #include <unordered_map>
@@ -22,7 +23,6 @@
 #include "includes/kratos_parameters.h"
 #include "includes/constitutive_law.h"
 #include "geometries/geometry_data.h"
-#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -50,17 +50,47 @@ namespace
     template< class TContainerType>
     std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TContainerType& rContainer);
 
-    static std::unordered_map<std::string, GeometryData::KratosGeometryType> GenerateStringGeometryMap()
-    {
-        std::unordered_map<std::string, GeometryData::KratosGeometryType> my_map;
-        for (unsigned int i = 0; i < static_cast<unsigned int>(GeometryData::KratosGeometryType::NumberOfGeometryTypes); ++i) {
-            my_map.insert({GeometryUtils::GetGeometryName(static_cast<GeometryData::KratosGeometryType>(i)),  static_cast<GeometryData::KratosGeometryType>(i)});
-        }
-        return my_map;
-    }
-
     // Definition of the map between the geometries in enum and string
-    static std::unordered_map<std::string, GeometryData::KratosGeometryType> string_geometry_map = GenerateStringGeometryMap();
+    static std::unordered_map<std::string, GeometryData::KratosGeometryType> string_geometry_map = {
+        {"generic_type",                          GeometryData::KratosGeometryType::Kratos_generic_type},
+        {"Hexahedra3D20",                         GeometryData::KratosGeometryType::Kratos_Hexahedra3D20},
+        {"Hexahedra3D27",                         GeometryData::KratosGeometryType::Kratos_Hexahedra3D27},
+        {"Hexahedra3D8",                          GeometryData::KratosGeometryType::Kratos_Hexahedra3D8},
+        {"Prism3D15",                             GeometryData::KratosGeometryType::Kratos_Prism3D15},
+        {"Prism3D6",                              GeometryData::KratosGeometryType::Kratos_Prism3D6},
+        {"Pyramid3D13",                           GeometryData::KratosGeometryType::Kratos_Pyramid3D13},
+        {"Pyramid3D5",                            GeometryData::KratosGeometryType::Kratos_Pyramid3D5},
+        {"Quadrilateral2D4",                      GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4},
+        {"Quadrilateral2D8",                      GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8},
+        {"Quadrilateral2D9",                      GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9},
+        {"Quadrilateral3D4",                      GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4},
+        {"Quadrilateral3D8",                      GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8},
+        {"Quadrilateral3D9",                      GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9},
+        {"Tetrahedra3D10",                        GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10},
+        {"Tetrahedra3D4",                         GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4},
+        {"Triangle2D3",                           GeometryData::KratosGeometryType::Kratos_Triangle2D3},
+        {"Triangle2D6",                           GeometryData::KratosGeometryType::Kratos_Triangle2D6},
+        {"Triangle3D3",                           GeometryData::KratosGeometryType::Kratos_Triangle3D3},
+        {"Triangle3D6",                           GeometryData::KratosGeometryType::Kratos_Triangle3D6},
+        {"Line2D2",                               GeometryData::KratosGeometryType::Kratos_Line2D2},
+        {"Line2D3",                               GeometryData::KratosGeometryType::Kratos_Line2D3},
+        {"Line3D2",                               GeometryData::KratosGeometryType::Kratos_Line3D2},
+        {"Line3D3",                               GeometryData::KratosGeometryType::Kratos_Line3D3},
+        {"Point2D",                               GeometryData::KratosGeometryType::Kratos_Point2D},
+        {"Point3D",                               GeometryData::KratosGeometryType::Kratos_Point3D},
+        {"Sphere3D1",                             GeometryData::KratosGeometryType::Kratos_Sphere3D1},
+        {"NurbsCurve",                            GeometryData::KratosGeometryType::Kratos_Nurbs_Curve},
+        {"NurbsSurface",                          GeometryData::KratosGeometryType::Kratos_Nurbs_Surface},
+        {"NurbsVolume",                           GeometryData::KratosGeometryType::Kratos_Nurbs_Volume},
+        {"NurbsCurveOnSurface",                   GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface},
+        {"SurfaceInNurbsVolume",                  GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume},
+        {"BrepCurve",                             GeometryData::KratosGeometryType::Kratos_Brep_Curve},
+        {"BrepSurface",                           GeometryData::KratosGeometryType::Kratos_Brep_Surface},
+        {"BrepCurveOnSurface",                    GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface},
+        {"QuadraturePointGeometry",               GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry},
+        {"QuadraturePointCurveOnSurfaceGeometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry},
+        {"QuadraturePointSurfaceInVolumeGeometry",GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry}
+    };
 
     // Definition of the map between the dimension and integers
     static std::unordered_map<std::string, std::size_t> string_dimension_map = {
@@ -77,7 +107,7 @@ namespace
  */
 class KRATOS_API(KRATOS_CORE) SpecificationsUtilities
 {
-public:
+public:    
     ///@name Type Definitions
     ///@{
 
@@ -112,7 +142,7 @@ public:
      * @brief The default constructor
      */
     SpecificationsUtilities() = delete;
-
+    
     ///@}
     ///@name Operators
     ///@{
@@ -276,3 +306,4 @@ public:
 
 ///@}
 }  // namespace Kratos
+#endif /* KRATOS_SPECIFICATIONS_UTILITIES defined */
