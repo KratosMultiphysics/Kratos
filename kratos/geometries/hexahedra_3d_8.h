@@ -690,6 +690,142 @@ public:
         return false;
     }
 
+    /** 
+     * @brief Implements the calculus of the 8 solid angles of the hexa
+     * @details Implements the calculus of the 8 solid angles of the hexa
+     * @param rSolidAngles The solid angles of the geometry
+     */
+    void ComputeSolidAngles(Vector& rSolidAngles) const override
+    {
+        if(rSolidAngles.size() != 8) {
+          rSolidAngles.resize(8, false);
+        }
+
+        Vector dihedral_angles(24);
+        ComputeDihedralAngles(dihedral_angles);
+
+        for (unsigned int i = 0; i < 8; ++i) {
+            rSolidAngles[i] = dihedral_angles[3*i]
+              + dihedral_angles[3*i + 1]
+              + dihedral_angles[3*i + 2]
+              - Globals::Pi;
+        }
+    }
+
+    /** 
+     * @brief Implements the calculus of the 24 dihedral angles of the hexa
+     * @details Implements the calculus of the 24 dihedral angles of the hexa.
+     * Each edge has two different dihedral angles in each extreme.
+     * @param rDihedralAngles The dihedral angles
+     */
+    void ComputeDihedralAngles(Vector& rDihedralAngles) const override
+    {
+        if(rDihedralAngles.size() != 24) {
+          rDihedralAngles.resize(24, false);
+        }
+        const auto faces = this->GenerateFaces();
+        // The three faces that contain the node i can be obtained by doing:
+        // faces[faces_0[i]], faces[faces_1[i]], faces[faces_2[i]]
+        const std::array<unsigned int, 8> faces_0 = {0,0,0,0,5,5,5,5};
+        const std::array<unsigned int, 8> faces_1 = {1,1,3,3,1,1,3,3};
+        const std::array<unsigned int, 8> faces_2 = {4,2,2,4,4,2,2,4};
+
+        array_1d<double, 3> normal_0, normal_1, normal_2;
+        double dihedral_angle_0, dihedral_angle_1, dihedral_angle_2;
+        for (unsigned int i = 0; i < 8; ++i) {
+            const TPointType& r_point_i = this->GetPoint(i);
+            noalias(normal_0) = faces[faces_0[i]].UnitNormal(r_point_i);
+            noalias(normal_1) = faces[faces_1[i]].UnitNormal(r_point_i);
+            noalias(normal_2) = faces[faces_2[i]].UnitNormal(r_point_i);
+            dihedral_angle_0 = std::acos(inner_prod(normal_0, -normal_1));
+            dihedral_angle_1 = std::acos(inner_prod(normal_0, -normal_2));
+            dihedral_angle_2 = std::acos(inner_prod(normal_2, -normal_1));
+            rDihedralAngles[i*3] = dihedral_angle_0;
+            rDihedralAngles[i*3 + 1] = dihedral_angle_1;
+            rDihedralAngles[i*3 + 2] = dihedral_angle_2;
+        }
+    }
+
+    /** 
+     * @brief Calculates the min dihedral angle quality metric.
+     * @details Calculates the min dihedral angle quality metric.
+     * The min dihedral angle is min angle between two faces of the element
+     * in radians
+     * @return [description]
+     */
+    double MinDihedralAngle() const override {
+      Vector dihedral_angles(24);
+      ComputeDihedralAngles(dihedral_angles);
+      double min_dihedral_angle = dihedral_angles[0];
+      for (unsigned int i = 1; i < 24; i++) {
+        min_dihedral_angle = std::min(dihedral_angles[i], min_dihedral_angle);
+      }
+      return min_dihedral_angle;
+    }
+
+    /** 
+     * @brief Calculates the max dihedral angle quality metric.
+     * @details Calculates the max dihedral angle quality metric.
+     * The max dihedral angle is max angle between two faces of the element
+     * in radians
+     * @return [description]
+     */
+    double MaxDihedralAngle() const override {
+        Vector dihedral_angles(24);
+        ComputeDihedralAngles(dihedral_angles);
+        double max_dihedral_angle = dihedral_angles[0];
+        for (unsigned int i = 1; i < 24; i++) {
+            max_dihedral_angle = std::max(dihedral_angles[i], max_dihedral_angle);
+        }
+        return max_dihedral_angle;
+    }
+
+    /**
+     * @brief Calculates the volume to average edge length quality metric.
+     * @details The average edge length is calculated using the RMS.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{V}{\sqrt{\frac{1}{6}\sum{A_{i}^{2}}}} \f$
+     *
+     * @return [description]
+     */
+    double VolumeToRMSEdgeLength() const override {
+        const auto edges = GenerateEdges();
+        double sum_squared_lengths = 0.0;
+        for (const auto& r_edge : edges) {
+            const double length = r_edge.Length();
+            sum_squared_lengths += length*length;
+        }
+
+        const double rms_edge = std::sqrt(1.0/12.0 * sum_squared_lengths);
+
+        return Volume() / std::pow(rms_edge, 3.0);
+    }
+
+    /** 
+     * @brief Calculates the shortest to longest edge quality metric.
+     * Calculates the shortest to longest edge quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{l}{L} \f$
+     *
+     * @return [description]
+     */
+    double ShortestToLongestEdgeQuality() const override {
+        const auto edges = GenerateEdges();
+        double min_edge_length = std::numeric_limits<double>::max();
+        double max_edge_length = -std::numeric_limits<double>::max();
+        for (const auto& r_edge: edges) {
+            min_edge_length = std::min(min_edge_length, r_edge.Length());
+            max_edge_length = std::max(max_edge_length, r_edge.Length());
+        }
+        return min_edge_length / max_edge_length;
+    }
+
     /**
      * Shape Function
      */

@@ -429,7 +429,7 @@ template< >
 void UPwSmallStrainInterfaceElement<2,4>::
     ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>:::ExtrapolateGPValues()") << std::endl;
 
     array_1d<double,2> DamageContainer; // 2 LobattoPoints
@@ -472,7 +472,7 @@ template< >
 void UPwSmallStrainInterfaceElement<3,6>::
     ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>:::ExtrapolateGPValues()") << std::endl;
 
     array_1d<double,3> DamageContainer; // 3 LobattoPoints
@@ -521,7 +521,7 @@ template< >
 void UPwSmallStrainInterfaceElement<3,8>::
     ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,8>:::ExtrapolateGPValues()") << std::endl;
 
     array_1d<double,4> DamageContainer; // 4 LobattoPoints
@@ -1314,7 +1314,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 template< >
 void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>:::CalculateInitialGap()") << std::endl;
 
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
@@ -1341,7 +1341,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType
 template< >
 void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>:::CalculateInitialGap()") << std::endl;
 
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
@@ -1371,7 +1371,7 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType
 template< >
 void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType& Geom)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,8>:::CalculateInitialGap()") << std::endl;
 
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
@@ -2515,7 +2515,7 @@ template< >
 void UPwSmallStrainInterfaceElement<2,4>::
     InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=4)
@@ -2543,7 +2543,7 @@ template< >
 void UPwSmallStrainInterfaceElement<3,6>::
     InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=6)
@@ -2581,7 +2581,7 @@ template<>
 void UPwSmallStrainInterfaceElement<3,8>::
     InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=8)
