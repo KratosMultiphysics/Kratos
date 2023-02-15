@@ -527,7 +527,7 @@ public:
     {
         KRATOS_TRY
 
-        typedef Element::DofsVectorType DofsVectorType;
+        using DofsVectorType = Element::DofsVectorType;
         // Gets the array of elements from the modeler
         auto& r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
         DofsVectorType dof_list;
@@ -940,21 +940,20 @@ public:
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             BuildMasterSlaveConstraints(rModelPart);
 
-            // // We compute the transposed matrix of the global relation matrix
-            // TSystemMatrixType T_transpose_matrix(mpT.size2(), mpT.size1());
-            // SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mpT, 1.0);
+            // Reference to T
+            const TSystemMatrixType& r_T = *mpT;
 
-            // TSystemVectorType b_modified(rb.size());
-            // TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
-            // TSparseSpace::Copy(b_modified, rb);
+            // Compute T b
+            const TSystemVectorType copy_b(rb);
+            TSparseSpace::TransposeMult(r_T, copy_b, rb);
 
-            // // Apply diagonal values on slaves
-            // IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
-            //     const IndexType slave_equation_id = mSlaveIds[Index];
-            //     if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-            //         rb[slave_equation_id] = 0.0;
-            //     }
-            // });
+            // Apply diagonal values on slaves
+            IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+                const IndexType local_slave_equation_id = mSlaveIds[Index]; /// TODO: I am assuming these are local dofs ids, maybe I change it later, please check it!
+                if (mInactiveSlaveDofs.find(local_slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    rb[0][local_slave_equation_id] = 0.0;
+                }
+            });
         }
 
         KRATOS_CATCH("")
@@ -988,7 +987,7 @@ public:
 
             // Compute T b
             const TSystemVectorType copy_b(rb);
-            TSparseSpace::Mult(r_T, copy_b, rb);
+            TSparseSpace::TransposeMult(r_T, copy_b, rb);
 
             /// NOTE: We may consider the scale factor instead
             const double max_diag = TSparseSpace::GetMaxDiagonal(rA);
@@ -1151,52 +1150,53 @@ protected:
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
             START_TIMER("ConstraintsRelationMatrixStructure", 0)
-            // const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            // // Vector containing the localization in the system of the different terms
-            // DofsVectorType slave_dof_list, master_dof_list;
+            // Vector containing the localization in the system of the different terms
+            using DofsVectorType = Element::DofsVectorType;
+            DofsVectorType slave_dof_list, master_dof_list;
 
-            // // Constraint initial iterator
-            // const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-            // std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
+            // Constraint initial iterator
+            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+            std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
 
-            // std::vector<LockObject> lock_array(indices.size());
+            std::vector<LockObject> lock_array(indices.size());
 
-            // #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
-            // {
-            //     Element::EquationIdVectorType slave_ids(3);
-            //     Element::EquationIdVectorType master_ids(3);
-            //     std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
+            #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
+            {
+                Element::EquationIdVectorType slave_ids(3);
+                Element::EquationIdVectorType master_ids(3);
+                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
 
-            //     #pragma omp for schedule(guided, 512) nowait
-            //     for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-            //         auto it_const = it_const_begin + i_const;
+                #pragma omp for schedule(guided, 512) nowait
+                for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
+                    auto it_const = it_const_begin + i_const;
 
-            //         it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
-            //         // Slave DoFs
-            //         for (auto &id_i : slave_ids) {
-            //             temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-            //         }
-            //     }
+                    // Slave DoFs
+                    for (auto &id_i : slave_ids) {
+                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
+                    }
+                }
 
-            //     // Merging all the temporal indexes
-            //     for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-            //         lock_array[i].lock();
-            //         indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-            //         lock_array[i].unlock();
-            //     }
-            // }
+                // Merging all the temporal indexes
+                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
+                    lock_array[i].lock();
+                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
+                    lock_array[i].unlock();
+                }
+            }
 
-            // mSlaveIds.clear();
-            // mMasterIds.clear();
-            // for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-            //     if (indices[i].size() == 0) // Master dof!
-            //         mMasterIds.push_back(i);
-            //     else // Slave dof
-            //         mSlaveIds.push_back(i);
-            //     indices[i].insert(i); // Ensure that the diagonal is there in T
-            // }
+            mSlaveIds.clear();
+            mMasterIds.clear();
+            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+                if (indices[i].size() == 0) // Master dof!
+                    mMasterIds.push_back(i);
+                else // Slave dof
+                    mSlaveIds.push_back(i);
+                indices[i].insert(i); // Ensure that the diagonal is there in T
+            }
 
             // // Count the row sizes
             // std::size_t nnz = 0;
@@ -1247,6 +1247,7 @@ protected:
     //     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
     //     // Vector containing the localization in the system of the different terms
+    //     using DofsVectorType = Element::DofsVectorType;
     //     DofsVectorType slave_dof_list, master_dof_list;
 
     //     // Contributions to the system
