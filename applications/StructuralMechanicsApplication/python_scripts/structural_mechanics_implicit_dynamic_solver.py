@@ -67,6 +67,15 @@ class ImplicitMechanicalSolver(MechanicalSolver):
             # Resetting the global equations ids
             self._GetBuilderAndSolver().SetUpSystem(self.GetComputingModelPart())
 
+    def Initialize(self):
+        # TODO: Properly set this
+        # Set the Orthogonal SubScales switch
+        # Note that this needs to be done before the scheme initialize
+        self.main_model_part.ProcessInfo[KratosMultiphysics.OSS_SWITCH] = True
+
+        # Using the base InitializeSolutionStep
+        super().Initialize()
+
     #### Private functions ####
 
     def _CreateScheme(self):
