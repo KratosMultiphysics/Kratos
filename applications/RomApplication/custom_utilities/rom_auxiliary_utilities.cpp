@@ -491,12 +491,12 @@ void RomAuxiliaryUtilities::GetPsiElemental(
                     });
                 KRATOS_ERROR_IF(it_node == rGeom.end());
 
-                const Matrix& nodal_rom_basis = it_node->GetValue(ROM_LEFT_BASIS);
+                const auto& r_nodal_rom_basis = it_node->GetValue(ROM_LEFT_BASIS);
 
                 const auto variable_key = r_dof.GetVariable().Key();
-                const Matrix::size_type row_id = rVarToRowMapping.at(variable_key);
+                const IndexType row_id = rVarToRowMapping.at(variable_key);
 
-                noalias(row(rPsiElemental, i)) = row(nodal_rom_basis, row_id);
+                noalias(row(rPsiElemental, i)) = row(r_nodal_rom_basis, row_id);
             }
         }
     } 
