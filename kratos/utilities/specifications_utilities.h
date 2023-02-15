@@ -53,7 +53,7 @@ namespace
     static std::unordered_map<std::string, GeometryData::KratosGeometryType> GenerateStringGeometryMap()
     {
         std::unordered_map<std::string, GeometryData::KratosGeometryType> my_map;
-        for (unsigned int i = 0; i < static_cast<unsigned int>(GeometryData::KratosGeometryType::NumberOfGeometryTypes); ++i) {
+        for (unsigned int i = 1; i < static_cast<unsigned int>(GeometryData::KratosGeometryType::NumberOfGeometryTypes); ++i) {
             my_map.insert({GeometryUtils::GetGeometryName(static_cast<GeometryData::KratosGeometryType>(i)),  static_cast<GeometryData::KratosGeometryType>(i)});
         }
         return my_map;
