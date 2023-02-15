@@ -475,7 +475,7 @@ void RomAuxiliaryUtilities::GetPsiElemental(
         const Element::GeometryType& rGeom,
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
     {
-        for(std::size_t i = 0; i < rDofs.size(); ++i)
+        for(IndexType i = 0; i < rDofs.size(); ++i)
         {
             const auto& r_dof = *rDofs[i];
             if (r_dof.IsFixed())
