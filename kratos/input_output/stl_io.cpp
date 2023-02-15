@@ -68,42 +68,45 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
 
 void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
 {
-    KRATOS_ERROR_IF(rThisModelPart.NumberOfElements() == 0) << "Model part " << rThisModelPart.Name() << " has 0 elements. " << std::endl;
-    WriteModelPartElements(rThisModelPart);
+    // write the solid block
+    (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
+    WriteEntitiesBlocks(rThisModelPart.Elements());
+    WriteEntitiesBlocks(rThisModelPart.Conditions());
+    (*mpInputStream) << "endsolid\n";
+}
+
+template<class TContainerType>
+void StlIO::WriteEntitiesBlocks(const TContainerType& rThisEntities)
+{
+
+    for (auto & r_entity : rThisEntities) {
+        const auto & r_geometry = r_entity.GetGeometry();
+
+        // restrict to triangles only for now
+        const bool is_triangle = (
+            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
+            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
+
+        if (is_triangle) {
+            WriteFacet(r_geometry);
+        }
+    }
 }
 
 
-void StlIO::WriteModelPartElements(const ModelPart & rThisModelPart)
-{
-
-    KRATOS_INFO("StlIO") << "Writing elements to STL file." << std::endl;
-
-    (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
-
-    for (auto & rElem : rThisModelPart.Elements()) {
-        const auto & rGeom = rElem.GetGeometry();
-        
-        // restrict to triangles only for now
-        int number_of_nodes = rGeom.size();
-        KRATOS_ERROR_IF_NOT(number_of_nodes == 3) << "Found unsupported element geometry. ID = " << rElem.Id() << ". Size = " << number_of_nodes << std::endl; 
-        
-        const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
-        (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
+void StlIO::WriteFacet(const GeometryType& rGeom) {
     
-        (*mpInputStream) << "        outer loop\n";
+    const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
+    (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
+    (*mpInputStream) << "        outer loop\n";
 
-        
-        for (auto & rNode : rGeom)
-        {
-            // auto & rNode = rGeom.GetPoint(i);
-            (*mpInputStream) << "           vertex " << rNode.X() << " " << rNode.Y() << " " << rNode.Z() << "\n";
-        }
-
-        (*mpInputStream) << "        endloop\n";
-        (*mpInputStream) << "    endfacet\n";
+    for (int i = 0; i < 3; i++) {
+        const auto& r_node = rGeom[i];
+        (*mpInputStream) << "           vertex " << r_node.X() << " " << r_node.Y() << " " << r_node.Z() << "\n";
     }
 
-    (*mpInputStream) << "endsolid\n";
+    (*mpInputStream) << "        endloop\n";
+    (*mpInputStream) << "    endfacet\n";
 }
 
 /// Turn back information as a string.

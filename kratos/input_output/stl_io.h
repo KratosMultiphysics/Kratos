@@ -112,6 +112,7 @@ public:
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
     void WriteModelPart(const ModelPart & rThisModelPart) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -196,7 +197,10 @@ private:
 
     void ReadKeyword(std::string const& Keyword);
 
-    void WriteModelPartElements(const ModelPart & rThisModelPart);
+    template<class TContainerType>
+    void WriteEntitiesBlocks(const TContainerType& rThisEntities);
+
+    void WriteFacet(const GeometryType & rGeom);
 
     ///@}
     ///@name Private  Access
