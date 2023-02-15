@@ -1193,8 +1193,8 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             const double Ei = r_material_properties[TENSILE_INTERAFCE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties[SHEAR_INTERAFCE_MODULUS]; // Shear modulus of the interface
             // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
-            // const double characteristic_length = 0.25 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
-            const double characteristic_length = 0.000165 / 2.0;
+            const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
+            // const double characteristic_length = 0.000165 / 2.0;
             // const double Fd = std::pow(interfacial_stress[i][0]/T0n,2.0)+std::pow(interfacial_stress[i][1]/T0s,2.0)+std::pow(interfacial_stress[i][2]/T0t,2.0); // Damage Initiation Criterion
             // double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // double T_eq = std::sqrt(3.0 * J2);
@@ -2009,8 +2009,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
             const double Ei = r_material_properties[TENSILE_INTERAFCE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties[SHEAR_INTERAFCE_MODULUS]; // Shear modulus of the interface
             // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
-            // const double characteristic_length = 0.25 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
-            const double characteristic_length = 0.000165 / 2;
+            const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
+            // const double characteristic_length = 0.000165 / 2;
             // const double Fd = std::pow(interfacial_stress[i][0]/T0n,2.0)+std::pow(interfacial_stress[i][1]/T0s,2.0)+std::pow(interfacial_stress[i][2]/T0t,2.0); // Damage Initiation Criterion
             // double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // double T_eq = std::sqrt(3.0 * J2);
