@@ -1151,95 +1151,86 @@ protected:
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
             START_TIMER("ConstraintsRelationMatrixStructure", 0)
-    //         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            // const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-    //         // Vector containing the localization in the system of the different terms
-    //         DofsVectorType slave_dof_list, master_dof_list;
+            // // Vector containing the localization in the system of the different terms
+            // DofsVectorType slave_dof_list, master_dof_list;
 
-    //         // Constraint initial iterator
-    //         const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-    //         std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
+            // // Constraint initial iterator
+            // const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+            // std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
 
-    //         std::vector<LockObject> lock_array(indices.size());
+            // std::vector<LockObject> lock_array(indices.size());
 
-    //         #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
-    //         {
-    //             Element::EquationIdVectorType slave_ids(3);
-    //             Element::EquationIdVectorType master_ids(3);
-    //             std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
+            // #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
+            // {
+            //     Element::EquationIdVectorType slave_ids(3);
+            //     Element::EquationIdVectorType master_ids(3);
+            //     std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
 
-    //             #pragma omp for schedule(guided, 512) nowait
-    //             for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-    //                 auto it_const = it_const_begin + i_const;
+            //     #pragma omp for schedule(guided, 512) nowait
+            //     for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
+            //         auto it_const = it_const_begin + i_const;
 
-    //                 // Detect if the constraint is active or not. If the user did not make any choice the constraint
-    //                 // It is active by default
-    //                 bool constraint_is_active = true;
-    //                 if( it_const->IsDefined(ACTIVE) ) {
-    //                     constraint_is_active = it_const->Is(ACTIVE);
-    //                 }
+            //         it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
-    //                 if(constraint_is_active) {
-    //                     it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+            //         // Slave DoFs
+            //         for (auto &id_i : slave_ids) {
+            //             temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
+            //         }
+            //     }
 
-    //                     // Slave DoFs
-    //                     for (auto &id_i : slave_ids) {
-    //                         temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-    //                     }
-    //                 }
-    //             }
+            //     // Merging all the temporal indexes
+            //     for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
+            //         lock_array[i].lock();
+            //         indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
+            //         lock_array[i].unlock();
+            //     }
+            // }
 
-    //             // Merging all the temporal indexes
-    //             for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-    //                 lock_array[i].lock();
-    //                 indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-    //                 lock_array[i].unlock();
-    //             }
-    //         }
+            // mSlaveIds.clear();
+            // mMasterIds.clear();
+            // for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+            //     if (indices[i].size() == 0) // Master dof!
+            //         mMasterIds.push_back(i);
+            //     else // Slave dof
+            //         mSlaveIds.push_back(i);
+            //     indices[i].insert(i); // Ensure that the diagonal is there in T
+            // }
 
-    //         mSlaveIds.clear();
-    //         mMasterIds.clear();
-    //         for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-    //             if (indices[i].size() == 0) // Master dof!
-    //                 mMasterIds.push_back(i);
-    //             else // Slave dof
-    //                 mSlaveIds.push_back(i);
-    //             indices[i].insert(i); // Ensure that the diagonal is there in T
-    //         }
+            // // Count the row sizes
+            // std::size_t nnz = 0;
+            // for (IndexType i = 0; i < indices.size(); ++i)
+            //     nnz += indices[i].size();
 
-    //         // Count the row sizes
-    //         std::size_t nnz = 0;
-    //         for (IndexType i = 0; i < indices.size(); ++i)
-    //             nnz += indices[i].size();
+            // mpT = TSystemMatrixType(indices.size(), indices.size(), nnz);
+            // mpConstantVector.resize(indices.size(), false);
 
-    //         mpT = TSystemMatrixType(indices.size(), indices.size(), nnz);
-    //         mpConstantVector.resize(indices.size(), false);
+            // double *Tvalues = mpT.value_data().begin();
+            // IndexType *Trow_indices = mpT.index1_data().begin();
+            // IndexType *Tcol_indices = mpT.index2_data().begin();
 
-    //         double *Tvalues = mpT.value_data().begin();
-    //         IndexType *Trow_indices = mpT.index1_data().begin();
-    //         IndexType *Tcol_indices = mpT.index2_data().begin();
+            // // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+            // Trow_indices[0] = 0;
+            // for (int i = 0; i < static_cast<int>(mpT.size1()); i++)
+            //     Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
 
-    //         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-    //         Trow_indices[0] = 0;
-    //         for (int i = 0; i < static_cast<int>(mpT.size1()); i++)
-    //             Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
+            // IndexPartition<std::size_t>(mpT.size1()).for_each([&](std::size_t Index){
+            //     const IndexType row_begin = Trow_indices[Index];
+            //     const IndexType row_end = Trow_indices[Index + 1];
+            //     IndexType k = row_begin;
+            //     for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
+            //         Tcol_indices[k] = *it;
+            //         Tvalues[k] = 0.0;
+            //         k++;
+            //     }
 
-    //         IndexPartition<std::size_t>(mpT.size1()).for_each([&](std::size_t Index){
-    //             const IndexType row_begin = Trow_indices[Index];
-    //             const IndexType row_end = Trow_indices[Index + 1];
-    //             IndexType k = row_begin;
-    //             for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
-    //                 Tcol_indices[k] = *it;
-    //                 Tvalues[k] = 0.0;
-    //                 k++;
-    //             }
+            //     indices[Index].clear(); //deallocating the memory
 
-    //             indices[Index].clear(); //deallocating the memory
+            //     std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
+            // });
 
-    //             std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-    //         });
-
-    //         mpT.set_filled(indices.size() + 1, nnz);
+            // mpT.set_filled(indices.size() + 1, nnz);
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
