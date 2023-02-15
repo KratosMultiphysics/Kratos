@@ -21,109 +21,10 @@
 #include "processes/replace_elements_and_condition_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/string_utilities.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos {
 namespace {
-
-std::string GetGeometryName(const GeometryData::KratosGeometryType ElementType)
-{
-    KRATOS_TRY;
-
-    // Using switch over map as the compiler warns if some enum values are not handled in the switch
-    switch(ElementType) {
-        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20:
-            return "Hexahedra3D20";
-        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D27:
-            return "Hexahedra3D27";
-        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8:
-            return "Hexahedra3D8";
-        case GeometryData::KratosGeometryType::Kratos_Prism3D15:
-            return "Prism3D15";
-        case GeometryData::KratosGeometryType::Kratos_Prism3D6:
-            return "Prism3D6";
-        case GeometryData::KratosGeometryType::Kratos_Pyramid3D13:
-            return "Pyramid3D13";
-        case GeometryData::KratosGeometryType::Kratos_Pyramid3D5:
-            return "Pyramid3D5";
-        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
-            return "Quadrilateral2D4";
-        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8:
-            return "Quadrilateral2D8";
-        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9:
-            return "Quadrilateral2D9";
-        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4:
-            return "Quadrilateral3D4";
-        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8:
-            return "Quadrilateral3D8";
-        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9:
-            return "Quadrilateral3D9";
-        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10:
-            return "Tetrahedra3D10";
-        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-            return "Tetrahedra3D4";
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-            return "Triangle3D3";
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D6:
-            return "Triangle2D6";
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D10:
-            return "Triangle2D10";
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D15:
-            return "Triangle2D15";
-        case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
-            return "Triangle3D3";
-        case GeometryData::KratosGeometryType::Kratos_Triangle3D6:
-            return "Triangle3D6";
-        case GeometryData::KratosGeometryType::Kratos_Line2D2:
-            return "Line2D2";
-        case GeometryData::KratosGeometryType::Kratos_Line2D3:
-            return "Line2D3";
-        case GeometryData::KratosGeometryType::Kratos_Line2D4:
-            return "Line2D4";
-        case GeometryData::KratosGeometryType::Kratos_Line2D5:
-            return "Line2D5";
-        case GeometryData::KratosGeometryType::Kratos_Line3D2:
-            return "Line3D2";
-        case GeometryData::KratosGeometryType::Kratos_Line3D3:
-            return "Line3D3";
-        case GeometryData::KratosGeometryType::Kratos_Point2D:
-            return "Point2D";
-        case GeometryData::KratosGeometryType::Kratos_Point3D:
-            return "Point3D";
-        case GeometryData::KratosGeometryType::Kratos_Sphere3D1:
-            return "Sphere3D1";
-        case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve:
-            return "Nurbs_Curve";
-        case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface:
-            return "Nurbs_Surface";
-        case GeometryData::KratosGeometryType::Kratos_Nurbs_Volume:
-            return "Nurbs_Volume";
-        case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
-            return "Nurbs_Curve_On_Surface";
-        case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
-            return "Surface_In_Nurbs_Volume";
-        case GeometryData::KratosGeometryType::Kratos_Brep_Curve:
-            return "Brep_Curve";
-        case GeometryData::KratosGeometryType::Kratos_Brep_Surface:
-            return "Brep_Surface";
-        case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
-            return "Brep_Curve_On_Surface";
-        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
-            return "Quadrature_Point_Geometry";
-        case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
-            return "Coupling_Geometry";
-        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
-            return "Quadrature_Point_Curve_On_Surface_Geometry";
-        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
-            return "Quadrature_Point_Surface_In_Volume_Geometry";
-        case GeometryData::KratosGeometryType::NumberOfGeometryTypes:
-            KRATOS_ERROR << "Geometry type not supported" << std::endl;
-            return "NumberOfGeometryTypes";
-        default:
-            KRATOS_ERROR << "Geometry type not supported: " << static_cast<int>(ElementType) << std::endl;
-    };
-
-    KRATOS_CATCH("");
-}
 
 /**
  * @brief Replace entities in a given container if the entity id is present in a list of ids.
@@ -183,7 +84,7 @@ void ReplaceEntities(
             const auto& r_geometry_type = p_geometry->GetGeometryType();
             // Checking if geometry type is the same
             if (r_geometry_type != current_geometry_type) {
-                const std::string& r_type = GetGeometryName(r_geometry_type);
+                const std::string& r_type = GeometryUtils::GetGeometryName(r_geometry_type);
                 KRATOS_ERROR_IF_NOT(ListReferenceEntity.Has(r_type)) << "Trying to replace an element with a different geometry type. No reference entity found for geometry type: " << r_type << "\nReference list: " << ListReferenceEntity << std::endl;
                 const auto& r_reference_entity = KratosComponents<TEntity>::Get(ListReferenceEntity[r_type].GetString());
                 p_reference_entity = r_reference_entity.Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());;
@@ -344,7 +245,7 @@ void ReplaceElementsAndConditionsProcess::InitializeMemberVariables()
                 const auto& r_ref_element = KratosComponents<Element>::Get(r_element_name);
                 const auto& r_reference_geometry = r_ref_element.GetGeometry();
                 const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-                mSettings["element_name"].AddString(GetGeometryName(r_reference_geometry_type), r_element_name);
+                mSettings["element_name"].AddString(GeometryUtils::GetGeometryName(r_reference_geometry_type), r_element_name);
             }
             mDefinitionElementCondition[0] = DefinitionType::Multiple;
         }
@@ -370,7 +271,7 @@ void ReplaceElementsAndConditionsProcess::InitializeMemberVariables()
                 const auto& r_ref_element = KratosComponents<Condition>::Get(r_condition_name);
                 const auto& r_reference_geometry = r_ref_element.GetGeometry();
                 const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-                mSettings["condition_name"].AddString(GetGeometryName(r_reference_geometry_type), r_condition_name);
+                mSettings["condition_name"].AddString(GeometryUtils::GetGeometryName(r_reference_geometry_type), r_condition_name);
             }
             mDefinitionElementCondition[1] = DefinitionType::Multiple;
         }
