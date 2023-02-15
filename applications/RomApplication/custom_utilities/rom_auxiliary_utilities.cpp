@@ -489,7 +489,7 @@ void RomAuxiliaryUtilities::GetPsiElemental(
                     {
                         return rNode.Id() == r_dof.Id();
                     });
-                KRATOS_DEBUG_ERROR_IF(it_node == rGeom.end());
+                KRATOS_ERROR_IF(it_node == rGeom.end());
 
                 const Matrix& nodal_rom_basis = it_node->GetValue(ROM_LEFT_BASIS);
 
