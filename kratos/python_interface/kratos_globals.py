@@ -161,3 +161,93 @@ class KratosGlobalsImpl(object):
         ConstitutiveLawName -- The name of the constitutive law to check
         """
         return self.Kernel.HasConstitutiveLaw(ConstitutiveLawName)
+
+    def GetModeler(self, ModelerName):
+        """ This method returns the modeler with the given name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ModelerName -- The name of the modeler to return
+        """
+        return self.Kernel.GetModeler(ModelerName)
+
+    def HasModeler(self, ModelerName):
+        """ This method checks if a modeler exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ModelerName -- The name of the modeler to check
+        """
+        return self.Kernel.HasModeler(ModelerName)
+
+    def GetGeometry(self, GeometryName):
+        """ This method returns the geometry with the given name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        GeometryName -- The name of the geometry to return
+        """
+        return self.Kernel.GetGeometry(GeometryName)
+
+    def HasGeometry(self, GeometryName):
+        """ This method checks if a geometry exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        GeometryName -- The name of the geometry to check
+        """
+        return self.Kernel.HasGeometry(GeometryName)
+
+    def GetCondition(self, ConditionName):
+        """ This method returns the condition with the given name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ConditionName -- The name of the condition to return
+        """
+        return self.Kernel.GetCondition(ConditionName)
+
+    def HasCondition(self, ConditionName):
+        """ This method checks if a condition exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ConditionName -- The name of the condition to check
+        """
+        return self.Kernel.HasCondition(ConditionName)
+
+    def GetElement(self, ElementName):
+        """ This method returns the element with the given name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ElementName -- The name of the element to return
+        """
+        return self.Kernel.GetElement(ElementName)
+
+    def HasElement(self, ElementName):
+        """ This method checks if an element exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ElementName -- The name of the element to check
+        """
+        return self.Kernel.HasElement(ElementName)
+    
+    def GetMasterSlaveConstraint(self, ConstraintName):
+        """ This method returns the constraint with the given name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ConstraintName -- The name of the constraint to return
+        """
+        return self.Kernel.GetMasterSlaveConstraint(ConstraintName)
+
+    def HasMasterSlaveConstraint(self, ConstraintName):
+        """ This method checks if a constraint exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ConstraintName -- The name of the constraint to check
+        """
+        return self.Kernel.HasMasterSlaveConstraint(ConstraintName)
