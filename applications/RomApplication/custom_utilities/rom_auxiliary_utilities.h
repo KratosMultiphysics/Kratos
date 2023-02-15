@@ -150,7 +150,7 @@ public:
      * @param rPsiElemental The matrix to store the result in. Must have the appropiate size already.
      * @param rDofs The set of dofs of the element.
      * @param rGeom The geometry of the element.
-     * @rVarToRowMapping A map from each variables's key to its row in the basis matrix.
+     * @param rVarToRowMapping A map from each variables's key to its row in the basis matrix.
      */
     static void GetPsiElemental(
         Matrix &rPsiElemental,
