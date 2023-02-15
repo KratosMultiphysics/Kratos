@@ -116,7 +116,7 @@ std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometr
             KRATOS_ERROR << "Geometry type not supported" << std::endl;
             return "NumberOfGeometryTypes";
         default:
-            KRATOS_ERROR << "Geometry type not supported: " << static_cast<int>(ElementType) << std::endl;
+            KRATOS_ERROR << "Geometry type not supported: " << static_cast<int>(TypeOfGeometry) << std::endl;
     };
 
     KRATOS_CATCH("");
