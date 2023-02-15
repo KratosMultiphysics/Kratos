@@ -344,20 +344,17 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 {
     // We combine the values of the layers
     rValue = 0.0;
-    SizeType counter = 0;
     double aux_value;
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+        const double factor = mCombinationFactors[i_layer];
 
         // we average over the layers
         if (p_law->Has(rThisVariable)) {
             p_law->GetValue(rThisVariable, aux_value);
-            rValue += aux_value;
-            counter++;
+            rValue += aux_value * factor;
         }
     }
-    if (counter != 0)
-        rValue /= counter;
     return rValue;
 }
 
@@ -371,14 +368,17 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     )
 {
     // We combine the values of the layers
+    rValue.resize(VoigtSize, false);
     rValue.clear();
+    Vector aux_value;
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
         const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        Vector aux_value;
-        p_law->GetValue(rThisVariable, aux_value);
-        rValue += aux_value * factor;
+        if (p_law->Has(rThisVariable)) {
+            p_law->GetValue(rThisVariable, aux_value);
+            rValue += aux_value * factor;
+        }
     }
 
     return rValue;
@@ -674,6 +674,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         const Vector strain_vector = rParameterValues.GetStrainVector();
 
         // We combine the value of each layer
+        rValue.resize(VoigtSize, false);
         rValue.clear();
         rValue.resize(VoigtSize, 6);
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1504,7 +1505,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
 
         if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
             AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, euler_angle_theta, euler_angle_hi, rotation_matrix);
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
+            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
         } else {
             noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
