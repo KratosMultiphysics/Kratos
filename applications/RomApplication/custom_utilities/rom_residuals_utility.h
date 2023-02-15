@@ -78,7 +78,7 @@ namespace Kratos
             const int nelements = static_cast<int>(mpModelPart.Elements().size());
             const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
 
-            const auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
+            const auto& r_current_process_info = mpModelPart.GetProcessInfo();
             const auto el_begin = mpModelPart.ElementsBegin();
             const auto cond_begin = mpModelPart.ConditionsBegin();
 
@@ -101,9 +101,9 @@ namespace Kratos
                         element_is_active = (it_el)->Is(ACTIVE);
                     if (element_is_active){
                         //calculate elemental contribution
-                        mpScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        mpScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
                         Element::DofsVectorType dofs;
-                        it_el->GetDofList(dofs, CurrentProcessInfo);
+                        it_el->GetDofList(dofs, r_current_process_info);
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix PhiElemental
                         const auto& geom = it_el->GetGeometry();
@@ -124,9 +124,9 @@ namespace Kratos
                         condition_is_active = (it)->Is(ACTIVE);
                     if (condition_is_active){
                         Condition::DofsVectorType dofs;
-                        it->GetDofList(dofs, CurrentProcessInfo);
+                        it->GetDofList(dofs, r_current_process_info);
                         //calculate elemental contribution
-                        mpScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        mpScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix PhiElemental
                         const auto& geom = it->GetGeometry();
@@ -169,9 +169,9 @@ namespace Kratos
                         element_is_active = (it_el)->Is(ACTIVE);
                     if (element_is_active){
                         //calculate elemental contribution
-                        mpScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        mpScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
                         Element::DofsVectorType dofs;
-                        it_el->GetDofList(dofs, CurrentProcessInfo);
+                        it_el->GetDofList(dofs, r_current_process_info);
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix PhiElemental
                         const auto& geom = it_el->GetGeometry();
@@ -192,9 +192,9 @@ namespace Kratos
                         condition_is_active = (it)->Is(ACTIVE);
                     if (condition_is_active){
                         Condition::DofsVectorType dofs;
-                        it->GetDofList(dofs, CurrentProcessInfo);
+                        it->GetDofList(dofs, r_current_process_info);
                         //calculate elemental contribution
-                        mpScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        mpScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix PhiElemental
                         const auto& geom = it->GetGeometry();
