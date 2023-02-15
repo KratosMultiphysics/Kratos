@@ -326,6 +326,16 @@ public:
         Vector& rValues,
         int Step = 0) const override;
 
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -511,8 +521,11 @@ private:
     ///@name Member Variables
     ///@{
 
+    bool mIsDynamic;
     Matrix mAnisotropyTensor;
     Matrix mInverseAnisotropyTensor;
+    std::vector<Vector> mDisplacementSubscale1;
+    std::vector<Vector> mDisplacementSubscale2;
 
     ///@}
     ///@name Private Operators
@@ -585,6 +598,13 @@ private:
      * @return double Isotropic shear modulus
      */
     double CalculateShearModulus(const Matrix &rC) const;
+
+    double CalculateTau1(
+        const Vector& rVoigtIdAnysotropyMatrixProd,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const;
 
     /**
      * @brief Calculation of the deformation gradient F
