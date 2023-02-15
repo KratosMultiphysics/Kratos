@@ -22,7 +22,7 @@ class ThicknessControl():
 
         self.control_variable_name = "CT"
         self.control_update_name = "D_CT"
-        self.scalar_fields = ["CT","FT","PT","D_CT","D_PT_D_FT"]
+        self.scalar_fields = ["CT","FT","PT","PPT","D_CT","D_PT_D_FT","D_PPT_D_FT"]
         self.vector_fields = []
         self.output_names = self.scalar_fields + self.vector_fields
 

@@ -72,7 +72,7 @@ void MapperVertexMorphingMatrixFree::Map( const Variable<array_3d> &rOriginVaria
         NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
         std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
         unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                            mFilterRadius,
+                                                                            GetVertexMorphingRadius(node_i),
                                                                             neighbor_nodes.begin(),
                                                                             resulting_squared_distances.begin(),
                                                                             mMaxNumberOfNeighbors );
@@ -140,7 +140,7 @@ void MapperVertexMorphingMatrixFree::Map( const Variable<double> &rOriginVariabl
         NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
         std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
         unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                            mFilterRadius,
+                                                                            GetVertexMorphingRadius(node_i),
                                                                             neighbor_nodes.begin(),
                                                                             resulting_squared_distances.begin(),
                                                                             mMaxNumberOfNeighbors );
@@ -200,7 +200,7 @@ void MapperVertexMorphingMatrixFree::InverseMap( const Variable<array_3d> &rDest
         NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
         std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
         unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                            mFilterRadius,
+                                                                            GetVertexMorphingRadius(node_i),
                                                                             neighbor_nodes.begin(),
                                                                             resulting_squared_distances.begin(),
                                                                             mMaxNumberOfNeighbors );
@@ -269,7 +269,7 @@ void MapperVertexMorphingMatrixFree::InverseMap( const Variable<double> &rDestin
         NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
         std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
         unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                            mFilterRadius,
+                                                                            GetVertexMorphingRadius(node_i),
                                                                             neighbor_nodes.begin(),
                                                                             resulting_squared_distances.begin(),
                                                                             mMaxNumberOfNeighbors );
@@ -338,9 +338,8 @@ void MapperVertexMorphingMatrixFree::CreateListOfNodesInOriginModelPart()
 void MapperVertexMorphingMatrixFree::CreateFilterFunction()
 {
     std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-    double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-    mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
+    mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type);
 }
 
 void MapperVertexMorphingMatrixFree::InitializeMappingVariables()
@@ -383,16 +382,16 @@ void MapperVertexMorphingMatrixFree::ThrowWarningIfNumberOfNeighborsExceedsLimit
         KRATOS_WARNING("ShapeOpt::MapperVertexMorphingMatrixFree") << "For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
 }
 
-void MapperVertexMorphingMatrixFree::ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
-                                    NodeVector& neighbor_nodes,
-                                    unsigned int number_of_neighbors,
+void MapperVertexMorphingMatrixFree::ComputeWeightForAllNeighbors(  const ModelPart::NodeType& design_node,
+                                    const NodeVector& neighbor_nodes,
+                                    const unsigned int number_of_neighbors,
                                     std::vector<double>& list_of_weights,
                                     double& sum_of_weights )
 {
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
     {
         ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-        double weight = mpFilterFunction->ComputeWeight( design_node.Coordinates(), neighbor_node.Coordinates() );
+        double weight = mpFilterFunction->ComputeWeight( design_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(design_node) );
 
         list_of_weights[neighbor_itr] = weight;
         sum_of_weights += weight;
