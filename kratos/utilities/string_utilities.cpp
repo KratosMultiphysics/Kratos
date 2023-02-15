@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -143,7 +143,8 @@ std::string RemoveWhiteSpaces(const std::string& rString)
 
 std::vector<std::string> SplitStringByDelimiter(
     const std::string& rString,
-    const char Delimiter)
+    const char Delimiter
+    )
 {
     std::istringstream ss(rString);
     std::string token;
