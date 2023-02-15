@@ -1308,21 +1308,11 @@ protected:
                 #pragma omp for schedule(guided, 512) nowait
                 for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
                     auto it_const = it_const_begin + i_const;
+                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
-                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                    // It is active by default
-                    bool constraint_is_active = true;
-                    if( it_const->IsDefined(ACTIVE) ) {
-                        constraint_is_active = it_const->Is(ACTIVE);
-                    }
-
-                    if(constraint_is_active) {
-                        it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-
-                        // Slave DoFs
-                        for (auto &id_i : slave_ids) {
-                            temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-                        }
+                    // Slave DoFs
+                    for (auto &id_i : slave_ids) {
+                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
                     }
                 }
 
