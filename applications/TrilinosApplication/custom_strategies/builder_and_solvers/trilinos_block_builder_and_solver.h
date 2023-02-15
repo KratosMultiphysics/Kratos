@@ -1256,6 +1256,7 @@ protected:
         // TODO: Check if these should be local elements and conditions
         auto& r_elements_array = rModelPart.Elements();
         auto& r_conditions_array = rModelPart.Conditions();
+        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
 
         // Generate map - use the "temp" array here
         for (IndexType i = 0; i != number_of_local_dofs; i++) {
@@ -1270,13 +1271,13 @@ protected:
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Assemble all elements
-        for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-            pScheme->EquationId(**it_elem, equation_ids_vector, r_current_process_info);
+        for (auto& r_elem : r_elements_array) {
+            pScheme->EquationId(r_elem, equation_ids_vector, r_current_process_info);
 
             // Filling the list of active global indices (non fixed)
             IndexType num_active_indices = 0;
-            for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
-                temp[num_active_indices] = equation_ids_vector[i];
+            for (auto& r_id : equation_ids_vector) {
+                temp[num_active_indices] = r_id;
                 num_active_indices += 1;
             }
 
@@ -1288,13 +1289,36 @@ protected:
         }
 
         // Assemble all conditions
-        for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-            pScheme->EquationId(**it_cond, equation_ids_vector, r_current_process_info);
+        for (auto& r_cond : r_conditions_array) {
+            pScheme->EquationId(r_cond, equation_ids_vector, r_current_process_info);
 
             // Filling the list of active global indices (non fixed)
             IndexType num_active_indices = 0;
-            for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
-                temp[num_active_indices] = equation_ids_vector[i];
+            for (auto& r_id : equation_ids_vector) {
+                temp[num_active_indices] = r_id;
+                num_active_indices += 1;
+            }
+
+            if (num_active_indices != 0) {
+                const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+            }
+            std::fill(temp.begin(), temp.end(), 0);
+        }
+
+        // Assemble all constraints
+        Element::EquationIdVectorType slave_equation_ids_vector, master_equation_ids_vector;
+        for (auto& r_const : r_constraints_array) {
+            r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
+
+            // Filling the list of active global indices (non fixed)
+            IndexType num_active_indices = 0;
+            for (auto& r_slave_id : slave_equation_ids_vector) {
+                temp[num_active_indices] = r_slave_id;
+                num_active_indices += 1;
+            }
+            for (auto& r_master_id : master_equation_ids_vector) {
+                temp[num_active_indices] = r_master_id;
                 num_active_indices += 1;
             }
 
@@ -1327,71 +1351,6 @@ protected:
             TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
-
-    //     const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-    //     const std::size_t equation_size = BaseType::mEquationSystemSize;
-
-    //     std::vector< LockObject > lock_array(equation_size);
-
-    //     std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-
-    //     block_for_each(indices, [](std::unordered_set<std::size_t>& rIndices){
-    //         rIndices.reserve(40);
-    //     });
-
-    //     Element::EquationIdVectorType ids(3, 0);
-
-    //     block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIdsTLS){
-    //         pScheme->EquationId(rElem, rIdsTLS, CurrentProcessInfo);
-    //         for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
-    //             lock_array[rIdsTLS[i]].lock();
-    //             auto& row_indices = indices[rIdsTLS[i]];
-    //             row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
-    //             lock_array[rIdsTLS[i]].unlock();
-    //         }
-    //     });
-
-    //     block_for_each(rModelPart.Conditions(), ids, [&](Condition& rCond, Element::EquationIdVectorType& rIdsTLS){
-    //         pScheme->EquationId(rCond, rIdsTLS, CurrentProcessInfo);
-    //         for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
-    //             lock_array[rIdsTLS[i]].lock();
-    //             auto& row_indices = indices[rIdsTLS[i]];
-    //             row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
-    //             lock_array[rIdsTLS[i]].unlock();
-    //         }
-    //     });
-
-    //     if (rModelPart.MasterSlaveConstraints().size() != 0) {
-    //         struct TLS
-    //         {
-    //             Element::EquationIdVectorType master_ids = Element::EquationIdVectorType(3,0);
-    //             Element::EquationIdVectorType slave_ids = Element::EquationIdVectorType(3,0);
-    //         };
-    //         TLS tls;
-
-    //         block_for_each(rModelPart.MasterSlaveConstraints(), tls, [&](MasterSlaveConstraint& rConst, TLS& rTls){
-    //             rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, CurrentProcessInfo);
-
-    //             for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
-    //                 lock_array[rTls.slave_ids[i]].lock();
-    //                 auto& row_indices = indices[rTls.slave_ids[i]];
-    //                 row_indices.insert(rTls.slave_ids[i]);
-    //                 lock_array[rTls.slave_ids[i]].unlock();
-    //             }
-
-    //             for (std::size_t i = 0; i < rTls.master_ids.size(); i++) {
-    //                 lock_array[rTls.master_ids[i]].lock();
-    //                 auto& row_indices = indices[rTls.master_ids[i]];
-    //                 row_indices.insert(rTls.master_ids[i]);
-    //                 lock_array[rTls.master_ids[i]].unlock();
-    //             }
-    //         });
-
-    //     }
-
-    //     //destroy locks
-    //     lock_array = std::vector< LockObject >();
 
         STOP_TIMER("MatrixStructure", 0)
     }
