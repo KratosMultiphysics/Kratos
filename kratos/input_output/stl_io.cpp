@@ -70,18 +70,32 @@ void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
 {
     // write the solid block
     (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
-    WriteEntitiesBlocks(rThisModelPart.Elements());
-    WriteEntitiesBlocks(rThisModelPart.Conditions());
+    WriteEntityBlock(rThisModelPart.Elements());
+    WriteEntityBlock(rThisModelPart.Conditions());
+    WriteGeometryBlock(rThisModelPart.Geometries());
     (*mpInputStream) << "endsolid\n";
 }
 
 template<class TContainerType>
-void StlIO::WriteEntitiesBlocks(const TContainerType& rThisEntities)
+void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
 {
-
     for (auto & r_entity : rThisEntities) {
         const auto & r_geometry = r_entity.GetGeometry();
 
+        // restrict to triangles only for now
+        const bool is_triangle = (
+            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
+            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
+
+        if (is_triangle) {
+            WriteFacet(r_geometry);
+        }
+    }
+}
+
+void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
+{
+    for (auto & r_geometry : rThisGeometries) {
         // restrict to triangles only for now
         const bool is_triangle = (
             r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||

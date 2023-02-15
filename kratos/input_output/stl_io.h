@@ -85,6 +85,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef ModelPart::GeometriesMapType GeometriesMapType;
+
     /// Pointer definition of StlIO
     KRATOS_CLASS_POINTER_DEFINITION(StlIO);
 
@@ -198,7 +200,9 @@ private:
     void ReadKeyword(std::string const& Keyword);
 
     template<class TContainerType>
-    void WriteEntitiesBlocks(const TContainerType& rThisEntities);
+    void WriteEntityBlock(const TContainerType& rThisEntities);
+
+    void WriteGeometryBlock(const GeometriesMapType& rThisGeometries);
 
     void WriteFacet(const GeometryType & rGeom);
 
