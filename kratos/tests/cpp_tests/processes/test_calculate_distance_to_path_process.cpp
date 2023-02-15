@@ -38,26 +38,26 @@ namespace Kratos::Testing
         distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point1);
         auto distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point1, radius);
         KRATOS_CHECK_NEAR(distance, 0.1, TOLERANCE_DISTANCE_PATH);
-        KRATOS_CHECK_EQUAL(distance_computed_type, DistanceComputed::NO_RADIUS);
+        KRATOS_CHECK_EQUAL(distance_computed_type, CalculateDistanceToPathProcess<true>::DistanceComputed::NO_RADIUS);
 
         radius = 0.01;
         Point point2(0.0,0.0,0.1);
         distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point2);
         distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point2, radius);
         KRATOS_CHECK_NEAR(distance, 0.09, TOLERANCE_DISTANCE_PATH);
-        KRATOS_CHECK_EQUAL(distance_computed_type, DistanceComputed::RADIUS_PROJECTED);
+        KRATOS_CHECK_EQUAL(distance_computed_type, CalculateDistanceToPathProcess<true>::DistanceComputed::RADIUS_PROJECTED);
 
         Point point3(-0.1,0.0,0.1);
         distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point3);
         distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point3, radius);
         KRATOS_CHECK_NEAR(distance, std::sqrt(std::pow(0.09, 2) * 2), TOLERANCE_DISTANCE_PATH);
-        KRATOS_CHECK_EQUAL(distance_computed_type, DistanceComputed::RADIUS_NOT_PROJECTED_OUTSIDE);
+        KRATOS_CHECK_EQUAL(distance_computed_type, CalculateDistanceToPathProcess<true>::DistanceComputed::RADIUS_NOT_PROJECTED_OUTSIDE);
 
         radius = 0.1;
         Point point4(-0.1,0.0,0.09);
         distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point4);
         distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point4, radius);
         KRATOS_CHECK_NEAR(distance, -(std::sqrt(std::pow(0.01, 2) + std::pow(0.1, 2))), TOLERANCE_DISTANCE_PATH);
-        KRATOS_CHECK_EQUAL(distance_computed_type, DistanceComputed::RADIUS_NOT_PROJECTED_INSIDE);
+        KRATOS_CHECK_EQUAL(distance_computed_type, CalculateDistanceToPathProcess<true>::DistanceComputed::RADIUS_NOT_PROJECTED_INSIDE);
     }
 }

@@ -233,7 +233,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
 /***********************************************************************************/
 
 template<bool THistorical>
-DistanceComputed CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWithRadius(
+typename CalculateDistanceToPathProcess<THistorical>::DistanceComputed CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWithRadius(
     double& rDistance,
     const Geometry<NodeType>& rSegment,
     const Point& rPoint,

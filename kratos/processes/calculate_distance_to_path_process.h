@@ -33,18 +33,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-/**
- * @brief How the distance is computed enum
- */
-enum class DistanceComputed
-{
-    ERROR,
-    NO_RADIUS,
-    RADIUS_PROJECTED,
-    RADIUS_NOT_PROJECTED_OUTSIDE,
-    RADIUS_NOT_PROJECTED_INSIDE
-};
-
 ///@}
 ///@name  Functions
 ///@{
@@ -167,9 +155,21 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /**
+     * @brief How the distance is computed enum
+     */
+    enum class DistanceComputed
+    {
+        ERROR,
+        NO_RADIUS,
+        RADIUS_PROJECTED,
+        RADIUS_NOT_PROJECTED_OUTSIDE,
+        RADIUS_NOT_PROJECTED_INSIDE
+    };
+
     /// Index type definition
     typedef std::size_t IndexType;
-    
+
     /// Size type definition
     typedef std::size_t SizeType;
 
