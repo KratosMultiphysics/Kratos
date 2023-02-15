@@ -25,7 +25,7 @@
 namespace Kratos {
 namespace {
 
-std::string GetElementName(const GeometryData::KratosGeometryType ElementType)
+std::string GetGeometryName(const GeometryData::KratosGeometryType ElementType)
 {
     KRATOS_TRY;
 
@@ -183,7 +183,7 @@ void ReplaceEntities(
             const auto& r_geometry_type = p_geometry->GetGeometryType();
             // Checking if geometry type is the same
             if (r_geometry_type != current_geometry_type) {
-                const std::string& r_type = GetElementName(r_geometry_type);
+                const std::string& r_type = GetGeometryName(r_geometry_type);
                 KRATOS_ERROR_IF_NOT(ListReferenceEntity.Has(r_type)) << "Trying to replace an element with a different geometry type. No reference entity found for geometry type: " << r_type << "\nReference list: " << ListReferenceEntity << std::endl;
                 const auto& r_reference_entity = KratosComponents<TEntity>::Get(ListReferenceEntity[r_type].GetString());
                 p_reference_entity = r_reference_entity.Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());;
@@ -344,7 +344,7 @@ void ReplaceElementsAndConditionsProcess::InitializeMemberVariables()
                 const auto& r_ref_element = KratosComponents<Element>::Get(r_element_name);
                 const auto& r_reference_geometry = r_ref_element.GetGeometry();
                 const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-                mSettings["element_name"].AddString(GetElementName(r_reference_geometry_type), r_element_name);
+                mSettings["element_name"].AddString(GetGeometryName(r_reference_geometry_type), r_element_name);
             }
             mDefinitionElementCondition[0] = DefinitionType::Multiple;
         }
@@ -370,7 +370,7 @@ void ReplaceElementsAndConditionsProcess::InitializeMemberVariables()
                 const auto& r_ref_element = KratosComponents<Condition>::Get(r_condition_name);
                 const auto& r_reference_geometry = r_ref_element.GetGeometry();
                 const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-                mSettings["condition_name"].AddString(GetElementName(r_reference_geometry_type), r_condition_name);
+                mSettings["condition_name"].AddString(GetGeometryName(r_reference_geometry_type), r_condition_name);
             }
             mDefinitionElementCondition[1] = DefinitionType::Multiple;
         }
