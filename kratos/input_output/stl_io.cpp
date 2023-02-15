@@ -58,7 +58,7 @@ StlIO::StlIO(Kratos::shared_ptr<std::iostream> pInputStream)
 
 void StlIO::ReadModelPart(ModelPart & rThisModelPart)
 {
-    if(!rThisModelPart.HasProperties(0))
+    if(!rThisModelPart.RecursivelyHasProperties(0))
         rThisModelPart.CreateNewProperties(0);
         
     while(!mpInputStream->eof())

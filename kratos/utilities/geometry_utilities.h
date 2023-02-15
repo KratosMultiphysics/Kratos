@@ -5,18 +5,15 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_GEOMETRY_UTILITIES_INCLUDED )
-#define  KRATOS_GEOMETRY_UTILITIES_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 #include <algorithm>
 
 // External includes
@@ -54,6 +51,14 @@ public:
     typedef Geometry<NodeType> GeometryType;
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief This function returns a string equivalent for the geometry type
+     * @param TypeOfGeometry The geometry type
+     */
+    static std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry);
 
     /**
      * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
@@ -866,7 +871,5 @@ public:
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined
 
 
