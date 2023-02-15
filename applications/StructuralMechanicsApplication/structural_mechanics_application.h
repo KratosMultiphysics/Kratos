@@ -311,6 +311,8 @@ private:
     const SmallDisplacement mSmallDisplacement2D6N;
     const SmallDisplacement mSmallDisplacement2D8N;
     const SmallDisplacement mSmallDisplacement2D9N;
+    const SmallDisplacement mSmallDisplacement2D10N;
+    const SmallDisplacement mSmallDisplacement2D15N;
     const SmallDisplacement mSmallDisplacement3D4N;
     const SmallDisplacement mSmallDisplacement3D5N;
     const SmallDisplacement mSmallDisplacement3D6N;
@@ -357,6 +359,8 @@ private:
     const TotalLagrangian mTotalLagrangian2D6N;
     const TotalLagrangian mTotalLagrangian2D8N;
     const TotalLagrangian mTotalLagrangian2D9N;
+    const TotalLagrangian mTotalLagrangian2D10N;
+    const TotalLagrangian mTotalLagrangian2D15N;
     const TotalLagrangian mTotalLagrangian3D4N;
     const TotalLagrangian mTotalLagrangian3D5N;
     const TotalLagrangian mTotalLagrangian3D6N;
@@ -379,6 +383,8 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian2D6N;
     const UpdatedLagrangian mUpdatedLagrangian2D8N;
     const UpdatedLagrangian mUpdatedLagrangian2D9N;
+    const UpdatedLagrangian mUpdatedLagrangian2D10N;
+    const UpdatedLagrangian mUpdatedLagrangian2D15N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
     const UpdatedLagrangian mUpdatedLagrangian3D5N;
     const UpdatedLagrangian mUpdatedLagrangian3D6N;
@@ -425,11 +431,15 @@ private:
     // Line load
     const LineLoadCondition<2> mLineLoadCondition2D2N;
     const LineLoadCondition<2> mLineLoadCondition2D3N;
+    const LineLoadCondition<2> mLineLoadCondition2D4N;
+    const LineLoadCondition<2> mLineLoadCondition2D5N;
     const LineLoadCondition<3> mLineLoadCondition3D2N;
     const LineLoadCondition<3> mLineLoadCondition3D3N;
 
     const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D2N;
     const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D3N;
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D4N;
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D5N;
     const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D2N;
     const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D3N;
 

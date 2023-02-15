@@ -1,7 +1,12 @@
+# Find the Trilinos includes and libraries
 #
-# Trilinos
+# The Trilinos Project is an effort to develop algorithms and enabling technologies within an object-oriented software framework for the solution of large-scale, complex multi-physics engineering and scientific problems. 
+# A unique design feature of Trilinos is its focus on packages. It can be found at:
+# 	https://trilinos.org/
 #
-# Looks for Trilinos packages
+# TRILINOS_INCLUDE_DIR - where to find the headers
+# TRILINOS_LIBRARIES   - List of fully qualified libraries to link against.
+# TRILINOS_FOUND       - Do not attempt to use if "no" or undefined.
 #
 # Required packages are:
 # - Epetra, Teuchos
@@ -10,34 +15,38 @@
 # Only find if TrilinosApplication is in the list of applications
 STRING(FIND "$ENV{KRATOS_APPLICATIONS}" "TrilinosApplication" index)
 IF (${index} GREATER -1)
-    IF ((TRILINOS_LIBRARY_DIR AND TRILINOS_INCLUDE_DIR) OR TRILINOS_ROOT)
+    IF (TRILINOS_LIBRARY_DIR OR TRILINOS_INCLUDE_DIR OR TRILINOS_ROOT)
+        # Manual setting if the TRILINOS_ROOT is set
+        IF (TRILINOS_ROOT)
+            SET(TRILINOS_INCLUDE_DIR "${TRILINOS_ROOT}/include")
+            SET(TRILINOS_LIBRARY_DIR "${TRILINOS_ROOT}/lib")
+        ENDIF (TRILINOS_ROOT)
+
         # You can specify your own version of the library
         # by specifying the variables TRILINOS_LIB_SEARCH_PATH and
         # TRILINOS_INCLUDE_SEARCH_PATH.
-        IF (NOT TRILINOS_LIBRARY_DIR OR NOT TRILINOS_INCLUDE_DIR)
-            IF (TRILINOS_ROOT)
-                # Alternatively, you may simply specify TRILINOS_ROOT in CMake.vars. This is
-                # the traditional way used also in the spkg files from the hpfem/solvers
-                # repository and in the Hermes spkg.
-                SET(TRILINOS_LIB_SEARCH_PATH ${TRILINOS_ROOT}/lib)
-                SET(TRILINOS_INCLUDE_SEARCH_PATH ${TRILINOS_ROOT}/include)
-            ELSE (TRILINOS_ROOT)
-                SET(TRILINOS_LIB_SEARCH_PATH
-                    /usr/lib64
-                    /usr/lib
-                    /usr/local/lib/
-                    /usr/lib/x86_64-linux-gnu/
-                )
-                SET(TRILINOS_INCLUDE_SEARCH_PATH
-                    /usr/include
-                    /usr/local/include/
-                    /usr/include/trilinos/
-                )
-            ENDIF (TRILINOS_ROOT)
-        ELSE (NOT TRILINOS_LIBRARY_DIR OR NOT TRILINOS_INCLUDE_DIR)
+
+        # Library directory
+        IF (TRILINOS_LIBRARY_DIR)
             SET(TRILINOS_LIB_SEARCH_PATH ${TRILINOS_LIBRARY_DIR})
+        ELSE (TRILINOS_LIBRARY_DIR)
+            SET(TRILINOS_LIB_SEARCH_PATH
+                /usr/lib64
+                /usr/lib
+                /usr/local/lib/
+                /usr/lib/x86_64-linux-gnu/
+            )
+        ENDIF (TRILINOS_LIBRARY_DIR)
+        # Include directory
+        IF (TRILINOS_INCLUDE_DIR)
             SET(TRILINOS_INCLUDE_SEARCH_PATH ${TRILINOS_INCLUDE_DIR})
-        ENDIF (NOT TRILINOS_LIBRARY_DIR OR NOT TRILINOS_INCLUDE_DIR)
+        ELSE (TRILINOS_INCLUDE_DIR)
+            SET(TRILINOS_INCLUDE_SEARCH_PATH
+                /usr/include
+                /usr/local/include/
+                /usr/include/trilinos/
+            ) 
+        ENDIF (TRILINOS_INCLUDE_DIR)
 
         FIND_PATH(AMESOS_INCLUDE_PATH       Amesos.h             ${TRILINOS_INCLUDE_SEARCH_PATH}  NO_DEFAULT_PATH)
         FIND_PATH(AMESOS2_INCLUDE_PATH      Amesos2.hpp          ${TRILINOS_INCLUDE_SEARCH_PATH}  NO_DEFAULT_PATH)
@@ -111,8 +120,8 @@ IF (${index} GREATER -1)
 
         INCLUDE(FindPackageHandleStandardArgs)
 
-        message("EPETRA_INCLUDE_PATH: " ${EPETRA_INCLUDE_PATH})
-        message("EPETRA_LIBRARY: " ${EPETRA_LIBRARY})
+        MESSAGE("EPETRA_INCLUDE_PATH: " ${EPETRA_INCLUDE_PATH})
+        MESSAGE("EPETRA_LIBRARY: " ${EPETRA_LIBRARY})
 
         IF(EPETRA_INCLUDE_PATH AND EPETRA_LIBRARY)
             SET(TRILINOS_INCLUDE_DIR ${TRILINOS_INCLUDE_DIR} ${EPETRA_INCLUDE_PATH})
@@ -121,8 +130,8 @@ IF (${index} GREATER -1)
         ENDIF(EPETRA_INCLUDE_PATH AND EPETRA_LIBRARY)
         find_package_handle_standard_args(EPETRA DEFAULT_MSG EPETRA_LIBRARY)
 
-        message("TEUCHOS_INCLUDE_PATH: " ${TEUCHOS_INCLUDE_PATH})
-        message("TEUCHOS_LIBRARIES: " ${TEUCHOS_LIBRARIES})
+        MESSAGE("TEUCHOS_INCLUDE_PATH: " ${TEUCHOS_INCLUDE_PATH})
+        MESSAGE("TEUCHOS_LIBRARIES: " ${TEUCHOS_LIBRARIES})
         IF(TEUCHOS_INCLUDE_PATH AND TEUCHOS_LIBRARIES)
             SET(TRILINOS_INCLUDE_DIR ${TRILINOS_INCLUDE_DIR} ${TEUCHOS_INCLUDE_PATH})
             SET(TRILINOS_LIBRARIES ${TRILINOS_LIBRARIES} ${TEUCHOS_LIBRARIES})
@@ -205,6 +214,8 @@ IF (${index} GREATER -1)
 
         IF(EPETRA_FOUND AND TEUCHOS_FOUND)
             SET(TRILINOS_FOUND TRUE)
+        ELSE(EPETRA_FOUND AND TEUCHOS_FOUND) # Not found. This will raise an error
+            SET(TRILINOS_FOUND FALSE)
         ENDIF(EPETRA_FOUND AND TEUCHOS_FOUND)
 
         IF(ZOLTAN_INCLUDE_PATH AND ZOLTAN_LIBRARY)
@@ -213,10 +224,11 @@ IF (${index} GREATER -1)
             SET(HAVE_ZOLTAN YES)
             find_package_handle_standard_args(ZOLTAN DEFAULT_MSG ZOLTAN_LIBRARY)
         ENDIF(ZOLTAN_INCLUDE_PATH AND ZOLTAN_LIBRARY)
-    ELSE ((TRILINOS_LIBRARY_DIR AND TRILINOS_INCLUDE_DIR) OR TRILINOS_ROOT)
+    ELSE (TRILINOS_LIBRARY_DIR OR TRILINOS_INCLUDE_DIR OR TRILINOS_ROOT)
         # First we try to find using the interface provided by CMake and Trilinos
         FIND_PACKAGE(Trilinos)
 
+        # If found
         IF (Trilinos_FOUND)
             LIST(FIND Trilinos_PACKAGE_LIST Epetra package_index)
             IF (${package_index} EQUAL -1)
@@ -244,11 +256,10 @@ IF (${index} GREATER -1)
                 LIST(APPEND TRILINOS_LIBRARIES ${TRILINOS_LIBRARY_${trilinos_lib}})
             ENDFOREACH(trilinos_lib ${Trilinos_LIBRARIES})
             SET(TRILINOS_FOUND TRUE)
-        ELSE (Trilinos_FOUND)
-            # Not found. This will raise an error
+        ELSE (Trilinos_FOUND) # Not found. This will raise an error
             SET(TRILINOS_FOUND FALSE)
         ENDIF (Trilinos_FOUND)
-    ENDIF ((TRILINOS_LIBRARY_DIR AND TRILINOS_INCLUDE_DIR) OR TRILINOS_ROOT)
+    ENDIF (TRILINOS_LIBRARY_DIR OR TRILINOS_INCLUDE_DIR OR TRILINOS_ROOT)
 
     IF(TRILINOS_FOUND)
         MESSAGE(STATUS "Trilinos packages found.")
