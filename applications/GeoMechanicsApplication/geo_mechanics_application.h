@@ -192,8 +192,8 @@ public:
     ///// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-        KRATOS_WATCH("in KratosGeoMechanicsApplication");
-        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH("in KratosGeoMechanicsApplication")
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() )
 
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);

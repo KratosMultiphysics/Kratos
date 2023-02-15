@@ -195,7 +195,7 @@ public:
                                      const BoundedMatrix<double,2,2>& InputMatrix,
                                      double &InputMatrixDet)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         const double numerical_limit = std::numeric_limits<double>::epsilon();
 
@@ -210,20 +210,20 @@ public:
         rInvertedMatrix(1,0) = -InputMatrix(1,0)/InputMatrixDet;
         rInvertedMatrix(1,1) =  InputMatrix(0,0)/InputMatrixDet;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void InvertMatrix2(BoundedMatrix<double,2,2>& rInvertedMatrix,
                                      const BoundedMatrix<double,2,2>& InputMatrix)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         double InputMatrixDet;
 
         InvertMatrix2(rInvertedMatrix, InputMatrix, InputMatrixDet);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
