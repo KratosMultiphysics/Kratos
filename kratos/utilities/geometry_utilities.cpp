@@ -113,7 +113,6 @@ std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryTyp
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
             return "Quadrature_Point_Surface_In_Volume_Geometry";
         case GeometryData::KratosGeometryType::NumberOfGeometryTypes:
-            KRATOS_ERROR << "Geometry type not supported" << std::endl;
             return "NumberOfGeometryTypes";
         default:
             KRATOS_ERROR << "Geometry type not supported: " << static_cast<int>(TypeOfGeometry) << std::endl;
