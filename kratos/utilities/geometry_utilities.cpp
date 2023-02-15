@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry)
+std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry)
 {
     KRATOS_TRY;
 
