@@ -186,16 +186,16 @@ class GranularTemperaturePostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(1)
 
-    def WriteData(self, fluid_model_part):
+    def WriteData(self, fluid_model_part,time):
         self.fluid_model_part = fluid_model_part
 
-        self.time.append(self.fluid_model_part.ProcessInfo[Kratos.TIME])
+        self.time.append(time)
         temp = 0
         n = 0
         for node in self.fluid_model_part.Nodes:
-            if (node.GetSolutionStepValue(Kratos.SwimmingDEMApplication.GRANULAR_TEMPERATURE) > 1e-18):
-                temp += node.GetSolutionStepValue(Kratos.SwimmingDEMApplication.GRANULAR_TEMPERATURE)
-                n += 1
+            if (node.GetSolutionStepValue(Kratos.FLUID_FRACTION) < 1.0):
+                temp += node.GetSolutionStepValue(Kratos.SwimmingDEMApplication.BED_GRANULAR_TEMPERATURE) * node.GetSolutionStepValue(Kratos.NODAL_AREA)
+                n += node.GetSolutionStepValue(Kratos.NODAL_AREA)
 
         if (n != 0):
             self.mean_granular_temperature.append(temp/n)

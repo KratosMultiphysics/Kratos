@@ -334,6 +334,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
                 SetToZero(r_fluid_model_part, variable);
                 SetToZero(r_fluid_model_part, WEIGHTED_SUM);
                 SetToZero(r_fluid_model_part, GRANULAR_TEMPERATURE);
+                SetToZero(r_fluid_model_part, BED_GRANULAR_TEMPERATURE);
             }
         }
 
@@ -1508,10 +1509,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
         for (unsigned int i = 0; i != neighbours.size(); ++i){
             array_1d<double, 3> contribution = weights[i] * origin_data;
             double& sum_of_weights = neighbours[i]->FastGetSolutionStepValue(WEIGHTED_SUM);
-            double& granular_temperature = neighbours[i]->FastGetSolutionStepValue(GRANULAR_TEMPERATURE);
+            array_1d<double, 3>& T = neighbours[i]->FastGetSolutionStepValue(GRANULAR_TEMPERATURE);
             array_1d<double, 3>& particles_filtered_vel = neighbours[i]->FastGetSolutionStepValue(PARTICLE_VEL_FILTERED);
             array_1d<double, 3>& mean_p_velocity = neighbours[i]->FastGetSolutionStepValue(AVERAGED_PARTICLE_VELOCITY);
-            CalculateWeightedIncrementalGranularTemperature(granular_temperature, mean_p_velocity, origin_data, weights[i], sum_of_weights);
+            CalculateWeightedIncrementalGranularTemperature(T, mean_p_velocity, origin_data, weights[i], sum_of_weights);
             particles_filtered_vel += contribution;
         }
     }
@@ -1521,7 +1522,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
 // This algorithm is based on the West's proposal method : https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateWeightedIncrementalGranularTemperature(
-    double& granular_temperature,
+    array_1d<double, 3>& T,
     array_1d<double, 3>& old_filtered_variable,
     array_1d<double, 3> origin_data,
     double weight,
@@ -1540,7 +1541,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     }
 
     array_1d<double, 3> a = origin_data - mean_old;
-    granular_temperature += weight * SWIMMING_INNER_PRODUCT_3(a,a) * old_sum_of_weights / sum_of_weights;
+    for (unsigned int d = 0; d < 3; ++d)
+        T[d] += weight * std::pow(a[d],2) * old_sum_of_weights / sum_of_weights;
+
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -1549,11 +1552,14 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     ModelPart& r_fluid_model_part)
 {
     for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
-        double& granular_temperature = node_it->FastGetSolutionStepValue(GRANULAR_TEMPERATURE);
+        double& bed_granular_temperature = node_it->FastGetSolutionStepValue(BED_GRANULAR_TEMPERATURE);
+        array_1d<double, 3>& T = node_it->FastGetSolutionStepValue(GRANULAR_TEMPERATURE);
         if (node_it->FastGetSolutionStepValue(WEIGHTED_SUM) <= std::numeric_limits<double>::epsilon())
-            granular_temperature = 0.0;
-        else
-            granular_temperature /= node_it->FastGetSolutionStepValue(WEIGHTED_SUM) * 3.0;
+            bed_granular_temperature = 0.0;
+        else{
+            for (unsigned int d = 0; d < 3; ++d)
+                bed_granular_temperature += T[d]/(node_it->FastGetSolutionStepValue(WEIGHTED_SUM) * 3.0);
+            }
     }
 }
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>

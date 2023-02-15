@@ -413,7 +413,7 @@ void CalculateNodalFluidFractionByAveraging(ParticleType& particle, const Result
 void CalculateNodalSolidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const double averaging_volume_inv);
 void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<double>& r_variable, const double& factor);
 void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_variable, const double& factor);
-void CalculateWeightedIncrementalGranularTemperature(double& granular_temperature, array_1d<double, 3>& old_filtered_variable, array_1d<double, 3> origin_data, double weight, double& sum_of_weights);
+void CalculateWeightedIncrementalGranularTemperature(array_1d<double, 3>& T, array_1d<double, 3>& old_filtered_variable, array_1d<double, 3> origin_data, double weight, double& sum_of_weights);
 void ResetDEMVariables(ModelPart& r_dem_model_part);
 void ResetFluidVariables(ModelPart& r_fluid_model_part);
 void ResetFLuidVelocityRate(const NodeIteratorType& node_it);
