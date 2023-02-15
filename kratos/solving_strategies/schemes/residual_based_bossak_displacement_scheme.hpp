@@ -19,8 +19,10 @@
 
 /* Project includes */
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
+#include "includes/cfd_variables.h" //FIXME: For the OSS_SWITCH maybe we should place this variable somewhere else
 #include "includes/variables.h"
 #include "includes/checks.h"
+#include "processes/calculate_nodal_area_process.h"
 
 namespace Kratos
 {
@@ -194,6 +196,24 @@ public:
         mBossak.gamma = mNewmark.gamma  - mBossak.alpha;
     }
 
+    // TODO: We should place the OSS projections somewhere else
+    void Initialize(ModelPart& rModelPart) override
+    {
+        // Allocate the OSS projection variables
+        const auto &r_process_info = rModelPart.GetProcessInfo();
+        const bool oss_switch = r_process_info.Has(OSS_SWITCH) ? r_process_info[OSS_SWITCH] : false;
+        if (oss_switch) {
+            const array_1d<double,3> aux_zero = ZeroVector(3);
+            block_for_each(rModelPart.Nodes(), aux_zero, [](Node<3>& rNode, array_1d<double,3>& rAuxZero){
+                rNode.SetValue(DISPLACEMENT_PROJECTION, rAuxZero);
+                rNode.SetValue(VOLUMETRIC_STRAIN_PROJECTION, 0.0);
+            });
+        }
+
+        // Call the base Initialize method
+        ImplicitBaseType::Initialize(rModelPart);
+    }
+
     /**
      * @brief Performing the update of the solution
      * @details Incremental update within newton iteration. It updates the state variables at the end of the time step u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
@@ -230,6 +250,53 @@ public:
         });
 
         KRATOS_CATCH( "" );
+    }
+
+    //TODO: We should place the OSS projections somewhere else
+    //TODO: To make this fully flexible, I'd promote the parameters based constructor with a list of variables to which their projection is to be computed
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        // Check if the Orthogonal SubScales (OSS) are active
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        const bool oss_switch = r_process_info.Has(OSS_SWITCH) ? r_process_info[OSS_SWITCH] : false;
+
+        // Calculate the OSS projections
+        if (oss_switch) {
+            // Initialize the projection values
+            block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+                rNode.GetValue(DISPLACEMENT_PROJECTION) = ZeroVector(3);
+                rNode.GetValue(VOLUMETRIC_STRAIN_PROJECTION) = 0.0;
+            });
+
+            // Calculate the element residuals projection
+            std::tuple<double, array_1d<double,3>> oss_proj_tls;
+            block_for_each(rModelPart.Elements(), oss_proj_tls, [&](Element& rElement, std::tuple<double, array_1d<double,3>>& rOssProjTLS){
+                double& r_eps_proj = std::get<0>(rOssProjTLS);
+                array_1d<double,3>& r_disp_proj = std::get<1>(rOssProjTLS);
+                rElement.Calculate(DISPLACEMENT_PROJECTION, r_disp_proj, r_process_info);
+                rElement.Calculate(VOLUMETRIC_STRAIN_PROJECTION, r_eps_proj, r_process_info);
+            });
+
+            // Do the nodal weighting
+            //TODO: We need to do the weighted L2 projection with the density for the multimaterial case
+            block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+                const double nodal_area = rNode.GetValue(NODAL_AREA);
+                rNode.GetValue(DISPLACEMENT_PROJECTION) /= nodal_area;
+                rNode.GetValue(VOLUMETRIC_STRAIN_PROJECTION) /= nodal_area;
+            });
+        }
+
+        // Call base class FinalizeNonLinIteration
+        ImplicitBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -395,6 +462,13 @@ public:
                 }
             }
         });
+
+        // Update the NODAL_AREA
+        // TODO: This is only required in the updated Lagrangian case, we should find a smart way to avoid it at each step
+        const bool oss_switch = r_current_process_info.Has(OSS_SWITCH) ? r_current_process_info[OSS_SWITCH] : false;
+        if (oss_switch) {
+            CalculateNodalAreaProcess<false>(rModelPart).Execute();
+        }
 
         KRATOS_CATCH( "" );
     }
