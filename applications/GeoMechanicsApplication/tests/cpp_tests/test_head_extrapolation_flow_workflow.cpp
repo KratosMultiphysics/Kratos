@@ -57,7 +57,7 @@ namespace Kratos
             auto projectFile = "ProjectParameters_1.json";
 
             auto execute = KratosGeoFlow();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
+            int status = execute.execute_application(workingDirectory, projectFile,
                                                        0, 0, 0,
                                                        "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                                        &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
@@ -77,7 +77,7 @@ namespace Kratos
             auto projectFile = "ProjectParameters_2.json";
 
             auto execute = KratosGeoFlow();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
+            int status = execute.execute_application(workingDirectory, projectFile,
                                                        0, 0, 0,
                                                        "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                                        &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
@@ -97,7 +97,7 @@ namespace Kratos
             auto projectFile = "ProjectParameters_3.json";
 
             auto execute = KratosGeoFlow();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
+            int status = execute.execute_application(workingDirectory, projectFile,
                                                        0, 0, 0,
                                                        "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                                        &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
@@ -117,7 +117,7 @@ namespace Kratos
             auto projectFile = "ProjectParameters_4.json";
 
             auto execute = KratosGeoFlow();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
+            int status = execute.execute_application(workingDirectory, projectFile,
                                                        0, 0, 0,
                                                        "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                                        &flow_stubs::emptyLog, &flow_stubs::emptyCancel);

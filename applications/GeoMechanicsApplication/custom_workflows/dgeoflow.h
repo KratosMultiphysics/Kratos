@@ -16,8 +16,7 @@
 
 /* External includes */
 
-#include <geo_mechanics_application.h>
-#include "includes/kernel.h"
+#include "dgeoapplication.h"
 
 /* Utility includes */
 #include "includes/model_part.h"
@@ -45,19 +44,19 @@
 
 namespace Kratos
 {
-    class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoFlow
+    class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoFlow: public KratosGeoApplication
     {
     public:
         KratosGeoFlow();
         ~KratosGeoFlow(){};
 
-        int execute_flow_analysis(std::string workingDirectory, std::string parameterName,
-                                  double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-                                  std::string criticalHeadBoundaryModelPartName,
-                                  std::function<void(char*)> logCallback,
-                                  std::function<void(double)> reportProgress,
-                                  std::function<void(char*)> reportTextualProgress,
-                                  std::function<bool()> shouldCancel);
+        int execute_application(std::string workingDirectory, std::string parameterName,
+                                double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
+                                std::string criticalHeadBoundaryModelPartName,
+                                std::function<void(char*)> logCallback,
+                                std::function<void(double)> reportProgress,
+                                std::function<void(char*)> reportTextualProgress,
+                                std::function<bool()> shouldCancel);
 
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -97,33 +96,15 @@ namespace Kratos
                                  std::equal_to<result_type>, Dof<double> *>
             DofsArrayType;
 
-        ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
-        LinearSolverType::Pointer setup_solver_dgeoflow();
-        GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
+        ConvergenceCriteriaType::Pointer convergence_criteria() override;
+        LinearSolverType::Pointer solver_settings() override;
+        ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer strategy_settings(ModelPart &model_part);
 
     private:
-        // Initial Setup
-        Model current_model;
-        Kernel kernel;
-        KratosGeoMechanicsApplication::Pointer geoApp;
-        
-        void ResetModelParts();
-
-        int echoLevel = 1;
-
-        int GetEchoLevel();
-
-        void SetEchoLevel(int level);
 
         shared_ptr<Process> FindRiverBoundaryByName(std::string criticalHeadBoundaryModelPartName,
                                                     std::vector<std::shared_ptr<Process>> processes);
 
-        shared_ptr<Process> FindRiverBoundaryAutomatically(KratosGeoFlow::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-                                                           std::vector<std::shared_ptr<Process>> processes);
-
-        int mainExecution(ModelPart &model_part,
-                          std::vector<std::shared_ptr<Process>> processes,
-                          KratosGeoFlow::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-                          double time, double delta_time, double number_iterations);
+        
     };
 }

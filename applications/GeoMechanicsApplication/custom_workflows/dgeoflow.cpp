@@ -77,52 +77,21 @@ public:
 namespace Kratos
 {
     KratosGeoFlow::KratosGeoFlow()
+	    : KratosGeoApplication()
     {
-        KRATOS_INFO("KratosGeoFlow") << "Setting Up Kratos" << std::endl;
-
-    	if (!kernel.IsImported("GeoMechanicsApplication"))
-        {
-            KRATOS_INFO("KratosGeoFlow") << "Importing GeoMechanicsApplication" << std::endl;
-    		geoApp = Kratos::make_shared<KratosGeoMechanicsApplication>();
-            kernel.ImportApplication(geoApp);
-        }
-
-        Kratos::OpenMPUtils::SetNumThreads(1);
-        if (this->GetEchoLevel() > 0)
-        {
-            Kratos::OpenMPUtils::PrintOMPInfo();
-        }
-
-        this->SetEchoLevel(0);
     }
 
-    int KratosGeoFlow::GetEchoLevel()
-    {
-        return echoLevel;
-    }
-
-    void KratosGeoFlow::SetEchoLevel(int level)
-    {
-        echoLevel = level;
-    }
-
-    void KratosGeoFlow::ResetModelParts()
-    {
-        KRATOS_INFO("Resetting Model") << "Setting Up Execution" << std::endl;
-        current_model.Reset();
-    }
-
-    KratosGeoFlow::ConvergenceCriteriaType::Pointer KratosGeoFlow::setup_criteria_dgeoflow()
+    KratosGeoFlow::ConvergenceCriteriaType::Pointer KratosGeoFlow::convergence_criteria()
     {
         const double rel_tol = 1.0e-4;
         const double abs_tol = 1.0e-9;
         VariableData *p_water_pres = &WATER_PRESSURE;
-        KratosGeoFlow::ConvergenceVariableListType convergence_settings;
+        ConvergenceVariableListType convergence_settings;
         convergence_settings.push_back(std::make_tuple(p_water_pres, rel_tol, abs_tol));
-        return KratosGeoFlow::ConvergenceCriteriaType::Pointer(new KratosGeoFlow::MixedGenericCriteriaType(convergence_settings));
+        return ConvergenceCriteriaType::Pointer(new MixedGenericCriteriaType(convergence_settings));
     }
 
-    KratosGeoFlow::LinearSolverType::Pointer KratosGeoFlow::setup_solver_dgeoflow()
+    KratosGeoFlow::LinearSolverType::Pointer KratosGeoFlow::solver_settings()
     {
         // Parameters linear_solver_settings(R"({"solver_type": "sparse_lu"})");
         // return linear_solver_factory.Create(linear_solver_settings);
@@ -132,17 +101,17 @@ namespace Kratos
         return p_solver;
     }
 
-    KratosGeoFlow::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer KratosGeoFlow::setup_strategy_dgeoflow(ModelPart &model_part)
+    KratosGeoFlow::ImplicitSolvingStrategyType::Pointer KratosGeoFlow::strategy_settings(ModelPart &model_part)
     {
         // Create the linear strategy
-        auto p_solver = setup_solver_dgeoflow();
+        auto p_solver = solver_settings();
 
         Scheme<SparseSpaceType, LocalSpaceType>::Pointer p_scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
 
         auto p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, KratosGeoFlow::LinearSolverType>>(p_solver);
         p_builder_and_solver->SetEchoLevel(0);
 
-        auto p_criteria = setup_criteria_dgeoflow();
+        auto p_criteria = convergence_criteria();
         p_criteria->SetEchoLevel(0);
 
         Parameters p_parameters(R"(
@@ -183,61 +152,13 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    int KratosGeoFlow::mainExecution(ModelPart &model_part,
-                                     std::vector<std::shared_ptr<Process>> processes,
-                                     GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-                                     double time, double delta_time, double number_iterations)
-    {
-
-    	// Initialize
-        for (auto process : processes)
-        {
-            process->ExecuteInitialize();
-        }
-
-        for (auto process : processes)
-        {
-            process->ExecuteBeforeSolutionLoop();
-        }
-
-        for (unsigned int iter = 0; iter < number_iterations; ++iter)
-        {
-            time += delta_time;
-            model_part.CloneTimeStep(time);
-            p_solving_strategy->Initialize();
-            p_solving_strategy->InitializeSolutionStep();
-
-            for (auto process : processes)
-            {
-                process->ExecuteInitializeSolutionStep();
-            }
-
-            p_solving_strategy->Predict();
-            p_solving_strategy->SolveSolutionStep();
-
-            for (auto process : processes)
-            {
-                process->ExecuteFinalizeSolutionStep();
-            }
-
-            p_solving_strategy->FinalizeSolutionStep();
-        }
-
-        for (auto process : processes)
-        {
-            process->ExecuteFinalize();
-        }
-
-        return 0;
-    }
-
-    int KratosGeoFlow::execute_flow_analysis(std::string workingDirectory, std::string projectName,
-                                             double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-                                             std::string criticalHeadBoundaryModelPartName,
-                                             std::function<void(char *)> logCallback,
-                                             std::function<void(double)> reportProgress,
-                                             std::function<void(char *)> reportTextualProgress,
-                                             std::function<bool()> shouldCancel)
+    int KratosGeoFlow::execute_application(std::string workingDirectory, std::string projectName,
+                                           double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
+                                           std::string criticalHeadBoundaryModelPartName,
+                                           std::function<void(char *)> logCallback,
+                                           std::function<void(double)> reportProgress,
+                                           std::function<void(char *)> reportTextualProgress,
+                                           std::function<bool()> shouldCancel)
     {
         this->SetEchoLevel(1);
 
@@ -261,13 +182,14 @@ namespace Kratos
 
             auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
 
-            ModelPart &model_part = current_model.CreateModelPart(modelName);
+            Model& current_model = GetModelPointer();
+        	ModelPart &model_part = current_model.CreateModelPart(modelName);
             model_part.SetBufferSize(2);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Working Directory: " << workingDirectory << std::endl;
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Project Name: " << projectName << std::endl;
 
-            const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
+            const auto p_solving_strategy = strategy_settings(model_part);
             p_solving_strategy->SetEchoLevel(0);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Setup Solving Strategy" << std::endl;
@@ -335,7 +257,7 @@ namespace Kratos
 
             if (!hasPiping)
             {
-                mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+                execute_kratos_calculation(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
                 KratosGeoOutput::outputGiD(current_model, model_part, projectfile, workingDirectory);
             }
             else
@@ -346,14 +268,7 @@ namespace Kratos
                 KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head step size: " << stepCriticalHead << std::endl;
 
                 shared_ptr<Process> RiverBoundary;
-                if (criticalHeadBoundaryModelPartName.empty())
-                {
-                    RiverBoundary = FindRiverBoundaryAutomatically(p_solving_strategy, processes);
-                }
-                else
-                {
-                    RiverBoundary = FindRiverBoundaryByName(criticalHeadBoundaryModelPartName, processes);
-                }
+            	RiverBoundary = FindRiverBoundaryByName(criticalHeadBoundaryModelPartName, processes);
 
                 if (!RiverBoundary)
                 {
@@ -372,7 +287,7 @@ namespace Kratos
                 criticalHead = currentHead;
 
                 std::vector<Element *> pipeElements;
-                pipeElements = p_solving_strategy->GetPipingElements();
+                pipeElements = std::static_pointer_cast<GeoMechanicsNewtonRaphsonErosionProcessStrategyType>(p_solving_strategy)->GetPipingElements();
                 int noPipeElements = pipeElements.size();
 
                 int step = 1;
@@ -396,7 +311,7 @@ namespace Kratos
                     reportTextualProgress(progress.data());
                     reportProgress(((double)step) / ((double)maxSteps));
 
-                    mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+                    execute_kratos_calculation(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
                     int count = 0;
                     for (Element *element : pipeElements)
@@ -421,7 +336,7 @@ namespace Kratos
                         break;
                     }
 
-                    KratosGeoOutput::KratosGeoOutput::outputGiD(current_model, model_part, projectfile, workingDirectory);
+                    KratosGeoOutput::outputGiD(current_model, model_part, projectfile, workingDirectory);
 
                     // Update boundary conditions for next search head.
                     if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
@@ -520,74 +435,4 @@ namespace Kratos
         return RiverBoundary;
     }
 
-    shared_ptr<Process> KratosGeoFlow::FindRiverBoundaryAutomatically(KratosGeoFlow::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-                                                                      std::vector<std::shared_ptr<Process>> processes)
-    {
-        shared_ptr<Process> RiverBoundary;
-
-        std::vector<Element *> pipeElements;
-        pipeElements = p_solving_strategy->GetPipingElements();
-
-        double firstNode_A = pipeElements.front()->GetGeometry().GetPoint(0).X0();
-        double firstNode_B = pipeElements.front()->GetGeometry().GetPoint(1).X0();
-        double lastNode_A = pipeElements.back()->GetGeometry().GetPoint(0).X0();
-
-        IndexType RiverNode;
-
-        if ((firstNode_A < lastNode_A) && (firstNode_A < firstNode_B))
-        {
-            RiverNode = pipeElements.back()->GetGeometry().GetPoint(1).Id();
-        }
-        else
-        {
-            RiverNode = pipeElements.back()->GetGeometry().GetPoint(0).Id();
-        }
-
-        // Get Find boundary in Processes
-        for (shared_ptr<Process> process : processes)
-        {
-            ModelPart *currentModelPart;
-
-            if (process->Info() == "ApplyConstantScalarValueProcess")
-            {
-                auto current_process = std::static_pointer_cast<GeoFlowApplyConstantScalarValueProcess>(process);
-                if (current_process->hasWaterPressure())
-                {
-                    currentModelPart = &current_process->GetModelPart();
-                    try
-                    {
-                        currentModelPart->GetNode(RiverNode);
-                        RiverBoundary = current_process;
-                    }
-                    catch (...)
-                    {
-                    }
-                }
-            }
-            else if (process->Info() == "ApplyConstantHydrostaticPressureProcess")
-            {
-                auto current_process = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(process);
-                currentModelPart = &current_process->GetModelPart();
-                if (current_process->hasWaterPressure())
-                {
-                    try
-                    {
-                        currentModelPart->GetNode(RiverNode);
-                        RiverBoundary = current_process;
-                    }
-                    catch (...)
-                    {
-                    }
-                }
-            }
-        }
-
-        if (!RiverBoundary)
-        {
-            std::cerr << "No boundary found on the river side at node " << RiverNode << "." << std::endl;
-            return NULL;
-        }
-
-        return RiverBoundary;
-    }
 }

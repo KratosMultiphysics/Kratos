@@ -11,7 +11,7 @@ extern "C"
         return new Kratos::KratosGeoFlow();
     }
 
-    EXPORT int __stdcall execute_flow_analysis(Kratos::KratosGeoFlow *instance,
+    EXPORT int __stdcall execute_application(Kratos::KratosGeoFlow *instance,
                                                char *workingDirectory,
                                                char *projectFile,
                                                double minCriticalHead,
@@ -23,7 +23,7 @@ extern "C"
                                                void __stdcall reportTextualProgress(char *),
                                                bool __stdcall shouldCancel())
     {
-        int errorCode = instance->execute_flow_analysis(workingDirectory,
+        int errorCode = instance->execute_application(workingDirectory,
                                                         projectFile,
                                                         minCriticalHead,
                                                         maxCriticalHead,
