@@ -886,8 +886,7 @@ public:
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         const auto& r_process_info = rModelPart.GetProcessInfo();
-        const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, r_data_comm, mScalingDiagonal);
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, mScalingDiagonal);
 
         // Importing in the new temp vector the values
         int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
