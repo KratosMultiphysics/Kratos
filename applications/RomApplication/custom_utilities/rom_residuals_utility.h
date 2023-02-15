@@ -151,22 +151,20 @@ namespace Kratos
             const auto cond_begin = mpModelPart.ConditionsBegin();
 
             //contributions to the system
-            Matrix LHS_Contribution = ZeroMatrix(0, 0);
-            Vector RHS_Contribution = ZeroVector(0);
+            Matrix LHS_Contribution;
+            Vector RHS_Contribution;
 
             //vector containing the localization in the system of the different terms
-            Element::EquationIdVectorType EquationId;
-            Matrix MatrixResiduals( (nelements + nconditions), mPetrovGalerkinRomDofs); // Matrix of reduced residuals.
-            Matrix PsiElemental;
+            Element::EquationIdVectorType equation_id;
+            Matrix matrix_residuals( (nelements + nconditions), mPetrovGalerkinRomDofs); // Matrix of reduced residuals.
+            Matrix psi_elemental;
             #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, PsiElemental, el_begin, cond_begin)
             {
                 #pragma omp for nowait
                 for (int k = 0; k < nelements; k++){
                     auto it_el = el_begin + k;
                     //detect if the element is active or not. If the user did not make any choice the element is active by default
-                    bool element_is_active = true;
-                    if ((it_el)->IsDefined(ACTIVE))
-                        element_is_active = (it_el)->Is(ACTIVE);
+                    const bool element_is_active = it_el->IsDefined(ACTIVE) ? it_el->Is(ACTIVE) : true;
                     if (element_is_active){
                         //calculate elemental contribution
                         mpScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
@@ -174,7 +172,7 @@ namespace Kratos
                         it_el->GetDofList(dofs, r_current_process_info);
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix PhiElemental
-                        const auto& geom = it_el->GetGeometry();
+                        const auto& r_geom = it_el->GetGeometry();
                         if(PsiElemental.size1() != dofs.size() || PsiElemental.size2() != mPetrovGalerkinRomDofs)
                             PsiElemental.resize(dofs.size(), mPetrovGalerkinRomDofs,false);
                         RomAuxiliaryUtilities::GetPsiElemental(PsiElemental, dofs, geom, MapPhi);
@@ -185,11 +183,9 @@ namespace Kratos
 
                 #pragma omp for nowait
                 for (int k = 0; k < nconditions;  k++){
-                    ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+                    auto it = cond_begin + k;
                     //detect if the condition is active or not. If the user did not make any choice the condition is active by default
-                    bool condition_is_active = true;
-                    if ((it)->IsDefined(ACTIVE))
-                        condition_is_active = (it)->Is(ACTIVE);
+                    const bool condition_is_active = it->IsDefined(ACTIVE) ? it->Is(ACTIVE) : true;
                     if (condition_is_active){
                         Condition::DofsVectorType dofs;
                         it->GetDofList(dofs, r_current_process_info);
@@ -197,7 +193,7 @@ namespace Kratos
                         mpScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix PhiElemental
-                        const auto& geom = it->GetGeometry();
+                        const auto& r_geom = it->GetGeometry();
                         if(PsiElemental.size1() != dofs.size() || PsiElemental.size2() != mPetrovGalerkinRomDofs)
                             PsiElemental.resize(dofs.size(), mPetrovGalerkinRomDofs,false);
                         RomAuxiliaryUtilities::GetPsiElemental(PsiElemental, dofs, geom, MapPhi);
@@ -210,13 +206,13 @@ namespace Kratos
 
         Matrix GetProjectedGlobalLHS()
         {
-            const int nElements = static_cast<int>(mpModelPart.Elements().size());
-            const int nConditions = static_cast<int>(mpModelPart.Conditions().size());
-            const auto& nNodes = mpModelPart.NumberOfNodes();
+            const int n_elements = static_cast<int>(mpModelPart.Elements().size());
+            const int n_eonditions = static_cast<int>(mpModelPart.Conditions().size());
+            const auto& n_nodes = mpModelPart.NumberOfNodes();
 
             const auto& r_current_process_info = mpModelPart.GetProcessInfo();
             
-            const int systemSize = nNodes*mNodalDofs;
+            const int system_size = nNodes*mNodalDofs;
 
             const auto el_begin = mpModelPart.ElementsBegin();
             const auto cond_begin = mpModelPart.ConditionsBegin();
@@ -225,7 +221,7 @@ namespace Kratos
             Matrix LHS_Contribution = ZeroMatrix(0,0);
 
             //vector containing the localization in the system of the different terms
-            Element::EquationIdVectorType EquationId;
+            Element::EquationIdVectorType equation_id;
             Matrix APhi = ZeroMatrix(systemSize, mRomDofs);
 
             #pragma omp parallel firstprivate(nElements, nConditions, LHS_Contribution, EquationId, el_begin, cond_begin)
@@ -239,17 +235,14 @@ namespace Kratos
                     auto it_el = el_begin + k;
 
                     // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                    bool element_is_active = true;
-                    if ((it_el)->IsDefined(ACTIVE)) {
-                        element_is_active = (it_el)->Is(ACTIVE);
-                    }
+                    const bool element_is_active = it_el->IsDefined(ACTIVE) ? it_el->Is(ACTIVE) : true;
 
                     // Calculate elemental contribution
                     if (element_is_active){
                         mpScheme->CalculateLHSContribution(*it_el, LHS_Contribution, EquationId, r_current_process_info);
                         Element::DofsVectorType dofs;
                         it_el->GetDofList(dofs, r_current_process_info);
-                        const auto &geom = it_el->GetGeometry();
+                        const auto &r_geom = it_el->GetGeometry();
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs) {
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
                         }
@@ -271,17 +264,14 @@ namespace Kratos
                     auto it = cond_begin + k;
 
                     // Detect if the element is active or not. If the user did not make any choice the condition is active by default
-                    bool condition_is_active = true;
-                    if ((it)->IsDefined(ACTIVE)) {
-                        condition_is_active = (it)->Is(ACTIVE);
-                    }
+                    const bool condition_is_active = it->IsDefined(ACTIVE) ? it->Is(ACTIVE) : true;
 
                     // Calculate condition contribution
                     if (condition_is_active) {
                         Condition::DofsVectorType dofs;
                         it->GetDofList(dofs, r_current_process_info);
                         mpScheme->CalculateLHSContribution(*it, LHS_Contribution, EquationId, r_current_process_info);
-                        const auto &geom = it->GetGeometry();
+                        const auto &r_geom = it->GetGeometry();
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs) {
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
                         }
@@ -310,7 +300,8 @@ namespace Kratos
     protected:
         std::vector< std::string > mNodalVariablesNames;
         int mNodalDofs;
-        unsigned int mRomDofs, mPetrovGalerkinRomDofs;
+        unsigned int mRomDofs
+        unsigned int mPetrovGalerkinRomDofs;
         ModelPart& mpModelPart;
         BaseSchemeType::Pointer mpScheme;
         std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> MapPhi;
