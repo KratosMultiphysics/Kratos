@@ -233,7 +233,7 @@ class KratosGlobalsImpl(object):
         ElementName -- The name of the element to check
         """
         return self.Kernel.HasElement(ElementName)
-    
+
     def GetMasterSlaveConstraint(self, ConstraintName):
         """ This method returns the constraint with the given name
 
