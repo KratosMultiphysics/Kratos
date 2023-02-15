@@ -188,7 +188,7 @@ public:
      * @param rModel The model containing the model parts
      */
     CalculateDistanceToPathProcess(
-        Model& rModel, 
+        Model& rModel,
         Parameters ThisParameters
         );
 
@@ -234,7 +234,6 @@ public:
      * @param Radius The radius
      * @param Tolerance Tolerance to check it falls inside the line
      * @return The Distance computation type
-     * @todo Add C++ test
      */
     static DistanceComputed FastMinimalDistanceOnLineWithRadius(
         double& rDistance,
