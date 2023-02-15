@@ -146,7 +146,7 @@ namespace Kratos
             const int nelements = static_cast<int>(mpModelPart.Elements().size());
             const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
 
-            const auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
+            const auto& r_current_process_info = mpModelPart.GetProcessInfo();
             const auto el_begin = mpModelPart.ElementsBegin();
             const auto cond_begin = mpModelPart.ConditionsBegin();
 
