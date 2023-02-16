@@ -1068,9 +1068,8 @@ protected:
             START_TIMER("ConstraintsRelationMatrixStructure", 0)
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            // Constraint initial iterator
+            // Generate indices database
             const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
-            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
             std::vector<std::unordered_set<IndexType>> indices(number_of_local_dofs);
 
             // Generate map
@@ -1083,31 +1082,27 @@ protected:
 
             std::vector<LockObject> lock_array(indices.size());
 
-            #pragma omp parallel
+            struct TLS
             {
-                Element::EquationIdVectorType slave_ids(3);
-                Element::EquationIdVectorType master_ids(3);
+                Element::EquationIdVectorType master_ids = Element::EquationIdVectorType(3,0);
+                Element::EquationIdVectorType slave_ids = Element::EquationIdVectorType(3,0);
                 std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
+            };
+            block_for_each(rModelPart.MasterSlaveConstraints(), TLS(), [&](MasterSlaveConstraint& rConst, TLS& rTls){
+                rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, r_current_process_info);
 
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-                    auto it_const = it_const_begin + i_const;
-
-                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-
-                    // Slave DoFs
-                    for (auto &id_i : slave_ids) {
-                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-                    }
+                // Slave DoFs
+                for (const auto id_i : rTls.slave_ids) {
+                    rTls.temp_indices[id_i].insert(rTls.master_ids.begin(), rTls.master_ids.end());
                 }
 
                 // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
+                for (int i = 0; i < static_cast<int>(rTls.temp_indices.size()); ++i) {
                     lock_array[i].lock();
-                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
+                    indices[i].insert(rTls.temp_indices[i].begin(), rTls.temp_indices[i].end());
                     lock_array[i].unlock();
                 }
-            }
+            });
 
             // Destroy locks
             lock_array = std::vector<LockObject>();
