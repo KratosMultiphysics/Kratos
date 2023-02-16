@@ -1068,85 +1068,99 @@ protected:
             START_TIMER("ConstraintsRelationMatrixStructure", 0)
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            // Vector containing the localization in the system of the different terms
-            using DofsVectorType = Element::DofsVectorType;
-            DofsVectorType slave_dof_list, master_dof_list;
+            // // Constraint initial iterator
+            // const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+            // std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
 
-            // Constraint initial iterator
-            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-            std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
+            // std::vector<LockObject> lock_array(indices.size());
 
-            std::vector<LockObject> lock_array(indices.size());
+            // #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
+            // {
+            //     Element::EquationIdVectorType slave_ids(3);
+            //     Element::EquationIdVectorType master_ids(3);
+            //     std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
 
-            #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
-            {
-                Element::EquationIdVectorType slave_ids(3);
-                Element::EquationIdVectorType master_ids(3);
-                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
+            //     #pragma omp for schedule(guided, 512) nowait
+            //     for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
+            //         auto it_const = it_const_begin + i_const;
 
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-                    auto it_const = it_const_begin + i_const;
+            //         it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
-                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-
-                    // Slave DoFs
-                    for (auto &id_i : slave_ids) {
-                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-                    }
-                }
-
-                // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].lock();
-                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].unlock();
-                }
-            }
-
-            mSlaveIds.clear();
-            mMasterIds.clear();
-            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-                if (indices[i].size() == 0) // Master dof!
-                    mMasterIds.push_back(i);
-                else // Slave dof
-                    mSlaveIds.push_back(i);
-                indices[i].insert(i); // Ensure that the diagonal is there in T
-            }
-
-            // // Count the row sizes
-            // std::size_t nnz = 0;
-            // for (IndexType i = 0; i < indices.size(); ++i)
-            //     nnz += indices[i].size();
-
-            // mpT = TSystemMatrixType(indices.size(), indices.size(), nnz);
-            // mpConstantVector.resize(indices.size(), false);
-
-            // double *Tvalues = mpT.value_data().begin();
-            // IndexType *Trow_indices = mpT.index1_data().begin();
-            // IndexType *Tcol_indices = mpT.index2_data().begin();
-
-            // // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-            // Trow_indices[0] = 0;
-            // for (int i = 0; i < static_cast<int>(mpT.size1()); i++)
-            //     Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
-
-            // IndexPartition<std::size_t>(mpT.size1()).for_each([&](std::size_t Index){
-            //     const IndexType row_begin = Trow_indices[Index];
-            //     const IndexType row_end = Trow_indices[Index + 1];
-            //     IndexType k = row_begin;
-            //     for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
-            //         Tcol_indices[k] = *it;
-            //         Tvalues[k] = 0.0;
-            //         k++;
+            //         // Slave DoFs
+            //         for (auto &id_i : slave_ids) {
+            //             temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
+            //         }
             //     }
 
-            //     indices[Index].clear(); //deallocating the memory
+            //     // Merging all the temporal indexes
+            //     for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
+            //         lock_array[i].lock();
+            //         indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
+            //         lock_array[i].unlock();
+            //     }
+            // }
 
-            //     std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-            // });
+            // mSlaveIds.clear();
+            // mMasterIds.clear();
+            // for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+            //     if (indices[i].size() == 0) // Master dof!
+            //         mMasterIds.push_back(i);
+            //     else // Slave dof
+            //         mSlaveIds.push_back(i);
+            //     indices[i].insert(i); // Ensure that the diagonal is there in T
+            // }
 
-            // mpT.set_filled(indices.size() + 1, nnz);
+            // Generate map
+            const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
+            int temp_size = number_of_local_dofs;
+            if (temp_size < 1000) {
+                temp_size = 1000;
+            }
+            std::vector<int> temp(temp_size, 0);
+
+            // Create and fill the graph of the matrix
+            Epetra_Map map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
+            Epetra_FECrsGraph Tgraph(Copy, map, mGuessRowSize);
+
+            // TODO: Diagonal should be non zero
+
+            // TODO: Check if these should be local constraints
+            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+
+            // Assemble all constraints
+            Element::EquationIdVectorType slave_equation_ids_vector, master_equation_ids_vector;
+            for (auto& r_const : r_constraints_array) {
+                r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
+
+                // Filling the list of active global indices (non fixed)
+                IndexType num_active_indices = 0;
+                for (auto& r_slave_id : slave_equation_ids_vector) {
+                    temp[num_active_indices] = r_slave_id;
+                    num_active_indices += 1;
+                }
+                for (auto& r_master_id : master_equation_ids_vector) {
+                    temp[num_active_indices] = r_master_id;
+                    num_active_indices += 1;
+                }
+
+                if (num_active_indices != 0) {
+                    const int ierr = Tgraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                }
+                std::fill(temp.begin(), temp.end(), 0);
+            }
+
+            // Finalizing graph construction
+            const int ierr = Tgraph.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+
+            // Generate a new matrix pointer according to this graph
+            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
+            mpT.swap(p_new_T);
+
+            // Generate the constant vector equivalent
+            TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(map));
+            mpConstantVector.swap(p_new_constant_vector);
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
@@ -1246,14 +1260,14 @@ protected:
         // Filling with zero the matrix (creating the structure)
         START_TIMER("MatrixStructure", 0)
 
-        IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
+        const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
         int temp_size = number_of_local_dofs;
         if (temp_size < 1000) {
             temp_size = 1000;
         }
         std::vector<int> temp(temp_size, 0);
 
-        // TODO: Check if these should be local elements and conditions
+        // TODO: Check if these should be local elements, conditions and constraints
         auto& r_elements_array = rModelPart.Elements();
         auto& r_conditions_array = rModelPart.Conditions();
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
@@ -1262,11 +1276,11 @@ protected:
         for (IndexType i = 0; i != number_of_local_dofs; i++) {
             temp[i] = mFirstMyId + i;
         }
-        Epetra_Map my_map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
+        Epetra_Map map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
 
         // Create and fill the graph of the matrix --> the temp array is
         // reused here with a different meaning
-        Epetra_FECrsGraph Agraph(Copy, my_map, mGuessRowSize);
+        Epetra_FECrsGraph Agraph(Copy, map, mGuessRowSize);
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -1339,16 +1353,16 @@ protected:
 
         // Generate new vector pointers according to the given map
         if (rpb == nullptr || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize) {
-            TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(my_map));
+            TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(map));
             rpb.swap(p_new_b);
         }
         if (rpDx == nullptr || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize) {
-            TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(my_map));
+            TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(map));
             rpDx.swap(p_new_Dx);
         }
         // If the pointer is not initialized initialize it to an empty matrix
         if (BaseType::mpReactionsVector == nullptr) {
-            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map));
+            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(map));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
 
