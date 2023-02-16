@@ -32,7 +32,7 @@ namespace Kratos
  * @details It is faster than using Geometry as it is more specialized
  * @author Riccardo Rossi
  */
-class GeometryUtils
+class KRATOS_API(KRATOS_CORE) GeometryUtils
 {
 public:
     ///@name Type Definitions
