@@ -11,8 +11,7 @@
 //                  Eduard Gomez Escandell 
 //
 
-#if !defined(KRATOS_LSPG_ROM_BUILDER_AND_SOLVER)
-#define KRATOS_LSPG_ROM_BUILDER_AND_SOLVER
+#pragma once
 
 /* System includes */
 
@@ -106,7 +105,6 @@ public:
     typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
-    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
 
     // Non-distributed, dense:
     typedef LocalSystemMatrixType RomSystemMatrixType;
@@ -324,7 +322,8 @@ protected:
      * Resizes a Matrix if it's not the right size
      */
     template<typename TMatrix>
-    static void ResizeIfNeeded(TMatrix& mat, const SizeType rows, const SizeType cols)
+    static void ResizeIfNeeded(TMatrix& rMat, const SizeType Rows, const SizeType Cols)
+
     {
         if(mat.size1() != rows || mat.size2() != cols) {
             mat.resize(rows, cols, false);
@@ -357,7 +356,8 @@ protected:
 
         AssemblyTLS assembly_tls_container;
 
-        auto& elements = rModelPart.Elements();
+        const auto& r_elements = rModelPart.Elements();
+
         if(!elements.empty())
         {
             block_for_each(elements, assembly_tls_container, 
@@ -368,7 +368,8 @@ protected:
         }
 
 
-        auto& conditions = rModelPart.Conditions();
+        const auto& r_conditions = rModelPart.Conditions();
+
         if(!conditions.empty())
         {
             block_for_each(conditions, assembly_tls_container, 
@@ -438,7 +439,8 @@ protected:
 
         AssemblyTLS assembly_tls_container;
 
-        auto& elements = rModelPart.Elements();
+        const auto& r_elements = rModelPart.Elements();
+
         if(!elements.empty())
         {
             block_for_each(elements, assembly_tls_container, 
@@ -449,7 +451,8 @@ protected:
         }
 
 
-        auto& conditions = rModelPart.Conditions();
+        const auto& r_conditions = rModelPart.Conditions();
+
         if(!conditions.empty())
         {
             block_for_each(conditions, assembly_tls_container, 
@@ -525,14 +528,15 @@ private:
             double& r_bi = rBglobal(global_row);
             AtomicAdd(r_bi, rPreAlloc.romB[row]);
 
-            if(rPreAlloc.dofs[row]->IsFixed()) continue;
-
-            for(SizeType col=0; col < this->GetNumberOfROMModes(); ++col)
+            if(rPreAlloc.dofs[row]->IsFree())
             {
-                // const SizeType global_col = rPreAlloc.eq_id[col];
-                const SizeType global_col = col;
-                double& r_Aij = rAglobal(global_row, global_col);
-                AtomicAdd(r_Aij, rPreAlloc.romA(row, col));
+                for(SizeType col=0; col < this->GetNumberOfROMModes(); ++col)
+                {
+                    // const SizeType global_col = rPreAlloc.eq_id[col];
+                    const SizeType global_col = col;
+                    double& r_Aij = rAglobal(global_row, global_col);
+                    AtomicAdd(r_Aij, rPreAlloc.romA(row, col));
+                }
             }
         }
     }
@@ -583,4 +587,3 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_LSPG_ROM_BUILDER_AND_SOLVER  defined */
