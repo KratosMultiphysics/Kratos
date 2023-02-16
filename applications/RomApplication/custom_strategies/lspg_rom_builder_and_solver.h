@@ -58,19 +58,27 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class LeastSquaresPetrovGalerkinROMBuilderAndSolver
+ * @ingroup RomApplication
+ * @brief Current class provides an implementation for LeastSquaresPetrovGalerkinROM builder and solving operations.
+ * @details The RHS is constituted by the unbalanced loads (residual).
+ * The LHS is constituted by projecting the Jacobian or its approximation onto the ROM RIGHT BASIS, 
+ * yielding a rectangular system (FOM size) that is then solved using the QR decomposition.
+ * Degrees of freedom are reordered putting the restrained degrees of freedom at
+ * the end of the system ordered in reverse order with respect to the DofSet (as for the FOM).
+ * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
+ * this information (as for the FOM).
+ * @tparam TSparseSpace The sparse system considered
+ * @tparam TDenseSpace The dense system considered
+ * @tparam TLinearSolver The linear solver considered
+ * @author SebastianAres
+ */
+
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class LeastSquaresPetrovGalerkinROMBuilderAndSolver : public ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
-
-    //TODO: UPDATE THIS
-    /**
-     * This struct is used in the component wise calculation only
-     * is defined here and is used to declare a member variable in the component wise builder and solver
-     * private pointers can only be accessed by means of set and get functions
-     * this allows to set and not copy the Element_Variables and Condition_Variables
-     * which will be asked and set by another strategy object
-     */
 
     ///@name Type Definitions
     ///@{
@@ -207,7 +215,7 @@ public:
 
         // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
         if (mTrainPetrovGalerkinFlag){
-            Kratos::Vector r_residual;
+            TSystemVectorType r_residual;
             GetAssembledResiduals(pScheme, rModelPart, r_residual);
         }
 
@@ -325,8 +333,8 @@ protected:
     static void ResizeIfNeeded(TMatrix& rMat, const SizeType Rows, const SizeType Cols)
 
     {
-        if(mat.size1() != rows || mat.size2() != cols) {
-            mat.resize(rows, cols, false);
+        if(rMat.size1() != Rows || rMat.size2() != Cols) {
+            rMat.resize(Rows, Cols, false);
         }
     };
 
@@ -358,9 +366,9 @@ protected:
 
         const auto& r_elements = rModelPart.Elements();
 
-        if(!elements.empty())
+        if(!r_elements.empty())
         {
-            block_for_each(elements, assembly_tls_container, 
+            block_for_each(r_elements, assembly_tls_container, 
                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
                 CalculateLocalContributionLSPG(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -370,9 +378,9 @@ protected:
 
         const auto& r_conditions = rModelPart.Conditions();
 
-        if(!conditions.empty())
+        if(!r_conditions.empty())
         {
-            block_for_each(conditions, assembly_tls_container, 
+            block_for_each(r_conditions, assembly_tls_container, 
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
                 CalculateLocalContributionLSPG(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -441,9 +449,9 @@ protected:
 
         const auto& r_elements = rModelPart.Elements();
 
-        if(!elements.empty())
+        if(!r_elements.empty())
         {
-            block_for_each(elements, assembly_tls_container, 
+            block_for_each(r_elements, assembly_tls_container, 
                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
                 CalculateAssembledResiduals(r_element, rb, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -453,9 +461,9 @@ protected:
 
         const auto& r_conditions = rModelPart.Conditions();
 
-        if(!conditions.empty())
+        if(!r_conditions.empty())
         {
-            block_for_each(conditions, assembly_tls_container, 
+            block_for_each(r_conditions, assembly_tls_container, 
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
                 CalculateAssembledResiduals(r_condition, rb, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -534,8 +542,8 @@ private:
                 {
                     // const SizeType global_col = rPreAlloc.eq_id[col];
                     const SizeType global_col = col;
-                    double& r_Aij = rAglobal(global_row, global_col);
-                    AtomicAdd(r_Aij, rPreAlloc.romA(row, col));
+                    double& r_aij = rAglobal(global_row, global_col);
+                    AtomicAdd(r_aij, rPreAlloc.romA(row, col));
                 }
             }
         }
@@ -565,10 +573,11 @@ private:
         {
             const SizeType global_row = rPreAlloc.eq_id[row];
 
-            if(rPreAlloc.dofs[row]->IsFixed()) continue;
-
-            double& r_bi = rBglobal(global_row);
-            AtomicAdd(r_bi, rPreAlloc.romB[row]);
+            if(rPreAlloc.dofs[row]->IsFree())
+            {
+                double& r_bi = rBglobal(global_row);
+                AtomicAdd(r_bi, rPreAlloc.romB[row]);
+            }
         }
     }
 
