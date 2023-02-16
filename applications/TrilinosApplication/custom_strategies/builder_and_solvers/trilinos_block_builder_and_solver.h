@@ -1149,8 +1149,12 @@ protected:
     {
         KRATOS_TRY
 
-    //     TSparseSpace::SetToZero(mpT);
-    //     TSparseSpace::SetToZero(mpConstantVector);
+        // Reference of the matrix and vectpr
+        auto& r_T = *mpT;
+        auto& r_constant_vector = *mpConstantVector;
+
+        TSparseSpace::SetToZero(r_T);
+        TSparseSpace::SetToZero(r_constant_vector);
 
     //     // The current process info
     //     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -1168,8 +1172,8 @@ protected:
 
     //     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
-    //     // We clear the set
-    //     mInactiveSlaveDofs.clear();
+        // We clear the set
+        mInactiveSlaveDofs.clear();
 
     //     #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
     //     {
@@ -1213,17 +1217,21 @@ protected:
     //         }
     //     }
 
-    //     // Setting the master dofs into the T and C system
-    //     for (auto eq_id : mMasterIds) {
-    //         mpConstantVector[eq_id] = 0.0;
-    //         mpT(eq_id, eq_id) = 1.0;
-    //     }
+        // Adding 1s and 0s in the corresponding rows of the matrix and vector
 
-    //     // Setting inactive slave dofs in the T and C system
-    //     for (auto eq_id : mInactiveSlaveDofs) {
-    //         mpConstantVector[eq_id] = 0.0;
+        // Setting the master dofs into the T and C system
+        for (auto eq_id : mMasterIds) {
+            TSparseSpace::SetValue(r_constant_vector, eq_id, 0.0);
+            // TODO: Add SetValue for Epetra matrix
     //         mpT(eq_id, eq_id) = 1.0;
-    //     }
+        }
+
+        // Setting inactive slave dofs in the T and C system
+        for (auto eq_id : mInactiveSlaveDofs) {
+            TSparseSpace::SetValue(r_constant_vector, eq_id, 0.0);
+            // TODO: Add SetValue for Epetra matrix
+    //         mpT(eq_id, eq_id) = 1.0;
+        }
 
         KRATOS_CATCH("")
     }
