@@ -1066,8 +1066,7 @@ std::string GeometryTesterUtility::GetIntegrationName(
 
 std::string GeometryTesterUtility::GetGeometryName(GeometryType& rGeometry)
 {
-    const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
-    return GeometryUtils::GetGeometryName(geometry_type);
+    return GeometryUtils::GetGeometryName(rGeometry.GetGeometryType());
 }
 
 } // namespace Kratos.
