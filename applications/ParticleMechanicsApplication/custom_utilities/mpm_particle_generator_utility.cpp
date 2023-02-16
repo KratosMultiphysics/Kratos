@@ -245,7 +245,7 @@ namespace MPMParticleGeneratorUtility
         //     rank = rBackgroundGridModelPart.GetCommunicator().MyPID();
         //     last_condition_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(last_condition_id) + rank;
         // }
-        unsigned int new_condition_id = last_condition_id;
+        // unsigned int new_condition_id = last_condition_id;
 
         // Loop over the submodelpart of rBackgroundGridModelPart
         for (auto& submodelpart : rBackgroundGridModelPart.SubModelParts())
