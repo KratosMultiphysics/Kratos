@@ -16,8 +16,8 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/mpi/mpi_utilities.h"
-#include "custom_utilities/mpi/mpm_mpi_search.h"
+#include "custom_utilities/mpi_utilities.h"
+#include "custom_utilities/mpm_mpi_search.h"
 #include "includes/model_part.h"
 
 namespace Kratos{
