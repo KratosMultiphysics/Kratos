@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborators:   Vicente Mataix
@@ -1290,16 +1290,13 @@ protected:
             Timer::Start("ConstraintsRelationMatrixStructure");
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            // Vector containing the localization in the system of the different terms
-            DofsVectorType slave_dof_list, master_dof_list;
-
             // Constraint initial iterator
             const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
             std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
 
             std::vector<LockObject> lock_array(indices.size());
 
-            #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
+            #pragma omp parallel
             {
                 Element::EquationIdVectorType slave_ids(3);
                 Element::EquationIdVectorType master_ids(3);
