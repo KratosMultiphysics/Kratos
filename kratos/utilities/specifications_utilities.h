@@ -54,7 +54,8 @@ namespace
     {
         std::unordered_map<std::string, GeometryData::KratosGeometryType> my_map;
         for (unsigned int i = 0; i < static_cast<unsigned int>(GeometryData::KratosGeometryType::NumberOfGeometryTypes); ++i) {
-            my_map.insert({GeometryUtils::GetGeometryName(static_cast<GeometryData::KratosGeometryType>(i)),  static_cast<GeometryData::KratosGeometryType>(i)});
+            const auto type = static_cast<GeometryData::KratosGeometryType>(i);
+            my_map.insert({GeometryUtils::GetGeometryName(type), type});
         }
         return my_map;
     }
