@@ -63,7 +63,7 @@ namespace Kratos
  * @ingroup RomApplication
  * @brief Current class provides an implementation for LeastSquaresPetrovGalerkinROM builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual).
- * The LHS is constituted by projecting the Jacobian or its approximation onto the ROM RIGHT BASIS, 
+ * The LHS is constituted by multiplying the Jacobian or its approximation with the ROM RIGHT BASIS, 
  * yielding a rectangular system (FOM size) that is then solved using the QR decomposition.
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet (as for the FOM).

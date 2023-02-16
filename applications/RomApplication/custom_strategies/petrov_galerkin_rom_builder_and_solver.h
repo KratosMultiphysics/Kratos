@@ -56,6 +56,24 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class PetrovGalerkinROMBuilderAndSolver
+ * @ingroup RomApplication
+ * @brief Current class provides an implementation for PetrovGalerkinROM builder and solving operations.
+ * @details The RHS is constituted by the unbalanced loads (residual) and projected onto the ROM LEFT BASIS.
+ * The LHS is constituted by first multiplying the Jacobian or its approximation with the ROM RIGHT BASIS
+ * and then projecting it onto the ROM LEFT BASIS, yielding a rectangular system (ROM size) that is then 
+ * solved using the QR decomposition.
+ * Degrees of freedom are reordered putting the restrained degrees of freedom at
+ * the end of the system ordered in reverse order with respect to the DofSet (as for the FOM).
+ * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
+ * this information (as for the FOM).
+ * @tparam TSparseSpace The sparse system considered
+ * @tparam TDenseSpace The dense system considered
+ * @tparam TLinearSolver The linear solver considered
+ * @author SebastianAres
+ */
+
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class PetrovGalerkinROMBuilderAndSolver : public ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
@@ -388,10 +406,10 @@ protected:
 
         const auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
 
-        if(!elements.empty())
+        if(!r_elements.empty())
         {
             std::tie(rA, rb) =
-            block_for_each<SystemSumReducer>(elements, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(r_elements, assembly_tls_container, 
                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContributionPetrovGalerkin(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -401,19 +419,19 @@ protected:
 
         const auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
 
-        if(!conditions.empty())
+        if(!r_conditions.empty())
         {
-            PetrovGalerkinSystemMatrixType Aconditions;
+            PetrovGalerkinSystemMatrixType aconditions;
             PetrovGalerkinSystemVectorType bconditions;
 
-            std::tie(Aconditions, bconditions) =
-            block_for_each<SystemSumReducer>(conditions, assembly_tls_container, 
+            std::tie(aconditions, bconditions) =
+            block_for_each<SystemSumReducer>(r_conditions, assembly_tls_container, 
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContributionPetrovGalerkin(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
             });
 
-            rA += Aconditions;
+            rA += aconditions;
             rb += bconditions;
         }
 
