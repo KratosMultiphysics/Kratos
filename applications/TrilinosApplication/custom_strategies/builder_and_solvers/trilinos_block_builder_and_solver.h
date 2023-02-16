@@ -859,7 +859,7 @@ public:
             // Reference to T
             const TSystemMatrixType& r_T = *mpT;
 
-            // Compute T b
+            // Compute T' b
             const TSystemVectorType copy_b(rb);
             TSparseSpace::TransposeMult(r_T, copy_b, rb);
 
@@ -901,7 +901,7 @@ public:
             const TSystemMatrixType copy_A(rA);
             TSparseSpace::BtDBProductOperation(rA, copy_A, r_T);
 
-            // Compute T b
+            // Compute T' b
             const TSystemVectorType copy_b(rb);
             TSparseSpace::TransposeMult(r_T, copy_b, rb);
 
