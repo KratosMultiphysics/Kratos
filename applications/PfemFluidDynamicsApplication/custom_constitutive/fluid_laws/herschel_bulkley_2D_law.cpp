@@ -83,7 +83,7 @@ namespace Kratos
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1];
 
-        //This stress_vector is only deviatoric
+        // This stress_vector is only deviatoric
         r_stress_vector[0] = 2.0 * effective_dynamic_viscosity * (r_strain_vector[0] - strain_trace / 3.0);
         r_stress_vector[1] = 2.0 * effective_dynamic_viscosity * (r_strain_vector[1] - strain_trace / 3.0);
         r_stress_vector[2] = 2.0 * effective_dynamic_viscosity * r_strain_vector[2];
@@ -100,7 +100,7 @@ namespace Kratos
     //*****************************************************************************
 
     int HerschelBulkley2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                            const ProcessInfo &rCurrentProcessInfo) const
+                                    const ProcessInfo &rCurrentProcessInfo) const
     {
 
         KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
@@ -130,7 +130,7 @@ namespace Kratos
     {
         return rParameters.GetMaterialProperties()[rVariable];
     }
-    
+
     void HerschelBulkley2DLaw::save(Serializer &rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PfemFluidConstitutiveLaw)

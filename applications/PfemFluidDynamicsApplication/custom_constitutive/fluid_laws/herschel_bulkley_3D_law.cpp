@@ -105,7 +105,7 @@ namespace Kratos
     //*****************************************************************************
 
     int HerschelBulkley3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                            const ProcessInfo &rCurrentProcessInfo) const
+                                    const ProcessInfo &rCurrentProcessInfo) const
     {
 
         KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
