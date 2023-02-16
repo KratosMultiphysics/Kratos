@@ -85,24 +85,24 @@ namespace Kratos
          */
         SizeType WorkingSpaceDimension() override;
 
-        /**
-         * @return Size of the strain vector (in Voigt notation) for the constitutive law
-         */
-        SizeType GetStrainSize();
+    /**
+     * @return Size of the strain vector (in Voigt notation) for the constitutive law
+     */
+    SizeType GetStrainSize() const override;
 
         void CalculateMaterialResponseCauchy(Parameters &rValues) override;
 
-        /**
-         * This function is designed to be called once to perform all the checks needed
-         * on the input provided. Checks can be "expensive" as the function is designed
-         * to catch user's errors.
-         * @param rMaterialProperties
-         * @param rElementGeometry
-         * @param rCurrentProcessInfo
-         * @return
-         */
-        int Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                  const ProcessInfo &rCurrentProcessInfo);
+    /**
+     * This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
+     * @return
+     */
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
         /**
          * Input and output
@@ -130,17 +130,14 @@ namespace Kratos
 
         ///@}
 
-    private:
-        ///@name Static Member Variables
-        ///@{
+    /// Get the effective yield shear for the fluid.
+    virtual double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const;
 
-        ///@}
-        ///@name Member Variables
-        ///@{
+    /// Get the effective dynamic viscosity for the fluid.
+    virtual double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
 
-        ///@}
-        ///@name Private Operators
-        ///@{
+    /// Get the flow index for the fluid.
+    virtual double GetFlowIndex(ConstitutiveLaw::Parameters& rParameters) const;
 
         ///@}
         ///@name Private Operations
