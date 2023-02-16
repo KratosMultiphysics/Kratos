@@ -28,12 +28,6 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
   file(GLOB_RECURSE  KRATOS_PARTICLE_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-if((${USE_MPI} MATCHES ON))
- set(EXTRA_LIBRARIES "KratosMPICore")
-else()
- set(EXTRA_LIBRARIES "")
-endif((${USE_MPI} MATCHES ON))
-
 add_library(KratosParticleMechanicsCore SHARED ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE} ${KRATOS_PARTICLE_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosParticleMechanicsCore PUBLIC KratosCore ${EXTRA_LIBRARIES})
 set_target_properties(KratosParticleMechanicsCore PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
@@ -85,12 +79,10 @@ install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosParticleMechanicsCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosParticleMechanicsApplication" PARENT_SCOPE)
-## If trilinos is avaliable, switch on the ParticleMecchanics trilinos extension
 
+## If trilinos is avaliable, switch on the ParticleMecchanics trilinos extension
 if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling trilinos extension for KratosParticleMechanicsApplication")
   add_subdirectory(trilinos_extension)
-  file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
-  )
+  file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE} ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp)
 endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))

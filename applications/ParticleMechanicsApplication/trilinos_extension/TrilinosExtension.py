@@ -1,2 +1,2 @@
-# import KratosMultiphysics.TrilinosApplication
-# from KratosParticleMechanicsTrilinosExtension import *
+import KratosMultiphysics.TrilinosApplication
+from KratosFluidDynamicsTrilinosExtension import *
