@@ -1068,86 +1068,70 @@ protected:
             START_TIMER("ConstraintsRelationMatrixStructure", 0)
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            // // Constraint initial iterator
-            // const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-            // std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
-
-            // std::vector<LockObject> lock_array(indices.size());
-
-            // #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
-            // {
-            //     Element::EquationIdVectorType slave_ids(3);
-            //     Element::EquationIdVectorType master_ids(3);
-            //     std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
-
-            //     #pragma omp for schedule(guided, 512) nowait
-            //     for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-            //         auto it_const = it_const_begin + i_const;
-
-            //         it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-
-            //         // Slave DoFs
-            //         for (auto &id_i : slave_ids) {
-            //             temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-            //         }
-            //     }
-
-            //     // Merging all the temporal indexes
-            //     for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-            //         lock_array[i].lock();
-            //         indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-            //         lock_array[i].unlock();
-            //     }
-            // }
-
-            // mSlaveIds.clear();
-            // mMasterIds.clear();
-            // for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-            //     if (indices[i].size() == 0) // Master dof!
-            //         mMasterIds.push_back(i);
-            //     else // Slave dof
-            //         mSlaveIds.push_back(i);
-            //     indices[i].insert(i); // Ensure that the diagonal is there in T
-            // }
+            // Constraint initial iterator
+            const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
+            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+            std::vector<std::unordered_set<IndexType>> indices(number_of_local_dofs);
 
             // Generate map
-            const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
-            int temp_size = number_of_local_dofs;
-            if (temp_size < 1000) {
-                temp_size = 1000;
-            }
+            const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_dofs;
             std::vector<int> temp(temp_size, 0);
 
             // Create and fill the graph of the matrix
             Epetra_Map map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
             Epetra_FECrsGraph Tgraph(Copy, map, mGuessRowSize);
 
-            // TODO: Diagonal should be non zero
+            std::vector<LockObject> lock_array(indices.size());
 
-            // TODO: Check if these should be local constraints
-            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+            #pragma omp parallel
+            {
+                Element::EquationIdVectorType slave_ids(3);
+                Element::EquationIdVectorType master_ids(3);
+                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
 
-            // Assemble all constraints
-            Element::EquationIdVectorType slave_equation_ids_vector, master_equation_ids_vector;
-            for (auto& r_const : r_constraints_array) {
-                r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
+                #pragma omp for schedule(guided, 512) nowait
+                for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
+                    auto it_const = it_const_begin + i_const;
 
+                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+
+                    // Slave DoFs
+                    for (auto &id_i : slave_ids) {
+                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
+                    }
+                }
+
+                // Merging all the temporal indexes
+                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
+                    lock_array[i].lock();
+                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
+                    lock_array[i].unlock();
+                }
+            }
+
+            // Destroy locks
+            lock_array = std::vector<LockObject>();
+
+            mSlaveIds.clear();
+            mMasterIds.clear();
+            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+                if (indices[i].size() == 0) // Master dof!
+                    mMasterIds.push_back(i);
+                else // Slave dof
+                    mSlaveIds.push_back(i);
+                indices[i].insert(i); // Ensure that the diagonal is there in T
+            }
+
+            // Generate the structure
+            for (auto& r_row_index : indices) {
                 // Filling the list of active global indices (non fixed)
-                IndexType num_active_indices = 0;
-                for (auto& r_slave_id : slave_equation_ids_vector) {
-                    temp[num_active_indices] = r_slave_id;
-                    num_active_indices += 1;
-                }
-                for (auto& r_master_id : master_equation_ids_vector) {
-                    temp[num_active_indices] = r_master_id;
-                    num_active_indices += 1;
-                }
+                const IndexType num_active_indices = r_row_index.size();
 
                 if (num_active_indices != 0) {
-                    const int ierr = Tgraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                    const std::vector<int> row_index_data(r_row_index.begin(), r_row_index.end());
+                    const int ierr = Tgraph.InsertGlobalIndices(num_active_indices, row_index_data.data(), num_active_indices, row_index_data.data());
                     KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
-                std::fill(temp.begin(), temp.end(), 0);
             }
 
             // Finalizing graph construction
@@ -1261,10 +1245,7 @@ protected:
         START_TIMER("MatrixStructure", 0)
 
         const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
-        int temp_size = number_of_local_dofs;
-        if (temp_size < 1000) {
-            temp_size = 1000;
-        }
+        const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_dofs;
         std::vector<int> temp(temp_size, 0);
 
         // TODO: Check if these should be local elements, conditions and constraints
