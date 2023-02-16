@@ -239,13 +239,13 @@ namespace MPMParticleGeneratorUtility
         //NOTE: For a mpi-run, unique Id's across all mpi nodes are required.
         // unsigned int size = 1;
         // unsigned int rank = 0;
-        // // Synchronize condition id's in mpi run, to ensure unique condition id's across mpi-processes
+        // Synchronize condition id's in mpi run, to ensure unique condition id's across mpi-processes
         // if( rBackgroundGridModelPart.GetCommunicator().IsDistributed() ){
         //     size = rBackgroundGridModelPart.GetCommunicator().TotalProcesses();
         //     rank = rBackgroundGridModelPart.GetCommunicator().MyPID();
         //     last_condition_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(last_condition_id) + rank;
         // }
-        // unsigned int new_condition_id = last_condition_id;
+        unsigned int new_condition_id = last_condition_id;
 
         // Loop over the submodelpart of rBackgroundGridModelPart
         for (auto& submodelpart : rBackgroundGridModelPart.SubModelParts())
@@ -272,6 +272,7 @@ namespace MPMParticleGeneratorUtility
                         // Check 'apply_mpm_slip_boundary_process.py'
                     }
                     else {
+                        rMPMModelPart.CreateSubModelPart(submodelpart_name);
                         rMPMModelPart.SetConditions(submodelpart.pConditions());
                     }
                 }
@@ -279,6 +280,7 @@ namespace MPMParticleGeneratorUtility
                 else{
                     // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the rMPMModelPart
+                    rMPMModelPart.CreateSubModelPart(submodelpart_name);
                     for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
                             i != submodelpart.ConditionsEnd(); i++)
                     {
