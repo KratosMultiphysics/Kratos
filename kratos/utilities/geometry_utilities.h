@@ -19,9 +19,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "geometries/geometry.h"
 #include "includes/node.h"
-#include "includes/element.h"
 
 namespace Kratos
 {
@@ -805,7 +804,7 @@ public:
      * @param Step                              Step to be used in historical variable value interpolation
      */
     template <class TDataType>
-    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableValueAtGaussPoint(
+    static void EvaluateHistoricalVariableValueAtGaussPoint(
         TDataType& rOutput,
         const GeometryType& rGeometry,
         const Variable<TDataType>& rVariable,
@@ -824,7 +823,7 @@ public:
      * @param rGaussPointShapeFunctionDerivativeValues  Shape function derivatives evaluated at gauss point
      * @param Step                                      Step to be used in historical variable value interpolation
      */
-    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableGradientAtGaussPoint(
+    static void EvaluateHistoricalVariableGradientAtGaussPoint(
         array_1d<double, 3>& rOutput,
         const GeometryType& rGeometry,
         const Variable<double>& rVariable,
@@ -847,7 +846,7 @@ public:
      * @param rGaussPointShapeFunctionDerivativeValues  Shape function derivatives evaluated at gauss point
      * @param Step                                      Step to be used in historical variable value interpolation
      */
-    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableGradientAtGaussPoint(
+    static void EvaluateHistoricalVariableGradientAtGaussPoint(
         BoundedMatrix<double, 3, 3>& rOutput,
         const GeometryType& rGeometry,
         const Variable<array_1d<double, 3>>& rVariable,
@@ -862,7 +861,7 @@ public:
      * @param Tolerance the tolerance to the boundary.
      * @return true if the point is inside, false otherwise
      */
-    static bool KRATOS_API(KRATOS_CORE) ProjectedIsInside(
+    static bool ProjectedIsInside(
         const GeometryType& rGeometry,
         const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
         GeometryType::CoordinatesArrayType& rResult,
