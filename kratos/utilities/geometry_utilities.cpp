@@ -28,6 +28,8 @@ std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryTyp
 
     // Using switch over map as the compiler warns if some enum values are not handled in the switch
     switch(TypeOfGeometry) {
+        case GeometryData::KratosGeometryType::Kratos_generic_type:
+            return "GenericType";
         case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20:
             return "Hexahedra3D20";
         case GeometryData::KratosGeometryType::Kratos_Hexahedra3D27:
