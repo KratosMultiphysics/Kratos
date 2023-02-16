@@ -17,7 +17,6 @@
 // Project includes
 #include "includes/define.h"
 #include "input_output/stl_io.h"
-#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
