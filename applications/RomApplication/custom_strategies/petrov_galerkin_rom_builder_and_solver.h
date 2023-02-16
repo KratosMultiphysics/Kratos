@@ -10,8 +10,7 @@
 //  Main authors:   Sebastian Ares de Parga Regalado
 //
 
-#if !defined(KRATOS_PETROV_GALERKIN_ROM_BUILDER_AND_SOLVER)
-#define KRATOS_PETROV_GALERKIN_ROM_BUILDER_AND_SOLVER
+#pragma once
 
 /* System includes */
 
@@ -62,14 +61,6 @@ class PetrovGalerkinROMBuilderAndSolver : public ROMBuilderAndSolver<TSparseSpac
 {
 public:
 
-    //TODO: UPDATE THIS
-    /**
-     * This struct is used in the component wise calculation only
-     * is defined here and is used to declare a member variable in the component wise builder and solver
-     * private pointers can only be accessed by means of set and get functions
-     * this allows to set and not copy the Element_Variables and Condition_Variables
-     * which will be asked and set by another strategy object
-     */
 
     ///@name Type Definitions
     ///@{
@@ -101,7 +92,6 @@ public:
     typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
-    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
 
     // Non-distributed, dense:
     typedef LocalSystemMatrixType RomSystemMatrixType;
@@ -396,7 +386,8 @@ protected:
         using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<PetrovGalerkinSystemMatrixType>, NonTrivialSumReduction<PetrovGalerkinSystemVectorType>>;
         AssemblyTLS assembly_tls_container(this->GetNumberOfROMModes(), mNumberOfPetrovGalerkinRomModes);
 
-        auto& elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
+        const auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
+
         if(!elements.empty())
         {
             std::tie(rA, rb) =
@@ -408,7 +399,8 @@ protected:
         }
 
 
-        auto& conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
+        const auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
+
         if(!conditions.empty())
         {
             PetrovGalerkinSystemMatrixType Aconditions;
@@ -537,4 +529,3 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_PETROV_GALERKIN_ROM_BUILDER_AND_SOLVER  defined */
