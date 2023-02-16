@@ -130,14 +130,17 @@ namespace Kratos
 
         ///@}
 
-    /// Get the effective yield shear for the fluid.
-    virtual double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const;
+    private:
+        ///@name Static Member Variables
+        ///@{
 
-    /// Get the effective dynamic viscosity for the fluid.
-    virtual double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+        ///@}
+        ///@name Member Variables
+        ///@{
 
-    /// Get the flow index for the fluid.
-    virtual double GetFlowIndex(ConstitutiveLaw::Parameters& rParameters) const;
+        ///@}
+        ///@name Private Operators
+        ///@{
 
         ///@}
         ///@name Private Operations
