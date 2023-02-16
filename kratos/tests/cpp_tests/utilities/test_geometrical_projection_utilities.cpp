@@ -15,13 +15,10 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/geometrical_projection_utilities.h"
-
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
 
 using NodeType = Node<3>;
@@ -313,5 +310,41 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreF
     KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
 }
 
-} // namespace Testing.
-} // namespace Kratos.
+KRATOS_TEST_CASE_IN_SUITE(FastMinimalDistanceOnLineWithRadius, KratosCoreFastSuite)
+{
+    constexpr double TOLERANCE_DISTANCE_PATH = 1e-6;
+
+    double distance;
+    double radius = 0.0;
+    auto line = Kratos::make_shared<Line3D2<Node<3>>>(
+        Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0),
+        Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0)
+    );
+    Point point1(0.0,0.0,0.1);
+    distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point1);
+    auto distance_computed_type = GeometricalProjectionUtilities::GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(distance, *line, point1, radius);
+    KRATOS_CHECK_NEAR(distance, 0.1, TOLERANCE_DISTANCE_PATH);
+    KRATOS_CHECK_EQUAL(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::NO_RADIUS);
+
+    radius = 0.01;
+    Point point2(0.0,0.0,0.1);
+    distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point2);
+    distance_computed_type = GeometricalProjectionUtilities::GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(distance, *line, point2, radius);
+    KRATOS_CHECK_NEAR(distance, 0.09, TOLERANCE_DISTANCE_PATH);
+    KRATOS_CHECK_EQUAL(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_PROJECTED);
+
+    Point point3(-0.1,0.0,0.1);
+    distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point3);
+    distance_computed_type = GeometricalProjectionUtilities::GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(distance, *line, point3, radius);
+    KRATOS_CHECK_NEAR(distance, std::sqrt(std::pow(0.09, 2) * 2), TOLERANCE_DISTANCE_PATH);
+    KRATOS_CHECK_EQUAL(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_NOT_PROJECTED_OUTSIDE);
+
+    radius = 0.1;
+    Point point4(-0.1,0.0,0.09);
+    distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point4);
+    distance_computed_type = GeometricalProjectionUtilities::GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(distance, *line, point4, radius);
+    KRATOS_CHECK_NEAR(distance, -(std::sqrt(std::pow(0.01, 2) + std::pow(0.1, 2))), TOLERANCE_DISTANCE_PATH);
+    KRATOS_CHECK_EQUAL(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_NOT_PROJECTED_INSIDE);
+}
+
+} // namespace Kratos::Testing.
