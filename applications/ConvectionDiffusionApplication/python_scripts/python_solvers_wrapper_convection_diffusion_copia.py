@@ -52,6 +52,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # Steady SBM solver
         elif (solver_type == "SBM_stationary" or solver_type == "sbm_stationary"):
             solver_module_name = "sbm_convection_diffusion_stationary_solver"
+        elif (solver_type == "SBM_moving_stationary" or solver_type == "SBM_moving_stationary"):
+            solver_module_name = "sbm_moving_convection_diffusion_transient_solver"
         # Steady embedded (CutFEM) solver
         elif solver_type == "stationary_embedded":
             solver_module_name = "convection_diffusion_stationary_embedded_solver"

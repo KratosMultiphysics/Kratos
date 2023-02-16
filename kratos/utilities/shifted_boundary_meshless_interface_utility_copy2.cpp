@@ -1235,26 +1235,8 @@ namespace
                             }
                         }       
                     }
-                    // KRATOS_WATCH(r_node_neighS)
-                    // KRATOS_WATCH(count_available_neigh_node)
                     // Se ho elementi disponibili -> Calcolo la map
                     if (count_available_neigh_node > 0) {
-                        // auto& p_node_neigh_vect_TOT = r_node_neighS[0].GetValue(NEIGHBOUR_NODES);
-                        // for (int i = 1 ; i < r_node_neighS.size() ; i++ ) {
-                        //     auto& r_node_i = r_node_neighS[i] ;
-                        //     KRATOS_WATCH(r_node_i.Id())
-                        //     auto& r_node_neigh_vect_i = r_node_i.GetValue(NEIGHBOUR_NODES);
-                        //     for(auto& it : r_node_neigh_vect_i.GetContainer()) {
-                        //         p_node_neigh_vect_TOT.push_back(it);
-                        //     } 
-                        // }
-                        // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
-                        // // Unique
-                        // p_node_neigh_vect_TOT.Unique() ;    
-                        // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
-                        // // shrink_to_fit
-                        // p_node_neigh_vect_TOT.shrink_to_fit() ;
-                        // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
                         double w_total = 0.0;
                         // Set an auxilary map to calculate the current node nodal gradient contributions
                         std::map<std::size_t, Vector> neigh_dn_dx_map;

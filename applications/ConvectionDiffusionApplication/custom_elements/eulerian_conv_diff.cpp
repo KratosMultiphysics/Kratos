@@ -297,7 +297,9 @@ namespace Kratos
             if (IsDefinedVolumeSourceVariable)
             {
                 const Variable<double>& rVolumeSourceVar = my_settings->GetVolumeSourceVariable();
-                rVariables.volumetric_source[i] += GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
+                // rVariables.volumetric_source[i] += GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
+                rVariables.volumetric_source[i] += (1-rVariables.theta) * GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar,1) + rVariables.theta * GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
+
             }
         }
 

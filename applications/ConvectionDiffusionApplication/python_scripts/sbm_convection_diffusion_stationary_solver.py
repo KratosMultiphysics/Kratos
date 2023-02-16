@@ -28,7 +28,7 @@ def CreateSolver(main_model_part, custom_settings):
 
 class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_solver.ConvectionDiffusionStationarySolver):
     print('ci siamo')
-    skin_model_part = Import_Structural_model_part('Structural_soloC')
+    skin_model_part = Import_Structural_model_part('Structural_circle1x1_huge')
 
     def __init__(self, main_model_part, custom_settings):
         super().__init__(main_model_part, custom_settings)
@@ -48,7 +48,7 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         iter = 0
         main_model_part = self.GetComputingModelPart()
         for node in main_model_part.Nodes :
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0, [3.0, 0.0, 0.0])
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0, [1.0, 1.0, 0.0])
             node.Fix(KratosMultiphysics.VELOCITY_X)
             node.Fix(KratosMultiphysics.VELOCITY_Y)
             node.Fix(KratosMultiphysics.VELOCITY_Z)

@@ -66,7 +66,7 @@ namespace Kratos
 				}
 			}
 		}
-		KRATOS_WATCH(Fluid_element)
+		// KRATOS_WATCH(Fluid_element)
 
 		//  Discretize if an element is "boundary" so if it has at least one node that is surrogate
 		for (auto &i_elem : rVolumePart.Elements()) {
@@ -94,7 +94,7 @@ namespace Kratos
 			}
 		}
 		int tot_skin_el = size(rSkinPart.Conditions()) ;
-		KRATOS_WATCH(tot_sur_nodes)
+		// KRATOS_WATCH(tot_sur_nodes)
 
 		// proper FindClosestElement function:
 		std::vector<int> closest_elements;

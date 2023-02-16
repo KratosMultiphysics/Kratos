@@ -38,12 +38,13 @@ void ConvDiffShiftedBoundaryElement<TDim,TNumNodes>::CalculateLocalSystem(Matrix
         Vector& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    // KRATOS_TRY
-    // KRATOS_WATCH("ciao")
-    // exit(0) ;
 
     // Add base EulerianConvDiff contribution
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeEulerianElement(Variables,rCurrentProcessInfo);
 
     // Check if the element belongs to the surrogate interface
     // Note that the INTERFACE flag is assumed to be set in the layer of elements attached to the surrogate interface
@@ -70,10 +71,14 @@ void ConvDiffShiftedBoundaryElement<TDim,TNumNodes>::CalculateLocalSystem(Matrix
             DenseMatrix<unsigned int> nodes_in_faces;
             r_geom.NodesInFaces(nodes_in_faces);
 
+            double theta = Variables.theta ;
             // Get the unknowns vector
             BoundedVector<double, NumNodes> nodal_unknown;
+            // BoundedVector<double, NumNodes> nodal_unknown_old;
             for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
-                nodal_unknown[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
+                nodal_unknown[i_node] = (1-theta) * r_geom[i_node].FastGetSolutionStepValue(r_unknown_var,1) + theta * r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
+                // nodal_unknown[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
+                // nodal_unknown_old[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var,1);
             }
 
             // Loop the surrogate faces
@@ -116,9 +121,10 @@ void ConvDiffShiftedBoundaryElement<TDim,TNumNodes>::CalculateLocalSystem(Matrix
                     i_loc_id = sur_bd_local_ids[i_node + 1];
                     for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
                         aux_2 = aux_1 * DN_DX_proj_n(j_node);
-                        rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2;
+                        rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2 * theta;  // !!!
                         rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
-                        // KRATOS_WATCH(aux_2)
+                        // rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2 + (1-theta) * nodal_unknown_old(j_node);
+                        // rRightHandSideVector(i_loc_id) += aux_2 * theta * nodal_unknown(j_node);
                     }
                 }
             }
@@ -219,6 +225,10 @@ void ConvDiffShiftedBoundaryElement<TDim,TNumNodes>::CalculateRightHandSide(
     // Add base Laplacian contribution
     BaseType::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeEulerianElement(Variables,rCurrentProcessInfo);
+
     // Check if the element belongs to the surrogate interface
     // Note that the INTERFACE flag is assumed to be set in the layer of elements attached to the surrogate interface
     if (Is(BOUNDARY)) {
@@ -242,10 +252,14 @@ void ConvDiffShiftedBoundaryElement<TDim,TNumNodes>::CalculateRightHandSide(
             DenseMatrix<unsigned int> nodes_in_faces;
             r_geom.NodesInFaces(nodes_in_faces);
 
+            double theta = Variables.theta ;
             // Get the unknowns vector
             BoundedVector<double, NumNodes> nodal_unknown;
+            // BoundedVector<double, NumNodes> nodal_unknown_old;
             for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
-                nodal_unknown[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
+                nodal_unknown[i_node] = (1-theta) * r_geom[i_node].FastGetSolutionStepValue(r_unknown_var,1) + theta * r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
+                // nodal_unknown[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
+                // nodal_unknown_old[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var,1);
             }
 
             // Loop the surrogate faces
@@ -288,6 +302,7 @@ void ConvDiffShiftedBoundaryElement<TDim,TNumNodes>::CalculateRightHandSide(
                     for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
                         aux_2 = aux_1 * DN_DX_proj_n(j_node);
                         rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
+                        // rRightHandSideVector(i_loc_id) += aux_2 * (theta * nodal_unknown(j_node)+(1-theta)*nodal_unknown_old(j_node));
                     }
                 }
             }

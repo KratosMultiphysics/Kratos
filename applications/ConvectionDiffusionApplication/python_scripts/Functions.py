@@ -224,7 +224,7 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,closest_element) :
                 check2 = (projection_surr_nodes[i][0] - node2.X)**2 + (projection_surr_nodes[i][1] - node2.Y)**2
                 element_length = (node1.X - node2.X)**2 + (node1.Y - node2.Y)**2
                 if check1 > element_length or check2 > element_length :
-                    print('Need a second projection correction for node: ', node.Id)
+                    # print('Need a second projection correction for node: ', node.Id)
                     # No, the projection just found does not lie on a skin element
                     # --> Take the closest node as the projection
                     projection_surr_nodes[i][0] = candidate.X
@@ -404,10 +404,15 @@ def Compute_error(main_model_part, sub_model_part_fluid) :
             # exact_grad[1] = 0.25*(-2*node.Y)                 # --> Paraboloide
 
             # log classico        
-            exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y)
-            exact_grad[0] = 0.25 * (-2*node.X + 2*node.X / (node.X**2 + node.Y**2))  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
-            exact_grad[1] = 0.25 * (-2*node.Y + 2*node.Y / (node.X**2 + node.Y**2))  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
+            # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y)
+            # exact_grad[0] = 0.25 * (-2*node.X + 2*node.X / (node.X**2 + node.Y**2))  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
+            # exact_grad[1] = 0.25 * (-2*node.Y + 2*node.Y / (node.X**2 + node.Y**2))  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
             
+            # sin(x)*cos(y)
+            exact = math.sin(node.X) * math.cos(node.Y)
+            exact_grad[0] = math.cos(node.X) * math.cos(node.Y)
+            exact_grad[1] = -math.sin(node.X) * math.sin(node.Y)
+
             ## Senza Logaritmo
             # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
             # exact_grad[0] = 0.25 * (-2*node.X)  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
@@ -477,21 +482,20 @@ def ComputeGradientCoefficients (sub_model_part_fluid, model,surrogate_sub_model
     a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtilityCopy2(model,Parameters)
     # a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(model,Parameters)
     result = a.SetSurrogateBoundaryNodalGradientWeights()
-    # result2 = a.NodalGradientWeightsForLonelyNodes()
 
     # CHECK IF THE ARE VERY_PROBLEMATIC ELEMENTS
-    number_very_problematic = 0
-    for elem in sub_model_part_fluid.Elements :
-        if elem.Is(BOUNDARY) :
-            count = 0
-            for node in elem.GetGeometry() :
-                if node.Is(BOUNDARY) :
-                    count = count + 1
+    # number_very_problematic = 0
+    # for elem in sub_model_part_fluid.Elements :
+    #     if elem.Is(BOUNDARY) :
+    #         count = 0
+    #         for node in elem.GetGeometry() :
+    #             if node.Is(BOUNDARY) :
+    #                 count = count + 1
             # if count == 3 :
             #     number_very_problematic = number_very_problematic + 1
                     
 
-    print('Number of surr nodes : ', len(surrogate_sub_model_part.Nodes))
+    # print('Number of surr nodes : ', len(surrogate_sub_model_part.Nodes))
     # print('Number of result2 : ', len(result2)- number_very_problematic)
     # print('Number of VERY_PROBLEMATIC nodes : ', number_very_problematic)
     # return result, result2
@@ -517,6 +521,8 @@ def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_eleme
     # Interpolate the value at the projection 
     dirichlet_projection = Interpolation(skin_model_part, closest_element, projection_surr_nodes, j-1, node)
     my_result = result[node.Id]
+    # print('\n', node.Id)
+    # print('\n')
     if len(my_result) != 0 :
         DofMasterVector = []
         if node.IsNot(SLAVE) :
@@ -528,10 +534,10 @@ def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_eleme
         i = 0
         k = 0
         Coeff_Slave = 0
-        # print("node ->", node.Id)
         for key, value in my_result.items() :
             # print(key)
             node_master = main_model_part.GetNode(key)
+            # print(key)
             if node.IsNot(SLAVE) :
                 # Need to find the "node" term and bring it to the left-hand-side
                 if node.Id != key :
@@ -558,4 +564,6 @@ def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_eleme
         # Create the constraint where simply grad == 0
         node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, dirichlet_projection)
         node.Fix(KratosMultiphysics.TEMPERATURE)
+        print('grad == 0, OOOOOOOOOOOOOO, sabelo')
+        exit()
     return 0 
