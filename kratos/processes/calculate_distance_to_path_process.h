@@ -235,7 +235,7 @@ public:
      * @param Tolerance Tolerance to check it falls inside the line
      * @return The Distance computation type
      */
-    static DistanceComputed FastMinimalDistanceOnLineWithRadius(
+    DistanceComputed FastMinimalDistanceOnLineWithRadius(
         double& rDistance,
         const Geometry<NodeType>& rSegment,
         const Point& rPoint,

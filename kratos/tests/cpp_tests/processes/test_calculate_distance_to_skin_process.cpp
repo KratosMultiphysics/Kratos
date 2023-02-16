@@ -39,15 +39,15 @@ namespace Kratos {
 			"element_name":     "Element2D3N"
 		})");
 
-    Model current_model;
-		ModelPart &surface_part = current_model.CreateModelPart("Volume");
+    	Model current_model;
+		ModelPart& surface_part = current_model.CreateModelPart("Volume");
 		surface_part.AddNodalSolutionStepVariable(VELOCITY);
 		surface_part.AddNodalSolutionStepVariable(DISTANCE);
 		surface_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 		StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
 
 		// Generate the skin
-    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    	ModelPart& skin_part = current_model.CreateModelPart("Skin");
 		skin_part.AddNodalSolutionStepVariable(VELOCITY);
 		skin_part.CreateNewNode(901, 2.4, 3.4, 0.0);
 		skin_part.CreateNewNode(902, 7.6, 3.4, 0.0);
