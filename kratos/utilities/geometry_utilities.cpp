@@ -61,7 +61,7 @@ std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryTyp
         case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
             return "Tetrahedra3D4";
         case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-            return "Triangle3D3";
+            return "Triangle2D3";
         case GeometryData::KratosGeometryType::Kratos_Triangle2D6:
             return "Triangle2D6";
         case GeometryData::KratosGeometryType::Kratos_Triangle2D10:
