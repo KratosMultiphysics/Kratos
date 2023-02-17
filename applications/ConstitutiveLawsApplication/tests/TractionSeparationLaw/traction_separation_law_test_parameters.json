@@ -4,13 +4,13 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
-        "end_time"      : 10
+        "end_time"      : 5
     },
     "solver_settings"  : {
         "solver_type"                     : "Static",
         "model_part_name"                 : "Structure",
         "domain_size"                     : 3,
-        "echo_level"                      : 1,
+        "echo_level"                      : 0,
         "analysis_type"                   : "non_linear",
         "model_import_settings"           : {
             "input_type"     : "mdpa",
@@ -80,7 +80,7 @@
                 "gauss_points_check_variables" : ["DELAMINATION_DAMAGE_VECTOR_MODE_ONE","DELAMINATION_DAMAGE_VECTOR_MODE_TWO"],
                 "input_file_name"              : "TractionSeparationLaw/TSL_test_results.json",
                 "model_part_name"              : "Structure.Parts_Solid_CubePart",
-                "time_frequency"               : 0.1
+                "time_frequency"               : 1.0
             }
         }
         ]
