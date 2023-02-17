@@ -1,0 +1,133 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0,
+        "end_time": 5
+    },
+    "model_parts": [
+        {
+            "name": "StructuralModelPart",
+            "settings": {
+                "model_part_name": "Structure",
+                "domain_size": 3,
+                "input_filename": "Structure"
+            }
+        }
+    ],
+    "analyses": [
+        {
+            "execution_policy_name": "Structure_static",
+            "execution_policy_type": "SteppingAnalysisExecutionPolicy",
+            "execution_policy_settings": {
+                "model_part_names": [
+                    "Structure"
+                ],
+                "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
+                "analysis_type": "StructuralMechanicsAnalysis",
+                "analysis_settings": {
+                    "@include_json": "primal_parameters.json"
+                }
+            }
+        },
+        {
+            "execution_policy_name": "helmholtz",
+            "execution_policy_type": "SteppingAnalysisExecutionPolicy",
+            "execution_policy_settings": {
+                "model_part_names": [
+                    "Structure"
+                ],
+                "analysis_module": "KratosMultiphysics.OptimizationApplication",
+                "analysis_type": "HelmholtzAnalysis",
+                "analysis_settings": {
+                    "@include_json": "helmholtz_parameters.json"
+                }
+            }
+        }
+    ],
+    "responses": [
+        {
+            "name": "mass_Structure",
+            "type": "MassResponseFunction",
+            "settings": {
+                "evaluated_model_part_name": "Structure"
+            }
+        },
+        {
+            "name": "strain_energy",
+            "type": "LinearStrainEnergyResponseFunction",
+            "settings": {
+                "evaluated_model_part_name": "Structure",
+                "primal_analysis_name": "Structure_static",
+                "perturbation_size": 1e-8
+            }
+        }
+    ],
+    "controls": [
+        {
+            "name": "simp",
+            "type": "SimpControl",
+            "settings": {
+                "model_part_names": [
+                    "Structure"
+                ],
+                "beta_settings": {
+                    "initial_value": 5,
+                    "max_value": 30,
+                    "adaptive": true,
+                    "increase_fac": 1.05,
+                    "update_period": 10
+                },
+                "youngs_modules": [
+                    1e-3,
+                    4e9,
+                    30e9,
+                    210e9
+                ],
+                "densities": [
+                    1e-3,
+                    500,
+                    2300,
+                    7850
+                ]
+            },
+            "transformation_techniques": [
+                {
+                    "type": "HelmholtzTransformationTechnique",
+                    "settings": {
+                        "helmholtz_execution_policy_name": "helmholtz",
+                        "filter_radius": 0.2,
+                        "fixed_model_part_names": []
+                    }
+                }
+            ]
+        }
+    ],
+    "algorithm_settings": {
+        "type": "GradientProjectionAlgorithm",
+        "settings": {
+            "max_correction_share": 0.75,
+            "relative_tolerance": 1e-3,
+            "projection_step_size": 0.1,
+            "correction_step_size": 0.1,
+            "echo_level": 2
+        },
+        "control_names": [
+            "simp"
+        ],
+        "objectives": [
+            {
+                "response_name": "mass_Structure",
+                "type": "minimization"
+            }
+        ],
+        "constraints": [
+            {
+                "response_name": "strain_energy",
+                "type": "=",
+                "ref_type": "initial_value"
+            }
+        ]
+    },
+    "optimization_info_output_processes": []
+}
