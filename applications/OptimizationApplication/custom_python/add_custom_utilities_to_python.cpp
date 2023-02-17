@@ -21,6 +21,7 @@
 // Application includes
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/container_variable_data_holder/container_variable_data_holder.h"
+#include "custom_utilities/container_variable_data_holder/collective_variable_data_holder.h"
 #include "custom_utilities/container_variable_data_holder_utils.h"
 
 // Include base h
@@ -126,19 +127,56 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     AddContainerVariableDataHolderTypeToPython<ModelPart::ConditionsContainerType, PropertiesContainerDataIO>(m, "ConditionPropertiesContainerVariableDataHolder");
     AddContainerVariableDataHolderTypeToPython<ModelPart::ElementsContainerType, PropertiesContainerDataIO>(m, "ElementPropertiesContainerVariableDataHolder");
 
+    py::class_<CollectiveVariableDataHolder, CollectiveVariableDataHolder::Pointer>(m, "CollectiveVariableDataHolder")
+        .def(py::init<>())
+        .def(py::init<const CollectiveVariableDataHolder&>())
+        .def(py::init<const std::vector<CollectiveVariableDataHolder::ContainerVariableDataHolderPointerVariantType>&>())
+        .def("AddVariableDataHolder", &CollectiveVariableDataHolder::AddVariableDataHolder)
+        .def("AddCollectiveVariableDataHolder", &CollectiveVariableDataHolder::AddCollectiveVariableDataHolder)
+        .def("ClearVariableDataHolders", &CollectiveVariableDataHolder::ClearVariableDataHolders)
+        .def("GetVariableDataHolders", py::overload_cast<>(&CollectiveVariableDataHolder::GetVariableDataHolders))
+        .def("IsCompatibleWith", &CollectiveVariableDataHolder::IsCompatibleWith)
+        .def("Clone", &CollectiveVariableDataHolder::Clone)
+        .def("CloneWithDataInitializedToZero", &CollectiveVariableDataHolder::CloneWithDataInitializedToZero)
+        .def(py::self +  py::self)
+        .def(py::self += py::self)
+        .def(py::self +  float())
+        .def(py::self += float())
+        .def(py::self -  py::self)
+        .def(py::self -= py::self)
+        .def(py::self -  float())
+        .def(py::self -= float())
+        .def(py::self *  py::self)
+        .def(py::self *= py::self)
+        .def(py::self *  float())
+        .def(py::self *= float())
+        .def(py::self /  py::self)
+        .def(py::self /= py::self)
+        .def(py::self /  float())
+        .def(py::self /= float())
+        .def("__pow__", py::overload_cast<const CollectiveVariableDataHolder&>(&CollectiveVariableDataHolder::operator^, py::const_))
+        .def("__ipow__", py::overload_cast<const CollectiveVariableDataHolder&>(&CollectiveVariableDataHolder::operator^=))
+        .def("__pow__", py::overload_cast<const double>(&CollectiveVariableDataHolder::operator^, py::const_))
+        .def("__ipow__", py::overload_cast<const double>(&CollectiveVariableDataHolder::operator^=))
+        .def("__neg__", [](CollectiveVariableDataHolder& rSelf) { return rSelf.operator*(-1.0); })
+        ;
+
     py::class_<ContainerVariableDataHolderUtils>(m, "ContainerVariableDataHolderUtils")
         .def_static("NormInf", &ContainerVariableDataHolderUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_data"))
         .def_static("NormInf", &ContainerVariableDataHolderUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_data"))
         .def_static("NormInf", &ContainerVariableDataHolderUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_data"))
+        .def_static("NormInf", [](const CollectiveVariableDataHolder& rContainer) { return ContainerVariableDataHolderUtils::NormInf(rContainer); }, py::arg("container_data"))
         .def_static("NormL2", &ContainerVariableDataHolderUtils::NormL2<ModelPart::NodesContainerType>, py::arg("container_data"))
         .def_static("NormL2", &ContainerVariableDataHolderUtils::NormL2<ModelPart::ConditionsContainerType>, py::arg("container_data"))
         .def_static("NormL2", &ContainerVariableDataHolderUtils::NormL2<ModelPart::ElementsContainerType>, py::arg("container_data"))
+        .def_static("NormL2", [](const CollectiveVariableDataHolder& rContainer) { return ContainerVariableDataHolderUtils::NormL2(rContainer); }, py::arg("container_data"))
         .def_static("EntityMaxNormL2", &ContainerVariableDataHolderUtils::EntityMaxNormL2<ModelPart::NodesContainerType>, py::arg("container_data"))
         .def_static("EntityMaxNormL2", &ContainerVariableDataHolderUtils::EntityMaxNormL2<ModelPart::ConditionsContainerType>, py::arg("container_data"))
         .def_static("EntityMaxNormL2", &ContainerVariableDataHolderUtils::EntityMaxNormL2<ModelPart::ElementsContainerType>, py::arg("container_data"))
         .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::NodesContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
         .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::ConditionsContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
         .def_static("InnerProduct", &ContainerVariableDataHolderUtils::InnerProduct<ModelPart::ElementsContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
+        .def_static("InnerProduct", [](const CollectiveVariableDataHolder& rV1, const CollectiveVariableDataHolder& rV2) { return ContainerVariableDataHolderUtils::InnerProduct(rV1, rV2); }, py::arg("container_data_1"), py::arg("container_data_2"))
         .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const Matrix&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
         .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::ConditionsContainerType>&, const Matrix&, const ContainerVariableDataHolderBase<ModelPart::ConditionsContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
         .def_static("ProductWithEntityMatrix", py::overload_cast<ContainerVariableDataHolderBase<ModelPart::ElementsContainerType>&, const Matrix&, const ContainerVariableDataHolderBase<ModelPart::ElementsContainerType>&>(&ContainerVariableDataHolderUtils::ProductWithEntityMatrix<ModelPart::ElementsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
