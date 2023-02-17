@@ -536,18 +536,53 @@ public:
     static void SetValue(
         VectorType& rX,
         IndexType i,
-        const double value
+        const double value,
+        const bool Global = true
         )
     {
-        Epetra_IntSerialDenseVector indices(1);
-        Epetra_SerialDenseVector values(1);
-        indices[0] = i;
-        values[0] = value;
-
-        int ierr = rX.ReplaceGlobalValues(indices, values);
+        int ierr = 0;
+        if (Global) {
+            Epetra_IntSerialDenseVector indices(1);
+            Epetra_SerialDenseVector values(1);
+            indices[0] = i;
+            values[0] = value;
+            ierr = rX.ReplaceGlobalValues(indices, values);
+        } else {
+            ierr = rX.ReplaceMyValue(static_cast<int>(i), 0, value);
+        }
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
         ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
+    }
+
+    /**
+     * @brief Sets a value in a matrix
+     * @param rX The vector considered
+     * @param i The first index of the value considered
+     * @param i The second index of the value considered
+     * @param value The value considered
+     */
+    static void SetValue(
+        MatrixType& rA,
+        IndexType i,
+        IndexType j,
+        const double value,
+        const bool Global = true
+        )
+    {
+        std::vector<double> values(1, value);
+        std::vector<int> indices(1, j);
+
+        int ierr = 0;
+        if (Global) {
+            ierr = rA.ReplaceGlobalValues(static_cast<int>(i), 1, values.data(), indices.data());
+        } else {
+            ierr = rA.ReplaceMyValues(static_cast<int>(i), 1, values.data(), indices.data());
+        }
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+
+        ierr = rA.GlobalAssemble();
         KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
     }
 
