@@ -1,7 +1,44 @@
 from importlib import import_module
+from typing import Union
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+
+ContainerVariableDataHolderUnion = Union[
+        KratosOA.HistoricalContainerVariableDataHolder,
+        KratosOA.NodalContainerVariableDataHolder,
+        KratosOA.ConditionContainerVariableDataHolder,
+        KratosOA.ElementContainerVariableDataHolder,
+        KratosOA.ConditionPropertiesContainerVariableDataHolder,
+        KratosOA.ElementPropertiesContainerVariableDataHolder]
+
+ContainerTypes = Union[
+    Kratos.NodesArray,
+    Kratos.ConditionsArray,
+    Kratos.ElementsArray
+]
+
+def ConvertContainers(input_container: ContainerVariableDataHolderUnion, output_container: ContainerVariableDataHolderUnion, number_of_neighbour_entities_for_nodes: ContainerVariableDataHolderUnion):
+    if isinstance(input_container, KratosOA.NodalContainerVariableDataHolderBase):
+        if isinstance(output_container, KratosOA.NodalContainerVariableDataHolderBase):
+            output_container.CopyDataFrom(input_container)
+        else:
+            KratosOA.ContainerVariableDataHolderUtils.MapNodalVariableDataHolderToContainerVariableDataHolder(output_container, input_container)
+    else:
+        if isinstance(output_container, KratosOA.NodalContainerVariableDataHolderBase):
+            KratosOA.ContainerVariableDataHolderUtils.MapContainerVariableDataHolderToNodalVariableDataHolder(output_container, input_container, number_of_neighbour_entities_for_nodes)
+        else:
+            raise RuntimeError(f"Unsupported container conversion requested for {input_container} -> {output_container}. Followings are supported: \n\tnodal -> condition\n\tnodal -> element\n\tcondition -> nodal\n\telement -> nodal" )
+
+def WriteCollectiveVariableDataHolderToOptmizationInfo(optimization_info: OptimizationInfo, container: KratosOA.CollectiveVariableDataHolder, pattern: str):
+    for sub_container in container.GetVariableDataHolders():
+        current_pattern = str(pattern).replace("<model_part_name>", sub_container.GetModelPart().FullName())
+        optimization_info.SetValue(current_pattern, sub_container)
+
+def CallOnAll(list_of_objects: 'list[any]', method: any, *args, **kwargs):
+    for obj in list_of_objects:
+        getattr(obj, method.__name__)(*args, **kwargs)
 
 def OptimizationProcessFactory(
     module_name: str,
