@@ -675,7 +675,7 @@ public:
     {
         return mEchoLevel;
     }
-    
+
     /**
      * @brief This method returns constraint relation (T) matrix
      * @return The constraint relation (T) matrix
