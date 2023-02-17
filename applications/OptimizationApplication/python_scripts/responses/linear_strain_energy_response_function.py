@@ -41,10 +41,15 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         elif sensitivity_variable == KratosOA.POISSON_RATIO_SENSITIVITY:
             primal_variable = Kratos.KratosGlobals.GetVariable(sensitivity_variable.Name()[:-12])
             KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateStrainEnergyNonLinearSensitivity(sensitivity_model_part, self.perturbation_size, primal_variable, sensitivity_variable)
+        elif sensitivity_variable == KratosOA.DENSITY_SENSITIVITY:
+            zero_values = KratosOA.ElementPropertiesContainerVariableDataHolder(sensitivity_model_part)
+            zero_values.SetDataForContainerVariableToZero(sensitivity_variable)
+            zero_values.AssignDataToContainerVariable(sensitivity_variable)
         else:
             msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {sensitivity_model_part.FullName()}."
             msg += "Followings are supported options:"
             msg += "\n\tSHAPE_SENSITIVITY"
+            msg += "\n\tDENSITY_SENSITIVITY"
             msg += "\n\tYOUNG_MODULUS_SENSITIVITY"
             msg += "\n\tPOISSON_RATIO_SENSITIVITY"
             raise RuntimeError(msg)
