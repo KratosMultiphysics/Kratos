@@ -111,7 +111,7 @@ class OptimizationInfo:
 
         return current_opt_info
 
-    def SetValue(self, key: str, value: any, solution_step_index: int = 0):
+    def SetValue(self, key: str, value: any, solution_step_index: int = 0, overwrite = False):
         if not isinstance(key, str):
             raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
 
@@ -125,6 +125,10 @@ class OptimizationInfo:
 
             if not isinstance(current_opt_info, dict):
                 raise RuntimeError(f"Subkey \"{sub_key} of {key} is not a dictionary in solution step index = {solution_step_index}. Hence failing to add sub items.\"")
+
+        if not overwrite and sub_keys[-1] in current_opt_info.keys():
+            msg =  f"Value for {sub_keys[-1]} exists. [ Key = {key}, Current value = {current_opt_info[sub_keys[-1]]}, new value = {value}, current dict = {current_opt_info}]"
+            raise RuntimeError(msg)
 
         current_opt_info[sub_keys[-1]] = value
 

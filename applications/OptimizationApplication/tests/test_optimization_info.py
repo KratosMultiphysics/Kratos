@@ -85,7 +85,7 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertTrue(optimization_info.HasValue("test/hello/there/3"))
         self.assertEqual(optimization_info.GetValue("test/hello/there/3"), 20)
 
-        optimization_info.SetValue("test/hello/there/3", 40)
+        optimization_info.SetValue("test/hello/there/3", 40, overwrite=True)
         self.assertEqual(optimization_info.GetValue("test/hello/there/3"), 40)
 
         optimization_info.SetValue("test/hello/there/8", 60, 1)
