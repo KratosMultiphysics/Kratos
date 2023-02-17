@@ -1158,66 +1158,48 @@ protected:
         TSparseSpace::SetToZero(r_T);
         TSparseSpace::SetToZero(r_constant_vector);
 
-    //     // The current process info
-    //     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-    //     // Vector containing the localization in the system of the different terms
-    //     using DofsVectorType = Element::DofsVectorType;
-    //     DofsVectorType slave_dof_list, master_dof_list;
+        // Contributions to the system
+        Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
+        Vector constant_vector = LocalSystemVectorType(0);
 
-    //     // Contributions to the system
-    //     Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
-    //     Vector constant_vector = LocalSystemVectorType(0);
-
-    //     // Vector containing the localization in the system of the different terms
-    //     Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
-
-    //     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
 
         // We clear the set
         mInactiveSlaveDofs.clear();
 
-    //     #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
-    //     {
-    //         std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+        // Iterate over the constraints
+        for (auto& r_const : rModelPart.MasterSlaveConstraints()) {
+            // Detect if the constraint is active or not. If the user did not make any choice the constraint
+            // It is active by default
+            bool constraint_is_active = true;
+            if (r_const.IsDefined(ACTIVE))
+                constraint_is_active = r_const.Is(ACTIVE);
 
-    //         #pragma omp for schedule(guided, 512)
-    //         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-    //             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+            if (constraint_is_active) {
+                r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
-    //             // Detect if the constraint is active or not. If the user did not make any choice the constraint
-    //             // It is active by default
-    //             bool constraint_is_active = true;
-    //             if (it_const->IsDefined(ACTIVE))
-    //                 constraint_is_active = it_const->Is(ACTIVE);
+                // TODO: Adapt AssembleLHS and AssembleRHS for this
+                // for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
+                //     const IndexType i_global = slave_equation_ids[i];
 
-    //             if (constraint_is_active) {
-    //                 it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-    //                 it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                //     // Assemble matrix row
+                //     AssembleRowContribution(mpT, transformation_matrix, i_global, i, master_equation_ids);
 
-    //                 for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
-    //                     const IndexType i_global = slave_equation_ids[i];
-
-    //                     // Assemble matrix row
-    //                     AssembleRowContribution(mpT, transformation_matrix, i_global, i, master_equation_ids);
-
-    //                     // Assemble constant vector
-    //                     const double constant_value = constant_vector[i];
-    //                     double& r_value = mpConstantVector[i_global];
-    //                     AtomicAdd(r_value, constant_value);
-    //                 }
-    //             } else { // Taking into account inactive constraints
-    //                 it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-    //                 auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
-    //             }
-    //         }
-
-    //         // We merge all the sets in one thread
-    //         #pragma omp critical
-    //         {
-    //             mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
-    //         }
-    //     }
+                //     // Assemble constant vector
+                //     const double constant_value = constant_vector[i];
+                //     double& r_value = mpConstantVector[i_global];
+                //     AtomicAdd(r_value, constant_value);
+                // }
+            } else { // Taking into account inactive constraints
+                r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                mInactiveSlaveDofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
+            }
+        }
 
         // Setting the master dofs into the T and C system
         for (auto eq_id : mMasterIds) {
