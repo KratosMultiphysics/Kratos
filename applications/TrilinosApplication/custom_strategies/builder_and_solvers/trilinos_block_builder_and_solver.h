@@ -1107,14 +1107,16 @@ protected:
             // Destroy locks
             lock_array = std::vector<LockObject>();
 
+            // Fill ids for master/slave
+            // NOTE: Ids are global (that's why we add mFirstMyId)
             mSlaveIds.clear();
             mMasterIds.clear();
             for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
                 if (indices[i].size() == 0) // Master dof!
-                    mMasterIds.push_back(i);
+                    mMasterIds.push_back(mFirstMyId + i);
                 else // Slave dof
-                    mSlaveIds.push_back(i);
-                indices[i].insert(i); // Ensure that the diagonal is there in T
+                    mSlaveIds.push_back(mFirstMyId + i);
+                indices[i].insert(mFirstMyId + i); // Ensure that the diagonal is there in T
             }
 
             // Generate the structure
@@ -1217,20 +1219,16 @@ protected:
     //         }
     //     }
 
-        // Adding 1s and 0s in the corresponding rows of the matrix and vector
-
         // Setting the master dofs into the T and C system
         for (auto eq_id : mMasterIds) {
             TSparseSpace::SetValue(r_constant_vector, eq_id, 0.0);
-            // TODO: Add SetValue for Epetra matrix
-    //         mpT(eq_id, eq_id) = 1.0;
+            TSparseSpace::SetValue(r_T, eq_id, eq_id, 0.0);
         }
 
         // Setting inactive slave dofs in the T and C system
         for (auto eq_id : mInactiveSlaveDofs) {
             TSparseSpace::SetValue(r_constant_vector, eq_id, 0.0);
-            // TODO: Add SetValue for Epetra matrix
-    //         mpT(eq_id, eq_id) = 1.0;
+            TSparseSpace::SetValue(r_T, eq_id, eq_id, 1.0);
         }
 
         KRATOS_CATCH("")
