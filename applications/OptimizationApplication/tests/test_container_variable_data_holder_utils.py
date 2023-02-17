@@ -78,6 +78,38 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
 
         self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.InnerProduct(a, b), 890)
 
+    def test_CollectiveVariableDataHolderNormInf(self):
+        a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
+        b = KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        b.ReadDataFromContainerVariable(Kratos.PRESSURE)
+
+        collective_1 = KratosOA.CollectiveVariableDataHolder([a, b])
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormInf(collective_1), max(KratosOA.ContainerVariableDataHolderUtils.NormInf(a), KratosOA.ContainerVariableDataHolderUtils.NormInf(b)))
+
+    def test_CollectiveVariableDataHolderNormL2(self):
+        a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
+        b = KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        b.ReadDataFromContainerVariable(Kratos.PRESSURE)
+
+        collective_1 = KratosOA.CollectiveVariableDataHolder([a, b])
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormL2(collective_1), math.sqrt(KratosOA.ContainerVariableDataHolderUtils.NormL2(a)**2 + KratosOA.ContainerVariableDataHolderUtils.NormL2(b)**2))
+
+
+    def test_CollectiveVariableDataHolderInnerProduct(self):
+        a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
+        b = KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part)
+
+        collective_1 = KratosOA.CollectiveVariableDataHolder([a, b])
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        b.ReadDataFromContainerVariable(Kratos.PRESSURE)
+
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.InnerProduct(collective_1, collective_1), KratosOA.ContainerVariableDataHolderUtils.InnerProduct(a, a) + KratosOA.ContainerVariableDataHolderUtils.InnerProduct(b, b))
+
     def test_ProductWithEntityMatrix(self):
         number_of_nodes = self.model_part.NumberOfNodes()
 
