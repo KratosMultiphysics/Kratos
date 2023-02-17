@@ -1213,6 +1213,10 @@ protected:
             TSparseSpace::SetValue(r_T, eq_id, eq_id, 1.0);
         }
 
+        // Finalizing the assembly
+        r_T.GlobalAssemble();
+        r_constant_vector.GlobalAssemble();
+
         KRATOS_CATCH("")
     }
 
