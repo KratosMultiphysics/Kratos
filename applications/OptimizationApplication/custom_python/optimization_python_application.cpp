@@ -1,28 +1,24 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
+//  Main author:     Reza Najian Asl
+//                   Suneth Warnakulasuriya
 //
-// =================================================================================
 
-#if defined(KRATOS_PYTHON)
-
-// ------------------------------------------------------------------------------
 // System includes
-// ------------------------------------------------------------------------------
-#include <pybind11/pybind11.h>
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "includes/define_python.h"
+
+// Application includes
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
 #include "custom_python/add_custom_controls_to_python.h"
@@ -31,8 +27,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_response_utilities_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
-// ==============================================================================
+#include "custom_python/add_custom_mappers_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -41,9 +36,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
 {
     namespace py = pybind11;
 
-    py::class_<KratosOptimizationApplication,
-        KratosOptimizationApplication::Pointer,
-        KratosApplication >(m, "KratosOptimizationApplication")
+    py::class_<KratosOptimizationApplication, KratosOptimizationApplication::Pointer, KratosApplication >(m, "KratosOptimizationApplication")
         .def(py::init<>())
         ;
 
@@ -55,6 +48,8 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
 
     auto response_utils = m.def_submodule("ResponseUtils");
     AddCustomResponseUtilitiesToPython(response_utils);
+    auto mappers = m.def_submodule("Mappers");
+    AddCustomMappersToPython(mappers);
 
     //registering variables in python
 
@@ -181,5 +176,3 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
 
 }  // namespace Python.
 }  // namespace Kratos.
-
-#endif // KRATOS_PYTHON defined
