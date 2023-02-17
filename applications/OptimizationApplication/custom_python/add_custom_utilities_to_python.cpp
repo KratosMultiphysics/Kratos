@@ -23,6 +23,7 @@
 #include "custom_utilities/container_variable_data_holder/container_variable_data_holder.h"
 #include "custom_utilities/container_variable_data_holder/collective_variable_data_holder.h"
 #include "custom_utilities/container_variable_data_holder_utils.h"
+#include "custom_utilities/controls/simp_utils.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -193,6 +194,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("MapNodalVariableDataHolderToContainerVariableDataHolder", &ContainerVariableDataHolderUtils::MapNodalVariableDataHolderToContainerVariableDataHolder<ModelPart::ElementsContainerType>)
         .def_static("ComputeVariableDataHolderProductWithEntityMatrix", &ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntityMatrix<ModelPart::ConditionsContainerType>)
         .def_static("ComputeVariableDataHolderProductWithEntityMatrix", &ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntityMatrix<ModelPart::ElementsContainerType>)
+        ;
+
+    py::class_<SimpUtils>(m, "SimpUtils")
+        .def_static("ProjectContainerVariableDataHolderForward", &SimpUtils::ProjectContainerVariableDataHolderForward<ModelPart::NodesContainerType>)
+        .def_static("ProjectContainerVariableDataHolderBackward", &SimpUtils::ProjectContainerVariableDataHolderBackward<ModelPart::NodesContainerType>)
+        .def_static("ProjectContainerVariableDataHolderDerivative", &SimpUtils::ProjectContainerVariableDataHolderDerivative<ModelPart::NodesContainerType>)
+        .def_static("ProjectContainerVariableDataHolderForward", &SimpUtils::ProjectContainerVariableDataHolderForward<ModelPart::ConditionsContainerType>)
+        .def_static("ProjectContainerVariableDataHolderBackward", &SimpUtils::ProjectContainerVariableDataHolderBackward<ModelPart::ConditionsContainerType>)
+        .def_static("ProjectContainerVariableDataHolderDerivative", &SimpUtils::ProjectContainerVariableDataHolderDerivative<ModelPart::ConditionsContainerType>)
+        .def_static("ProjectContainerVariableDataHolderForward", &SimpUtils::ProjectContainerVariableDataHolderForward<ModelPart::ElementsContainerType>)
+        .def_static("ProjectContainerVariableDataHolderBackward", &SimpUtils::ProjectContainerVariableDataHolderBackward<ModelPart::ElementsContainerType>)
+        .def_static("ProjectContainerVariableDataHolderDerivative", &SimpUtils::ProjectContainerVariableDataHolderDerivative<ModelPart::ElementsContainerType>)
         ;
 }
 
