@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/condition.h"
+#include "includes/variables.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
