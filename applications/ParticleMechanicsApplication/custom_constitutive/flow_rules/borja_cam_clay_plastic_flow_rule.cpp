@@ -774,9 +774,7 @@ void BorjaCamClayPlasticFlowRule::save( Serializer& rSerializer) const
     rSerializer.save("mStateFunctionFirstDerivative",mStateFunctionFirstDerivative);
     rSerializer.save("mStateFunctionSecondDerivative",mStateFunctionSecondDerivative);
 
-    rSerializer.save("PreconsolidationPressure",mMaterialParameters.PreconsolidationPressure);
-    rSerializer.save("PlasticHardeningModulus",mMaterialParameters.PlasticHardeningModulus);
-    rSerializer.save("ConsistencyParameter",mMaterialParameters.ConsistencyParameter);
+    rSerializer.save("mMaterialParameters",mMaterialParameters);
 }
 
 void BorjaCamClayPlasticFlowRule::load( Serializer& rSerializer)
@@ -796,17 +794,7 @@ void BorjaCamClayPlasticFlowRule::load( Serializer& rSerializer)
     rSerializer.load("mStateFunctionFirstDerivative",mStateFunctionFirstDerivative);
     rSerializer.load("mStateFunctionSecondDerivative",mStateFunctionSecondDerivative);
 
-    double PreconsolidationPressure;
-    double PlasticHardeningModulus;
-    double ConsistencyParameter;
-
-    rSerializer.load("PreconsolidationPressure",PreconsolidationPressure);
-    rSerializer.load("PlasticHardeningModulus",PlasticHardeningModulus);
-    rSerializer.load("ConsistencyParameter",ConsistencyParameter);
-
-    mMaterialParameters.PreconsolidationPressure = PreconsolidationPressure;
-    mMaterialParameters.PlasticHardeningModulus = PlasticHardeningModulus;
-    mMaterialParameters.ConsistencyParameter = ConsistencyParameter;
+    rSerializer.load("mMaterialParameters",mMaterialParameters);
 }
 
 } //end namespace kratos

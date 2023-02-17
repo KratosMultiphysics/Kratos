@@ -91,6 +91,25 @@ public:
             KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "ConsistencyParameter     = " <<  ConsistencyParameter      << std::endl;
         }
 
+    private:
+
+        friend class Serializer;
+
+        // A private default constructor necessary for serialization
+        void save(Serializer& rSerializer) const
+        {
+            rSerializer.save("PreconsolidationPressure",PreconsolidationPressure);
+            rSerializer.save("PlasticHardeningModulus",PlasticHardeningModulus);
+            rSerializer.save("ConsistencyParameter",ConsistencyParameter);
+        };
+
+        void load(Serializer& rSerializer)
+        {
+            rSerializer.load("PreconsolidationPressure",PreconsolidationPressure);
+            rSerializer.load("PlasticHardeningModulus",PlasticHardeningModulus);
+            rSerializer.load("ConsistencyParameter",ConsistencyParameter);
+        };
+
     };
 
     ///@}

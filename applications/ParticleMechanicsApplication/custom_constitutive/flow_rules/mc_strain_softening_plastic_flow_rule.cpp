@@ -104,13 +104,12 @@ void MCStrainSofteningPlasticFlowRule::UpdateMaterialParameters(const Properties
 
 void MCStrainSofteningPlasticFlowRule::save( Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleFlowRule )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MCPlasticFlowRule )
 }
 
 void MCStrainSofteningPlasticFlowRule::load( Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleFlowRule )
-
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MCPlasticFlowRule )
 }
 
 } //end namespace kratos

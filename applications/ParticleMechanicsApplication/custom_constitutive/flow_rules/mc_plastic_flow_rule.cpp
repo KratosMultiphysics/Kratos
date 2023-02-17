@@ -818,9 +818,7 @@ void MCPlasticFlowRule::save( Serializer& rSerializer) const
 
     rSerializer.save("mEquivalentPlasticStrain",mEquivalentPlasticStrain);
 
-    rSerializer.save("mMaterialParametersCohesion",mMaterialParameters.Cohesion);
-    rSerializer.save("mMaterialParametersFrictionAngle",mMaterialParameters.FrictionAngle);
-    rSerializer.save("mMaterialParametersDilatancyAngle",mMaterialParameters.DilatancyAngle);
+    rSerializer.save("mMaterialParameters",mMaterialParameters);
 }
 
 void MCPlasticFlowRule::load( Serializer& rSerializer)
@@ -837,17 +835,7 @@ void MCPlasticFlowRule::load( Serializer& rSerializer)
 
     rSerializer.load("mEquivalentPlasticStrain",mEquivalentPlasticStrain);
 
-    double Cohesion;
-    double FrictionAngle;
-    double DilatancyAngle;
-
-    rSerializer.load("mMaterialParametersCohesion",Cohesion);
-    rSerializer.load("mMaterialParametersFrictionAngle",FrictionAngle);
-    rSerializer.load("mMaterialParametersDilatancyAngle",DilatancyAngle);
-
-    mMaterialParameters.Cohesion      = Cohesion;
-    mMaterialParameters.FrictionAngle = FrictionAngle;
-    mMaterialParameters.DilatancyAngle= DilatancyAngle;
+    rSerializer.load("mMaterialParameters",mMaterialParameters);
 }
 
 } //end namespace kratos

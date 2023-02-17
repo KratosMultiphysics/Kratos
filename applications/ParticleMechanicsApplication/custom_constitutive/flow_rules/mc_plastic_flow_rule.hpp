@@ -92,6 +92,25 @@ public:
             KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "DilatancyAngle = " << DilatancyAngle << std::endl;
         }
 
+    private:
+
+        friend class Serializer;
+
+        // A private default constructor necessary for serialization
+        void save(Serializer& rSerializer) const
+        {
+            rSerializer.save("Cohesion",Cohesion);
+            rSerializer.save("FrictionAngle",FrictionAngle);
+            rSerializer.save("DilatancyAngle",DilatancyAngle);
+        };
+
+        void load(Serializer& rSerializer)
+        {
+            rSerializer.load("Cohesion",Cohesion);
+            rSerializer.load("FrictionAngle",FrictionAngle);
+            rSerializer.load("DilatancyAngle",DilatancyAngle);
+        };
+
     };
 
     ///@}
