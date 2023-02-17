@@ -10,7 +10,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.execution_policy_decor
 from KratosMultiphysics.OptimizationApplication.responses.linear_strain_energy_response_function import LinearStrainEnergyResponseFunction
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
+class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
