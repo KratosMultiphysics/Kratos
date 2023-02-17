@@ -1203,14 +1203,14 @@ protected:
 
         // Setting the master dofs into the T and C system
         for (auto eq_id : mMasterIds) {
-            TSparseSpace::SetValue(r_constant_vector, eq_id, 0.0);
-            TSparseSpace::SetValue(r_T, eq_id, eq_id, 0.0);
+            TSparseSpace::SetValue<false>(r_constant_vector, eq_id, 0.0);
+            TSparseSpace::SetValue<false>(r_T, eq_id, eq_id, 0.0);
         }
 
         // Setting inactive slave dofs in the T and C system
         for (auto eq_id : mInactiveSlaveDofs) {
-            TSparseSpace::SetValue(r_constant_vector, eq_id, 0.0);
-            TSparseSpace::SetValue(r_T, eq_id, eq_id, 1.0);
+            TSparseSpace::SetValue<false>(r_constant_vector, eq_id, 0.0);
+            TSparseSpace::SetValue<false>(r_T, eq_id, eq_id, 1.0);
         }
 
         // Finalizing the assembly
