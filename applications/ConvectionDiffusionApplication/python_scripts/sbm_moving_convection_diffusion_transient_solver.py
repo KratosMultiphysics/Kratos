@@ -252,6 +252,7 @@ class SBMMovingConvectionDiffusionTransientSolver(convection_diffusion_stationar
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
+        
         self._convection_diffusion_solution_strategy.Clear()
         
 
