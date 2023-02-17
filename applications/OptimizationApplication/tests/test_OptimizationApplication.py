@@ -18,6 +18,10 @@ from optimization_test_factory import shell_shape_opt_test
 from optimization_test_factory import shell_thick_opt_test
 from test_execution_policies import TestExecutionPolicies
 from test_optimization_info import TestOptimizationInfo
+from test_optimization_utils import TestOptimizationUtils
+from test_mass_response_function import TestMassResponseFunctionBeams
+from test_mass_response_function import TestMassResponseFunctionShells
+from test_mass_response_function import TestMassResponseFunctionSolids
 
 # Nightly tests
 
@@ -44,6 +48,11 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExecutionPolicies]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationInfo]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationUtils]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionBeams]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionShells]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionSolids]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
