@@ -32,6 +32,8 @@ from test_container_variable_data_holder import TestElementPropertiesContainerVa
 from test_collective_variable_data_holder import TestCollectiveVariableDataHolder
 from test_model_part_controllers import TestMdpaModelPartController
 from test_container_variable_data_holder_utils import TestContainerVariableDataHolderUtils
+from test_material_properties_control import TestMaterialPropertiesControl
+from test_shape_control import TestShapeControl
 
 # Nightly tests
 
@@ -76,6 +78,8 @@ def AssembleTestSuites():
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMdpaModelPartController]))
 
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMaterialPropertiesControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestShapeControl]))
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
 
