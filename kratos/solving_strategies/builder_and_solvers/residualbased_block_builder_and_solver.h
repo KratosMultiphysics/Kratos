@@ -969,7 +969,7 @@ public:
         });
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -1148,7 +1148,7 @@ public:
      * @brief This method returns constraint relation (T) matrix
      * @return The constraint relation (T) matrix
      */
-    TSystemMatrixType& GetConstraintRelationMatrix()
+    typename TSparseSpace::MatrixType& GetConstraintRelationMatrix() override
     {
         return mT;
     }
@@ -1157,7 +1157,7 @@ public:
      * @brief This method returns constraint constant vector
      * @return The constraint constant vector
      */
-    TSystemVectorType& GetConstraintConstantVector()
+    typename TSparseSpace::VectorType& GetConstraintConstantVector() override
     {
         return mConstantVector;
     }
