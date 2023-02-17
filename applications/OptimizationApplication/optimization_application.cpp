@@ -1,34 +1,31 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
+//  Main author:     Reza Najian Asl,
+//                   Suneth Warnakulasuriya
 //
-// ==============================================================================
 
-// ------------------------------------------------------------------------------
 // System includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_27.h"
+
+// Application includes
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
-
-// ==============================================================================
 
 namespace Kratos
 {
@@ -167,6 +164,16 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS_SENSITIVITY);
         KRATOS_REGISTER_VARIABLE(POISSON_RATIO_SENSITIVITY);
 
+        // do not expose the following variables to python. They are used
+        // as temporary data holders. They can be changed
+        // at any point of time in an analysis.
+        // Hence, not recommended to be used for calculations
+        // unless existing values on those variables are not of interest
+        KRATOS_CREATE_VARIABLE(double, TEMPORARY_SCALAR_VARIABLE_1);
+        KRATOS_CREATE_VARIABLE(double, TEMPORARY_SCALAR_VARIABLE_2);
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_1);
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_2);
+
         // Shape optimization elements
         KRATOS_REGISTER_ELEMENT("HelmholtzSurfShape3D3N", mHelmholtzSurfShape3D3N);
         KRATOS_REGISTER_ELEMENT("HelmholtzBulkShape3D4N", mHelmholtzBulkShape3D4N);
@@ -185,8 +192,6 @@ namespace Kratos
 
         // Shape optimization conditions
         KRATOS_REGISTER_CONDITION("HelmholtzSurfShapeCondition3D3N", mHelmholtzSurfShapeCondition3D3N);
-
-        // KRATOS_REGISTER_VARIABLE(TEST_MAP);
  	}
 
 }  // namespace Kratos.
