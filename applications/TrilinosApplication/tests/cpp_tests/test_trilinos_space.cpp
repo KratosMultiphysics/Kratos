@@ -447,6 +447,70 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosScaleAndAdd2, KratosTrilinosApplic
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector_1, local_vector_1);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    const int rank = r_comm.Rank();
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    TrilinosLocalVectorType local_vector = ZeroVector(size);
+    for (int i = 0; i < size; ++i) {
+        local_vector[i] = 1.0;
+    }
+
+    // Solution global
+    TrilinosSparseSpaceType::SetToZero(vector);
+    for (int i = 0; i < 2; ++i) {
+        TrilinosSparseSpaceType::SetValue(vector, rank * 2 + i, 1.0);
+    }
+
+    // Check global
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
+
+    // Solution local
+    TrilinosSparseSpaceType::SetToZero(vector);
+    for (int i = 0; i < 2; ++i) {
+        TrilinosSparseSpaceType::SetValue(vector, i, 1.0, false);
+    }
+
+    // Check local
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    const int rank = r_comm.Rank();
+    auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
+    TrilinosLocalMatrixType local_matrix = ZeroMatrix(size, size);
+    for (int i = 0; i < size; ++i) {
+        local_matrix(i, i) = 1.0;
+    }
+
+    // Solution global
+    for (int i = 0; i < 2; ++i) {
+        TrilinosSparseSpaceType::SetValue(matrix, rank * 2 + i, rank * 2 + i, 1.0);
+    }
+
+    // Check global
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
+
+    // Solution local
+    for (int i = 0; i < 2; ++i) {
+        TrilinosSparseSpaceType::SetValue(matrix, i, i, 1.0, false);
+    }
+
+    // Check local
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSet, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
