@@ -2,7 +2,7 @@ import os
 from pyevtk import hl
 from pyevtk import vtk
 import numpy as np
-import shutil
+#import shutil
 import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import KratosMultiphysics.kratos_utilities as kratos_utils
