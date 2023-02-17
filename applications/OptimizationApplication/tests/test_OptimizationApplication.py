@@ -34,6 +34,9 @@ from test_model_part_controllers import TestMdpaModelPartController
 from test_container_variable_data_holder_utils import TestContainerVariableDataHolderUtils
 from test_material_properties_control import TestMaterialPropertiesControl
 from test_shape_control import TestShapeControl
+from test_vertex_morphing_mappers import TestVertexMorphingNodalContainerVariableDataMapper
+from test_vertex_morphing_mappers import TestVertexMorphingConditionContainerVariableDataMapper
+from test_vertex_morphing_mappers import TestVertexMorphingElementContainerVariableDataMapper
 
 # Nightly tests
 
@@ -80,6 +83,11 @@ def AssembleTestSuites():
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMaterialPropertiesControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestShapeControl]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertexMorphingNodalContainerVariableDataMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertexMorphingConditionContainerVariableDataMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertexMorphingElementContainerVariableDataMapper]))
+
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
 
