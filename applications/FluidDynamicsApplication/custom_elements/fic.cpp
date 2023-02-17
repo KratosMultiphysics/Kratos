@@ -71,21 +71,40 @@ Element::Pointer FIC<TElementData>::Create(IndexType NewId,GeometryType::Pointer
 }
 
 template <class TElementData>
-void FIC<TElementData>::Calculate(const Variable<double>& rVariable,
-    double& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void FIC<TElementData>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
 void FIC<TElementData>::Calculate(
     const Variable<array_1d<double, 3>>& rVariable,
-    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+    array_1d<double, 3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
-void FIC<TElementData>::Calculate(const Variable<Vector>& rVariable,
-    Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void FIC<TElementData>::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
-void FIC<TElementData>::Calculate(const Variable<Matrix>& rVariable,
-    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void FIC<TElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry

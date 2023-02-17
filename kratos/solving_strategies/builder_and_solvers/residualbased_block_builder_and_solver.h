@@ -11,8 +11,8 @@
 //  Collaborators:   Vicente Mataix
 //
 //
-#if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
-#define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
+
+#pragma once
 
 /* System includes */
 #include <unordered_set>
@@ -59,7 +59,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedEliminationBuilderAndSolver
+ * @class ResidualBasedBlockBuilderAndSolver
  * @ingroup KratosCore
  * @brief Current class provides an implementation for standard builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
@@ -155,7 +155,6 @@ public:
     explicit ResidualBasedBlockBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
-        mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
     }
 
     /** Destructor.
@@ -227,44 +226,28 @@ public:
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
             # pragma omp for  schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; k++)
-            {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            for (int k = 0; k < nelements; k++) {
+                auto it_elem = el_begin + k;
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    element_is_active = (it)->Is(ACTIVE);
+                if (it_elem->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                if (element_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
+                    // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
 
             }
 
             #pragma omp for  schedule(guided, 512)
-            for (int k = 0; k < nconditions; k++)
-            {
-                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            for (int k = 0; k < nconditions; k++) {
+                auto it_cond = cond_begin + k;
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
+                if (it_cond->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                if (condition_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
+                    // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
             }
@@ -1206,15 +1189,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TSystemMatrixType mT;              /// This is matrix containing the global relation for the constraints
-    TSystemVectorType mConstantVector; /// This is vector containing the rigid movement of the constraint
-    std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
-    std::vector<IndexType> mMasterIds; /// The equation ids of the master
+    TSystemMatrixType mT;                             /// This is matrix containing the global relation for the constraints
+    TSystemVectorType mConstantVector;                /// This is vector containing the rigid movement of the constraint
+    std::vector<IndexType> mSlaveIds;                 /// The equation ids of the slaves
+    std::vector<IndexType> mMasterIds;                /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
-    double mScaleFactor = 1.0;         /// The manually set scale factor
+    double mScaleFactor = 1.0;                        /// The manually set scale factor
 
-    SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
-    Flags mOptions;                    /// Some flags used internally
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                                                   /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -1828,5 +1811,3 @@ const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER  defined */

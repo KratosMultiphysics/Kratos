@@ -2,7 +2,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import math
 import os
 
 def GetFilePath(fileName):
@@ -751,14 +750,14 @@ class TestVariableUtils(KratosUnittest.TestCase):
         input2d = [0.0,1.0,2.0,3.0,4.0,5.0]
         KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,input2d,0)
         verify2d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2) 
-        
+
         for v,r in zip(input2d,verify2d):
             self.assertEqual(v,r)
 
         input3d = [0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0]
         KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,input2d,0)
         verify3d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2) 
-        
+
         for v,r in zip(input3d,verify3d):
             self.assertEqual(v,r)
 

@@ -400,7 +400,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
                 (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                 for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
                     (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";;
             } else {
                 (*mpStream) << "End Elements" << std::endl << std::endl;
 
@@ -410,7 +410,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
                 (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                 for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
                     (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";;
             }
         }
 
@@ -486,7 +486,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
                 (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                 for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
                     (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";;
             } else {
                 (*mpStream) << "End Conditions" << std::endl << std::endl;
 
@@ -496,7 +496,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
                 (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                 for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
                     (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";;
             }
         }
 
@@ -982,15 +982,9 @@ void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
 }
 
 
-void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
-                                        PartitionIndicesType const& NodesPartitions,
-//                                         PartitionIndicesType const& GeometriesPartitions,
-                                        PartitionIndicesType const& ElementsPartitions,
-                                        PartitionIndicesType const& ConditionsPartitions,
-                                        PartitionIndicesContainerType const& NodesAllPartitions,
-//                                         PartitionIndicesContainerType const& GeometriesAllPartitions,
-                                        PartitionIndicesContainerType const& ElementsAllPartitions,
-                                        PartitionIndicesContainerType const& ConditionsAllPartitions)
+void ModelPartIO::DivideInputToPartitions(
+    SizeType NumberOfPartitions,
+    const PartitioningInfo& rPartitioningInfo)
 {
     KRATOS_TRY
 
@@ -1017,15 +1011,7 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     DivideInputToPartitionsImpl(
         output_files,
         NumberOfPartitions,
-        DomainsColoredGraph,
-        NodesPartitions,
-        // GeometriesPartitions,
-        ElementsPartitions,
-        ConditionsPartitions,
-        NodesAllPartitions,
-        // GeometriesAllPartitions,
-        ElementsAllPartitions,
-        ConditionsAllPartitions);
+        rPartitioningInfo);
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
         delete output_files[i];
@@ -1035,15 +1021,8 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
 
 void ModelPartIO::DivideInputToPartitions(
     Kratos::shared_ptr<std::iostream> * Streams,
-    SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
-    PartitionIndicesType const& NodesPartitions,
-//     PartitionIndicesType const& GeometriesPartitions,
-    PartitionIndicesType const& ElementsPartitions,
-    PartitionIndicesType const& ConditionsPartitions,
-    PartitionIndicesContainerType const& NodesAllPartitions,
-//     PartitionIndicesContainerType const& GeometriesAllPartitions,
-    PartitionIndicesContainerType const& ElementsAllPartitions,
-    PartitionIndicesContainerType const& ConditionsAllPartitions) {
+    SizeType NumberOfPartitions,
+    const PartitioningInfo& rPartitioningInfo) {
 
     KRATOS_TRY
 
@@ -1058,15 +1037,7 @@ void ModelPartIO::DivideInputToPartitions(
     DivideInputToPartitionsImpl(
         output_files,
         NumberOfPartitions,
-        DomainsColoredGraph,
-        NodesPartitions,
-        // GeometriesPartitions,
-        ElementsPartitions,
-        ConditionsPartitions,
-        NodesAllPartitions,
-        // GeometriesAllPartitions,
-        ElementsAllPartitions,
-        ConditionsAllPartitions);
+        rPartitioningInfo);
 
     // for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     //     delete output_files[i];
@@ -1078,15 +1049,7 @@ void ModelPartIO::DivideInputToPartitions(
 void ModelPartIO::DivideInputToPartitionsImpl(
     OutputFilesContainerType& rOutputFiles,
     SizeType NumberOfPartitions,
-    GraphType const& DomainsColoredGraph,
-    PartitionIndicesType const& NodesPartitions,
-    // PartitionIndicesType const& GeometriesPartitions,
-    PartitionIndicesType const& ElementsPartitions,
-    PartitionIndicesType const& ConditionsPartitions,
-    PartitionIndicesContainerType const& NodesAllPartitions,
-    // PartitionIndicesContainerType const& GeometriesAllPartitions,
-    PartitionIndicesContainerType const& ElementsAllPartitions,
-    PartitionIndicesContainerType const& ConditionsAllPartitions)
+    const PartitioningInfo& rPartitioningInfo)
 {
     KRATOS_TRY
 
@@ -1106,29 +1069,29 @@ void ModelPartIO::DivideInputToPartitionsImpl(
         else if(word == "Properties")
             DividePropertiesBlock(rOutputFiles);
         else if(word == "Nodes")
-            DivideNodesBlock(rOutputFiles, NodesAllPartitions);
+            DivideNodesBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions);
         // else if(word == "Geometries")
-            // DivideGeometriesBlock(rOutputFiles, GeometriesAllPartitions);
+            // DivideGeometriesBlock(rOutputFiles, rPartitioningInfo.GeometriesAllPartitions);
         else if(word == "Elements")
-            DivideElementsBlock(rOutputFiles, ElementsAllPartitions);
+            DivideElementsBlock(rOutputFiles, rPartitioningInfo.ElementsAllPartitions);
         else if(word == "Conditions")
-            DivideConditionsBlock(rOutputFiles, ConditionsAllPartitions);
+            DivideConditionsBlock(rOutputFiles, rPartitioningInfo.ConditionsAllPartitions);
         else if(word == "NodalData")
-            DivideNodalDataBlock(rOutputFiles, NodesAllPartitions);
+            DivideNodalDataBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions);
         else if(word == "ElementalData")
-            DivideElementalDataBlock(rOutputFiles, ElementsAllPartitions);
+            DivideElementalDataBlock(rOutputFiles, rPartitioningInfo.ElementsAllPartitions);
         else if(word == "ConditionalData")
-            DivideConditionalDataBlock(rOutputFiles, ConditionsAllPartitions);
+            DivideConditionalDataBlock(rOutputFiles, rPartitioningInfo.ConditionsAllPartitions);
         else if (word == "Mesh")
-            DivideMeshBlock(rOutputFiles, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+            DivideMeshBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions);
         else if (word == "SubModelPart")
-            DivideSubModelPartBlock(rOutputFiles, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+            DivideSubModelPartBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions);
 
     }
 
-    WritePartitionIndices(rOutputFiles, NodesPartitions, NodesAllPartitions);
+    WritePartitionIndices(rOutputFiles, rPartitioningInfo.NodesPartitions, rPartitioningInfo.NodesAllPartitions);
 
-    WriteCommunicatorData(rOutputFiles, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+    WriteCommunicatorData(rOutputFiles, NumberOfPartitions, rPartitioningInfo.Graph, rPartitioningInfo.NodesPartitions, rPartitioningInfo.ElementsPartitions, rPartitioningInfo.ConditionsPartitions, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions);
 
     KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
 
@@ -3574,7 +3537,7 @@ void ModelPartIO::WriteSubModelPartBlock(
         auto numNodes = rThisNodes.end() - rThisNodes.begin();
         for(unsigned int i = 0; i < numNodes; i++) {
             auto itNode = rThisNodes.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << std::endl;
+            (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << "\n";;
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartNodes" << std::endl;
 
@@ -3584,7 +3547,7 @@ void ModelPartIO::WriteSubModelPartBlock(
         auto num_elements = rThisElements.end() - rThisElements.begin();
         for(unsigned int i = 0; i < num_elements; i++) {
             auto itElem = rThisElements.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << std::endl;
+            (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << "\n";;
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartElements" << std::endl;
 
@@ -3594,7 +3557,7 @@ void ModelPartIO::WriteSubModelPartBlock(
         auto numConditions = rThisConditions.end() - rThisConditions.begin();
         for(unsigned int i = 0; i < numConditions; i++) {
             auto itCond = rThisConditions.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << std::endl;
+            (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << "\n";;
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartConditions" << std::endl;
 
