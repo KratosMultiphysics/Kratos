@@ -22,12 +22,14 @@
 namespace Kratos
 {
 
-std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry)
+std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry)
 {
     KRATOS_TRY;
 
     // Using switch over map as the compiler warns if some enum values are not handled in the switch
     switch(TypeOfGeometry) {
+        case GeometryData::KratosGeometryType::Kratos_generic_type:
+            return "GenericType";
         case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20:
             return "Hexahedra3D20";
         case GeometryData::KratosGeometryType::Kratos_Hexahedra3D27:
@@ -59,7 +61,7 @@ std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometr
         case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
             return "Tetrahedra3D4";
         case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-            return "Triangle3D3";
+            return "Triangle2D3";
         case GeometryData::KratosGeometryType::Kratos_Triangle2D6:
             return "Triangle2D6";
         case GeometryData::KratosGeometryType::Kratos_Triangle2D10:
@@ -113,7 +115,6 @@ std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometr
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
             return "Quadrature_Point_Surface_In_Volume_Geometry";
         case GeometryData::KratosGeometryType::NumberOfGeometryTypes:
-            KRATOS_ERROR << "Geometry type not supported" << std::endl;
             return "NumberOfGeometryTypes";
         default:
             KRATOS_ERROR << "Geometry type not supported: " << static_cast<int>(TypeOfGeometry) << std::endl;
