@@ -438,10 +438,10 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
 }
 
 void RomAuxiliaryUtilities::GetPhiElemental(
-        Matrix &rPhiElemental,
-        const Element::DofsVectorType& rDofs,
-        const Element::GeometryType& rGeom,
-        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
+    Matrix &rPhiElemental,
+    const Element::DofsVectorType& rDofs,
+    const Element::GeometryType& rGeom,
+    const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
     {
         for(std::size_t i = 0; i < rDofs.size(); ++i)
         {
@@ -470,10 +470,10 @@ void RomAuxiliaryUtilities::GetPhiElemental(
     }
 
 void RomAuxiliaryUtilities::GetPsiElemental(
-        Matrix &rPsiElemental,
-        const Element::DofsVectorType& rDofs,
-        const Element::GeometryType& rGeom,
-        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
+    Matrix &rPsiElemental,
+    const Element::DofsVectorType& rDofs,
+    const Element::GeometryType& rGeom,
+    const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
     {
         for(IndexType i = 0; i < rDofs.size(); ++i)
         {
