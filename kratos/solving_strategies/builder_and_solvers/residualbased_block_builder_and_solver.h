@@ -1392,9 +1392,6 @@ protected:
         // The current process info
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Vector containing the localization in the system of the different terms
-        DofsVectorType slave_dof_list, master_dof_list;
-
         // Contributions to the system
         Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
         Vector constant_vector = LocalSystemVectorType(0);
