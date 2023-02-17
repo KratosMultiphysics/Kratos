@@ -302,7 +302,7 @@ protected:
      * @param MinValue minimum of the principal values
      */
     void GetEigenValues(BoundedVectorType& Pri_Values,
-                        double MaxValue,
+                        double& MaxValue,
                         const Variable<Vector>& rThisVariable,
                         const Vector& VectorForm); 
         

@@ -204,10 +204,10 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         noalias(r_stress_vector)      = prod(r_constitutive_matrix, r_strain_vector);
         KRATOS_WATCH(r_stress_vector);
         const double eps = 1e-8;
-        const double beta1t = 0.85;
-        const double beta2t = 0.18;
-        const double beta1c = 0.0;
-        const double beta2c = 0.095;
+        const double beta1t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_TENSION];
+        const double beta2t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA2_TENSION];
+        const double beta1c = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_COMPRESSION];
+        const double beta2c = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA2_COMPRESSION];
         const double E   = r_material_properties[YOUNG_MODULUS];
         const double fck = r_material_properties[YIELD_STRESS_COMPRESSION];
         const double ft  = r_material_properties[YIELD_STRESS_TENSION];
@@ -281,7 +281,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
 
 void ElasticAnisotropicDamage::GetEigenValues(
     BoundedVectorType& Pri_Values,
-    double MaxValue,
+    double& MaxValue,
     const Variable<Vector>& rThisVariable,
     const Vector& VectorForm)
 {
