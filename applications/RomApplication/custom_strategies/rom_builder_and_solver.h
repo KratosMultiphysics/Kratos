@@ -117,18 +117,13 @@ public:
 
     explicit ROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        Parameters ThisParameters): BaseType(pNewLinearSystemSolver)
+        Parameters ThisParameters)
+        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
         // Validate and assign defaults
         Parameters this_parameters_copy = ThisParameters.Clone();
         this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
         this->AssignSettings(this_parameters_copy);
-    }
-
-    explicit ROMBuilderAndSolver(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
-    {
     }
 
     ~ROMBuilderAndSolver() = default;
@@ -212,12 +207,12 @@ public:
 	// 	ModelPart::NodesContainerType& rNodes
 	// )
     // {
-    //     Vector rom_unknowns = ZeroVector(GetNumberOfROMModes());
+    //     Vector rom_unknowns = ZeroVector(mNumberOfRomModes);
     //     for(const auto& node : rNodes)
     //     {
     //         unsigned int node_aux_id = node.GetValue(AUX_ID);
     //         const auto& nodal_rom_basis = node.GetValue(ROM_BASIS);
-	// 			for (int i = 0; i < GetNumberOfROMModes(); ++i) {
+	// 			for (int i = 0; i < mNumberOfRomModes; ++i) {
 	// 				for (int j = 0; j < mNodalDofs; ++j) {
 	// 					rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mNodalDofs + j);
 	// 				}
@@ -225,11 +220,6 @@ public:
     //     }
     //     return rom_unknowns;
 	// }
-
-    SizeType GetNumberOfROMModes() const noexcept
-    {
-        return mNumberOfRomModes;
-    } 
 
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
@@ -257,7 +247,7 @@ public:
 
         // Reset the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
+        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(mNumberOfRomModes);
     }
 
     
@@ -270,8 +260,8 @@ public:
     {
         KRATOS_TRY
 
-        RomSystemMatrixType Arom = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
-        RomSystemVectorType brom = ZeroVector(GetNumberOfROMModes());
+        RomSystemMatrixType Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+        RomSystemVectorType brom = ZeroVector(mNumberOfRomModes);
 
         BuildROM(pScheme, rModelPart, Arom, brom);
         SolveROM(rModelPart, Arom, brom, Dx);
@@ -382,6 +372,7 @@ protected:
     ///@{
 
     SizeType mNodalDofs;
+    SizeType mNumberOfRomModes;
     std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> mMapPhi;
 
     ElementsArrayType mSelectedElements;
@@ -614,12 +605,49 @@ protected:
         if(mat.size1() != rows || mat.size2() != cols) {
             mat.resize(rows, cols, false);
         }
+    };
+
+    /**
+     * Computes the local contribution of an element or condition
+     */
+    template<typename TEntity>
+    std::tuple<LocalSystemMatrixType, LocalSystemVectorType> CalculateLocalContribution(
+        TEntity& rEntity,
+        AssemblyTLS& rPreAlloc,
+        TSchemeType& rScheme,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE))
+        {
+            rPreAlloc.romA = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+            rPreAlloc.romB = ZeroVector(mNumberOfRomModes);
+            return std::tie(rPreAlloc.romA, rPreAlloc.romB);
+        }
+
+        // Calculate elemental contribution
+        rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.rhs, rPreAlloc.eq_id, rCurrentProcessInfo);
+        rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
+
+        const SizeType ndofs = rPreAlloc.dofs.size();
+        ResizeIfNeeded(rPreAlloc.phiE, ndofs, mNumberOfRomModes);
+        ResizeIfNeeded(rPreAlloc.aux, ndofs, mNumberOfRomModes);
+
+        const auto &r_geom = rEntity.GetGeometry();
+        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, mMapPhi);
+
+        const double h_rom_weight = mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
+
+        noalias(rPreAlloc.aux) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
+        noalias(rPreAlloc.romA) = prod(trans(rPreAlloc.phiE), rPreAlloc.aux) * h_rom_weight;
+        noalias(rPreAlloc.romB) = prod(trans(rPreAlloc.phiE), rPreAlloc.rhs) * h_rom_weight;
+
+        return std::tie(rPreAlloc.romA, rPreAlloc.romB);
     }
 
     /**
      * Builds the reduced system of equations on rank 0 
      */
-    virtual void BuildROM(
+    void BuildROM(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
         RomSystemMatrixType &rA,
@@ -628,8 +656,8 @@ protected:
         KRATOS_TRY
 
         // Define a dense matrix to hold the reduced problem
-        rA = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
-        rb = ZeroVector(GetNumberOfROMModes());
+        rA = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+        rb = ZeroVector(mNumberOfRomModes);
 
         // Build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -642,7 +670,7 @@ protected:
         const auto assembling_timer = BuiltinTimer();
 
         using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<RomSystemMatrixType>, NonTrivialSumReduction<RomSystemVectorType>>;
-        AssemblyTLS assembly_tls_container(GetNumberOfROMModes());
+        AssemblyTLS assembly_tls_container(mNumberOfRomModes);
 
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
         if(!elements.empty())
@@ -681,7 +709,7 @@ protected:
     /**
      * Solves reduced system of equations and broadcasts it
      */
-    virtual void SolveROM(
+    void SolveROM(
         ModelPart &rModelPart,
         RomSystemMatrixType &rA,
         RomSystemVectorType &rb,
@@ -689,11 +717,10 @@ protected:
     {
         KRATOS_TRY
 
-        RomSystemVectorType dxrom(GetNumberOfROMModes());
+        RomSystemVectorType dxrom(mNumberOfRomModes);
         
         const auto solving_timer = BuiltinTimer();
         MathUtils<double>::Solve(rA, dxrom, rb);
-        // KRATOS_WATCH(dxrom)
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
@@ -721,51 +748,6 @@ protected:
     ///@}
     ///@name Protected life cycle
     ///@{
-
-private:
-
-    SizeType mNumberOfRomModes;
-
-    ///@}
-    ///@name Private operations 
-    ///@{
-
-    /**
-     * Computes the local contribution of an element or condition
-     */
-    template<typename TEntity>
-    std::tuple<LocalSystemMatrixType, LocalSystemVectorType> CalculateLocalContribution(
-        TEntity& rEntity,
-        AssemblyTLS& rPreAlloc,
-        TSchemeType& rScheme,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE))
-        {
-            rPreAlloc.romA = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
-            rPreAlloc.romB = ZeroVector(GetNumberOfROMModes());
-            return std::tie(rPreAlloc.romA, rPreAlloc.romB);
-        }
-
-        // Calculate elemental contribution
-        rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.rhs, rPreAlloc.eq_id, rCurrentProcessInfo);
-        rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
-
-        const SizeType ndofs = rPreAlloc.dofs.size();
-        ResizeIfNeeded(rPreAlloc.phiE, ndofs, GetNumberOfROMModes());
-        ResizeIfNeeded(rPreAlloc.aux, ndofs, GetNumberOfROMModes());
-
-        const auto &r_geom = rEntity.GetGeometry();
-        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, mMapPhi);
-
-        const double h_rom_weight = mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
-
-        noalias(rPreAlloc.aux) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
-        noalias(rPreAlloc.romA) = prod(trans(rPreAlloc.phiE), rPreAlloc.aux) * h_rom_weight;
-        noalias(rPreAlloc.romB) = prod(trans(rPreAlloc.phiE), rPreAlloc.rhs) * h_rom_weight;
-
-        return std::tie(rPreAlloc.romA, rPreAlloc.romB);
-    }
 
 
     ///@}
