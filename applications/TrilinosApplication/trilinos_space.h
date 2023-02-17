@@ -532,7 +532,9 @@ public:
      * @param rX The vector considered
      * @param i The index of the value considered
      * @param value The value considered
+     * @tparam TGlobalAssemble If considering a global assembling
      */
+    template<bool TGlobalAssemble = true>
     static void SetValue(
         VectorType& rX,
         IndexType i,
@@ -552,8 +554,10 @@ public:
         }
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
-        ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
+        if constexpr (TGlobalAssemble) {
+            ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
+            KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
+        }
     }
 
     /**
@@ -562,7 +566,9 @@ public:
      * @param i The first index of the value considered
      * @param i The second index of the value considered
      * @param value The value considered
+     * @tparam TGlobalAssemble If considering a global assembling
      */
+    template<bool TGlobalAssemble = true>
     static void SetValue(
         MatrixType& rA,
         IndexType i,
@@ -582,8 +588,10 @@ public:
         }
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
-        ierr = rA.GlobalAssemble();
-        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
+        if constexpr (TGlobalAssemble) {
+            ierr = rA.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
+        }
     }
 
     /**
