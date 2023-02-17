@@ -1144,6 +1144,24 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns constraint relation (T) matrix
+     * @return The constraint relation (T) matrix
+     */
+    TSystemMatrixType& GetConstraintRelationMatrix()
+    {
+        return mT;
+    }
+
+    /**
+     * @brief This method returns constraint constant vector
+     * @return The constraint constant vector
+     */
+    TSystemVectorType& GetConstraintConstantVector()
+    {
+        return mConstantVector;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
