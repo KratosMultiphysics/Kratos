@@ -29,6 +29,7 @@ from test_container_variable_data_holder import TestConditionContainerVariableDa
 from test_container_variable_data_holder import TestElementContainerVariableDataHolder
 from test_container_variable_data_holder import TestConditionPropertiesContainerVariableDataHolder
 from test_container_variable_data_holder import TestElementPropertiesContainerVariableDataHolder
+from test_collective_variable_data_holder import TestCollectiveVariableDataHolder
 from test_model_part_controllers import TestMdpaModelPartController
 from test_container_variable_data_holder_utils import TestContainerVariableDataHolderUtils
 
@@ -70,6 +71,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementContainerVariableDataHolder]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionPropertiesContainerVariableDataHolder]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementPropertiesContainerVariableDataHolder]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCollectiveVariableDataHolder]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMdpaModelPartController]))
 
