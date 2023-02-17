@@ -46,8 +46,8 @@ public:
      */
     enum class DistanceComputed
     {
-        ERROR,
         NO_RADIUS,
+        PROJECTION_ERROR,
         RADIUS_PROJECTED,
         RADIUS_NOT_PROJECTED_OUTSIDE,
         RADIUS_NOT_PROJECTED_INSIDE

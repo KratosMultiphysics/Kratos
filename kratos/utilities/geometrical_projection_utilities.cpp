@@ -100,7 +100,7 @@ GeometricalProjectionUtilities::DistanceComputed GeometricalProjectionUtilities:
             }
         }
     }
-    return DistanceComputed::ERROR;
+    return DistanceComputed::PROJECTION_ERROR;
 }
 
 } // namespace Kratos
