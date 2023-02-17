@@ -33,18 +33,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-/**
- * @brief How the distance is computed enum
- */
-enum class DistanceComputed
-{
-    ERROR,
-    NO_RADIUS,
-    RADIUS_PROJECTED,
-    RADIUS_NOT_PROJECTED_OUTSIDE,
-    RADIUS_NOT_PROJECTED_INSIDE
-};
-
 ///@}
 ///@name  Functions
 ///@{
@@ -152,7 +140,7 @@ struct CalculateDistanceToPathSettings
     constexpr static bool SaveAsNonHistoricalVariable = false;
 };
 
-/** 
+/**
  * @class CalculateDistanceToPathProcess
  * @ingroup KratosCore 
  * @brief Computes DISTANCE from a path model part to a given model part
@@ -169,7 +157,7 @@ public:
 
     /// Index type definition
     typedef std::size_t IndexType;
-    
+
     /// Size type definition
     typedef std::size_t SizeType;
 
@@ -188,7 +176,7 @@ public:
      * @param rModel The model containing the model parts
      */
     CalculateDistanceToPathProcess(
-        Model& rModel, 
+        Model& rModel,
         Parameters ThisParameters
         );
 
@@ -224,25 +212,6 @@ public:
      * @brief Execute method is used to execute the Process algorithms.
      */
     void Execute() override;
-
-    /**
-     * @brief Computes the minimal distance to a line with radius contribution
-     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
-     * @param rDistance The distance
-     * @param rSegment The line segment
-     * @param rPoint The point to compute distance
-     * @param Radius The radius
-     * @param Tolerance Tolerance to check it falls inside the line
-     * @return The Distance computation type
-     * @todo Add C++ test
-     */
-    static DistanceComputed FastMinimalDistanceOnLineWithRadius(
-        double& rDistance,
-        const Geometry<NodeType>& rSegment,
-        const Point& rPoint,
-        const double Radius,
-        const double Tolerance = 1.0e-9
-        );
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
