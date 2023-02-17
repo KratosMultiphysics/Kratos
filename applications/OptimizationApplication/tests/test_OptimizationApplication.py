@@ -37,6 +37,7 @@ from test_shape_control import TestShapeControl
 from test_vertex_morphing_mappers import TestVertexMorphingNodalContainerVariableDataMapper
 from test_vertex_morphing_mappers import TestVertexMorphingConditionContainerVariableDataMapper
 from test_vertex_morphing_mappers import TestVertexMorphingElementContainerVariableDataMapper
+from test_mass_optimization import TestMassOptimization
 
 # Nightly tests
 
@@ -88,6 +89,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertexMorphingConditionContainerVariableDataMapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertexMorphingElementContainerVariableDataMapper]))
 
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassOptimization]))
+
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
 
@@ -112,6 +115,7 @@ def AssembleTestSuites():
 # Main
 # ==============================================================================
 if __name__ == '__main__':
+    km.Tester.SetVerbosity(km.Tester.Verbosity.PROGRESS)
     KratosUnittest.runTests(AssembleTestSuites())
 
 # ==============================================================================
