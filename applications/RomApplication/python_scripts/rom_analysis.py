@@ -122,11 +122,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 ElementsVector = np.load("Elementsvector.npy")
                 #FIXME for a HROM using the Hyper-reduced model part without unselected elements, the original number of elements should be provided!
                 OriginalNumberOfElements = computing_model_part.NumberOfElements() #
-                for i in range(self.WeightsMatrix.shape[0]):
-                    if self.ElementsVector[i] < OriginalNumberOfElements:
-                        computing_model_part.GetElement(int( self.ElementsVector[i])+1).SetValue(KratosROM.HROM_WEIGHT, self.WeightsMatrix[i]  )
+                for i in range(WeightsMatrix.shape[0]):
+                    if ElementsVector[i] < OriginalNumberOfElements:
+                        computing_model_part.GetElement(int( ElementsVector[i])+1).SetValue(KratosROM.HROM_WEIGHT, WeightsMatrix[i]  )
                     else:
-                        computing_model_part.GetCondition(int( self.ElementsVector[i] - OriginalNumberOfElements)+1).SetValue(KratosROM.HROM_WEIGHT, self.WeightsMatrix[i]  )
+                        computing_model_part.GetCondition(int( ElementsVector[i] - OriginalNumberOfElements)+1).SetValue(KratosROM.HROM_WEIGHT, WeightsMatrix[i]  )
 
 
 
@@ -157,7 +157,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Once simulation is completed, calculate and save the HROM weights
             if self.train_hrom:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
-                self.__hrom_training_utility.CreateHRomModelParts()
+                #self.__hrom_training_utility.CreateHRomModelParts() need to update to new format
 
     return RomAnalysis(global_model, parameters)
 
