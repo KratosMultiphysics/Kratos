@@ -60,7 +60,7 @@ ElasticIsotropicK03DLaw::~ElasticIsotropicK03DLaw()
 
 void  ElasticIsotropicK03DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // b.- Get Values to compute the constitutive law:
     Flags & r_options=rValues.GetOptions();
 
@@ -81,7 +81,7 @@ void  ElasticIsotropicK03DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -302,7 +302,7 @@ void ElasticIsotropicK03DLaw::CalculateElasticMatrix(Matrix& rConstitutiveMatrix
     }
 
     NU = K0 / (K0 + 1.0);
-    NU = std::max(NU, 0.0);
+    NU = std::max<double>(NU, 0.0);
 
     const double limit = 0.005;
     if (NU < (0.5 + limit) && NU > (0.5 - limit)) NU = 0.5 - limit;

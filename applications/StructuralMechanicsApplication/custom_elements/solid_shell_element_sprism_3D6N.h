@@ -807,7 +807,7 @@ protected:
     /* Finalize and Initialize label*/
     bool mFinalizedStep;
 
-    /* Auxiliar vector of matrices container used for different pourposes in TL and UL */
+    /* Auxiliary vector of matrices container used for different pourposes in TL and UL */
     std::vector< Matrix > mAuxContainer; /// Container for historical total Jacobians for Total Lagrangian
                                          /// Container for historical total elastic deformation measure F0 = dx/dX  for Updated Lagrangian
 
@@ -1091,7 +1091,7 @@ protected:
     /**
      * @brief Construction of the in-plane geometric stiffness matrix:
      * @param Kgeometricmembrane Membrane component of the stiffness matrix
-     * @param rCartesianDerivatives Cartesian derivatives auxiliar struct
+     * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateAndAddMembraneKgeometric(
@@ -1105,7 +1105,7 @@ protected:
      * @brief Construction of the shear deformation tangent matrix:
      * @param BShear Shear component of the deformation tangent matrix
      * @param CShear Shear components of the Cauchy tensor
-     * @param rCartesianDerivatives Cartesian derivatives auxiliar struct
+     * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
      * @param rTransverseGradient Local deformation gradient components for each Gauss point
      * @param rTransverseGradientIsoParametric Local deformation gradient components in the isogeometric space
      * @param Part The enum that indicates upper or lower face
@@ -1122,7 +1122,7 @@ protected:
     /**
      * @brief Construction of the shear geometric contribution to the stiffness matrix:
      * @param Kgeometricshear The shear geometric contribution to the stiffness matrix
-     * @param rCartesianDerivatives Cartesian derivatives auxiliar struct
+     * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
      * @param SShear The shear components of the PK2 tensor
      * @param Part The enum that indicates upper or lower face
      */

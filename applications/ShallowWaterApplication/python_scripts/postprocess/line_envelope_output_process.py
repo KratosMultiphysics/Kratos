@@ -16,7 +16,8 @@ class LineEnvelopeOutputProcess(LineGraphOutputProcess):
     def ExecuteBeforeSolutionLoop(self):
         """Initialize the list of maximum values."""
         super().ExecuteBeforeSolutionLoop()
-        self.values = [[-1e6] * len(self.variables) for _ in self.found_positions]
+        num_of_vaviables = len(self.variables) + len(self.nonhistorical_variables)
+        self.values = [[-1e6] * num_of_vaviables for _ in self.found_positions]
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -24,7 +25,10 @@ class LineEnvelopeOutputProcess(LineGraphOutputProcess):
         i = 0
         for entity, area_coords in zip(self.entities, self.area_coords):
             for v, var in enumerate(self.variables):
-                value = Interpolate(var, entity, area_coords, self.historical_value)
+                value = Interpolate(var, entity, area_coords, historical_value=True)
+                self.values[i][v] = max(self.values[i][v], value)
+            for v, var in enumerate(self.nonhistorical_variables):
+                value = Interpolate(var, entity, area_coords, historical_value=False)
                 self.values[i][v] = max(self.values[i][v], value)
             i += 1
 
@@ -44,10 +48,10 @@ class LineEnvelopeOutputProcess(LineGraphOutputProcess):
 
     def _DataToString(self, node, values):
         data = self.print_format.format(node.X)
-        data += "\t" + self.print_format.format(node.Y)
-        data += "\t" + self.print_format.format(node.Z)
+        data += " " + self.print_format.format(node.Y)
+        data += " " + self.print_format.format(node.Z)
         for value in values:
-            data += "\t" + self.print_format.format(value)
+            data += " " + self.print_format.format(value)
         return data + "\n"
 
 
