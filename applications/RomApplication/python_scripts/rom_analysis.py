@@ -5,6 +5,8 @@ import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication import new_python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+import numpy as np
+
 
 def CreateRomAnalysisInstance(cls, global_model, parameters):
     class RomAnalysis(cls):
@@ -83,14 +85,23 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
             rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
 
-            # Set the nodal ROM basis
-            aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
-            for node in computing_model_part.Nodes:
-                node_id = str(node.Id)
-                for j in range(nodal_dofs):
-                    for i in range(rom_dofs):
-                        aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
-                node.SetValue(KratosROM.ROM_BASIS, aux)
+            # # Set the nodal ROM basis
+            # aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
+            # for node in computing_model_part.Nodes:
+            #     node_id = str(node.Id)
+            #     for j in range(nodal_dofs):
+            #         for i in range(rom_dofs):
+            #             aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
+            #     node.SetValue(KratosROM.ROM_BASIS, aux)
+            #nodal_modes = self.rom_parameters["nodal_modes"]
+
+            self.Modes = np.load("ModesMatrix.npy")
+            self.Modes = self.Modes[:,:rom_dofs]
+            self.Nodes = np.load("NodeIds.npy")
+
+            for node_id in self.Nodes:
+                computing_model_part.GetNode(node_id).SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(self.Modes[(node_id-1)*nodal_dofs:((node_id-1)*nodal_dofs)+nodal_dofs, :]) ) # ROM basis
+
 
             # Check for HROM stages
             if self.train_hrom:
