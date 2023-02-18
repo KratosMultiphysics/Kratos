@@ -146,65 +146,71 @@ class HRomTrainingUtility(object):
         w = np.squeeze(self.hyper_reduction_element_selector.w)
         z = self.hyper_reduction_element_selector.z
 
-        # Create dictionary with HROM weights
-        hrom_weights = {}
-        hrom_weights["Elements"] = {}
-        hrom_weights["Conditions"] = {}
+        np.save('WeightsMatrix.npy',w)
+        np.save('Elementsvector.npy', np.squeeze(z))
 
-        if type(z)==np.int64 or type(z)==np.int32:
-            # Only one element found !
-            if z <= n_elements-1:
-                hrom_weights["Elements"][int(z)] = float(w)
-            else:
-                hrom_weights["Conditions"][int(z)-n_elements] = float(w)
-        else:
-            # Many elements found
-            for j in range (0,len(z)):
-                if z[j] <=  n_elements -1:
-                    hrom_weights["Elements"][int(z[j])] = float(w[j])
-                else:
-                    hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
+
+        # # Create dictionary with HROM weights
+        # hrom_weights = {}
+        # hrom_weights["Elements"] = {}
+        # hrom_weights["Conditions"] = {}
+
+        # if type(z)==np.int64 or type(z)==np.int32:
+        #     # Only one element found !
+        #     if z <= n_elements-1:
+        #         hrom_weights["Elements"][int(z)] = float(w)
+        #     else:
+        #         hrom_weights["Conditions"][int(z)-n_elements] = float(w)
+        # else:
+        #     # Many elements found
+        #     for j in range (0,len(z)):
+        #         if z[j] <=  n_elements -1:
+        #             hrom_weights["Elements"][int(z[j])] = float(w[j])
+        #         else:
+        #             hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
 
         #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
         include_minimum_condition = False
-        if include_minimum_condition:
-            # Get the HROM conditions to be added
-            minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
-                self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
-                hrom_weights["Conditions"])
+        # if include_minimum_condition:
+        #     # Get the HROM conditions to be added
+        #     minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
+        #         self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
+        #         hrom_weights["Conditions"])
 
-            # Add the selected conditions to the conditions dict with a null weight
-            for cond_id in minimum_conditions:
-                hrom_weights["Conditions"][cond_id] = 0.0
+        #     # Add the selected conditions to the conditions dict with a null weight
+        #     for cond_id in minimum_conditions:
+        #         hrom_weights["Conditions"][cond_id] = 0.0
 
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
         include_condition_parents = False
-        if include_condition_parents:
-            # Get the HROM condition parents from the current HROM weights
-            missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
-                self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
-                hrom_weights)
+        # if include_condition_parents:
+        #     # Get the HROM condition parents from the current HROM weights
+        #     missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
+        #         self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
+        #         hrom_weights)
 
-            # Add the missing parents to the elements dict with a null weight
-            for parent_id in missing_condition_parents:
-                hrom_weights["Elements"][parent_id] = 0.0
+        #     # Add the missing parents to the elements dict with a null weight
+        #     for parent_id in missing_condition_parents:
+        #         hrom_weights["Elements"][parent_id] = 0.0
 
         # Append weights to RomParameters.json
         # We first parse the current RomParameters.json to then append and edit the data
-        with open('RomParameters.json','r') as f:
-            updated_rom_parameters = json.load(f)
-            #FIXME: I don't really like to automatically change things without the user realizing...
-            #FIXME: However, this leaves the settings ready for the HROM postprocess... something that is cool
-            #FIXME: Decide about this
-            # updated_rom_parameters["train_hrom"] = False
-            # updated_rom_parameters["run_hrom"] = True
-            updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
 
-        with open('RomParameters.json','w') as f:
-            json.dump(updated_rom_parameters, f, indent = 4)
+        # We do not update RomParameters.json
+        # with open('RomParameters.json','r') as f:
+        #     updated_rom_parameters = json.load(f)
+        #     #FIXME: I don't really like to automatically change things without the user realizing...
+        #     #FIXME: However, this leaves the settings ready for the HROM postprocess... something that is cool
+        #     #FIXME: Decide about this
+        #     # updated_rom_parameters["train_hrom"] = False
+        #     # updated_rom_parameters["run_hrom"] = True
+        #     #updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
+
+        # with open('RomParameters.json','w') as f:
+        #     json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")

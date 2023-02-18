@@ -110,14 +110,27 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     self._GetSolver(),
                     self.rom_parameters)
             elif self.run_hrom:
-                # Set the HROM weights in elements and conditions
-                hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
-                for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                    computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                # # Set the HROM weights in elements and conditions
+                # hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
+                # for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
+                #     computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
 
-                hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
-                for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                    computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                # hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
+                # for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
+                #     computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                WeightsMatrix = np.load("WeightsMatrix.npy")
+                ElementsVector = np.load("Elementsvector.npy")
+                #FIXME for a HROM using the Hyper-reduced model part without unselected elements, the original number of elements should be provided!
+                OriginalNumberOfElements = computing_model_part.NumberOfElements() #
+                for i in range(self.WeightsMatrix.shape[0]):
+                    if self.ElementsVector[i] < OriginalNumberOfElements:
+                        computing_model_part.GetElement(int( self.ElementsVector[i])+1).SetValue(KratosROM.HROM_WEIGHT, self.WeightsMatrix[i]  )
+                    else:
+                        computing_model_part.GetCondition(int( self.ElementsVector[i] - OriginalNumberOfElements)+1).SetValue(KratosROM.HROM_WEIGHT, self.WeightsMatrix[i]  )
+
+
+
+
 
         def FinalizeSolutionStep(self):
             # Call the HROM training utility to append the current step residuals
