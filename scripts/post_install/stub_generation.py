@@ -72,8 +72,7 @@ def __GetPythonModulesImportingCppModules(kratos_python_module_path: Path, krato
     __FindCPPModuleImportsInPythonModules(kratos_python_module_path, list_of_binary_modules, cpp_python_modules_dict)
 
     if len(list_of_binary_modules) != 0:
-        msg = "------ Warning: Could not find imports within python modules for following binaries:"
-        msg += "                    " + "\n                    ".join(list_of_binary_modules)
+        msg = "------ Warning: Could not find imports within python modules for following binaries: " + ", ".join(list_of_binary_modules)
         print(msg)
 
     return copy_list_of_binary_modules, cpp_python_modules_dict
@@ -221,12 +220,8 @@ if __name__ == "__main__":
     error_and_warning_outut_file = f"{sys.argv[1]}/stub_generation_errors_and_warnings.txt"
     if "--quiet" in sys.argv: # suppress output from Kratos imports
         args = [arg for arg in sys.argv if arg != "--quiet"]
-        subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-        if Path(error_and_warning_outut_file).is_file():
-            with open(error_and_warning_outut_file, "r") as file_input:
-                print(file_input.read())
+        output = subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        for matched_group in re.finditer(r"(Error|Warning|error|warning)(.*?\\n)", str(output.stdout) + str(output.stderr)):
+            print("---- ", matched_group[1], matched_group[2])
     else:
         Main()
-        if len(warnings_and_errors_list) != 0:
-            with open(error_and_warning_outut_file, "w") as file_output:
-                file_output.writelines(warnings_and_errors_list)
