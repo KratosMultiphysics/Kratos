@@ -143,10 +143,14 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
 
-        i = 0
-        for node in self.model_part.Nodes:
-            rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
-            i += n_nodal_unknowns
+        # Storing modes in Numpy format
+        numpy.save('ModesMatrix.npy', u)
+        numpy.save('NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   ) #this fixes the +1 issue !!!!!!!!!!
+
+        # i = 0
+        # for node in self.model_part.Nodes:
+        #     rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
+        #     i += n_nodal_unknowns
 
         # Export the ROM basis dictionary
         if self.rom_basis_output_format == "json":
