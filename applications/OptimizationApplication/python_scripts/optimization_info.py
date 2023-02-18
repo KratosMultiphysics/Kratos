@@ -105,7 +105,7 @@ class OptimizationInfo:
             try:
                 current_opt_info = current_opt_info[sub_key]
             except KeyError as k:
-                cur_path = f"\n\t" + "/".join(sub_keys[:i]) + "/"
+                cur_path = "\n\t" + "/".join(sub_keys[:i]) + "/"
                 msg = f"Subkey {sub_key} not found for {key} for solution step index = {solution_step_index}. Followings are available keys:{cur_path}" + (cur_path).join(current_opt_info.keys())
                 raise KeyError(OptimizationInfo.__KeyErrorMessage(msg)) from k
 

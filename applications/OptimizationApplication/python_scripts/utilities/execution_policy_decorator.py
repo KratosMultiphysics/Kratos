@@ -28,7 +28,7 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
             raise RuntimeError(f"Execution policies should be given a non-empty name. Followings are the corresponding execution policy settings:\n{parameters}")
 
         if self.__log_in_file and self.__log_file_name == "":
-            raise RuntimeError(f"Logger file name is empty for execution policy. Please provide \"log_file_name\" or make \"log_in_file\" to false.")
+            raise RuntimeError("Logger file name is empty for execution policy. Please provide \"log_file_name\" or make \"log_in_file\" to false.")
 
         factory = KratosModelParametersFactory(model)
 
