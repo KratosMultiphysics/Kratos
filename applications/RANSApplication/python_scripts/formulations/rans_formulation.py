@@ -274,13 +274,13 @@ class RansFormulation:
         """
         self.__ExecuteRansFormulationMethods("SetConstants", [settings])
 
-    def GetRansFormulationsList(self) -> list["RansFormulation"]:
+    def GetRansFormulationsList(self) -> "list["RansFormulation"]":
         """ @brief Returns list of formulations in this formulation.
             @return List of formulations in this formulation.
         """
         return self.__list_of_formulations
 
-    def GetProcessList(self) -> list[KratosRANS.RansFormulationProcess]:
+    def GetProcessList(self) -> "list[KratosRANS.RansFormulationProcess]":
         """ @brief Returns list of processes used in this formulation.
             @return List of rans formulation processes in this formulation.
         """
