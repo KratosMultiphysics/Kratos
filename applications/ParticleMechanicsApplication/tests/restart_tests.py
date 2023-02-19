@@ -30,7 +30,7 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
     """
     def setUp(self):
         # Within this location context:
-        with KratosUnittest.controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(os.path.dirname(os.path.realpath(__file__))):
             # here we read the general parameters and add the load/save specific settings
             with open(self.file_name + "_parameters.json", 'r') as parameter_file:
                 self.project_parameters_save = KratosMultiphysics.Parameters(parameter_file.read())
@@ -82,7 +82,7 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
-        with KratosUnittest.controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(os.path.dirname(os.path.realpath(__file__))):
             model_save = KratosMultiphysics.Model()
             model_load = KratosMultiphysics.Model()
             particle_mechanics_analysis.ParticleMechanicsAnalysis(model_save, self.project_parameters_save).Run()
@@ -90,7 +90,7 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         # Within this location context:
-        with KratosUnittest.controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(os.path.dirname(os.path.realpath(__file__))):
             # remove the created restart files
             #raw_path, raw_file_name = os.path.split(self.file_name)
             raw_file_name = "MPM_Material"
