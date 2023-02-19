@@ -12,6 +12,16 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 
 def GetFilePath(fileName):
     return str(pathlib.Path(__file__).absolute().parent / fileName)
+class controlledExecutionScope:
+    def __init__(self, scope):
+        self.currentPath = os.getcwd()
+        self.scope = scope
+
+    def __enter__(self):
+        os.chdir(self.scope)
+
+    def __exit__(self, the_type, value, traceback):
+        os.chdir(self.currentPath)
 
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
@@ -30,7 +40,7 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
     """
     def setUp(self):
         # Within this location context:
-        with KratosUnittest.WorkFolderScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope("", __file__):
             # here we read the general parameters and add the load/save specific settings
             with open(self.file_name + "_parameters.json", 'r') as parameter_file:
                 self.project_parameters_save = KratosMultiphysics.Parameters(parameter_file.read())
@@ -38,11 +48,6 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
             # To avoid many prints
             if (self.project_parameters_save["problem_data"]["echo_level"].GetInt() == 0):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
-            # Set common settings
-            # self.time_step = 1.5
-            # self.start_time = 0.0
-            # self.end_time = 5.9
 
             self.time_step = self.project_parameters_save["solver_settings"]["time_stepping"]["time_step"].GetDouble()
             self.start_time = self.project_parameters_save["problem_data"]["start_time"].GetDouble()
@@ -82,7 +87,7 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
-        with KratosUnittest.WorkFolderScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope("", __file__):
             model_save = KratosMultiphysics.Model()
             model_load = KratosMultiphysics.Model()
             particle_mechanics_analysis.ParticleMechanicsAnalysis(model_save, self.project_parameters_save).Run()
@@ -90,13 +95,13 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         # Within this location context:
-        with KratosUnittest.WorkFolderScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope("", __file__):
             # remove the created restart files
             #raw_path, raw_file_name = os.path.split(self.file_name)
             raw_file_name = "MPM_Material"
             folder_name = raw_file_name + "__restart_files"
 
-            self.addCleanup(kratos_utils.DeleteDirectoryIfExisting(GetFilePath(folder_name)))
+            self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath(folder_name))
 
 
 class MPMRestartTestDynamicCantilever2D(ParticleMechanicsRestartTestFactory):
