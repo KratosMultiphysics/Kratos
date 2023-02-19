@@ -74,11 +74,9 @@ namespace Testing
         // Construct Hardening law
         // 1. For Cam Clay hardening law
         HL::Pointer cc_hl_pointer = HL::Pointer( new CCHL() );
-        // cc_hl_pointer->InitializeMaterial(material_properties);
 
         // 2. For Exponential strain softening law
         HL::Pointer ExpSS_hl_pointer = HL::Pointer( new ExpSSHL() );
-        // ExpSS_hl_pointer->InitializeMaterial(material_properties);
 
         // Test parameters
         double CC_result = 0.0;

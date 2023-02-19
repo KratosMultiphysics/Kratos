@@ -51,7 +51,6 @@ from particle_mechanics_test_factory import PQMPMExplicitHexTest as TPQMPMExplic
 ##### RESTART TESTS #####
 from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
 from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
-#from particle_mechanics_test_factory import MPMRestartTestBeam2D as TMPMRestartTestBeam2D
 
 
 

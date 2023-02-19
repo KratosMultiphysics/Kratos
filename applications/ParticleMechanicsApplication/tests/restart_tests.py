@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 # Import Kratos
 import KratosMultiphysics
@@ -10,22 +11,10 @@ from KratosMultiphysics.ParticleMechanicsApplication import particle_mechanics_a
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+    return str(pathlib.Path(__file__).absolute().parent / fileName)
 
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
-
-# TODO: Should we move this to KratosUnittest?
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, the_type, value, traceback):
-        os.chdir(self.currentPath)
 
 class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
     """
@@ -41,7 +30,7 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
     """
     def setUp(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # here we read the general parameters and add the load/save specific settings
             with open(self.file_name + "_parameters.json", 'r') as parameter_file:
                 self.project_parameters_save = KratosMultiphysics.Parameters(parameter_file.read())
@@ -93,7 +82,7 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             model_save = KratosMultiphysics.Model()
             model_load = KratosMultiphysics.Model()
             particle_mechanics_analysis.ParticleMechanicsAnalysis(model_save, self.project_parameters_save).Run()
@@ -101,13 +90,13 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # remove the created restart files
             #raw_path, raw_file_name = os.path.split(self.file_name)
             raw_file_name = "MPM_Material"
             folder_name = raw_file_name + "__restart_files"
 
-            kratos_utils.DeleteDirectoryIfExisting(GetFilePath(folder_name))
+            self.addCleanup(kratos_utils.DeleteDirectoryIfExisting(GetFilePath(folder_name)))
 
 
 class MPMRestartTestDynamicCantilever2D(ParticleMechanicsRestartTestFactory):
