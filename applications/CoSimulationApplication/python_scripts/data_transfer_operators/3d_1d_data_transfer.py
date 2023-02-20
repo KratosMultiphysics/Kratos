@@ -30,11 +30,11 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
-        identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
+        identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name + "." + variable_origin.Name()
 
         model_part_destination_name = to_solver_data.model_part_name
         variable_destination        = to_solver_data.variable
-        identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
+        identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name + "." + variable_destination.Name()
 
         identifier_tuple         = (identifier_origin, identifier_destination)
         inverse_identifier_tuple = (identifier_destination, identifier_origin)
@@ -80,8 +80,9 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
                 self.origin_is_3d = True
             else:
                 self.origin_is_3d = False
-            self.__data_transfer_process[identifier_tuple] = KratosCoSim.DataTransfer3D1DProcess(model_part_origin, model_part_destination, parameters.Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other data transfers
-            self.__data_transfer_process[inverse_identifier_tuple] = self.__data_transfer_process[identifier_tuple]
+            # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other data transfers
+            self.__data_transfer_process[identifier_tuple] = KratosCoSim.DataTransfer3D1DProcess(model_part_origin, model_part_destination, parameters.Clone())
+            self.__data_transfer_process[inverse_identifier_tuple] = KratosCoSim.DataTransfer3D1DProcess(model_part_origin, model_part_destination, parameters.Clone())
 
             # Execute the data transfer
             if self.origin_is_3d:
