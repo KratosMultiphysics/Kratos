@@ -65,9 +65,9 @@ class HRomTrainingUtility(object):
         self.hyper_reduction_element_selector.SetUp(residual_basis)
         self.hyper_reduction_element_selector.Run()
 
-        # Save the HROM weights in the RomParameters.json
-        # Note that in here we are assuming this naming convention for the ROM json file
-        self.__AppendHRomWeightsToRomParameters() #Not required anymore
+        # Save the HROM weights in numpy format
+        # Note that in here we are assuming a naming convention for the ROM numpy files
+        self.__AppendHRomWeightsToRomParameters()
 
     def CreateHRomModelParts(self):
         # Get solver data
@@ -82,7 +82,6 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
         # Get the weights and fill the HROM computing model part
-
         KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(self.__CreateDictionaryWithRomElementsAndWeights(), computing_model_part, hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
@@ -151,7 +150,7 @@ class HRomTrainingUtility(object):
         #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
-        include_minimum_condition = True
+        include_minimum_condition = False
         if include_minimum_condition:
             # Get the HROM conditions to be added
             minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
@@ -166,7 +165,7 @@ class HRomTrainingUtility(object):
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        include_condition_parents = True
+        include_condition_parents = False
         if include_condition_parents:
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
@@ -178,21 +177,6 @@ class HRomTrainingUtility(object):
                 hrom_weights["Elements"][parent_id] = 0.0
             w, z = self.__AddSelectedElementsWithZeroWeights(w,z, missing_condition_parents)
 
-        # Append weights to RomParameters.json
-        # We first parse the current RomParameters.json to then append and edit the data
-
-        # We do not update RomParameters.json
-        # with open('RomParameters.json','r') as f:
-        #     updated_rom_parameters = json.load(f)
-        #     #FIXME: I don't really like to automatically change things without the user realizing...
-        #     #FIXME: However, this leaves the settings ready for the HROM postprocess... something that is cool
-        #     #FIXME: Decide about this
-        #     # updated_rom_parameters["train_hrom"] = False
-        #     # updated_rom_parameters["run_hrom"] = True
-        #     #updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
-
-        # with open('RomParameters.json','w') as f:
-        #     json.dump(updated_rom_parameters, f, indent = 4)
 
         np.save('WeightsMatrix.npy',w)
         np.save('ElementsVector.npy',z)
