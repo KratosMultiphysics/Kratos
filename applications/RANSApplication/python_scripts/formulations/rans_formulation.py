@@ -274,7 +274,7 @@ class RansFormulation:
         """
         self.__ExecuteRansFormulationMethods("SetConstants", [settings])
 
-    def GetRansFormulationsList(self) -> "list["RansFormulation"]":
+    def GetRansFormulationsList(self) -> "list[RansFormulation]":
         """ @brief Returns list of formulations in this formulation.
             @return List of formulations in this formulation.
         """
