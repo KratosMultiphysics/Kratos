@@ -64,14 +64,14 @@ namespace Kratos
         Properties::Pointer new_prop = Kratos::make_shared<Properties>(*p_prop);
         //Properties::Pointer new_prop2;
         // Properties::Pointer new_prop(p_prop);
-    	std::cout << "value before: " << p_prop->GetValue(rVar) << std::endl;
-        std::cout << "value input: " << Value << std::endl;
+    	// std::cout << "value before: " << p_prop->GetValue(rVar) << std::endl;
+     //    std::cout << "value input: " << Value << std::endl;
 
         new_prop->SetValue(rVar, Value);
 
-        std::cout << "value after: " << p_prop->GetValue(rVar) << std::endl;
+        // std::cout << "value after: " << p_prop->GetValue(rVar) << std::endl;
         rElement->SetProperties(new_prop);
-        std::cout << "value after2: " << rElement->GetProperties()[rVar] << std::endl;
+        // std::cout << "value after2: " << rElement->GetProperties()[rVar] << std::endl;
 
         std::cout << "\n" << std::endl;
     }
@@ -83,16 +83,15 @@ void SetParameterFieldProcess::ExecuteInitialize()
 
     if (!this->mrModelPart.GetProcessInfo()[IS_RESTARTED]){
 
+        // set parameter field from input function
         if (mParameters["func_type"].GetString().compare("input") == 0)
         {
-            BasicGenericFunctionUtility parameter_function = BasicGenericFunctionUtility(mParameters["function"].GetString());
 
-            //ModelPart::ElementsContainerType& elements = mrModelPart.Elements();
+            BasicGenericFunctionUtility parameter_function = BasicGenericFunctionUtility(mParameters["function"].GetString());
 
             const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
 
             for (Element& r_element : mrModelPart.Elements()) {
-
 
                 auto& r_geom = r_element.GetGeometry();
                 const double val = parameter_function.CallFunction(r_geom.Center().X(), r_geom.Center().Y(), r_geom.Center().Z(), current_time, 0, 0, 0);
@@ -102,20 +101,22 @@ void SetParameterFieldProcess::ExecuteInitialize()
 
             }
         }
+        // set parameter field with a python function
         else if (mParameters["func_type"].GetString().compare("python") == 0)
         {
-
-            
+                        
             auto dataset = mParameters["dataset"].GetString();
             const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
 
             Parameters new_data = Parameters(dataset);
 
-            std::vector<double> data_vector;
-            for (Parameters& it : new_data)
-            {
-                data_vector.push_back(it.GetDouble());
-            }
+            Vector data_vector = new_data["values"].GetVector();
+
+            //std::vector<double> data_vector;
+            // for (Parameters& it : new_data)
+            // {
+            //     data_vector.push_back(it.GetDouble());
+            // }
 
             IndexType i = 0;
             for (Element& r_element : mrModelPart.Elements())
@@ -123,6 +124,30 @@ void SetParameterFieldProcess::ExecuteInitialize()
                 this->SetValueAtElement(&r_element, r_var, data_vector[i]);
                 i++;
             }
+        }
+        // set parameter field from an input json
+        else if (mParameters["func_type"].GetString().compare("json") == 0)
+        {
+
+
+            const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
+
+            // Read json string in field parameters file, create Parameters
+            const std::string& field_file_name = mParameters["dataset"].GetString();
+
+            KRATOS_ERROR_IF_NOT(std::filesystem::exists(field_file_name)) << "The parameter field file specified with name \"" << field_file_name << "\" does not exist!" << std::endl;
+
+            std::ifstream ifs(field_file_name);
+            Parameters new_data(ifs);
+            Vector data_vector = new_data["values"].GetVector();
+
+            IndexType i = 0;
+            for (Element& r_element : mrModelPart.Elements())
+            {
+                this->SetValueAtElement(&r_element, r_var, data_vector[i]);
+                i++;
+            }
+
         }
 
     }
