@@ -82,7 +82,10 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
         # Get the weights and fill the HROM computing model part
-        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(self.__CreateDictionaryWithRomElementsAndWeights(), computing_model_part, hrom_main_model_part)
+        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(
+            KratosMultiphysics.Parameters(self.__CreateDictionaryWithRomElementsAndWeights()),
+            computing_model_part,
+            hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
