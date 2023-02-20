@@ -4,17 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_STRUCTURED_MESH_GENERATOR_PROCESS_H_INCLUDED )
-#define  KRATOS_STRUCTURED_MESH_GENERATOR_PROCESS_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
@@ -139,7 +136,10 @@ namespace Kratos
 		  std::size_t mConditiongPropertiesId;
 		  std::string mElementName;
 		  std::string mConditionName;
+          std::string mBodySubModelPartName;
+          std::string mSkinSubModelPartName;
           bool mCreateSkinSubModelPart;
+          bool mCreateBodySubModelPart;
 		  ModelPart& mrOutputModelPart;
 
 
@@ -221,5 +221,3 @@ namespace Kratos
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_STRUCTURED_MESH_GENERATOR_PROCESS_H_INCLUDED  defined
