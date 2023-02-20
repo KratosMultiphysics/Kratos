@@ -1021,6 +1021,11 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
     data_buffer.mLocalRelVel[2] = 0.0;
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, data_buffer.mLocalRelVel);
 
+    if (mResetOldTangentForce) {
+      OldLocalElasticContactForce[0] = 0.0;
+      OldLocalElasticContactForce[1] = 0.0;
+    }
+
     mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(p_neighbour_element);
     mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
             LocalElasticContactForce, LocalDeltDisp, data_buffer.mLocalRelVel, indentation, previous_indentation,
@@ -1129,6 +1134,11 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             data_buffer.mLocalRelVel[0] = 0.0;
             data_buffer.mLocalRelVel[1] = 0.0;
             data_buffer.mLocalRelVel[2] = 0.0;
+
+            if (mResetOldTangentForce) {
+              OldLocalElasticContactForce[0] = 0.0;
+              OldLocalElasticContactForce[1] = 0.0;
+            }
 
             if (indentation > 0.0) {
 

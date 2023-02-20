@@ -1829,8 +1829,10 @@ namespace Kratos {
       mRVE_NumParticles = mListOfSphericParticles.size() - mRVE_NumParticlesWalls;
 
       // Particles movement
-      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++)
+      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
         mListOfSphericParticles[i]->mMoving = true;
+        mListOfSphericParticles[i]->mResetOldTangentForce = false;
+      }
 
       // Open files
       RVEOpenFiles();
@@ -2000,41 +2002,85 @@ namespace Kratos {
       if (mRVE_Compress && std::abs(mRVE_EffectStress) >= limit_stress) {
         mRVE_Compress = false;
 
-        if (mRVE_FlatWalls) {
-          ModelPart& fem_model_part = GetFemModelPart();
-          ModelPart::ConditionsContainerType& r_conditions = fem_model_part.GetCommunicator().LocalMesh().Conditions();
+        ModelPart& fem_model_part = GetFemModelPart();
+        ModelPart::ConditionsContainerType& r_conditions = fem_model_part.GetCommunicator().LocalMesh().Conditions();
 
-          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-            ModelPart& submp = *sub_model_part;
-            array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
-            linear_velocity[0] = 0.0;
-            linear_velocity[1] = 0.0;
-            linear_velocity[2] = 0.0;
-          }
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+          ModelPart& submp = *sub_model_part;
+          array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
+          linear_velocity[0] = 0.0;
+          linear_velocity[1] = 0.0;
+          linear_velocity[2] = 0.0;
+        }
 
-          for (unsigned int i = 0; i < r_conditions.size(); i++) {
-            ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
-            DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
-            for (unsigned int inode = 0; inode < p_wall->GetGeometry().size(); inode++) {
-              array_1d<double, 3>& wall_velocity = p_wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
-              noalias(wall_velocity) = ZeroVector(3);
-            }
+        for (unsigned int i = 0; i < r_conditions.size(); i++) {
+          ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+          DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+          for (unsigned int inode = 0; inode < p_wall->GetGeometry().size(); inode++) {
+            array_1d<double, 3>& wall_velocity = p_wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
+            noalias(wall_velocity) = ZeroVector(3);
           }
         }
-        else {
-          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_dem_model_part.SubModelPartsBegin(); sub_model_part != r_dem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-            ModelPart& submp = *sub_model_part;
-            array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
-            if (linear_velocity[0] != 0.0 || linear_velocity[1] != 0.0 || linear_velocity[2] != 0.0) {
-              linear_velocity[0] = 0.0;
-              linear_velocity[1] = 0.0;
-              linear_velocity[2] = 0.0;
-            }
-          }
+      }
 
-          for (int i = 0; i < (int)mListOfSphericParticles.size(); i++)
-            if (mListOfSphericParticles[i]->mWall)
-              mListOfSphericParticles[i]->mMoving = false;
+      // Reset tangential force
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      const int    time_step = r_process_info[TIME_STEPS];
+      const double time      = r_process_info[TIME];
+
+      if (time >= m_reset_force_time) {
+        m_reset_force_time += 1.5;
+        for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+          mListOfSphericParticles[i]->mResetOldTangentForce = true;
+        }
+      }
+
+      // Restart compression
+      if (time >= m_restart_compress_time && mRVE_Compress == false) {
+        m_restart_compress_time += 1.5;
+        mRVE_Compress = true;
+
+        ModelPart& fem_model_part = GetFemModelPart();
+        ModelPart::ConditionsContainerType& r_conditions = fem_model_part.GetCommunicator().LocalMesh().Conditions();
+
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+          ModelPart& submp = *sub_model_part;
+          std::string name = submp.FullName();
+          array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
+          linear_velocity[2] = 0.0;
+
+          if (name.compare("RigidFacePart.DEM-FEM-Wall2D_WallY-") == 0) {
+            linear_velocity[0] =  0.000;
+            linear_velocity[1] =  0.005;
+          }
+          else if (name.compare("RigidFacePart.DEM-FEM-Wall2D_WallX+") == 0) {
+            linear_velocity[0] = -0.005;
+            linear_velocity[1] =  0.000;
+          }
+          else if (name.compare("RigidFacePart.DEM-FEM-Wall2D_WallY+") == 0) {
+            linear_velocity[0] =  0.000;
+            linear_velocity[1] = -0.005;
+          }
+          else if (name.compare("RigidFacePart.DEM-FEM-Wall2D_WallX-") == 0) {
+            linear_velocity[0] =  0.005;
+            linear_velocity[1] =  0.000;
+          }
+        }
+
+        for (unsigned int i = 0; i < r_conditions.size(); i++) {
+          ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+          DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+          array_1d<double, 3> velocity = ZeroVector(3);
+
+          if      (std::count(mRVE_WallYMin.begin(), mRVE_WallYMin.end(), p_wall)) velocity[1] =  0.005;
+          else if (std::count(mRVE_WallXMax.begin(), mRVE_WallXMax.end(), p_wall)) velocity[0] = -0.005;
+          else if (std::count(mRVE_WallYMax.begin(), mRVE_WallYMax.end(), p_wall)) velocity[1] = -0.005;
+          else if (std::count(mRVE_WallXMin.begin(), mRVE_WallXMin.end(), p_wall)) velocity[0] =  0.005;
+
+          for (unsigned int inode = 0; inode < p_wall->GetGeometry().size(); inode++) {
+            array_1d<double, 3>& wall_velocity = p_wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
+            noalias(wall_velocity) = velocity;
+          }
         }
       }
     }
