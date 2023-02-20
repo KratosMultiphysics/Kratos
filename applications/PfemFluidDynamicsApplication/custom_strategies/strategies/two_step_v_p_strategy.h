@@ -415,33 +415,13 @@ namespace Kratos
       fixedTimeStep = false;
       // build momentum system and solve for fractional step velocity increment
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
-#pragma omp parallel
-      {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-        {
-          if (itNode->SolutionStepsDataHas(HEAT_FLUX))
-          {
-            itNode->FastGetSolutionStepValue(HEAT_FLUX) = 0;
-          }
-        }
-      }
+
       if (it == 0)
       {
         mpMomentumStrategy->InitializeSolutionStep();
       }
 
       NormDv = mpMomentumStrategy->Solve();
-
-      Parameters extrapolation_parameters(R"(
-        {
-        	"list_of_variables": ["MECHANICAL_DISSIPATION"]
-        })");
-      auto extrapolation_process = IntegrationValuesExtrapolationToNodesProcess(rModelPart, extrapolation_parameters);
-      extrapolation_process.Execute();
-
 
       if (BaseType::GetEchoLevel() > 1 && Rank == 0)
         std::cout << "-------------- s o l v e d ! ------------------" << std::endl;
@@ -571,8 +551,7 @@ namespace Kratos
       errorNormDp = 0;
       double tmp_NormP = 0.0;
 
-#pragma omp parallel for reduction(+ \
-                                   : tmp_NormP)
+#pragma omp parallel for reduction(+ : tmp_NormP)
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
