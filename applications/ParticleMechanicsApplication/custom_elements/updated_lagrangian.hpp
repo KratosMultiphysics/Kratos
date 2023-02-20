@@ -25,6 +25,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {

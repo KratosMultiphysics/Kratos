@@ -945,7 +945,14 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
         : false;
+    // time this step!
+    #pragma omp critical
+    {
+    BuiltinTimer material_point_position_time;
     if (!is_explicit) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
+    KRATOS_WATCH("Material Point position update Time: "
+            << material_point_position_time.ElapsedSeconds() << std::endl);
+    }
 }
 
 //************************************************************************************
@@ -957,6 +964,7 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
 void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+    // This is where the position of the material points is updated!!
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();

@@ -156,6 +156,10 @@ public:
      */
     bool SolveSolutionStep() override
     {
+        // #pragma omp critical
+        // {
+        BuiltinTimer solve_solution_time;
+
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
 
@@ -315,6 +319,10 @@ public:
         {
             if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
         }
+
+        KRATOS_WATCH("Solve solution step Time: "
+            << solve_solution_time.ElapsedSeconds() << std::endl);
+        // }
 
         return is_converged;
     }
