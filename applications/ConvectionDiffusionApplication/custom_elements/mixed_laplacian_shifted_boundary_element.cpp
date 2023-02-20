@@ -33,7 +33,7 @@ template<std::size_t TDim>
 MixedLaplacianShiftedBoundaryElement<TDim>::MixedLaplacianShiftedBoundaryElement(
     IndexType NewId,
     typename GeometryType::Pointer pGeometry)
-    : MixedLaplacianElement<Dim, NumNodes>(
+    : MixedLaplacianElement<TDim, NumNodes>(
         NewId,
         pGeometry)
 {
@@ -44,7 +44,7 @@ MixedLaplacianShiftedBoundaryElement<TDim>::MixedLaplacianShiftedBoundaryElement
     IndexType NewId,
     typename GeometryType::Pointer pGeometry,
     typename PropertiesType::Pointer pProperties)
-    : MixedLaplacianElement<Dim, NumNodes>(
+    : MixedLaplacianElement<TDim, NumNodes>(
         NewId,
         pGeometry,
         pProperties)
@@ -109,12 +109,12 @@ void MixedLaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
 
             // Get the nodal values
             BoundedVector<double, NumNodes> nodal_diffusivity;
-            BoundedVector<array_1d<double,Dim>, NumNodes> nodal_unknown_gradient;
+            BoundedVector<array_1d<double,TDim>, NumNodes> nodal_unknown_gradient;
             for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
                 nodal_diffusivity[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_diffusivity_var);
                 const auto& r_i_node_grad = r_geom[i_node].FastGetSolutionStepValue(r_unknown_grad_var);
                 auto& r_nodal_unknown_gradient_i = nodal_unknown_gradient[i_node];
-                for (std::size_t d = 0; d < Dim; ++d) {
+                for (std::size_t d = 0; d < TDim; ++d) {
                     r_nodal_unknown_gradient_i[d] = r_i_node_grad[d];
                 }
             }
@@ -141,9 +141,9 @@ void MixedLaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 // Allocate Gauss pt. auxiliary arrays
                 double w_g;
                 double aux;
+                Vector aux_N(TDim);
                 std::size_t i_loc_id;
                 std::size_t j_loc_id;
-                array_1d<double, NumNodes> aux_N;
 
                 // Add the surrogate boundary flux contribution
                 // Note that the local face ids. are already taken into account in the assembly
@@ -158,7 +158,7 @@ void MixedLaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                         for (std::size_t j_node = 0; j_node < n_bd_points; ++j_node) {
                             j_loc_id = sur_bd_local_ids[j_node + 1];
                             aux = w_g * aux_N[i_node] * aux_N[j_node] * nodal_diffusivity[j_loc_id];
-                            for (std::size_t d = 0; d < Dim; ++d) {
+                            for (std::size_t d = 0; d < TDim; ++d) {
                                 rLeftHandSideMatrix(i_loc_id*BlockSize, j_loc_id*BlockSize + d + 1) -= aux * n_sur_bd[d];
                             }
                             rRightHandSideVector(i_loc_id*BlockSize) += aux * inner_prod(nodal_unknown_gradient[j_loc_id], n_sur_bd);
@@ -352,8 +352,8 @@ std::vector<std::size_t> MixedLaplacianShiftedBoundaryElement<TDim>::GetSurrogat
     // Note that we relly on the fact that the neighbours are sorted according to the faces
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-        auto& r_neigh_elem = r_neigh_elems[i_face];
-        if (r_neigh_elem.Is(BOUNDARY)) {
+        auto p_neigh_elem = r_neigh_elems(i_face).get();
+        if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
             surrogate_faces_ids.push_back(i_face);
         }
     }

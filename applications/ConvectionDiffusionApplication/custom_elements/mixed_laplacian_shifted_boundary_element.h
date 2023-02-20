@@ -55,8 +55,6 @@ public:
     /// Counted pointer of MixedLaplacianShiftedBoundaryElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MixedLaplacianShiftedBoundaryElement);
 
-    static constexpr std::size_t Dim = TDim;
-
     static constexpr std::size_t NumNodes = TDim + 1;
 
     static constexpr std::size_t BlockSize = TDim + 1;
@@ -181,7 +179,7 @@ protected:
     ///@{
 
     // Protected default constructor necessary for serialization
-    MixedLaplacianShiftedBoundaryElement() : MixedLaplacianElement<Dim, NumNodes>()
+    MixedLaplacianShiftedBoundaryElement() : MixedLaplacianElement<TDim, NumNodes>()
     {
     }
 
