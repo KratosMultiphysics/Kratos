@@ -67,7 +67,7 @@ class HRomTrainingUtility(object):
 
         # Save the HROM weights in the RomParameters.json
         # Note that in here we are assuming this naming convention for the ROM json file
-        self.__AppendHRomWeightsToRomParameters()
+        self.__AppendHRomWeightsToRomParameters() #Not required anymore
 
     def CreateHRomModelParts(self):
         # Get solver data
@@ -82,9 +82,8 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
         # Get the weights and fill the HROM computing model part
-        with open('RomParameters.json','r') as f:
-            rom_parameters = KratosMultiphysics.Parameters(f.read())
-        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_main_model_part)
+
+        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(self.__CreateDictionaryWithRomElementsAndWeights(), computing_model_part, hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
@@ -147,23 +146,7 @@ class HRomTrainingUtility(object):
         z = self.hyper_reduction_element_selector.z
 
         # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
-        hrom_weights = {}
-        hrom_weights["Elements"] = {}
-        hrom_weights["Conditions"] = {}
-
-        if type(z)==np.int64 or type(z)==np.int32:
-            # Only one element found !
-            if z <= n_elements-1:
-                hrom_weights["Elements"][int(z)] = float(w)
-            else:
-                hrom_weights["Conditions"][int(z)-n_elements] = float(w)
-        else:
-            # Many elements found
-            for j in range (0,len(z)):
-                if z[j] <=  n_elements -1:
-                    hrom_weights["Elements"][int(z[j])] = float(w[j])
-                else:
-                    hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
+        hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(w,z,n_elements)
 
         #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
@@ -235,3 +218,33 @@ class HRomTrainingUtility(object):
         updated_weights = np.r_[original_weights, np.zeros(added_conditions_ids.shape)]
 
         return updated_weights, updated_conditions
+
+
+    def __CreateDictionaryWithRomElementsAndWeights(self, w = None, z=None, n_elements = None):
+
+        if w is None:
+            w = np.load('WeightsMatrix.npy')
+        if z is None:
+            z.load('ElementsVector.npy')
+        if n_elements is None:
+            n_elements = self.solver.GetComputingModelPart().NumberOfElements()
+
+        hrom_weights = {}
+        hrom_weights["Elements"] = {}
+        hrom_weights["Conditions"] = {}
+
+        if type(z)==np.int64 or type(z)==np.int32:
+            # Only one element found !
+            if z <= n_elements-1:
+                hrom_weights["Elements"][int(z)] = float(w)
+            else:
+                hrom_weights["Conditions"][int(z)-n_elements] = float(w)
+        else:
+            # Many elements found
+            for j in range (0,len(z)):
+                if z[j] <=  n_elements -1:
+                    hrom_weights["Elements"][int(z[j])] = float(w[j])
+                else:
+                    hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
+
+        return hrom_weights
