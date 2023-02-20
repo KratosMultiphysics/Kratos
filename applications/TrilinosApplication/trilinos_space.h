@@ -31,6 +31,7 @@
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
 #include <EpetraExt_MultiVectorOut.h>
+#include <EpetraExt_MatrixMatrix.h>
 
 // Project includes
 #include "includes/ublas_interface.h"
@@ -77,21 +78,28 @@ public:
     /// Pointer definition of TrilinosSpace
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosSpace);
 
-    typedef double DataType;
+    /// Definition of the data type
+    using DataType = double;
 
-    typedef TMatrixType MatrixType;
+    /// Definition of the matrix type
+    using MatrixType = TMatrixType;
 
-    typedef TVectorType VectorType;
+    /// Definition of the vector type
+    using VectorType = TVectorType;
 
-    typedef std::size_t IndexType;
+    /// Definition of the index type
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    /// Definition of the size type
+    using SizeType = std::size_t;
 
-    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+    /// Definition of the pointer types
+    using MatrixPointerType = typename Kratos::shared_ptr<TMatrixType>;
+    using VectorPointerType = typename Kratos::shared_ptr<TVectorType>;
 
-    typedef TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
-    typedef typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType> >::UniquePointer DofUpdaterPointerType;
+    /// Some other definitions
+    using DofUpdaterType = TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType>>;
+    using DofUpdaterPointerType = typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType>>::UniquePointer;
 
     ///@}
     ///@name Life Cycle
@@ -138,10 +146,10 @@ public:
      * @param rComm The epetra communicator
      * @return The pointer to the matrix
      */
-    static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& Comm)
+    static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& rComm)
     {
-        int global_elems = 0;
-        Epetra_Map Map(global_elems, 0, Comm);
+        const int global_elems = 0;
+        Epetra_Map Map(global_elems, 0, rComm);
         return MatrixPointerType(new TMatrixType(::Copy, Map, 0));
     }
 
@@ -150,10 +158,10 @@ public:
      * @param rComm The epetra communicator
      * @return The pointer to the vector
      */
-    static VectorPointerType CreateEmptyVectorPointer(Epetra_MpiComm& Comm)
+    static VectorPointerType CreateEmptyVectorPointer(Epetra_MpiComm& rComm)
     {
-        int global_elems = 0;
-        Epetra_Map Map(global_elems, 0, Comm);
+        const int global_elems = 0;
+        Epetra_Map Map(global_elems, 0, rComm);
         return VectorPointerType(new TVectorType(Map));
     }
 
@@ -162,10 +170,9 @@ public:
      * @param rV The vector considered
      * @return The size of the vector
      */
-    static IndexType Size(VectorType const& rV)
+    static IndexType Size(const VectorType& rV)
     {
-        int size;
-        size = rV.GlobalLength();
+        const int size = rV.GlobalLength();
         return size;
     }
 
@@ -176,8 +183,7 @@ public:
      */
     static IndexType Size1(MatrixType const& rM)
     {
-        int size1;
-        size1 = rM.NumGlobalRows();
+        const int size1 = rM.NumGlobalRows();
         return size1;
     }
 
@@ -188,8 +194,7 @@ public:
      */
     static IndexType Size2(MatrixType const& rM)
     {
-        int size1;
-        size1 = rM.NumGlobalCols();
+        const int size1 = rM.NumGlobalCols();
         return size1;
     }
 
@@ -201,14 +206,14 @@ public:
      * @param rX The column considered
      * @todo Implement this method
      */
-    static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
+    static void GetColumn(
+        const unsigned int j,
+        const MatrixType& rM,
+        VectorType& rX
+        )
     {
         KRATOS_ERROR << "GetColumn method is not currently implemented" << std::endl;
     }
-
-    ///////////////////////////////// TODO: Take a close look to this method!!!!!!!!!!!!!!!!!!!!!!!!!
-    /// rMij = rXi
-    //      static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX){rX = row(rM, j);}
 
     /**
      * @brief Returns a copy of the matrix rX
@@ -216,7 +221,10 @@ public:
      * @param rX The matrix considered
      * @param rY The copy of the matrix rX
      */
-    static void Copy(MatrixType const& rX, MatrixType& rY)
+    static void Copy(
+        const MatrixType& rX,
+        MatrixType& rY
+        )
     {
         rY = rX;
     }
@@ -227,7 +235,10 @@ public:
      * @param rX The vector considered
      * @param rY The copy of the vector rX
      */
-    static void Copy(VectorType const& rX, VectorType& rY)
+    static void Copy(
+        const VectorType& rX,
+        VectorType& rY
+        )
     {
         rY = rX;
     }
@@ -238,7 +249,10 @@ public:
      * @param rX The first vector considered
      * @param rY The second vector considered
      */
-    static double Dot(VectorType& rX, VectorType& rY)
+    static double Dot(
+        const VectorType& rX,
+        const VectorType& rY
+        )
     {
         double value;
         const int sucess = rY.Dot(rX, &value); //it is prepared to handle vectors with multiple components
@@ -278,12 +292,23 @@ public:
      * @param rX The vector considered
      * @return The norm of the vector rX
      */
-    static double TwoNorm(VectorType const& rX)
+    static double TwoNorm(const VectorType& rX)
     {
         double value;
         const int sucess = rX.Norm2(&value); //it is prepared to handle vectors with multiple components
         KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing norm" <<  std::endl;
         return value;
+    }
+
+    /**
+     * @brief Returns the Frobenius norm of the matrix rX
+     * @details ||rA||2
+     * @param rA The matrix considered
+     * @return The Frobenius norm of the matrix rX
+     */
+    static double TwoNorm(const MatrixType& rA)
+    {
+        return rA.NormFrobenius();
     }
 
     /**
@@ -293,11 +318,31 @@ public:
      * @param rX The vector considered
      * @param rY The result of the multiplication
      */
-    static void Mult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    static void Mult(
+        const MatrixType& rA,
+        const VectorType& rX,
+        VectorType& rY
+        )
     {
-        //y = A*x
-        bool transpose_flag = false;
+        constexpr bool transpose_flag = false;
         rA.Multiply(transpose_flag, rX, rY);
+    }
+
+    /**
+     * @brief Returns the multiplication matrix-matrix
+     * @details C = A*B
+     * @param rA The first matrix considered
+     * @param rB The second matrix considered
+     * @param rC The result of the multiplication
+     */
+    static void Mult(
+        const MatrixType& rA,
+        const MatrixType& rB,
+        MatrixType& rC
+        )
+    {
+        constexpr bool transpose_flag = false;
+        EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC);
     }
 
     /**
@@ -307,12 +352,87 @@ public:
      * @param rX The vector considered
      * @param rY The result of the multiplication
      */
-    static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    static void TransposeMult(
+        const MatrixType& rA,
+        const VectorType& rX,
+        VectorType& rY
+        )
     {
-        //y = A*x
-        bool transpose_flag = true;
+        constexpr bool transpose_flag = true;
         rA.Multiply(transpose_flag, rX, rY);
-    } // rY = rAT * rX
+    }
+
+    /**
+     * @brief Returns the transpose multiplication matrix-matrix
+     * @details C = A*B
+     * @param rA The first matrix considered
+     * @param rB The second matrix considered
+     * @param rC The result of the multiplication
+     * @param TransposeFlag Flags to transpose the matrices
+     */
+    static void TransposeMult(
+        const MatrixType& rA,
+        const MatrixType& rB,
+        MatrixType& rC,
+        const std::pair<bool, bool> TransposeFlag = {false, false}
+        )
+    {
+        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag.first, rB, TransposeFlag.second, rC);
+    }
+
+    /**
+     * @brief Calculates the product operation B'DB
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     */
+    static void BtDBProductOperation(
+        MatrixType& rA,
+        const MatrixType& rD,
+        const MatrixType& rB
+        )
+    {
+        // Gets the Epetra_Communicator
+        auto& r_comm = rA.Comm();
+
+        // Create a map
+        const int size = Size2(rB);
+        Epetra_Map Map(size, 0, r_comm);
+
+        // Create an Epetra_Matrix
+        std::vector<int> NumNz;
+        MatrixType aux(::View, Map, NumNz.data());
+
+        TransposeMult(rB, rD, aux, {true, false});
+        Mult(aux, rB, rA);
+    }
+
+    /**
+     * @brief Calculates the product operation BDB'
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     */
+    static void BDBtProductOperation(
+        MatrixType& rA,
+        const MatrixType& rD,
+        const MatrixType& rB
+        )
+    {
+        // Gets the Epetra_Communicator
+        auto& r_comm = rA.Comm();
+
+        // Create a map
+        const int size = Size1(rB);
+        Epetra_Map Map(size, 0, r_comm);
+
+        // Create an Epetra_Matrix
+        std::vector<int> NumNz;
+        MatrixType aux(::View, Map, NumNz.data());
+
+        Mult(rB, rD, aux);
+        TransposeMult(aux, rB, rA, {false, true});
+    }
 
     /**
      * @brief Returns the multiplication of a vector by a scalar
@@ -321,7 +441,10 @@ public:
      * @param rX The vector considered
      * @param A The scalar considered
      */
-    static void InplaceMult(VectorType& rX, const double A)
+    static void InplaceMult(
+        VectorType& rX,
+        const double A
+        )
     {
         if (A != 1.00)
             rX.Scale(A);
@@ -336,7 +459,11 @@ public:
      * @param A The scalar considered
      * @param rY The multiplied vector considered
      */
-    static void Assign(VectorType& rX, const double A, const VectorType& rY)
+    static void Assign(
+        VectorType& rX,
+        const double A,
+        const VectorType& rY
+        )
     {
         if (A != 1.00)
             rX.Scale(A, rY); //not sure
@@ -353,13 +480,17 @@ public:
      * @param A The scalar considered
      * @param rY The multiplied vector considered
      */
-    static void UnaliasedAdd(VectorType& rX, const double A, const VectorType& rY)
+    static void UnaliasedAdd(
+        VectorType& rX,
+        const double A,
+        const VectorType& rY
+        )
     {
         rX.Update(A, rY, 1.0);
     }
 
     /**
-     * @brief Returns the unaliased addition of two vectors by a scalar 
+     * @brief Returns the unaliased addition of two vectors by a scalar
      * @details rZ = (A * rX) + (B * rY)
      * @param A The scalar considered
      * @param rX The first vector considered
@@ -367,29 +498,34 @@ public:
      * @param rY The second vector considered
      * @param rZ The resulting vector considered
      */
-    static void ScaleAndAdd(const double A, const VectorType& rX, const double B, const VectorType& rY, VectorType& rZ) // rZ = (A * rX) + (B * rY)
+    static void ScaleAndAdd(
+        const double A,
+        const VectorType& rX,
+        const double B,
+        const VectorType& rY,
+        VectorType& rZ
+        )
     {
         rZ.Update(A, rX, B, rY, 0.0);
     }
 
     /**
-     * @brief Returns the unaliased addition of two vectors by a scalar 
+     * @brief Returns the unaliased addition of two vectors by a scalar
      * @details rY = (A * rX) + (B * rY)
      * @param A The scalar considered
      * @param rX The first vector considered
      * @param B The scalar considered
      * @param rY The resulting vector considered
      */
-    static void ScaleAndAdd(const double A, const VectorType& rX, const double B, VectorType& rY) // rY = (A * rX) + (B * rY)
+    static void ScaleAndAdd(
+        const double A,
+        const VectorType& rX,
+        const double B,
+        VectorType& rY
+        )
     {
         rY.Update(A, rX, B);
     }
-
-    /// rA[i] * rX
-    //       static double RowDot(unsigned int i, MatrixType& rA, VectorType& rX)
-    // 	{
-    // 	  return inner_prod(row(rA, i), rX);
-    // 	}
 
     /**
      * @brief Sets a value in a vector
@@ -397,7 +533,11 @@ public:
      * @param i The index of the value considered
      * @param value The value considered
      */
-    static void SetValue(VectorType& rX, IndexType i, double value)
+    static void SetValue(
+        VectorType& rX,
+        IndexType i,
+        const double value
+        )
     {
         Epetra_IntSerialDenseVector indices(1);
         Epetra_SerialDenseVector values(1);
@@ -417,7 +557,10 @@ public:
      * @param rX The vector considered
      * @param A The scalar considered
      */
-    static void Set(VectorType& rX, DataType A)
+    static void Set(
+        VectorType& rX,
+        const DataType A
+        )
     {
         rX.PutScalar(A);
     }
@@ -428,10 +571,13 @@ public:
      * @param m The new number of rows
      * @param n The new number of columns
      */
-    static void Resize(MatrixType& rA, SizeType m, SizeType n)
+    static void Resize(
+        MatrixType& rA,
+        const SizeType m,
+        const SizeType n
+        )
     {
         KRATOS_ERROR << "Resize is not defined for Trilinos Sparse Matrix" << std::endl;
-
     }
 
     /**
@@ -439,7 +585,10 @@ public:
      * @param rX The vector to be resized
      * @param n The new size
      */
-    static void Resize(VectorType& rX, SizeType n)
+    static void Resize(
+        VectorType& rX,
+        const SizeType n
+        )
     {
         KRATOS_ERROR << "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer" << std::endl;
     }
@@ -448,10 +597,13 @@ public:
      * @brief Resizes a vector
      * @param pA The pointer to the vector to be resized
      * @param n The new size
-     */
-    static void Resize(VectorPointerType& pX, SizeType n)
+    */
+    static void Resize(
+        VectorPointerType& pX,
+        const SizeType n
+        )
     {
-        //KRATOS_ERROR_IF(pX != NULL) << "trying to resize a null pointer" << std::endl;
+        //KRATOS_ERROR_IF(pX != NULL) << "Trying to resize a null pointer" << std::endl;
         int global_elems = n;
         Epetra_Map Map(global_elems, 0, pX->Comm());
         VectorPointerType pNewEmptyX = Kratos::make_shared<VectorType>(Map);
@@ -509,40 +661,39 @@ public:
 
     /**
      * @brief Assembles the LHS of the system
-     * @param A The LHS matrix
-     * @param LHS_Contribution The contribution to the LHS
-     * @param EquationId The equation ids
+     * @param rA The LHS matrix
+     * @param rLHSContribution The contribution to the LHS
+     * @param rEquationId The equation ids
      */
     inline static void AssembleLHS(
-        MatrixType& A,
-        Matrix& LHS_Contribution,
-        std::vector<std::size_t>& EquationId
+        MatrixType& rA,
+        const Matrix& rLHSContribution,
+        const std::vector<std::size_t>& rEquationId
         )
     {
-        unsigned int system_size = Size1(A);
-        //unsigned int local_size = LHS_Contribution.size1();
+        const unsigned int system_size = Size1(rA);
 
-        //count active indices
+        // Ccount active indices
         unsigned int active_indices = 0;
-        for (unsigned int i = 0; i < EquationId.size(); i++)
-            if (EquationId[i] < system_size)
+        for (unsigned int i = 0; i < rEquationId.size(); i++)
+            if (rEquationId[i] < system_size)
                 active_indices += 1;
 
         if (active_indices > 0) {
-            //size Epetra vectors
+            // Size Epetra vectors
             Epetra_IntSerialDenseVector indices(active_indices);
             Epetra_SerialDenseMatrix values(active_indices, active_indices);
 
-            //fill epetra vectors
+            // Fill epetra vectors
             int loc_i = 0;
-            for (unsigned int i = 0; i < EquationId.size(); i++) {
-                if (EquationId[i] < system_size) {
-                    indices[loc_i] = EquationId[i];
+            for (unsigned int i = 0; i < rEquationId.size(); i++) {
+                if (rEquationId[i] < system_size) {
+                    indices[loc_i] = rEquationId[i];
 
                     int loc_j = 0;
-                    for (unsigned int j = 0; j < EquationId.size(); j++) {
-                        if (EquationId[j] < system_size) {
-                            values(loc_i, loc_j) = LHS_Contribution(i, j);
+                    for (unsigned int j = 0; j < rEquationId.size(); j++) {
+                        if (rEquationId[j] < system_size) {
+                            values(loc_i, loc_j) = rLHSContribution(i, j);
                             loc_j += 1;
                         }
                     }
@@ -550,7 +701,7 @@ public:
                 }
             }
 
-            int ierr = A.SumIntoGlobalValues(indices, values);
+            int ierr = rA.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -561,41 +712,40 @@ public:
 
     /**
      * @brief Assembles the RHS of the system
-     * @param b The RHS vector
-     * @param RHS_Contribution The RHS contribution
-     * @param EquationId The equation ids
+     * @param rb The RHS vector
+     * @param rRHSContribution The RHS contribution
+     * @param rEquationId The equation ids
      */
     inline static void AssembleRHS(
-        VectorType& b,
-        Vector& RHS_Contribution,
-        std::vector<std::size_t>& EquationId
+        VectorType& rb,
+        const Vector& rRHSContribution,
+        const std::vector<std::size_t>& rEquationId
         )
     {
-        unsigned int system_size = Size(b);
-        //unsigned int local_size = RHS_Contribution.size();
+        const unsigned int system_size = Size(rb);
 
-        //count active indices
+        // Count active indices
         int active_indices = 0;
-        for (unsigned int i = 0; i < EquationId.size(); i++)
-            if (EquationId[i] < system_size)
+        for (unsigned int i = 0; i < rEquationId.size(); i++)
+            if (rEquationId[i] < system_size)
                 active_indices += 1;
 
         if (active_indices > 0) {
-            //size Epetra vectors
+            // Size Epetra vectors
             Epetra_IntSerialDenseVector indices(active_indices);
             Epetra_SerialDenseVector values(active_indices);
 
-            //fill epetra vectors
+            // Fill epetra vectors
             int loc_i = 0;
-            for (unsigned int i = 0; i < EquationId.size(); i++) {
-                if (EquationId[i] < system_size) {
-                    indices[loc_i] = EquationId[i];
-                    values[loc_i] = RHS_Contribution[i];
+            for (unsigned int i = 0; i < rEquationId.size(); i++) {
+                if (rEquationId[i] < system_size) {
+                    indices[loc_i] = rEquationId[i];
+                    values[loc_i] = rRHSContribution[i];
                     loc_i += 1;
                 }
             }
 
-            int ierr = b.SumIntoGlobalValues(indices, values);
+            int ierr = rb.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -615,13 +765,16 @@ public:
      * @param I The index of the value to be gathered
      * @return The value of the vector corresponding to the index I
      */
-    inline static double GetValue(const VectorType& x, std::size_t I)
+    inline static double GetValue(
+        const VectorType& rX,
+        const std::size_t I
+        )
     {
         // index must be local to this proc
-        KRATOS_ERROR_IF_NOT(x.Map().MyGID(static_cast<int>(I))) << " non-local id: " << I << ".";
+        KRATOS_ERROR_IF_NOT(rX.Map().MyGID(static_cast<int>(I))) << " non-local id: " << I << "." << std::endl;
         // Epetra_MultiVector::operator[] is used here to get the pointer to
         // the zeroth (only) local vector.
-        return x[0][x.Map().LID(static_cast<int>(I))];
+        return rX[0][rX.Map().LID(static_cast<int>(I))];
     }
 
     /**
@@ -630,7 +783,11 @@ public:
      * @param IndexArray The array containing the indices of the values to be gathered
      * @param pValues The array containing the gathered values
      */
-    static void GatherValues(const VectorType& rX, const std::vector<int>& IndexArray, double* pValues)
+    static void GatherValues(
+        const VectorType& rX,
+        const std::vector<int>& IndexArray,
+        double* pValues
+        )
     {
         KRATOS_TRY
         double tot_size = IndexArray.size();
@@ -652,7 +809,6 @@ public:
 
         rX.Comm().Barrier();
         KRATOS_CATCH("")
-
     }
 
     /**
@@ -661,17 +817,20 @@ public:
      * @param rComm The MPI communicator
      * @return The matrix read from the file
      */
-    MatrixPointerType ReadMatrixMarket(const std::string FileName,Epetra_MpiComm& Comm)
+    MatrixPointerType ReadMatrixMarket(
+        const std::string FileName,
+        Epetra_MpiComm& rComm
+        )
     {
         KRATOS_TRY
 
         Epetra_CrsMatrix* pp = nullptr;
 
-        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), rComm, pp);
 
         KRATOS_ERROR_IF(error_code != 0) << "Eerror thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
 
-        Comm.Barrier();
+        rComm.Barrier();
 
         const Epetra_CrsGraph& rGraph = pp->Graph();
         MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
@@ -718,7 +877,11 @@ public:
      * @param rComm The MPI communicator
      * @param N The size of the vector
      */
-    VectorPointerType ReadMatrixMarketVector(const std::string& rFileName, Epetra_MpiComm& rComm, int N)
+    VectorPointerType ReadMatrixMarketVector(
+        const std::string& rFileName,
+        Epetra_MpiComm& rComm,
+        const int N
+        )
     {
         KRATOS_TRY
 
@@ -844,7 +1007,7 @@ public:
 
         KRATOS_CATCH("");
     }
-    
+
     /**
      * @brief This method returns the diagonal norm considering for scaling the diagonal
      * @param rA The LHS matrix
@@ -990,7 +1153,11 @@ public:
      * @return True if the file was successfully written, false otherwise
      */
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
+    static bool WriteMatrixMarketMatrix(
+        const char* pFileName,
+        const TOtherMatrixType& rM,
+        const bool Symmetric
+        )
     {
         // the argument "Symmetric" does not have an effect for Trilinos => needed for compatibility with other Spaces
         KRATOS_TRY;
@@ -1005,7 +1172,10 @@ public:
      * @return True if the file was successfully written, false otherwise
      */
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
+    static bool WriteMatrixMarketVector(
+        const char* pFileName,
+        const VectorType& rV
+        )
     {
         KRATOS_TRY;
         return EpetraExt::MultiVectorToMatrixMarketFile(pFileName, rV);
@@ -1023,64 +1193,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -1096,4 +1209,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
