@@ -13,15 +13,15 @@
 //                   Alejandro Cornejo Velazquez
 //
 
-#if !defined (KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED)
-#define  KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED
+#if !defined (KRATOS_TRACTION_SEPARATION_LAW_H_INCLUDED)
+#define  KRATOS_TRACTION_SEPARATION_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/composites/rule_of_mixtures_law.h"
 
 
 namespace Kratos
@@ -45,7 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ParallelRuleOfMixturesLaw
+ * @class TractionSeparationLaw3D
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a parallel rule of mixture (classic law of mixture)
  * @details The constitutive law show have defined a subproperties in order to work properly
@@ -58,37 +58,17 @@ namespace Kratos
  * @author Alejandro Cornejo Velazquez
  */
 template<unsigned int TDim>
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ParallelRuleOfMixturesLaw
-    : public ConstitutiveLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) TractionSeparationLaw3D
+    : public ParallelRuleOfMixturesLaw<TDim>
 {
 public:
 
     ///@name Type Definitions
     ///@{
+        typedef typename ParallelRuleOfMixturesLaw<TDim> BaseType;
 
-    /// The definition of the process info
-    typedef ProcessInfo ProcessInfoType;
-
-    /// The definition of the CL base  class
-    typedef ConstitutiveLaw    BaseType;
-
-    /// The definition of the size type
-    typedef std::size_t        SizeType;
-
-    /// The definition of the index type
-    typedef std::size_t       IndexType;
-
-    /// The define the working dimension size, already defined in the integrator
-    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
-
-    /// The define the Voigt size, already defined in the  integrator
-    static constexpr SizeType Dimension = TDim;
-
-    /// Definition of the machine precision tolerance
-    static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
-
-    /// Pointer definition of ParallelRuleOfMixturesLaw
-    KRATOS_CLASS_POINTER_DEFINITION( ParallelRuleOfMixturesLaw );
+    /// Pointer definition of TractionSeparationLaw3D
+    KRATOS_CLASS_POINTER_DEFINITION( TractionSeparationLaw3D );
 
     ///@name Lyfe Cycle
     ///@{
@@ -96,23 +76,23 @@ public:
     /**
      * @brief Default constructor.
      */
-    ParallelRuleOfMixturesLaw();
+    TractionSeparationLaw3D();
 
     /**
      * @brief Constructor with values
      * @param rCombinationFactors The list of subproperties combination factors
      */
-    ParallelRuleOfMixturesLaw(const std::vector<double>& rCombinationFactors);
+    TractionSeparationLaw3D(const std::vector<double>& rCombinationFactors);
 
     /**
      * @brief Copy constructor.
      */
-    ParallelRuleOfMixturesLaw (const ParallelRuleOfMixturesLaw& rOther);
+    TractionSeparationLaw3D (const TractionSeparationLaw3D& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~ParallelRuleOfMixturesLaw() override;
+    ~TractionSeparationLaw3D() override;
 
     ///@}
     ///@name Operators
@@ -644,26 +624,11 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
     std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
-    // Vector mGc;
-    // Vector minitial_threshold;
-    // Vector mthreshold;
-    Vector mdelamination_damage;
-    // Vector mAParameter;
-    // Vector mDamageIndicator;
-    Vector mstatus_coeff;
-    // double mT_eq = 0;                                        // Equivalent Stress
-    // double mDamageIndicator = 1;                             // Onset of Damage
-    // double mGc = 0;                                          // Mix Mode Energy Release Rate
-    // double mElastic_energy = 0;                              // Elastic energy stored before damage initiation 
-    // double mDelta_G = 0;
-    // double mDelta_epsilon_one = 0;
-    // double mSERR = 0;                                        // Strain Energy Release Rate
-    // double mdelamination_damage = 0;                         // Scalar delamination damage variable  
-    // double mDelta_eq_max = 0;                                // Equivalent Strain History Variable
-    // double minitial_threshold = 0;
-    // double minitial_Delta_eq = 0;
-    // double mthreshold = std::numeric_limits<double>::infinity();
-    // double mAParameter = 0;
+    Vector mdelamination_damage_mode_one;
+    Vector mdelamination_damage_mode_two;
+    Vector mthreshold_mode_one;
+    Vector mthreshold_mode_two;
+    
     ///@}
     ///@name Private Operators
     ///@{
@@ -703,6 +668,6 @@ private:
     }
 
 
-}; // Class ParallelRuleOfMixturesLaw
+}; // Class TractionSeparationLaw3D
 }  // namespace Kratos.
-#endif // KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED  defined
+#endif // KRATOS_TRACTION_SEPARATION_LAW_H_INCLUDED  defined
