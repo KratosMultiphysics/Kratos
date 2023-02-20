@@ -147,7 +147,7 @@ class HRomTrainingUtility(object):
         z = self.hyper_reduction_element_selector.z
 
         np.save('WeightsMatrix.npy',w)
-        np.save('Elementsvector.npy', np.squeeze(z))
+        np.save('ElementsVector.npy', np.squeeze(z))
 
 
         # # Create dictionary with HROM weights

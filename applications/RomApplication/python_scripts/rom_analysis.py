@@ -119,9 +119,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 # for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
                 #     computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
                 WeightsMatrix = np.load("WeightsMatrix.npy")
-                ElementsVector = np.load("Elementsvector.npy")
+                ElementsVector = np.load("ElementsVector.npy")
                 #FIXME for a HROM using the Hyper-reduced model part without unselected elements, the original number of elements should be provided!
-                OriginalNumberOfElements = computing_model_part.NumberOfElements() #
+                OriginalNumberOfElements = computing_model_part.NumberOfElements()
                 for i in range(WeightsMatrix.shape[0]):
                     if ElementsVector[i] < OriginalNumberOfElements:
                         computing_model_part.GetElement(int( ElementsVector[i])+1).SetValue(KratosROM.HROM_WEIGHT, WeightsMatrix[i]  )
