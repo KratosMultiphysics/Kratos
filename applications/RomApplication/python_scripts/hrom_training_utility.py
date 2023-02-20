@@ -209,7 +209,7 @@ class HRomTrainingUtility(object):
         if w is None:
             w = np.load('WeightsMatrix.npy')
         if z is None:
-            z.load('ElementsVector.npy')
+            z = np.load('ElementsVector.npy')
         if n_elements is None:
             n_elements = self.solver.GetComputingModelPart().NumberOfElements()
 
