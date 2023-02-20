@@ -358,6 +358,11 @@ else()
   message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
 
+OPTION(KRATOS_NO_TRY_CATCH "Disabled the use of try/catch through the code" OFF)
+if( KRATOS_NO_TRY_CATCH MATCHES ON )
+  add_definitions( -DKRATOS_NO_TRY_CATCH )
+endif( KRATOS_NO_TRY_CATCH MATCHES ON )
+
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
 if(DEFINED ENV{BOOST_ROOT})
