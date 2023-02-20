@@ -85,20 +85,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
             rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
 
-            # # Set the nodal ROM basis
-            # aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
-            # for node in computing_model_part.Nodes:
-            #     node_id = str(node.Id)
-            #     for j in range(nodal_dofs):
-            #         for i in range(rom_dofs):
-            #             aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
-            #     node.SetValue(KratosROM.ROM_BASIS, aux)
-            #nodal_modes = self.rom_parameters["nodal_modes"]
-
+            # Set the nodal ROM basis
             self.Modes = np.load("ModesMatrix.npy")
             self.Modes = self.Modes[:,:rom_dofs]
             self.Nodes = np.load("NodeIds.npy")
-
             for node_id in self.Nodes:
                 computing_model_part.GetNode(node_id).SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(self.Modes[(node_id-1)*nodal_dofs:((node_id-1)*nodal_dofs)+nodal_dofs, :]) ) # ROM basis
 
@@ -110,16 +100,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     self._GetSolver(),
                     self.rom_parameters)
             elif self.run_hrom:
-                # # Set the HROM weights in elements and conditions
-                # hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
-                # for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                #     computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-
-                # hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
-                # for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                #     computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                WeightsMatrix = np.load("WeightsMatrix.npy")
-                ElementsVector = np.load("ElementsVector.npy")
+                # Set the HROM weights in elements and conditions
+                WeightsMatrix = np.load("WeightsMatrix.npy") #FIXME: FIX THE +1
+                ElementsVector = np.load("ElementsVector.npy") #FIXME: FIX THE +1
                 #FIXME for a HROM using the Hyper-reduced model part without unselected elements, the number of elements originally present in the model part should be provided!
                 #TODO Decide whether storing an extra ingeter "OriginalNumberOfElements.npy" or saving all the HROM info as a numpy structure(less transparent to new users)
                 OriginalNumberOfElements = computing_model_part.NumberOfElements()
