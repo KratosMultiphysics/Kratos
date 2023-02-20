@@ -168,7 +168,7 @@ public:
      */
     TrilinosBlockBuilderAndSolver& operator=(const TrilinosBlockBuilderAndSolver& rOther) = delete;
 
-    // TODO: In order to create a Create method something must be done about the EpetraCommunicator. Maybe ge it from ProcessInfo
+    // TODO: In order to create a Create method, the name of the DataCommunicator that is used needs to be passed in the settings (see DistributedImportModelPartUtility). Then an EpetraComm can be constructed from the MPI_Comm in the DataCommunicator
 
     ///@}
     ///@name Operators
