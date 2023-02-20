@@ -29,7 +29,7 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
 
             # Run test case
             self.simulation.Run()
-            
+
             # Check results
             expected_output = np.load(expected_output_filename)
             obtained_output = rom_testing_utilities.GetVectorNodalResults(self.simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
@@ -55,7 +55,7 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
                     node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, obtained_output[i])
                     i += 1
                 self.PostProcess("test_rbf_shape_functions_utility_1x1_square_G")
-        
+
 
     def testStructuralDynamicLSPGRom2D(self):
         self.work_folder = "structural_dynamic_test_files/LSPGROM/"
@@ -105,8 +105,8 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
                 down = sum((expected_output[:,i])**2)
                 l2 = np.sqrt(up/down)
                 self.assertLess(l2, tolerance)
-            
-            
+
+
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
