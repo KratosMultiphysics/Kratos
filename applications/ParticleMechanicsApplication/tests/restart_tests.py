@@ -88,20 +88,15 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
     def test_execution(self):
         # Within this location context:
         with KratosUnittest.WorkFolderScope("", __file__):
+            # remove the created restart files
+            raw_file_name = "MPM_Material"
+            folder_name = raw_file_name + "__restart_files"
+            self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath(folder_name))
+
             model_save = KratosMultiphysics.Model()
             model_load = KratosMultiphysics.Model()
             particle_mechanics_analysis.ParticleMechanicsAnalysis(model_save, self.project_parameters_save).Run()
             particle_mechanics_analysis.ParticleMechanicsAnalysis(model_load, self.project_parameters_load).Run()
-
-    def tearDown(self):
-        # Within this location context:
-        with KratosUnittest.WorkFolderScope("", __file__):
-            # remove the created restart files
-            #raw_path, raw_file_name = os.path.split(self.file_name)
-            raw_file_name = "MPM_Material"
-            folder_name = raw_file_name + "__restart_files"
-
-            self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath(folder_name))
 
 
 class MPMRestartTestDynamicCantilever2D(ParticleMechanicsRestartTestFactory):
