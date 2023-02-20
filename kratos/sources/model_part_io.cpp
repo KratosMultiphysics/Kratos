@@ -400,7 +400,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
                 (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                 for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
                     (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";;
             } else {
                 (*mpStream) << "End Elements" << std::endl << std::endl;
 
@@ -410,7 +410,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
                 (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                 for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
                     (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";;
             }
         }
 
@@ -486,7 +486,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
                 (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                 for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
                     (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";;
             } else {
                 (*mpStream) << "End Conditions" << std::endl << std::endl;
 
@@ -496,7 +496,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
                 (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                 for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
                     (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";;
             }
         }
 
@@ -3537,7 +3537,7 @@ void ModelPartIO::WriteSubModelPartBlock(
         auto numNodes = rThisNodes.end() - rThisNodes.begin();
         for(unsigned int i = 0; i < numNodes; i++) {
             auto itNode = rThisNodes.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << std::endl;
+            (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << "\n";;
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartNodes" << std::endl;
 
@@ -3547,7 +3547,7 @@ void ModelPartIO::WriteSubModelPartBlock(
         auto num_elements = rThisElements.end() - rThisElements.begin();
         for(unsigned int i = 0; i < num_elements; i++) {
             auto itElem = rThisElements.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << std::endl;
+            (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << "\n";;
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartElements" << std::endl;
 
@@ -3557,7 +3557,7 @@ void ModelPartIO::WriteSubModelPartBlock(
         auto numConditions = rThisConditions.end() - rThisConditions.begin();
         for(unsigned int i = 0; i < numConditions; i++) {
             auto itCond = rThisConditions.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << std::endl;
+            (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << "\n";;
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartConditions" << std::endl;
 

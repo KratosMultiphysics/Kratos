@@ -21,7 +21,14 @@ class HelmholtzThickness(ThicknessControl):
 
         self.default_technique_settings = KM.Parameters("""{
                     "filter_radius" : 0.000000000001,
-                    "beta_settings": {},
+                    "beta_settings": {
+                        "initial_value" : 25,
+                        "max_value" : 25,
+                        "adaptive" : false,
+                        "increase_fac" : 1.5,
+                        "update_period" : 20
+                    },
+                    "SIMP_power_fac": 3,
                     "initial_thickness":0.000001,
                     "physical_thicknesses": [],
                     "fixed_model_parts": [],

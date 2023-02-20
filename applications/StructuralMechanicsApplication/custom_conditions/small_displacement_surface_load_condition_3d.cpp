@@ -17,6 +17,7 @@
 #include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/variables.h"
 #include "utilities/integration_utilities.h"
 
 namespace Kratos
