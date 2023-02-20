@@ -146,56 +146,54 @@ class HRomTrainingUtility(object):
         w = np.squeeze(self.hyper_reduction_element_selector.w)
         z = self.hyper_reduction_element_selector.z
 
-        np.save('WeightsMatrix.npy',w)
-        np.save('ElementsVector.npy', np.squeeze(z))
+        # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
+        hrom_weights = {}
+        hrom_weights["Elements"] = {}
+        hrom_weights["Conditions"] = {}
 
-
-        # # Create dictionary with HROM weights
-        # hrom_weights = {}
-        # hrom_weights["Elements"] = {}
-        # hrom_weights["Conditions"] = {}
-
-        # if type(z)==np.int64 or type(z)==np.int32:
-        #     # Only one element found !
-        #     if z <= n_elements-1:
-        #         hrom_weights["Elements"][int(z)] = float(w)
-        #     else:
-        #         hrom_weights["Conditions"][int(z)-n_elements] = float(w)
-        # else:
-        #     # Many elements found
-        #     for j in range (0,len(z)):
-        #         if z[j] <=  n_elements -1:
-        #             hrom_weights["Elements"][int(z[j])] = float(w[j])
-        #         else:
-        #             hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
+        if type(z)==np.int64 or type(z)==np.int32:
+            # Only one element found !
+            if z <= n_elements-1:
+                hrom_weights["Elements"][int(z)] = float(w)
+            else:
+                hrom_weights["Conditions"][int(z)-n_elements] = float(w)
+        else:
+            # Many elements found
+            for j in range (0,len(z)):
+                if z[j] <=  n_elements -1:
+                    hrom_weights["Elements"][int(z[j])] = float(w[j])
+                else:
+                    hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
 
         #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
-        include_minimum_condition = False
-        # if include_minimum_condition:
-        #     # Get the HROM conditions to be added
-        #     minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
-        #         self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
-        #         hrom_weights["Conditions"])
+        include_minimum_condition = True
+        if include_minimum_condition:
+            # Get the HROM conditions to be added
+            minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
+                self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
+                hrom_weights["Conditions"])
 
-        #     # Add the selected conditions to the conditions dict with a null weight
-        #     for cond_id in minimum_conditions:
-        #         hrom_weights["Conditions"][cond_id] = 0.0
+            # Add the selected conditions to the conditions dict with a null weight
+            for cond_id in minimum_conditions:
+                hrom_weights["Conditions"][cond_id] = 0.0
+            w, z = self.__AddSelectedConditionsWithZeroWeights(w, z, minimum_conditions, n_elements)
 
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        include_condition_parents = False
-        # if include_condition_parents:
-        #     # Get the HROM condition parents from the current HROM weights
-        #     missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
-        #         self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
-        #         hrom_weights)
+        include_condition_parents = True
+        if include_condition_parents:
+            # Get the HROM condition parents from the current HROM weights
+            missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
+                self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
+                hrom_weights)
 
-        #     # Add the missing parents to the elements dict with a null weight
-        #     for parent_id in missing_condition_parents:
-        #         hrom_weights["Elements"][parent_id] = 0.0
+            # Add the missing parents to the elements dict with a null weight
+            for parent_id in missing_condition_parents:
+                hrom_weights["Elements"][parent_id] = 0.0
+            w, z = self.__AddSelectedElementsWithZeroWeights(w,z, missing_condition_parents)
 
         # Append weights to RomParameters.json
         # We first parse the current RomParameters.json to then append and edit the data
@@ -213,4 +211,27 @@ class HRomTrainingUtility(object):
         # with open('RomParameters.json','w') as f:
         #     json.dump(updated_rom_parameters, f, indent = 4)
 
+        np.save('WeightsMatrix.npy',w)
+        np.save('ElementsVector.npy',z)
+
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
+
+
+
+    def __AddSelectedElementsWithZeroWeights(self, original_weights,original_elements, elements_to_add):
+
+        added_elements_ids = np.array(elements_to_add)
+        updated_elements = np.r_[original_elements, added_elements_ids]
+        updated_weights = np.r_[original_weights, np.zeros(added_elements_ids.shape)]
+
+        return updated_weights, updated_elements
+
+
+
+    def __AddSelectedConditionsWithZeroWeights(self, original_weights, original_conditions, conditions_to_add, number_of_elements):
+
+        added_conditions_ids = np.array(conditions_to_add)+number_of_elements
+        updated_conditions = np.r_[original_conditions, added_conditions_ids]
+        updated_weights = np.r_[original_weights, np.zeros(added_conditions_ids.shape)]
+
+        return updated_weights, updated_conditions
