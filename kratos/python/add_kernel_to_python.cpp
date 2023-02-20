@@ -4,12 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pooyan Dadvand
 //
+
+// System includes
+#include <sstream>
 
 // External includes
 
@@ -18,11 +21,7 @@
 #include "includes/kernel.h"
 #include "python/add_kernel_to_python.h"
 
-// System includes
-#include <sstream>
-
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 bool HasFlag(Kernel& rKernel, const std::string& flag_name)
 {
@@ -76,40 +75,6 @@ std::string GetVariableNames(Kernel& rKernel)
     return buffer.str();
 }
 
-void RegisterInPythonKernelVariables()
-{
-    auto comp = KratosComponents<VariableData>::GetComponents();
-    auto m = pybind11::module::import("KratosMultiphysics"); //Note that this is added to KratosMultiphysics not to
-
-    for(auto item = comp.begin(); item!=comp.end(); item++) {
-        auto& var = (item->second);
-        std::string name = item->first;
-
-        m.attr(name.c_str()) = var;
-    }
-}
-
-void RegisterInPythonApplicationVariables(KratosApplication& Application)
-{
-    auto comp = KratosComponents<VariableData>::GetComponents();
-    auto kernel_module = pybind11::module::import("KratosMultiphysics");
-    auto app_module = pybind11::module::import((std::string("KratosMultiphysics.")+Application.Name()).c_str());
-
-    KRATOS_INFO("")
-    << "****************************************" << std::endl
-    << "Application Name" << Application.Name() << std::endl
-    << "****************************************" << std::endl;
-
-    for(auto item = comp.begin(); item!=comp.end(); item++) {
-        auto& var = (item->second);
-        std::string var_name = item->first;
-        KRATOS_INFO("Variable Name") << var_name << std::endl;
-
-        if(! hasattr(kernel_module,var_name.c_str()) ) //variable not present in kernel
-            app_module.attr(var_name.c_str()) = var;
-    }
-}
-
 void AddKernelToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -117,12 +82,9 @@ void AddKernelToPython(pybind11::module& m)
     py::class_<Kernel, Kernel::Pointer>(m,"Kernel")
         .def(py::init<>())
         .def(py::init<bool>())
-        .def("Initialize", [](Kernel& self){ self.Initialize();
-        /*RegisterInPythonKernelVariables();*/ }) //&Kernel::Initialize)
+        .def("Initialize", [](Kernel& self){ self.Initialize(); })
         .def("ImportApplication", &Kernel::ImportApplication)
-        .def("InitializeApplication",  [](Kernel& self, KratosApplication& App){ self.Initialize();
-        /*RegisterInPythonApplicationVariables(App);*/ }) //&Kernel::InitializeApplication)
-        //.def(""A,&Kernel::Initialize)
+        .def("InitializeApplication",  [](Kernel& self, KratosApplication& App){ self.Initialize(); })
         .def("IsImported", &Kernel::IsImported)
         .def_static("IsDistributedRun", &Kernel::IsDistributedRun)
         .def("HasFlag", HasFlag)
@@ -189,5 +151,4 @@ void AddKernelToPython(pybind11::module& m)
         ;
 }
 
-}  // namespace Python.
-}  // Namespace Kratos
+}  // namespace Kratos::Python.
