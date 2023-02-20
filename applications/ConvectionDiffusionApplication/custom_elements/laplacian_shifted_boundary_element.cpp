@@ -97,8 +97,6 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
         // Find the surrogate face local id
         // Note that it might happen that an interface element has no surrogate face (i.e. a unique node in the surrogate skin)
         const auto sur_bd_ids_vect = GetSurrogateFacesIds();
-        // KRATOS_WATCH(sur_bd_ids_vect)
-        // KRATOS_WATCH(sur_bd_ids_vect.size())
         if (sur_bd_ids_vect.size() != 0) {
             // Get the parent geometry data
             double dom_size_parent;

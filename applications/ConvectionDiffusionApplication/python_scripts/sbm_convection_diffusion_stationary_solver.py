@@ -28,7 +28,7 @@ def CreateSolver(main_model_part, custom_settings):
 
 class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_solver.ConvectionDiffusionStationarySolver):
     print('ci siamo')
-    skin_model_part = Import_Structural_model_part('Structural_circle1x1_huge')
+    skin_model_part = Import_Structural_model_part('Structural_distanceToSkin')
 
     def __init__(self, main_model_part, custom_settings):
         super().__init__(main_model_part, custom_settings)
@@ -62,6 +62,10 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         print('Number of skin elements: ', tot_skin_el)
 
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(main_model_part, skin_model_part).Execute()
+
+        for node in main_model_part.Nodes :
+            print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
+        exit()
         # Find the surrogate boundary nodes
         a = KratosMultiphysics.FindSurrogateNodesProcess2D(main_model_part, skin_model_part)
         a.Execute()
