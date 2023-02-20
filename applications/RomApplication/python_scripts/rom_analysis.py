@@ -121,6 +121,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 WeightsMatrix = np.load("WeightsMatrix.npy")
                 ElementsVector = np.load("ElementsVector.npy")
                 #FIXME for a HROM using the Hyper-reduced model part without unselected elements, the number of elements originally present in the model part should be provided!
+                #TODO Decide whether storing an extra ingeter "OriginalNumberOfElements.npy" or saving all the HROM info as a numpy structure(less transparent to new users)
                 OriginalNumberOfElements = computing_model_part.NumberOfElements()
                 for i in range(WeightsMatrix.shape[0]):
                     if ElementsVector[i] < OriginalNumberOfElements:
@@ -157,7 +158,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Once simulation is completed, calculate and save the HROM weights
             if self.train_hrom:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
-                #self.__hrom_training_utility.CreateHRomModelParts() need to update to new format
+                self.__hrom_training_utility.CreateHRomModelParts()
 
     return RomAnalysis(global_model, parameters)
 
