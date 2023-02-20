@@ -55,39 +55,24 @@ void GaussPIPE_HEIGHT::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_p
 
 namespace
 {
-    void calculateNodalHydraulicHead(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) {
-        auto element_var = &(Kratos::KratosComponents<Kratos::Variable<double>>::Get("HYDRAULIC_HEAD"));
+    using namespace Kratos;
 
-        for (Kratos::Element element : model_part.Elements())
+    void calculateNodalHydraulicHead(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) {
+        const auto& element_var = KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD");
+
+        for (Element element : model_part.Elements())
         {
-            auto rGeom = element.GetGeometry();
-            auto rProp = element.GetProperties();
+            auto& rGeom = element.GetGeometry();
+            const auto& rProp = element.GetProperties();
+
+            const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<3>(rGeom, rProp);
 
             for (unsigned int node = 0; node < 3; ++node)
             {
-                Kratos::array_1d<double, 3> NodeVolumeAcceleration;
-                noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(Kratos::VOLUME_ACCELERATION, 0);
-                const double g = norm_2(NodeVolumeAcceleration);
-                if (g > std::numeric_limits<double>::epsilon())
-                {
-                    const double FluidWeight = g * rProp[Kratos::DENSITY_WATER];
-
-                    Kratos::array_1d<double, 3> NodeCoordinates;
-                    noalias(NodeCoordinates) = rGeom[node].Coordinates();
-                    Kratos::array_1d<double, 3> NodeVolumeAccelerationUnitVector;
-                    noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
-
-                    const double WaterPressure = rGeom[node].FastGetSolutionStepValue(Kratos::WATER_PRESSURE);
-                    rGeom[node].SetValue(*element_var, -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector) - Kratos::PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight);
-                }
-                else
-                {
-                    rGeom[node].SetValue(*element_var, 0.0);
-                }
+                rGeom[node].SetValue(element_var, NodalHydraulicHead[node]);
             }
         }
-
-        gid_io.WriteNodalResultsNonHistorical(*element_var, model_part.Nodes(), 0);
+        gid_io.WriteNodalResultsNonHistorical(element_var, model_part.Nodes(), 0);
     }
 }
 
