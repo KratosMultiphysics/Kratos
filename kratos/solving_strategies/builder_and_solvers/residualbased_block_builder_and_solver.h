@@ -255,7 +255,6 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
-
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
@@ -316,7 +315,6 @@ public:
                     // Assemble the elemental contribution
                     AssembleLHS(rA, lhs_contribution, equation_id);
                 }
-
             }
 
             #pragma omp for  schedule(guided, 512)
@@ -328,8 +326,7 @@ public:
                 if (it_cond->IsDefined(ACTIVE))
                     condition_is_active = it_cond->Is(ACTIVE);
 
-                if (condition_is_active)
-                {
+                if (condition_is_active) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_cond, lhs_contribution, equation_id, r_current_process_info);
 
@@ -547,7 +544,7 @@ public:
         ) override
     {
         Timer::Start("Linearizing on Old iteration");
-             
+
         KRATOS_INFO_IF("BlockBuilderAndSolver", this->GetEchoLevel() > 0) << "Linearizing on Old iteration" << std::endl;
 
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() == 1) << "BlockBuilderAndSolver: \n"
@@ -586,13 +583,13 @@ public:
         if (MoveMesh) {
             VariableUtils().UpdateCurrentPosition(rModelPart.Nodes(),DISPLACEMENT,0);
         }
-             
+
         Timer::Stop("Linearizing on Old iteration");
 
         Timer::Start("Build");
-             
+
         this->Build(pScheme, rModelPart, rA, rb);
-             
+
         Timer::Stop("Build");
 
         // Put back the prediction into the database
@@ -622,11 +619,11 @@ public:
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
-             
+
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
-            
+
         const auto timer = BuiltinTimer();
-             
+
         Timer::Start("Solve");
 
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
@@ -635,7 +632,6 @@ public:
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
-
     }
 
     /**
@@ -675,7 +671,6 @@ public:
 
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
-
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
@@ -974,7 +969,7 @@ public:
         });
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -1148,6 +1143,24 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief This method returns constraint relation (T) matrix
+     * @return The constraint relation (T) matrix
+     */
+    typename TSparseSpace::MatrixType& GetConstraintRelationMatrix() override
+    {
+        return mT;
+    }
+
+    /**
+     * @brief This method returns constraint constant vector
+     * @return The constraint constant vector
+     */
+    typename TSparseSpace::VectorType& GetConstraintConstantVector() override
+    {
+        return mConstantVector;
+    }
 
     ///@}
     ///@name Inquiry
@@ -1378,9 +1391,6 @@ protected:
 
         // The current process info
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Vector containing the localization in the system of the different terms
-        DofsVectorType slave_dof_list, master_dof_list;
 
         // Contributions to the system
         Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
