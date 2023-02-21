@@ -226,9 +226,12 @@ class TopologyCellType:
     """
 
     _topologies = {
+        (2,1): "Polyvertex_1",
         (2,2): "Polyline_2",
         (2,3): "Triangle",
         (2,4): "Quadrilateral",
+
+        (3,1): "Polyvertex_1",
         (3,2): "Polyline_2",
         (3,3): "Triangle",
         (3,4): "Tetrahedron",
@@ -245,7 +248,10 @@ class TopologyCellType:
         try:
             self.attrib = {}
             cell_type = self._topologies[(dim, num_points)]
-            if cell_type == "Polyline_2":
+            if cell_type == "Polyvertex_1":
+                self.attrib["TopologyType"] = "Polyvertex"
+                self.attrib["NodesPerElement"] = "1"
+            elif cell_type == "Polyline_2":
                 self.attrib["TopologyType"] = "Polyline"
                 self.attrib["NodesPerElement"] = "2"
             else:
@@ -322,7 +328,10 @@ class NodalData(Attribute):
         if len(self.data.dimensions) == 1:
             return "Scalar"
         elif len(self.data.dimensions) == 2:
-            return "Vector"
+            if (self.data.dimensions[1] == 3):
+                return "Vector"
+            else:
+                return "Matrix"
         else:
             raise Exception("Invalid dimensions.")
 
@@ -361,7 +370,10 @@ class GeometrycalObjectData(Attribute):
         if len(self.data.dimensions) == 1:
             return "Scalar"
         elif len(self.data.dimensions) == 2:
-            return "Vector"
+            if (self.data.dimensions[1] == 3):
+                return "Vector"
+            else:
+                return "Matrix"
         else:
             raise Exception("Invalid dimensions.")
 

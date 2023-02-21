@@ -31,6 +31,7 @@ public:
     ///@{
 
     static const std::vector<std::vector<std::array<double, 2>>> s_gauss_legendre;
+    static const std::vector<std::vector<std::array<double, 3>>> s_gauss_triangle;
 
     ///@}
 public:
@@ -45,6 +46,29 @@ public:
     typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
 
     ///@}
+    ///@name Generic generation of Integration Points
+    ///@{
+    /// 
+    static void CreateIntegrationPoints1D(
+        IntegrationPointsArrayType & rIntegrationPoints,
+        const std::vector<double>&rSpansLocalSpace,
+        const IntegrationInfo& rIntegrationInfo);
+
+    ///@}
+    ///@name Create Integration Points
+    ///@{
+
+    static void CreateIntegrationPoints1DGauss(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpanIntervals,
+        const SizeType IntegrationPointsPerSpan);
+
+    static void CreateIntegrationPoints1DGrid(
+        IntegrationPointsArrayType & rIntegrationPoints,
+        const std::vector<double>& rSpanIntervals,
+        const SizeType IntegrationPointsPerSpan);
+
+    ///@}
     ///@name Define Integration Points
     ///@{
 
@@ -57,6 +81,17 @@ public:
         typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU, SizeType PointsInV,
         double U0, double U1, double V0, double V1);
+
+    static void IntegrationPoints3D(
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
+        SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
+        double U0, double U1, double V0, double V1, double W0, double W1);
+
+    /// Triangular shape
+    static void IntegrationPointsTriangle2D(
+        typename IntegrationPointsArrayType::iterator & rIntegrationPointsBegin,
+        SizeType PointsIndex,
+        double U0, double U1, double U2, double V0, double V1, double V2);
 
     ///@}
 };

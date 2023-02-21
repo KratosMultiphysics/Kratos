@@ -4,27 +4,27 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
 //                   Vicente Mataix Ferrandiz
 //
-//
 
-#if !defined(KRATOS_VARIABLE_UTILS )
-#define  KRATOS_VARIABLE_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
-
+#include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
+#include "utilities/reduction_utilities.h"
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -62,6 +62,15 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The node type
+    typedef ModelPart::NodeType NodeType;
+
+    /// The condition type
+    typedef ModelPart::ConditionType ConditionType;
+
+    /// The element type
+    typedef ModelPart::ElementType ElementType;
+
     /// We create the Pointer related to VariableUtils
     KRATOS_CLASS_POINTER_DEFINITION(VariableUtils);
 
@@ -76,9 +85,6 @@ public:
 
     /// A definition of the double variable
     typedef Variable< double > DoubleVarType;
-
-    /// A definition of the component variable
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVarType;
 
     /// A definition of the array variable
     typedef Variable< array_1d<double, 3 > > ArrayVarType;
@@ -122,17 +128,19 @@ public:
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
 
-        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes) << "Origin and destination model parts have different number of nodes."
-                                                        << "\n\t- Number of origin nodes: " << n_orig_nodes
-                                                        << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
+        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes)
+            << "Origin and destination model parts have different number of nodes."
+            << "\n\t- Number of origin nodes: " << n_orig_nodes
+            << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < n_orig_nodes; ++i_node){
-            auto it_dest_node = rDestinationModelPart.NodesBegin() + i_node;
-            const auto &it_orig_node = rOriginModelPart.NodesBegin() + i_node;
-            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
-            it_dest_node->GetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
-        }
+        IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
+            auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
+            const auto it_orig_node = rOriginModelPart.NodesBegin() + index;
+            const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
+            it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
+        });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
     }
 
     /**
@@ -170,13 +178,14 @@ public:
             "\n\t- Number of origin nodes: " << n_orig_nodes <<
             "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < n_orig_nodes; ++i_node){
-            auto it_dest_node = rDestinationModelPart.NodesBegin() + i_node;
-            const auto &it_orig_node = rOriginModelPart.NodesBegin() + i_node;
-            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
+        IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
+            auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
+            const auto it_orig_node = rOriginModelPart.NodesBegin() + index;
+            const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->GetValue(rDestinationVariable) = r_value;
-        }
+        });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
     }
 
     template< class TVarType >
@@ -187,6 +196,414 @@ public:
         const unsigned int BuffStep = 0)
     {
         this->CopyModelPartNodalVarToNonHistoricalVar(rVariable, rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0,
+        const unsigned int WriteBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(
+            rOriginModelPart.FullName() == rDestinationModelPart.FullName() &&
+            rOriginVariable == rDestinationVariable &&
+            ReadBufferStep == WriteBufferStep)
+            << "Trying to copy flagged nodal solution step values with the same origin and destination model parts/variables/buffer steps. This is not permitted ( Origin model part: "
+            << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
+            << ", variable: " << rOriginVariable.Name() << ", buffer step: " << ReadBufferStep << " ) !";
+
+        KRATOS_ERROR_IF_NOT(rOriginModelPart.HasNodalSolutionStepVariable(rOriginVariable))
+            << rOriginVariable.Name() << " is not found in nodal solution step variables list in origin model part ( "
+            << rOriginModelPart.Name() << " ).";
+
+        KRATOS_ERROR_IF_NOT(rDestinationModelPart.HasNodalSolutionStepVariable(rDestinationVariable))
+            << rDestinationVariable.Name() << " is not found in nodal solution step variables list in destination model part ( "
+            << rDestinationModelPart.Name() << " ).";
+
+        KRATOS_ERROR_IF(ReadBufferStep >= rOriginModelPart.GetBufferSize())
+            << "Origin model part ( " << rOriginModelPart.Name()
+            << " ) buffer size is smaller or equal than read buffer size [ "
+            << rOriginModelPart.GetBufferSize() << " <= " << ReadBufferStep << " ].";
+
+        KRATOS_ERROR_IF(WriteBufferStep >= rDestinationModelPart.GetBufferSize())
+            << "Destination model part ( " << rDestinationModelPart.Name()
+            << " ) buffer size is smaller or equal than read buffer size [ "
+            << rDestinationModelPart.GetBufferSize() << " <= " << WriteBufferStep << " ].";
+
+        CopyModelPartFlaggedVariable<NodesContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](NodeType& rDestNode, const TDataType& rValue) {
+                rDestNode.FastGetSolutionStepValue(
+                    rDestinationVariable, WriteBufferStep) = rValue;
+            },
+            [&](const NodeType& rOriginNode) -> const TDataType& {
+                return rOriginNode.FastGetSolutionStepValue(rOriginVariable, ReadBufferStep);
+            });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0,
+        const unsigned int WriteBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, ReadBufferStep, WriteBufferStep);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0,
+        const unsigned int WriteBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart,
+            rFlag, CheckValue, ReadBufferStep, WriteBufferStep);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF_NOT(rOriginModelPart.HasNodalSolutionStepVariable(rOriginVariable))
+            << rOriginVariable.Name() << " is not found in nodal solution step variables list in origin model part ( "
+            << rOriginModelPart.Name() << " ).";
+
+        KRATOS_ERROR_IF(ReadBufferStep >= rOriginModelPart.GetBufferSize())
+            << "Origin model part ( " << rOriginModelPart.Name()
+            << " ) buffer size is smaller or equal than read buffer size [ "
+            << rOriginModelPart.GetBufferSize() << " <= " << ReadBufferStep << " ].";
+
+
+        CopyModelPartFlaggedVariable<NodesContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](NodeType& rDestNode, const TDataType& rValue) {
+                rDestNode.SetValue(rDestinationVariable, rValue);
+            },
+            [&](const NodeType& rOriginNode) -> const TDataType& {
+                return rOriginNode.FastGetSolutionStepValue(rOriginVariable, ReadBufferStep);
+            });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, ReadBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart,
+            rFlag, CheckValue, ReadBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+            rVariable, rVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, ReadBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int WriteBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF_NOT(rDestinationModelPart.HasNodalSolutionStepVariable(rDestinationVariable))
+            << rDestinationVariable.Name() << " is not found in nodal solution step variables list in destination model part ( "
+            << rDestinationModelPart.Name() << " ).";
+
+        KRATOS_ERROR_IF(WriteBufferStep >= rDestinationModelPart.GetBufferSize())
+            << "Destination model part ( " << rDestinationModelPart.Name()
+            << " ) buffer size is smaller or equal than read buffer size [ "
+            << rDestinationModelPart.GetBufferSize() << " <= " << WriteBufferStep << " ].";
+
+        CopyModelPartFlaggedVariable<NodesContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](NodeType& rDestNode, const TDataType& rValue) {
+                rDestNode.FastGetSolutionStepValue(
+                    rDestinationVariable, WriteBufferStep) = rValue;
+            },
+            [&](const NodeType& rOriginNode) -> const TDataType& {
+                return rOriginNode.GetValue(rOriginVariable);
+            });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int WriteBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, WriteBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int WriteBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart,
+            rFlag, CheckValue, WriteBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int WriteBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+            rVariable, rVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, WriteBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(
+            rOriginModelPart.FullName() == rDestinationModelPart.FullName() &&
+            rOriginVariable == rDestinationVariable
+        ) << "Trying to copy flagged nodal non-historical values with the same model parts/variables. This is not permitted ( Origin model part: "
+            << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
+          << ", variable: " << rOriginVariable.Name() << " ) !";
+
+        CopyModelPartFlaggedVariable<NodesContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](NodeType& rDestNode, const TDataType& rValue) {
+                rDestNode.SetValue(rDestinationVariable, rValue);
+            },
+            [&](const NodeType& rOriginNode) -> const TDataType& {
+                return rOriginNode.GetValue(rOriginVariable);
+            });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedElementVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(rOriginModelPart.FullName() == rDestinationModelPart.FullName() && rOriginVariable == rDestinationVariable)
+            << "Trying to copy flagged elemental variable data with the same model "
+               "parts/variables. This is not permitted ( Origin model part: "
+            << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
+            << ", variable: " << rOriginVariable.Name() << " ) !";
+
+        CopyModelPartFlaggedVariable<ElementsContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](ElementType& rDestElement, const TDataType& rValue) {
+                rDestElement.SetValue(rDestinationVariable, rValue);
+            },
+            [&](const ElementType& rOriginElement) -> const TDataType& {
+                return rOriginElement.GetValue(rOriginVariable);
+            });
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedElementVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedElementVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedElementVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedElementVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedConditionVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(rOriginModelPart.FullName() == rDestinationModelPart.FullName() && rOriginVariable == rDestinationVariable)
+            << "Trying to copy flagged condition variable data with the same model "
+               "parts/variables. This is not permitted ( Origin model part: "
+            << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
+            << ", variable: " << rOriginVariable.Name() << " ) !";
+
+        CopyModelPartFlaggedVariable<ConditionsContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](ConditionType& rDestCondition, const TDataType& rValue) {
+                rDestCondition.SetValue(rDestinationVariable, rValue);
+            },
+            [&](const ConditionType& rOriginCondition) -> const TDataType& {
+                return rOriginCondition.GetValue(rOriginVariable);
+            });
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedConditionVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedConditionVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedConditionVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedConditionVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue);
     }
 
     /**
@@ -211,97 +628,13 @@ public:
                                                           << "\n\t- Number of origin elements: " << n_orig_elems
                                                           << "\n\t- Number of destination elements: " << n_dest_elems << std::endl;
 
-        #pragma omp parallel for
-        for(int i_elems = 0; i_elems < n_orig_elems; ++i_elems){
-            auto it_dest_elems = rDestinationModelPart.ElementsBegin() + i_elems;
-            const auto &it_orig_elems = rOriginModelPart.ElementsBegin() + i_elems;
-            const auto &r_value = it_orig_elems->GetValue(rVariable);
-            it_dest_elems->SetValue(rVariable,r_value);
-        }
+        IndexPartition<std::size_t>(n_orig_elems).for_each([&](std::size_t index){
+        auto it_dest_elems = rDestinationModelPart.ElementsBegin() + index;
+        const auto it_orig_elems = rOriginModelPart.ElementsBegin() + index;
+        const auto& r_value = it_orig_elems->GetValue(rVariable);
+        it_dest_elems->SetValue(rVariable,r_value);
+        });
     }
-
-    /**
-     * @brief Sets the nodal value of a scalar variable
-     * @param rVariable reference to the scalar variable to be set
-     * @param Value Value to be set
-     * @param rNodes reference to the objective node set
-     */
-    template <class TVarType>
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
-    void SetScalarVar(
-        const TVarType &rVariable,
-        const double Value,
-        NodesContainerType &rNodes)
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(rVariable) = Value;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Sets the nodal value of a scalar variable (considering flag)
-     * @param rVariable reference to the scalar variable to be set
-     * @param Value Value to be set
-     * @param rNodes reference to the objective node set
-     * @param Flag The flag to be considered in the assignation
-     * @param Check What is checked from the flag
-     */
-    template< class TVarType >
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
-    void SetScalarVarForFlag(
-        const TVarType& rVariable,
-        const double Value,
-        NodesContainerType& rNodes,
-        const Flags Flag,
-        const bool Check = true
-        )
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            if (it_node->Is(Flag) == Check) it_node->FastGetSolutionStepValue(rVariable) = Value;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Sets the nodal value of a vector variable
-     * @param rVariable reference to the vector variable to be set
-     * @param Value array containing the Value to be set
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
-    void SetVectorVar(
-        const ArrayVarType& rVariable,
-        const array_1d<double, 3 >& Value,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Sets the nodal value of a vector variable (considering flag)
-     * @param rVariable reference to the vector variable to be set
-     * @param Value array containing the Value to be set
-     * @param rNodes reference to the objective node set
-     * @param Flag The flag to be considered in the assignation
-     * @param Check What is checked from the flag
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
-    void SetVectorVarForFlag(
-        const ArrayVarType& rVariable,
-        const array_1d<double, 3 >& Value,
-        NodesContainerType& rNodes,
-        const Flags Flag,
-        const bool Check = true
-        );
 
     /**
      * @brief Sets the nodal value of a scalar variable
@@ -315,16 +648,14 @@ public:
     void SetVariable(
         const TVarType& rVariable,
         const TDataType& rValue,
-        NodesContainerType& rNodes
-        )
+        NodesContainerType& rNodes,
+        const unsigned int Step = 0)
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(rVariable) = rValue;
-        }
+        block_for_each(rNodes, [&](Node<3>& rNode) {
+            rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
+        });
 
         KRATOS_CATCH("")
     }
@@ -349,15 +680,10 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
-        {
-            auto it_node = rNodes.begin() + k;
-            if (it_node->Is(Flag) == CheckValue)
-            {
-                it_node->FastGetSolutionStepValue(rVariable) = rValue;
-            }
-        }
+        block_for_each(rNodes, [&](Node<3>& rNode){
+            if(rNode.Is(Flag) == CheckValue){
+                rNode.FastGetSolutionStepValue(rVariable) = rValue;}
+        });
 
         KRATOS_CATCH("")
     }
@@ -365,7 +691,7 @@ public:
     /**
      * @brief Sets the nodal value of any variable to zero
      * @param rVariable reference to the scalar variable to be set
-     * @param rNodes reference to the objective node set
+     * @param rContainer reference to the objective container
      */
     template< class TType , class TContainerType>
     void SetNonHistoricalVariableToZero(
@@ -375,6 +701,24 @@ public:
         KRATOS_TRY
         this->SetNonHistoricalVariable(rVariable, rVariable.Zero(), rContainer);
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Set the Non Historical Variables To Zero
+     * This method sets the provided list of variables to zero in the non-historical database
+     * @tparam TContainerType Container type (nodes, elements or conditions)
+     * @tparam TVariableArgs Variadic template argument representing the variables types
+     * @param rContainer Container to be initialized to zero
+     * @param rVariableArgs Variables to be set to zero
+     */
+    template<class TContainerType, class... TVariableArgs>
+    static void SetNonHistoricalVariablesToZero(
+        TContainerType& rContainer,
+        const TVariableArgs&... rVariableArgs)
+    {
+        block_for_each(rContainer, [&](auto& rEntity){
+            (rEntity.SetValue(rVariableArgs, rVariableArgs.Zero()), ...);
+        });
     }
 
     /**
@@ -393,42 +737,21 @@ public:
     }
 
     /**
-     * @brief Sets the nodal value of a scalar variable non historical
-     * @param rVariable reference to the scalar variable to be set
-     * @param Value Value to be set
-     * @param rNodes reference to the objective node set
+     * @brief Set the Historical Variables To Zero
+     * This method sets the provided list of variables to zero in the nodal historical database
+     * @tparam TVariableArgs Variadic template argument representing the variables types
+     * @param rNodes Nodes container to be initialized to zero
+     * @param rVariableArgs Variables to be set to zero
      */
-    template< class TVarType >
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable")
-    void SetNonHistoricalScalarVar(
-        const TVarType& rVariable,
-        const double Value,
-        NodesContainerType& rNodes
-        )
+    template<class... TVariableArgs>
+    static void SetHistoricalVariablesToZero(
+        NodesContainerType& rNodes,
+        const TVariableArgs&... rVariableArgs)
     {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->SetValue(rVariable, Value);
-        }
-
-        KRATOS_CATCH("")
+        block_for_each(rNodes, [&](NodeType& rNode){(
+            AuxiliaryHistoricalValueSetter<typename TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
+        });
     }
-
-    /**
-     * @brief Sets the nodal value of a vector non historical variable
-     * @param rVariable reference to the vector variable to be set
-     * @param Value array containing the Value to be set
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable")
-    void SetNonHistoricalVectorVar(
-        const ArrayVarType& rVariable,
-        const array_1d<double, 3 >& Value,
-        NodesContainerType& rNodes
-        );
 
     /**
      * @brief Sets the container value of any type of non historical variable
@@ -445,11 +768,9 @@ public:
     {
         KRATOS_TRY
 
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
-            it_cont->SetValue(rVariable, Value);
-        }
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            rEntity.SetValue(rVariable, Value);
+        });
 
         KRATOS_CATCH("")
     }
@@ -473,13 +794,30 @@ public:
     {
         KRATOS_TRY
 
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
-            if (it_cont->Is(Flag) == Check) {
-                it_cont->SetValue(rVariable, rValue);
-            }
-        }
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            if(rEntity.Is(Flag) == Check){
+                rEntity.SetValue(rVariable, rValue);}
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Erases the container non historical variable
+     * @param rVariable reference to the scalar variable to be erased
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType, class TVarType>
+    void EraseNonHistoricalVariable(
+        const TVarType& rVariable,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        block_for_each(rContainer, [&rVariable](auto& rEntity){
+                rEntity.GetData().Erase(rVariable);
+        });
 
         KRATOS_CATCH("")
     }
@@ -493,39 +831,56 @@ public:
     {
         KRATOS_TRY
 
-        const auto it_cont_begin = rContainer.begin();
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = it_cont_begin + k;
-            it_cont->Data().Clear();
-        }
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+                rEntity.GetData().Clear();
+        });
 
         KRATOS_CATCH("")
     }
 
     /**
+     * @brief Distributes variable values in TContainerType container to nodes
+     *
+     * This method distributes variables values stored in TContainerType data value container in rModelPart
+     * to nodes. Constant weighting is used for each node based on rWeightVariable value. The result
+     * is stored in nodal non-historical data value container under the same rVariable. If IsInverseWeightProvided
+     * is true, then the weights provided by rWeightVariable is inverted to get nodal weight. Otherwise, the value
+     * given by rWeightVariable is used as weight.
+     *
+     *
+     * @tparam TDataType               Data type
+     * @tparam TContainerType          ContainerType of model part
+     * @tparam TWeightDataType         Data type of weight variable (this should be either int or double)
+     * @param rModelPart               Model part
+     * @param rVariable                Variable to be distributed
+     * @param rWeightVariable          Variable which holds weight to distribute entity values to nodes
+     * @param IsInverseWeightProvided  Whether the weight is provided as inverse or not.
+     */
+    template <class TDataType, class TContainerType, class TWeightDataType>
+    void WeightedAccumulateVariableOnNodes(
+        ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const Variable<TWeightDataType>& rWeightVariable,
+        const bool IsInverseWeightProvided = false);
+
+    /**
      * @brief Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
-     * @param rFlagValue flag value to be set
+     * @param FlagValue flag value to be set
      * @param rContainer Reference to the objective container
      */
     template< class TContainerType >
     void SetFlag(
         const Flags& rFlag,
-        const bool& rFlagValue,
+        const bool FlagValue,
         TContainerType& rContainer
         )
     {
         KRATOS_TRY
 
-        const auto it_cont_begin = rContainer.begin();
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = it_cont_begin + k;
-            it_cont->Set(rFlag, rFlagValue);
-        }
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+                rEntity.Set(rFlag, FlagValue);
+        });
 
         KRATOS_CATCH("")
 
@@ -544,13 +899,9 @@ public:
     {
         KRATOS_TRY
 
-        const auto it_cont_begin = rContainer.begin();
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = it_cont_begin + k;
-            it_cont->Reset(rFlag);
-        }
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+                rEntity.Reset(rFlag);
+        });
 
         KRATOS_CATCH("")
     }
@@ -568,42 +919,12 @@ public:
     {
         KRATOS_TRY
 
-        const auto it_cont_begin = rContainer.begin();
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = it_cont_begin + k;
-            it_cont->Flip(rFlag);
-        }
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+                rEntity.Flip(rFlag);
+        });
 
         KRATOS_CATCH("")
     }
-
-    /**
-     * @brief Takes the value of a non-historical vector variable and sets it in other variable
-     * @param OriginVariable reference to the origin vector variable
-     * @param SavedVariable reference to the destination vector variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveVariable")
-    void SaveVectorVar(
-        const ArrayVarType& OriginVariable,
-        const ArrayVarType& SavedVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Takes the value of a non-historical scalar variable and sets it in other variable
-     * @param OriginVariable reference to the origin scalar variable
-     * @param SavedVariable reference to the destination scalar variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveVariable")
-    void SaveScalarVar(
-        const DoubleVarType& OriginVariable,
-        const DoubleVarType& SavedVariable,
-        NodesContainerType& rNodes
-        );
 
     /**
      * @brief Takes the value of a non-historical variable and saves it in another variable
@@ -622,40 +943,12 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rNodesContainer.size()); ++i_node) {
-            auto it_node = rNodesContainer.begin() + i_node;
-            it_node->SetValue(rSavedVariable, it_node->FastGetSolutionStepValue(rOriginVariable));
-        }
+        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+            rNode.SetValue(rSavedVariable, rNode.FastGetSolutionStepValue(rOriginVariable));
+        });
 
         KRATOS_CATCH("")
     }
-
-    /**
-     * @brief Takes the value of a non-historical vector variable and sets it in other non-historical variable
-     * @param OriginVariable reference to the origin vector variable
-     * @param SavedVariable reference to the destination vector variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveNonHistoricalVariable")
-    void SaveVectorNonHistoricalVar(
-        const ArrayVarType& OriginVariable,
-        const ArrayVarType& SavedVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Takes the value of a non-historical scalar variable and sets it in other non-historical variable
-     * @param OriginVariable reference to the origin scalar variable
-     * @param SavedVariable reference to the destination scalar variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveNonHistoricalVariable")
-    void SaveScalarNonHistoricalVar(
-        const DoubleVarType& OriginVariable,
-        const DoubleVarType& SavedVariable,
-        NodesContainerType& rNodes
-        );
 
     /**
      * @brief Takes the value of a non-historical variable and saves it in another historical variable
@@ -676,52 +969,12 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
-            auto it_cont = rContainer.begin() + i;
-            it_cont->SetValue(rSavedVariable, it_cont->GetValue(rOriginVariable));
-        }
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            rEntity.SetValue(rSavedVariable, rEntity.GetValue(rOriginVariable));
+        });
 
         KRATOS_CATCH("")
     }
-
-    /**
-     * @brief Takes the value of an historical vector variable and sets it in other variable
-     * @param OriginVariable reference to the origin vector variable
-     * @param DestinationVariable reference to the destination vector variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
-    void CopyVectorVar(
-        const ArrayVarType& OriginVariable,
-        const ArrayVarType& DestinationVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Takes the value of an historical component variable and sets it in other variable
-     * @param OriginVariable reference to the origin component variable
-     * @param DestinationVariable reference to the destination component variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
-    void CopyComponentVar(
-        const ComponentVarType& OriginVariable,
-        const ComponentVarType& DestinationVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Takes the value of an historical double variable and sets it in other variable
-     * @param OriginVariable reference to the origin double variable
-     * @param DestinationVariable reference to the destination double variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
-    void CopyScalarVar(
-        const DoubleVarType &OriginVariable,
-        const DoubleVarType &DestinationVariable,
-        NodesContainerType &rNodes);
 
     /**
      * @brief Takes the value of an historical variable and sets it in another variable
@@ -741,11 +994,9 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rNodesContainer.size()); ++i_node) {
-            auto it_node = rNodesContainer.begin() + i_node;
-            it_node->FastGetSolutionStepValue(rDestinationVariable) = it_node->FastGetSolutionStepValue(rOriginVariable);
-        }
+        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+            rNode.FastGetSolutionStepValue(rDestinationVariable) = rNode.FastGetSolutionStepValue(rOriginVariable);
+        });
 
         KRATOS_CATCH("")
     }
@@ -757,7 +1008,7 @@ public:
      * @param rOriginNodes Reference to the objective node set
      * @return selected_nodes: List of filtered nodes
      */
-    NodesContainerType SelectNodeList(
+    [[nodiscard]] NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
         const double Value,
         const NodesContainerType& rOriginNodes
@@ -813,22 +1064,81 @@ public:
             CheckVariableExists(rVar, rNodes);
 
             if (IsFixed) {
-                #pragma omp parallel for
-                for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-                    NodesContainerType::iterator it_node = rNodes.begin() + k;
-                    it_node->pGetDof(rVar)->FixDof();
-                }
+                block_for_each(rNodes,[&](Node<3>& rNode){
+                    rNode.pGetDof(rVar)->FixDof();
+                });
             } else {
-                #pragma omp parallel for
-                for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-                    NodesContainerType::iterator it_node = rNodes.begin() + k;
-                    it_node->pGetDof(rVar)->FreeDof();
-                }
+                block_for_each(rNodes,[&](Node<3>& rNode){
+                    rNode.pGetDof(rVar)->FreeDof();
+                });
             }
         }
 
         KRATOS_CATCH("")
     }
+
+    /**
+     * @brief Fixes/Frees dofs based on a flag
+     *
+     * This method fixes/frees given rVariable, if rFlag matches CheckValue provided for that
+     * specific node.
+     *
+     * @tparam TVarType         Variable type
+     * @param rVariable         Variable to be fixed or freed
+     * @param IsFixed           True to fix variable, false to free variable
+     * @param rNodes            Nodes container
+     * @param rFlag             Flag to be checked to fix or free
+     * @param CheckValue        Flag value which is checked against
+     */
+    template< class TVarType >
+    void ApplyFixity(
+        const TVarType& rVariable,
+        const bool IsFixed,
+        NodesContainerType& rNodes,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+        if (rNodes.size() != 0) {
+            // checking the first node to avoid error being thrown in parallel region
+            KRATOS_ERROR_IF_NOT(rNodes.begin()->HasDofFor(rVariable))
+                << "Trying to fix/free dof of variable " << rVariable.Name()
+                << " but this dof does not exist in node #"
+                << rNodes.begin()->Id() << "!" << std::endl;
+
+#ifdef KRATOS_DEBUG
+            for (const auto& r_node : rNodes) {
+                KRATOS_ERROR_IF_NOT(r_node.HasDofFor(rVariable))
+                    << "Trying to fix/free dof of variable " << rVariable.Name()
+                    << " but this dof does not exist in node #" << r_node.Id()
+                    << "!" << std::endl;
+            }
+#endif
+
+            CheckVariableExists(rVariable, rNodes);
+
+            if (IsFixed) {
+                BlockPartition<NodesContainerType>(rNodes).for_each(
+                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                        if (rNode.Is(rFlag) == CheckValue) {
+                            rNode.pGetDof(rVariable)->FixDof();
+                        }
+                    });
+            }
+            else {
+                BlockPartition<NodesContainerType>(rNodes).for_each(
+                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                        if (rNode.Is(rFlag) == CheckValue) {
+                            rNode.pGetDof(rVariable)->FreeDof();
+                        }
+                    });
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
 
     /**
      * @brief Loops along a vector data to set its values to the nodes contained in a node set.
@@ -852,11 +1162,10 @@ public:
             // First we do a check
             CheckVariableExists(rVar, rNodes);
 
-            #pragma omp parallel for
-            for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-                NodesContainerType::iterator it_node = rNodes.begin() + k;
-                it_node->FastGetSolutionStepValue(rVar) = rData[k];
-            }
+            IndexPartition<std::size_t>(rNodes.size()).for_each([&](std::size_t index){
+                NodesContainerType::iterator it_node = rNodes.begin() + index;
+                it_node->FastGetSolutionStepValue(rVar) = rData[index];
+            });
         } else
             KRATOS_ERROR  << "There is a mismatch between the size of data array and the number of nodes ";
 
@@ -869,7 +1178,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation vector result
      */
-    array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -881,7 +1190,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumNonHistoricalNodeScalarVariable(
+    [[nodiscard]] double SumNonHistoricalNodeScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -894,13 +1203,10 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_nodes_array = r_local_mesh.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
-            const auto it_node = it_node_begin + k;
-            sum_value += it_node->GetValue(rVar);
-        }
+        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node<3>& rNode){
+            return rNode.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
@@ -919,7 +1225,7 @@ public:
      * @return TDataType Value of the summation
      */
     template< class TDataType, class TVarType = Variable<TDataType> >
-    TDataType SumHistoricalVariable(
+    [[nodiscard]] TDataType SumHistoricalVariable(
         const TVarType &rVariable,
         const ModelPart &rModelPart,
         const unsigned int BuffStep = 0
@@ -927,29 +1233,16 @@ public:
     {
         KRATOS_TRY
 
-        TDataType sum_value;
-        AuxiliaryInitializeValue(sum_value);
-
         const auto &r_communicator = rModelPart.GetCommunicator();
-        const int n_nodes = r_communicator.LocalMesh().NumberOfNodes();
 
-#pragma omp parallel firstprivate(n_nodes)
-        {
-            TDataType private_sum_value;
-            AuxiliaryInitializeValue(private_sum_value);
-
-#pragma omp for
-            for (int i_node = 0; i_node < n_nodes; ++i_node) {
-                const auto it_node = r_communicator.LocalMesh().NodesBegin() + i_node;
-                private_sum_value += it_node->GetSolutionStepValue(rVariable, BuffStep);
-            }
-
-            AuxiliaryAtomicAdd(private_sum_value, sum_value);
-        }
+        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+            return rNode.GetSolutionStepValue(rVariable, BuffStep);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
+
     }
 
     /**
@@ -958,7 +1251,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective condition set
      * @return sum_value: summation result
      */
-    array_1d<double, 3> SumConditionVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumConditionVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -970,7 +1263,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumConditionScalarVariable(
+    [[nodiscard]] double SumConditionScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -983,13 +1276,10 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_conditions_array = r_local_mesh.Conditions();
-        const auto it_cond_begin = r_conditions_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_conditions_array.size()); ++k) {
-            const auto it_cond = it_cond_begin + k;
-            sum_value += it_cond->GetValue(rVar);
-        }
+        sum_value = block_for_each<SumReduction<double>>(r_conditions_array, [&](ConditionType& rCond){
+            return rCond.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
@@ -1014,7 +1304,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumElementScalarVariable(
+    [[nodiscard]] double SumElementScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1027,13 +1317,10 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_elements_array = r_local_mesh.Elements();
-        const auto it_elem_begin = r_elements_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_elements_array.size()); ++k) {
-            const auto it_elem = it_elem_begin + k;
-            sum_value += it_elem->GetValue(rVar);
-        }
+        sum_value = block_for_each<SumReduction<double>>(r_elements_array, [&](ElementType& rElem){
+            return rElem.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
@@ -1054,17 +1341,14 @@ public:
         KRATOS_TRY
 
         // First we do a chek
-        KRATOS_CHECK_VARIABLE_KEY(rVar)
         if(rModelPart.NumberOfNodes() != 0)
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar);
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-            auto it_node = rModelPart.NodesBegin() + k;
-            it_node->AddDof(rVar);
-        }
+        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+            rNode.AddDof(rVar);
+        });
 
         KRATOS_CATCH("")
     }
@@ -1084,9 +1368,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CHECK_VARIABLE_KEY(rVar)
-        KRATOS_CHECK_VARIABLE_KEY(rReactionVar)
-
         if(rModelPart.NumberOfNodes() != 0) {
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: DoF Variable : " << rVar << "not included in the Soluttion step data ";
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rReactionVar)) << "ERROR:: Reaction Variable : " << rReactionVar << "not included in the Soluttion step data ";
@@ -1100,27 +1381,40 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, &rReactionVar);
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-            auto it_node = rModelPart.NodesBegin() + k;
-            it_node->AddDof(rVar,rReactionVar);
-        }
+        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+            rNode.AddDof(rVar,rReactionVar);
+        });
 
         KRATOS_CATCH("")
     }
+
+    /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs variable names, this method adds such variables as DOFs
+     * to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsVarNamesList List with the string variable names to be added as DOFs
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsList(
+        const std::vector<std::string>& rDofsVarNamesList,
+        ModelPart& rModelPart);
+
+    /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs and reactions variable names, this method adds such variables
+     * as DOFs and reaction to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsAndReactionsNamesList List with the DOF and reaction string variable names to be added as DOFs and reaction
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsWithReactionsList(
+        const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+        ModelPart& rModelPart);
 
     /**
      * @brief This method checks the variable keys
      * @return True if all the keys are correct
      */
     bool CheckVariableKeys();
-
-    /**
-     * @brief This method checks the dofs
-     * @param rModelPart reference to the model part that contains the objective element set
-     * @return True if all the DoFs are correct
-     */
-    bool CheckDofs(ModelPart& rModelPart);
 
     /**
      * @brief This method updates the current nodal coordinates back to the initial coordinates
@@ -1147,6 +1441,207 @@ public:
         const IndexType BufferPosition = 0
         );
 
+    /**
+     * @brief This function returns the CURRENT coordinates of all the nodes in a consecutive vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the vector is in the form (X X X ....)
+     * in case Dimension == 2 the vector is in the form (X Y X Y X Y ....)
+     * in case Dimension == 3 the vector is in the form (X Y Z X Y Z ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param Dimension number of desired components
+     */
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetCurrentPositionsVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const unsigned int Dimension
+        );
+
+    /**
+     * @brief This function returns the INITIAL coordinates of all the nodes in a consecutive vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the vector is in the form (X0 X0 X0 ....)
+     * in case Dimension == 2 the vector is in the form (X0 Y0 X0 Y0 X0 Y0 ....)
+     * in case Dimension == 3 the vector is in the form (X0 Y0 Z0 X0 Y0 Z0 ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param Dimension number of desired components
+     */
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetInitialPositionsVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const unsigned int Dimension
+        );
+
+    /**
+     * @brief This function represent the "set" counterpart of GetCurrentPositionsVector and allows
+     * setting the CURRENT coordinates of all the nodes considering them stored in a consecutive 1D vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X, Y, Z) plus such variable value
+     * in case Dimension == 1 the expected input vector is in the form (X X X ....)
+     * in case Dimension == 2 the expected input vector is in the form (X Y X Y X Y ....)
+     * in case Dimension == 3 the expected input vector is in the form (X Y Z X Y Z ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param rPositions vector containing the CURRENT positions
+     */
+     void SetCurrentPositionsVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Vector& rPositions
+        );
+
+    /**
+     * @brief This function represent the "set" counterpart of GetInitialPositionsVector and allows
+     * setting the INITIAL coordinates of all the nodes considering them stored in a consecutive 1D vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the expected input vector is in the form (X0 X0 X0 ....)
+     * in case Dimension == 2 the expected input vector is in the form (X0 Y0 X0 Y0 X0 Y0 ....)
+     * in case Dimension == 3 the expected input vector is in the form (X0 Y0 Z0 X0 Y0 Z0 ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param rPositions vector containing the INITIAL positions
+     */
+    void SetInitialPositionsVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Vector& rPositions
+        );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     * @param Dimension number of components in output
+     */
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
+                                const ModelPart::NodesContainerType& rNodes,
+                                const Variable<array_1d<double,3>>& rVar,
+                                const unsigned int Step,
+                                const unsigned int Dimension=3
+                                );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     */
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
+                                const ModelPart::NodesContainerType& rNodes,
+                                const Variable<double>& rVar,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetSolutionStepValuesVector(
+                                ModelPart::NodesContainerType& rNodes,
+                                const Variable<array_1d<double,3>>& rVar,
+                                const Vector& rData,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetSolutionStepValuesVector(
+                                ModelPart::NodesContainerType& rNodes,
+                                const Variable<double>& rVar,
+                                const Vector& rData,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     * @param Dimension number of components in output
+     */
+    [[nodiscard]] Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const unsigned int Dimension=3
+        );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     */
+    [[nodiscard]] Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const Vector& rData
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar,
+        const Vector& rData
+        );
+
+
     ///@}
     ///@name Acces
     ///@{
@@ -1168,11 +1663,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
@@ -1182,42 +1675,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Auxiliary double initialize method
-     * Auxiliary method to initialize a double value
-     * @param rValue Variable to initialize
-     */
-    void AuxiliaryInitializeValue(double &rValue);
-
-    /**
-     * @brief Auxiliary array initialize method
-     * Auxiliary method to initialize an array value
-     * @param rValue Variable to initialize
-     */
-    void AuxiliaryInitializeValue(array_1d<double,3> &rValue);
-
-    /**
-     * @brief Auxiliary scalar reduce method
-     * Auxiliary method to perform the reduction of a scalar value
-     * @param rPrivateValue Private variable to reduce
-     * @param rSumValue Variable to save the reduction
-     */
-    void AuxiliaryAtomicAdd(
-        const double &rPrivateValue,
-        double &rSumValue
-        );
-
-    /**
-     * @brief Auxiliary array reduce method
-     * Auxiliary method to perform the reduction of an array value
-     * @param rPrivateValue Private variable to reduce
-     * @param rSumValue Variable to save the reduction
-     */
-    void AuxiliaryAtomicAdd(
-        const array_1d<double,3> &rPrivateValue,
-        array_1d<double,3> &rSumValue
-        );
 
     /**
      * @brief This is auxiliar method to check the keys
@@ -1235,13 +1692,57 @@ private:
                 std::cout << var.first << var.second << std::endl;
             if (var.first != var.second->Name()) //name of registration does not correspond to the var name
                 std::cout << "Registration Name = " << var.first << " Variable Name = " << std::endl;
-
-            KRATOS_ERROR_IF((var.second)->Key() == 0) << (var.second)->Name() << " Key is 0." << std::endl \
-            << "Check that Kratos variables have been correctly registered and all required applications have been imported." << std::endl;
         }
 
         return true;
         KRATOS_CATCH("")
+    }
+
+    template <class TContainerType>
+    [[nodiscard]] TContainerType& GetContainer(ModelPart& rModelPart);
+
+    template <class TContainerType>
+    [[nodiscard]] const TContainerType& GetContainer(const ModelPart& rModelPart);
+
+    template<class TDataType>
+    static void AuxiliaryHistoricalValueSetter(
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue,
+        NodeType& rNode);
+
+    template <class TContainerType, class TSetterFunction, class TGetterFunction>
+    void CopyModelPartFlaggedVariable(
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue,
+        TSetterFunction&& rSetterFunction,
+        TGetterFunction&& rGetterFunction)
+    {
+        KRATOS_TRY
+
+        const auto& r_origin_container = GetContainer<TContainerType>(rOriginModelPart);
+        auto& r_destination_container = GetContainer<TContainerType>(rDestinationModelPart);
+
+        const int number_of_origin_items = r_origin_container.size();
+        const int number_of_destination_items = r_destination_container.size();
+
+        KRATOS_ERROR_IF_NOT(number_of_origin_items == number_of_destination_items)
+            << "Origin ( " << rOriginModelPart.Name() << " ) and destination ( "
+            << rDestinationModelPart.Name() << " ) model parts have different number of items."
+            << "\n\t- Number of origin items: " << number_of_origin_items
+            << "\n\t- Number of destination items: " << number_of_destination_items
+            << std::endl;
+
+        IndexPartition<int>(number_of_origin_items).for_each([&](int i_node) {
+            const auto& r_orig_item = *(r_origin_container.begin() + i_node);
+            auto& r_dest_item = *(r_destination_container.begin() + i_node);
+            if (r_orig_item.Is(rFlag) == CheckValue) {
+                rSetterFunction(r_dest_item, rGetterFunction(r_orig_item));
+            }
+        });
+
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -1272,5 +1773,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_VARIABLE_UTILS  defined */

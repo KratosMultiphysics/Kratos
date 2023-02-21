@@ -1,0 +1,118 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_strong",
+        "echo_level" : 0,
+        "num_coupling_iterations" : 20,
+        "convergence_criteria" : [
+            {
+                "type"          : "absolute_norm_energy_conjugate",
+                "solver"        : "fem_fem_test_domainA",
+                "criteria_composition" : "energy_conjugate",
+                "criteria_options" : ["domain_difference","swap_second_domain_data_sign"],
+                "data_name"     : "disp",
+                "conjugate_data_name" : "load",
+                "solver_domain_two" : "fem_fem_test_domainB",
+                "abs_tolerance" : 1e-5,
+                "ignore_first_convergence" : true,
+                "use_wrapper" : false
+            }
+        ],
+        "data_transfer_operators" : {
+            "mapper" : {
+                "type" : "kratos_mapping",
+					"mapper_settings" : {
+					"mapper_type": "coupling_geometry",
+					"echo_level" : 0,
+					"dual_mortar": false,
+					"consistency_scaling" : true,
+					"modeler_name" : "MappingGeometriesModeler",
+					"modeler_parameters":{
+						"origin_model_part_name" : "origin",
+						"destination_model_part_name" : "destination",
+						"is_interface_sub_model_parts_specified" : true,
+						"origin_interface_sub_model_part_name" : "Structure.LineLoad2D_right_edge",
+						"destination_interface_sub_model_part_name" : "Structure.DISPLACEMENT_left_edge"
+					}
+				}
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "fem_fem_test_domainA",
+                "input_data_list"  : [],
+                "output_data_list" : []
+            },
+            {
+                "name": "fem_fem_test_domainB",
+                "input_data_list": [
+                    {
+                        "data"           : "disp",
+                        "from_solver"      : "fem_fem_test_domainA",
+                        "from_solver_data" : "disp",
+                        "data_transfer_operator" : "mapper"
+                    }
+                ],
+                "output_data_list": [
+                    {
+                        "data"           : "load",
+                        "to_solver"      : "fem_fem_test_domainA",
+                        "to_solver_data" : "load",
+                        "data_transfer_operator" : "mapper",
+                        "data_transfer_operator_options"  : ["swap_sign","use_transpose"]
+                    }
+                ]
+            }
+        ],
+        "solvers" :
+        {
+            "fem_fem_test_domainB":
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fem_fem/small_2d_plate/ProjectParametersB"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name"   : "Structure.DISPLACEMENT_left_edge",
+                        "dimension" : 2,
+                        "variable_name" : "DISPLACEMENT"
+                    },
+                    "load" : {
+                        "model_part_name"   : "Structure.DISPLACEMENT_left_edge",
+                        "dimension" : 2,
+                        "variable_name" : "REACTION"
+                    }
+                }
+            },
+            "fem_fem_test_domainA" :
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fem_fem/small_2d_plate/ProjectParametersA"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name"   : "Structure.LineLoad2D_right_edge",
+                        "dimension" : 2,
+                        "variable_name" : "DISPLACEMENT"
+                    },
+                    "load" : {
+                        "model_part_name"   : "Structure.LineLoad2D_right_edge",
+                        "dimension" : 2,
+                        "variable_name" : "POINT_LOAD"
+                    }
+                }
+            }
+        }
+    }
+}

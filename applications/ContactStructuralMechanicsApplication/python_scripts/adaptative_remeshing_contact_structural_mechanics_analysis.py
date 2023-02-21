@@ -1,12 +1,7 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
-
-# Other imports
-import sys
 
 # Import the base structural analysis
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
@@ -61,7 +56,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).Initialize()
         computing_model_part = self._GetSolver().GetComputingModelPart()
         if not self.process_remesh:
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
+            convergence_criteria = self._GetSolver()._GetConvergenceCriterion()
             convergence_criteria.Initialize(computing_model_part)
 
         # Ensuring to have conditions on the BC before remesh
@@ -121,9 +116,9 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         else: # Remeshing adaptively
             metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
-            builder_and_solver = self._GetSolver().get_builder_and_solver()
-            mechanical_solution_strategy = self._GetSolver().get_mechanical_solution_strategy()
+            convergence_criteria = self._GetSolver()._GetConvergenceCriterion()
+            builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
+            mechanical_solution_strategy = self._GetSolver()._GetSolutionStrategy()
 
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)

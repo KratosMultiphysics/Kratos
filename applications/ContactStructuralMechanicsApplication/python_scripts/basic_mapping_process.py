@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -36,7 +35,6 @@ class BasicMappingProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                             : "This process allows to do a simple mapping using the SimpleMortarMapperProcess",
-            "mesh_id"                          : 0,
             "origin_model_part_name"           : "please_specify_model_part_name",
             "destination_model_part_name"      : "please_specify_model_part_name",
             "interval"                         : [0.0, 1e30],
@@ -85,12 +83,8 @@ class BasicMappingProcess(KratosMultiphysics.Process):
             linear_solver = None
 
         # Removing unused parameters
-        settings.RemoveValue("help")
-        settings.RemoveValue("mesh_id")
-        settings.RemoveValue("origin_model_part_name")
-        settings.RemoveValue("destination_model_part_name")
-        settings.RemoveValue("interval")
-        settings.RemoveValue("linear_solver_settings")
+        list_remove = ["help", "origin_model_part_name", "destination_model_part_name", "destination_model_part_name", "interval", "linear_solver_settings"]
+        settings.RemoveValues(list_remove)
 
         # Creating the mapper
         self.mapper = KratosMultiphysics.SimpleMortarMapperProcess(self.origin_model_part, self.destination_model_part, settings, linear_solver)

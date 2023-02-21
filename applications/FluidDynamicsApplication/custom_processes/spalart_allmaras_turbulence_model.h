@@ -30,7 +30,7 @@
 #include "containers/model.h"
 #include "processes/process.h"
 #include "includes/cfd_variables.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 //#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 // #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -162,7 +162,7 @@ public:
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+        typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
         // Solution scheme: Aitken iterations
         const double DefaultAitkenOmega = 1.0;
@@ -180,7 +180,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrSpalartModelPart,pScheme,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         mpSolutionStrategy->SetEchoLevel(0);
         mpSolutionStrategy->Check();
     }
@@ -368,7 +368,7 @@ protected:
     unsigned int mmax_it;
     unsigned int mtime_order;
     bool madapt_for_fractional_step;
-    typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
+    typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 
     ///@}
     ///@name Protected Operators
@@ -535,7 +535,7 @@ private:
     {
         KRATOS_TRY;
 
-        ProcessInfo& rCurrentProcessInfo = mrSpalartModelPart.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = mrSpalartModelPart.GetProcessInfo();
 
         //first of all set to zero the nodal variables to be updated nodally
         for (ModelPart::NodeIterator i = mrSpalartModelPart.NodesBegin();

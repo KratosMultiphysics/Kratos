@@ -14,7 +14,7 @@
 //  Main authors:    Hubert Balcerzak
 
 // System includes
-#include <stdlib.h>
+#include <cstdlib>
 
 // External includes
 
@@ -383,22 +383,6 @@ IdTranslator *ModelPartWrapper::getIdTranslator() {
 }
 
 double *ModelPartWrapper::getNodalVariable1d(Kratos::Variable<double> &variable) {
-    auto *values = new double[mNodesCount];
-
-    auto &rSkinModelPart = mModelPart.GetSubModelPart(SKIN_SUBMODEL_PART_NAME);
-    auto &rNodesArray = rSkinModelPart.Nodes();
-    const auto nodeBegin = rNodesArray.begin();
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
-        auto it_node = nodeBegin + i;
-        int current_node_id = idTranslator.getSurfaceId(it_node->Id());
-        values[current_node_id] = it_node->FastGetSolutionStepValue(variable);
-    }
-    return values;
-}
-
-double *ModelPartWrapper::getNodalVariableComponent(
-        Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > &variable) {
     auto *values = new double[mNodesCount];
 
     auto &rSkinModelPart = mModelPart.GetSubModelPart(SKIN_SUBMODEL_PART_NAME);

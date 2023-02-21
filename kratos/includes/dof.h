@@ -21,28 +21,18 @@
 #include <cstddef>
 
 // External includes
-#include <boost/variant.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
-#include "containers/vector_component_adaptor.h"
 #include "containers/array_1d.h"
-
 
 namespace Kratos
 {
 
-
 #define KRATOS_DOF_TRAITS \
-        KRATOS_MAKE_DOF_TRAIT(0) Variable<TDataType> KRATOS_END_DOF_TRAIT(0); \
-        KRATOS_MAKE_DOF_TRAIT(1) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 3> > > KRATOS_END_DOF_TRAIT(1); \
-        KRATOS_MAKE_DOF_TRAIT(2) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 4> > > KRATOS_END_DOF_TRAIT(2); \
-        KRATOS_MAKE_DOF_TRAIT(3) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 6> > > KRATOS_END_DOF_TRAIT(3); \
-        KRATOS_MAKE_DOF_TRAIT(4) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 9> > > KRATOS_END_DOF_TRAIT(4);
-
-
+        KRATOS_MAKE_DOF_TRAIT(0) Variable<TDataType> KRATOS_END_DOF_TRAIT(0);
 
 template<class TDataType, class TVariableType = Variable<TDataType> >
 struct DofTrait
@@ -126,7 +116,6 @@ public:
 
     @see Node
     @see Variable
-    @see VariableComponent
     */
     template<class TVariableType>
     Dof(NodalData* pThisNodalData,
@@ -164,7 +153,6 @@ public:
 
     @see Node
     @see Variable
-    @see VariableComponent
     */
     template<class TVariableType, class TReactionType>
     Dof(NodalData* pThisNodalData,
@@ -183,9 +171,8 @@ public:
         KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisReaction))
             << "The Reaction-Variable " << rThisReaction.Name() << " is not "
             << "in the list of variables" << std::endl;
-        
-        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, &rThisReaction);
 
+        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, &rThisReaction);
     }
 
     //This default constructor is needed for serializer
@@ -228,7 +215,6 @@ public:
         mIndex = rOther.mIndex;
         mVariableType = rOther.mVariableType;
         mReactionType = rOther.mReactionType;
-        // mData = rOther.mData;
 
         return *this;
     }
@@ -265,24 +251,19 @@ public:
         return GetSolutionStepValue(SolutionStepIndex);
     }
 
-
     ///@}
     ///@name Operations
     ///@{
-
-
 
     TDataType& GetSolutionStepValue(IndexType SolutionStepIndex = 0)
     {
         return GetReference(GetVariable(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
-
     TDataType const& GetSolutionStepValue(IndexType SolutionStepIndex = 0) const
     {
         return GetReference(GetVariable(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
-
 
     template<class TVariableType>
     typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
@@ -290,13 +271,11 @@ public:
         return mpNodalData->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
-
     template<class TVariableType>
     typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0) const
     {
         return mpNodalData->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
-
 
     TDataType& GetSolutionStepReactionValue(IndexType SolutionStepIndex = 0)
     {
@@ -307,7 +286,6 @@ public:
     {
         return GetReference(GetReaction(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mReactionType);
     }
-
 
     ///@}
     ///@name Access
@@ -326,13 +304,13 @@ public:
     /** Returns variable assigned to this degree of freedom. */
     const VariableData& GetVariable() const
     {
-        return mpNodalData->GetSolutionStepData().pGetVariablesList()->GetDofVariable(mIndex);
+        return mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex);
     }
 
     /** Returns reaction variable of this degree of freedom. */
     const VariableData& GetReaction() const
     {
-        auto p_reaction = mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex);
+        auto p_reaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
         return (p_reaction == nullptr) ? msNone : *p_reaction;
     }
 
@@ -364,14 +342,12 @@ public:
         mIsFixed=true;
     }
 
-
     /** Frees the degree of freedom
      */
     void FreeDof()
     {
         mIsFixed=false;
     }
-
 
     SolutionStepsDataContainerType* GetSolutionStepsData()
     {
@@ -385,8 +361,7 @@ public:
         mpNodalData = pNewNodalData;
         if(p_reaction != nullptr){
             mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
-        }
-        else{
+        } else{
             mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable);
         }
     }
@@ -417,31 +392,26 @@ public:
 
 
     /// Turn back information as a string.
-    std::string Info() const 
+    std::string Info() const
     {
         std::stringstream buffer;
-
 
         if(IsFixed())
             buffer << "Fix " << GetVariable().Name() << " degree of freedom";
         else
             buffer << "Free " << GetVariable().Name() << " degree of freedom";
 
-
         return buffer.str();
     }
 
-
-
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const 
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
-
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const 
+    void PrintData(std::ostream& rOStream) const
     {
         rOStream << "    Variable               : " << GetVariable().Name() << std::endl;
         rOStream << "    Reaction               : " << GetReaction().Name() << std::endl;
@@ -452,16 +422,11 @@ public:
         rOStream << "    Equation Id            : " << mEquationId << std::endl;
     }
 
-
-
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -469,11 +434,9 @@ private:
     static const Variable<TDataType> msNone;
     static constexpr int msIsFixedPosition = 63;
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     /** True is is fixed */
     int mIsFixed : 1;
@@ -529,7 +492,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const 
+    void save(Serializer& rSerializer) const
     {
         rSerializer.save("IsFixed", static_cast<bool>(mIsFixed));
         rSerializer.save("EquationId", static_cast<EquationIdType>(mEquationId));
@@ -540,7 +503,7 @@ private:
 
     }
 
-    void load(Serializer& rSerializer) 
+    void load(Serializer& rSerializer)
     {
         std::string name;
         bool is_fixed;
@@ -567,37 +530,26 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Default constructor.
-    //      Dof();
-
-
 
     ///@}
 
 }; // Class Dof
 template<class TDataType> const Variable<TDataType> Dof<TDataType>::msNone("NONE");
 
-
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<class TDataType>
@@ -676,7 +628,6 @@ inline bool operator == ( Dof<TDataType> const& First,
 
 ///@}
 
-
 }  // namespace Kratos.
 
 
@@ -684,18 +635,4 @@ inline bool operator == ( Dof<TDataType> const& First,
 #undef KRATOS_MAKE_DOF_TRAIT
 #undef KRATOS_END_DOF_TRAIT
 
-
 #endif // KRATOS_DOF_H_INCLUDED  defined
-
-
-
-
-
-
-
-
-
-
-
-
-

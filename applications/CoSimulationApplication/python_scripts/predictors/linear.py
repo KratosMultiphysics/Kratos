@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_predictor import CoSimulationPredictor
 
@@ -12,6 +10,8 @@ def Create(settings, solver_wrapper):
 
 class LinearPredictor(CoSimulationPredictor):
     def Predict(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
         current_data  = self.interface_data.GetData(0)
         previous_data  = self.interface_data.GetData(1)
 

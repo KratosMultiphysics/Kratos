@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -21,13 +20,13 @@ class MPMImplicitDynamicSolver(MPMSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Construction is finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"   : "bossak",
             "damp_factor_m" : -0.3,
             "newmark_beta"  : 0.25
         }""")
-        this_defaults.AddMissingParameters(super(MPMImplicitDynamicSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMImplicitDynamicSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):
@@ -41,7 +40,9 @@ class MPMImplicitDynamicSolver(MPMSolver):
         grid_model_part = self.GetGridModelPart()
         domain_size = self._GetDomainSize()
         block_size  = domain_size
-        if (self.settings["pressure_dofs"].GetBool()):
+        is_mixed_formulation = self.settings["pressure_dofs"].GetBool()
+        self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_MIXED_FORMULATION, is_mixed_formulation)
+        if (is_mixed_formulation):
             block_size += 1
 
         # Setting the time integration schemes

@@ -19,17 +19,16 @@ namespace Kratos {
 
         DEM_D_Bentonite_Colloid();
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         std::string GetTypeOfLaw() override;
 
-        ~DEM_D_Bentonite_Colloid() {
-        }
+        ~DEM_D_Bentonite_Colloid() {}
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
+
         void CalculateForces(const ProcessInfo& r_process_info,
-                             const double OldLocalContactForce[3],
+                            const double OldLocalContactForce[3],
                             double LocalElasticContactForce[3],
                             double LocalDeltDisp[3],
                             double LocalRelVel[3],
@@ -41,7 +40,7 @@ namespace Kratos {
                             SphericParticle* element2,
                             bool& sliding, double LocalCoordSystem[3][3]) override;
 
-        void CalculateForcesWithFEM(ProcessInfo& r_process_info,
+        void CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                     const double OldLocalContactForce[3],
                                     double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3],
@@ -74,6 +73,7 @@ namespace Kratos {
                                             double LocalElasticContactForce[3],
                                             double ViscoDampingLocalContactForce[3],
                                             const double LocalDeltDisp[3],
+                                            const double LocalRelVel[3],
                                             bool& sliding,
                                             SphericParticle* const element,
                                                    NeighbourClassType* const neighbour,

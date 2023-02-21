@@ -4,7 +4,7 @@
 
 // Project includes
 #include "custom_conditions/dem_wall.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_elements/spheric_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
@@ -60,7 +60,7 @@ DEMWall::~DEMWall()
 
 void DEMWall::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::Initialize) shouldn't be accessed, use derived class instead", 0);
+    KRATOS_ERROR << "This function (DEMWall::Initialize) shouldn't be accessed, use derived class instead"<<std::endl;
 }
 
 //***********************************************************************************
@@ -68,7 +68,7 @@ void DEMWall::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void DEMWall::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& r_process_info) {
+    const ProcessInfo& r_process_info) {
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -123,7 +123,7 @@ void DEMWall::CalculateRightHandSide(
     }
 }
 
-void DEMWall::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info)
+void DEMWall::CalculateElasticForces(VectorType& rElasticForces, const ProcessInfo& r_process_info)
 {
 
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -147,10 +147,9 @@ void DEMWall::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_
 
         for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
         {
-            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
+            const int& contact_type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
 
-            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
-            {
+            if ( (rRFnei[i_nei] != nullptr) && ( rRFnei[i_nei]->Id() == this->Id() ) && (contact_type > 0 ) ) {
                 const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
                 double ContactElasticForce[3] = {0.0};
 
@@ -192,18 +191,18 @@ void DEMWall::GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, in
   delta_displacement = this->GetGeometry()[inode].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
 }
 
-void DEMWall::InitializeSolutionStep(ProcessInfo& r_process_info){
+void DEMWall::InitializeSolutionStep(const ProcessInfo& r_process_info){
 }
 
 
 void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
 
-   KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::CalculateNormal) shouldn't be accessed, use derived class instead", "");
+  KRATOS_ERROR << "This function (DEMWall::CalculateNormal) shouldn't be accessed, use derived class instead"<<std::endl;
 }
 
  void DEMWall::AddExplicitContribution(const VectorType& rRHS,
                          const Variable<VectorType>& rRHSVariable,
-                         Variable<array_1d<double,3> >& rDestinationVariable,
+                         const Variable<array_1d<double,3> >& rDestinationVariable,
                          const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
@@ -252,14 +251,10 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
     KRATOS_CATCH( "" )
 }
 
-
 double DEMWall::GetYoung() const                    { return GetProperties()[YOUNG_MODULUS];    }
 double DEMWall::GetPoisson() const                  { return GetProperties()[POISSON_RATIO];    }
-double DEMWall::GetTgOfStaticFrictionAngle() const  { return GetProperties()[STATIC_FRICTION];  }
-double DEMWall::GetTgOfDynamicFrictionAngle() const { return GetProperties()[DYNAMIC_FRICTION]; }
 
-
-void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)
+void DEMWall::FinalizeSolutionStep(const ProcessInfo& r_process_info)
 {
 
 }

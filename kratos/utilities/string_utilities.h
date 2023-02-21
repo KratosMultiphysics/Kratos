@@ -4,17 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_STRING_UTILITIES)
-#define KRATOS_STRING_UTILITIES
+#pragma once
 
 // System includes
 #include <string>
+#include <vector>
 
 // External includes
 
@@ -50,11 +50,21 @@ namespace Kratos
 namespace StringUtilities
 {
     /**
-     * @brief This method converts CammelCase to snake_case
+     * @brief This method converts CamelCase to snake_case
      * @param rString The string to be transformed into snake_case
      * @return The string in snake_case
      */
-    std::string KRATOS_API(KRATOS_CORE) ConvertCammelCaseToSnakeCase(const std::string& rString);
+    std::string KRATOS_API(KRATOS_CORE) ConvertCamelCaseToSnakeCase(const std::string& rString);
+
+    /**
+     *  @brief Convert snake_case to CamelCase.
+     *  @param rString String to convert.
+     *  @throws If the input string
+     *          - contains capital letters                              [A-Z]
+     *          - contains special characters other than underscores    (?![a-z0-9_])
+     *          - contains repeated underscores                         __+
+     */
+    std::string KRATOS_API(KRATOS_CORE) ConvertSnakeCaseToCamelCase(const std::string& rString);
 
     /**
      * @brief Erase first occurrence of given  substring from main string.
@@ -85,6 +95,29 @@ namespace StringUtilities
      */
     std::string KRATOS_API(KRATOS_CORE) RemoveWhiteSpaces(const std::string& rString);
 
+    /**
+     * @brief This method splits a string by a delimiter
+     * @param rString The string to be splitted
+     * @param Delimiter The delimiter by which the string is to be splitted
+     * @return a vector containing the splitted string
+     */
+    std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringByDelimiter(
+        const std::string& rString,
+        const char Delimiter
+        );
+
+    /**
+     * @brief This function replaces from a string all times a certain substring is repeated
+     * @param rInputString The input string to replace the substring
+     * @param rStringToBeReplaced The original string to be replaced
+     * @param rStringToReplace The string which replaces the substring
+     * @return The string updated with the new substring
+     */
+    std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(
+        const std::string& rInputString,
+        const std::string& rStringToBeReplaced,
+        const std::string& rStringToReplace
+        );
+
 }; // namespace StringUtilities
 }  // namespace Kratos
-#endif /* KRATOS_STRING_UTILITIES defined */

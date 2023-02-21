@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "convection_diffusion_application.h"
@@ -88,7 +88,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class ResidualBasedEulerianConvectionDiffusionStrategy
-    : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     /**@name Type Definitions */
@@ -97,7 +97,7 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEulerianConvectionDiffusionStrategy );
 
-    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -136,7 +136,7 @@ public:
         int dimension = 3
     )
         :
-        SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false),
+        ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false),
         mrModelPart(model_part)
     {
         KRATOS_TRY
@@ -173,8 +173,13 @@ public:
         //mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver > 				(*mpConvectionModelPart,pscheme,pNewLinearSolver,componentwise_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
 
         BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pNewLinearSolver) );
-        mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(*mpConvectionModelPart,pscheme,pNewLinearSolver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
-
+        mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(
+            *mpConvectionModelPart,
+            pscheme,
+            pBuilderSolver,
+            CalculateReactions,
+            ReformDofAtEachIteration,
+            CalculateNormDxFlag));
 
         mstep1->SetEchoLevel(2);
 

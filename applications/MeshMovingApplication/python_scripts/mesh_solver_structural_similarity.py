@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -16,11 +14,11 @@ def CreateSolver(model, custom_settings):
 
 class MeshSolverStructuralSimilarity(MeshSolverBase):
     def __init__(self, model, custom_settings):
-        super(MeshSolverStructuralSimilarity, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverStructuralSimilarity]:: Construction finished")
 
-    def _create_mesh_motion_solving_strategy(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateSolutionStrategy(self):
+        linear_solver = self._GetLinearSolver()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         poisson_ratio = self.settings["poisson_ratio"].GetDouble()
@@ -31,5 +29,6 @@ class MeshSolverStructuralSimilarity(MeshSolverBase):
                                                              compute_reactions,
                                                              False,
                                                              self.echo_level,
-                                                             poisson_ratio)
+                                                             poisson_ratio,
+                                                             self.reinitialize_model_part_each_step)
         return solving_strategy

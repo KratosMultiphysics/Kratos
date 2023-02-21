@@ -26,14 +26,13 @@ namespace Kratos {
 
         ~DEM_D_Conical_damage() {}
 
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         void Check(Properties::Pointer pProp) const override;
 
         std::string GetTypeOfLaw() override;
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
+
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
         void InitializeDependentContact(double equiv_radius,
                                         const double equiv_level_of_fouling,
@@ -46,7 +45,8 @@ namespace Kratos {
                            double& equiv_radius,
                            const double equiv_level_of_fouling,
                            const double equiv_young,
-                           const double equiv_shear, double& indentation,
+                           const double equiv_shear,
+                           double& indentation,
                            const double normal_contact_force);
 
         void InitializeDependentContactWithFEM(double effective_radius,
@@ -78,7 +78,7 @@ namespace Kratos {
                              bool& sliding,
                              double LocalCoordSystem[3][3]) override;
 
-        void CalculateForcesWithFEM(ProcessInfo& r_process_info,
+        void CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                     const double OldLocalElasticContactForce[3],
                                     double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3],
@@ -96,10 +96,11 @@ namespace Kratos {
                                       double LocalElasticContactForce[3],
                                       double ViscoDampingLocalContactForce[3],
                                       const double LocalDeltDisp[3],
+                                      const double LocalRelVel[3],
                                       bool& sliding,
                                       ContactInfoSphericParticle* const element1,
                                       ContactInfoSphericParticle* const element2,
-                                      const double equiv_radius,
+                                      const double original_equiv_radius,
                                       const double equiv_young,
                                       double indentation,
                                       double previous_indentation,
@@ -111,11 +112,12 @@ namespace Kratos {
                                              double LocalElasticContactForce[3],
                                              double ViscoDampingLocalContactForce[3],
                                              const double LocalDeltDisp[3],
+                                             const double LocalReltVel[3],
                                              bool& sliding,
                                              ContactInfoSphericParticle* const element,
                                              Condition* const wall,
-                                             const double equiv_radius,
-                                             const double equiv_young,
+                                             const double effective_radius,
+                                             const double original_effective_young,
                                              double indentation,
                                              double previous_indentation,
                                              double& AuxElasticShearForce,

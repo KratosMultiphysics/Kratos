@@ -18,98 +18,87 @@
 
 // Project includes
 #include "processes/reorder_and_optimize_modelpart_process.h"
-// #include "spaces/ublas_space.h"
-// #include "linear_solvers/cuthill_mckee_reorderer.h"
+#include "utilities/parallel_utilities.h"
 
- 
+
 namespace Kratos
 {
 	ReorderAndOptimizeModelPartProcess::ReorderAndOptimizeModelPartProcess(ModelPart& rModelPart, Parameters settings)
 		: Process()
-		, mrModelPart(rModelPart.GetRootModelPart()) 
+		, mrModelPart(rModelPart.GetRootModelPart())
 	{
 
 		Parameters default_parameters(R"(
                 {
-                }  
+                }
                 )");
-            
+
 
 	}
 
 
-	void ReorderAndOptimizeModelPartProcess::Execute() 
-        {
-            KRATOS_TRY
-
-
+	void ReorderAndOptimizeModelPartProcess::Execute()
+    {
+        KRATOS_TRY
         //reorder nodes,#include "spaces/ublas_space.h"elements and conditions so that their Id start in 1 and is consecutive
-#pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
-                (mrModelPart.NodesBegin() + i)->SetId(i+1);
-            mrModelPart.Nodes().Sort();
-            
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
-                (mrModelPart.ElementsBegin() + i)->SetId(i+1);
-            mrModelPart.Elements().Sort();
-            
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
-                (mrModelPart.ConditionsBegin() + i)->SetId(i+1);
-            mrModelPart.Conditions().Sort();
-            
-            OptimizeOrdering();
+        IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
+            (mrModelPart.NodesBegin() + Index)->SetId(Index+1);
+        });
+        mrModelPart.Nodes().Sort();
 
-            //make a parallel clone of all the nodes
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
-            {
-                Node<3>::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + i);
-                pnode = pnode->Clone();
-            }
-            
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
-            {
-                Element::Pointer& pelem = *(mrModelPart.Elements().ptr_begin() + i);
-                
-                Geometry<Node<3>>::PointsArrayType tmp;
-                const auto& geom = pelem->GetGeometry();
-                tmp.reserve(geom.size());
-                for(unsigned int k=0; k<geom.size(); ++k)
-                    tmp.push_back( mrModelPart.Nodes()(geom[k].Id()) );
+        IndexPartition<std::size_t>(mrModelPart.Elements().size()).for_each([&](std::size_t Index){
+            (mrModelPart.ElementsBegin() + Index)->SetId(Index+1);
+        });
+        mrModelPart.Elements().Sort();
 
-                auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
-                
-                paux->Data() = pelem->Data();
-                
-                pelem = paux;
-            }
+        IndexPartition<std::size_t>(mrModelPart.Conditions().size()).for_each([&](std::size_t Index){
+            (mrModelPart.ConditionsBegin() + Index)->SetId(Index+1);
+        });
+        mrModelPart.Conditions().Sort();
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
-            {
-                Condition::Pointer& pcond = *(mrModelPart.Conditions().ptr_begin() + i);
-                
-                Geometry<Node<3>>::PointsArrayType tmp;
-                const auto& geom = pcond->GetGeometry();
-                tmp.reserve(geom.size());
-                for(unsigned int k=0; k<geom.size(); ++k)
-                    tmp.push_back( mrModelPart.Nodes()(geom[k].Id()));
-                
-                auto paux = pcond->Create(pcond->Id(), tmp, pcond->pGetProperties());
-                
-                paux->Data() = pcond->Data();
-                
-                pcond = paux;
-            }
+        OptimizeOrdering();
 
-            //actualize pointers within submodelparts
-            for(auto& subpart : mrModelPart.SubModelParts())
-            {
-                ActualizeSubModelPart(subpart);
-            }
+        //make a parallel clone of all the nodes
+        IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
+            Node<3>::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + Index);
+            pnode = pnode->Clone();
+        });
+
+        IndexPartition<std::size_t>(mrModelPart.Elements().size()).for_each([&](std::size_t Index){
+            Element::Pointer& pelem = *(mrModelPart.Elements().ptr_begin() + Index);
+            Geometry<Node<3>>::PointsArrayType tmp;
+            const auto& geom = pelem->GetGeometry();
+            tmp.reserve(geom.size());
+            for(unsigned int k=0; k<geom.size(); ++k)
+                tmp.push_back( mrModelPart.Nodes()(geom[k].Id()) );
+
+            auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
+
+            paux->GetData() = pelem->GetData();
+
+            pelem = paux;
+        });
+
+        IndexPartition<std::size_t>(mrModelPart.Conditions().size()).for_each([&](std::size_t Index){
+            Condition::Pointer& pcond = *(mrModelPart.Conditions().ptr_begin() + Index);
+            Geometry<Node<3>>::PointsArrayType tmp;
+            const auto& geom = pcond->GetGeometry();
+            tmp.reserve(geom.size());
+            for(unsigned int k=0; k<geom.size(); ++k)
+                tmp.push_back( mrModelPart.Nodes()(geom[k].Id()));
+
+            auto paux = pcond->Create(pcond->Id(), tmp, pcond->pGetProperties());
+
+            paux->GetData() = pcond->GetData();
+
+            pcond = paux;
+        });
+
+        //actualize pointers within submodelparts
+        for(auto& subpart : mrModelPart.SubModelParts())
+        {
+            ActualizeSubModelPart(subpart);
+        }
 
             //here i do a check
 //             for(auto& subpart : mrModelPart.SubModelParts())
@@ -117,21 +106,21 @@ namespace Kratos
 //                 for(const auto& node: subpart.Nodes() )
 //                     if(node != mrModelPart.Nodes()[node.Id()])
 //                         KRATOS_ERROR << "node in submodelpart with Id " << node.Id() << " is not in the main model part" << std::endl;
-//                 
+//
 //                 for(auto it = subpart.Elements().ptr_begin(); it!=subpart.Elements().ptr_end(); it++)
 //                 {
 //                     for(unsigned int k=0; k<(*it)->GetGeometry().size(); k++)
 //                         if(&(*it)->GetGeometry()[k] != &mrModelPart.Nodes()[(*it)->GetGeometry()[k].Id()])
 //                             KRATOS_ERROR << *it << " node in element " << (*it)->GetGeometry()[k].Id() << " is not in the main model part" << std::endl;
 //                 }
-//                 
+//
 //                 for(auto it = subpart.Conditions().ptr_begin(); it!=subpart.Conditions().ptr_end(); it++)
 //                 {
 //                     for(unsigned int k=0; k<(*it)->GetGeometry().size(); k++)
 //                     {
 //                         if(&(*it)->GetGeometry()[k] != &mrModelPart.Nodes()[(*it)->GetGeometry()[k].Id()])
 //                         {
-//                             
+//
 //                             std::cout << "problematic condition Id = " << (*it)->Id() <<std::endl;
 //                             std::cout << "problematic condition pointer " << *it << std::endl;
 //                             std::cout << "pointer in main model part    " << mrModelPart.Conditions()((*it)->Id());
@@ -141,96 +130,80 @@ namespace Kratos
 //                     }
 //                 }
 //             }
-            
-            
-            
+
+
+
 
 
             KRATOS_CATCH("")
-            
+
         }
-        
-        
+
+
         void ReorderAndOptimizeModelPartProcess::ActualizeSubModelPart(ModelPart& subpart)
         {
             //make a parallel clone of all the nodes
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(subpart.Nodes().size()); ++i)
-            {
-                Node<3>::Pointer& pnode = *(subpart.NodesBegin() + i).base();
+            IndexPartition<std::size_t>(subpart.Nodes().size()).for_each([&](std::size_t Index){
+                Node<3>::Pointer& pnode = *(subpart.NodesBegin() + Index).base();
                 pnode = mrModelPart.Nodes()(pnode->Id());
-            }
+            });
             subpart.Nodes().Sort();
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(subpart.Elements().size()); ++i)
-            {
-                Element::Pointer& pelem = *(subpart.ElementsBegin() + i).base();  
+            IndexPartition<std::size_t>(subpart.Elements().size()).for_each([&](std::size_t Index){
+                Element::Pointer& pelem = *(subpart.ElementsBegin() + Index).base();
                 pelem = mrModelPart.Elements()(pelem->Id());
-
-            }
+            });
             subpart.Elements().Sort();
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(subpart.Conditions().size()); ++i)
-            {
-                Condition::Pointer& pcond = *(subpart.ConditionsBegin() + i).base();            
+            IndexPartition<std::size_t>(subpart.Conditions().size()).for_each([&](std::size_t Index){
+                Condition::Pointer& pcond = *(subpart.ConditionsBegin() + Index).base();
                 pcond = mrModelPart.Conditions()(pcond->Id());
-            }
-            
+            });
+
              //actualize pointers within submodelparts
             for(auto& part : subpart.SubModelParts())
             {
                 ActualizeSubModelPart(part);
-            }                      
+            }
         }
-        
-        void ReorderAndOptimizeModelPartProcess::OptimizeOrdering() 
+
+        void ReorderAndOptimizeModelPartProcess::OptimizeOrdering()
         {
             const unsigned int n = mrModelPart.Nodes().size();
             std::vector< std::set< std::size_t > > graph(n);
-            
+
             for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
             {
-                const auto& elem = mrModelPart.ElementsBegin() + i;         
+                const auto& elem = mrModelPart.ElementsBegin() + i;
                 const auto& geom = elem->GetGeometry();
                 for(unsigned int k=0; k<geom.size(); ++k)
                     for(unsigned int l=0; l<geom.size(); ++l)
                         graph[geom[k].Id()-1].insert(geom[l].Id()-1); //the -1 is because the ids of our nodes start in 1
             }
-            
+
             for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
             {
-                const auto& cond = mrModelPart.ConditionsBegin() + i;              
+                const auto& cond = mrModelPart.ConditionsBegin() + i;
                 const auto& geom = cond->GetGeometry();
                 for(unsigned int k=0; k<geom.size(); ++k)
                     for(unsigned int l=0; l<geom.size(); ++l)
                         graph[geom[k].Id()-1].insert(geom[l].Id()-1); //the -1 is because the ids of our nodes start in 1
             }
-            
-             
-            unsigned int nnz = 0; //number of nonzeros in the graph
-            for(unsigned int i=0; i<n; ++i)
-            {
-                //if(graph[i].size() == 0) KRATOS_ERROR << "node with Id " << i+1 << "has zero neighbours " << std::endl;
-                nnz += graph[i].size();
-            }
-            
-            
+
             CompressedMatrix graph_csr(n,n);
             for(unsigned int i=0; i<n; ++i)
                 for(const auto& k : graph[i])
                     graph_csr.push_back(i,k,1);
-                
-                
+
+
             //here must do the ordering!!
             std::vector<int> invperm(graph_csr.size1());
-            CuthillMcKee<false>().get<CompressedMatrix>(graph_csr,invperm);      
-            
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
-                (mrModelPart.NodesBegin() + i)->SetId(invperm[i]+1);
-            
+            CuthillMcKee<false>().get<CompressedMatrix>(graph_csr,invperm);
+
+            IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
+                (mrModelPart.NodesBegin() + Index)->SetId(invperm[Index]+1);
+            });
+
             //reorder
             mrModelPart.Nodes().Sort();
 
@@ -242,23 +215,23 @@ namespace Kratos
             // Expects element ids are ordered 1 ... Elements().size().
             std::vector<std::size_t> element_ids(mrModelPart.NumberOfElements());
             std::vector<std::size_t> node_ids(mrModelPart.NumberOfElements());
-            #pragma omp parallel for
-            for(int i=0; i < static_cast<int>(element_ids.size()); ++i)
-            {
-                auto it = mrModelPart.ElementsBegin() + i;
-                element_ids.at(it->Id() - 1) = it->Id();
-                std::size_t node_id = it->GetGeometry()[0].Id();
-                for (const auto& r_node : it->GetGeometry().Points())
+
+            block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+                element_ids.at(rElem.Id() - 1) = rElem.Id();
+                std::size_t node_id = rElem.GetGeometry()[0].Id();
+                for (const auto& r_node : rElem.GetGeometry().Points())
                     node_id = std::min(node_id, r_node.Id());
-                node_ids.at(it->Id() - 1) = node_id;
-            }
+                node_ids.at(rElem.Id() - 1) = node_id;
+            });
+
             std::stable_sort(element_ids.begin(), element_ids.end(),
                       [&node_ids](const std::size_t& i, const std::size_t& j) {
                           return node_ids[i - 1] < node_ids[j - 1];
                       });
-            #pragma omp parallel for
-            for(int i=0; i < static_cast<int>(element_ids.size()); ++i)
-                (mrModelPart.ElementsBegin() + element_ids[i] - 1)->SetId(i + 1);
+
+            IndexPartition<std::size_t>(element_ids.size()).for_each([&](std::size_t Index){
+                (mrModelPart.ElementsBegin() + element_ids[Index] - 1)->SetId(Index + 1);
+            });
             mrModelPart.Elements().Sort();
         }
 

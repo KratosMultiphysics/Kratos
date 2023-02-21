@@ -4,9 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license:
-// kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Vicente Mataix Ferrandiz
@@ -71,7 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite)
         if(prop_it.Id() == 11 || prop_it.Id() == 12)
             found++;
         else
-            KRATOS_ERROR << "the property with Id " << prop_it.Id() << " should not exist in theh first layer";
+            KRATOS_ERROR << "the property with Id " << prop_it.Id() << " should not exist in the first layer";
 
     KRATOS_CHECK_EQUAL(found,2);
         

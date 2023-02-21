@@ -33,7 +33,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class TrussElement3D2N : public Element
+    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussElement3D2N : public Element
     {
     protected:
         //const values
@@ -108,9 +108,11 @@ namespace Kratos
          * @brief This function calculates the total stiffness matrix for the element
          */
         virtual BoundedMatrix<double,msLocalSize,msLocalSize>
-         CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+         CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
 
         void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+        void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateOnIntegrationPoints(
             const Variable<double>& rVariable,
@@ -131,7 +133,7 @@ namespace Kratos
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
          */
-        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces);
+        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
@@ -143,24 +145,28 @@ namespace Kratos
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateConsistentMassMatrix(
+            MatrixType& rMassMatrix,
+            const ProcessInfo& rCurrentProcessInfo) const;
 
         void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -226,7 +232,7 @@ namespace Kratos
          * @param rCurrentProcessInfo The current process information
          */
         void CalculateGeometricStiffnessMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function assembles the elastic stiffness part of the total stiffness matrix
@@ -234,7 +240,7 @@ namespace Kratos
          * @param rCurrentProcessInfo The current process information
          */
         void CalculateElasticStiffnessMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function calculates the current nodal postion for the transformation matrix
@@ -243,21 +249,25 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
-        double ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo);
+        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
 
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function checks if self weight is present
          */
         bool HasSelfWeight() const;
 
+        const Parameters GetSpecifications() const override;
+
 private:
     /**
      * @brief This method computes directly the lumped mass vector
      * @param rMassVector The lumped mass vector
      */
-    void CalculateLumpedMassVector(VectorType& rMassVector);
+    void CalculateLumpedMassVector(
+        VectorType& rMassVector,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

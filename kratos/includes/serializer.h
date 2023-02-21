@@ -21,6 +21,7 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <unordered_set>
 #include <sstream>
 #include <fstream>
 
@@ -161,7 +162,7 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
+    explicit Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) :
         mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0)
     {
     }
@@ -337,7 +338,7 @@ public:
                         pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)())));
                     }
                 }
-                    
+
                 // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=pValue.get();
                 load(rTag, *pValue);
@@ -468,13 +469,25 @@ public:
     template<class TKeyType, class TDataType>
     void load(std::string const & rTag, std::map<TKeyType, TDataType>& rObject)
     {
-        load_map(rTag, rObject);
+        load_associative_container(rTag, rObject);
     }
 
     template<class TKeyType, class TDataType>
     void load(std::string const & rTag, std::unordered_map<TKeyType, TDataType>& rObject)
     {
-        load_map(rTag, rObject);
+        load_associative_container(rTag, rObject);
+    }
+
+    template<class TDataType>
+    void load(std::string const & rTag, std::set<TDataType>& rObject)
+    {
+        load_associative_container(rTag, rObject);
+    }
+
+    template<class TDataType>
+    void load(std::string const & rTag, std::unordered_set<TDataType>& rObject)
+    {
+        load_associative_container(rTag, rObject);
     }
 
 #ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
@@ -552,8 +565,18 @@ public:
 
         save("size", size);
 
+        // Workaround for the special case of std::vector<bool>.
+        // Long story short, the return type of std::vector<bool>::operator[]
+        // is not necessarily bool&, but up to the STL vendor's decision.
+        // Detailed explanation: https://github.com/KratosMultiphysics/Kratos/issues/10357#issuecomment-1274725614.
+        using SaveType = std::conditional_t<
+            std::is_same_v<typename std::decay<TDataType>::type, bool>,
+            bool,
+            const TDataType&
+        >;
+
         for(SizeType i = 0 ; i < size ; i++)
-            save("E", rObject[i]);
+            save("E", SaveType(rObject[i]));
 //    write(rObject);
     }
 
@@ -587,13 +610,25 @@ public:
     template<class TKeyType, class TDataType>
     void save(std::string const & rTag, std::map<TKeyType, TDataType> const& rObject)
     {
-        save_map(rTag, rObject);
+        save_associative_container(rTag, rObject);
     }
 
     template<class TKeyType, class TDataType>
     void save(std::string const & rTag, std::unordered_map<TKeyType, TDataType> const& rObject)
     {
-        save_map(rTag, rObject);
+        save_associative_container(rTag, rObject);
+    }
+
+    template<class TDataType>
+    void save(std::string const & rTag, std::set<TDataType> const& rObject)
+    {
+        save_associative_container(rTag, rObject);
+    }
+
+    template<class TDataType>
+    void save(std::string const & rTag, std::unordered_set<TDataType> const& rObject)
+    {
+        save_associative_container(rTag, rObject);
     }
 
     template<class TDataType>
@@ -911,7 +946,7 @@ public:
         return msRegisteredObjectsName;
     }
 
-    void Set(Flags ThisFlag)
+    void Set(const Flags ThisFlag)
     {
         mFlags.Set(ThisFlag);
     }
@@ -1044,7 +1079,7 @@ private:
     VariableData* GetVariableData(std::string const & VariableName);
 
     template<class TMapType>
-    void load_map(std::string const & rTag, TMapType& rObject)
+    void load_associative_container(std::string const & rTag, TMapType& rObject)
     {
         load_trace_point(rTag);
         SizeType size = rObject.size();
@@ -1060,7 +1095,7 @@ private:
 
 
     template<class TMapType>
-    void save_map(std::string const & rTag, TMapType const& rObject)
+    void save_associative_container(std::string const & rTag, TMapType const& rObject)
     {
         save_trace_point(rTag);
         SizeType size = rObject.size();
@@ -1136,11 +1171,10 @@ private:
 
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
-        char* c_binStream = new char [size];
-        mpBuffer->read(c_binStream,size);
-        std::string s_binStream(c_binStream,size);
-        rValue = s_binStream;
-        delete [] c_binStream;
+        rValue.resize(size);
+        if (size>0) {
+            mpBuffer->read(rValue.data(), size);
+        }
 
         KRATOS_SERIALIZER_MODE_ASCII
 
@@ -1400,7 +1434,7 @@ private:
     /// Sets the pointer of the stream buffer at the begnining
     void SeekBegin();
 
-    /// Sets the pointer of the stream buffer at tht end 
+    /// Sets the pointer of the stream buffer at tht end
     void SeekEnd();
 
     ///@}

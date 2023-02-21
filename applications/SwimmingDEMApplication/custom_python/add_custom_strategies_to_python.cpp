@@ -59,15 +59,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "../DEMApplication/custom_strategies/strategies/explicit_solver_strategy.h"
+#include "custom_strategies/strategies/explicit_solver_strategy.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulentDEMCoupled.h"
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "custom_strategies/strategies/bdf2_turbulent_schemeDEMCoupled.h"
+#include "custom_strategies/strategies/relaxed_residualbased_newton_rapshon_strategy.h"
 #include "custom_strategies/strategies/adams_bashforth_strategy.h"
 #include "custom_strategies/strategies/residualbased_derivative_recovery_strategy.h"
 
-// convergence criteria
-#include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
-
 //schemes
-#include "../DEMApplication/custom_strategies/schemes/dem_integration_scheme.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "add_custom_utilities_to_python.h"
 #include "custom_strategies/schemes/hybrid_bashforth_scheme.h"
@@ -113,12 +115,14 @@ namespace Kratos
             typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
             typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-            //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+            // typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
             typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
             //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ::Pointer TConvergenceCriteriaPointer;
             typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-            //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
+            typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+            typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
+            typedef RelaxedResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > RelaxedResidualBasedNewtonRaphsonStrategyType;
 
             py::class_< ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                     typename ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
@@ -128,8 +132,47 @@ namespace Kratos
             .def("GetResidualNorm", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
             .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
             ;
-		}
 
+            py::class_< RelaxedResidualBasedNewtonRaphsonStrategyType, typename RelaxedResidualBasedNewtonRaphsonStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >
+                (m,  "RelaxedResidualBasedNewtonRaphsonStrategy")
+                .def(py::init<ModelPart&, Parameters >() )
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters>())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters>())
+                .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, int MaxIterations, bool CalculateReactions, bool ReformDofSetAtEachStep, bool MoveMeshFlag) {
+                        KRATOS_WARNING("RelaxedResidualBasedNewtonRaphsonStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                        return std::shared_ptr<RelaxedResidualBasedNewtonRaphsonStrategyType>(new RelaxedResidualBasedNewtonRaphsonStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag));
+                    }))
+                .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, Parameters Settings) {
+                        KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                        return std::shared_ptr<RelaxedResidualBasedNewtonRaphsonStrategyType>(new RelaxedResidualBasedNewtonRaphsonStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, Settings));
+                    }))
+                .def("SetMaxIterationNumber", &RelaxedResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
+                .def("GetMaxIterationNumber", &RelaxedResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
+                .def("SetKeepSystemConstantDuringIterations", &RelaxedResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+                .def("GetKeepSystemConstantDuringIterations", &RelaxedResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+                .def("SetInitializePerformedFlag", &RelaxedResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
+                .def("GetInitializePerformedFlag", &RelaxedResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
+                .def("SetUseOldStiffnessInFirstIterationFlag", &RelaxedResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
+                .def("GetUseOldStiffnessInFirstIterationFlag", &RelaxedResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+            ;
+
+            py::class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentDEMCoupled<SparseSpaceType, LocalSpaceType>,
+            typename ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentDEMCoupled<SparseSpaceType, LocalSpaceType>::Pointer,
+            BaseSchemeType>(m, "ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentDEMCoupled")
+            .def(py::init<double, double, unsigned int, Process::Pointer>())
+            .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
+            .def(py::init<double, unsigned int, const Kratos::Variable<int> &>()) // constructor without a turbulence model for periodic boundary conditions
+            ;
+
+             py::class_< BDF2TurbulentSchemeDEMCoupled<SparseSpaceType, LocalSpaceType>,
+             typename BDF2TurbulentSchemeDEMCoupled<SparseSpaceType, LocalSpaceType>::Pointer,
+             BaseSchemeType>(m, "BDF2TurbulentSchemeDEMCoupled")
+             .def(py::init<>())                 // default constructor
+             .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
+             ;
+             }
 	}  // namespace Python.
 
 } // Namespace Kratos

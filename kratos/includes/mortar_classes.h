@@ -693,10 +693,9 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeData
 {
 public:
@@ -780,7 +779,6 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -820,7 +818,7 @@ public:
             noalias(DeltaN1[i]) = zero_vector_slave;
             noalias(DeltaN2[i]) = zero_vector_master;
         }
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             for (IndexType i = 0; i < DoFSizeMasterGeometry; ++i) {
                 DeltaDetjSlave[i + DoFSizeSlaveGeometry] = 0.0;
                 noalias(DeltaPhi[i + DoFSizeSlaveGeometry]) = zero_vector_slave;
@@ -836,7 +834,7 @@ public:
     virtual void ResetDerivatives()
     {
         // Derivatives
-        if (TDim == 3) { // Derivative of the cell vertex
+        if constexpr (TDim == 3) { // Derivative of the cell vertex
             // Auxiliar zero matrix
             const BoundedMatrix<double, 3, 3> aux_zero = ZeroMatrix(3, 3);
             for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
@@ -1020,19 +1018,18 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeDataFrictional
-    : public DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>
+    : public DerivativeData<TDim, TNumNodes, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The base class type
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> BaseClassType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster> BaseClassType;
 
     /// The bounded matrix employed class
     typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixSlaveType;
@@ -1422,10 +1419,9 @@ private:
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TFrictional If the problem is frictional or not
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
 class MortarOperatorWithDerivatives
     : public MortarOperator<TNumNodes, TNumNodesMaster>
 {
@@ -1437,9 +1433,9 @@ public:
 
     typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster>                                   KinematicVariables;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
@@ -1538,7 +1534,7 @@ public:
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_node];
                 }
-                if (TDim == 3) {
+                if constexpr (TDim == 3) {
                     for (IndexType i = DoFSizeSlaveGeometry; i < DoFSizePairedGeometry; ++i) {
                         DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_node];
                         DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n1;
@@ -1552,12 +1548,11 @@ public:
                 BaseClassType::MOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n2;
 
                 for (IndexType i = 0; i < DoFSizeSlaveGeometry; ++i) {
-
                     DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n2
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n2
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
                 }
-                if (TDim == 3) {
+                if constexpr (TDim == 3) {
                     for (IndexType i = DoFSizeSlaveGeometry; i < DoFSizePairedGeometry; ++i) {
                         DeltaMOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_node];
                         DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n2;
@@ -1924,10 +1919,9 @@ private:
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TFrictional If the problem is frictional or not
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
 class DualLagrangeMultiplierOperatorsWithDerivatives
     : public DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>
 {
@@ -1939,9 +1933,9 @@ public:
 
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>          KinematicVariablesType;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 

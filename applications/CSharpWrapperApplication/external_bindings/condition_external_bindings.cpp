@@ -35,11 +35,6 @@ __stdcall Condition_GetVariable3d(ConditionType *instance, Kratos::Variable<Krat
     return result;
 }
 
-EXPORT double __stdcall Condition_GetVariableComponent(ConditionType *instance,
-                                                     Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
-    return instance->GetValue(*variable);
-}
-
 EXPORT bool __stdcall Condition_HasVariable1d(ConditionType *instance, Kratos::Variable<double> *variable) {
     return instance->Has(*variable);
 }
@@ -49,9 +44,5 @@ __stdcall Condition_HasVariable3d(ConditionType *instance, Kratos::Variable<Krat
     return instance->Has(*variable);
 }
 
-EXPORT bool __stdcall Condition_HasVariableComponent(ConditionType *instance,
-                                                   Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
-    return instance->Has(*variable);
-}
 #endif
 }

@@ -73,7 +73,7 @@ Communicator::Pointer Communicator::Create(const DataCommunicator& rDataCommunic
 
 Communicator::Pointer Communicator::Create() const
 {
-    return Kratos::make_shared<Communicator>();
+    return Create(mrDataCommunicator);
 }
 
 // Public Access //////////////////////////////////////////////////////////////
@@ -126,6 +126,22 @@ void Communicator::SetNumberOfColors(SizeType NewNumberOfColors)
     mInterfaceMeshes.clear();
 
     for (IndexType i = 0; i < mNumberOfColors; i++)
+    {
+        mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    }
+}
+
+void Communicator::AddColors(SizeType NumberOfAddedColors)
+{
+    if (NumberOfAddedColors < 1)
+        return;
+
+    mNumberOfColors += NumberOfAddedColors;
+    MeshType mesh;
+
+    for (IndexType i = 0; i < NumberOfAddedColors; i++)
     {
         mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
         mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -373,6 +389,11 @@ bool Communicator::SynchronizeVariable(Variable<Matrix> const& rThisVariable)
     return true;
 }
 
+bool Communicator::SynchronizeVariable(Variable<Quaternion<double>> const& rThisVariable)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable)
 {
     return true;
@@ -418,12 +439,47 @@ bool Communicator::SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThi
     return true;
 }
 
+bool Communicator::SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
 {
     return true;
 }
 
 bool Communicator::SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable)
 {
     return true;
 }

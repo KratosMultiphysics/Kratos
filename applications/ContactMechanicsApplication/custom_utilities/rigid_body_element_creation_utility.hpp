@@ -108,7 +108,7 @@ public:
 
       bool BodyIsFixed = CustomParameters["constrained"].GetBool();
 
-      ModelPart& rMainModelPart = *(rModelPart.GetParentModelPart());
+      ModelPart& rMainModelPart = rModelPart.GetParentModelPart();
 
       //std::cout<<rMainModelPart<<std::endl;
 
@@ -285,7 +285,7 @@ public:
         TransferFlags.push_back(KratosComponents<Flags>::Get( CustomParameters["flags_list"][i].GetString() ));
       }
 
-      ModelPart& rMainModelPart = *(rModelPart.GetParentModelPart());
+      ModelPart& rMainModelPart = rModelPart.GetParentModelPart();
 
       unsigned int LastConditionId = 1;
       if( rMainModelPart.Conditions().size() != 0 )

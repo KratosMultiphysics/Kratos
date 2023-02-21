@@ -11,11 +11,11 @@
 #include <cfloat>
 
 // Project includes
-#include "../DEMApplication/custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "../DEMApplication/custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "utilities/quaternion.h"
 
 namespace Kratos {

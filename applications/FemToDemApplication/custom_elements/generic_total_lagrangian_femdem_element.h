@@ -245,8 +245,7 @@ protected:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        ) override;
+        const bool CalculateResidualVectorFlag) override;
 
     /**
      * @brief This functions updates the kinematics variables
@@ -257,8 +256,7 @@ protected:
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) override;
+        const GeometryType::IntegrationMethod& rIntegrationMethod) override;
 
     // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
     /**
@@ -280,7 +278,7 @@ protected:
     /**
      * this integrated the perturbed strain
      */
-    void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+    virtual void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     /**
      * this assings the components to the tangent tensor
@@ -312,14 +310,22 @@ protected:
         ConstitutiveLaw::Parameters& rValues, bool& rIsDamaging);
 
     /**
-     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
+     * this performs the smooting and integrates the CL and returns the integrated Stress
      */
-    void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+    virtual Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
+                                             const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables, 
+                                             Vector &rStrainVector, double& rDamageElement,  bool& rIsDamaging, const double CharacteristicLength,
+                                             const bool SaveIntVars);
 
     /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
      */
-    void AuxComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+    void ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
+     */
+    void AuxComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this returns the elements that share an edge -> gets the mEdgeNeighboursContainer
@@ -389,9 +395,9 @@ protected:
 
     std::size_t GetStrainSize() const;
 
-    void GetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<double> &rVariable,
-        std::vector<double> &rValues,
+        const std::vector<double> &rValues,
         const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
@@ -408,6 +414,21 @@ protected:
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    virtual void CheckIfEraseElement(
+        const ProcessInfo &rCurrentProcessInfo, 
+        const Properties& rProperties)
+    {
+        if (mDamage >= 0.98) {
+            this->Set(ACTIVE, false);
+            mDamage = 0.98;
+            // We set a "flag" to generate the DEM 
+            // rCurrentProcessInfo[GENERATE_DEM] = true;
+            this->SetValue(GENERATE_DEM, true);
+        }
+    }
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -441,17 +462,17 @@ private:
     /**
      * this is called in the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called at the end of each solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -514,6 +535,10 @@ private:
     void load(Serializer& rSerializer) override;
 
 }; // Class GenericTotalLagrangianFemDemElement
+
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::VoigtSize;
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::NumberOfEdges;
+
 
 ///@}
 ///@name Type Definitions

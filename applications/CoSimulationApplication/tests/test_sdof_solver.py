@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 from KratosMultiphysics import kratos_utilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -163,10 +161,9 @@ class TestSdofSolver(KratosUnittest.TestCase):
                 }
             }
         }""")
-        sdof_solver_wrapper = CreateSDofSolverWrapper(wrapper_settings, "custom_sdof_solver_wrapper")
+        sdof_solver_wrapper = CreateSDofSolverWrapper(wrapper_settings, None, "custom_sdof_solver_wrapper")
 
         sdof_solver_wrapper.Initialize()
-        sdof_solver_wrapper.InitializeCouplingInterfaceData()
         with self.assertRaisesRegex(Exception, 'Variable "DISPLACEMENT" of interface data "disp" of solver "custom_sdof_solver_wrapper" cannot be used for the SDof Solver!'):
             sdof_solver_wrapper.Check()
 

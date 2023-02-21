@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Bodhinanda Chandra
 //
 
-#if !defined(KRATOS_HEXAHEDRA_3D_8_H_INCLUDED )
-#define  KRATOS_HEXAHEDRA_3D_8_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,7 +23,9 @@
 
 // Project includes
 #include "geometries/quadrilateral_3d_4.h"
+#include "utilities/integration_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
+#include "integration/hexahedron_gauss_lobatto_integration_points.h"
 
 namespace Kratos
 {
@@ -228,6 +229,24 @@ public:
             KRATOS_ERROR << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
     }
 
+    /// Constructor with Geometry Id
+    explicit Hexahedra3D8(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+        ) : BaseType( GeometryId, rThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 8 ) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Hexahedra3D8(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( rGeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 8) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
+    }
+
     /**
      * Copy constructor.
      * Construct this geometry as a copy of given geometry.
@@ -264,12 +283,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Hexahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Hexahedra3D8;
+        return GeometryData::KratosGeometryType::Kratos_Hexahedra3D8;
     }
 
     /**
@@ -317,26 +336,35 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D8( ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D8( NewGeometryId, rThisPoints ) );
     }
 
-    // Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D8< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Hexahedra3D8( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
     /**
      * Information
@@ -359,7 +387,7 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
+        return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
@@ -381,21 +409,18 @@ public:
         return Volume();
     }
 
-    double Volume() const override //Not a closed formula for a hexahedra
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return Volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -476,12 +501,9 @@ public:
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
-        {
-            if ( std::abs( rResult[1] ) <= (1.0 + Tolerance) )
-            {
-                if ( std::abs( rResult[2] ) <= (1.0 + Tolerance) )
-                {
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
+            if ( std::abs( rResult[1] ) <= (1.0 + Tolerance) ) {
+                if ( std::abs( rResult[2] ) <= (1.0 + Tolerance) ) {
                     return true;
                 }
             }
@@ -552,6 +574,35 @@ public:
         return edges;
     }
 
+    /** This method calculates and returns the average edge length of the geometry
+    *
+    * @return double value with the average edge length
+    *
+    */
+    double AverageEdgeLength() const override 
+    {
+        const TPointType& p0 = this->GetPoint(0);
+        const TPointType& p1 = this->GetPoint(1);
+        const TPointType& p2 = this->GetPoint(2);
+        const TPointType& p3 = this->GetPoint(3);
+        const TPointType& p4 = this->GetPoint(4);
+        const TPointType& p5 = this->GetPoint(5);
+        const TPointType& p6 = this->GetPoint(6);
+        const TPointType& p7 = this->GetPoint(7);
+        return (MathUtils<double>::Norm3(p0-p1) +
+            MathUtils<double>::Norm3(p1-p2) +
+            MathUtils<double>::Norm3(p2-p3) +
+            MathUtils<double>::Norm3(p3-p0) +
+            MathUtils<double>::Norm3(p4-p5) +
+            MathUtils<double>::Norm3(p5-p6) +
+            MathUtils<double>::Norm3(p6-p7) +
+            MathUtils<double>::Norm3(p7-p4) +
+            MathUtils<double>::Norm3(p0-p4) +
+            MathUtils<double>::Norm3(p1-p5) +
+            MathUtils<double>::Norm3(p2-p6) +
+            MathUtils<double>::Norm3(p3-p7)) /12.0;
+    }
+
     ///@}
     ///@name Face
     ///@{
@@ -614,7 +665,7 @@ public:
     }
 
 
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         using Quadrilateral3D4Type = Quadrilateral3D4<TPointType>;
         // Check if faces have intersection
@@ -639,6 +690,141 @@ public:
         return false;
     }
 
+    /** 
+     * @brief Implements the calculus of the 8 solid angles of the hexa
+     * @details Implements the calculus of the 8 solid angles of the hexa
+     * @param rSolidAngles The solid angles of the geometry
+     */
+    void ComputeSolidAngles(Vector& rSolidAngles) const override
+    {
+        if(rSolidAngles.size() != 8) {
+          rSolidAngles.resize(8, false);
+        }
+
+        Vector dihedral_angles(24);
+        ComputeDihedralAngles(dihedral_angles);
+
+        for (unsigned int i = 0; i < 8; ++i) {
+            rSolidAngles[i] = dihedral_angles[3*i]
+              + dihedral_angles[3*i + 1]
+              + dihedral_angles[3*i + 2]
+              - Globals::Pi;
+        }
+    }
+
+    /** 
+     * @brief Implements the calculus of the 24 dihedral angles of the hexa
+     * @details Implements the calculus of the 24 dihedral angles of the hexa.
+     * Each edge has two different dihedral angles in each extreme.
+     * @param rDihedralAngles The dihedral angles
+     */
+    void ComputeDihedralAngles(Vector& rDihedralAngles) const override
+    {
+        if(rDihedralAngles.size() != 24) {
+          rDihedralAngles.resize(24, false);
+        }
+        const auto faces = this->GenerateFaces();
+        // The three faces that contain the node i can be obtained by doing:
+        // faces[faces_0[i]], faces[faces_1[i]], faces[faces_2[i]]
+        const std::array<unsigned int, 8> faces_0 = {0,0,0,0,5,5,5,5};
+        const std::array<unsigned int, 8> faces_1 = {1,1,3,3,1,1,3,3};
+        const std::array<unsigned int, 8> faces_2 = {4,2,2,4,4,2,2,4};
+
+        array_1d<double, 3> normal_0, normal_1, normal_2;
+        double dihedral_angle_0, dihedral_angle_1, dihedral_angle_2;
+        for (unsigned int i = 0; i < 8; ++i) {
+            const TPointType& r_point_i = this->GetPoint(i);
+            noalias(normal_0) = faces[faces_0[i]].UnitNormal(r_point_i);
+            noalias(normal_1) = faces[faces_1[i]].UnitNormal(r_point_i);
+            noalias(normal_2) = faces[faces_2[i]].UnitNormal(r_point_i);
+            dihedral_angle_0 = std::acos(inner_prod(normal_0, -normal_1));
+            dihedral_angle_1 = std::acos(inner_prod(normal_0, -normal_2));
+            dihedral_angle_2 = std::acos(inner_prod(normal_2, -normal_1));
+            rDihedralAngles[i*3] = dihedral_angle_0;
+            rDihedralAngles[i*3 + 1] = dihedral_angle_1;
+            rDihedralAngles[i*3 + 2] = dihedral_angle_2;
+        }
+    }
+
+    /** 
+     * @brief Calculates the min dihedral angle quality metric.
+     * @details Calculates the min dihedral angle quality metric.
+     * The min dihedral angle is min angle between two faces of the element
+     * in radians
+     * @return [description]
+     */
+    double MinDihedralAngle() const override {
+      Vector dihedral_angles(24);
+      ComputeDihedralAngles(dihedral_angles);
+      double min_dihedral_angle = dihedral_angles[0];
+      for (unsigned int i = 1; i < 24; i++) {
+        min_dihedral_angle = std::min(dihedral_angles[i], min_dihedral_angle);
+      }
+      return min_dihedral_angle;
+    }
+
+    /** 
+     * @brief Calculates the max dihedral angle quality metric.
+     * @details Calculates the max dihedral angle quality metric.
+     * The max dihedral angle is max angle between two faces of the element
+     * in radians
+     * @return [description]
+     */
+    double MaxDihedralAngle() const override {
+        Vector dihedral_angles(24);
+        ComputeDihedralAngles(dihedral_angles);
+        double max_dihedral_angle = dihedral_angles[0];
+        for (unsigned int i = 1; i < 24; i++) {
+            max_dihedral_angle = std::max(dihedral_angles[i], max_dihedral_angle);
+        }
+        return max_dihedral_angle;
+    }
+
+    /**
+     * @brief Calculates the volume to average edge length quality metric.
+     * @details The average edge length is calculated using the RMS.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{V}{\sqrt{\frac{1}{6}\sum{A_{i}^{2}}}} \f$
+     *
+     * @return [description]
+     */
+    double VolumeToRMSEdgeLength() const override {
+        const auto edges = GenerateEdges();
+        double sum_squared_lengths = 0.0;
+        for (const auto& r_edge : edges) {
+            const double length = r_edge.Length();
+            sum_squared_lengths += length*length;
+        }
+
+        const double rms_edge = std::sqrt(1.0/12.0 * sum_squared_lengths);
+
+        return Volume() / std::pow(rms_edge, 3.0);
+    }
+
+    /** 
+     * @brief Calculates the shortest to longest edge quality metric.
+     * Calculates the shortest to longest edge quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{l}{L} \f$
+     *
+     * @return [description]
+     */
+    double ShortestToLongestEdgeQuality() const override {
+        const auto edges = GenerateEdges();
+        double min_edge_length = std::numeric_limits<double>::max();
+        double max_edge_length = -std::numeric_limits<double>::max();
+        for (const auto& r_edge: edges) {
+            min_edge_length = std::min(min_edge_length, r_edge.Length());
+            max_edge_length = std::max(max_edge_length, r_edge.Length());
+        }
+        return min_edge_length / max_edge_length;
+    }
 
     /**
      * Shape Function
@@ -855,7 +1041,6 @@ public:
         return rResult;
     }
 
-
     /**
      * Input and output
      */
@@ -997,7 +1182,7 @@ private:
         typename BaseType::IntegrationMethod ThisMethod )
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType& integration_points = all_integration_points[ThisMethod];
+        IntegrationPointsArrayType& integration_points = all_integration_points[static_cast<int>(ThisMethod)];
 
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -1064,8 +1249,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1158,16 +1342,13 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature < HexahedronGaussLegendreIntegrationPoints1,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < HexahedronGaussLegendreIntegrationPoints2,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < HexahedronGaussLegendreIntegrationPoints3,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < HexahedronGaussLegendreIntegrationPoints4,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < HexahedronGaussLegendreIntegrationPoints5,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature < HexahedronGaussLegendreIntegrationPoints1, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < HexahedronGaussLegendreIntegrationPoints2, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < HexahedronGaussLegendreIntegrationPoints3, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < HexahedronGaussLegendreIntegrationPoints4, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < HexahedronGaussLegendreIntegrationPoints5, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < HexahedronGaussLobattoIntegrationPoints1, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < HexahedronGaussLobattoIntegrationPoints2, 3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -1178,16 +1359,13 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 )
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 )
             }
         };
         return shape_functions_values;
@@ -1202,16 +1380,13 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 ),
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4 ),
-                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5 )
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 )
             }
         };
         return shape_functions_local_gradients;
@@ -1259,7 +1434,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Hexahedra3D8<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Hexahedra3D8<TPointType>::AllIntegrationPoints(),
     Hexahedra3D8<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
@@ -1270,5 +1445,3 @@ GeometryDimension Hexahedra3D8<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_HEXAHEDRA_3D_8_H_INCLUDED  defined

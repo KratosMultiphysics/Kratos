@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KM backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics as KM
 
@@ -8,8 +7,8 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import the explicit solver (the explicit one is derived from it)
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_explicit_dynamic_solver
 
-# Import auxiliar methods
-from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
+# Import auxiliary methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliary_methods_solvers
 
 def CreateSolver(model, custom_settings):
     return ContactExplicitMechanicalSolver(model, custom_settings)
@@ -27,12 +26,12 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(ContactExplicitMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         self.contact_settings = self.settings["contact_settings"]
 
         # Setting default configurations true by default
-        auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
+        auxiliary_methods_solvers.AuxiliarySetSettings(self.settings, self.contact_settings)
 
         # Getting delta_time_factor_for_contact
         self.delta_time_factor_for_contact = self.contact_settings["delta_time_factor_for_contact"].GetDouble()
@@ -45,60 +44,60 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
+        auxiliary_methods_solvers.AuxiliaryValidateSettings(self)
 
     def AddVariables(self):
 
-        super(ContactExplicitMechanicalSolver, self).AddVariables()
+        super().AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
+        auxiliary_methods_solvers.AuxiliaryAddVariables(self.main_model_part, mortar_type)
 
         KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Variables ADDED")
 
     def AddDofs(self):
 
-        super(ContactExplicitMechanicalSolver, self).AddDofs()
+        super().AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
+        auxiliary_methods_solvers.AuxiliaryAddDofs(self.main_model_part, mortar_type)
 
         KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
-        super(ContactExplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
+        super().Initialize() # The mechanical solver is created here.
 
         # No verbosity from strategy
         if self.contact_settings["silent_strategy"].GetBool():
-            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+            mechanical_solution_strategy = self._GetSolutionStrategy()
             mechanical_solution_strategy.SetEchoLevel(0)
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-        auxiliar_methods_solvers.AuxiliarSolve(mechanical_solution_strategy)
+        mechanical_solution_strategy = self._GetSolutionStrategy()
+        auxiliary_methods_solvers.AuxiliarySolve(mechanical_solution_strategy)
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
     def ExecuteFinalizeSolutionStep(self):
-        super(ContactExplicitMechanicalSolver, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
         if self.contact_settings["ensure_contact"].GetBool():
             computing_model_part = self.GetComputingModelPart()
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
 
     def ComputeDeltaTime(self):
-        self.delta_time = super(ContactExplicitMechanicalSolver, self).ComputeDeltaTime()
+        self.delta_time = super().ComputeDeltaTime()
         if self.GetComputingModelPart().Is(KM.CONTACT):
             return self.delta_time_factor_for_contact * self.delta_time
         else:
             return self.delta_time
 
     @classmethod
-    def GetDefaultSettings(cls):
-        this_defaults = auxiliar_methods_solvers.AuxiliarExplicitContactSettings()
-        this_defaults.RecursivelyAddMissingParameters(super(ContactExplicitMechanicalSolver, cls).GetDefaultSettings())
+    def GetDefaultParameters(cls):
+        this_defaults = auxiliary_methods_solvers.AuxiliaryExplicitContactSettings()
+        this_defaults.RecursivelyAddMissingParameters(super(ContactExplicitMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults

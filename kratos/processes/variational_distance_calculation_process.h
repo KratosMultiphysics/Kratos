@@ -80,7 +80,7 @@ public:
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
     typedef typename SchemeType::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
-    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+    typedef ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
     ///@}
     ///@name Pointer Definitions
@@ -125,14 +125,18 @@ public:
         typename TLinearSolver::Pointer pLinearSolver,
         unsigned int MaxIterations = 10,
         Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
-        std::string AuxPartName = "RedistanceCalculationPart" )
+        std::string AuxPartName = "RedistanceCalculationPart",
+        double Coefficient1 = 0.01,
+        double Coefficient2 = 0.1)
     :
         mDistancePartIsInitialized(false),
         mMaxIterations(MaxIterations),
         mrModel( rBaseModelPart.GetModel() ),
         mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
-        mAuxModelPartName( AuxPartName )
+        mAuxModelPartName( AuxPartName ),
+        mCoefficient1(Coefficient1),
+        mCoefficient2(Coefficient2)
     {
         KRATOS_TRY
 
@@ -143,7 +147,7 @@ public:
 
         auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
 
-        InitializeSolutionStrategy(pLinearSolver, p_builder_solver);
+        InitializeSolutionStrategy(p_builder_solver);
 
         KRATOS_CATCH("")
     }
@@ -163,14 +167,18 @@ public:
         BuilderSolverPointerType pBuilderAndSolver,
         unsigned int MaxIterations = 10,
         Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
-        std::string AuxPartName = "RedistanceCalculationPart" )
+        std::string AuxPartName = "RedistanceCalculationPart",
+        double Coefficient1 = 0.01,
+        double Coefficient2 = 0.1)
     :
         mDistancePartIsInitialized(false),
         mMaxIterations(MaxIterations),
         mrModel( rBaseModelPart.GetModel() ),
         mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
-        mAuxModelPartName( AuxPartName )
+        mAuxModelPartName( AuxPartName ),
+        mCoefficient1(Coefficient1),
+        mCoefficient2(Coefficient2)
     {
         KRATOS_TRY
 
@@ -179,7 +187,7 @@ public:
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         ReGenerateDistanceModelPart(rBaseModelPart);
 
-        InitializeSolutionStrategy(pLinearSolver, pBuilderAndSolver);
+        InitializeSolutionStrategy(pBuilderAndSolver);
 
         KRATOS_CATCH("")
     }
@@ -219,23 +227,22 @@ public:
 
         // Unfix the distances
         const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = r_distance_model_part.NodesBegin() + i_node;
-            double& d = it_node->FastGetSolutionStepValue(DISTANCE);
-            double& fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
+
+        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
+            double& d = rNode.FastGetSolutionStepValue(DISTANCE);
 
             // Free the DISTANCE values
-            fix_flag = 1.0;
-            it_node->Free(DISTANCE);
+            rNode.Free(DISTANCE);
+            // Set the fix flag to 0
+            rNode.Set(BLOCKED, false);
 
             // Save the distances
-            it_node->SetValue(DISTANCE, d);
+            rNode.SetValue(DISTANCE, d);
 
             if(d == 0){
                 d = 1.0e-15;
-                fix_flag = -1.0;
-                it_node->Fix(DISTANCE);
+                rNode.Set(BLOCKED, true);
+                rNode.Fix(DISTANCE);
             } else {
                 if(d > 0.0){
                     d = 1.0e15; // Set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
@@ -243,15 +250,11 @@ public:
                     d = -1.0e15;
                 }
             }
-        }
+        });
 
-        const int nelem = static_cast<int>(r_distance_model_part.NumberOfElements());
-
-        #pragma omp parallel for
-        for(int i_elem = 0; i_elem < nelem; ++i_elem){
-            auto it_elem = r_distance_model_part.ElementsBegin() + i_elem;
+        block_for_each(r_distance_model_part.Elements(), [this](Element& rElem){
             array_1d<double,TDim+1> distances;
-            auto& geom = it_elem->GetGeometry();
+            auto& geom = rElem.GetGeometry();
 
             for(unsigned int i=0; i<TDim+1; i++){
                 distances[i] = geom[i].GetValue(DISTANCE);
@@ -266,7 +269,7 @@ public:
                     GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
                 }
                 else {
-                    if(TDim==3){
+                    if constexpr (TDim==3){
                         GeometryUtils::CalculateTetrahedraDistances(geom, distances);
                     }
                     else {
@@ -283,17 +286,16 @@ public:
 
                 for(unsigned int i = 0; i < TDim+1; ++i){
                     double &d = geom[i].FastGetSolutionStepValue(DISTANCE);
-                    double &fix_flag = geom[i].FastGetSolutionStepValue(FLAG_VARIABLE);
                     geom[i].SetLock();
                     if(std::abs(d) > std::abs(distances[i])){
                         d = distances[i];
                     }
-                    fix_flag = -1.0;
+                    geom[i].Set(BLOCKED, true);
                     geom[i].Fix(DISTANCE);
                     geom[i].UnSetLock();
                 }
             }
-        }
+        });
 
         // SHALL WE SYNCHRONIZE SOMETHING IN HERE?¿?¿??¿ WE'VE CHANGED THE NODAL DISTANCE VALUES FROM THE ELEMENTS...
         this->SynchronizeFixity();
@@ -322,19 +324,16 @@ public:
 
         // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = r_distance_model_part.NodesBegin() + i_node;
-            if(!it_node->IsFixed(DISTANCE)){
-                double& d = it_node->FastGetSolutionStepValue(DISTANCE);
+        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node<3>& rNode){
+            if(!rNode.IsFixed(DISTANCE)){
+                double& d = rNode.FastGetSolutionStepValue(DISTANCE);
                 if(d>0){
                     d = max_dist;
                 } else {
                     d = min_dist;
                 }
             }
-        }
-
+        });
         mpSolvingStrategy->Solve();
 
         // Step2 - minimize the target residual
@@ -344,16 +343,14 @@ public:
         }
 
         // Unfix the distances
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = (r_distance_model_part.NodesBegin()) + i_node;
-            it_node->Free(DISTANCE);
-        }
+        VariableUtils().ApplyFixity(DISTANCE, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BOUNDARY, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BLOCKED, false, r_distance_model_part.Nodes());
 
         KRATOS_CATCH("")
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         if(mrModel.HasModelPart( mAuxModelPartName ))
             mrModel.DeleteModelPart( mAuxModelPartName );
@@ -414,6 +411,9 @@ protected:
     Flags mOptions;
     std::string mAuxModelPartName;
 
+    double mCoefficient1;
+    double mCoefficient2;
+
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     ///@}
@@ -433,9 +433,9 @@ protected:
         if (num_elements > 0)
         {
             const auto geometry_family = mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily();
-            KRATOS_ERROR_IF( (TDim == 2) && (geometry_family != GeometryData::Kratos_Triangle) )
+            KRATOS_ERROR_IF( (TDim == 2) && (geometry_family != GeometryData::KratosGeometryFamily::Kratos_Triangle) )
             << "In 2D the element type is expected to be a triangle." << std::endl;
-            KRATOS_ERROR_IF( (TDim == 3) && (geometry_family != GeometryData::Kratos_Tetrahedra) )
+            KRATOS_ERROR_IF( (TDim == 3) && (geometry_family != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) )
             << "In 3D the element type is expected to be a tetrahedron" << std::endl;
         }
 
@@ -444,12 +444,9 @@ protected:
 
         // Check that required nodal variables are present
         VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, mrBaseModelPart.Nodes());
-        VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mrBaseModelPart.Nodes());
     }
 
-    void InitializeSolutionStrategy(
-        typename TLinearSolver::Pointer pLinearSolver,
-        BuilderSolverPointerType pBuilderAndSolver)
+    void InitializeSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver)
     {
         // Generate a linear strategy
         auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -463,7 +460,6 @@ protected:
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
             p_scheme,
-            pLinearSolver,
             pBuilderAndSolver,
             CalculateReactions,
             ReformDofAtEachIteration,
@@ -488,6 +484,8 @@ protected:
 
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
 
+        r_distance_model_part.GetNodalSolutionStepVariablesList() = rBaseModelPart.GetNodalSolutionStepVariablesList();
+
         ConnectivityPreserveModeler modeler;
         modeler.GenerateModelPart(rBaseModelPart, r_distance_model_part, *p_distance_element);
 
@@ -504,6 +502,9 @@ protected:
         }
 
         rBaseModelPart.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
+
+        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST, mCoefficient1);
+        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND, mCoefficient2);
 
         mDistancePartIsInitialized = true;
 
@@ -595,15 +596,14 @@ private:
             int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
             // Synchronize the fixity flag variable to minium
-            // (-1.0 means fixed and 1.0 means free)
-            r_communicator.SynchronizeCurrentDataToMin(FLAG_VARIABLE);
+            // (true means fixed and false means free)
+            r_communicator.SynchronizeOrNodalFlags(BLOCKED);
 
             // Set the fixity according to the synchronized flag
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
                 auto it_node = r_distance_model_part.NodesBegin() + i_node;
-                const double &r_fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
-                if (r_fix_flag == -1.0){
+                if (it_node->Is(BLOCKED)){
                     it_node->Fix(DISTANCE);
                 }
             }

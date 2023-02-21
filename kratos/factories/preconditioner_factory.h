@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
-#include "includes/shared_pointers.h"
 #include "linear_solvers/preconditioner.h"
 #include "spaces/ublas_space.h"
 
@@ -92,7 +91,7 @@ public:
      * @brief This method checks if the linear solver is registered
      * @return True if registered, false otherwise
      */
-    virtual bool Has(const std::string& rSolverType)
+    virtual bool Has(const std::string& rSolverType) const
     {
         return KratosComponents< FactoryType >::Has( rSolverType );
     }
@@ -101,11 +100,11 @@ public:
      * @brief This method creates a new solver
      * @return The pointer to the solver of interest
      */
-    virtual typename PreconditionerType::Pointer Create(const std::string& rPreconditionerType)
+    virtual typename PreconditionerType::Pointer Create(const std::string& rPreconditionerType)  const
     {
         // remove name of the application (if passed)
-        // e.g. "ExternalSolversApplication.super_lu" => "super_lu"
-        const std::string raw_precond_name = rPreconditionerType.substr(rPreconditionerType.find(".") + 1);
+        // e.g. "LinearSolversApplication.sparse_lu" => "sparse_lu"
+        const std::string raw_precond_name = rPreconditionerType.substr(rPreconditionerType.find('.') + 1);
 
         KRATOS_ERROR_IF_NOT(Has(raw_precond_name))
             << "Trying to construct a preconditioner with preconditioner_type:\n\""

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication.MainFemDem as MainFemDem
@@ -24,6 +23,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         # For remeshing purposes
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_STRESS_VECTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.DEM_NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS_GRADIENT)
@@ -76,7 +76,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
 
         if (self.ProjectParameters["solver_settings"]["strategy_type"].GetString() == "arc_length"):
-            neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, 2, 5)
+            neighbour_elemental_finder =  KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             neighbour_elemental_finder.Execute()
             self.InitializeIntegrationPointsVariables()
             self.model_processes.ExecuteBeforeSolutionLoop()
@@ -85,15 +85,14 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         else:
             self.using_arc_length = False
 
-
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
+
         #self.solver.InitializeStrategy()
         self.solver.SetEchoLevel(self.echo_level)
 
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.SetGraphicalOutput()
-
         self.GraphicalOutputExecuteInitialize()
 
         print(" ")
@@ -111,6 +110,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
         self.delta_time = self.ComputeDeltaTime()
+
 
 
 #============================================================================================================================
@@ -141,27 +141,24 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         elements = self.main_model_part.Elements
         self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         nodes = self.main_model_part.Nodes
+
+        utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, False, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.IS_SKIN, 0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, elements)
+
         if self.domain_size == 3:
             utils.SetNonHistoricalVariable(KratosFemDem.VOLUME_COUNTED, False, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.IS_SKIN, 0, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
         else: # 2D
-            elements = self.main_model_part.Elements
-            utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.IS_SKIN, 0, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0, 0.0, 0.0], elements)
-        
+
         # if self.PressureLoad:
         #     utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_ID, 0, nodes)

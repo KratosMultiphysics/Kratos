@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluid
 from KratosMultiphysics import gid_output_process
@@ -79,13 +78,13 @@ class GiDOutputProcess(gid_output_process.GiDOutputProcess):
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
                 while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
             else:
                 while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()

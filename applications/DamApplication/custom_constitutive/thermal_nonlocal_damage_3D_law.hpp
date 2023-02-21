@@ -45,7 +45,7 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
 
     ConstitutiveLaw::Pointer Clone() const override;
 
@@ -64,7 +64,7 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double& CalculateNodalReferenceTemperature ( const MaterialResponseVariables & rElasticVariables, double & rNodalReferenceTemperature);
-    
+
     virtual void CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables, double & rNodalReferenceTemperature);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

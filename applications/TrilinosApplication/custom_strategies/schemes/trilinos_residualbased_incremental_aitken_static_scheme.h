@@ -116,22 +116,6 @@ public:
         mIterationCounter = 0;
     }
 
-    /// Increase the iteration counter at the begining of each iteration
-    /**
-      * @param r_model_part The problem's ModelPart
-      * @param A System matrix
-      * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
-      * @param b Right hand side vector
-      */
-    void InitializeNonLinIteration(ModelPart &r_model_part,
-                                           TSystemMatrixType &A,
-                                           TSystemVectorType &Dx,
-                                           TSystemVectorType &b) override
-    {
-        BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
-    }
-
-
     /// Update the degrees of freedom of the problem using Aitken's accelerator
     /**
       * @param r_model_part The problem's ModelPart

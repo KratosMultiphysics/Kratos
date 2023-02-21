@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import sys
 
 # Importing the Kratos Library
@@ -16,9 +15,8 @@ def CreateSolver(main_model_part, custom_settings):
 
 class CoupledThermoMechanicalSolver(PythonSolver):
 
-    def __init__(self, model, custom_settings):
-
-        super(CoupledThermoMechanicalSolver, self).__init__(model, custom_settings)
+    @classmethod
+    def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -48,12 +46,17 @@ class CoupledThermoMechanicalSolver(PythonSolver):
                 "material_import_settings": {
                         "materials_filename": "ThermalMaterials.json"
                 }
-            }
+            },
+            "time_integration_method": "implicit"
         }
         """)
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
+
+    def __init__(self, model, custom_settings):
+
+        super(CoupledThermoMechanicalSolver, self).__init__(model, custom_settings)
 
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
@@ -74,6 +77,9 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         # Call the structural solver to import the model part from the mdpa
         self.structural_solver.ImportModelPart()
 
+    def PrepareModelPart(self):
+        self.structural_solver.PrepareModelPart()
+
         # Save the convection diffusion settings
         convection_diffusion_settings = self.thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
 
@@ -93,8 +99,6 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         # Set the saved convection diffusion settings to the new thermal model part
         self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
-    def PrepareModelPart(self):
-        self.structural_solver.PrepareModelPart()
         self.thermal_solver.PrepareModelPart()
 
     def AddDofs(self):
@@ -153,4 +157,3 @@ class CoupledThermoMechanicalSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.structural_solver.FinalizeSolutionStep()
         self.thermal_solver.FinalizeSolutionStep()
-

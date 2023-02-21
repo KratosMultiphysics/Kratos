@@ -14,17 +14,17 @@ def CreateSolver(model, custom_settings):
 class NavierStokesSolverFractionalStep(FluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "FractionalStep",
+            "solver_type": "fractional_step",
             "model_part_name": "",
             "domain_size": -1,
             "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "unknown_name",
-                    "reorder": false
+                "input_type": "mdpa",
+                "input_filename": "unknown_name",
+                "reorder": false
             },
             "material_import_settings": {
                 "materials_filename": ""
@@ -41,6 +41,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
+            "assign_neighbour_elements_to_conditions": true,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
@@ -69,7 +70,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
-            "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,
@@ -85,11 +85,10 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             }
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStep, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStep, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
         if custom_settings["formulation"]["element_type"].GetString() != "FractionalStep":
@@ -221,3 +220,20 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                 self.settings["compute_reactions"].GetBool())
 
         return solution_strategy
+
+    def _SetNodalProperties(self):
+        # Get density and dynamic viscostity from the properties of the first element
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            if rho <= 0.0:
+                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            if dyn_viscosity <= 0.0:
+                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
+            kin_viscosity = dyn_viscosity / rho
+            break
+        else:
+            raise Exception("No fluid elements found in the main model part.")
+        # Transfer the obtained properties to the nodes
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

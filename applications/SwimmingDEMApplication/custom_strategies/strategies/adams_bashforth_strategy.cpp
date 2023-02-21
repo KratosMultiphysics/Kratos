@@ -51,7 +51,7 @@ double AdamsBashforthStrategy::SolveSolutionStep() {
 
     else {
         mFirstStep = true;
-        InitializeSolutionStep();
+
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);

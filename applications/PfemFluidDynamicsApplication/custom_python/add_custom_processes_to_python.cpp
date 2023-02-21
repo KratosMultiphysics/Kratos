@@ -46,17 +46,22 @@
 #include "custom_processes/compute_average_pfem_mesh_parameters_process.hpp"
 #include "custom_processes/fix_scalar_pfem_dof_process.hpp"
 #include "custom_processes/free_scalar_pfem_dof_process.hpp"
+#include "custom_processes/fix_free_velocity_on_nodes_process.h"
 #include "custom_processes/set_dummy_property_for_rigid_boundaries_process.hpp"
+#include "custom_processes/set_main_material_property_process.hpp"
+#include "custom_processes/find_nodal_h_for_rigid_walls_process.hpp"
 
 #include "custom_processes/assign_scalar_variable_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_vector_variable_to_pfem_conditions_process.hpp"
 #include "custom_processes/assign_vector_field_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_scalar_field_to_pfem_entities_process.hpp"
 #include "custom_processes/update_conditions_on_free_surface_process.hpp"
+#include "custom_processes/calculate_wave_height_process.hpp"
 
 // Coupling with ConvectionDiffusionApplication processes
 #include "custom_processes/update_thermal_model_part_process.hpp"
 #include "custom_processes/set_mesh_velocity_for_thermal_coupling_process.hpp"
+#include "custom_processes/set_material_properties_for_thermal_coupling_process.hpp"
 
 //Processes
 
@@ -90,6 +95,9 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>(m, "InletManagement")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
+    py::class_<CalculateWaveHeightProcess, CalculateWaveHeightProcess::Pointer, ProcessBaseType>(m, "CalculateWaveHeightProcess")
+        .def(py::init<ModelPart&, const int, const int, const double, const double, const double, const std::string, const double>());
+
     py::class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>(m, "SetInlet")
         .def(py::init<ModelPart &, int>());
 
@@ -98,6 +106,9 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>(m, "SetActiveFlagProcess")
         .def(py::init<ModelPart &, bool, bool, int>());
+
+    py::class_<SetMainMaterialPropertyProcess, SetMainMaterialPropertyProcess::Pointer, MesherProcess>(m, "SetMainMaterialProperty")
+        .def(py::init<ModelPart &>());
 
     py::class_<SetMaterialPropertiesToFluidNodesProcess, SetMaterialPropertiesToFluidNodesProcess::Pointer, MesherProcess>(m, "SetMaterialPropertiesToFluidNodes")
         .def(py::init<ModelPart &>());
@@ -142,6 +153,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<ComputeAveragePfemMeshParametersProcess, ComputeAveragePfemMeshParametersProcess::Pointer, MesherProcess>(m, "ComputeAveragePfemMeshParameters")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
+    py::class_<FindNodalHForRigidWallsProcess, FindNodalHForRigidWallsProcess::Pointer, ProcessBaseType>(m, "FindNodalHForRigidWallsProcess")
+        .def(py::init<ModelPart &>());
+  
+
     //**********FIX AND FREE DOFS PROCESSES*********//
 
     py::class_<FixScalarPfemDofProcess, FixScalarPfemDofProcess::Pointer, Process>(m, "FixScalarPfemDofProcess")
@@ -163,6 +178,13 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def("Execute", &FreeScalarPfemDofProcess::Execute)
 
         ;
+
+    //**********FIX AND FREE NODES VELOCITY PROCESS*********
+    py::class_<PFEMFixFreeVelocityOnNodesProcess, PFEMFixFreeVelocityOnNodesProcess::Pointer, Process>(m, "PFEMFixFreeVelocityOnNodesProcess")
+        .def(py::init<ModelPart &, const bool>())
+        .def("Execute", &PFEMFixFreeVelocityOnNodesProcess::Execute)
+    
+        ;//*/
 
     // //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
 
@@ -197,6 +219,12 @@ void AddCustomProcessesToPython(pybind11::module &m)
     (m, "SetMeshVelocityForThermalCouplingProcess")
         .def(py::init< ModelPart &>())
         .def("Execute", &SetMeshVelocityForThermalCouplingProcess::Execute);
+        ;
+
+    py::class_<SetMaterialPropertiesForThermalCouplingProcess, SetMaterialPropertiesForThermalCouplingProcess::Pointer, ProcessBaseType>
+    (m, "SetMaterialPropertiesForThermalCouplingProcess")
+        .def(py::init< ModelPart &, ModelPart&>())
+        .def("Execute", &SetMaterialPropertiesForThermalCouplingProcess::Execute);
         ;
 
 	py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")

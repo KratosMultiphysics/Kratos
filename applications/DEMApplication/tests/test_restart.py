@@ -2,12 +2,14 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DEMApplication import DEM_analysis_stage
 
+import os
+
 # Defining a generic Test, that is not actually KratosUnittest
 class DEMRestartTestFactory():
 
     def setUp(self, case_name=""):
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            with open('restart_files/' + case_name + 'ProjectParametersDEM.json', 'r') as parameter_file:
+        with KratosUnittest.WorkFolderScope("restart_files", __file__):
+            with open(os.path.join(case_name + 'ProjectParametersDEM.json'), 'r') as parameter_file:
                 self.project_parameters_save = Kratos.Parameters(parameter_file.read())
 
         # Now clone the settings after the common settings are set
@@ -17,11 +19,10 @@ class DEMRestartTestFactory():
     def test_execution(self):
         # Within this location context:
 
-        with KratosUnittest.WorkFolderScope(".", __file__):
+        with KratosUnittest.WorkFolderScope("restart_files", __file__):
             model_save = Kratos.Model()
             model_load = Kratos.Model()
             save_analysis = DEM_analysis_stage.DEMAnalysisStage(model_save, self.project_parameters_save)
-            save_analysis.mdpas_folder_path = save_analysis.main_path + '/restart_files'
             load_analysis = DEM_analysis_stage.DEMAnalysisStage(model_load, self.project_parameters_load)
             self.project_parameters_load["output_processes"].RemoveValue("restart_processes")
             def NullFunction():
@@ -50,17 +51,17 @@ class DEMRestartTestFactory():
 class TestRestartOneBall(DEMRestartTestFactory, KratosUnittest.TestCase):
     case_name = "one_ball"
     def setUp(self):
-        super(TestRestartOneBall, self).setUp(TestRestartOneBall.case_name)
+        super().setUp(TestRestartOneBall.case_name)
 
 class TestRestartTwoBalls(DEMRestartTestFactory, KratosUnittest.TestCase):
     case_name = "two_balls"
     def setUp(self):
-        super(TestRestartTwoBalls, self).setUp(TestRestartTwoBalls.case_name)
+        super().setUp(TestRestartTwoBalls.case_name)
 
 class TestRestartBallAndWall(DEMRestartTestFactory, KratosUnittest.TestCase):
     case_name = "ball_and_wall"
     def setUp(self):
-        super(TestRestartBallAndWall, self).setUp(TestRestartBallAndWall.case_name)
+        super().setUp(TestRestartBallAndWall.case_name)
 
 if __name__ == '__main__':
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)

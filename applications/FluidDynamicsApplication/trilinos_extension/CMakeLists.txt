@@ -1,17 +1,10 @@
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/TrilinosApplication)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/kratos
-  ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication
-  ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication
+  ${KRATOS_SOURCE_DIR}/kratos
+  ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication
+  ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication
 )
-
-if (NOT TRILINOS_FOUND)
-  find_package(TRILINOS REQUIRED)
-endif()
-
-include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-link_directories(${TRILINOS_LIBRARIES})
 
 file(
   GLOB_RECURSE
@@ -21,12 +14,14 @@ file(
 
 ## Python module
 pybind11_add_module( KratosFluidDynamicsTrilinosExtension MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
-if(USE_COTIRE MATCHES ON)
-  set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES COTIRE_UNITY_LINK_LIBRARIES_INIT "COPY_UNITY")
-  cotire(KratosFluidDynamicsTrilinosExtension)
-endif(USE_COTIRE MATCHES ON)
-target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
+
+target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosFluidDynamicsTrilinosExtension PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 ###############################################################################
 # changing the .dll suffix to .pyd
@@ -39,6 +34,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidDynamicsTrilinosExtension" PARENT_SCOPE)
+
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosFluidDynamicsTrilinosExtension DESTINATION libs )
@@ -46,3 +44,5 @@ install(TARGETS KratosFluidDynamicsTrilinosExtension DESTINATION libs )
 ###############################################################################
 ## install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosExtension.py" DESTINATION "KratosMultiphysics/FluidDynamicsApplication")
+
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFluidDynamicsTrilinosExtension" PARENT_SCOPE)

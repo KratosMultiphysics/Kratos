@@ -11,19 +11,17 @@
 //  Main authors:    Miguel Angel Celigueta
 //
 
-
 // System includes
 
 // External includes
 
 // Project includes
 #include "includes/define_python.h"
-
 #include "add_quaternion_to_python.h"
 #include "utilities/quaternion.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python
+{
 /**
  * @brief Sets the current table utility on the process info
  * @param rCurrentProcessInfo The process info
@@ -48,8 +46,11 @@ void  AddQuaternionToPython(pybind11::module& m) {
     .def_property("Y", QuaternionGetY, QuaternionSetY)
     .def_property("Z", QuaternionGetZ, QuaternionSetZ)
     .def_property("W", QuaternionGetW, QuaternionSetW)
+    .def("Normalize",        &Quaternion<double>::normalize)
+    .def_static("Identity",  &Quaternion<double>::Identity)
+    .def("ToRotationMatrix", &Quaternion<double>::ToRotationMatrix<Matrix>)
+    .def("MultiplyQuaternion", [](Quaternion<double>& self, Quaternion<double>& a, Quaternion<double>& b){return Quaternion<double>(operator*(a,b));})
     ;
 }
 
-} // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

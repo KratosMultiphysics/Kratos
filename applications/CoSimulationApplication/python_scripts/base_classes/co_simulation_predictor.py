@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -7,13 +5,13 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-class CoSimulationPredictor(object):
+class CoSimulationPredictor:
     """Baseclass for the predictors used for CoSimulation
     It predicts the solution of the next step at the beginning of a step
     """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
-        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.interface_data = solver_wrapper.GetInterfaceData(self.settings["data_name"].GetString())
 
@@ -44,7 +42,7 @@ class CoSimulationPredictor(object):
         cs_tools.cs_print_info("Predictor", colors.bold(self._ClassName()))
 
     def Check(self):
-        print("The predictors do not yet implement Check!")
+        cs_tools.cs_print_warning("Predictor", "The predictors do not yet implement Check!")
 
     def _UpdateData(self, updated_data):
         self.interface_data.SetData(updated_data)
@@ -61,7 +59,7 @@ class CoSimulationPredictor(object):
         return cls.__name__
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",

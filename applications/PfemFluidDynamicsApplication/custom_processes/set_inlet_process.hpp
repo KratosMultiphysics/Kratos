@@ -24,7 +24,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -61,12 +60,12 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    SetInletProcess(ModelPart &rModelPart,
-                    int EchoLevel)
-        : mrModelPart(rModelPart)
-    {
-      KRATOS_INFO("SetInletProcess") << " inlet_management CONSTRUCTOR ";
+  /// Default constructor.
+  SetInletProcess(ModelPart &rModelPart,
+                  int EchoLevel)
+      : mrModelPart(rModelPart)
+  {
+    KRATOS_INFO("SetInletProcess") << " activated "<< std::endl;
 
       mEchoLevel = EchoLevel;
     }

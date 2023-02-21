@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -8,11 +6,10 @@ from KratosMultiphysics import eigen_solver_factory
 
 from math import sqrt, sin, cos, pi, exp, atan
 
-from KratosMultiphysics import kratos_utilities as kratos_utils
-eigen_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
-if eigen_solvers_application_available:
-    import KratosMultiphysics.EigenSolversApplication as EiSA
-    feast_available = EiSA.HasFEAST()
+from KratosMultiphysics import kratos_utilities
+if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
+    from KratosMultiphysics import LinearSolversApplication
+    feast_available = LinearSolversApplication.HasFEAST()
 else:
     feast_available = False
 
@@ -76,7 +73,6 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,

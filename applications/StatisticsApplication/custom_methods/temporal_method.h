@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/variables.h"
 
 // Application includes
 
@@ -42,9 +43,11 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(TemporalMethod);
 
     TemporalMethod(ModelPart& rModelPart, const int EchoLevel)
-        : mrModelPart(rModelPart), mEchoLevel(EchoLevel), mTotalTime(0.0)
+        : mrModelPart(rModelPart), mEchoLevel(EchoLevel)
     {
     }
+
+    virtual ~TemporalMethod() = default;
 
     virtual void InitializeStatisticsVariables()
     {
@@ -56,20 +59,24 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual void InitializeStatisticsMethod()
+    virtual void InitializeStatisticsMethod(double IntegrationStartTime)
     {
-        mTotalTime = 0.0;
-        this->InitializeStatisticsVariables();
+        mIntegrationStartTime = IntegrationStartTime;
+        const ProcessInfo& r_process_info = this->GetModelPart().GetProcessInfo();
+        if (!r_process_info[IS_RESTARTED])
+        {
+            this->InitializeStatisticsVariables();
+        }
     }
 
-    virtual void CalculateStatistics(const double DeltaTime)
+    virtual void CalculateStatistics()
     {
-        this->FinalizeStatisticsTimeStep(DeltaTime);
-    }
+        KRATOS_TRY
 
-    virtual void FinalizeStatisticsTimeStep(const double DeltaTime)
-    {
-        mTotalTime += DeltaTime;
+        KRATOS_ERROR << "Calling base class CalculateStatistics. "
+                        "Please implement it in derrived class.\n";
+
+        KRATOS_CATCH("");
     }
 
     ModelPart& GetModelPart() const
@@ -79,7 +86,27 @@ public:
 
     double GetTotalTime() const
     {
-        return mTotalTime;
+        KRATOS_TRY
+
+        const ProcessInfo& r_process_info = this->GetModelPart().GetProcessInfo();
+        const double current_time = r_process_info[TIME];
+        const double total_time = current_time - mIntegrationStartTime;
+
+        KRATOS_ERROR_IF(total_time < 0.0)
+            << "Total integration time should be greater than or equal to "
+               "zero. [ "
+               "total_time  = "
+            << total_time << ", TIME = " << current_time << " ].\n";
+
+        return total_time;
+
+        KRATOS_CATCH("");
+    }
+
+    double GetDeltaTime() const
+    {
+        const ProcessInfo& r_process_info = this->GetModelPart().GetProcessInfo();
+        return r_process_info[DELTA_TIME];
     }
 
     int GetEchoLevel() const
@@ -90,7 +117,7 @@ public:
 private:
     ModelPart& mrModelPart;
     int mEchoLevel;
-    double mTotalTime;
+    double mIntegrationStartTime;
 };
 } // namespace TemporalMethods
 } // namespace Kratos

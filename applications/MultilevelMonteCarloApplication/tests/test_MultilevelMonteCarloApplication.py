@@ -1,4 +1,4 @@
-# import Kratos
+# Import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -6,12 +6,16 @@ import KratosMultiphysics.MeshingApplication as MeshingApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
+# Import test classes to create the suits
 from test_multilevel_montecarlo import KratosMultilevelMonteCarloGeneralTests
-from test_momentEstimator import TestMomentEstimator
-from test_momentEstimator import TestCombinedMomentEstimator
 from test_tools import TestTools
 from test_xmcAlgorithm import TestXMCAlgorithm
+from momentEstimatorTests import TestMomentEstimator
+from momentEstimatorTests import TestCombinedMomentEstimator
+from momentEstimatorTests import TestMultiMomentEstimator
+from momentEstimatorTests import TestMultiCombinedMomentEstimator
+from test_randomGenerator import TestNumPyGenerator
+from solverWrapperTest import SolverWrapperTest, VanDerPolTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -30,27 +34,50 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests
     smallSuite = suites['small']
+    smallSuite.addTest(TestTools('test_normalInverseCDF'))
+    smallSuite.addTest(TestTools('test_returnInput'))
     smallSuite.addTest(TestMomentEstimator('test_update'))
     smallSuite.addTest(TestMomentEstimator('test_value'))
     smallSuite.addTest(TestCombinedMomentEstimator('test_update'))
     smallSuite.addTest(TestCombinedMomentEstimator('test_value'))
-    smallSuite.addTest(TestTools('test_normalInverseCDF'))
+    smallSuite.addTest(TestMultiMomentEstimator('test_estimation_deterministic'))
+    smallSuite.addTest(TestMultiMomentEstimator('test_update'))
+    smallSuite.addTest(TestMultiMomentEstimator('test_construction_isParallel'))
+    smallSuite.addTest(TestMultiCombinedMomentEstimator('test_updateD0'))
+    smallSuite.addTest(TestMultiCombinedMomentEstimator('test_estimationD0'))
+    smallSuite.addTest(TestXMCAlgorithm('test_mc_Kratos'))
+    smallSuite.addTest(TestNumPyGenerator('test_init'))
+    smallSuite.addTest(TestNumPyGenerator('test_realisation'))
+    smallSuite.addTest(TestNumPyGenerator('test_realisation_fromJSON'))
+    smallSuite.addTest(SolverWrapperTest('test_init'))
+    smallSuite.addTest(SolverWrapperTest('test_solve'))
+    smallSuite.addTest(VanDerPolTest('test_init'))
+    smallSuite.addTest(VanDerPolTest('test_solve'))
+    smallSuite.addTest(VanDerPolTest('test_harmonic_trajectory'))
+    smallSuite.addTest(VanDerPolTest('test_reference_solution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTest(TestXMCAlgorithm('test_mc_asynchronous_Kratos'))
+    nightSuite.addTest(TestMultiMomentEstimator('test_estimation_random'))
     nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarlo'))
     if(hasattr(MeshingApplication,"MmgProcess2D")):
         nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarlo'))
-        nightSuite.addTest(TestXMCAlgorithm('test_mlmc_asynchronous_Kratos'))
+    else:
+        print("MMG process is not compiled and the corresponding tests will not be executed")
+
+
+    validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    if(hasattr(MeshingApplication,"MmgProcess2D")):
+        validationSuite.addTest(TestXMCAlgorithm('test_mlmc_Kratos'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
-    
+    allSuite.addTests(validationSuite)
+
     return suites
 
 if __name__ == '__main__':

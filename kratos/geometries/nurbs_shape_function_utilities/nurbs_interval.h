@@ -163,10 +163,10 @@ private:
     ///@{
 
     /// @brief Lower bound of the NurbsInterval
-    double mT0;
+    double mT0 = 0;
 
     /// @brief Upper bound of the NurbsInterval
-    double mT1;
+    double mT1 = 0;
 
     ///@}
     ///@name Serialization

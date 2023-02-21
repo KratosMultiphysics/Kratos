@@ -36,7 +36,7 @@ namespace Kratos
 
 
 
-class HenckyMCPlastic3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyMCPlastic3DLaw
     : public HenckyElasticPlastic3DLaw
 
 {
@@ -112,7 +112,7 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
 
 
 

@@ -49,6 +49,7 @@
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
+#include "custom_elements/updated_lagrangian_PQ.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
@@ -74,6 +75,8 @@
 #include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/displacement_newtonian_fluid_3D_law.hpp"
+#include "custom_constitutive/displacement_newtonian_fluid_plane_strain_2D_law.hpp"
 
 //---flow rules
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
@@ -97,7 +100,7 @@ namespace Kratos
  * for particle mechanics problems.
  * Currently developed methods are: (1) Material Point Method
  */
-class KratosParticleMechanicsApplication : public KratosApplication
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) KratosParticleMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -230,6 +233,7 @@ private:
     // Elements
     const UpdatedLagrangian mUpdatedLagrangian;
     const UpdatedLagrangianUP mUpdatedLagrangianUP;
+    const UpdatedLagrangianPQ mUpdatedLagrangianPQ;
 
     // Deprecated Elements
     const UpdatedLagrangian mUpdatedLagrangian2D3N;
@@ -250,6 +254,11 @@ private:
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D3N;
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
     // Particle Conditions:
+    const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
+    const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition;
+    const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
+
+    // Deprecated Conditions
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D4N;
@@ -294,7 +303,9 @@ private:
     const HenckyBorjaCamClayPlastic3DLaw                    mHenckyBorjaCamClayPlastic3DLaw;
     const HenckyBorjaCamClayPlasticPlaneStrain2DLaw         mHenckyBorjaCamClayPlasticPlaneStrain2DLaw;
     const HenckyBorjaCamClayPlasticAxisym2DLaw              mHenckyBorjaCamClayPlasticAxisym2DLaw;
-
+    // CL: Displacement-based Newtonian Fluid
+    const DispNewtonianFluid3DLaw                           mDispNewtonianFluid3DLaw;
+    const DispNewtonianFluidPlaneStrain2DLaw                mDispNewtonianFluidPlaneStrain2DLaw;
     // Flow Rules
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
     const MCStrainSofteningPlasticFlowRule          mMCStrainSofteningPlasticFlowRule;

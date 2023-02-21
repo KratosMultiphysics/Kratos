@@ -1,6 +1,5 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
+import KratosMultiphysics as KM
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # Importing the base class
@@ -11,11 +10,34 @@ if not CheckIfApplicationsAvailable("FluidDynamicsApplication"):
     raise ImportError("The FluidDynamicsApplication is not available!")
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-def Create(settings, solver_name):
-    return FluidDynamicsWrapper(settings, solver_name)
+# Other imports
+from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
+
+def Create(settings, model, solver_name):
+    return FluidDynamicsWrapper(settings, model, solver_name)
 
 class FluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the FluidDynamicsApplication of Kratos"""
 
     def _CreateAnalysisStage(self):
         return FluidDynamicsAnalysis(self.model, self.project_parameters)
+
+    def _GetDataCommunicator(self):
+        if not KM.IsDistributedRun():
+            return KM.ParallelEnvironment.GetDataCommunicator("Serial")
+
+        # now we know that Kratos runs in MPI
+        parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+
+        # first check if the solver uses MPI
+        if parallel_type != "MPI":
+            return data_communicator_utilities.GetRankZeroDataCommunicator()
+
+        # now we know that the solver uses MPI, only question left is whether to use all ranks or a subset
+        if self.project_parameters["solver_settings"]["solver_type"].GetString() == "ale_fluid":
+            model_import_settings = self.project_parameters["solver_settings"]["fluid_solver_settings"]["model_import_settings"]
+        else:
+            model_import_settings = self.project_parameters["solver_settings"]["model_import_settings"]
+        self._CheckDataCommunicatorIsConsistentlyDefined(model_import_settings, self.settings["mpi_settings"])
+
+        return super()._GetDataCommunicator()

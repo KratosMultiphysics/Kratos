@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <boost/timer.hpp>
 
 
@@ -30,7 +30,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
 
 #include "spatial_containers/spatial_containers.h"
 //#include "containers/bucket.h"
@@ -230,7 +229,7 @@ public:
 //KRATOS_WATCH(geom);
 //KRATOS_WATCH("AFTER GEOM");
             Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
-            p_element->GetValue(IS_CONTACT_MASTER) = 10;
+            p_element->GetValue(IS_FLUID) = 10;  //before IS_CONTACT_MASTER
             p_element->GetValue(IS_WATER_ELEMENT) = -10.0;
             //KRATOS_WATCH("inside 12");
 
@@ -258,9 +257,9 @@ public:
             {
                 int index = out_shell.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1)); //*((el_begin + index-1).base());
                 else
-                    neighb(i) = *(iii.base());
+                    neighb(i) = Element::WeakPointer();//*(iii.base());
             }
         }
         std::cout << "time for adding neigbours" << adding_neighb.elapsed() << std::endl;;

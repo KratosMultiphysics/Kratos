@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -16,8 +14,8 @@ if not CheckIfApplicationsAvailable("DEMApplication"):
 from KratosMultiphysics import DEMApplication
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 
-def Create(settings, solver_name):
-    return DEMWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return DEMWrapper(settings, model, solver_name)
 
 class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the DEMApplication of Kratos"""
@@ -38,15 +36,16 @@ class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
         return dem_analysis_module(self.model, self.project_parameters)
 
     def Initialize(self):
-        super(DEMWrapper,self).Initialize()
+        super().Initialize()
 
         # save nodes in model parts which need to be moved while simulating
         self.list_of_nodes_in_move_mesh_model_parts = [self.model[mp_name].Nodes for mp_name in self.settings["solver_wrapper_settings"]["move_mesh_model_part"].GetStringArray()]
 
 
     def SolveSolutionStep(self):
-        super(DEMWrapper,self).SolveSolutionStep()
-
         # move the rigid wall object in the dem mp w.r.t. the current displacement and velocities
         for model_part_nodes in self.list_of_nodes_in_move_mesh_model_parts:
             DEMApplication.MoveMeshUtility().MoveDemMesh(model_part_nodes,True)
+        # solve DEM
+        super().SolveSolutionStep()
+

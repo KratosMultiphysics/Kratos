@@ -160,7 +160,7 @@ void RotateRegionProcess::PrintInfo(std::ostream &rOStream) const
   rOStream << "RotateRegionProcess";
 }
 
-void RotateRegionProcess::PrintData() {}
+void RotateRegionProcess::PrintData(std::ostream& rOStream) const {}
 
 RotateRegionProcess::RotationSystem::RotationSystem(const double MomentOfInertia,
                                                     const double DampingCoefficient)

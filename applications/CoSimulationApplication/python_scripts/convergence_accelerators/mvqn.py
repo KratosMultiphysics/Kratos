@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 ## @module iqnils
 # This module contains the class MVQNConvergenceAccelerator
 # Author: Wei He
@@ -31,7 +29,7 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
     def __init__( self, settings):
-        super(MVQNConvergenceAccelerator, self).__init__(settings)
+        super().__init__(settings)
 
         horizon = self.settings["horizon"].GetInt()
         self.alpha = self.settings["alpha"].GetDouble()
@@ -56,13 +54,13 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
         ## For the first iteration
         if k == 0:
-            if self.J == []:
+            if len(self.J) == 0:
                 return self.alpha * r  # if no Jacobian, do relaxation
             else:
                 return np.linalg.solve( self.J, -r ) # use the Jacobian from previous step
 
         ## Let the initial Jacobian correspond to a constant relaxation
-        if self.J == []:
+        if len(self.J) == 0:
             self.J = - np.identity( row ) / self.alpha # correspongding to constant relaxation
 
         ## Construct matrix V (differences of residuals)
@@ -80,7 +78,7 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         ## Solve least norm problem
         rhs = V - np.dot(self.J, W)
         b = np.identity( row )
-        W_right_inverse = np.linalg.lstsq(W, b)[0]
+        W_right_inverse = np.linalg.lstsq(W, b, rcond=-1)[0]
         J_tilde = np.dot(rhs, W_right_inverse)
         self.J_hat = self.J + J_tilde
         delta_r = -self.R[0]
@@ -91,7 +89,7 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## FinalizeSolutionStep()
     # Finalizes the current time step and initializes the next time step.
     def FinalizeSolutionStep( self ):
-        if self.J == []:
+        if len(self.J) == 0:
             return
 
         row = self.J.shape[0]
@@ -108,10 +106,10 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.X.clear()
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "horizon" : 15,
             "alpha"   : 0.125
         }""")
-        this_defaults.AddMissingParameters(super(MVQNConvergenceAccelerator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

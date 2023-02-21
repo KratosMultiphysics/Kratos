@@ -96,7 +96,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void EPPointRigidContactPenalty3DCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+   void EPPointRigidContactPenalty3DCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -147,7 +147,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void EPPointRigidContactPenalty3DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+   void EPPointRigidContactPenalty3DCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -171,7 +171,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void EPPointRigidContactPenalty3DCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+   void EPPointRigidContactPenalty3DCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -475,7 +475,7 @@ namespace Kratos
          }
       }
 
-      if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_STRESS) && 
+      if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_STRESS) &&
             GetGeometry()[0].SolutionStepsDataHas(EFFECTIVE_CONTACT_FORCE) ) {
          double Area = this->CalculateSomeSortOfArea();
          array_1d<double, 3 >& ECF = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_CONTACT_FORCE);

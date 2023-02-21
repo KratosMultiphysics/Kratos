@@ -47,7 +47,8 @@ std::vector<int> MPIColoringUtilities::ComputeRecvList(
     }
     auto local_recv = rComm.Scatterv(recv_list, global_rank );
 
-    std::unique(local_recv.begin(), local_recv.end());
+    auto last = std::unique(local_recv.begin(), local_recv.end());
+    local_recv.erase(last, local_recv.end());
 
     return local_recv;
 }
@@ -81,7 +82,7 @@ std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
         std::map<int, std::map<int, int> > colored_graph;
         for(unsigned int i=0; i<input_graph.size(); ++i)
         {
-            for(const auto item : input_graph[i] )
+            for(const auto& item : input_graph[i] )
             {
                 unsigned int j = item.first;
                 if(j > i)

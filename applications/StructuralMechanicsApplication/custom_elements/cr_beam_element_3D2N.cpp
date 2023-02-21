@@ -17,8 +17,11 @@
 // Project includes
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 #include "includes/define.h"
+#include "includes/checks.h"
+#include "includes/global_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -119,7 +122,7 @@ void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) co
     KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void CrBeamElement3D2N::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mDeformationPreviousIteration = mDeformationCurrentIteration;
@@ -184,7 +187,7 @@ CrBeamElement3D2N::CalculateBodyForces() const
     KRATOS_TRY
     // getting shapefunctionvalues for linear SF
     const Matrix& Ncontainer =
-        GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     BoundedVector<double, msDimension> equivalent_line_load =
         ZeroVector(msDimension);
@@ -302,7 +305,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 }
 
 void CrBeamElement3D2N::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -313,12 +316,13 @@ void CrBeamElement3D2N::CalculateDampingMatrix(
 
 Vector CrBeamElement3D2N::CalculateLocalNodalForces() const
 {
-    // deformation modes
-    Vector element_forces_t = CalculateElementForces();
+    // Deformation modes
+    const Vector element_forces_t = CalculateElementForces();
+    
     // Nodal element forces local
-    Matrix transformation_matrix_s = CalculateTransformationS();
-    Vector nodal_forces_local_qe =
-        prod(transformation_matrix_s, element_forces_t);
+    const Matrix transformation_matrix_s = CalculateTransformationS();
+    const Vector nodal_forces_local_qe = prod(transformation_matrix_s, element_forces_t);
+     
     return nodal_forces_local_qe;
 }
 
@@ -411,10 +415,9 @@ BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
 CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry() const
 {
-
     KRATOS_TRY;
 
-    Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+    const Vector nodal_forces_local_qe = CalculateLocalNodalForces();
 
     const double N = nodal_forces_local_qe[6];
     const double Mt   = nodal_forces_local_qe[9];
@@ -590,7 +593,6 @@ BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
 CrBeamElement3D2N::CalculateInitialLocalCS() const
 {
-
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     array_1d<double, msDimension> direction_vector_x = ZeroVector(msDimension);
@@ -665,14 +667,10 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
         if (std::abs(direction_vector_x[2] - 1.00) < numerical_limit) {
             v2[1] = 1.0;
             v3[0] = -1.0;
-        }
-
-        else if (std::abs(direction_vector_x[2] + 1.00) < numerical_limit) {
+        } else if (std::abs(direction_vector_x[2] + 1.00) < numerical_limit) {
             v2[1] = 1.0;
             v3[0] = 1.0;
-        }
-
-        else {
+        } else {
             MathUtils<double>::UnitCrossProduct(v2, global_z, direction_vector_x);
             MathUtils<double>::UnitCrossProduct(v3, direction_vector_x, v2);
         }
@@ -729,8 +727,6 @@ void CrBeamElement3D2N::UpdateQuaternionParameters(
     BoundedVector<double, msDimension> d_phi_a = ZeroVector(msDimension);
     BoundedVector<double, msDimension> d_phi_b = ZeroVector(msDimension);
     Vector increment_deformation = GetIncrementDeformation();
-
-
 
     for (unsigned int i = 0; i < msDimension; ++i) {
         d_phi_a[i] = increment_deformation[i + 3];
@@ -823,12 +819,10 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     UpdateQuaternionParameters(quaternion_sca_a,
     quaternion_sca_b,quaternion_vec_a,quaternion_vec_b);
 
-
     Vector temp_vector = ZeroVector(msDimension);
     // scalar part of difference quaternion
-    double scalar_diff;
-    scalar_diff = (quaternion_sca_a + quaternion_sca_b) *
-                  (quaternion_sca_a + quaternion_sca_b);
+    double scalar_diff = (quaternion_sca_a + quaternion_sca_b) *
+                         (quaternion_sca_a + quaternion_sca_b);
 
     temp_vector = quaternion_vec_a + quaternion_vec_b;
     scalar_diff += MathUtils<double>::Norm(temp_vector) *
@@ -837,15 +831,10 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     scalar_diff = 0.50 * std::sqrt(scalar_diff);
 
     // mean rotation quaternion
-    double mean_rotation_scalar;
-    mean_rotation_scalar =
-        (quaternion_sca_a + quaternion_sca_b) * 0.50;
+    double mean_rotation_scalar = (quaternion_sca_a + quaternion_sca_b) * 0.50;
     mean_rotation_scalar = mean_rotation_scalar / scalar_diff;
 
-    BoundedVector<double, msDimension> mean_rotation_vector =
-        ZeroVector(msDimension);
-    mean_rotation_vector =
-        (quaternion_vec_a + quaternion_vec_b) * 0.50;
+    BoundedVector<double, msDimension> mean_rotation_vector = (quaternion_vec_a + quaternion_vec_b) * 0.50;
     mean_rotation_vector = mean_rotation_vector / scalar_diff;
 
     // vector part of difference quaternion
@@ -863,8 +852,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     const double r2 = mean_rotation_vector[1];
     const double r3 = mean_rotation_vector[2];
 
-    BoundedMatrix<double, msElementSize, msElementSize>
-    reference_transformation = CalculateInitialLocalCS();
+    BoundedMatrix<double, msElementSize, msElementSize> reference_transformation = CalculateInitialLocalCS();
     Vector rotated_nx0 = ZeroVector(msDimension);
     Vector rotated_ny0 = ZeroVector(msDimension);
     Vector rotated_nz0 = ZeroVector(msDimension);
@@ -890,7 +878,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     // rotate basis to element axis + redefine R
     Bisectrix = ZeroVector(msDimension);
     Vector delta_x = ZeroVector(msDimension);
-    double vector_norm;
+    double vector_norm = 0.0;
 
     BoundedVector<double, msLocalSize> current_nodal_position =
         GetCurrentNodalPosition();
@@ -992,7 +980,7 @@ CrBeamElement3D2N::CalculateTransformationS() const
 }
 
 void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     if (rMassMatrix.size1() != msElementSize) {
@@ -1000,13 +988,9 @@ void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
     }
     rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-    bool use_consistent_mass_matrix = false;
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
 
-    if (GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
-        use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
-    }
-
-    if (!use_consistent_mass_matrix) {
+    if (compute_lumped_mass_matrix) {
         CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
     } else {
         CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
@@ -1021,7 +1005,7 @@ void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 
 void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -1032,7 +1016,7 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 void CrBeamElement3D2N::ConstCalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) const
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     ConstCalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
@@ -1041,7 +1025,7 @@ void CrBeamElement3D2N::ConstCalculateLocalSystem(
 }
 
 void CrBeamElement3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     ConstCalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -1049,21 +1033,27 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) const
+    VectorType& rRightHandSideVector, 
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
-    Vector internal_forces = CalculateGlobalNodalForces();
+    
+    // Add internal forces
+    const Vector internal_forces = CalculateGlobalNodalForces();
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= internal_forces;
-    // add bodyforces
+    
+    // Add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
+    
     KRATOS_CATCH("")
 }
 
-
-
 void CrBeamElement3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, 
+    const ProcessInfo& rCurrentProcessInfo
+    )
 {
 
     KRATOS_TRY;
@@ -1072,7 +1062,9 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) const
+    MatrixType& rLeftHandSideMatrix, 
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
 
     KRATOS_TRY;
@@ -1084,7 +1076,6 @@ void CrBeamElement3D2N::ConstCalculateLeftHandSide(
 
     BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix = GetTransformationMatrixGlobal();
 
-
     BoundedMatrix<double, msElementSize, msElementSize> aux_matrix =
         prod(total_rotation_matrix, rLeftHandSideMatrix);
     noalias(rLeftHandSideMatrix) = prod(aux_matrix, trans(total_rotation_matrix));
@@ -1094,7 +1085,7 @@ void CrBeamElement3D2N::ConstCalculateLeftHandSide(
 
 Vector CrBeamElement3D2N::CalculateGlobalNodalForces() const
 {
-    Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+    const Vector nodal_forces_local_qe = CalculateLocalNodalForces();
 
     BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix = GetTransformationMatrixGlobal();
 
@@ -1114,8 +1105,8 @@ CrBeamElement3D2N::CalculateElementForces() const
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
-    Vector phi_s = CalculateSymmetricDeformationMode();
-    Vector phi_a = CalculateAntiSymmetricDeformationMode();
+    const Vector phi_s = CalculateSymmetricDeformationMode();
+    const Vector phi_a = CalculateAntiSymmetricDeformationMode();
 
     deformation_modes_total_v[3] = l - L;
     for (int i = 0; i < 3; ++i) {
@@ -1140,7 +1131,6 @@ CrBeamElement3D2N::CalculateElementForces() const
 
 double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff) const
 {
-
     KRATOS_TRY;
     const double E = GetProperties()[YOUNG_MODULUS];
     const double L = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
@@ -1165,8 +1155,9 @@ CrBeamElement3D2N::GetCurrentNodalPosition() const
 {
     BoundedVector<double, msLocalSize> current_nodal_position =
         ZeroVector(msLocalSize);
+    int index = 0;
     for (unsigned int i = 0; i < msNumberOfNodes; ++i) {
-        int index = i * msDimension;
+        index = i * msDimension;
         current_nodal_position[index] =
             GetGeometry()[i].X0() +
             GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X, 0);
@@ -1181,14 +1172,15 @@ CrBeamElement3D2N::GetCurrentNodalPosition() const
     return current_nodal_position;
 }
 
-void CrBeamElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void CrBeamElement3D2N::Calculate(const Variable<Matrix>& rVariable,
+     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
         if(rOutput.size1() != msDimension || rOutput.size2() != msDimension) {
             rOutput.resize(msDimension, msDimension, false);
         }
 
-        Matrix  transformation_matrix = GetTransformationMatrixGlobal();
+        const Matrix transformation_matrix = GetTransformationMatrixGlobal();
 
         Vector base_1 = ZeroVector(3);
         Vector base_2 = ZeroVector(3);
@@ -1211,15 +1203,15 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     std::vector<array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-
     KRATOS_TRY
-    // element with two nodes can only represent results at one node
-    const unsigned int& write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+
+    // Element with two nodes can only represent results at one node
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
+    const SizeType write_points_number = r_integration_points.size();
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
-
 
     // rOutput[GP 1,2,3][x,y,z]
 
@@ -1233,9 +1225,9 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         rOutput[1][1] = -1.0 * nodal_forces_local_qe[4] * 0.50 + nodal_forces_local_qe[10] * 0.50;
         rOutput[2][1] = -1.0 * nodal_forces_local_qe[4] * 0.25 + nodal_forces_local_qe[10] * 0.75;
 
-        rOutput[0][2] = 1.0 * nodal_forces_local_qe[5] * 0.75 - nodal_forces_local_qe[11] * 0.25;
-        rOutput[1][2] = 1.0 * nodal_forces_local_qe[5] * 0.50 - nodal_forces_local_qe[11] * 0.50;
-        rOutput[2][2] = 1.0 * nodal_forces_local_qe[5] * 0.25 - nodal_forces_local_qe[11] * 0.75;
+        rOutput[0][2] = -1.0 * nodal_forces_local_qe[5] * 0.75 + nodal_forces_local_qe[11] * 0.25;
+        rOutput[1][2] = -1.0 * nodal_forces_local_qe[5] * 0.50 + nodal_forces_local_qe[11] * 0.50;
+        rOutput[2][2] = -1.0 * nodal_forces_local_qe[5] * 0.25 + nodal_forces_local_qe[11] * 0.75;
     } else if (rVariable == FORCE) {
         Vector nodal_forces_local_qe = CalculateLocalNodalForces();
         rOutput[0][0] = -1.0 * nodal_forces_local_qe[0] * 0.75 + nodal_forces_local_qe[6] * 0.25;
@@ -1249,9 +1241,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         rOutput[0][2] = -1.0 * nodal_forces_local_qe[2] * 0.75 + nodal_forces_local_qe[8] * 0.25;
         rOutput[1][2] = -1.0 * nodal_forces_local_qe[2] * 0.50 + nodal_forces_local_qe[8] * 0.50;
         rOutput[2][2] = -1.0 * nodal_forces_local_qe[2] * 0.25 + nodal_forces_local_qe[8] * 0.75;
-    }
-
-    else if (rVariable == LOCAL_AXIS_1) {
+    } else if (rVariable == LOCAL_AXIS_1) {
         BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix = GetTransformationMatrixGlobal();
         for (SizeType i =0; i<msDimension; ++i) {
             rOutput[1][i] = column(rotation_matrix, 0)[i];
@@ -1266,28 +1256,31 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         for (SizeType i =0; i<msDimension; ++i) {
             rOutput[1][i] = column(rotation_matrix, 2)[i];
         }
+    } else if (rVariable == INTEGRATION_COORDINATES) {
+        Point global_point;
+        for (IndexType point_number = 0; point_number < write_points_number; ++point_number) {
+            r_geometry.GlobalCoordinates(global_point, r_integration_points[point_number]);
+            rOutput[point_number] = global_point.Coordinates();
+        }
     }
-
 
     KRATOS_CATCH("")
 }
 
 
 void CrBeamElement3D2N::AssembleSmallInBigMatrix(
-    Matrix SmallMatrix,
-    BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
-    CrBeamElement3D2N::msElementSize>& BigMatrix) const
+    const Matrix& rSmallMatrix,
+    BoundedMatrix<double, CrBeamElement3D2N::msElementSize,CrBeamElement3D2N::msElementSize>& rBigMatrix
+    ) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
-    BigMatrix.clear();
+    rBigMatrix.clear();
     for (unsigned int kk = 0; kk < msElementSize; kk += msDimension) {
         for (int i = 0; i < msDimension; ++i) {
             for (int j = 0; j < msDimension; ++j) {
-                if (std::abs(SmallMatrix(i, j)) <= numerical_limit) {
-                    BigMatrix(i + kk, j + kk) = 0.00;
-                } else {
-                    BigMatrix(i + kk, j + kk) = SmallMatrix(i, j);
+                if (std::abs(rSmallMatrix(i, j)) > numerical_limit) {
+                    rBigMatrix(i + kk, j + kk) = rSmallMatrix(i, j);
                 }
             }
         }
@@ -1538,7 +1531,7 @@ CrBeamElement3D2N::IntegrationMethod
 CrBeamElement3D2N::GetIntegrationMethod() const
 {
     // do this to have 3GP as an output in GID
-    return Kratos::GeometryData::GI_GAUSS_3;
+    return Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3;
 }
 
 void CrBeamElement3D2N::AddExplicitContribution(
@@ -1551,14 +1544,12 @@ void CrBeamElement3D2N::AddExplicitContribution(
 
     BoundedVector<double, msElementSize> damping_residual_contribution = ZeroVector(msElementSize);
     // Calculate damping contribution to residual -->
-    if ((GetProperties().Has(RAYLEIGH_ALPHA) ||
-            GetProperties().Has(RAYLEIGH_BETA)) &&
+    if (StructuralMechanicsElementUtilities::HasRayleighDamping(GetProperties(), rCurrentProcessInfo) &&
             (rDestinationVariable != NODAL_INERTIA)) {
         Vector current_nodal_velocities = ZeroVector(msElementSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
     }
@@ -1572,8 +1563,7 @@ void CrBeamElement3D2N::AddExplicitContribution(
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
             for (IndexType j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_force_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
             }
         }
     }
@@ -1587,16 +1577,14 @@ void CrBeamElement3D2N::AddExplicitContribution(
             array_1d<double, 3>& r_moment_residual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
             for (IndexType j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_moment_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_moment_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
             }
         }
     }
 
     if (rDestinationVariable == NODAL_INERTIA) {
         Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_info; // Dummy
-        CalculateMassMatrix(element_mass_matrix, temp_info);
+        CalculateMassMatrix(element_mass_matrix, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < msNumberOfNodes; ++i) {
             double aux_nodal_mass = 0.0;
@@ -1611,13 +1599,11 @@ void CrBeamElement3D2N::AddExplicitContribution(
                 }
             }
 
-            #pragma omp atomic
-            GetGeometry()[i].GetValue(NODAL_MASS) += aux_nodal_mass;
+            AtomicAdd(GetGeometry()[i].GetValue(NODAL_MASS), aux_nodal_mass);
 
             array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             for (IndexType k = 0; k < msDimension; ++k) {
-                #pragma omp atomic
-                r_nodal_inertia[k] += std::abs(aux_nodal_inertia[k]);
+                AtomicAdd(r_nodal_inertia[k], std::abs(aux_nodal_inertia[k]) );
             }
         }
     }
@@ -1643,45 +1629,18 @@ int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
             << "The beam element works only in 3D and with 2 noded elements" << std::endl;
 
-    // verify that the variables are correctly initialized
-    if (VELOCITY.Key() == 0) {
-        KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (DISPLACEMENT.Key() == 0) {
-        KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (ACCELERATION.Key() == 0) {
-        KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (DENSITY.Key() == 0) {
-        KRATOS_ERROR << "DENSITY has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (CROSS_AREA.Key() == 0) {
-        KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
     // verify that the dofs exist
-    for (unsigned int i = 0; i < GetGeometry().size(); ++i) {
-        if (GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
-            KRATOS_ERROR << "missing variable DISPLACEMENT on node "
-                         << GetGeometry()[i].Id() << std::endl;
-        }
-        if (GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
-                GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false ||
-                GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false) {
-            KRATOS_ERROR
-                    << "missing one of the dofs for the variable DISPLACEMENT on node "
-                    << GetGeometry()[i].Id() << std::endl;
-        }
+    for (const auto& r_node : GetGeometry().Points()) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node);
     }
 
     KRATOS_ERROR_IF(!GetProperties().Has(CROSS_AREA) ||
@@ -1739,13 +1698,16 @@ int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
         }
 
         direction_vector_y = GetValue(LOCAL_AXIS_2);
+        const double norm_dir_y = MathUtils<double>::Norm(direction_vector_y);
 
-        KRATOS_ERROR_IF(MathUtils<double>::Norm(direction_vector_y)<numerical_limit)
-                << "Given LOCAL_AXIS_2 has length 0 for element " << Id() << std::endl;
+        KRATOS_ERROR_IF(norm_dir_y<numerical_limit) << "Given LOCAL_AXIS_2 has length 0 for element " << Id() << std::endl;
 
-        // a tollerance of 1e-3 allows for a rough deviation of 0.06 degrees from 90.0 degrees
-        KRATOS_ERROR_IF(std::abs(MathUtils<double>::Dot(direction_vector_x,direction_vector_y))>1e-3)
-                << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element " << Id() << std::endl;
+        // a tolerance of 1e-3 allows for a rough deviation of 0.06 degrees from 90.0 degrees
+        const double dot_prod = MathUtils<double>::Dot(direction_vector_x, direction_vector_y);
+        if (std::abs(dot_prod)>1e-3) {
+            const double angle = (180.0 / Globals::Pi) * std::acos(dot_prod / (vector_norm*norm_dir_y));
+            KRATOS_ERROR << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element " << Id() << ", angle is " << angle << " degree" << std::endl;
+        }
     }
 
     KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
@@ -1758,9 +1720,39 @@ int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 
 
-void CrBeamElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void CrBeamElement3D2N::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     SaveQuaternionParameters();
+}
+
+const Parameters CrBeamElement3D2N::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["MOMENT","FORCE","LOCAL_AXIS_1","LOCAL_AXIS_2","LOCAL_AXIS_3","INTEGRATION_COORDINATES"],
+            "nodal_historical"       : ["DISPLACEMENT","ROTATION","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","ROTATION"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","ROTATION_X","ROTATION_Y","ROTATION_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line3D2"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["BeamConstitutiveLaw"],
+            "dimension"   : ["3D"],
+            "strain_size" : [6]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This elements implements a 3D non-linear beam formulation."
+    })");
+
+    return specifications;
 }
 
 void CrBeamElement3D2N::save(Serializer& rSerializer) const

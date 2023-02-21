@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluid
@@ -92,11 +91,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             if( self.function_expression == "current" ):
                 self.value_is_current_value = True
             else:
-                if (sys.version_info > (3, 0)):
-                    self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
-                else:
-                    self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval'))
-
+                self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
                 self.value_is_spatial_function = True
 
                 if(self.function_expression.find("x") == -1 and
@@ -124,8 +119,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set time integration method
         self.SetTimeIntegration()

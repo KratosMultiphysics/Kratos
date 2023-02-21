@@ -33,7 +33,7 @@ namespace Kratos
  * for small and large displacements elasticity.
  */
 
-class LinearElasticPlaneStrain2DLaw : public LinearElastic3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) LinearElasticPlaneStrain2DLaw : public LinearElastic3DLaw
 {
 public:
     /**
@@ -100,7 +100,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 3;
     };

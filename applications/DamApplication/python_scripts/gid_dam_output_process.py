@@ -1,10 +1,10 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
-from KratosMultiphysics import *
+import KratosMultiphysics
+from KratosMultiphysics.deprecation_management import DeprecationManager
 
-class GiDDamOutputProcess(Process):
+class GiDDamOutputProcess(KratosMultiphysics.Process):
 
-    defaults = Parameters('''{
+    defaults = KratosMultiphysics.Parameters('''{
         "result_file_configuration": {
             "gidpost_flags": {
                 "GiDPostMode": "GiD_PostBinary",
@@ -13,7 +13,7 @@ class GiDDamOutputProcess(Process):
                 "MultiFileFlag": "SingleFile"
             },
             "output_control_type": "time_s",
-            "output_frequency": 1.0,
+            "output_interval": 1.0,
             "start_output_results": 0,
             "body_output": true,
             "node_output": false,
@@ -28,57 +28,59 @@ class GiDDamOutputProcess(Process):
         "point_data_configuration": []
     }''')
 
-    default_plane_output_data = Parameters('''{
+    default_plane_output_data = KratosMultiphysics.Parameters('''{
         "normal": [0.0, 0.0, 0.0],
         "point" : [0.0, 0.0, 0.0]
     }''')
 
     __post_mode = {
                     # JSON input
-                    "GiD_PostAscii":        GiDPostMode.GiD_PostAscii,
-                    "GiD_PostAsciiZipped":  GiDPostMode.GiD_PostAsciiZipped,
-                    "GiD_PostBinary":       GiDPostMode.GiD_PostBinary,
-                    "GiD_PostHDF5":         GiDPostMode.GiD_PostHDF5,
+                    "GiD_PostAscii":        KratosMultiphysics.GiDPostMode.GiD_PostAscii,
+                    "GiD_PostAsciiZipped":  KratosMultiphysics.GiDPostMode.GiD_PostAsciiZipped,
+                    "GiD_PostBinary":       KratosMultiphysics.GiDPostMode.GiD_PostBinary,
+                    "GiD_PostHDF5":         KratosMultiphysics.GiDPostMode.GiD_PostHDF5,
                     # Legacy
-                    "Binary":               GiDPostMode.GiD_PostBinary,
-                    "Ascii":                GiDPostMode.GiD_PostAscii,
-                    "AsciiZipped":          GiDPostMode.GiD_PostAsciiZipped,
+                    "Binary":               KratosMultiphysics.GiDPostMode.GiD_PostBinary,
+                    "Ascii":                KratosMultiphysics.GiDPostMode.GiD_PostAscii,
+                    "AsciiZipped":          KratosMultiphysics.GiDPostMode.GiD_PostAsciiZipped,
                     }
 
     __write_deformed_mesh = {
                     # JSON input
-                    "WriteDeformed":        WriteDeformedMeshFlag.WriteDeformed,
-                    "WriteUndeformed":      WriteDeformedMeshFlag.WriteUndeformed,
+                    "WriteDeformed":        KratosMultiphysics.WriteDeformedMeshFlag.WriteDeformed,
+                    "WriteUndeformed":      KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed,
                     # Legacy
-                    True:                   WriteDeformedMeshFlag.WriteDeformed,
-                    False:                  WriteDeformedMeshFlag.WriteUndeformed,
+                    True:                   KratosMultiphysics.WriteDeformedMeshFlag.WriteDeformed,
+                    False:                  KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed,
                     }
 
     __write_conditions = {
                     # JSON input
-                    "WriteConditions":      WriteConditionsFlag.WriteConditions,
-                    "WriteElementsOnly":    WriteConditionsFlag.WriteElementsOnly,
-                    "WriteConditionsOnly":  WriteConditionsFlag.WriteConditionsOnly,
+                    "WriteConditions":      KratosMultiphysics.WriteConditionsFlag.WriteConditions,
+                    "WriteElementsOnly":    KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly,
+                    "WriteConditionsOnly":  KratosMultiphysics.WriteConditionsFlag.WriteConditionsOnly,
                     # Legacy
-                    True:                   WriteConditionsFlag.WriteConditions,
-                    False:                  WriteConditionsFlag.WriteElementsOnly,
+                    True:                   KratosMultiphysics.WriteConditionsFlag.WriteConditions,
+                    False:                  KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly,
                     }
 
     __multi_file_flag = {
                     # JSON input
-                    "SingleFile":           MultiFileFlag.SingleFile,
-                    "MultipleFiles":        MultiFileFlag.MultipleFiles,
+                    "SingleFile":           KratosMultiphysics.MultiFileFlag.SingleFile,
+                    "MultipleFiles":        KratosMultiphysics.MultiFileFlag.MultipleFiles,
                     # Legacy
-                    "Multiples":            MultiFileFlag.MultipleFiles,
-                    "Single":               MultiFileFlag.SingleFile,
+                    "Multiples":            KratosMultiphysics.MultiFileFlag.MultipleFiles,
+                    "Single":               KratosMultiphysics.MultiFileFlag.SingleFile,
                     }
 
     def __init__(self,model_part,file_name,start_time,param = None):
-
+        KratosMultiphysics.Process.__init__(self)
         if param is None:
             param = self.defaults
         else:
-            # Note: this only validadtes the first level of the JSON tree.
+            # Warning: we may be changing the parameters object here:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
+            # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
             # not exist and I don't want the validator assinging defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
@@ -112,6 +114,28 @@ class GiDDamOutputProcess(Process):
     def Flush(cls,a):
         a.flush()
 
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'write_properties_id'
+            new_name = 'write_ids'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
+
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
@@ -144,7 +168,7 @@ class GiDDamOutputProcess(Process):
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
 
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
         self.start_output_results = result_file_configuration["start_output_results"].GetDouble()
 
         if self.start_time >= self.start_output_results:
@@ -159,13 +183,13 @@ class GiDDamOutputProcess(Process):
 
 
         # Set current time parameters
-        if(  self.model_part.ProcessInfo[IS_RESTARTED] == True ):
-            self.step_count = self.model_part.ProcessInfo[STEP]
-            self.printed_step_count = self.model_part.ProcessInfo[PRINTED_STEP]
+        if(  self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+            self.step_count = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+            self.printed_step_count = self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP]
 
-            self.next_output = self.model_part.ProcessInfo[TIME]
+            self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-            label = self.model_part.ProcessInfo[TIME]
+            label = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
             self.__remove_post_results_files(label)
 
@@ -182,7 +206,7 @@ class GiDDamOutputProcess(Process):
     def ExecuteBeforeSolutionLoop(self):
         '''Initialize output meshes.'''
         label = max(self.start_output_results, self.start_time)
-        if self.multifile_flag == MultiFileFlag.SingleFile:
+        if self.multifile_flag == KratosMultiphysics.MultiFileFlag.SingleFile:
             mesh_name = 0
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
@@ -192,7 +216,7 @@ class GiDDamOutputProcess(Process):
                 self.__write_nonhistorical_nodal_results(label)
                 self.__write_nodal_flags(label)
 
-        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+        if self.multifile_flag == KratosMultiphysics.MultiFileFlag.MultipleFiles:
             if (self.start_output_results == 0) or (not self.start_time == 0):
                 self.__write_mesh(label)
                 self.__initialize_results(label)
@@ -259,7 +283,7 @@ class GiDDamOutputProcess(Process):
     def IsOutputStep(self):
 
         result_file_configuration = self.param["result_file_configuration"]
-        time = self.model_part.ProcessInfo[TIME]
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         if result_file_configuration["output_control_type"].GetString() == "time_s":
             time = time
         elif result_file_configuration["output_control_type"].GetString() == "time_h":
@@ -274,15 +298,17 @@ class GiDDamOutputProcess(Process):
     def PrintOutput(self):
 
         result_file_configuration = self.param["result_file_configuration"]
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
+            if self.point_output_process.IsOutputStep():
+                self.point_output_process.PrintOutput()
 
         # Print the output
-        time = self.model_part.ProcessInfo[TIME]
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.printed_step_count += 1
-        self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
+        self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.printed_step_count
 
         if result_file_configuration["output_control_type"].GetString() == "time_s":
             label = time
@@ -297,7 +323,7 @@ class GiDDamOutputProcess(Process):
             label = time/604800
             time = time/604800.0
 
-        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+        if self.multifile_flag == KratosMultiphysics.MultiFileFlag.MultipleFiles:
             self.__write_mesh(label)
             self.__initialize_results(label)
 
@@ -306,7 +332,7 @@ class GiDDamOutputProcess(Process):
         self.__write_nonhistorical_nodal_results(time)
         self.__write_nodal_flags(time)
 
-        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+        if self.multifile_flag == KratosMultiphysics.MultiFileFlag.MultipleFiles:
             self.__finalize_results()
             self.__write_multifile_lists(label)
 
@@ -321,10 +347,10 @@ class GiDDamOutputProcess(Process):
     def ExecuteFinalize(self):
         '''Finalize files and free resources.'''
 
-        if self.multifile_flag == MultiFileFlag.SingleFile:
+        if self.multifile_flag == KratosMultiphysics.MultiFileFlag.SingleFile:
             self.__finalize_results()
 
-        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+        if self.multifile_flag == KratosMultiphysics.MultiFileFlag.MultipleFiles:
             self.__close_multifiles()
 
         if self.point_output_process is not None:
@@ -354,18 +380,18 @@ class GiDDamOutputProcess(Process):
         self.multifile_flag = self.__get_gidpost_flag(param,"MultiFileFlag", self.__multi_file_flag)
 
         if self.body_output or self.node_output:
-            self.body_io = GidIO( self.volume_file_name,
-                                    self.post_mode,
-                                    self.multifile_flag,
-                                    self.write_deformed_mesh,
-                                    self.write_conditions)
+            self.body_io = KratosMultiphysics.GidIO(self.volume_file_name,
+                                                    self.post_mode,
+                                                    self.multifile_flag,
+                                                    self.write_deformed_mesh,
+                                                    self.write_conditions)
 
         if self.skin_output or self.num_planes > 0:
-            self.cut_io = GidIO(self.cut_file_name,
-                                self.post_mode,
-                                self.multifile_flag,
-                                self.write_deformed_mesh,
-                                WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
+            self.cut_io = KratosMultiphysics.GidIO(self.cut_file_name,
+                                                   self.post_mode,
+                                                   self.multifile_flag,
+                                                   self.write_deformed_mesh,
+                                                   KratosMultiphysics.WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
 
     def __get_gidpost_flag(self, param, label, dictionary):
         '''Parse gidpost settings using an auxiliary dictionary of acceptable values.'''
@@ -428,14 +454,14 @@ class GiDDamOutputProcess(Process):
         if self.body_io is not None:
             list_file = open(name_base+name_ext,"w")
 
-            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            if self.multifile_flag == KratosMultiphysics.MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
-            elif self.multifile_flag == MultiFileFlag.SingleFile:
+            elif self.multifile_flag == KratosMultiphysics.MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
             self.volume_list_files.append( [1,list_file] )
 
-            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            if self.multifile_flag == KratosMultiphysics.MultiFileFlag.MultipleFiles:
                 for freq in extra_frequencies:
                     list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
                     list_file = open(list_file_name,"w")
@@ -449,14 +475,14 @@ class GiDDamOutputProcess(Process):
 
             list_file = open(name_base+name_ext,"w")
 
-            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            if self.multifile_flag == KratosMultiphysics.MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
-            elif self.multifile_flag == MultiFileFlag.SingleFile:
+            elif self.multifile_flag == KratosMultiphysics.MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
             self.cut_list_files.append( [1,list_file] )
 
-            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            if self.multifile_flag == KratosMultiphysics.MultiFileFlag.MultipleFiles:
                 for freq in extra_frequencies:
                     list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
                     list_file = open(list_file_name,"w")
@@ -499,7 +525,7 @@ class GiDDamOutputProcess(Process):
             raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
+        return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
 
     def __generate_flags_list_from_input(self,param):
         '''Parse a list of variables from input.'''
@@ -589,11 +615,11 @@ class GiDDamOutputProcess(Process):
 
         self.__initialize_list_files(additional_frequencies)
 
-        if self.post_mode == GiDPostMode.GiD_PostBinary:
+        if self.post_mode == KratosMultiphysics.GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
-        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+        elif self.post_mode == KratosMultiphysics.GiDPostMode.GiD_PostAscii:
             ext = ".post.res"
-        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+        elif self.post_mode == KratosMultiphysics.GiDPostMode.GiD_PostAsciiZipped:
             ext = ".post.res"
         else:
             return # No support for list_files in this format
@@ -631,7 +657,7 @@ class GiDDamOutputProcess(Process):
     def __write_inital_step_in_multifile_lists(self, label):
         for mfilelist in self.multifilelists:
 
-            if (self.post_mode == GiDPostMode.GiD_PostBinary):
+            if (self.post_mode == KratosMultiphysics.GiDPostMode.GiD_PostBinary):
                 text_to_print = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"
                 mfilelist.file.write(text_to_print)
             else:
@@ -646,7 +672,7 @@ class GiDDamOutputProcess(Process):
         for mfilelist in self.multifilelists:
             if (label % mfilelist.step) == 0:
 
-                if (self.post_mode == GiDPostMode.GiD_PostBinary):
+                if (self.post_mode == KratosMultiphysics.GiDPostMode.GiD_PostBinary):
                     text_to_print = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"
                     mfilelist.file.write(text_to_print)
                 else:
@@ -686,11 +712,11 @@ class GiDDamOutputProcess(Process):
 
         path = os.getcwd()
 
-        if self.post_mode == GiDPostMode.GiD_PostBinary:
+        if self.post_mode == KratosMultiphysics.GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
-        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+        elif self.post_mode == KratosMultiphysics.GiDPostMode.GiD_PostAscii:
             ext = ".post.res"
-        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+        elif self.post_mode == KratosMultiphysics.GiDPostMode.GiD_PostAsciiZipped:
             ext = ".post.res"
 
         # remove post result files:

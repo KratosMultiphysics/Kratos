@@ -88,7 +88,7 @@ public:
         MatrixType                  N_pos_int;              // Positive interface Gauss pts. shape functions values
         ShapeFunctionsGradientsType DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
-        std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
+        std::vector<array_1d<double,3>> pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
         std::vector<unsigned int>   int_vec_identifiers;    // Interior (fluid) nodes identifiers
         std::vector<unsigned int>   out_vec_identifiers;    // Outside (stucture) nodes identifiers
@@ -190,7 +190,7 @@ public:
 
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-            if (TNumNodes == 4) {
+            if constexpr (TNumNodes == 4) {
                 p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, distances);
             } else {
                 p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, distances);
@@ -201,26 +201,26 @@ public:
                 rData.N_pos_side,
                 rData.DN_DX_pos_side,
                 rData.w_gauss_pos_side,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the fluid side interface modified shape functions calculator
             p_modified_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
                 rData.N_pos_int,
                 rData.DN_DX_pos_int,
                 rData.w_gauss_pos_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the fluid side Gauss pts. unit normal calculator
             p_modified_sh_func->ComputePositiveSideInterfaceAreaNormals(
                 rData.pos_int_unit_normals,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Normalize the obtained area normals
             const double tol = std::pow(1e-3*rData.h, TDim-1); // Tolerance to avoid the unit normal to blow up
             const unsigned int n_gauss = (rData.pos_int_unit_normals).size();
 
             for (unsigned int i_gauss = 0;  i_gauss < n_gauss; ++i_gauss) {
-                Vector& normal = rData.pos_int_unit_normals[i_gauss];
+                array_1d<double,3>& normal = rData.pos_int_unit_normals[i_gauss];
                 const double n_norm = norm_2(normal);
                 normal /= std::max(n_norm, tol);
             }
@@ -236,7 +236,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override {
+        const ProcessInfo& rCurrentProcessInfo) override {
 
         KRATOS_TRY;
 
@@ -360,7 +360,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -371,10 +371,6 @@ public:
         }
 
         // Specific embedded element check
-        if (DISTANCE.Key() == 0){
-            KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
-        }
-
         for (unsigned int i = 0; i < (this->GetGeometry()).size(); ++i){
             if (this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false){
                 KRATOS_ERROR << "missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
@@ -598,26 +594,18 @@ protected:
         }
 
         // Compute the element average values
-        double avg_rho = 0.0;
-        double avg_visc = 0.0;
         array_1d<double, TDim> avg_vel = ZeroVector(TDim);
-
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            avg_rho += rData.rho(i_node);
-            avg_visc += rData.mu(i_node);
             avg_vel += row(rData.v, i_node);
         }
-
-        avg_rho /= TNumNodes;
-        avg_visc /= TNumNodes;
         avg_vel /= TNumNodes;
 
         const double v_norm = norm_2(avg_vel);
 
         // Compute the penalty constant
-        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
-                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) +
-                                avg_rho*v_norm*std::pow(rData.h, TDim-1);
+        const double pen_cons = rData.rho*std::pow(rData.h, TDim)/rData.dt +
+                                rData.rho*rData.mu*std::pow(rData.h,TDim-2) +
+                                rData.rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
         const double K = rCurrentProcessInfo[PENALTY_COEFFICIENT];
@@ -877,16 +865,9 @@ protected:
         }
         v_norm = std::sqrt(v_norm);
 
-        // Compute the element average density
-        double avg_rho = 0.0;
-        for (unsigned int j=0; j<TNumNodes; ++j) {
-            avg_rho += rData.rho(j);
-        }
-        avg_rho /= TNumNodes;
-
         // Compute the Nitsche coefficient (considering the Winter stabilization term)
         const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
-        const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*rData.h + avg_rho*rData.h*rData.h/rData.dt)/(rData.h*penalty);
+        const double cons_coef = (eff_mu + eff_mu + rData.rho*v_norm*rData.h + rData.rho*rData.h*rData.h/rData.dt)/(rData.h*penalty);
 
         // Declare auxiliar arrays
         BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
@@ -1254,7 +1235,7 @@ protected:
         constexpr unsigned int BlockSize = TDim+1;
         rB_matrix.clear();
 
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             for (unsigned int i=0; i<TNumNodes; i++) {
                 rB_matrix(0,i*BlockSize)   = rDN_DX(i,0);
                 rB_matrix(1,i*BlockSize+1) = rDN_DX(i,1);
@@ -1288,7 +1269,7 @@ protected:
         rNormProjMatrix.clear();
 
         // Fill the normal projection matrix (nxn)
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             noalias(rNormProjMatrix) = outer_prod(rUnitNormal, rUnitNormal);
         } else {
             rNormProjMatrix(0,0) = rUnitNormal(0)*rUnitNormal(0);
@@ -1310,7 +1291,7 @@ protected:
         rTangProjMatrix.clear();
 
         // Fill the tangential projection matrix (I - nxn)
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             #ifdef KRATOS_USE_AMATRIX
             BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim);
             #else
@@ -1336,7 +1317,7 @@ protected:
 
         rVoigtNormProjMatrix.clear();
 
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
             rVoigtNormProjMatrix(0,3) = rUnitNormal(1);
             rVoigtNormProjMatrix(0,5) = rUnitNormal(2);

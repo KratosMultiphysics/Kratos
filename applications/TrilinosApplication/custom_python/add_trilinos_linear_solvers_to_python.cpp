@@ -4,19 +4,17 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-
-// Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define_python.h"
@@ -39,6 +37,10 @@
 #include "external_includes/amesos_solver.h"
 #endif
 
+#ifndef TRILINOS_EXCLUDE_AMESOS2_SOLVER
+#include "external_includes/amesos2_solver.h"
+#endif
+
 #ifndef TRILINOS_EXCLUDE_ML_SOLVER
 #include "external_includes/ml_solver.h"
 #endif
@@ -46,10 +48,7 @@
 #include "external_includes/amgcl_mpi_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -94,9 +93,18 @@ void  AddLinearSolvers(pybind11::module& m)
     py::class_<AmesosSolverType, typename AmesosSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmesosSolver").def( py::init<const std::string&, Teuchos::ParameterList& >())
         .def(py::init<Parameters>())
-        .def(py::init<Parameters>())
         .def_static("HasSolver", &AmesosSolverType::HasSolver)
         .def("__str__", PrintObject<AmesosSolverType>)
+        ;
+#endif
+
+#ifndef TRILINOS_EXCLUDE_AMESOS2_SOLVER
+    typedef Amesos2Solver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > Amesos2SolverType;
+    py::class_<Amesos2SolverType, typename Amesos2SolverType::Pointer, TrilinosLinearSolverType >
+    (m,"Amesos2Solver").def( py::init<const std::string&, Teuchos::ParameterList& >())
+        .def(py::init<Parameters>())
+        .def_static("HasSolver", &Amesos2SolverType::HasSolver)
+        .def("__str__", PrintObject<Amesos2SolverType>)
         ;
 #endif
 
@@ -140,8 +148,6 @@ void  AddLinearSolvers(pybind11::module& m)
         ;
 }
 
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Python:: Kratos.
 
 #endif // KRATOS_PYTHON defined

@@ -1,20 +1,26 @@
 import numpy as np
+from xmc.tools import normalInverseCDF
+
 
 def singleIndexDoubleSampleNumber(inputDict, newLevels):
-    oldHierarchy = inputDict['oldHierarchy']
+    oldHierarchy = inputDict["oldHierarchy"]
     old_sample_number = oldHierarchy[0][1]
-    return [2*old_sample_number]
+    return [2 * old_sample_number]
+
 
 def singleIndexConstantSampleNumber(inputDict, newLevels):
-    defaultHierarchy = inputDict['defaultHierarchy']
+    defaultHierarchy = inputDict["defaultHierarchy"]
     sample_number = defaultHierarchy[0][1]
     return [sample_number]
 
+
 def singleIndexAdaptive(inputDict, newLevels):
-    oldHierarchy = inputDict['oldHierarchy']
-    variance = inputDict['estimations'][0][0]*oldHierarchy[0][1]
-    tolerance = inputDict['tolerances'][0]
-    return [int(np.ceil(variance/tolerance)**2)]
+    oldHierarchy = inputDict["oldHierarchy"]
+    variance = inputDict["estimations"][0][0] * oldHierarchy[0][1]
+    tolerance = inputDict["tolerances"][0]
+    # TODO Here the tolerance is applied to the standard deviation. Check consistency with the rest of the library.
+    return [int(np.ceil(variance / tolerance ** 2))]
+
 
 def multiLevelDoubleAllSamples(inputDict, newLevels):
     """
@@ -23,19 +29,20 @@ def multiLevelDoubleAllSamples(inputDict, newLevels):
     entry of newLevels exists in oldHierarchy. If not, allocate a default
     newSampleNumber to the entry.
     """
-    oldHierarchy = inputDict['oldHierarchy']
-    newSampleNumber = inputDict['newSampleNumber']
+    oldHierarchy = inputDict["oldHierarchy"]
+    newSampleNumber = inputDict["newSampleNumber"]
     new_samples = []
     for newLevel in newLevels:
         is_level_found = False
         for oldElement in oldHierarchy:
-            if newLevel==oldElement[0]:
-                new_samples.append(2*oldElement[1])
+            if newLevel == oldElement[0]:
+                new_samples.append(2 * oldElement[1])
                 is_level_found = True
                 break
         if is_level_found is False:
             new_samples.append(newSampleNumber)
     return new_samples
+
 
 def multiLevelConstantSampleNumber(inputDict, newLevels):
     """
@@ -44,74 +51,70 @@ def multiLevelConstantSampleNumber(inputDict, newLevels):
     entry of newLevels exists in deafultHierarchy. If not, allocate a default
     newSampleNumber to the entry.
     """
-    defaultHierarchy = inputDict['defaultHierarchy']
-    newSampleNumber = inputDict['newSampleNumber']
+    defaultHierarchy = inputDict["defaultHierarchy"]
+    newSampleNumber = inputDict["newSampleNumber"]
     new_samples = []
     for level in newLevels:
         is_level_found = False
         for defaultElement in defaultHierarchy:
-            if (level == defaultElement[0]):
-                new_samples.append(1*defaultElement[1])
+            if level == defaultElement[0]:
+                new_samples.append(1 * defaultElement[1])
                 is_level_found = True
                 break
-        if (is_level_found is False):
+        if is_level_found is False:
             new_samples.append(newSampleNumber)
     return new_samples
 
-def multiLevelCostMinimisationTErr(inputDict, newLevels):
-    oldHierarchy = inputDict['oldHierarchy']
-    errorParameters = inputDict['errorParameters']
-    cdf_value = errorParameters[0][0]
-    tolerance = inputDict['tolerances'][0]
-    splitting_parameter = inputDict['splittingParameter']
-    cost_model = inputDict['costModel']
-    cost_parameters = inputDict['costParameters']
-    variances_for_hierarchy = inputDict['variancesForHierarchy']
 
-    new_samples = []
-    max_level = max([newLevels[i][0] for i in range(len(newLevels))])
+def minimalCostStatisticalError(inputDict, newLevels):
+    """Compute sample numbers to satisfy tolerance on statistical error with minimal cost."""
+    # Variances
+    variances = inputDict["blendedVariances"]
+    if variances is None:
+        # Variance was not blended
+        hierarchy = inputDict["oldHierarchy"]
+        if inputDict["parametersForModel"] is not None:
+            # We have a valid model
+            variance_params = inputDict["parametersForModel"][1]
+            variance_model = inputDict["models"][1]
+            variances = [variance_model(variance_params, l) for l in newLevels]
+            # Use sample estimation for first level
+            variances[0] = inputDict["estimations"][-1][0] * hierarchy[0][1]
+        else:
+            # No model: fall back to sample estimations
+            variances = [v * n[1] for v, n in zip(inputDict["estimations"][-1], hierarchy)]
 
-    # Compute this term - sum_{k=0}^L sqrt(C_k V_k) for later use
-    cost_variance_sum = 0.0
-    for i in range(len(newLevels)):
-        cost_level = cost_model(cost_parameters,newLevels[i])
-        variance_level = variances_for_hierarchy[i]
-        cost_variance_sum += np.sqrt(cost_level*variance_level)
-
-    # Compute number of samples
-    constantTerm = (cdf_value/(splitting_parameter*tolerance))**2 * cost_variance_sum
-    for i in range(len(newLevels)):
-        cost_level = cost_model(cost_parameters,newLevels[i])
-        variance_level = variances_for_hierarchy[i]
-        new_sample = constantTerm * np.sqrt(variance_level/cost_level)
-        new_samples.append(int(np.ceil(new_sample)))
-    return new_samples
-
-def multiLevelCostMinimisationMSE(inputDict,newLevels):
-    oldHierarchy = inputDict['oldHierarchy']
-    errorParameters = inputDict['errorParameters']
-    cdf_value = errorParameters[0][0]
-    splitting_parameter = inputDict['splittingParameter']
-    tolerance = inputDict['tolerances'][0]
-    cost_model = inputDict['costModel']
-    cost_parameters = inputDict['costParameters']
-    cost_estimations = inputDict['costEstimations']
-    variances_for_hierarchy = inputDict['variancesForHierarchy']
-
-    new_samples = []
-    max_level = max([newLevels[i][0] for i in range(len(newLevels))])
+    # Costs
+    cost_parameters = inputDict["costParameters"]
+    if cost_parameters is not None:
+        # We have a valid model
+        cost_model = inputDict["costModel"]
+        costs = [cost_model(cost_parameters, l) for l in newLevels]
+        # Use sample estimation for first level
+        costs[0] = inputDict["costEstimations"][0]
+    else:
+        # No model: fall back to sample estimations
+        costs = inputDict["costEstimations"]
 
     # Compute this term - sum_{k=0}^L sqrt(C_k V_k) for later use
     cost_variance_sum = 0.0
-    for i in range(len(newLevels)):
-        cost_level = cost_model(cost_parameters,newLevels[i])
-        variance_level = variances_for_hierarchy[i]
-        cost_variance_sum += np.sqrt(cost_level*variance_level)
+    for i, cost in enumerate(costs):
+        cost_variance_sum += np.sqrt(cost * variances[i])
+
+    # Factor for sample numbers, independent of level
+    cdf_value = normalInverseCDF(inputDict["errorParameters"][0][0])
+    tolerance = inputDict["tolerances"][0] * inputDict["splittingParameter"]
+    constantFactor = (cdf_value / tolerance) ** 2 * cost_variance_sum
 
     # Compute number of samples
+    new_samples = []
     for i in range(len(newLevels)):
-        cost_level = cost_model(cost_parameters,newLevels[i])
-        variance_level = variances_for_hierarchy[i]
-        new_sample = (cdf_value/(splitting_parameter*tolerance))**2 * cost_variance_sum * np.sqrt(variance_level/cost_level)
-        new_samples.append(int(np.ceil(new_sample)))
+        if i > len(costs) - 1:
+            # No data for this level. Set sample number to zero.
+            # The hierarchy optimiser enforces the minimal number of samples per level
+            new_samples.append(0)
+            continue
+        variance_level = variances[i]
+        new_sample_nb = constantFactor * np.sqrt(variance_level / costs[i])
+        new_samples.append(int(np.ceil(new_sample_nb)))
     return new_samples

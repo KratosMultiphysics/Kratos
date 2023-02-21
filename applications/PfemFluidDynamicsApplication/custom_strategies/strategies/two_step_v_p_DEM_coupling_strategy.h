@@ -16,7 +16,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
@@ -34,7 +34,7 @@
 #include "two_step_v_p_DEM_coupling_strategy.h"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -99,7 +99,6 @@ namespace Kratos
     using TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mPressureTolerance;
     using TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mMaxPressureIter;
     using TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mDomainSize;
-    using TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mTimeOrder;
     using TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mReformDofSet;
     ///@}
     ///@name Life Cycle
@@ -139,7 +138,6 @@ namespace Kratos
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
@@ -154,7 +152,7 @@ namespace Kratos
         /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
         if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
         {
-          this->UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
+          this->UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity);
         }
         else if ((i)->Is(RIGID))
         {

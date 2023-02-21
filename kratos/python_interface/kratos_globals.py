@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 class KratosGlobalsImpl(object):
 
     def __init__(self, ThisKernel, ApplicationsRoot):
@@ -15,6 +13,15 @@ class KratosGlobalsImpl(object):
     def echo(self):
         print("Kernel:", self.Kernel)
         print("Kratos Applications base folder:", self.ApplicationsRoot)
+
+    def HasFlag(self, FlagName):
+        """ This method returns if the flag with the given name exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        FlagName -- The name of the flag to check
+        """
+        return self.Kernel.HasFlag(FlagName)
 
     def GetFlag(self, FlagName):
         """ This method returns the flag with the given name

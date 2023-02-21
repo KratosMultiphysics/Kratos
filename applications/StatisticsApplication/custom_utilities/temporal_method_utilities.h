@@ -32,10 +32,11 @@ namespace Kratos
 
 namespace TemporalMethodUtilities
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor, typename TDataType>
-void InitializeVariables(TContainerType& rContainer,
-                         const Variable<TDataType>& rOutputVariable,
-                         const Variable<TDataType>& rReferenceVariable)
+template <class TContainerType, class TContainerItemType, template <class T> class TDataRetrievalFunctor, template <class T> class TDataStorageFunctor, class TDataType>
+void InitializeVariables(
+    TContainerType& rContainer,
+    const Variable<TDataType>& rOutputVariable,
+    const Variable<TDataType>& rReferenceVariable)
 {
     if (rContainer.size() > 0)
     {
@@ -54,10 +55,8 @@ void InitializeVariables(TContainerType& rContainer,
     }
 }
 
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataStorageFunctor>
-void InitializeVariables(TContainerType& rContainer,
-                         const Variable<double>& rOutputVariable,
-                         const double InitializerValue)
+template <class TContainerType, class TContainerItemType, template <class T> class TDataStorageFunctor>
+void InitializeVariables(TContainerType& rContainer, const Variable<double>& rOutputVariable, const double InitializerValue)
 {
     if (rContainer.size() > 0)
     {

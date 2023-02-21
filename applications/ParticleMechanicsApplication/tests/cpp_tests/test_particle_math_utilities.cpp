@@ -133,25 +133,29 @@ namespace Testing
         Matrix A = CreateSymmetricTest3Matrix3x3();
         ParticleMechanicsMathUtilities<double>::QRFactorization(A, Q, R);
 
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - Q(0,0))/Q(0,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 4.082483e-01 - Q(0,1))/Q(0,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-5.773503e-01 - Q(0,2))/Q(0,2), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - Q(1,0))/Q(1,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-4.082483e-01 - Q(1,1))/Q(1,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 5.773503e-01 - Q(1,2))/Q(1,2), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - Q(2,0))/Q(2,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 8.164966e-01 - Q(2,1))/Q(2,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 5.773503e-01 - Q(2,2))/Q(2,2), 1e-6);
+        Matrix Q_ref(3,3);
+        Q_ref(0,0) = -7.071068e-01;
+        Q_ref(0,1) =  4.082483e-01;
+        Q_ref(0,2) = -5.773503e-01;
+        Q_ref(1,0) = -7.071068e-01;
+        Q_ref(1,1) = -4.082483e-01;
+        Q_ref(1,2) =  5.773503e-01;
+        Q_ref(2,0) =  0.000000e+00;
+        Q_ref(2,1) =  8.164966e-01;
+        Q_ref(2,2) =  5.773503e-01;
+        KRATOS_CHECK_MATRIX_RELATIVE_NEAR(Q, Q_ref, 1e-6);
 
-        KRATOS_CHECK_LESS_EQUAL((-1.414214e+00 - R(0,0))/R(0,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - R(0,1))/R(0,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - R(0,2))/R(0,2), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(1,0))/R(1,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 1.224745e+00 - R(1,1))/R(1,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 4.082483e-01 - R(1,2))/R(1,2), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(2,0))/R(2,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(2,1))/R(2,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 1.154701e+00 - R(2,2))/R(2,2), 1e-6);
+        Matrix R_ref(3,3);
+        R_ref(0,0) = -1.414214e+00;
+        R_ref(0,1) = -7.071068e-01;
+        R_ref(0,2) = -7.071068e-01;
+        R_ref(1,0) =  0.000000e+00;
+        R_ref(1,1) =  1.224745e+00;
+        R_ref(1,2) =  4.082483e-01;
+        R_ref(2,0) =  0.000000e+00;
+        R_ref(2,1) =  0.000000e+00;
+        R_ref(2,2) =  1.154701e+00;
+        KRATOS_CHECK_MATRIX_RELATIVE_NEAR(R, R_ref, 1e-6);
 
         // Check False
         A.resize(4,3,false);
@@ -176,64 +180,61 @@ namespace Testing
         Matrix A = CreateTestMatrix3x3();
         noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValues(A);
 
-        KRATOS_CHECK_LESS_EQUAL(( -5.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((  3.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((  6.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
+        std::vector<double> eigen_values_3_ref = {-5.0, 3.0, 6.0};
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR( eigen_values_3, eigen_values_3_ref, 1e-6);
 
         Matrix B = CreateTestMatrix2x2();
         noalias(eigen_values_2) = ParticleMechanicsMathUtilities<double>::EigenValues(B);
 
-        KRATOS_CHECK_LESS_EQUAL(( 4.0 - eigen_values_2[0])/eigen_values_2[0], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-3.0 - eigen_values_2[1])/eigen_values_2[1], 1e-6);
+        std::vector<double> eigen_values_2_ref = {4.0, -3.0};
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR( eigen_values_2, eigen_values_2_ref, 1e-6);
 
         // 2. Compute EigenValues using direct method
         Matrix C = CreateSymmetricTestMatrix3x3();
         noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValuesDirectMethod(C);
 
-        KRATOS_CHECK_LESS_EQUAL(( 8.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
+        eigen_values_3_ref = {8.0, -1.0, -1.0};
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR( eigen_values_3, eigen_values_3_ref,1e-6);
 
         Matrix D = CreateSymmetricTest2Matrix3x3();
         noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValuesDirectMethod(D);
 
-        KRATOS_CHECK_LESS_EQUAL((10.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 6.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
+        eigen_values_3_ref = {10, 6.0, 0.0};
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(eigen_values_3, eigen_values_3_ref, 1e-6);
 
         // 3. Compute EigenVectors and EigenValues of 3x3 symmetric matrices - using Gauss Seidel method
         ParticleMechanicsMathUtilities<double>::EigenVectors(C, eigen_vectors_3, eigen_values_3, comp_tolerance, num_iteration);
 
-        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 8.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
+        eigen_values_3_ref = {-1.0, -1.0, 8.0};
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(eigen_values_3, eigen_values_3_ref, 1e-6);
 
-        KRATOS_CHECK_LESS_EQUAL(( 7.071068e-01 - eigen_vectors_3(0,0))/eigen_vectors_3(0,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(0,1))/eigen_vectors_3(0,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - eigen_vectors_3(0,2))/eigen_vectors_3(0,2), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-2.357023e-01 - eigen_vectors_3(1,0))/eigen_vectors_3(1,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 9.428090e-01 - eigen_vectors_3(1,1))/eigen_vectors_3(1,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-2.357023e-01 - eigen_vectors_3(1,2))/eigen_vectors_3(1,2), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 6.666667e-01 - eigen_vectors_3(2,0))/eigen_vectors_3(2,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 3.333333e-01 - eigen_vectors_3(2,1))/eigen_vectors_3(2,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 6.666667e-01 - eigen_vectors_3(2,2))/eigen_vectors_3(2,2), 1e-6);
+        Matrix eigen_vectors_3_ref(3,3);
+        eigen_vectors_3_ref(0,0) =  7.071068e-01;
+        eigen_vectors_3_ref(0,1) =  0.000000e+00;
+        eigen_vectors_3_ref(0,2) = -7.071068e-01;
+        eigen_vectors_3_ref(1,0) = -2.357023e-01;
+        eigen_vectors_3_ref(1,1) =  9.428090e-01;
+        eigen_vectors_3_ref(1,2) = -2.357023e-01;
+        eigen_vectors_3_ref(2,0) =  6.666667e-01;
+        eigen_vectors_3_ref(2,1) =  3.333333e-01;
+        eigen_vectors_3_ref(2,2) =  6.666667e-01;
+        KRATOS_CHECK_MATRIX_RELATIVE_NEAR( eigen_vectors_3, eigen_vectors_3_ref, 1e-6);
 
         ParticleMechanicsMathUtilities<double>::EigenVectors(D, eigen_vectors_3, eigen_values_3, comp_tolerance, num_iteration);
 
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((10.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 6.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
+        eigen_values_3_ref = {0.0, 10.0, 6.0};
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR( eigen_values_3, eigen_values_3_ref, 1e-6);
 
-        KRATOS_CHECK_LESS_EQUAL(( 8.944272e-01 - eigen_vectors_3(0,0))/eigen_vectors_3(0,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-4.472136e-01 - eigen_vectors_3(0,1))/eigen_vectors_3(0,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(0,2))/eigen_vectors_3(0,2), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 4.472136e-01 - eigen_vectors_3(1,0))/eigen_vectors_3(1,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 8.944272e-01 - eigen_vectors_3(1,1))/eigen_vectors_3(1,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(1,2))/eigen_vectors_3(1,2), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(2,0))/eigen_vectors_3(2,0), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(2,1))/eigen_vectors_3(2,1), 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 1.000000e+00 - eigen_vectors_3(2,2))/eigen_vectors_3(2,2), 1e-6);
-
+        eigen_vectors_3_ref(0,0) =  8.944272e-01;
+        eigen_vectors_3_ref(0,1) = -4.472136e-01;
+        eigen_vectors_3_ref(0,2) =  0.000000e+00;
+        eigen_vectors_3_ref(1,0) =  4.472136e-01;
+        eigen_vectors_3_ref(1,1) =  8.944272e-01;
+        eigen_vectors_3_ref(1,2) =  0.000000e+00;
+        eigen_vectors_3_ref(2,0) =  0.000000e+00;
+        eigen_vectors_3_ref(2,1) =  0.000000e+00;
+        eigen_vectors_3_ref(2,2) =  1.000000e+00;
+        KRATOS_CHECK_MATRIX_RELATIVE_NEAR( eigen_vectors_3, eigen_vectors_3_ref, 1e-6);
     }
 
     /**

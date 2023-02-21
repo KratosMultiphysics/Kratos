@@ -30,12 +30,14 @@
     #define REAL double
 #endif 
 
-#include "external_includes/trigen_pfem_refine.h"
-#include "external_includes/trigen_pfem_refine_vms.h"
-#include "external_includes/trigen_pfem_refine_segment.h"
-#include "external_includes/trigen_glass_forming.h"
-#include "external_includes/trigen_droplet_refine.h"
-#include "external_includes/trigen_cdt.h"
+#if USE_TRIANGLE_NONFREE_TPL
+    #include "external_includes/trigen_pfem_refine.h"
+    #include "external_includes/trigen_pfem_refine_vms.h"
+    #include "external_includes/trigen_pfem_refine_segment.h"
+    #include "external_includes/trigen_glass_forming.h"
+    #include "external_includes/trigen_droplet_refine.h"
+    #include "external_includes/trigen_cdt.h"
+#endif 
 
 namespace Kratos
 {
@@ -52,7 +54,7 @@ namespace py = pybind11;
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //tetgen pfem refine
-void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, NodeEraseProcess& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
+void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, EntitiesEraseProcess<Node<3>>& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -73,7 +75,7 @@ void GenerateCDT(TetGenCDT& Mesher, ModelPart& rModelPart, char* ElementName, bo
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //tetgen pfem refine
-void TetRegenerateMeshWithFace(TetGenPfemRefineFace& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TetRegenerateMeshWithFace(TetGenPfemRefineFace& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, EntitiesEraseProcess<Node<3>>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,rElements,
                           KratosComponents<Element>::Get(ElementName),
@@ -100,7 +102,7 @@ void TetRegenerateMeshContact(TetGenPfemContact& Mesher, char* ElementName, char
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //tetgen pfem refine
-void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, NodeEraseProcess& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
+void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, EntitiesEraseProcess<Node<3>>& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -110,6 +112,7 @@ void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char*
 }
 #endif
 
+#if USE_TRIANGLE_NONFREE_TPL
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                       //
 //                                            ADAPTIVE 2D MESHER                         //
@@ -117,7 +120,7 @@ void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char*
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //trigen pfem refine
-void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node<3>>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -130,7 +133,7 @@ void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* Condi
 //                                                                                       //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void TriRegenerateMeshGLASS(TriGenGLASSModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMeshGLASS(TriGenGLASSModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node<3>>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -145,7 +148,7 @@ void TriRegenerateMeshGLASS(TriGenGLASSModeler& Mesher, char* ElementName, char*
 //                                                                                       //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void TriRegenerateMeshDroplet(TriGenDropletModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMeshDroplet(TriGenDropletModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node<3>>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMeshDroplet(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -173,7 +176,7 @@ void TriGenCDTFluid(TriGenCDT& Mesher,ModelPart& rModelPart)
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //trigen pfem refine segment
-void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node<3>>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -187,12 +190,13 @@ void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* Element
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //trigen pfem vms refine
-void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node<3>>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
                           KratosComponents<Condition>::Get(ConditionName),NodeErase, RemNodes, AddNodes, AlphaShape, HFactor     );
 }
+#endif
 
 void  AddMeshersToPython(pybind11::module& m)
 {
@@ -226,6 +230,7 @@ void  AddMeshersToPython(pybind11::module& m)
     ;
 #endif
     
+#if USE_TRIANGLE_NONFREE_TPL
     // Class that allows 2D adaptive remeshing (inserting and erasing nodes)
     py::class_<TriGenPFEMModeler, TriGenPFEMModeler::Pointer >(m, "TriGenPFEMModeler")
     .def(py::init< >())
@@ -256,6 +261,7 @@ void  AddMeshersToPython(pybind11::module& m)
     .def(py::init< >())
     .def("ReGenerateMesh",TriRegenerateMeshWithSegment)
     ;
+#endif
 }
 
 }  // namespace Python.

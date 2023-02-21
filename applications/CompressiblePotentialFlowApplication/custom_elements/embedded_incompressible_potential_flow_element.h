@@ -42,7 +42,7 @@ public:
 
     ///@name Pointer Definitions
     /// Pointer definition of EmbeddedIncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedIncompressiblePotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedIncompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -113,9 +113,9 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
     /// Turn back information as a string.
     std::string Info() const override;
 
@@ -134,11 +134,12 @@ private:
 
     void CalculateEmbeddedLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              const ProcessInfo& rCurrentProcessInfo);
 
-    void AddPotentialGradientStabilizationTerm(MatrixType& rLeftHandSideMatrix,
+    void CalculateKuttaWakeLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              const ProcessInfo& rCurrentProcessInfo);
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;

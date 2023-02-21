@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//			 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -162,6 +162,38 @@ void MeshCondition::AddExplicitContribution(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters MeshCondition::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : [],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : [],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : [],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Point2D", "Point3D", "Line2D2", "Line2D3", "Line2D4", "Line2D5", "Line3D2", "Line3D3", "Triangle3D3", "Triangle3D6", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : -1,
+        "documentation"   : "This is a pure geometric condition, no computation"
+    })");
+    return specifications;
 }
 
 /***********************************************************************************/

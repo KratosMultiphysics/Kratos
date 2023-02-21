@@ -63,7 +63,6 @@ public:
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
                 "stiffness_alpha": 1.0,
-                "contact_forces": true,
                 "start_time" : 0.0,
                 "stress_averaging_time": 1e-7
             }  )" );
@@ -83,7 +82,6 @@ public:
         mReactionStressOld = 0.0;
         mStiffness = rParameters["young_modulus"].GetDouble()/mCompressionLength; // mStiffness is actually a stiffness over an area
         mStiffnessAlpha = rParameters["stiffness_alpha"].GetDouble();
-        mContactForces = rParameters["contact_forces"].GetBool();
         mStressAveragingTime = rParameters["stress_averaging_time"].GetDouble();
         mVectorOfLastStresses.resize(0);
 
@@ -92,7 +90,18 @@ public:
         mCMTimeStep = rParameters["control_module_time_step"].GetDouble();
         mStep = 0;
 
-        mrModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
+        // Initialize Variables
+        mrModelPart.GetProcessInfo().SetValue(TARGET_STRESS_Z,0.0);
+        const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        array_1d<double,3> zero_vector = ZeroVector(3);
+        #pragma omp parallel for
+        for(int i = 0; i<NNodes; i++) {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            it->SetValue(TARGET_STRESS,zero_vector);
+            it->SetValue(REACTION_STRESS,zero_vector);
+            it->SetValue(LOADING_VELOCITY,zero_vector);
+        }
 
         KRATOS_CATCH("");
     }
@@ -175,8 +184,6 @@ public:
 
         const double CurrentTime = mrModelPart.GetProcessInfo()[TIME];
         TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mTargetStressTableId);
-        //const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
-        //ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
         mStep += 1;
         if (mStep == 1) {
@@ -309,7 +316,6 @@ protected:
     unsigned int mStep;
     double mCMTimeStep;
     double mStiffnessAlpha;
-    bool mContactForces;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -444,32 +450,16 @@ private:
         // Calculate ReactionStress
         double FaceReaction = 0.0;
         if (mImposedDirection == 0) { // X direction
-            if(mContactForces == true){
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_X);
-                }
-            } else {
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction -= it->FastGetSolutionStepValue(ELASTIC_FORCES_X);
-                }
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_X);
             }
         } else if (mImposedDirection == 1) { // Y direction
-            if(mContactForces == true){
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
-                }
-            } else {
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction -= it->FastGetSolutionStepValue(ELASTIC_FORCES_Y);
-                }
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
             }
         } else if (mImposedDirection == 2) { // Z direction
             ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
@@ -485,36 +475,19 @@ private:
                 FaceReaction += stress_tensor(2,2) * Globals::Pi*radius*radius;
             }
         } else { // Radial direction
-            if(mContactForces == true){
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    // Unit normal vector pointing outwards
-                    array_1d<double,2> n;
-                    n[0] = it->X();
-                    n[1] = it->Y();
-                    double inv_norm = 1.0/norm_2(n);
-                    n[0] *= inv_norm;
-                    n[1] *= inv_norm;
-                    // Scalar product between reaction and normal
-                    double n_dot_r = n[0] * it->FastGetSolutionStepValue(CONTACT_FORCES_X) + n[1] * it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
-                    FaceReaction -= n_dot_r;
-                }
-            } else {
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    // Unit normal vector pointing outwards
-                    array_1d<double,2> n;
-                    n[0] = it->X();
-                    n[1] = it->Y();
-                    double inv_norm = 1.0/norm_2(n);
-                    n[0] *= inv_norm;
-                    n[1] *= inv_norm;
-                    // Scalar product between reaction and normal
-                    double n_dot_r = n[0] * it->FastGetSolutionStepValue(ELASTIC_FORCES_X) + n[1] * it->FastGetSolutionStepValue(ELASTIC_FORCES_Y);
-                    FaceReaction -= n_dot_r;
-                }
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                // Unit normal vector pointing outwards
+                array_1d<double,2> n;
+                n[0] = it->X();
+                n[1] = it->Y();
+                double inv_norm = 1.0/norm_2(n);
+                n[0] *= inv_norm;
+                n[1] *= inv_norm;
+                // Scalar product between reaction and normal
+                double n_dot_r = n[0] * it->FastGetSolutionStepValue(CONTACT_FORCES_X) + n[1] * it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
+                FaceReaction -= n_dot_r;
             }
             // FaceReaction = 0.0;
             // for(int i = 0; i<NNodes; i++) {
@@ -570,9 +543,9 @@ private:
                 // max_absolute
                 // average_relative
                 // average_absolute
-                it->FastGetSolutionStepValue(TARGET_STRESS_X) = rTargetStress;
-                it->FastGetSolutionStepValue(REACTION_STRESS_X) = rReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = rVelocity;
+                it->GetValue(TARGET_STRESS_X) = rTargetStress;
+                it->GetValue(REACTION_STRESS_X) = rReactionStress;
+                it->GetValue(LOADING_VELOCITY_X) = rVelocity;
             }
         } else if (mImposedDirection == 1) { // Y direction
             #pragma omp parallel for
@@ -583,9 +556,9 @@ private:
                 it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
                 it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
                 // Save calculated velocity and reaction for print
-                it->FastGetSolutionStepValue(TARGET_STRESS_Y) = rTargetStress;
-                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = rReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = rVelocity;
+                it->GetValue(TARGET_STRESS_Y) = rTargetStress;
+                it->GetValue(REACTION_STRESS_Y) = rReactionStress;
+                it->GetValue(LOADING_VELOCITY_Y) = rVelocity;
             }
         } else if (mImposedDirection == 2) { // Z direction
             mrModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += rVelocity*mrModelPart.GetProcessInfo()[DELTA_TIME]/mCompressionLength;
@@ -593,9 +566,9 @@ private:
             for(int i = 0; i<NNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 // Save calculated velocity and reaction for print
-                it->FastGetSolutionStepValue(TARGET_STRESS_Z) = rTargetStress;
-                it->FastGetSolutionStepValue(REACTION_STRESS_Z) = rReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = rVelocity;
+                it->GetValue(TARGET_STRESS_Z) = rTargetStress;
+                it->GetValue(REACTION_STRESS_Z) = rReactionStress;
+                it->GetValue(LOADING_VELOCITY_Z) = rVelocity;
             }
             mrModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(rTargetStress);
         } else { // Radial direction
@@ -614,12 +587,12 @@ private:
                 it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
                 it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
                 // Save calculated velocity and reaction for print
-                it->FastGetSolutionStepValue(TARGET_STRESS_X) = rTargetStress * cos_theta;
-                it->FastGetSolutionStepValue(TARGET_STRESS_Y) = rTargetStress * sin_theta;
-                it->FastGetSolutionStepValue(REACTION_STRESS_X) = rReactionStress * cos_theta;
-                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = rReactionStress * sin_theta;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = rVelocity * cos_theta;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = rVelocity * sin_theta;
+                it->GetValue(TARGET_STRESS_X) = rTargetStress * cos_theta;
+                it->GetValue(TARGET_STRESS_Y) = rTargetStress * sin_theta;
+                it->GetValue(REACTION_STRESS_X) = rReactionStress * cos_theta;
+                it->GetValue(REACTION_STRESS_Y) = rReactionStress * sin_theta;
+                it->GetValue(LOADING_VELOCITY_X) = rVelocity * cos_theta;
+                it->GetValue(LOADING_VELOCITY_Y) = rVelocity * sin_theta;
             }
         }
     }

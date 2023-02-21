@@ -4,39 +4,32 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-#include "custom_python/add_trilinos_convergence_criterias_to_python.h"
-
-//Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
-
-//convergence criterias
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
-//
+#include "custom_python/add_trilinos_convergence_criterias_to_python.h"
+
+// Application includes
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
-#include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
+#include "custom_strategies/convergencecriterias/trilinos_mixed_generic_criteria.h"
 
-
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -75,12 +68,6 @@ void  AddConvergenceCriterias(pybind11::module& m)
             TrilinosConvergenceCriteria>(m,"TrilinosDisplacementCriteria")
             .def(py::init< double, double >());
 
-    py::class_< TrilinosUPCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
-            typename TrilinosUPCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
-            TrilinosConvergenceCriteria >
-            (m,"TrilinosUPCriteria")
-            .def(py::init< double, double, double, double >());
-
     py::class_< TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             typename TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria >
@@ -98,11 +85,15 @@ void  AddConvergenceCriterias(pybind11::module& m)
             TrilinosConvergenceCriteria>
             (m,"TrilinosOrCriteria")
             .def(py::init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
+
+    typedef typename TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::ConvergenceVariableListType ConvergenceVariableListType;
+    py::class_<
+        TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+        typename TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
+        TrilinosConvergenceCriteria>(m, "TrilinosMixedGenericCriteria")
+        .def(py::init< const ConvergenceVariableListType& >());
 }
 
-
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

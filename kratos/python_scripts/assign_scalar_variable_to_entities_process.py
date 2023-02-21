@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -109,8 +108,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True
             for process in self.aux_processes:
-                #process.ExecuteInitializeSolutionStep() # WARNING: Should be this one, for retrocompatibility we consider the Execute!!!
-                process.Execute()
+                process.ExecuteInitializeSolutionStep()
 
 
     def ExecuteFinalizeSolutionStep(self):

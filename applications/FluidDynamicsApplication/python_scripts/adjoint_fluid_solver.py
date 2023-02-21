@@ -18,18 +18,29 @@ class AdjointFluidSolver(FluidSolver):
         self.min_buffer_size = 2
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Z, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_SCALAR_1, self.main_model_part)
+        dofs_to_add = []
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_X")
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_Y")
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_Z")
+        dofs_to_add.append("ADJOINT_FLUID_SCALAR_1")
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_to_add, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
+
+    def GetDofsList(self):
+        dofs_list = []
+        dofs_list.append("ADJOINT_FLUID_VECTOR_1_X")
+        dofs_list.append("ADJOINT_FLUID_VECTOR_1_Y")
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_list.append("ADJOINT_FLUID_VECTOR_1_Z")
+        dofs_list.append("ADJOINT_FLUID_SCALAR_1")
+
+        return dofs_list
 
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
         self.GetResponseFunction().InitializeSolutionStep()
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            self._adjoint_turbulence_model_solver.InitializeSolutionStep()
+        self.GetSensitivityBuilder().InitializeSolutionStep()
 
     def Predict(self):
         self._GetSolutionStrategy().Predict()
@@ -41,16 +52,11 @@ class AdjointFluidSolver(FluidSolver):
         self._GetSolutionStrategy().FinalizeSolutionStep()
         self.GetResponseFunction().FinalizeSolutionStep()
 
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            self._adjoint_turbulence_model_solver.FinalizeSolutionStep()
-
         self.GetSensitivityBuilder().UpdateSensitivities()
+        self.GetSensitivityBuilder().FinalizeSolutionStep()
 
     def Check(self):
         self._GetSolutionStrategy().Check()
-
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            self._adjoint_turbulence_model_solver.Check()
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
@@ -68,7 +74,7 @@ class AdjointFluidSolver(FluidSolver):
         ## Complete the element name
         # TODO: EXPORT THE ADJOINT FOLLOWING THE CONVENTION. ONCE THIS IS DONE WE CAN USE THE FUNCTION IN THE BASE CLASS
         if (self.element_name is not None):
-            new_elem_name = self.element_name + str(int(domain_size)) + "D"
+            new_elem_name = f"{self.element_name}{int(domain_size)}D{int(elem_num_nodes)}N"
         else:
             raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
 
@@ -87,10 +93,22 @@ class AdjointFluidSolver(FluidSolver):
         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
     def _ComputeDeltaTime(self):
+        """This function returns the delta time
+        Note that the adjoint fluid analysis does not support the automatic time stepping
+        Also note that as it requires to go backwards in time, here we return minus the user time step
+        """
         if self.settings["time_stepping"]["automatic_time_step"].GetBool():
             raise Exception("Automatic time stepping is not supported by adjoint fluid solver.")
 
         delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        if delta_time > 0.0:
+            # Expected positive time_step is reversed to advance backwards in time
+            delta_time *= -1.0
+        else:
+            # TODO: Remove this check after the backwards compatibility period
+            # In order to keep backwards compatibility, we throw a warning if a negative time_step is provided
+            KratosMultiphysics.Logger.PrintWarning("Setting a negative 'time_step' is no longer needed by 'AdjointFluidSolver'.")
+
         return delta_time
 
     def _SetNodalProperties(self):
@@ -108,11 +126,7 @@ class AdjointFluidSolver(FluidSolver):
             raise Exception("No fluid elements found in the main model part.")
         # Transfer the obtained properties to the nodes
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        # In RANS full adjoints, viscosity is summation of kinematic viscosity and turubulent viscosity.
-        # turbulent viscosity is read from hdf5, and viscosity also must be read from hdf5.
-        # therefore viscosity should not be updated only with kinematic viscosity.
-        if not hasattr(self, "_adjoint_turbulence_model_solver"):
-            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
     def GetResponseFunction(self):
         if not hasattr(self, '_response_function'):
@@ -133,6 +147,10 @@ class AdjointFluidSolver(FluidSolver):
                     self.main_model_part)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        elif response_type == "norm_square":
+            response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.model)
         else:
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function
@@ -144,8 +162,23 @@ class AdjointFluidSolver(FluidSolver):
 
     def __CreateSensitivityBuilder(self):
         response_function = self.GetResponseFunction()
+        time_scheme_settings = self.settings["scheme_settings"]
+        time_scheme_type = time_scheme_settings["scheme_type"].GetString()
+
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # the schemes used in fluid supports SLIP conditions which rotates element/condition
+        # matrices based on nodal NORMAL. Hence, the consistent adjoints also need to
+        # rotate adjoint element/condition matrices accordingly and to compute derivatives
+        # of rotation matrices as well. Therefore, following schemes are used.
+        if (time_scheme_type == "steady"):
+            self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme(domain_size, domain_size + 1)
+        elif (time_scheme_type == "bossak"):
+            self.sensitivity_builder_scheme = KratosCFD.VelocityBossakSensitivityBuilderScheme(time_scheme_settings["alpha_bossak"].GetDouble(), domain_size, domain_size + 1)
+
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.settings["sensitivity_settings"],
             self.main_model_part,
-            response_function)
+            response_function,
+            self.sensitivity_builder_scheme
+            )
         return sensitivity_builder

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -41,7 +40,6 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         default_parameters = KM.Parameters("""
         {
             "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
-            "mesh_id"                       : 0,
             "model_part_name"               : "Structure",
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
@@ -59,6 +57,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "consider_tessellation"         : false,
+            "normal_check_proportion"       : 0.1,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
@@ -114,7 +113,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         # Construct the base process.
-        super(ExplicitPenaltyContactProcess, self).__init__(Model, self.contact_settings)
+        super().__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -124,7 +123,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         """
 
         # We call to the base process
-        super(ExplicitPenaltyContactProcess, self).ExecuteInitialize()
+        super().ExecuteInitialize()
 
         # Setting NL_ITERATION_NUMBER (used in some utilities)
         process_info = self.main_model_part.ProcessInfo
@@ -134,7 +133,6 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         if self.contact_settings["advance_explicit_parameters"]["manual_max_gap_theshold"].GetBool():
             process_info[CSMA.MAX_GAP_THRESHOLD] = self.contact_settings["advance_explicit_parameters"]["max_gap_threshold"].GetDouble()
         else:
-            empty_settings = KM.Parameters("""{}""")
             mean_nodal_h = CSMA.ContactUtilities.CalculateMeanNodalH(self.main_model_part)
             process_info[CSMA.MAX_GAP_THRESHOLD] = mean_nodal_h
 
@@ -149,7 +147,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(ExplicitPenaltyContactProcess, self).ExecuteBeforeSolutionLoop()
+        super().ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -159,7 +157,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         """
 
         # We call to the base process
-        super(ExplicitPenaltyContactProcess, self).ExecuteInitializeSolutionStep()
+        super().ExecuteInitializeSolutionStep()
 
         # Check if the contact is active
         active_contact = CSMA.ContactUtilities.CheckActivity(self.main_model_part, False)
@@ -194,7 +192,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(ExplicitPenaltyContactProcess, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -204,7 +202,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         """
 
         # We call to the base process
-        super(ExplicitPenaltyContactProcess, self).ExecuteBeforeOutputStep()
+        super().ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -214,7 +212,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         """
 
         # We call to the base process
-        super(ExplicitPenaltyContactProcess, self).ExecuteAfterOutputStep()
+        super().ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -224,10 +222,10 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         """
 
         # We call to the base process
-        super(ExplicitPenaltyContactProcess, self).ExecuteFinalize()
+        super().ExecuteFinalize()
 
     def _compute_search(self):
-        """ This method return if the serach must be computed
+        """ This method return if the search must be computed
 
         Keyword arguments:
         self -- It signifies an instance of a class.

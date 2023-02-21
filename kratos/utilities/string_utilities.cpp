@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -14,17 +14,16 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
+#include <sstream>
 
 // External includes
 
 // Project includes
 #include "utilities/string_utilities.h"
 
-namespace Kratos
-{
-namespace StringUtilities
-{
-std::string ConvertCammelCaseToSnakeCase(const std::string& rString)
+namespace Kratos::StringUtilities {
+
+std::string ConvertCamelCaseToSnakeCase(const std::string& rString)
 {
     std::string str(1, tolower(rString[0]));
 
@@ -41,6 +40,41 @@ std::string ConvertCammelCaseToSnakeCase(const std::string& rString)
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 
     return str;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string ConvertSnakeCaseToCamelCase(const std::string& rString)
+{
+    std::string output;
+
+    if (!rString.empty()) {
+        output.reserve(rString.size());
+        bool upper_switch = rString[0] == '_' ? false : true;
+
+        for (auto character : rString) {
+            KRATOS_ERROR_IF(!(std::isalnum(character) || character == '_') || std::isupper(character))
+                << "Invalid character '" << character
+                <<"' in snake case string '" << rString << '\'';
+
+            if (character == '_') {
+                KRATOS_ERROR_IF(upper_switch)
+                    << "Repeated underscores in snake case string '" << rString << '\'';
+                upper_switch = true;
+            } else { // character != '_'
+                // At this point, the character must be in [a-z0-9]
+                if (upper_switch) {
+                    output.push_back(std::toupper(character));
+                    upper_switch = false;
+                } else { // !upper_switch
+                    output.push_back(character);
+                } // else (upper_switch)
+            } // else (character == '_')
+        } // for character in rString
+    } // if rString
+
+    return output;
 }
 
 /***********************************************************************************/
@@ -74,7 +108,7 @@ bool ContainsPartialString(
     )
 {
     // Value to return
-    std::string sub_string = rMainString;
+    const std::string& sub_string = rMainString;
 
     // Search for the substring in string
     std::size_t pos = sub_string.find(rToCheck);
@@ -104,5 +138,41 @@ std::string RemoveWhiteSpaces(const std::string& rString)
     return output;
 }
 
-} // namespace StringUtilities
-} // namespace Kratos
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> SplitStringByDelimiter(
+    const std::string& rString,
+    const char Delimiter
+    )
+{
+    std::istringstream ss(rString);
+    std::string token;
+
+    std::vector<std::string> splitted_string;
+    while(std::getline(ss, token, Delimiter)) {
+        splitted_string.push_back(token);
+    }
+
+    return splitted_string;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string ReplaceAllSubstrings(
+    const std::string& rInputString,
+    const std::string& rStringToBeReplaced,
+    const std::string& rStringToReplace
+    )
+{
+    std::string output_string(rInputString);
+    std::size_t start_pos = 0;
+    while((start_pos = output_string.find(rStringToBeReplaced, start_pos)) != std::string::npos) {
+        output_string.replace(start_pos, rStringToBeReplaced.length(), rStringToReplace);
+        start_pos += rStringToReplace.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return output_string;
+}
+
+} // namespace Kratos::StringUtilities

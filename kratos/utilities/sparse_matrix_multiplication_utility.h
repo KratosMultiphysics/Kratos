@@ -15,7 +15,7 @@
 
 // System includes
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <numeric>
 #ifdef _OPENMP
@@ -27,6 +27,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -51,7 +52,7 @@ namespace Kratos
 
 /**
  * @class SparseMatrixMultiplicationUtility
- * @ingroup ContactStructuralMechanicsApplication
+ * @ingroup KratosCore
  * @brief An utility to multiply sparse matrix in Ublas
  * @details Taken and adapted for ublas from external_libraries/amgcl/detail/spgemm.hpp by Denis Demidov <dennis.demidov@gmail.com>
  * @todo Remove as soon as we do not depend of Ublas anymore...
@@ -89,7 +90,7 @@ public:
     SparseMatrixMultiplicationUtility(){};
 
     /// Desctructor
-    virtual ~SparseMatrixMultiplicationUtility()= default;;
+    virtual ~SparseMatrixMultiplicationUtility()= default;
 
     ///@}
     ///@name Operators
@@ -549,14 +550,16 @@ public:
         IndexVectorType aux_index2_new_a(transpose_nonzero_values);
         DenseVector<ValueType> aux_val_new_a(transpose_nonzero_values);
 
+        // Auxiliar index 1
+        const IndexType aux_1_index = 1;
+
         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
             IndexType row_begin = index1[i];
             IndexType row_end   = index1[i+1];
 
             for (IndexType j=row_begin; j<row_end; j++) {
-                #pragma omp atomic
-                new_a_ptr[index2[j] + 1] += 1;
+                AtomicAdd(new_a_ptr[index2[j] + 1], aux_1_index);
             }
         }
 
@@ -581,7 +584,7 @@ public:
                 aux_index2_new_a[current_index] = i;
                 aux_val_new_a[current_index] = Factor * data[j];
 
-//                 #pragma omp atomic
+                // AtomicAdd(aux_indexes[current_row], aux_1_index);
                 aux_indexes[current_row] += 1;
             }
 
@@ -807,12 +810,10 @@ public:
                     #endif
                     }
                     IndexType& r_matrix_ptr_value = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1];
-                    #pragma omp atomic
-                    r_matrix_ptr_value += matrix_cols_aux;
+                    AtomicAdd(r_matrix_ptr_value, matrix_cols_aux);
 
                 #ifdef KRATOS_DEBUG
-                    #pragma omp atomic
-                    check_non_zero += matrix_cols_aux;
+                    AtomicAdd(check_non_zero, matrix_cols_aux);
                 #endif
                 }
             }
@@ -1043,20 +1044,20 @@ private:
             TIndex c2 = *Column2;
 
             if (c1 < c2) {
-                if (TNeedOut) *Column3 = c1;
+                if constexpr (TNeedOut) *Column3 = c1;
                 ++Column1;
             } else if (c1 == c2) {
-                if (TNeedOut) *Column3 = c1;
+                if constexpr (TNeedOut) *Column3 = c1;
                 ++Column1;
                 ++Column2;
             } else {
-                if (TNeedOut) *Column3 = c2;
+                if constexpr (TNeedOut) *Column3 = c2;
                 ++Column2;
             }
             ++Column3;
         }
 
-        if (TNeedOut) {
+        if constexpr (TNeedOut) {
             if (Column1 < Column1End) {
                 return std::copy(Column1, Column1End, Column3);
             } else if (Column2 < Column2End) {

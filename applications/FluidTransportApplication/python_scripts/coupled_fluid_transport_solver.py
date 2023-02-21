@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -34,7 +33,7 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
         self.thermal_solver = solver_module.CreateSolver(self.model, self.settings["thermal_solver_settings"])
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
 
         # TODO adapt thermal solver settings to FluidTransportReplaceSolver settings
         this_defaults = KratosMultiphysics.Parameters("""
@@ -66,5 +65,5 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
         }
         """)
 
-        this_defaults.AddMissingParameters(PythonSolver.GetDefaultSettings())
+        this_defaults.AddMissingParameters(PythonSolver.GetDefaultParameters())
         return this_defaults

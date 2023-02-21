@@ -15,6 +15,90 @@
 
 namespace Kratos
 {
+    void IntegrationPointUtilities::CreateIntegrationPoints1D(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const IntegrationInfo& rIntegrationInfo)
+    {
+        if (rIntegrationInfo.GetQuadratureMethod(0) == IntegrationInfo::QuadratureMethod::GAUSS) {
+            IntegrationPointUtilities::CreateIntegrationPoints1DGauss(
+                rIntegrationPoints, rSpansLocalSpace, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+        } else if (rIntegrationInfo.GetQuadratureMethod(0) == IntegrationInfo::QuadratureMethod::GRID) {
+            IntegrationPointUtilities::CreateIntegrationPoints1DGrid(
+                rIntegrationPoints, rSpansLocalSpace, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+        }
+        else {
+            KRATOS_ERROR << "Integration with given quadrature method not implemented for 1d structures. "
+                << "Additional provided information: - rSpansLocalSpace: " << rSpansLocalSpace << std::endl;
+        }
+    }
+
+    /* @brief Creates integration points within provided spans according
+     *        to the provided points per span.
+     * @param rIntegrationPoints result integration points.
+     * @param rSpansLocalSpace spans in which integration points are generated.
+     * @param IntegrationPointsPerSpan number of integration points per span.
+     */
+    void IntegrationPointUtilities::CreateIntegrationPoints1DGauss(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const SizeType IntegrationPointsPerSpan)
+    {
+        const SizeType num_spans = rSpansLocalSpace.size() - 1;
+        const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        auto integration_point_iterator = rIntegrationPoints.begin();
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            IntegrationPointUtilities::IntegrationPoints1D(
+                integration_point_iterator,
+                IntegrationPointsPerSpan,
+                rSpansLocalSpace[i], rSpansLocalSpace[i + 1]);
+        }
+    }
+
+    /* @brief Creates integration points within provided spans according
+     *        to the provided points per span.
+     * @param rIntegrationPoints result integration points.
+     * @param rSpansLocalSpace spans in which integration points are generated.
+     * @param IntegrationPointsPerSpan number of integration points per span.
+     */
+    void IntegrationPointUtilities::CreateIntegrationPoints1DGrid(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const SizeType IntegrationPointsPerSpan)
+    {
+        const SizeType num_spans = rSpansLocalSpace.size() - 1;
+        const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan + num_spans + 1;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IndexType counter = 0;
+        double last_weight = 0.0;
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            const double increment = (rSpansLocalSpace[i + 1] - rSpansLocalSpace[i]) / (IntegrationPointsPerSpan + 1);
+            const double weight = std::abs(increment);
+            rIntegrationPoints[counter].X() = rSpansLocalSpace[i];
+            rIntegrationPoints[counter].Weight() = (weight / 2) + (last_weight / 2);
+            counter++;
+
+            for (IndexType j = 1; j < IntegrationPointsPerSpan + 1; ++j)
+            {
+                rIntegrationPoints[counter].X() = rSpansLocalSpace[i] + j * increment;
+                rIntegrationPoints[counter].Weight() = weight;
+                counter++;
+            }
+            last_weight = weight;
+        }
+        rIntegrationPoints[counter].X() = rSpansLocalSpace[rSpansLocalSpace.size() - 1];
+        rIntegrationPoints[counter].Weight() = (last_weight / 2);
+    }
+
     void IntegrationPointUtilities::IntegrationPoints1D(
         typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU,
@@ -67,6 +151,67 @@ namespace Kratos
 
                 rIntegrationPointsBegin++;
             }
+        }
+    }
+
+    void IntegrationPointUtilities::IntegrationPoints3D(
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
+        SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
+        double U0, double U1, double V0, double V1, double W0, double W1)
+    {
+        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1 || PointsInW < 1)
+            << "PointsInU, -V and -W need to be bigger than 0 - PointsInU:"
+            << PointsInU << ", PointsInV:" << PointsInV << " and PointsInW:" << PointsInW << std::endl;
+
+        const double distance_u = U1 - U0;
+        const double length_u = std::abs(U1 - U0);
+        const double distance_v = V1 - V0;
+        const double length_v = std::abs(V1 - V0);
+        const double distance_w = W1 - W0;
+        const double length_w = std::abs(W1 - W0);
+
+        const std::vector<std::array<double, 2>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
+        const std::vector<std::array<double, 2>>& integration_point_list_v = IntegrationPointUtilities::s_gauss_legendre[PointsInV - 1];
+        const std::vector<std::array<double, 2>>& integration_point_list_w = IntegrationPointUtilities::s_gauss_legendre[PointsInW - 1];
+
+        for (SizeType u = 0; u < PointsInU; ++u) {
+            for (SizeType v = 0; v < PointsInV; ++v) {
+                for( SizeType w = 0; w < PointsInW; ++w) {
+                    (*rIntegrationPointsBegin)[0] = U0 + distance_u * integration_point_list_u[u][0];
+                    (*rIntegrationPointsBegin)[1] = V0 + distance_v * integration_point_list_v[v][0];
+                    (*rIntegrationPointsBegin)[2] = W0 + distance_w * integration_point_list_w[w][0];
+                    (*rIntegrationPointsBegin).Weight() =
+                        integration_point_list_u[u][1] * length_u *
+                        integration_point_list_v[v][1] * length_v *
+                        integration_point_list_w[w][1] * length_w;
+
+                    rIntegrationPointsBegin++;
+                }
+            }
+        }
+    }
+
+    void IntegrationPointUtilities::IntegrationPointsTriangle2D(
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
+        SizeType PointsIndex,
+        double U0, double U1, double U2, double V0, double V1, double V2)
+    {
+        KRATOS_DEBUG_ERROR_IF(PointsIndex < 1)
+            << "PointsIndex need to be bigger than 0, but is: " << PointsIndex << std::endl;
+
+        const double area = (U0 * (V1 - V2) + U1 * (V2 - V0) + U2 * (V0 - V1)) / 2;
+
+        const std::vector<std::array<double, 3>>& integration_point_list = IntegrationPointUtilities::s_gauss_triangle[PointsIndex];
+
+        for (SizeType i = 0; i < integration_point_list.size(); i++)
+        {
+            const double a = 1 - integration_point_list[i][0] - integration_point_list[i][1];
+
+            (*rIntegrationPointsBegin)[0] = U0 * a + U1 * integration_point_list[i][0] + U2 * integration_point_list[i][1];
+            (*rIntegrationPointsBegin)[1] = V0 * a + V1 * integration_point_list[i][0] + V2 * integration_point_list[i][1];
+            (*rIntegrationPointsBegin).Weight() = area * integration_point_list[i][2];
+
+            rIntegrationPointsBegin++;
         }
     }
 
@@ -1445,6 +1590,165 @@ namespace Kratos
         { 0.9926770420240030000, 0.0052952741918258350 },
         { 0.9970159847160454000, 0.0033798995978727526 },
         { 0.9994332022100355000, 0.0014543112765789342 }
+    }
+    };
+
+
+    const std::vector<std::vector<std::array<double, 3>>> IntegrationPointUtilities::s_gauss_triangle = {
+    {   // degree 1
+        { 0.33333333333333, 0.33333333333333, 1.0000000000000000000 }
+    },
+    {   // degree 2
+        { 0.16666666666667, 0.16666666666667, 0.33333333333333 },
+        { 0.16666666666667, 0.66666666666667, 0.33333333333333 },
+        { 0.66666666666667, 0.16666666666667, 0.33333333333333 }
+    },
+    {   // degree 3
+        {0.44594849091597, 0.44594849091597, 0.22338158967801},
+        {0.44594849091597, 0.10810301816807, 0.22338158967801},
+        {0.10810301816807, 0.44594849091597, 0.22338158967801},
+        {0.09157621350977, 0.09157621350977, 0.10995174365532},
+        {0.09157621350977, 0.81684757298046, 0.10995174365532},
+        {0.81684757298046, 0.09157621350977, 0.10995174365532}
+    },
+    {   // degree 4
+        {0.33333333333333, 0.33333333333333, 0.22500000000000},
+        {0.47014206410511, 0.47014206410511, 0.13239415278851},
+        {0.47014206410511, 0.05971587178977, 0.13239415278851},
+        {0.05971587178977, 0.47014206410511, 0.13239415278851},
+        {0.10128650732346, 0.10128650732346, 0.12593918054483},
+        {0.10128650732346, 0.79742698535309, 0.12593918054483},
+        {0.79742698535309, 0.10128650732346, 0.12593918054483}
+    },
+    {   // degree 5
+        {0.24928674517091, 0.24928674517091, 0.11678627572638},
+        {0.24928674517091, 0.50142650965818, 0.11678627572638},
+        {0.50142650965818, 0.24928674517091, 0.11678627572638},
+        {0.06308901449150, 0.06308901449150, 0.05084490637021},
+        {0.06308901449150, 0.87382197101700, 0.05084490637021},
+        {0.87382197101700, 0.06308901449150, 0.05084490637021},
+        {0.31035245103378, 0.63650249912140, 0.08285107561837},
+        {0.63650249912140, 0.05314504984482, 0.08285107561837},
+        {0.05314504984482, 0.31035245103378, 0.08285107561837},
+        {0.63650249912140, 0.31035245103378, 0.08285107561837},
+        {0.31035245103378, 0.05314504984482, 0.08285107561837},
+        {0.05314504984482, 0.63650249912140, 0.08285107561837}
+    },
+    {   // degree 6
+        {0.33333333333333, 0.33333333333333,-0.14957004446768},
+        {0.26034596607904, 0.26034596607904, 0.17561525743321},
+        {0.26034596607904, 0.47930806784192, 0.17561525743321},
+        {0.47930806784192, 0.26034596607904, 0.17561525743321},
+        {0.06513010290222, 0.06513010290222, 0.05334723560884},
+        {0.06513010290222, 0.86973979419557, 0.05334723560884},
+        {0.86973979419557, 0.06513010290222, 0.05334723560884},
+        {0.31286549600487, 0.63844418856981, 0.07711376089026},
+        {0.63844418856981, 0.04869031542532, 0.07711376089026},
+        {0.04869031542532, 0.31286549600487, 0.07711376089026},
+        {0.63844418856981, 0.31286549600487, 0.07711376089026},
+        {0.31286549600487, 0.04869031542532, 0.07711376089026},
+        {0.04869031542532, 0.63844418856981, 0.07711376089026}
+    },
+    {   // degree 7
+        {0.33333333333333, 0.33333333333333, 0.14431560767779},
+        {0.45929258829272, 0.45929258829272, 0.09509163426728},
+        {0.45929258829272, 0.08141482341455, 0.09509163426728},
+        {0.08141482341455, 0.45929258829272, 0.09509163426728},
+        {0.17056930775176, 0.17056930775176, 0.10321737053472},
+        {0.17056930775176, 0.65886138449648, 0.10321737053472},
+        {0.65886138449648, 0.17056930775176, 0.10321737053472},
+        {0.05054722831703, 0.05054722831703, 0.03245849762320},
+        {0.05054722831703, 0.89890554336594, 0.03245849762320},
+        {0.89890554336594, 0.05054722831703, 0.03245849762320},
+        {0.26311282963464, 0.72849239295540, 0.02723031417443},
+        {0.72849239295540, 0.00839477740996, 0.02723031417443},
+        {0.00839477740996, 0.26311282963464, 0.02723031417443},
+        {0.72849239295540, 0.26311282963464, 0.02723031417443},
+        {0.26311282963464, 0.00839477740996, 0.02723031417443},
+        {0.00839477740996, 0.72849239295540, 0.02723031417443}
+    },
+    {   // degree 8
+        {0.33333333333333, 0.33333333333333, 0.09713579628280},
+        {0.48968251919874, 0.48968251919874, 0.03133470022714},
+        {0.48968251919874, 0.02063496160252, 0.03133470022714},
+        {0.02063496160252, 0.48968251919874, 0.03133470022714},
+        {0.43708959149294, 0.43708959149294, 0.07782754100477},
+        {0.43708959149294, 0.12582081701413, 0.07782754100477},
+        {0.12582081701413, 0.43708959149294, 0.07782754100477},
+        {0.18820353561903, 0.18820353561903, 0.07964773892721},
+        {0.18820353561903, 0.62359292876193, 0.07964773892721},
+        {0.62359292876193, 0.18820353561903, 0.07964773892721},
+        {0.04472951339445, 0.04472951339445, 0.02557767565870},
+        {0.04472951339445, 0.91054097321109, 0.02557767565870},
+        {0.91054097321109, 0.04472951339445, 0.02557767565870},
+        {0.22196298916077, 0.74119859878450, 0.04328353937729},
+        {0.74119859878450, 0.03683841205474, 0.04328353937729},
+        {0.03683841205474, 0.22196298916077, 0.04328353937729},
+        {0.74119859878450, 0.22196298916077, 0.04328353937729},
+        {0.22196298916077, 0.03683841205474, 0.04328353937729},
+        {0.03683841205474, 0.74119859878450, 0.04328353937729}
+    },
+    {   // degree 9
+        {0.33333333333333, 0.33333333333333, 0.09081799038275},
+        {0.48557763338366, 0.48557763338366, 0.03672595775647},
+        {0.48557763338366, 0.02884473323269, 0.03672595775647},
+        {0.02884473323269, 0.48557763338366, 0.03672595775647},
+        {0.10948157548504, 0.10948157548504, 0.04532105943553},
+        {0.10948157548504, 0.78103684902993, 0.04532105943553},
+        {0.78103684902993, 0.10948157548504, 0.04532105943553},
+        {0.30793983876412, 0.55035294182100, 0.07275791684542},
+        {0.55035294182100, 0.14170721941488, 0.07275791684542},
+        {0.14170721941488, 0.30793983876412, 0.07275791684542},
+        {0.55035294182100, 0.30793983876412, 0.07275791684542},
+        {0.30793983876412, 0.14170721941488, 0.07275791684542},
+        {0.14170721941488, 0.55035294182100, 0.07275791684542},
+        {0.24667256063990, 0.72832390459741, 0.02832724253106},
+        {0.72832390459741, 0.02500353476269, 0.02832724253106},
+        {0.02500353476269, 0.24667256063990, 0.02832724253106},
+        {0.72832390459741, 0.24667256063990, 0.02832724253106},
+        {0.24667256063990, 0.02500353476269, 0.02832724253106},
+        {0.02500353476269, 0.72832390459741, 0.02832724253106},
+        {0.06680325101220, 0.92365593358750, 0.00942166696373},
+        {0.92365593358750, 0.00954081540030, 0.00942166696373},
+        {0.00954081540030, 0.06680325101220, 0.00942166696373},
+        {0.92365593358750, 0.06680325101220, 0.00942166696373},
+        {0.06680325101220, 0.00954081540030, 0.00942166696373},
+        {0.00954081540030, 0.92365593358750, 0.00942166696373}
+    },
+    {   // degree 10
+        {0.48821738977381, 0.48821738977381, 0.02573106644045},
+        {0.48821738977381, 0.02356522045239, 0.02573106644045},
+        {0.02356522045239, 0.48821738977381, 0.02573106644045},
+        {0.43972439229446, 0.43972439229446, 0.04369254453804},
+        {0.43972439229446, 0.12055121541108, 0.04369254453804},
+        {0.12055121541108, 0.43972439229446, 0.04369254453804},
+        {0.27121038501212, 0.27121038501212, 0.06285822421789},
+        {0.27121038501212, 0.45757922997577, 0.06285822421789},
+        {0.45757922997577, 0.27121038501212, 0.06285822421789},
+        {0.12757614554159, 0.12757614554159, 0.03479611293071},
+        {0.12757614554159, 0.74484770891683, 0.03479611293071},
+        {0.74484770891683, 0.12757614554159, 0.03479611293071},
+        {0.02131735045321, 0.02131735045321, 0.00616626105156},
+        {0.02131735045321, 0.95736529909358, 0.00616626105156},
+        {0.95736529909358, 0.02131735045321, 0.00616626105156},
+        {0.27571326968551, 0.60894323577979, 0.04037155776638},
+        {0.60894323577979, 0.11534349453470, 0.04037155776638},
+        {0.11534349453470, 0.27571326968551, 0.04037155776638},
+        {0.60894323577979, 0.27571326968551, 0.04037155776638},
+        {0.27571326968551, 0.11534349453470, 0.04037155776638},
+        {0.11534349453470, 0.60894323577979, 0.04037155776638},
+        {0.28132558098994, 0.69583608678780, 0.02235677320230},
+        {0.69583608678780, 0.02283833222226, 0.02235677320230},
+        {0.02283833222226, 0.28132558098994, 0.02235677320230},
+        {0.69583608678780, 0.28132558098994, 0.02235677320230},
+        {0.28132558098994, 0.02283833222226, 0.02235677320230},
+        {0.02283833222226, 0.69583608678780, 0.02235677320230},
+        {0.11625191590760, 0.85801403354407, 0.01731623110866},
+        {0.85801403354407, 0.02573405054833, 0.01731623110866},
+        {0.02573405054833, 0.11625191590760, 0.01731623110866},
+        {0.85801403354407, 0.11625191590760, 0.01731623110866},
+        {0.11625191590760, 0.02573405054833, 0.01731623110866},
+        {0.02573405054833, 0.85801403354407, 0.01731623110866}
     }
     };
 }

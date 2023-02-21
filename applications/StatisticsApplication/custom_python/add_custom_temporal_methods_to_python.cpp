@@ -257,9 +257,7 @@ void AddCustomTemporalMethodsToPython(pybind11::module& m)
         .def("GetTotalTime", &TemporalMethods::TemporalMethod::GetTotalTime)
         .def("GetEchoLevel", &TemporalMethods::TemporalMethod::GetEchoLevel)
         .def("InitializeStatisticsMethod", &TemporalMethods::TemporalMethod::InitializeStatisticsMethod)
-        .def("CalculateStatistics", &TemporalMethods::TemporalMethod::CalculateStatistics)
-        .def("FinalizeStatisticsTimeStep", &TemporalMethods::TemporalMethod::FinalizeStatisticsTimeStep)
-    ;
+        .def("CalculateStatistics", &TemporalMethods::TemporalMethod::CalculateStatistics);
 
     auto temporal_historical_method = temporal_method_module.def_submodule("Historical");
     auto temporal_historical_historical_method = temporal_historical_method.def_submodule("HistoricalOutput");

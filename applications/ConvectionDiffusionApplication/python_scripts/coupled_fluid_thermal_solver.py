@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import sys
 
 # Importing the Kratos Library
@@ -16,9 +15,8 @@ def CreateSolver(main_model_part, custom_settings):
 
 class CoupledFluidThermalSolver(PythonSolver):
 
-    def __init__(self, model, custom_settings):
-
-        super(CoupledFluidThermalSolver, self).__init__(model, custom_settings)
+    @classmethod
+    def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -45,8 +43,12 @@ class CoupledFluidThermalSolver(PythonSolver):
         }
         """)
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
+
+    def __init__(self, model, custom_settings):
+
+        super(CoupledFluidThermalSolver, self).__init__(model, custom_settings)
 
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()

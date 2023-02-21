@@ -122,7 +122,7 @@ class GlobalJointStressUtility
             std::vector<array_1d<double, 3>> LocalStressVector;
             array_1d<double, 3> LocalElementStress = ZeroVector(3);
             array_1d<double, 3> LocalElementVectorForce;
-            it->GetValueOnIntegrationPoints(LOCAL_STRESS_VECTOR, LocalStressVector, CurrentProcessInfo);
+            it->CalculateOnIntegrationPoints(LOCAL_STRESS_VECTOR, LocalStressVector, CurrentProcessInfo);
 
             for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
             {

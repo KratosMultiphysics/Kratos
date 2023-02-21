@@ -3,7 +3,6 @@
 "BoundingBoxOption"                : true,
 "BoundingBoxEnlargementFactor"     : 1.1,
 "AutomaticBoundingBoxOption"       : false,
-"BoundingBoxEnlargementFactor"     : 1.0,
 "BoundingBoxMaxX"                  : 1e3,
 "BoundingBoxMaxY"                  : 1e3,
 "BoundingBoxMaxZ"                  : 1e3,
@@ -22,7 +21,10 @@
 "RemoveBallsInEmbeddedOption"      : true,
 "solver_settings" :{
     "strategy"                 : "sphere_strategy",
-    "RemoveBallsInitiallyTouchingWalls": false
+    "RemoveBallsInitiallyTouchingWalls": false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
 },
 
 

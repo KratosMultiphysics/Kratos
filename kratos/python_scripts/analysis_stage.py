@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
@@ -107,6 +105,7 @@ class AnalysisStage(object):
             self.time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 
         ## If the echo level is high enough, print the complete list of settings used to run the simualtion
         if self.echo_level > 1:
@@ -153,22 +152,17 @@ class AnalysisStage(object):
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
-        # first we check if one of the output processes will print output in this step
-        # this is done to save computation in case none of them will print
-        is_output_step = False
+        execute_was_called = False
         for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():
-                is_output_step = True
-                break
+                if not execute_was_called:
+                    for process in self._GetListOfProcesses():
+                        process.ExecuteBeforeOutputStep()
+                    execute_was_called = True
 
-        if is_output_step: # at least one of the output processes will print output
-            for process in self._GetListOfProcesses():
-                process.ExecuteBeforeOutputStep()
+                output_process.PrintOutput()
 
-            for output_process in self._GetListOfOutputProcesses():
-                if output_process.IsOutputStep():
-                    output_process.PrintOutput()
-
+        if execute_was_called:
             for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
 
@@ -257,9 +251,9 @@ class AnalysisStage(object):
     def _CreateModelers(self):
         """ List of modelers in following format:
         "modelers" : [{
-            "modeler_name" : "geometry_import":
-            "parameters" : {
-                "echo_level" : 0:
+            "modeler_name" : "geometry_import",
+            "Parameters" : {
+                "echo_level" : 0,
                 // settings for this modeler
             }
         },{ ... }]
@@ -337,6 +331,16 @@ class AnalysisStage(object):
         """
         return []
 
+    def _CheckDeprecatedOutputProcesses(self, list_of_processes):
+        deprecated_output_processes = []
+        for process in list_of_processes:
+            if issubclass(type(process), KratosMultiphysics.OutputProcess):
+                deprecated_output_processes.append(process)
+                msg  = "{} is an OutputProcess. However, it has been constructed as a regular process.\n"
+                msg += "Please, define it as an 'output_processes' in the ProjectParameters."
+                IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
+        return deprecated_output_processes
+
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
@@ -347,13 +351,16 @@ class AnalysisStage(object):
         """
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        deprecated_output_processes    = self._CheckDeprecatedOutputProcesses(self._list_of_processes)
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+        self._list_of_output_processes.extend(deprecated_output_processes)
 
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence
         (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+
         """
         if is_converged is None:
             if not hasattr(self, '_map_ret_val_depr_warnings'):

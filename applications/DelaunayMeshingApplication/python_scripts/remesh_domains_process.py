@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
@@ -98,9 +97,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
                 domain.SetEchoLevel(self.echo_level)
                 domain.Initialize()
                 #domain.Check()
-
-        print(self._class_prefix()+" Ready")
-
 
     def InitializeDomains(self):
 

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
@@ -18,8 +17,6 @@ class Mesher(object):
         self.model_part = self.main_model_part
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
-
-        print(self._class_prefix()+" Ready")
 
     #
     def Initialize(self, dimension):

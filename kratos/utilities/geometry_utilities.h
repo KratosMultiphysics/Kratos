@@ -5,26 +5,22 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_GEOMETRY_UTILITIES_INCLUDED )
-#define  KRATOS_GEOMETRY_UTILITIES_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 #include <algorithm>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "geometries/geometry.h"
 #include "includes/node.h"
-#include "includes/element.h"
 
 namespace Kratos
 {
@@ -35,7 +31,7 @@ namespace Kratos
  * @details It is faster than using Geometry as it is more specialized
  * @author Riccardo Rossi
  */
-class GeometryUtils
+class KRATOS_API(KRATOS_CORE) GeometryUtils
 {
 public:
     ///@name Type Definitions
@@ -54,6 +50,14 @@ public:
     typedef Geometry<NodeType> GeometryType;
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief This function returns a string equivalent for the geometry type
+     * @param TypeOfGeometry The geometry type
+     */
+    static std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry);
 
     /**
      * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
@@ -848,10 +852,23 @@ public:
         const Variable<array_1d<double, 3>>& rVariable,
         const Matrix& rGaussPointShapeFunctionDerivativeValues,
         const int Step = 0);
+
+    /**
+     * @brief Checks if given point in global space coordinates is inside the geometry boundaries.
+     * @details This function computes the local coordinates and checks then if this point lays within the boundaries after projecting the points.
+     * @param rPointGlobalCoordinates the global coordinates of the external point.
+     * @param rResult the local coordinates of the point.
+     * @param Tolerance the tolerance to the boundary.
+     * @return true if the point is inside, false otherwise
+     */
+    static bool ProjectedIsInside(
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        GeometryType::CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        );
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined
 
 

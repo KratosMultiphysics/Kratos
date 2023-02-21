@@ -19,7 +19,7 @@
 		"convergence_criterion" : "And_criterion"
 	    },
             "linear_solver_settings"    : {
-		"solver_type" : "SuperLUSolver",
+		"solver_type" : "ExternalSolversApplication.super_lu",
 		"scaling"     : false
             }
         }

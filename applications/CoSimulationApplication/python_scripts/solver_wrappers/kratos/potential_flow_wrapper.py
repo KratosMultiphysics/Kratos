@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
@@ -15,8 +13,8 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_forces_on_n
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
 from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_lift_process import ComputeLiftProcess
 
-def Create(settings, solver_name):
-    return PotentialFlowWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return PotentialFlowWrapper(settings, model, solver_name)
 
 class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def _CreateAnalysisStage(self):
@@ -27,7 +25,7 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def Initialize(self):
 
-        super(PotentialFlowWrapper, self).Initialize()
+        super().Initialize()
 
         sub_project_parameters = self.project_parameters["processes"]["boundary_conditions_process_list"]
 
@@ -50,7 +48,7 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
         self._analysis_stage._GetSolver().Clear()
         self._analysis_stage._GetSolver().InitializeSolutionStep()
 
-        super(PotentialFlowWrapper, self).SolveSolutionStep()
+        super().SolveSolutionStep()
 
         self.lift_process.ExecuteFinalizeSolutionStep()
         self.conversion_process.ExecuteFinalizeSolutionStep()

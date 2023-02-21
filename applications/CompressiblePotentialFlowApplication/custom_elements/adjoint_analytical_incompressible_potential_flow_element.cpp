@@ -48,10 +48,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ProcessInfo process_info = rCurrentProcessInfo;
         Vector RHS;
         auto pPrimalElement = this->pGetPrimalElement();
-        pPrimalElement->CalculateRightHandSide(RHS, process_info);
+        pPrimalElement->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
         if (rOutput.size1() != NumNodes)
             rOutput.resize(Dim*NumNodes, RHS.size(), false);

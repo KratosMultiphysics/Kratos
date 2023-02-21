@@ -91,7 +91,7 @@ namespace Kratos
       SizeType WorkingSpaceDimension() override { return 2; }
 
       /// Law Voigt Strain Size
-      SizeType GetStrainSize() override { return 3; }
+      SizeType GetStrainSize() const override { return 3; }
 
       /// Law Features
       void GetLawFeatures(Features& rFeatures)  override

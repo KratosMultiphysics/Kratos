@@ -34,7 +34,6 @@
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergencecriterias/displacement_and_other_dof_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/residual_displacement_and_other_dof_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
 
@@ -56,8 +55,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef LinearSolverType::Pointer LinearSolverPointer;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
@@ -81,7 +79,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
     // Custom convergence criterion types
-    typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
     typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
 
@@ -113,7 +110,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
         ;
     py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
         .def_static("WriteFormFoundMdpa", &FormfindingStrategyType::WriteFormFoundMdpa)
         ;
 
@@ -164,12 +161,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-
-    // Displacement and other DoF Convergence Criterion
-    py::class_< DisplacementAndOtherDoFCriteriaType,typename DisplacementAndOtherDoFCriteriaType::Pointer,ConvergenceCriteriaType>(m,"DisplacementAndOtherDoFCriteria")
-        .def(py::init< double, double, std::string >())
-        .def(py::init< double, double>())
-        ;
 
     // Displacement and other DoF residual Convergence Criterion
     py::class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")

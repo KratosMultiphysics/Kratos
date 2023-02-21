@@ -1,22 +1,22 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
 
 //Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define.h"
@@ -24,13 +24,12 @@
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_python/add_trilinos_space_to_python.h"
 #include "includes/model_part.h"
+#include "mpi/includes/mpi_data_communicator.h"
 
 // Teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
@@ -140,7 +139,17 @@ void UnaliasedAdd(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::Vecto
 
 Epetra_MpiComm CreateCommunicator()
 {
+    KRATOS_WARNING("Trilinos") << "\"CreateCommunicator\" is deprecated, please use \"CreateEpetraCommunicator\" instead" << std::endl;
     Epetra_MpiComm comm(MPI_COMM_WORLD);
+    return comm;
+}
+//************************************************************************************************
+
+Epetra_MpiComm CreateEpetraCommunicator(const DataCommunicator& rDataCommunicator)
+{
+    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+    Epetra_MpiComm comm(raw_mpi_comm);
     return comm;
 }
 
@@ -184,8 +193,8 @@ void SetValue(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorTyp
     dummy.SetValue(x,i,value);
 }
 
-Vector GatherValues(TrilinosSparseSpaceType& dummy, 
-                  TrilinosSparseSpaceType::VectorType& x, 
+Vector GatherValues(TrilinosSparseSpaceType& dummy,
+                  TrilinosSparseSpaceType::VectorType& x,
                   const std::vector<int>& IndexArray
                   )
 {
@@ -270,7 +279,7 @@ void  AddBasicOperations(pybind11::module& m)
     .def("GetReference", GetVecRef, py::return_value_policy::reference_internal)
     ;
 
-    //typedef SolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseSolvingStrategyType;
+    //typedef ImplicitSolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseSolvingStrategyType;
     //typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
     //typedef TrilinosResidualBasedEliminationBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverType;
 
@@ -307,6 +316,7 @@ void  AddBasicOperations(pybind11::module& m)
     ;
 
     m.def("CreateCommunicator", CreateCommunicator);
+    m.def("CreateEpetraCommunicator", CreateEpetraCommunicator);
     m.def("ErrorCleaner", ErrorCleaner);
 
     //********************************************************************
@@ -325,8 +335,6 @@ void  AddBasicOperations(pybind11::module& m)
 }
 
 
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

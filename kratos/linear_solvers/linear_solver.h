@@ -82,7 +82,10 @@ public:
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
-    typedef std::size_t  SizeType;
+    typedef std::size_t SizeType;
+
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -260,16 +263,23 @@ public:
      */
     virtual void SetTolerance(double NewTolerance)
     {
-        KRATOS_WARNING("LinearSolver") << "WARNING: Accessed base function Kratos::LinearSolver::SetTolerance(double). This does nothing !" << std::endl;
+        KRATOS_WARNING("LinearSolver") << "Accessed base function \"SetTolerance\". This does nothing !" << std::endl;
     }
-    
+
     /**
      * @brief This method allows to get the tolerance in the linear solver
      * @return The tolerance
      */
     virtual double GetTolerance()
     {
-        KRATOS_WARNING("LinearSolver") << "WARNING: Accessed base function Kratos::LinearSolver::GetTolerance(). No tolerance defined, returning 0 !" << std::endl ;
+        KRATOS_WARNING("LinearSolver") << "Accessed base function \"GetTolerance\". No tolerance defined, returning 0 !" << std::endl ;
+        return 0;
+    }
+
+    virtual IndexType GetIterationsNumber()
+    {
+        KRATOS_WARNING("LinearSolver") << "Accessed base function \"GetIterationsNumber\", returning 0 !" << std::endl ;
+
         return 0;
     }
 

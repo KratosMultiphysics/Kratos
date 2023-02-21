@@ -12,13 +12,16 @@
 //
 
 // System includes
+
 // External includes
 
 // Project includes
-#include "utilities/openmp_utils.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
+#include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -145,48 +148,43 @@ void ApplyPeriodicConditionProcess::PrintInfo(std::ostream& rOStream) const
 template <int TDim>
 void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
 {
-    const double start_apply = OpenMPUtils::GetCurrentTime();
+    const auto timer = BuiltinTimer();
     const int num_vars = mParameters["variable_names"].size();
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
 
-    const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
-    const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.NodesBegin();
-
     IndexType num_slaves_found = 0;
 
-    #pragma omp parallel for schedule(guided, 512) reduction( + : num_slaves_found )
-    for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
-    {
+    num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), [&](Node<3>& rNode){
+        IndexType counter = 0;
         Condition::Pointer p_host_cond;
         VectorType shape_function_values;
-        NodeIteratorType it_slave_node = it_slave_node_begin;
-        std::advance(it_slave_node, i_node);
         array_1d<double, 3 > transformed_slave_coordinates;
-        TransformNode(it_slave_node->Coordinates(), transformed_slave_coordinates);
+        TransformNode(rNode.Coordinates(), transformed_slave_coordinates);
 
         // Finding the host element for this node
         const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(transformed_slave_coordinates, shape_function_values, p_host_cond, mSearchMaxResults, mSearchTolerance);
         if(is_found)
         {
-            ++num_slaves_found;
+            ++counter;
             for (int j = 0; j < num_vars; j++)
             {
                 const std::string var_name = mParameters["variable_names"][j].GetString();
                 // Checking if the variable is a vector variable
-                if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
+                if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name))
                 {   // TODO: Look for a better alternative to do this.
-                    ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
+                    ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rNode, p_host_cond->GetGeometry() , shape_function_values, var_name);
                 } else if (KratosComponents<VariableType>::Has(var_name))
                 {
-                    ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
+                    ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rNode, p_host_cond->GetGeometry() , shape_function_values, var_name);
                 }
             }
         }
-    }
+        return counter;
+    });
+
     KRATOS_WARNING_IF("ApplyPeriodicConditionProcess",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
-    const double end_apply = OpenMPUtils::GetCurrentTime();
-    KRATOS_INFO("ApplyPeriodicConditionProcess")<<"Applying periodic boundary conditions took : "<<end_apply - start_apply<<" seconds." <<std::endl;
+    KRATOS_INFO("ApplyPeriodicConditionProcess")<<"Applying periodic boundary conditions took : "<< timer.ElapsedSeconds() <<" seconds." <<std::endl;
 }
 
 template <int TDim>
@@ -228,7 +226,7 @@ void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVar
             mrMasterModelPart.AddMasterSlaveConstraint(constraint6);
 
 
-            if (TDim == 3)
+            if (TDim == 3) // TODO: This function can be optimized using template specialization. if constexpr will fail due to unused variables declared
             {
                 auto constraint7 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
                 auto constraint8 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);

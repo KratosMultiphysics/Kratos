@@ -55,7 +55,7 @@ CrBeamElementLinear2D2N::~CrBeamElementLinear2D2N() {}
 
 void CrBeamElementLinear2D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     // Kt
@@ -72,7 +72,7 @@ void CrBeamElementLinear2D2N::CalculateLocalSystem(
 }
 
 void CrBeamElementLinear2D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     Vector nodal_deformation = ZeroVector(msElementSize);
@@ -84,7 +84,7 @@ void CrBeamElementLinear2D2N::CalculateRightHandSide(
 }
 
 void CrBeamElementLinear2D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     rLeftHandSideMatrix = CreateElementStiffnessMatrix_Total();
@@ -147,7 +147,7 @@ void CrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
     KRATOS_TRY
     // element with two nodes can only represent results at one node
     const unsigned int& write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }

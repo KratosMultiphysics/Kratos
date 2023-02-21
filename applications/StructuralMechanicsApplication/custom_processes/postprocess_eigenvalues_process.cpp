@@ -7,15 +7,19 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
+#include <cmath>
+#include <filesystem>
+#include <iomanip>
 
 // External includes
 
 // Project includes
 #include "utilities/constraint_utilities.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_io/gid_eigen_io.h"
@@ -34,8 +38,8 @@ struct BaseEigenOutputWrapper
     virtual void PrintOutput(
         const std::string& rLabel,
         const int AnimationStep,
-        const std::vector<Variable<double>>& rRequestedDoubleResults,
-        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) = 0;
+        const std::vector<const Variable<double>*>& rRequestedDoubleResults,
+        const std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults) = 0;
 };
 
 struct GidEigenOutputWrapper : public BaseEigenOutputWrapper
@@ -90,15 +94,15 @@ public:
     void PrintOutput(
         const std::string& rLabel,
         const int AnimationStep,
-        const std::vector<Variable<double>>& rRequestedDoubleResults,
-        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
+        const std::vector<const Variable<double>*>& rRequestedDoubleResults,
+        const std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults) override
     {
-        for (const auto& r_variable : rRequestedDoubleResults) {
-            mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
+        for (const auto& p_variable : rRequestedDoubleResults) {
+            mpGidEigenIO->WriteEigenResults(mrModelPart, *p_variable, rLabel, AnimationStep);
         }
 
-        for (const auto& r_variable : rRequestedVectorResults) {
-            mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
+        for (const auto& p_variable : rRequestedVectorResults) {
+            mpGidEigenIO->WriteEigenResults(mrModelPart, *p_variable, rLabel, AnimationStep);
         }
     }
 
@@ -127,8 +131,8 @@ public:
     void PrintOutput(
         const std::string& rLabel,
         const int AnimationStep,
-        const std::vector<Variable<double>>& rRequestedDoubleResults,
-        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
+        const std::vector<const Variable<double>*>& rRequestedDoubleResults,
+        const std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults) override
     {
         mpVtkEigenOutput->PrintEigenOutput(rLabel, AnimationStep, rRequestedDoubleResults, rRequestedVectorResults);
     }
@@ -161,6 +165,11 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
     );
 
     mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    const std::string folder_name = mOutputParameters["folder_name"].GetString();
+    if (!std::filesystem::exists(folder_name)) {
+        std::filesystem::create_directories(folder_name);
+    }
 }
 
 void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
@@ -178,48 +187,39 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
     // Note: this is omega^2
     const SizeType num_eigenvalues = eigenvalue_vector.size();
-    const auto nodes_begin = mrModelPart.NodesBegin();
     const SizeType num_animation_steps = mOutputParameters["animation_steps"].GetInt();
 
-    std::vector<Variable<double>> requested_double_results;
-    std::vector<Variable<array_1d<double,3>>> requested_vector_results;
+    std::vector<const Variable<double>*> requested_double_results;
+    std::vector<const Variable<array_1d<double,3>>*> requested_vector_results;
     GetVariables(requested_double_results, requested_vector_results);
-
 
     for (SizeType i=0; i<num_animation_steps; ++i) {
         const double cos_angle = std::cos(2 * Globals::Pi * i / num_animation_steps);
 
         for (SizeType j=0; j<num_eigenvalues; ++j) {
-            const std::string label = GetLabel(j, eigenvalue_vector[j]);
+            const std::string label = GetLabel(j, num_eigenvalues, eigenvalue_vector[j]);
 
-            #pragma omp parallel for
-            for (int k=0; k<static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
+            block_for_each(mrModelPart.Nodes(), [cos_angle, j](auto& rNode){
                 // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
-                DofsContainerType& r_node_dofs = (nodes_begin+k)->GetDofs();
-                const Matrix& r_node_eigenvectors = (nodes_begin+k)->GetValue(EIGENVECTOR_MATRIX);
+                DofsContainerType& r_node_dofs = rNode.GetDofs();
+                const Matrix& r_node_eigenvectors = rNode.GetValue(EIGENVECTOR_MATRIX);
 
                 KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2())
-                    << "Number of results on node #" << (nodes_begin+k)->Id() << " is wrong" << std::endl;
+                    << "Number of results on node #" << rNode.Id() << " is wrong" << std::endl;
 
                 SizeType l = 0;
                 for (auto& r_dof : r_node_dofs) {
                     r_dof->GetSolutionStepValue(0) = cos_angle * r_node_eigenvectors(j,l++);
                 }
-            }
-
-            // Reconstruct the animation on slave-dofs
-            if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
-                ConstraintUtilities::ResetSlaveDofs(mrModelPart);
-                ConstraintUtilities::ApplyConstraints(mrModelPart);
-            }
+            });
 
             p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
         }
     }
 }
 
-void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
-                                                std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const
+void PostprocessEigenvaluesProcess::GetVariables(std::vector<const Variable<double>*>& rRequestedDoubleResults,
+                                                std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults) const
 {
     for (SizeType i=0; i<mOutputParameters["list_of_result_variables"].size(); ++i) {
         const std::string variable_name = mOutputParameters["list_of_result_variables"].GetArrayItem(i).GetString();
@@ -231,7 +231,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
                 << variable << std::endl;
 
-            rRequestedDoubleResults.push_back(variable);
+            rRequestedDoubleResults.push_back(&variable);
         } else if (KratosComponents< Variable< array_1d<double, 3> > >::Has(variable_name) ) {
             const Variable<array_1d<double,3> >& variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
 
@@ -239,9 +239,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
                 << variable << std::endl;
 
-            rRequestedVectorResults.push_back(variable);
-        } else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) {
-            KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
+            rRequestedVectorResults.push_back(&variable);
         } else {
             KRATOS_ERROR << "Invalid Type of Variable, name: " << variable_name << std::endl;
         }
@@ -249,12 +247,13 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 }
 
 std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue,
+                                                    const int NumberOfEigenvalues,
                                                     const double EigenvalueSolution) const
 {
     double label_number;
 
     std::stringstream parser;
-    parser << (NumberOfEigenvalue + 1);
+    parser << std::setfill('0') << std::setw(std::floor(std::log10(NumberOfEigenvalues))+1) << (NumberOfEigenvalue + 1);
     std::string label = parser.str();
 
     const std::string lable_type = mOutputParameters["label_type"].GetString();

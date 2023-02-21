@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -16,21 +14,21 @@ def CreateSolver(model, custom_settings):
 
 class MeshSolverLaplacian(MeshSolverBase):
     def __init__(self, model, custom_settings):
-        super(MeshSolverLaplacian, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         if custom_settings["buffer_size"].GetInt() < 2:
             raise Exception("A buffer_size of at least 2 is required!")
         KM.Logger.PrintInfo("::[MeshSolverLaplacian]:: Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "buffer_size"           : 2
         }""")
-        this_defaults.AddMissingParameters(super(MeshSolverLaplacian, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
-    def _create_mesh_motion_solving_strategy(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateSolutionStrategy(self):
+        linear_solver = self._GetLinearSolver()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         solving_strategy = KratosMeshMoving.LaplacianMeshMovingStrategy(self.mesh_model_part,
@@ -39,8 +37,6 @@ class MeshSolverLaplacian(MeshSolverBase):
                                                             reform_dofs_each_step,
                                                             compute_reactions,
                                                             False,
-                                                            self.echo_level)
+                                                            self.echo_level,
+                                                            self.reinitialize_model_part_each_step)
         return solving_strategy
-
-
-

@@ -15,8 +15,8 @@
 
 // Project includes
 #include "custom_constitutive/linear_plane_strain.h"
-
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -113,32 +113,17 @@ void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrain::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStrain::CalculateElasticMatrix(VoigtSizeMatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    this->CheckClearElasticMatrix(C);
-
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU)*c0;
-
-    C(0, 0) = c1;
-    C(0, 1) = c2;
-    C(1, 0) = c2;
-    C(1, 1) = c1;
-    C(2, 2) = c3;
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStrain(rC, rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void LinearPlaneStrain::CalculatePK2Stress(
-    const Vector& rStrainVector,
-    Vector& rStressVector,
+    const ConstitutiveLaw::StrainVectorType& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -159,10 +144,10 @@ void LinearPlaneStrain::CalculatePK2Stress(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
+void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, ConstitutiveLaw::StrainVectorType& rStrainVector)
 {
     //1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
+    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
 
     // for shells/membranes in case the DeformationGradient is of size 3x3
     BoundedMatrix<double, 2, 2> F2x2;
@@ -170,7 +155,7 @@ void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, Vector& 
         for (unsigned int j = 0; j<2; ++j)
             F2x2(i, j) = F(i, j);
 
-    Matrix E_tensor = prod(trans(F2x2), F2x2);
+    BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
 
     for (unsigned int i = 0; i<2; ++i)
         E_tensor(i, i) -= 1.0;

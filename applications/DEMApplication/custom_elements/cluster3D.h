@@ -14,7 +14,7 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "includes/condition.h"
@@ -42,7 +42,7 @@ namespace Kratos
         virtual ~Cluster3D();
 
         using Element::Initialize;
-        virtual void Initialize(ProcessInfo& r_process_info) override;
+        void Initialize(const ProcessInfo& r_process_info) override;
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
         virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();
@@ -56,6 +56,9 @@ namespace Kratos
 
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
+
+        double GetProgrammedDestructionTime() const {return mProgrammedDestructionTime;}
+        void SetProgrammedDestructionTime(const double destruction_time){mProgrammedDestructionTime = destruction_time;}
 
         virtual std::string Info() const override
         {
@@ -78,8 +81,9 @@ namespace Kratos
 
     protected:
 
-        std::vector<double>               mListOfRadii;
-        std::vector<SphericParticle*>     mListOfSphericParticles;
+        std::vector<double> mListOfRadii;
+        std::vector<SphericParticle*> mListOfSphericParticles;
+        double mProgrammedDestructionTime = -1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 
     private:
 

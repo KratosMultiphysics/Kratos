@@ -24,8 +24,12 @@
 #include "custom_utilities/projection.h"
 #include "custom_utilities/binbased_projection.h"
 #include "custom_utilities/local_refine_triangle_mesh.hpp"
+#include "custom_utilities/local_refine_triangle_mesh_conditions.hpp"
 #include "custom_utilities/local_refine_prism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
+#include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
+#include "custom_utilities/local_refine_tetrahedra_mesh_parallel_to_boundaries.hpp"
+
 
 #ifdef  USE_TETGEN_NONFREE_TPL
     #include "custom_utilities/tetgen_volume_mesher.h"
@@ -96,6 +100,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("LocalRefineMesh", &LocalRefineTriangleMesh::LocalRefineMesh)
     ;
 
+    py::class_<LocalRefineTriangleMeshConditions >
+    (m,"LocalRefineTriangleMeshConditions")
+    .def(py::init<ModelPart&>())
+    .def("LocalRefineMesh", &LocalRefineTriangleMeshConditions::LocalRefineMesh)
+    ;
+
     py::class_<LocalRefinePrismMesh >
     (m,"LocalRefinePrismMesh")
     .def(py::init<ModelPart&>())
@@ -112,6 +122,18 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     (m,"LocalRefineTetrahedraMesh")
     .def(py::init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineTetrahedraMesh::LocalRefineMesh)
+    ;
+
+    py::class_<LinearToQuadraticTetrahedraMeshConverter >
+    (m,"LinearToQuadraticTetrahedraMeshConverter")
+    .def(py::init<ModelPart&>())
+    .def("LocalConvertLinearToQuadraticTetrahedraMesh", &LinearToQuadraticTetrahedraMeshConverter::LocalConvertLinearToQuadraticTetrahedraMesh)
+    ;
+
+    py::class_<LocalRefineTetrahedraMeshParallelToBoundaries >
+    (m,"LocalRefineTetrahedraMeshParallelToBoundaries")
+    .def(py::init<ModelPart&>())
+    .def("LocalRefineMesh", &LocalRefineTetrahedraMeshParallelToBoundaries::LocalRefineMesh)
     ;
 
 #ifdef USE_TETGEN_NONFREE_TPL
@@ -145,7 +167,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<Cutting_Isosurface_Application >(m,"Cutting_Isosurface_Application")
     .def(py::init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
-    .def("GenerateVectorialComponentVarCut", &Cutting_Isosurface_Application::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
     .def("GenerateVectorialVarCut", &Cutting_Isosurface_Application::GenerateVariableCut< array_1d < double, 3 > >)
     .def("AddModelPartElements", &Cutting_Isosurface_Application::AddModelPartElements)
     .def("AddSkinConditions", &Cutting_Isosurface_Application::AddSkinConditions)

@@ -24,21 +24,128 @@ namespace Kratos
 {
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateI1Invariant(
-    const BoundedVectorType& rStressVector,
-    double& rI1
+void ConstitutiveLawUtilities<6>::CalculateElasticMatrix(
+    Matrix& rConstitutiveMatrix,
+    const double E,
+    const double nu
     )
 {
-    rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i)
-        rI1 += rStressVector[i];
+    if (rConstitutiveMatrix.size1() != VoigtSize || rConstitutiveMatrix.size2() != VoigtSize)
+        rConstitutiveMatrix.resize(VoigtSize, VoigtSize, false);
+
+    const double c1 = E / ((1.00 + nu) * (1 - 2 * nu));
+    const double c2 = c1 * (1 - nu);
+    const double c3 = c1 * nu;
+    const double c4 = c1 * 0.5 * (1 - 2 * nu);
+
+    rConstitutiveMatrix(0, 0) = c2;
+    rConstitutiveMatrix(0, 1) = c3;
+    rConstitutiveMatrix(0, 2) = c3;
+    rConstitutiveMatrix(1, 0) = c3;
+    rConstitutiveMatrix(1, 1) = c2;
+    rConstitutiveMatrix(1, 2) = c3;
+    rConstitutiveMatrix(2, 0) = c3;
+    rConstitutiveMatrix(2, 1) = c3;
+    rConstitutiveMatrix(2, 2) = c2;
+    rConstitutiveMatrix(3, 3) = c4;
+    rConstitutiveMatrix(4, 4) = c4;
+    rConstitutiveMatrix(5, 5) = c4;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
+void ConstitutiveLawUtilities<3>::CalculateElasticMatrix(
+    Matrix& rConstitutiveMatrix,
+    const double E,
+    const double nu
+    )
+{
+    // Assuming plane strain TODO
+    if (rConstitutiveMatrix.size1() != VoigtSize || rConstitutiveMatrix.size2() != VoigtSize)
+        rConstitutiveMatrix.resize(VoigtSize, VoigtSize, false);
+
+    const double c0 = E / ((1.00 + nu) * (1 - 2 * nu));
+    const double c1 = (1.00 - nu) * c0;
+    const double c2 = c0 * nu;
+    const double c3 = (0.5 - nu) * c0;
+
+    rConstitutiveMatrix(0, 0) = c1;
+    rConstitutiveMatrix(0, 1) = c2;
+    rConstitutiveMatrix(1, 0) = c2;
+    rConstitutiveMatrix(1, 1) = c1;
+    rConstitutiveMatrix(2, 2) = c3;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateDeviatoricStrainVector(
+    const Vector& rStrainVector,
+    const Vector& rVolumetricStrainVector,
+    Vector &rDeviatoricStrainVector
+    )
+{
+    if (rDeviatoricStrainVector.size() != VoigtSize)
+        rDeviatoricStrainVector.resize(VoigtSize);
+
+    noalias(rDeviatoricStrainVector) = rStrainVector - rVolumetricStrainVector;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateVolumetricStrainVector(
+    const Vector& rStrainVector,
+    Vector& rVolumetricStrainVector
+    )
+{
+    if (rVolumetricStrainVector.size() != VoigtSize)
+        rVolumetricStrainVector.resize(VoigtSize);
+
+    BoundedVectorType r_identity_vector = ZeroVector(VoigtSize);
+    CalculateIdentityVector(r_identity_vector);
+    double strain_trace = 0.0;
+
+    // Compute the trace of strain vector
+    for (IndexType i = 0; i < Dimension; ++i)
+        strain_trace += rStrainVector[i];
+
+    noalias(rVolumetricStrainVector) = 1.0 / 3.0 * (strain_trace)*r_identity_vector;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
+    const double YoungModulus,
+    const double PoissonRatio
+    )
+{
+    return YoungModulus / (3.0 * (1.0 - 2.0 * PoissonRatio));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateBulkModulus(
+    const double YoungModulus,
+    const double PoissonRatio
+    )
+{
+    return YoungModulus / (2.0 * (1.0 + PoissonRatio));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
     const BoundedVectorType& rStressVector,
     double& rI1
     )
@@ -47,6 +154,7 @@ void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
     for (IndexType i = 1; i < Dimension; ++i)
         rI1 += rStressVector[i];
 }
+
 
 /***********************************************************************************/
 /***********************************************************************************/

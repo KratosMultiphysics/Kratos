@@ -128,8 +128,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -138,8 +138,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -149,7 +149,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal velocities
@@ -159,7 +159,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal accelerations
@@ -169,7 +169,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * This function provides a more general interface to the element.
@@ -182,7 +182,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -192,7 +192,7 @@ public:
       */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -202,7 +202,7 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -213,7 +213,7 @@ public:
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -223,7 +223,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Check if Rotational Dof existant
@@ -266,12 +266,12 @@ public:
 
     void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -297,8 +297,9 @@ protected:
     ///@{
 
     array_1d<double, 3> m_xg;
+    array_1d<double, 3> m_displacement;
     array_1d<double, 3> m_acceleration;
-    array_1d<double, 3> m_velocity;    
+    array_1d<double, 3> m_velocity;
     array_1d<double, 3> m_normal;
     double m_area;
 
@@ -321,7 +322,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
@@ -332,10 +333,10 @@ protected:
     virtual double GetIntegrationWeight();
 
     /**
-     * Calculate Shape Function Values in a given point
+     * Calculate Shape Function Values as a vector
      */
 
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const;
 
     /**
      * Calculation of the Current Displacement
@@ -391,11 +392,24 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        rSerializer.save("xg",m_xg);
+        rSerializer.save("displacement",m_displacement);
+        rSerializer.save("acceleration",m_acceleration);
+        rSerializer.save("velocity",m_velocity);
+        rSerializer.save("normal",m_normal);
+        rSerializer.save("area",m_area);
+
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        rSerializer.load("xg",m_xg);
+        rSerializer.load("displacement",m_displacement);
+        rSerializer.load("acceleration",m_acceleration);
+        rSerializer.load("velocity",m_velocity);
+        rSerializer.load("normal",m_normal);
+        rSerializer.load("area",m_area);
     }
 
 }; // class MPMParticleBaseCondition.

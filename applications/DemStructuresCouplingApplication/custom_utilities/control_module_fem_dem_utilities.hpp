@@ -114,7 +114,27 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
     mYCounter = 2;
     mZCounter = 3;
 
-    mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
+    // Initialize Variables
+    mrDemModelPart.GetProcessInfo().SetValue(TARGET_STRESS_Z,0.0);
+    int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
+    ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
+    array_1d<double,3> zero_vector = ZeroVector(3);
+    #pragma omp parallel for
+    for(int i = 0; i<NNodes; i++) {
+        ModelPart::NodesContainerType::iterator it = it_begin + i;
+        it->SetValue(TARGET_STRESS,zero_vector);
+        it->SetValue(REACTION_STRESS,zero_vector);
+        it->SetValue(LOADING_VELOCITY,zero_vector);
+    }
+    NNodes = static_cast<int>(mrDemModelPart.Nodes().size());
+    it_begin = mrDemModelPart.NodesBegin();
+    #pragma omp parallel for
+    for(int i = 0; i<NNodes; i++) {
+        ModelPart::NodesContainerType::iterator it = it_begin + i;
+        it->SetValue(TARGET_STRESS,zero_vector);
+        it->SetValue(REACTION_STRESS,zero_vector);
+        it->SetValue(LOADING_VELOCITY,zero_vector);
+    }
 
     mApplyCM = false;
 
@@ -168,9 +188,129 @@ void ExecuteInitialize()
 // Before FEM and DEM solution
 void ExecuteInitializeSolutionStep()
 {
+    const double CurrentTime = mrFemModelPart.GetProcessInfo()[TIME];
+    const double DeltaTime = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
+    const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
+    ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
+    TableType::Pointer pTargetStressTable = mrFemModelPart.pGetTable(mTargetStressTableId);
+
     double ReactionStress = CalculateReactionStress();
     ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
+
+    // Check whether this is a loading step for the current axis
+    IsTimeToApplyCM();
+
+    if (mApplyCM == true) {
+
+        // Update K if required
+        if (mAlternateAxisLoading == false) {
+            if(mUpdateStiffness == true) {
+                mStiffness = EstimateStiffness(ReactionStress,DeltaTime);
+            }
+        }
+        mReactionStressOld = ReactionStress;
+
+        // Update velocity
+        const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
+        const double df_target = NextTargetStress - ReactionStress;
+        double delta_velocity = df_target/(mStiffness * DeltaTime) - mVelocity;
+
+        if(std::abs(df_target) < mStressIncrementTolerance) {
+            delta_velocity = -mVelocity;
+        }
+
+        mVelocity += mVelocityFactor * delta_velocity;
+
+        if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
+            if(mVelocity >= 0.0) {
+                mVelocity = std::abs(mLimitVelocity);
+            } else {
+                mVelocity = - std::abs(mLimitVelocity);
+            }
+        }
+
+        // Update Imposed displacement
+        if (mImposedDirection == 0) { // X direction
+            const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_X_VALUE");
+            mrDemModelPart[DemVelocityVar] = mVelocity;
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->FastGetSolutionStepValue(DISPLACEMENT_X) += mVelocity * DeltaTime;
+                // Save calculated velocity and reaction for print (only at FEM nodes)
+                it->GetValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_X) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_X) = mVelocity;
+            }
+        } else if (mImposedDirection == 1) { // Y direction
+            const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Y_VALUE");
+            mrDemModelPart[DemVelocityVar] = mVelocity;
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->FastGetSolutionStepValue(DISPLACEMENT_Y) += mVelocity * DeltaTime;
+                // Save calculated velocity and reaction for print (only at FEM nodes)
+                it->GetValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_Y) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_Y) = mVelocity;
+            }
+        } else if (mImposedDirection == 2) { // Z direction
+            const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Z_VALUE");
+            mrDemModelPart[DemVelocityVar] = mVelocity;
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->FastGetSolutionStepValue(DISPLACEMENT_Z) += mVelocity * DeltaTime;
+                // Save calculated velocity and reaction for print (only at FEM nodes)
+                it->GetValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_Z) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_Z) = mVelocity;
+            }
+            mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(pTargetStressTable->GetValue(CurrentTime));
+        }
+    } else {
+        // Save calculated velocity and reaction for print (only at FEM nodes)
+        if (mImposedDirection == 0) { // X direction
+            const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_X_VALUE");
+            mrDemModelPart[DemVelocityVar] = 0.0;
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->GetValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_X) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_X) = 0.0;
+            }
+        } else if (mImposedDirection == 1) { // Y direction
+            const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Y_VALUE");
+            mrDemModelPart[DemVelocityVar] = 0.0;
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->GetValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_Y) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_Y) = 0.0;
+            }
+        } else if (mImposedDirection == 2) { // Z direction
+            const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Z_VALUE");
+            mrDemModelPart[DemVelocityVar] = 0.0;
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->GetValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_Z) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_Z) = 0.0;
+            }
+            mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(pTargetStressTable->GetValue(CurrentTime));
+        }
+    }
 }
+
 // After FEM and DEM solution
 void ExecuteFinalizeSolutionStep()
 {

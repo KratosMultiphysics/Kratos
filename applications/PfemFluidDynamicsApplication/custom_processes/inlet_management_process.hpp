@@ -25,7 +25,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -65,14 +64,14 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    InletManagementProcess(ModelPart &rModelPart,
-                           MesherUtilities::MeshingParameters &rRemeshingParameters,
-                           int EchoLevel)
-        : mrModelPart(rModelPart),
-          mrRemesh(rRemeshingParameters)
-    {
-      KRATOS_INFO("InletManagementProcess") << " inlet_management CONSTRUCTOR ";
+  /// Default constructor.
+  InletManagementProcess(ModelPart &rModelPart,
+                         MesherUtilities::MeshingParameters &rRemeshingParameters,
+                         int EchoLevel)
+      : mrModelPart(rModelPart),
+        mrRemesh(rRemeshingParameters)
+  {
+    KRATOS_INFO("InletManagementProcess") << " activated "<< std::endl;
 
       mEchoLevel = EchoLevel;
     }
@@ -264,10 +263,10 @@ namespace Kratos
       for (unsigned int i = 0; i < sizeClonedNodes; i++)
       {
 
-        Node<3>::Pointer pnode = clonedNodes[i];
-        double NodeIdParent = MesherUtilities::GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
-        double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
-        unsigned int id = NodeIdParent + 1; //total model part node size
+      Node<3>::Pointer pnode = clonedNodes[i];
+      double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
+      double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
+      unsigned int id = NodeIdParent + 1; //total model part node size
 
         if (NodeId > NodeIdParent)
         {

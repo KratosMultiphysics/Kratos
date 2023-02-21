@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//			 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GEOMETRICAL_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEOMETRICAL_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -220,9 +219,112 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+     void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector< array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector< array_1d<double, 6 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector >& rVariable,
+        std::vector< Vector >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix >& rVariable,
+        std::vector< Matrix >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
     ///@}
     ///@name Input and output
     ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -270,4 +372,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEOMETRICAL_ELEMENT_H_INCLUDED  defined

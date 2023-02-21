@@ -78,14 +78,6 @@ int AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::Check(const ProcessInf
     KRATOS_ERROR_IF(this->GetGeometry().WorkingSpaceDimension() != 3 || this->GetGeometry().size() != 2)
     << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-
     // check dofs
     const GeometryType& r_geom = this->GetGeometry();
     for (IndexType i = 0; i < r_geom.size(); i++)

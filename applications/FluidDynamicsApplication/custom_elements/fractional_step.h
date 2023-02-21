@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -173,7 +173,7 @@ namespace Kratos
 	    {
             return Kratos::make_intrusive< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 	    }
-	
+
         /**
          * Returns a pointer to a new FractionalStep element, created using given input
          * @param NewId the ID of the new element
@@ -181,12 +181,12 @@ namespace Kratos
          * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
-		
+
         Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
         {
             return Kratos::make_intrusive< FractionalStep<TDim> >(NewId, pGeom, pProperties);
         }
-        
+
         /**
          * Clones the selected element variables, creating a new one
          * @param NewId the ID of the new element
@@ -194,33 +194,33 @@ namespace Kratos
          * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
-        
+
         Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
         {
             Element::Pointer pNewElement = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-            
+
             pNewElement->SetData(this->GetData());
             pNewElement->SetFlags(this->GetFlags());
-            
+
             return pNewElement;
         }
-        
-        void Initialize() override;
+
+        void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
         /// Initializes the element and all geometric information required for the problem.
-        void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
+        void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
 
 
-        void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override;
+        void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override;
 
         /// Calculate the element's local contribution to the system for the current step.
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override;
+                                          const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                           ProcessInfo& rCurrentProcessInfo) override
+                                           const ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
             KRATOS_THROW_ERROR(std::logic_error,"FractionalStep::CalculateLeftHandSide not implemented","");
@@ -228,7 +228,7 @@ namespace Kratos
         }
 
         void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                            ProcessInfo& rCurrentProcessInfo) override
+                                    const ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
             KRATOS_THROW_ERROR(std::logic_error,"FractionalStep::CalculateRightHandSide not implemented","");
@@ -264,7 +264,7 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info object (unused)
          */
         void EquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) const override;
 
         /// Returns a list of the element's Dofs
         /**
@@ -272,9 +272,9 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         void GetDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                        const ProcessInfo& rCurrentProcessInfo) const override;
 
-    
+
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
         /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
@@ -283,9 +283,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                std::vector<array_1d<double, 3 > >& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 3 > >& rVariable,
+            std::vector<array_1d<double, 3 > >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Obtain a double elemental variable, evaluated on gauss points.
         /**
@@ -293,9 +294,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                std::vector<double>& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(
+            const Variable<double>& rVariable,
+            std::vector<double>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Obtain an array_1d<double,6> elemental variable, evaluated on gauss points.
         /**
@@ -303,9 +305,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                std::vector<array_1d<double, 6 > >& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 6 > >& rVariable,
+            std::vector<array_1d<double, 6 > >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             this->GetElementalValueForOutput< array_1d<double,6> >(rVariable,rValues);
         }
@@ -316,9 +319,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                std::vector<Vector>& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             this->GetElementalValueForOutput< Vector >(rVariable,rValues);
         }
@@ -329,9 +333,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                std::vector<Matrix>& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<Matrix>& rVariable,
+            std::vector<Matrix>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             this->GetElementalValueForOutput< Matrix >(rVariable,rValues);
         }
@@ -353,7 +358,7 @@ namespace Kratos
          * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
          * @return 0 if no errors were found.
          */
-        int Check(const ProcessInfo& rCurrentProcessInfo) override;
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
         ///@}
         ///@name Inquiry
@@ -363,6 +368,8 @@ namespace Kratos
         ///@}
         ///@name Input and output
         ///@{
+
+        const Parameters GetSpecifications() const override;
 
         /// Turn back information as a string.
         std::string Info() const override
@@ -407,9 +414,10 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
-        void CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
-                                                    VectorType& rRightHandSideVector,
-                                                    const ProcessInfo& rCurrentProcessInfo);
+        virtual void CalculateLocalFractionalVelocitySystem(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo);
 
         virtual void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
@@ -420,22 +428,22 @@ namespace Kratos
                                       const ProcessInfo& rCurrentProcessInfo);
 
         void VelocityEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo) const ;
 
         void PressureEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo) const ;
 
         void GetVelocityDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo) const ;
 
         void GetPressureDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo) const ;
 
         void GetPressureValues(Vector& rValues,
-                               const int Step = 0);
+                               const int Step = 0) const ;
 
         void GetVelocityValues(Vector& rValues,
-                               const int Step = 0);
+                               const int Step = 0) const ;
 
         /// Determine integration point weights and shape funcition derivatives from the element's geometry.
         virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
@@ -632,17 +640,17 @@ namespace Kratos
         {
             GeometryType& rGeom = this->GetGeometry();
             const SizeType NumNodes = rGeom.PointsNumber();
-	    
+
 			const double& var = rGeom[0].FastGetSolutionStepValue(Var);
 			for (SizeType d = 0; d < TDim; ++d)
 				rResult[d] = rDN_DX(0,d) * var;
-			
+
 			for(SizeType i = 1; i < NumNodes; i++)
 			{
 			  const double& var = rGeom[i].FastGetSolutionStepValue(Var);
 			  for (SizeType d = 0; d < TDim; ++d)
 						rResult[d] += rDN_DX(i,d) * var;
-				
+
 			}
 		}
 
@@ -666,14 +674,14 @@ namespace Kratos
 
         /// Helper function to print results on gauss points
         /** Reads a variable from the element's database and returns it in a format
-          * that can be used by GetValueOnIntegrationPoints functions.
-          * @see GetValueOnIntegrationPoints
+          * that can be used by CalculateOnIntegrationPoints functions.
+          * @see CalculateOnIntegrationPoints
           */
         template<class TValueType>
         void GetElementalValueForOutput(const Kratos::Variable<TValueType>& rVariable,
                                         std::vector<TValueType>& rOutput)
         {
-            unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+            unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
             rOutput.resize(NumValues);
             /*
              The cast is done to avoid modification of the element's data. Data modification

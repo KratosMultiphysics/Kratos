@@ -11,38 +11,20 @@
 //                   Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
 
 // Project includes
 #include "includes/define_python.h"
-//#include "containers/hash_data_value_container.h"
-// #include "containers/variables_list_data_value_container.h"
-// #include "containers/vector_component_adaptor.h"
-#include "containers/flags.h"
-//#include "containers/all_variables_data_value_container.h"
-// #include "includes/kratos_flags.h"
 #include "includes/dem_variables.h"
-// #include "includes/constitutive_law.h"
 #include "python/add_dem_variables_to_python.h"
-// #include "python/vector_python_interface.h"
-// #include "python/vector_scalar_operator_python.h"
-// #include "python/vector_vector_operator_python.h"
-// #include "python/bounded_vector_python_interface.h"
-
-// #include "includes/convection_diffusion_settings.h"
-// #include "includes/radiation_settings.h"
-#include "utilities/timer.h"
 
 namespace Kratos
 {
-//KRATOS_CREATE_FLAG(STRUCTURE,   63);
 
 namespace Python
 {
-namespace py = pybind11;
 
 void  AddDEMVariablesToPython(pybind11::module& m)
 {
@@ -67,6 +49,7 @@ void  AddDEMVariablesToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_TYPE )
 
     // Swimming DEM Application BEGINNING
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERMEABILITY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMBER_OF_INIT_BASSET_STEPS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COUPLING_TYPE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NON_NEWTONIAN_OPTION )

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import os
 import sys
 import shutil
@@ -15,7 +13,7 @@ from utils.io import ToLowerFromCamel
 from utils.io import GetApplicationsDirectory
 from utils.io import bcolors, Formatc
 
-from utils.constants import ptab, ctab
+from utils.constants import ctab
 from utils.templateRule import TemplateRule
 
 
@@ -23,7 +21,7 @@ class ApplicationGenerator(TemplateRule):
 
     def __init__(self, name):
 
-        super(ApplicationGenerator, self).__init__()
+        super().__init__()
 
         appStrPos = name.lower().find('application')
         maxi = 5

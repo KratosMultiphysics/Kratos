@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.mpi as mpi
@@ -160,7 +159,6 @@ class DamMPIThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSol
         # Solver creation (Note: this could be TrilinosResidualBasedLinearStrategy, but there is no such strategy)
         self.Thermal_Solver = TrilinosApplication.TrilinosNewtonRaphsonStrategy(self.thermal_computing_model_part,
                                                                        thermal_scheme,
-                                                                       self.thermal_linear_solver,
                                                                        convergence_criterion,
                                                                        thermal_builder_and_solver,
                                                                        self.settings["mechanical_solver_settings"]["max_iteration"].GetInt(),

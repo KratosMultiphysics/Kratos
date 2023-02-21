@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED )
-#define  KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 
@@ -54,6 +53,59 @@ struct ComputeNodalGradientProcessSettings
     // Defining clearer options
     constexpr static bool SaveAsHistoricalVariable = true;
     constexpr static bool SaveAsNonHistoricalVariable = false;
+    constexpr static bool GetAsHistoricalVariable = true;
+    constexpr static bool GetAsNonHistoricalVariable = false;
+};
+
+/**
+ * @brief This struct is an auxiliar base class of the VariableVectorRetriever
+ */
+struct AuxiliarVariableVectorRetriever
+{
+    /// Destructor.
+    virtual ~AuxiliarVariableVectorRetriever()
+    {
+    }
+
+    /**
+     * @brief This method fills the vector of values
+     * @param rGeometry The geometry where values are stored
+     * @param rVariable The variable to retrieve
+     * @param rVector The vector to fill
+     */
+    virtual void GetVariableVector(
+        const Geometry<Node<3>>& rGeometry,
+        const Variable<double>& rVariable,
+        Vector& rVector
+        )
+    {
+        KRATOS_ERROR << "Calling base class implementation" << std::endl;
+    }
+};
+
+/**
+ * @brief This struct is used in order to retrieve values without loosing performance
+ */
+template<bool THistorical>
+struct VariableVectorRetriever
+    : public AuxiliarVariableVectorRetriever
+{
+    /// Destructor.
+    ~VariableVectorRetriever() override
+    {
+    }
+
+    /**
+     * @brief This method fills the vector of values
+     * @param rGeometry The geometry where values are stored
+     * @param rVariable The variable to retrieve
+     * @param rVector The vector to fill
+     */
+    void GetVariableVector(
+        const Geometry<Node<3>>& rGeometry,
+        const Variable<double>& rVariable,
+        Vector& rVector
+        ) override;
 };
 
 /**
@@ -72,6 +124,9 @@ class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The definition of the node
+    typedef Node<3> NodeType;
 
     /// Pointer definition of ComputeNodalGradientProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNodalGradientProcess);
@@ -100,7 +155,6 @@ public:
     {
     }
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -110,7 +164,6 @@ public:
     {
         Execute();
     }
-
 
     ///@}
     ///@name Operations
@@ -131,11 +184,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -158,55 +209,43 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -229,6 +268,12 @@ private:
     // TODO: Try to use enable_if!!!
 
     /**
+     * This checks the definition and correct initialization of the origin variable, for which the
+     * gradient will be computed, and the variable chosen to compute the area.
+     */
+    void CheckOriginAndAreaVariables();
+
+    /**
      * This clears the gradient
      */
     void ClearGradient();
@@ -244,19 +289,29 @@ private:
         );
 
     /**
+     * @brief This function computes the elemental gradient of the origin variable and
+     * adds it to its corresponding nodes. It also computes the contribution of the element
+     * to the nodal volume.
+     */
+    void ComputeElementalContributionsAndVolume();
+
+    /**
      * @brief This divides the gradient value by the nodal area
      */
     void PonderateGradient();
+
+    /**
+     * @brief This synchronizes the nodal contributions in parallel runs. Only needed in MPI.
+     */
+    void SynchronizeGradientAndVolume();
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -268,9 +323,7 @@ private:
     /// Copy constructor.
     //ComputeNodalGradientProcess(ComputeNodalGradientProcess const& rOther);
 
-
     ///@}
-
 }; // Class ComputeNodalGradientProcess
 
 ///@}
@@ -300,7 +353,5 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined
 
 

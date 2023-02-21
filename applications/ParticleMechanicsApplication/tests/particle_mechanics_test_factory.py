@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -69,6 +68,9 @@ class BeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMec
 class BeamCantileverDynamicConsistentMassTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test"
 
+class BeamCantileverDynamicHyperelasticUPTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/dynamic_UP_hyperelastic_cantilever_test/dynamic_UP_hyperelastic_test"
+
 ### Cook's Membrane Tests
 class CooksMembraneCompressibleTest(ParticleMechanicsTestFactory):
     file_name = "cooks_membrane_tests/compressible_cook_membrane_2D_test"
@@ -83,9 +85,16 @@ class CooksMembraneUPIncompressibleTest(ParticleMechanicsTestFactory):
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
 
+class CLDispNewtonianFluidTest(ParticleMechanicsTestFactory):
+    file_name = "cl_tests/fluid_cl/newtonian_fluid_test"
+
 ### Gravity Application Tests
 class GravityApplicationTest(ParticleMechanicsTestFactory):
     file_name = "gravity_tests/dynamic_gravity_application_test"
+
+### Gravity Time Step Table Tests
+class GravityTimeStepTableTest(ParticleMechanicsTestFactory):
+    file_name = "gravity_tests/dynamic_gravity_time_step_table_test"
 
 ### Penalty Imposition Tests
 class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
@@ -128,3 +137,13 @@ class Explicit3dHexCompressibleOscillatingPointTest(ParticleMechanicsTestFactory
 
 class Explicit3dTetCompressibleOscillatingPointTest(ParticleMechanicsTestFactory):
     file_name = "explicit_tests/oscillating_point_3d/3dtet_compressible_explicit_oscillating_point_test"
+
+### PQMPM tests
+class PQMPMExplicitQuadTest(ParticleMechanicsTestFactory):
+    file_name = "pqmpm_tests/pqmpm_explicit_quad_test"
+
+class PQMPMExplicitTriTest(ParticleMechanicsTestFactory):
+    file_name = "pqmpm_tests/pqmpm_explicit_tri_test"
+
+class PQMPMExplicitHexTest(ParticleMechanicsTestFactory):
+    file_name = "pqmpm_tests/pqmpm_explicit_hex_test"

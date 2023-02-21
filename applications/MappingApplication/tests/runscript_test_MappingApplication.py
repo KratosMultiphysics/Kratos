@@ -4,7 +4,7 @@
 # testing in Kratos yet
 # usage: "python3 runscript_test_MappingApplication.py"
 
-import os, sys
+import os
 from time import *
 import datetime
 import re
@@ -36,7 +36,6 @@ def CheckOutputFile(output_file, string_array, tests_success):
 
     return tests_success
 
-
 input_file = "test_MappingApplication.py"
 input_file_mpi = "test_MappingApplication_mpi.py"
 kratos_output_file = "output_kratos.txt"
@@ -46,9 +45,7 @@ list_processors = []
 
 for i in range(2,31):
     list_processors.append(i)
-
 list_processors.extend([40, 50])
-
 
 # serial execution
 WriteInfo(kratos_output_file, tests_output_file, "w", "Serial Execution")
@@ -61,7 +58,7 @@ print("OMP thread set to 1")
 # parallel executions
 for num_processors in list_processors:
     WriteInfo(kratos_output_file, tests_output_file, "a", "Parallel Execution; " + str(num_processors) + " processors")
-    system_cmd = "mpiexec -np " + str(num_processors) + " python3 " + input_file_mpi + " --using-mpi >> " + kratos_output_file + " 2>> " + tests_output_file
+    system_cmd = "mpiexec --oversubscribe -np " + str(num_processors) + " python3 " + input_file_mpi + " --using-mpi >> " + kratos_output_file + " 2>> " + tests_output_file
     os.system(system_cmd)
 
 tests_success = True
