@@ -283,7 +283,7 @@ namespace Kratos
                   unsigned int NumberOfNewNodes;
                   unsigned int NumberOfNewConditions;
 
-                  unsigned int NumberOfEulerianNodes;
+                  unsigned int NumberOfEulerianInletNodes;
 
                   // total for all refining boxes
                   unsigned int InsertedNodes;

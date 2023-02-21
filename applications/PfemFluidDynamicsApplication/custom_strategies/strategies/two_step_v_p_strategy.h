@@ -288,27 +288,6 @@ namespace Kratos
         {
           break;
         }
-        else if ((i)->Is(RIGID))
-        {
-          array_1d<double, 3> Zeros(3, 0.0);
-          (i)->FastGetSolutionStepValue(ACCELERATION, 0) = Zeros;
-          (i)->FastGetSolutionStepValue(ACCELERATION, 1) = Zeros;
-        }
-        else
-        {
-          (i)->FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-          (i)->FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
-          (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0) = 0.0;
-          (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1) = 0.0;
-          (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0) = 0.0;
-          (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 1) = 0.0;
-          if ((i)->SolutionStepsDataHas(VOLUME_ACCELERATION))
-          {
-            array_1d<double, 3> &VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            (i)->FastGetSolutionStepValue(ACCELERATION, 0) = VolumeAcceleration;
-            (i)->FastGetSolutionStepValue(VELOCITY, 0) += VolumeAcceleration * rCurrentProcessInfo[DELTA_TIME];
-          }
-        }
       }
 
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
