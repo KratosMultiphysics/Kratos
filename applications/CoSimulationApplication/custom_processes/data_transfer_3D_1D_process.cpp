@@ -55,7 +55,10 @@ DataTransfer3D1DProcess::DataTransfer3D1DProcess(
     GetVariablesList(mOriginListVariables, mDestinationListVariables);
 
     // We generate auxiliary 3D model part
-    auto& r_aux_model_part_3D = mr3DModelPart.HasSubModelPart("IntersectedElements3D") ? mr3DModelPart.GetSubModelPart("IntersectedElements3D") : mr3DModelPart.CreateSubModelPart("IntersectedElements3D");
+    if (mr3DModelPart.HasSubModelPart("IntersectedElements3D")) {
+        mr3DModelPart.RemoveSubModelPart("IntersectedElements3D");
+    }
+    auto& r_aux_model_part_3D = mr3DModelPart.CreateSubModelPart("IntersectedElements3D");
 
     // Max length of the elements considered
     const double max_length_1d = GetMaxLength(mr1DModelPart);
