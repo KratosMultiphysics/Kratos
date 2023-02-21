@@ -18,7 +18,6 @@
                     "model_part_names": [
                         "Structure"
                     ],
-                    "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
                     "analysis_type": "StructuralMechanicsAnalysis",
                     "analysis_settings": {
                         "@include_json": "primal_parameters.json"
