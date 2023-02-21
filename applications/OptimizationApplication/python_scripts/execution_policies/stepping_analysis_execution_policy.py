@@ -1,15 +1,18 @@
+from importlib import import_module
+
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationProcessFactory
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassMouleFromKratos
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationInfo):
         super().__init__()
 
         default_settings = Kratos.Parameters("""{
             "model_part_names" : [],
-            "analysis_module"  : "",
+            "analysis_module"  : "KratosMultiphysics",
             "analysis_type"    : "",
             "analysis_settings": {}
         }""")
@@ -17,9 +20,16 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
         self.parameters = parameters
         self.parameters.ValidateAndAssignDefaults(default_settings)
 
+        analysis_module = parameters["analysis_module"].GetString()
+        analysis_type = parameters["analysis_type"].GetString()
+        analysis_settings = parameters["analysis_settings"]
+
+        if analysis_module == "KratosMultiphysics":
+            analysis_module = GetClassMouleFromKratos(analysis_type)
 
         self.model_parts = []
-        self.analysis: AnalysisStage = OptimizationProcessFactory(self.parameters["analysis_module"].GetString(), self.parameters["analysis_type"].GetString(), self.model, self.parameters["analysis_settings"].Clone(), required_object_type=AnalysisStage)
+        analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
+        self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
 
     def ExecuteInitialize(self):
         self.analysis.Initialize()

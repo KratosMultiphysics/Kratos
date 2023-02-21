@@ -10,7 +10,8 @@
 # ==============================================================================
 
 # additional imports
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policy_decorator import ExecutionPolicyDecorator
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 # ==============================================================================
@@ -27,7 +28,7 @@ class AnalysesController:
 
         self.execution_policy_wrappers = {}
         for execution_policy_settings in self.execution_policies_settings:
-            execution_policy_wrapper = ExecutionPolicyDecorator(self.model, execution_policy_settings)
+            execution_policy_wrapper = ExecutionPolicyDecorator(self.model, execution_policy_settings, OptimizationInfo())
             if not execution_policy_wrapper.GetExecutionPolicyName() in self.execution_policy_wrappers.keys():
                 self.execution_policy_wrappers[execution_policy_wrapper.GetExecutionPolicyName()] = execution_policy_wrapper
             else:
