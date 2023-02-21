@@ -55,6 +55,8 @@ namespace Kratos
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
   {
+    KRATOS_TRY;
+    KRATOS_CATCH("");
   }
 
   template <unsigned int TDim>
@@ -585,25 +587,6 @@ namespace Kratos
                                    2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.SpatialDefRate[2];
 
     this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
-
-    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
-    {
-      if (this->GetGeometry()[i].SolutionStepsDataHas(HEAT_FLUX))
-      {
-        ElementWeakPtrVectorType &neighb_elems = this->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
-        // double numberOfNeighElems = double(neighb_elems.size());
-        double numberOfNeighElems = 0;
-        for (ElementWeakPtrVectorType::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie)
-        {
-          if (ie->GetGeometry().size() == 3)
-          {
-            numberOfNeighElems += 1.0;
-          }
-        }
-
-        this->GetGeometry()[i].FastGetSolutionStepValue(HEAT_FLUX) += mechanicalDissipation / numberOfNeighElems;
-      }
-    }
 
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];

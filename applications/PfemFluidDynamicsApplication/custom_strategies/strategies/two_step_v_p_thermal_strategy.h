@@ -145,14 +145,12 @@ namespace Kratos
       pScheme.swap(Temp);
 
       // CONSTRUCTION OF VELOCITY
-      // BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
       BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
 
       this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
       vel_build->SetCalculateReactionsFlag(false);
 
-      /* BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE)); */
       BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pPressureLinearSolver));
 
       this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pPressureLinearSolver, pressure_build, ReformDofAtEachIteration, CalculateNormDxFlag));
@@ -223,34 +221,102 @@ namespace Kratos
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
      */
 
-    bool SolveMomentumIteration(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm) override
+    bool SolveSolutionStep() override
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
-      int Rank = rModelPart.GetCommunicator().MyPID();
-      bool ConvergedMomentum = false;
-      double NormDv = 0;
-      fixedTimeStep = false;
-      // build momentum system and solve for fractional step velocity increment
-      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
-#pragma omp parallel
+      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      double currentTime = rCurrentProcessInfo[TIME];
+      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+      bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+      unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
+      bool converged = false;
+
+      unsigned int maxNonLinearIterations = mMaxPressureIter;
+
+      KRATOS_INFO("\nSolution with two_step_vp_thermal_strategy at t=") << currentTime << "s" << std::endl;
+
+      if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
       {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+        maxNonLinearIterations *= 2;
+      }
+      if (currentTime < 10 * timeInterval)
+      {
+        if (BaseType::GetEchoLevel() > 1)
+          std::cout << "within the first 10 time steps, I consider the given iteration number x3" << std::endl;
+        maxNonLinearIterations *= 3;
+      }
+      if (currentTime < 20 * timeInterval && currentTime >= 10 * timeInterval)
+      {
+        if (BaseType::GetEchoLevel() > 1)
+          std::cout << "within the second 10 time steps, I consider the given iteration number x2" << std::endl;
+        maxNonLinearIterations *= 2;
+      }
+      bool momentumConverged = true;
+      bool continuityConverged = false;
+      bool fixedTimeStep = false;
+
+      double pressureNorm = 0;
+      double velocityNorm = 0;
+
+      this->SetBlockedAndIsolatedFlags();
+
+      for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
+      {
+        momentumConverged = this->SolveMomentumIteration(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
+
+        this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
+
+        if (fixedTimeStep == false)
         {
-          if (itNode->SolutionStepsDataHas(HEAT_FLUX))
-          {
-            itNode->FastGetSolutionStepValue(HEAT_FLUX) = 0;
-          }
+          continuityConverged = this->SolveContinuityIteration(it, maxNonLinearIterations, pressureNorm);
+        }
+        if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
+        {
+          this->UpdateThermalStressStrain();
+        }
+
+        if ((continuityConverged && momentumConverged) && it > 2)
+        {
+          rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
+          rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
+          converged = true;
+
+          KRATOS_INFO("TwoStepVPThermalStrategy") << "V-P thermal strategy converged in " << it + 1 << " iterations." << std::endl;
+
+          break;
+        }
+        if (fixedTimeStep == true)
+        {
+          break;
         }
       }
-      if (it == 0)
+
+      if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+        std::cout << "Convergence tolerance not reached." << std::endl;
+
+      if (mReformDofSet)
+        this->Clear();
+
+      return converged;
+    }
+
+    void UpdateThermalStressStrain()
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+#pragma omp parallel
       {
-        mpMomentumStrategy->InitializeSolutionStep();
+        ModelPart::ElementIterator ElemBegin;
+        ModelPart::ElementIterator ElemEnd;
+        OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
+        for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+        {
+          itElem->InitializeSolutionStep(rCurrentProcessInfo);
+        }
       }
 
-      NormDv = mpMomentumStrategy->Solve();
+      this->CalculateTemporalVariables();
 
       Parameters extrapolation_parameters(R"(
         {
@@ -259,36 +325,12 @@ namespace Kratos
       auto extrapolation_process = IntegrationValuesExtrapolationToNodesProcess(rModelPart, extrapolation_parameters);
       extrapolation_process.Execute();
 
-      if (BaseType::GetEchoLevel() > 1 && Rank == 0)
-        std::cout << "-------------- s o l v e d ! ------------------" << std::endl;
-
-      if (it == 0)
+      const auto &this_var = KratosComponents<Variable<double>>::Get("MECHANICAL_DISSIPATION");
+      for (auto &node : rModelPart.Nodes())
       {
-        velocityNorm = this->ComputeVelocityNorm();
+        node.FastGetSolutionStepValue(HEAT_FLUX) = node.GetValue(this_var);
       }
 
-      double DvErrorNorm = NormDv / velocityNorm;
-      unsigned int iterationForCheck = 2;
-      // Check convergence
-      if (it == maxIt - 1)
-      {
-        KRATOS_INFO("Iteration") << it << "  Final Velocity error: " << DvErrorNorm << std::endl;
-        ConvergedMomentum = this->FixTimeStepMomentum(DvErrorNorm, fixedTimeStep);
-      }
-      else if (it > iterationForCheck)
-      {
-        KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
-        ConvergedMomentum = this->CheckMomentumConvergence(DvErrorNorm, fixedTimeStep);
-      }
-      else
-      {
-        KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
-      }
-
-      if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
-        std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
-
-      return ConvergedMomentum;
     }
 
     void SetEchoLevel(int Level) override
@@ -319,18 +361,6 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-
-    // double mVelocityTolerance;
-
-    // double mPressureTolerance;
-
-    // unsigned int mMaxPressureIter;
-
-    // unsigned int mDomainSize;
-
-    // unsigned int mTimeOrder;
-
-    // bool mReformDofSet;
 
     // Fractional step index.
     /*  1 : Momentum step (calculate fractional step velocity)

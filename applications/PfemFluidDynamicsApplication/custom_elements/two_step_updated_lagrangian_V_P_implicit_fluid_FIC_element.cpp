@@ -55,6 +55,8 @@ namespace Kratos
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
   {
+    KRATOS_TRY;
+    KRATOS_CATCH("");
   }
 
   template <unsigned int TDim>
@@ -142,9 +144,9 @@ namespace Kratos
     const auto &r_geometry = this->GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
-    //WARNING THIS MUST BE REMOVED ASAP
+    // WARNING THIS MUST BE REMOVED ASAP
     const_cast<TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
-    //mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
@@ -281,7 +283,7 @@ namespace Kratos
 
       const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
 
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+      if (rGeom[0].IsNot(INLET)) // to change into moving wall!!!!!
         BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
 
       if (rGeom[1].IsNot(INLET))
@@ -306,7 +308,7 @@ namespace Kratos
 
       const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
 
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+      if (rGeom[0].IsNot(INLET)) // to change into moving wall!!!!!
         BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
 
       if (rGeom[2].IsNot(INLET))
@@ -483,7 +485,7 @@ namespace Kratos
                                                                                    const double BoundRHSCoeffDev)
   {
     GeometryType &rGeom = this->GetGeometry();
-    //const SizeType NumNodes = rGeom.PointsNumber();
+    // const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
 
@@ -539,7 +541,7 @@ namespace Kratos
       // noalias(AccB)=rGeom[1].FastGetSolutionStepValue(ACCELERATION,0);
       const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+      if (rGeom[0].IsNot(INLET)) // to change into moving wall!!!!!
         BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1]) + BoundRHSCoeffDev);
       if (rGeom[1].IsNot(INLET))
         BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1]) + BoundRHSCoeffDev);
@@ -576,7 +578,7 @@ namespace Kratos
                                                                                    const double BoundRHSCoeffDev)
   {
     GeometryType &rGeom = this->GetGeometry();
-    //const SizeType NumNodes = rGeom.PointsNumber();
+    // const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
     array_1d<double, 3> AccC(3, 0.0);
@@ -930,7 +932,7 @@ namespace Kratos
             laplacianRHSi += StabLaplacianWeight * rDN_DX(i, d) * OldPressureGradient[d];
           }
           rRightHandSideVector[i] += -laplacianRHSi;
-          //NewRhsLaplacian[i] += -laplacianRHSi;
+          // NewRhsLaplacian[i] += -laplacianRHSi;
         }
       }
     }
@@ -941,7 +943,7 @@ namespace Kratos
       VectorType PressureValues = ZeroVector(NumNodes);
       VectorType PressureValuesForRHS = ZeroVector(NumNodes);
       this->GetPressureValues(PressureValuesForRHS, 0);
-      //the LHS matrix up to now just contains the laplacian term and the bound term
+      // the LHS matrix up to now just contains the laplacian term and the bound term
       noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
       rLeftHandSideMatrix += LaplacianMatrix;
       // noalias(rRightHandSideVector) -= prod(LaplacianMatrix, PressureValuesForRHS);
@@ -998,7 +1000,7 @@ namespace Kratos
       VectorType PressureValues = ZeroVector(NumNodes);
       VectorType PressureValuesForRHS = ZeroVector(NumNodes);
       this->GetPressureValues(PressureValuesForRHS, 0);
-      //the LHS matrix up to now is void
+      // the LHS matrix up to now is void
 
       this->GetPressureValues(PressureValues, 1);
       noalias(PressureValuesForRHS) += -PressureValues;
