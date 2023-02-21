@@ -57,9 +57,11 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     py::class_<EigenfrequencyResponseFunctionUtility, EigenfrequencyResponseFunctionUtility::Pointer >
         (m, "EigenfrequencyResponseFunctionUtility")
         .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<ModelPart&, const double, const std::vector<IndexType>&, const std::vector<double>&>())
         .def("Initialize", &EigenfrequencyResponseFunctionUtility::Initialize)
         .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
-        .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
+        .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient)
+        .def("CalculateEigenFrequencyMaterialVariableSensitivity", &EigenfrequencyResponseFunctionUtility::CalculateEigenFrequencyMaterialVariableSensitivity);
 
     // Processes
     py::class_<ReplaceMultipleElementsAndConditionsProcess, ReplaceMultipleElementsAndConditionsProcess::Pointer , Process>
