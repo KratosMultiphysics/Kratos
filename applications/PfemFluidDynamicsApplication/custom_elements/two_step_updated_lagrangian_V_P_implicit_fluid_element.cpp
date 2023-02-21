@@ -53,20 +53,6 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
   int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;

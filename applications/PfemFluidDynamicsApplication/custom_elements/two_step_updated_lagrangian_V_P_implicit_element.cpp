@@ -226,7 +226,14 @@ namespace Kratos
                                                                                      std::vector<double> &rOutput,
                                                                                      const ProcessInfo &rCurrentProcessInfo)
   {
-    rOutput[0] = this->GetValue(rVariable);
+    if (rVariable == EQ_STRAIN_RATE)
+    {
+      rOutput[0] = this->GetValue(EQ_STRAIN_RATE);
+    }
+    if (rVariable == MECHANICAL_DISSIPATION)
+    {
+      rOutput[0] = this->GetValue(MECHANICAL_DISSIPATION);
+    }
   }
 
   template <unsigned int TDim>

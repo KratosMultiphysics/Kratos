@@ -129,11 +129,6 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
-  {
-  }
-
-  template <unsigned int TDim>
   int TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
@@ -211,7 +206,7 @@ namespace Kratos
     const auto &r_geometry = this->GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
-    //WARNING THIS MUST BE REMOVED ASAP
+    // WARNING THIS MUST BE REMOVED ASAP
     const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
     // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 

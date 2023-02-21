@@ -35,27 +35,6 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
   int TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
@@ -357,7 +336,6 @@ namespace Kratos
                                                                                            const double BoundRHSCoeffDev)
   {
     GeometryType &rGeom = this->GetGeometry();
-    // const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
 
@@ -368,8 +346,7 @@ namespace Kratos
     {
       noalias(AccA) = factor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
       noalias(AccB) = factor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      // noalias(AccA)=rGeom[0].FastGetSolutionStepValue(ACCELERATION,0);
-      // noalias(AccB)=rGeom[1].FastGetSolutionStepValue(ACCELERATION,0);
+
       const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB = rGeom[1].FastGetSolutionStepValue(NORMAL);
       if (rGeom[0].IsNot(INLET)) // to change into moving wall!!!!!
@@ -409,7 +386,6 @@ namespace Kratos
                                                                                            const double BoundRHSCoeffDev)
   {
     GeometryType &rGeom = this->GetGeometry();
-    // const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
     array_1d<double, 3> AccC(3, 0.0);
@@ -506,14 +482,7 @@ namespace Kratos
     double MeanVelocity = 0;
     this->CalcMeanVelocityNorm(MeanVelocity, 0);
 
-    // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) );
     Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
-    // if(Tau<0.0000001){
-    //   Tau=0.0000001;
-    // }
-    // if(Tau>0.0001){
-    //   Tau=0.0001;
-    // }
 
     if (MeanVelocity == 0)
     {
