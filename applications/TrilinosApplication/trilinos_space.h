@@ -446,8 +446,9 @@ public:
         const double A
         )
     {
-        if (A != 1.00)
+        if (A != 1.00) {
             rX.Scale(A);
+        }
     }
 
     /**
@@ -465,10 +466,11 @@ public:
         const VectorType& rY
         )
     {
-        if (A != 1.00)
+        if (A != 1.00) {
             rX.Scale(A, rY); //not sure
-        else
+        } else {
             rX = rY;
+        }
     }
 
     /**
@@ -748,7 +750,7 @@ public:
     {
         const unsigned int system_size = Size1(rA);
 
-        // Ccount active indices
+        // Count active indices
         unsigned int active_indices = 0;
         for (unsigned int i = 0; i < rEquationId.size(); i++)
             if (rEquationId[i] < system_size)
@@ -777,6 +779,63 @@ public:
             }
 
             int ierr = rA.SumIntoGlobalValues(indices, values);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        }
+    }
+
+    /**
+     * @brief Assembles the relation matrix T of the system with MPC
+     * @param rT The T relation matrix
+     * @param rTContribution The contribution to the T
+     * @param rSlaveEquationId The slave equation ids
+     * @param rMasterEquationId The master equation ids
+     */
+    inline static void AssembleRelationMatrixT(
+        MatrixType& rT,
+        const Matrix& rTContribution,
+        const std::vector<std::size_t>& rSlaveEquationId,
+        const std::vector<std::size_t>& rMasterEquationId
+        )
+    {
+        const unsigned int system_size = Size1(rT);
+
+        // Count active indices
+        unsigned int slave_active_indices = 0;
+        for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
+            if (rSlaveEquationId[i] < system_size) {
+                ++slave_active_indices;
+            }
+        }
+        unsigned int master_active_indices = 0;
+        for (unsigned int i = 0; i < rMasterEquationId.size(); i++) {
+            if (rMasterEquationId[i] < system_size) {
+                ++master_active_indices;
+            }
+        }
+
+        if (slave_active_indices > 0 && master_active_indices > 0) {
+            // Size Epetra vectors
+            Epetra_IntSerialDenseVector indices(slave_active_indices);
+            Epetra_SerialDenseMatrix values(slave_active_indices, master_active_indices);
+
+            // Fill epetra vectors
+            unsigned int loc_i = 0;
+            for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
+                if (rSlaveEquationId[i] < system_size) {
+                    indices[loc_i] = rSlaveEquationId[i];
+
+                    unsigned int loc_j = 0;
+                    for (unsigned int j = 0; j < rMasterEquationId.size(); j++) {
+                        if (rMasterEquationId[j] < system_size) {
+                            values(loc_i, loc_j) = rTContribution(i, j);
+                            ++loc_j;
+                        }
+                    }
+                    ++loc_i;
+                }
+            }
+
+            int ierr = rT.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -821,6 +880,46 @@ public:
             }
 
             int ierr = rb.SumIntoGlobalValues(indices, values);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        }
+    }
+
+    /**
+     * @brief Assembles the Constant vector of the system with MPC
+     * @param rC The constant vector
+     * @param rConstantContribution The RHS contribution
+     * @param rEquationId The equation ids
+     */
+    inline static void AssembleConstantVector(
+        VectorType& rC,
+        const Vector& rConstantContribution,
+        const std::vector<std::size_t>& rSlaveEquationId
+        )
+    {
+        const unsigned int system_size = Size(rC);
+
+        // Count active indices
+        int slave_active_indices = 0;
+        for (unsigned int i = 0; i < rSlaveEquationId.size(); i++)
+            if (rSlaveEquationId[i] < system_size)
+                ++slave_active_indices;
+
+        if (slave_active_indices > 0) {
+            // Size Epetra vectors
+            Epetra_IntSerialDenseVector indices(slave_active_indices);
+            Epetra_SerialDenseVector values(slave_active_indices);
+
+            // Fill epetra vectors
+            unsigned int loc_i = 0;
+            for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
+                if (rSlaveEquationId[i] < system_size) {
+                    indices[loc_i] = rSlaveEquationId[i];
+                    values[loc_i] = rConstantContribution[i];
+                    ++loc_i;
+                }
+            }
+
+            int ierr = rC.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
