@@ -37,7 +37,7 @@ class TimeBasedAsciiFileWriterUtility:
         self.file_extension = params["file_extension"].GetString()
         if not self.file_extension.startswith("."):
             self.file_extension = "." + self.file_extension
-            
+
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
@@ -145,4 +145,4 @@ class TimeBasedAsciiFileWriterUtility:
         self.file_name = self.output_path / self.file_name
 
         # make sure that the path to the desired output folder exists
-        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))
+        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(self.output_path)

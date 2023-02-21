@@ -10,11 +10,11 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -27,9 +27,7 @@
 #include "custom_python/add_custom_linear_solvers_to_python.h"
 #include "custom_python/add_custom_frictional_laws_to_python.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -97,8 +95,6 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
 }
 
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Python::Kratos.
 
 #endif // KRATOS_PYTHON defined
