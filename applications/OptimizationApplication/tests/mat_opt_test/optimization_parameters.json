@@ -12,9 +12,9 @@
         ],
         "analyses": [
             {
-                "execution_policy_name": "Structure_static",
-                "execution_policy_type": "SteppingAnalysisExecutionPolicy",
-                "execution_policy_settings": {
+                "name": "Structure_static",
+                "type": "SteppingAnalysisExecutionPolicy",
+                "settings": {
                     "model_part_names": [
                         "Structure"
                     ],

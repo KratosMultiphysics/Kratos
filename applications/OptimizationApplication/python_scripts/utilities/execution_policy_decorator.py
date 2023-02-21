@@ -9,20 +9,20 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
         super().__init__()
 
         default_parameters = Kratos.Parameters("""{
-            "execution_policy_name"    : "",
-            "execution_policy_module"  : "KratosMultiphysics.OptimizationApplication.execution_policies",
-            "execution_policy_type"    : "PleaseProvideClassName",
-            "execution_policy_settings": {},
-            "pre_operations"           : [],
-            "post_operations"          : [],
-            "log_in_file"              : false,
-            "log_file_name"            : ""
+            "name"           : "",
+            "module"         : "KratosMultiphysics.OptimizationApplication.execution_policies",
+            "type"           : "PleaseProvideClassName",
+            "settings"       : {},
+            "pre_operations" : [],
+            "post_operations": [],
+            "log_in_file"    : false,
+            "log_file_name"  : ""
         }""")
         parameters.ValidateAndAssignDefaults(default_parameters)
 
         self.__log_file_name = parameters["log_file_name"].GetString()
         self.__log_in_file = parameters["log_in_file"].GetBool()
-        self.__name = parameters["execution_policy_name"].GetString()
+        self.__name = parameters["name"].GetString()
 
         if self.__name == "":
             raise RuntimeError(f"Execution policies should be given a non-empty name. Followings are the corresponding execution policy settings:\n{parameters}")
@@ -37,7 +37,7 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
         self.__list_of_post_operations: 'list[Kratos.Operation]' = factory.ConstructListOfItems(parameters["post_operations"])
 
         # create execution policy
-        self.__execution_policy: ExecutionPolicy = OptimizationProcessFactory(parameters["execution_policy_module"].GetString(), parameters["execution_policy_type"].GetString(), model, parameters["execution_policy_settings"], required_object_type=ExecutionPolicy)
+        self.__execution_policy: ExecutionPolicy = OptimizationProcessFactory(parameters["module"].GetString(), parameters["type"].GetString(), model, parameters["settings"], required_object_type=ExecutionPolicy)
 
     def ExecuteInitialize(self):
         self.__execution_policy.ExecuteInitialize()

@@ -10,9 +10,9 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
     def test_IndependentAnalysisExecutionPolicy(self):
         model = Kratos.Model()
         parameters = Kratos.Parameters("""{
-            "execution_policy_name"    : "test",
-            "execution_policy_type"    : "IndependentAnalysisExecutionPolicy",
-            "execution_policy_settings": {
+            "name"                 : "test",
+            "type"                 : "IndependentAnalysisExecutionPolicy",
+            "settings"             : {
                 "analysis_module"  : "KratosMultiphysics",
                 "analysis_type"    : "MultistageAnalysis",
                 "analysis_settings": {
