@@ -3,9 +3,10 @@ from KratosMultiphysics.model_parameters_factory import KratosModelParametersFac
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import FileLogger
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationProcessFactory
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class ExecutionPolicyDecorator(ExecutionPolicy):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         super().__init__()
 
         default_parameters = Kratos.Parameters("""{
@@ -37,7 +38,7 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
         self.__list_of_post_operations: 'list[Kratos.Operation]' = factory.ConstructListOfItems(parameters["post_operations"])
 
         # create execution policy
-        self.__execution_policy: ExecutionPolicy = OptimizationProcessFactory(parameters["module"].GetString(), parameters["type"].GetString(), model, parameters["settings"], required_object_type=ExecutionPolicy)
+        self.__execution_policy: ExecutionPolicy = OptimizationProcessFactory(parameters["module"].GetString(), parameters["type"].GetString(), model, parameters["settings"], optimization_info ,ExecutionPolicy)
 
     def ExecuteInitialize(self):
         self.__execution_policy.ExecuteInitialize()
