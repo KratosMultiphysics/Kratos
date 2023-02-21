@@ -1997,9 +1997,13 @@ namespace Kratos {
 
       // Stop compression
       ModelPart& r_dem_model_part = GetModelPart();
-      const double limit_stress = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      const int    time_step      = r_process_info[TIME_STEPS];
+      const double time           = r_process_info[TIME];
+      const double limit_stress   = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
 
       if (mRVE_Compress && std::abs(mRVE_EffectStress) >= limit_stress) {
+        if (mRVE_FileStages.is_open()) mRVE_FileStages << time_step << " " << time << " " << "STOP COMPRESSION" << std::endl;
         mRVE_Compress = false;
 
         ModelPart& fem_model_part = GetFemModelPart();
@@ -2024,11 +2028,8 @@ namespace Kratos {
       }
 
       // Reset tangential force
-      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
-      const int    time_step = r_process_info[TIME_STEPS];
-      const double time      = r_process_info[TIME];
-
       if (time >= m_reset_force_time) {
+        if (mRVE_FileStages.is_open()) mRVE_FileStages << time_step << " " << time << " " << "RESENT FORCES" << std::endl;
         m_reset_force_time += 1.5;
         for (int i = 0; i < mListOfSphericParticles.size(); i++) {
           mListOfSphericParticles[i]->mResetOldTangentForce = true;
@@ -2037,6 +2038,7 @@ namespace Kratos {
 
       // Restart compression
       if (time >= m_restart_compress_time && mRVE_Compress == false) {
+        if (mRVE_FileStages.is_open()) mRVE_FileStages << time_step << " " << time << " " << "RESTART COMPRESSION" << std::endl;
         m_restart_compress_time += 1.5;
         mRVE_Compress = true;
 
@@ -2649,6 +2651,13 @@ namespace Kratos {
       mRVE_FileTangentTensor << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
       mRVE_FileTangentTensor << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
       mRVE_FileTangentTensor << std::endl;
+
+      mRVE_FileStages.open("rve_state.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileStages) << "Could not open file rve_state.txt!" << std::endl;
+      mRVE_FileStages << "1 - STEP | ";
+      mRVE_FileStages << "2 - TIME | ";
+      mRVE_FileStages << "3 - STATE";
+      mRVE_FileStages << std::endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2664,6 +2673,7 @@ namespace Kratos {
       if (mRVE_FileStress.is_open())        mRVE_FileStress.close();
       if (mRVE_FileCauchyTensor.is_open())  mRVE_FileCauchyTensor.close();
       if (mRVE_FileTangentTensor.is_open()) mRVE_FileTangentTensor.close();
+      if (mRVE_FileStages.is_open())        mRVE_FileStages.close();
     }
 
     //==========================================================================================================================================
