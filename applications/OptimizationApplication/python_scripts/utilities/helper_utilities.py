@@ -1,7 +1,7 @@
 from importlib import import_module
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 def OptimizationProcessFactory(
     module_name: str,

@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class TestOptimizationInfo(kratos_unittest.TestCase):
     class TestRoutine(Kratos.Process):
