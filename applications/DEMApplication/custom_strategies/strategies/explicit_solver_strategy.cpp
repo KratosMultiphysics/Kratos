@@ -2481,6 +2481,22 @@ namespace Kratos {
                                    << "[[" << mRVE_TangentTensor(8,0) << "],[" << mRVE_TangentTensor(8,1) << "],[" << mRVE_TangentTensor(8,2) << "],[" << mRVE_TangentTensor(8,3) << "],[" << mRVE_TangentTensor(8,4) << "],[" << mRVE_TangentTensor(8,5) << "],[" << mRVE_TangentTensor(8,6) << "],[" << mRVE_TangentTensor(8,7) << "],[" << mRVE_TangentTensor(8,8) << "]]"
                                    << std::endl;
       }
+
+      if (mRVE_FileElasticContactForces.is_open() && time > 10.0) {
+        for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
+          const int n_neighbors = (int)mListOfSphericParticles[i]->mNeighbourElements.size();
+          mRVE_FileElasticContactForces << i << " ";
+          mRVE_FileElasticContactForces << n_neighbors << " ";
+          for (unsigned int j = 0; j < n_neighbors; j++) {
+            array_1d<double,3> force = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
+            mRVE_FileElasticContactForces << force[0] << " ";
+            mRVE_FileElasticContactForces << force[1] << " ";
+            mRVE_FileElasticContactForces << force[2] << " ";
+          }
+          mRVE_FileElasticContactForces << std::endl;
+        }
+        mRVE_FileElasticContactForces.close();
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2586,6 +2602,9 @@ namespace Kratos {
       mRVE_FileTangentTensor << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
       mRVE_FileTangentTensor << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
       mRVE_FileTangentTensor << std::endl;
+
+      mRVE_FileElasticContactForces.open("rve_elastic_forces.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileElasticContactForces) << "Could not open file rve_elastic_forces.txt!" << std::endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2601,6 +2620,7 @@ namespace Kratos {
       if (mRVE_FileStress.is_open())        mRVE_FileStress.close();
       if (mRVE_FileCauchyTensor.is_open())  mRVE_FileCauchyTensor.close();
       if (mRVE_FileTangentTensor.is_open()) mRVE_FileTangentTensor.close();
+      if (mRVE_FileElasticContactForces.is_open()) mRVE_FileElasticContactForces.close();
     }
 
     //==========================================================================================================================================
