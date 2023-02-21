@@ -534,16 +534,15 @@ public:
      * @param Value The value considered
      * @tparam TGlobalAssemble If considering a global assembling
      */
-    template<bool TGlobalAssemble = true>
+    template<bool TGlobalIndex = true, bool TGlobalAssemble = true>
     static void SetValue(
         VectorType& rX,
         IndexType i,
-        const double Value,
-        const bool Global = true
+        const double Value
         )
     {
         int ierr = 0;
-        if (Global) {
+        if constexpr (TGlobalIndex) {
             Epetra_IntSerialDenseVector indices(1);
             Epetra_SerialDenseVector values(1);
             indices[0] = i;
@@ -566,14 +565,14 @@ public:
      * @param i The index of the value considered
      * @param Value The value considered
      */
+    template<bool TGlobalIndex = true>
     static void SetValueWithoutGlobalAssembly(
         VectorType& rX,
         IndexType i,
-        const double Value,
-        const bool Global = true
+        const double Value
         )
     {
-        SetValue<false>(rX, i, Value, Global);
+        SetValue<TGlobalIndex, false>(rX, i, Value);
     }
 
     /**
@@ -584,20 +583,19 @@ public:
      * @param Value The value considered
      * @tparam TGlobalAssemble If considering a global assembling
      */
-    template<bool TGlobalAssemble = true>
+    template<bool TGlobalIndex = true, bool TGlobalAssemble = true>
     static void SetValue(
         MatrixType& rA,
         IndexType i,
         IndexType j,
-        const double Value,
-        const bool Global = true
+        const double Value
         )
     {
         std::vector<double> values(1, Value);
         std::vector<int> indices(1, j);
 
         int ierr = 0;
-        if (Global) {
+        if constexpr (TGlobalIndex) {
             ierr = rA.ReplaceGlobalValues(static_cast<int>(i), 1, values.data(), indices.data());
         } else {
             ierr = rA.ReplaceMyValues(static_cast<int>(i), 1, values.data(), indices.data());
@@ -617,15 +615,15 @@ public:
      * @param j The second index of the value considered
      * @param Value The value considered
      */
+    template<bool TGlobalIndex = true>
     static void SetValueWithoutGlobalAssembly(
         MatrixType& rA,
         IndexType i,
         IndexType j,
-        const double Value,
-        const bool Global = true
+        const double Value
         )
     {
-        SetValue<false>(rA, i, j, Value, Global);
+        SetValue<TGlobalIndex, false>(rA, i, j, Value);
     }
 
     /**
