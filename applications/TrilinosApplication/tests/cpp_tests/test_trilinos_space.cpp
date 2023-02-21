@@ -473,7 +473,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosAppl
     // Solution local
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosSparseSpaceType::SetValue(vector, i, 1.0, false);
+        TrilinosSparseSpaceType::SetValue<false>(vector, i, 1.0);
     }
 
     // Check local
@@ -504,7 +504,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosAppl
 
     // Solution local
     for (int i = 0; i < 2; ++i) {
-        TrilinosSparseSpaceType::SetValue(matrix, i, i, 1.0, false);
+        TrilinosSparseSpaceType::SetValue<false>(matrix, i, i, 1.0);
     }
 
     // Check local
