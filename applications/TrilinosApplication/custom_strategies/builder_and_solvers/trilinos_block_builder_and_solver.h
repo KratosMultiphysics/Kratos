@@ -28,7 +28,6 @@
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/parallel_utilities.h"
-// #include "utilities/atomic_utilities.h" # TODO
 
 #if !defined(START_TIMER)
 #define START_TIMER(label, rank) \
@@ -1183,18 +1182,8 @@ protected:
                 r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                 r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
-                // TODO: Adapt AssembleLHS and AssembleRHS for this
-                // for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
-                //     const IndexType i_global = slave_equation_ids[i];
-
-                //     // Assemble matrix row
-                //     AssembleRowContribution(mpT, transformation_matrix, i_global, i, master_equation_ids);
-
-                //     // Assemble constant vector
-                //     const double constant_value = constant_vector[i];
-                //     double& r_value = mpConstantVector[i_global];
-                //     AtomicAdd(r_value, constant_value);
-                // }
+                TSparseSpace::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
+                TSparseSpace::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
             } else { // Taking into account inactive constraints
                 r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
                 mInactiveSlaveDofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
