@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Vicente Mataix Ferrandiz
@@ -754,7 +754,7 @@ public:
         unsigned int active_indices = 0;
         for (unsigned int i = 0; i < rEquationId.size(); i++)
             if (rEquationId[i] < system_size)
-                active_indices += 1;
+                ++active_indices;
 
         if (active_indices > 0) {
             // Size Epetra vectors
@@ -762,19 +762,19 @@ public:
             Epetra_SerialDenseMatrix values(active_indices, active_indices);
 
             // Fill epetra vectors
-            int loc_i = 0;
+            unsigned int loc_i = 0;
             for (unsigned int i = 0; i < rEquationId.size(); i++) {
                 if (rEquationId[i] < system_size) {
                     indices[loc_i] = rEquationId[i];
 
-                    int loc_j = 0;
+                    unsigned int loc_j = 0;
                     for (unsigned int j = 0; j < rEquationId.size(); j++) {
                         if (rEquationId[j] < system_size) {
                             values(loc_i, loc_j) = rLHSContribution(i, j);
-                            loc_j += 1;
+                            ++loc_j;
                         }
                     }
-                    loc_i += 1;
+                    ++loc_i;
                 }
             }
 
@@ -862,7 +862,7 @@ public:
         int active_indices = 0;
         for (unsigned int i = 0; i < rEquationId.size(); i++)
             if (rEquationId[i] < system_size)
-                active_indices += 1;
+                ++active_indices;
 
         if (active_indices > 0) {
             // Size Epetra vectors
@@ -870,12 +870,12 @@ public:
             Epetra_SerialDenseVector values(active_indices);
 
             // Fill epetra vectors
-            int loc_i = 0;
+            unsigned int loc_i = 0;
             for (unsigned int i = 0; i < rEquationId.size(); i++) {
                 if (rEquationId[i] < system_size) {
                     indices[loc_i] = rEquationId[i];
                     values[loc_i] = rRHSContribution[i];
-                    loc_i += 1;
+                    ++loc_i;
                 }
             }
 
