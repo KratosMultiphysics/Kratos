@@ -160,7 +160,7 @@ namespace Kratos
 					BiggestVolumes.resize(ElementsToRefine, false);
 					NodesIDToInterpolate.resize(ElementsToRefine);
 
-					for (int nn = 0; nn < MaximumNodesToAdd; nn++)
+					for (int nn = 0; nn < ElementsToRefine; nn++)
 					{
 						BiggestVolumes[nn] = -1.0;
 					}
@@ -203,10 +203,10 @@ namespace Kratos
 
 					} // elements loop
 
-					mrRemesh.Info->RemovedNodes -= MaximumNodesToAdd;
-					if (CountNodes < MaximumNodesToAdd)
+					mrRemesh.Info->RemovedNodes -= ElementsToRefine;
+					if (CountNodes < ElementsToRefine)
 					{
-						mrRemesh.Info->RemovedNodes += MaximumNodesToAdd - CountNodes;
+						mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
 						NewPositions.resize(CountNodes);
 						BiggestVolumes.resize(CountNodes, false);
 						NodesIDToInterpolate.resize(CountNodes);

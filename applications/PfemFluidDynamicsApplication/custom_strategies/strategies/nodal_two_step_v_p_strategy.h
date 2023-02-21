@@ -613,21 +613,7 @@ namespace Kratos
 			unsigned int neighbourNodes = neighb_nodes.size() + 1;
 			unsigned int sizeSDFNeigh = neighbourNodes * dimension;
 
-		void Initialize() override
-		{
-
-			std::cout << "                                 Initialize in nodal_two_step_v_p_strategy" << std::endl;
-			ModelPart &rModelPart = BaseType::GetModelPart();
-			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			unsigned int sizeStrains = 3 * (dimension - 1);
-
-			// #pragma omp parallel
-			// 	{
-			ModelPart::NodeIterator NodesBegin;
-			ModelPart::NodeIterator NodesEnd;
-			OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
-
-			for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+			if (itNode->SolutionStepsDataHas(NODAL_CAUCHY_STRESS))
 			{
 				Vector &rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
 				if (rNodalStress.size() != sizeStrains)

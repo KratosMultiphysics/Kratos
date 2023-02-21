@@ -341,13 +341,11 @@ namespace Kratos
 					if (rigidNodes > 0)
 						EraseCriticalNodes2D(ie->GetGeometry(), erased_nodes, inside_nodes_removed);
 				}
-				bool on_contact_tip = false;
-				bool contact_active = false;
-
-				if (in->SolutionStepsDataHas(CONTACT_FORCE))
+				else if (dimension == 3)
 				{
 					if (rigidNodes > 1)
 						EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
+				}
 				}
 
 			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
@@ -586,54 +584,6 @@ namespace Kratos
 							}
 						}
 					}
-					// else {
-					// if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && freeSurfaceNeighNodes>0 && freeSurfaceNeighNodes<=dimension){
-					// 	NodeWeakPtrVectorType& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
-					// 	array_1d<double,3> sumOfCoordinates=in->Coordinates();
-					// 	array_1d<double,3> sumOfCurrentVelocities=in->FastGetSolutionStepValue(VELOCITY,0);
-					// 	array_1d<double,3> sumOfPreviousVelocities=in->FastGetSolutionStepValue(VELOCITY,1);
-					// 	double sumOfPressures=in->FastGetSolutionStepValue(PRESSURE,0);
-					// 	double counter=1.0;
-					// 	// std::cout<<"I WAS GOING TO ERASE THIS NODE: "<<std::endl;
-					// 	// std::cout<<"sumOfCoordinates: "<< sumOfCoordinates<<std::endl;
-					// 	// std::cout<<"sumOfCurrentVelocities: "<< sumOfCurrentVelocities<<std::endl;
-					// 	// std::cout<<"sumOfPressures: "<< sumOfPressures<<std::endl;
-					// 	// std::cout<<"freeSurfaceNeighNodes "<<freeSurfaceNeighNodes<<"   rigidNeighNodes "<<rigidNeighNodes<<std::endl;
-					// 	for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-					// 	  {
-					// 	    counter+=1.0;
-					// 	    noalias(sumOfCoordinates)+=(*nn)->Coordinates();
-					// 	    noalias(sumOfCurrentVelocities)+=(*nn)->FastGetSolutionStepValue(VELOCITY,0);
-					// 	    noalias(sumOfPreviousVelocities)+=(*nn)->FastGetSolutionStepValue(VELOCITY,1);
-					// 	    sumOfPressures+=(*nn)->FastGetSolutionStepValue(PRESSURE,0);
-					// 	  }
-					// 	in->X() =sumOfCoordinates[0]/counter;
-					// 	in->Y() =sumOfCoordinates[1]/counter;
-					// 	in->X0() =sumOfCoordinates[0]/counter;
-					// 	in->Y0() =sumOfCoordinates[1]/counter;
-					// 	in->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
-					// 	in->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
-					// 	in->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
-					// 	in->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
-					// 	in->FastGetSolutionStepValue(VELOCITY_X,0)=sumOfCurrentVelocities[0]/counter;
-					// 	in->FastGetSolutionStepValue(VELOCITY_Y,0)=sumOfCurrentVelocities[1]/counter;
-					// 	in->FastGetSolutionStepValue(VELOCITY_X,1)=sumOfPreviousVelocities[0]/counter;
-					// 	in->FastGetSolutionStepValue(VELOCITY_Y,1)=sumOfPreviousVelocities[1]/counter;
-					// 	in->FastGetSolutionStepValue(PRESSURE,0)=sumOfPressures/counter;
-					// 	if(dimension==3){
-					// 	  in->Z() =sumOfCoordinates[2]/counter;
-					// 	  in->Z0() =sumOfCoordinates[2]/counter;
-					// 	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
-					// 	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
-					// 	  in->FastGetSolutionStepValue(VELOCITY_Z,0)=sumOfCurrentVelocities[2]/counter;
-					// 	  in->FastGetSolutionStepValue(VELOCITY_Z,1)=sumOfPreviousVelocities[2]/counter;
-					// 	}
-					// 	// std::cout<<"NOW ITS VARIABLES ARE: "<<std::endl;
-					// 	// std::cout<<"Coordinates: "<< in->X()<<" " << in->Y()<<" " << in->Z()<<std::endl;
-					// 	// std::cout<<"CurrentVelocities: "<<in->FastGetSolutionStepValue(VELOCITY_X,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Y,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Z,0)  <<std::endl;
-					// 	// std::cout<<"Pressures: "<<in->FastGetSolutionStepValue(PRESSURE,0) <<std::endl;
-					// }
-					// }
 				}
 			}
 

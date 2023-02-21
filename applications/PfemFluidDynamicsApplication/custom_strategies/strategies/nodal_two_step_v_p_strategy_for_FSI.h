@@ -793,6 +793,7 @@ namespace Kratos
 					SetNeighboursOrderToInterfaceNode(itNode); // it assigns neighbours to interface nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids
 				}
 			}
+		}
 
 		void SetNeighboursOrderToSolidNode(ModelPart::NodeIterator itNode)
 		{
@@ -812,6 +813,7 @@ namespace Kratos
 				for (unsigned int k = 0; k < neighbourNodes - 1; k++)
 				{
 					rNodeOrderedNeighbours[k + 1] = neighb_nodes[k].Id();
+				}
 				}
 			}
 
