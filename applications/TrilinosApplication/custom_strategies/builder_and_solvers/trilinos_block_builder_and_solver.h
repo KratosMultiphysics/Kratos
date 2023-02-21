@@ -345,22 +345,18 @@ public:
             norm_b = 0.00;
 
         if (norm_b != 0.00) {
-            if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(
-                    rA, rDx, rb, BaseType::mDofSet, rModelPart);
+            if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded()) {
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, BaseType::mDofSet, rModelPart);
+            }
 
             BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
-        }
-        else {
+        } else {
             TSparseSpace::SetToZero(rDx);
-            KRATOS_WARNING(
-                "TrilinosResidualBasedBlockBuilderAndSolver")
-                << "ATTENTION! setting the RHS to zero!" << std::endl;
+            KRATOS_WARNING("TrilinosResidualBasedBlockBuilderAndSolver") << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
-        // prints informations about the current time
-        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
-            << *(BaseType::mpLinearSystemSolver) << std::endl;
+        // Prints informations about the current time
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1)) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -522,14 +518,19 @@ public:
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      */
-    void SetUpDofSet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart) override
+    void SetUpDofSet(
+        typename TSchemeType::Pointer pScheme, 
+        ModelPart& rModelPart
+        ) override
     {
         KRATOS_TRY
 
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 2) << "Setting up the dofs" << std::endl;
+
         using DofsVectorType = Element::DofsVectorType;
+
         // Gets the array of elements from the modeler
-        auto& r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
-        DofsVectorType dof_list;
+        DofsVectorType dof_list, second_dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
@@ -538,28 +539,38 @@ public:
         BaseType::mDofSet = DofsArrayType();
 
         // Taking dofs of elements
-        for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-            pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
+        auto& r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
+        for (auto& r_elem : r_elements_array) {
+            pScheme->GetDofList(r_elem, dof_list, r_current_process_info);
             for (auto i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
         }
 
         // Taking dofs of conditions
-        auto& r_conditions_array = rModelPart.Conditions();
-        for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-            pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
+        auto& r_conditions_array = rModelPart.GetCommunicator().LocalMesh().Conditions();
+        for (auto& r_cond : r_conditions_array) {
+            pScheme->GetDofList(r_cond, dof_list, r_current_process_info);
             for (auto i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
         }
 
-        // TODO: Add constraints
+        // Taking dofs of constraints
+        auto& r_constraints_array = rModelPart.GetCommunicator().LocalMesh().MasterSlaveConstraints();
+        for (auto& r_const : r_constraints_array) {
+            r_const.GetDofList(dof_list, second_dof_list, r_current_process_info);
+            for (auto i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
+                temp_dofs_array.push_back(*i_dof);
+            for (auto i_dof = second_dof_list.begin(); i_dof != second_dof_list.end(); ++i_dof)
+                temp_dofs_array.push_back(*i_dof);
+        }
 
         temp_dofs_array.Unique();
         BaseType::mDofSet = temp_dofs_array;
 
         // Throws an exception if there are no Degrees of freedom involved in
         // the analysis
-        KRATOS_ERROR_IF(rModelPart.GetCommunicator().GetDataCommunicator().SumAll(BaseType::mDofSet.size()) == 0) << "No degrees of freedom!";
+        const SizeType number_of_dofs = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(BaseType::mDofSet.size());
+        KRATOS_ERROR_IF(number_of_dofs == 0) << "No degrees of freedom!" << std::endl;
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have
@@ -575,7 +586,11 @@ public:
             }
         }
 #endif
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 2) << "Number of degrees of freedom:" << number_of_dofs << std::endl;
+
         BaseType::mDofSetIsInitialized = true;
+
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 2) << "Finished setting up the dofs" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -615,14 +630,6 @@ public:
         for (auto& r_dof : BaseType::mDofSet)
             if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
                 r_dof.SetEquationId(free_offset++);
-
-        // TODO
-        // BaseType::mEquationSystemSize = BaseType::mDofSet.size();
-
-        // IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&, this](std::size_t Index){
-        //     typename DofsArrayType::iterator dof_iterator = this->mDofSet.begin() + Index;
-        //     dof_iterator->SetEquationId(Index);
-        // });
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
