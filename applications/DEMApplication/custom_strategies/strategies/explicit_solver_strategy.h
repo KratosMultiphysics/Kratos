@@ -362,10 +362,6 @@ namespace Kratos {
         void RVEOpenFiles  (void);
         void RVECloseFiles (void);
 
-        double m_reset_force_time = 10.0;
-        double m_restart_compress_time = 10.5;
-        std::ofstream mRVE_FileStages;
-
         //==========================================================================================================================================
         // HIERARCHICAL MULTISCALE RVE - FINISH
         //==========================================================================================================================================
