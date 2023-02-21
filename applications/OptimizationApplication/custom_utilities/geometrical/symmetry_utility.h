@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
@@ -165,50 +165,8 @@ public:
     {
     }
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
     ///@name Static Member Variables
@@ -251,40 +209,15 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-    NodeTypePointer GetRotatedNode(NodeType& rNode, int rotation_index);
+    NodeTypePointer GetRotatedNode(NodeType& rNode, int RotationIndex);
     NodeTypePointer GetReflectedNode(NodeType& rNode);
-    void GetRotationMatrix(double angle, Matrix& rRotMat);
+    void GetRotationMatrix(double Angle, Matrix& rRotMat);
 
 
     ///@}
-    ///@name Private Inquiry
-    ///@{
 
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-//      SymmetryUtility& operator=(SymmetryUtility const& rOther);
-
-    /// Copy constructor.
-//      SymmetryUtility(SymmetryUtility const& rOther);
-
-
-    ///@}
 
 }; // Class SymmetryUtility
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 
