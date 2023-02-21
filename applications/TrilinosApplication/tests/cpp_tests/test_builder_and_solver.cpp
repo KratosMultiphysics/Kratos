@@ -171,18 +171,26 @@ namespace Kratos::Testing
             pnode->Fix(DISPLACEMENT_X);
         }
 
-        // TODO: Fix this once MPC work!
-        // if (WithConstraint) {
-        //     rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode2, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
-        //     if (AdditionalNode) {
-        //         rModelPart.CreateNewNode(4, 3.0, 0.0, 0.0);
-        //         rModelPart.CreateNewNode(5, 4.0, 0.0, 0.0);
-        //         auto pnode4 = rModelPart.pGetNode(4);
-        //         rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode3, DISPLACEMENT_X, *pnode4, DISPLACEMENT_X, 1.0, 0.0);
-        //         auto pnode5 = rModelPart.pGetNode(5);
-        //         rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode3, DISPLACEMENT_X, *pnode5, DISPLACEMENT_X, 1.0, 0.0);
-        //     }
-        // }
+        // Adding constraints
+        if (WithConstraint) {
+            if (rModelPart.HasNode(3)) {
+                auto pnode3 = rModelPart.pGetNode(3);
+                const auto node_3_partition_index = pnode3->FastGetSolutionStepValue(PARTITION_INDEX);
+                if (rModelPart.HasNode(2)) {
+                    auto pnode2 = rModelPart.pGetNode(2);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode2, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
+                }
+
+                if (AdditionalNode) {
+                    auto pnode4 = rModelPart.CreateNewNode(4, 3.0, 0.0, 0.0);
+                    pnode4->FastGetSolutionStepValue(PARTITION_INDEX) = node_3_partition_index;
+                    auto pnode5 = rModelPart.CreateNewNode(5, 4.0, 0.0, 0.0);
+                    pnode5->FastGetSolutionStepValue(PARTITION_INDEX) = node_3_partition_index;
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode3, DISPLACEMENT_X, *pnode4, DISPLACEMENT_X, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode3, DISPLACEMENT_X, *pnode5, DISPLACEMENT_X, 1.0, 0.0);
+                }
+            }
+        }
 
         // Compute communicaton plan and fill communicator meshes correctly
         ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
@@ -492,10 +500,14 @@ namespace Kratos::Testing
             pnode->Fix(DISPLACEMENT_Y);
         }
 
-        // // TODO: Fix this once MPC work!
-        // if (WithConstraint) {
-        //     rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_Y, *pnode2, DISPLACEMENT_Y, 1.0, 0.0);
-        // }
+        // Adding constraint
+        if (WithConstraint) {
+            if (rModelPart.HasNode(1) && rModelPart.HasNode(2)) {
+                auto pnode1 = rModelPart.pGetNode(1);
+                auto pnode2 = rModelPart.pGetNode(2);
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_Y, *pnode2, DISPLACEMENT_Y, 1.0, 0.0);
+            }
+        }
 
         // Compute communicaton plan and fill communicator meshes correctly
         ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
