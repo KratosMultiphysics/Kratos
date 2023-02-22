@@ -18,8 +18,7 @@
 // Project includes
 #include "mpi/utilities/debug_utilities.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 // CheckNonHistoricalNodeVariableConsistency()
 template<class TContainerType, class TVariableType>
@@ -72,6 +71,5 @@ void AddMPIDebugUtilitiesToPython(pybind11::module& m)
     AddHistoricalVariableCheck<ModelPart::NodesContainerType>(m);
 }
 
-} // namespace Python
-} // namespace Kratos
+} // namespace Kratos::Python
 

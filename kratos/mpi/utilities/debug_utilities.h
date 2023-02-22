@@ -13,9 +13,13 @@
 
 #pragma once
 
+// System includes
 #include <vector>
 #include <sstream>
 
+// External includes
+
+// Project includes
 #include "includes/model_part.h"
 #include "includes/parallel_environment.h"
 #include "utilities/global_pointer_utilities.h"
