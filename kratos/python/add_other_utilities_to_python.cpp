@@ -186,6 +186,13 @@ void AddSubModelPartEntitiesBooleanOperationToPython(pybind11::module &m, std::s
         ;
 }
 
+/// @brief Collect globbed paths to an array of strings.
+std::vector<std::filesystem::path> Glob (const PlaceholderPattern& rInstance) {
+    std::vector<std::filesystem::path> output;
+    rInstance.Glob(std::back_inserter(output));
+    return output;
+}
+
 void AddOtherUtilitiesToPython(pybind11::module &m)
 {
 
@@ -803,7 +810,37 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
              "snake_case to CamelCase conversion")
         ;
 
+    pybind11::class_<PlaceholderPattern, PlaceholderPattern::Pointer>(m, "PlaceholderPattern")
+        .def(pybind11::init<const std::string&,const PlaceholderPattern::PlaceholderMap&>())
+        .def("IsAMatch",
+             &PlaceholderPattern::IsAMatch,
+             "Check whether a string satisfies the pattern")
+        .def("Match",
+             &PlaceholderPattern::Match,
+             "Find all placeholders' values in the input string.")
+        .def("Apply",
+             &PlaceholderPattern::Apply,
+             "Substitute values from the input map into the stored pattern.")
+        .def("Glob",
+             &Glob,
+             "Collect all file/directory paths that match the pattern.")
+        .def("GetRegexString",
+             &PlaceholderPattern::GetRegexString,
+             "Get the string representation of the regex.")
+        .def("IsConst",
+             &PlaceholderPattern::IsConst,
+             "Return true if the input pattern contains no placeholders.")
+        ;
 
+    pybind11::class_<ModelPartPattern, ModelPartPattern::Pointer, PlaceholderPattern>(m, "ModelPartPattern")
+        .def(pybind11::init<const std::string&>())
+        .def("Apply",
+             static_cast<std::string(ModelPartPattern::*)(const ModelPartPattern::PlaceholderMap&)const>(&ModelPartPattern::Apply),
+             "Substitute values from the input map into the stored pattern.")
+        .def("Apply",
+             static_cast<std::string(ModelPartPattern::*)(const ModelPart&)const>(&ModelPartPattern::Apply),
+             "Substitute values from the model part into the stored pattern.")
+        ;
 }
 
 } // namespace Python.
