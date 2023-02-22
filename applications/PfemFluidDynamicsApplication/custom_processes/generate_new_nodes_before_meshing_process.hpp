@@ -125,7 +125,7 @@ namespace Kratos
 
 			unsigned int eulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
 
-			int ElementsToRefine = mrRemesh.Info->RemovedNodes;
+			int ElementsToRefine = mrRemesh.Info->RemovedNodes + eulerianInletNodes;
 
 			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
 			int numberOfNodes = mrRemesh.Info->NumberOfNodes;
@@ -1230,7 +1230,7 @@ namespace Kratos
 
 			if (eulerianInletNodes > 0) //nodes close to the Eulerian inlet are added in a separated function
 			{
-				penalization = 0;
+				penalization = 1.25;
 			}
 
 			double ElementalVolume = Element.Area();
@@ -1298,7 +1298,8 @@ namespace Kratos
 				dangerousElement = true;
 			}
 
-			if (dangerousElement == false && toEraseNodeFound == false && eulerianInletNodes < 0.5)
+			// if (dangerousElement == false && toEraseNodeFound == false && eulerianInletNodes < 0.5)
+			if (dangerousElement == false && toEraseNodeFound == false)
 			{
 				unsigned int maxCount = 3;
 				double LargestEdge = 0;
@@ -1487,10 +1488,10 @@ namespace Kratos
 				penalization = 0.95;
 			}
 
-			if (eulerianInletNodes > 0)
-			{
-				penalization = 0;
-			}
+			// if (eulerianInletNodes > 0)
+			// {
+			// 	penalization = 0;
+			// }
 
 			double ElementalVolume = Element.Volume();
 

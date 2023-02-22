@@ -99,10 +99,10 @@ namespace Kratos
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         // count++;
-        if (i_node->Is(RIGID))
-        {
-          i_node->GetValue(NO_MESH) = true;
-        }
+        // if (i_node->Is(RIGID))
+        // {
+        //   i_node->GetValue(NO_MESH) = true;
+        // }
         i_node->Set(INLET);
         i_node->Set(RIGID);
         i_node->Reset(FREE_SURFACE);
