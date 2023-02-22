@@ -1149,6 +1149,8 @@ protected:
                 indices[i].insert(mFirstMyId + i); // Ensure that the diagonal is there in T
             }
 
+            // TODO: Once everthing works, we should use Epetra Graph instead of CsrMatrix for sake of performance (avoid compute nnz of all partitions)
+
             // Generate map
             const int num_global_elements = BaseType::mEquationSystemSize;
             Epetra_Map map(num_global_elements, 0, mrComm);
