@@ -45,9 +45,6 @@ class SymmetryUtilitiesTest(TestCase):
         model_part.Nodes[14].SetSolutionStepValue(KOA.CX, [0.0, 0.0, 0.0])
         model_part.Nodes[14].SetSolutionStepValue(KOA.CT, 0.0)
         
-        
-        
-        
         # rotational symmetry test for scalar and vector field
         rot_symm_settings = KM.Parameters("""
         {

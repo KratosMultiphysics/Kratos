@@ -7,7 +7,7 @@
 #  License:		 BSD License
 #					 license: OptimizationApplication/license.txt
 #
-#  Main authors:    Suneth Warnakulasuriya           
+#  Main authors:    Suneth Warnakulasuriya
 #
 
 from abc import ABC
