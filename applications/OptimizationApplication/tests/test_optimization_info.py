@@ -62,7 +62,7 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
         self.assertEqual(optimization_info.GetSolutionStepData(3)["step"], 4)
 
-    def test_OptimizationProcesss(self):
+    def test_OptimizationProcess(self):
         optimization_info = OptimizationInfo()
         optimization_info.SetBufferSize(1)
         temp = TestOptimizationInfo.TestRoutine()
