@@ -16,7 +16,7 @@ class OptimizationInfo:
 
     def AddOptimizationProcess(self, category: any, routine_name: str, routine: Kratos.Process):
         if not isinstance(routine, Kratos.Process):
-            raise RuntimeError(f"Only allowed to add objects derrived from Kratos.Process. [ Type of added routine: {routine.__class__.__name__}]")
+            raise RuntimeError(f"Only allowed to add objects derived from Kratos.Process. [ Type of added routine: {routine.__class__.__name__}]")
 
         if not isinstance(routine, category):
             raise RuntimeError(f"The provided routine with name \"{routine_name}\" is not derrived from the provided category type \"{category.__name__}\".")
