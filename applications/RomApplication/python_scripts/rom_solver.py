@@ -20,7 +20,7 @@ def CreateSolver(cls, model, custom_settings):
         @classmethod
         def GetDefaultParameters(cls):
             default_settings = KratosMultiphysics.Parameters("""{
-                "projection_strategy" : "Galerkin",
+                "projection_strategy" : "galerkin",
                 "rom_settings": {
                     "nodal_unknowns": [],
                     "number_of_rom_dofs" : 10
@@ -33,7 +33,7 @@ def CreateSolver(cls, model, custom_settings):
             linear_solver = self._GetLinearSolver()
             rom_parameters, solving_strategy = self._ValidateAndReturnRomParameters()
             available_solving_strategies = {
-                "Galerkin": KratosROM.ROMBuilderAndSolver, 
+                "galerkin": KratosROM.ROMBuilderAndSolver, 
                 "LSPG": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "Petrov-Galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
             }

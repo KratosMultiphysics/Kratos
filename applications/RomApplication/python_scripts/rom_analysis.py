@@ -46,7 +46,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 raise Exception(err_msg)
             
             # ROM solving strategy
-            self.solving_strategy = self.rom_parameters["projection_strategy"].GetString() if self.rom_parameters.Has("projection_strategy") else "Galerkin"
+            self.solving_strategy = self.rom_parameters["projection_strategy"].GetString() if self.rom_parameters.Has("projection_strategy") else "galerkin"
             self.project_parameters["solver_settings"].AddString("projection_strategy",self.solving_strategy)
 
             # Add or remove parameters depending on the solving strategy
