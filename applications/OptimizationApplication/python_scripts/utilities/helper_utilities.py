@@ -43,6 +43,6 @@ def OptimizationProcessFactory(
 
     # check retrieved object is of the required type
     if not isinstance(retrieved_object, required_object_type):
-        raise RuntimeError(f"The retrieved object is of type \"{retrieved_object.__class__.__name__}\" which is not derrived from the \"{required_object_type.__name__}\".")
+        raise RuntimeError(f"The retrieved object is of type \"{retrieved_object.__class__.__name__}\" which is not derived from the \"{required_object_type.__name__}\".")
     else:
         return retrieved_object
