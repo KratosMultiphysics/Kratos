@@ -417,17 +417,14 @@ const std::string& PlaceholderPattern::GetPatternString() const
 }
 
 
-const ModelPartPattern::PlaceholderMap& ModelPartPattern::GetPlaceholderMap()
+ModelPartPattern::PlaceholderMap ModelPartPattern::GetPlaceholderMap()
 {
-    if (mModelPartPlaceholderMap.empty()) {
-        mModelPartPlaceholderMap = PlaceholderMap {
-            {"<model_part_name>", ".+"},
-            {"<step>", RegexUtility::UnsignedInteger().first},
-            {"<time>", RegexUtility::FloatingPoint().first},
-            {"<rank>", RegexUtility::Integer().first}
-        };
-    }
-    return mModelPartPlaceholderMap;
+    return PlaceholderMap {
+        {"<model_part_name>", ".+"},
+        {"<step>", RegexUtility::UnsignedInteger().first},
+        {"<time>", RegexUtility::FloatingPoint().first},
+        {"<rank>", RegexUtility::Integer().first}
+    };
 }
 
 
@@ -465,9 +462,6 @@ std::string PlaceholderPattern::FormatRegexLiteral(const std::string& rLiteral)
 
     KRATOS_CATCH("");
 }
-
-
-ModelPartPattern::PlaceholderMap ModelPartPattern::mModelPartPlaceholderMap;
 
 
 ModelPartPattern::ModelPartPattern(const std::string& rPattern)
