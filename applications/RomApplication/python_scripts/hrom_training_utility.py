@@ -63,10 +63,10 @@ class HRomTrainingUtility(object):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
         elif (self.projection_strategy=="Petrov-Galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else: 
+        else:
             err_msg = "Projection strategy \'{}\' for hrom is not supported.".format(self.projection_strategy)
             raise Exception(err_msg)
-        
+
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
@@ -79,7 +79,7 @@ class HRomTrainingUtility(object):
 
         # Save the HROM weights in the RomParameters.json
         # Note that in here we are assuming this naming convention for the ROM json file
-        self.__AppendHRomWeightsToRomParameters()
+        self.AppendHRomWeightsToRomParameters()
 
     def CreateHRomModelParts(self):
         # Get solver data
@@ -142,11 +142,7 @@ class HRomTrainingUtility(object):
 
     def __CalculateResidualBasis(self):
         # Set up the residual snapshots matrix
-        n_steps = len(self.time_step_residual_matrix_container)
-        residuals_snapshot_matrix = self.time_step_residual_matrix_container[0]
-        for i in range(1,n_steps):
-            del self.time_step_residual_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
-            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[0]]
+        residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
 
         # Calculate the randomized and truncated SVD of the residual snapshots
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
@@ -155,7 +151,21 @@ class HRomTrainingUtility(object):
 
         return u
 
-    def __AppendHRomWeightsToRomParameters(self):
+
+
+    def _GetResidualsProjectedMatrix(self):
+        # Set up the residual snapshots matrix
+        n_steps = len(self.time_step_residual_matrix_container)
+        residuals_snapshot_matrix = self.time_step_residual_matrix_container[0]
+        for i in range(1,n_steps):
+            del self.time_step_residual_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
+            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[0]]
+        return residuals_snapshot_matrix
+
+
+
+
+    def AppendHRomWeightsToRomParameters(self):
         n_elements = self.solver.GetComputingModelPart().NumberOfElements()
         w = np.squeeze(self.hyper_reduction_element_selector.w)
         z = self.hyper_reduction_element_selector.z
