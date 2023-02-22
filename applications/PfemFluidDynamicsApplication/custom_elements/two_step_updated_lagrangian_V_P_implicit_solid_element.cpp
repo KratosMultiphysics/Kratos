@@ -129,11 +129,6 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
-  {
-  }
-
-  template <unsigned int TDim>
   int TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
@@ -211,7 +206,7 @@ namespace Kratos
     const auto &r_geometry = this->GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
-    //WARNING THIS MUST BE REMOVED ASAP
+    // WARNING THIS MUST BE REMOVED ASAP
     const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
     // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
@@ -388,6 +383,14 @@ namespace Kratos
     this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
     this->mMaterialVolumetricCoefficient = VolumetricCoeff;
     this->mMaterialDensity = Density;
+
+    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1]) * 0.5;
+
+    double mechanicalDissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.SpatialDefRate[2];
+
+    this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
   }
 
   template <>
@@ -456,6 +459,17 @@ namespace Kratos
     this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
     this->mMaterialVolumetricCoefficient = VolumetricCoeff;
     this->mMaterialDensity = Density;
+
+    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2]) / 3.0;
+
+    double mechanicalDissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[2] * (rElementalVariables.SpatialDefRate[2] - volumetric_strain) +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.SpatialDefRate[3] +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.SpatialDefRate[4] +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.SpatialDefRate[5];
+
+    this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
   }
 
   template <unsigned int TDim>

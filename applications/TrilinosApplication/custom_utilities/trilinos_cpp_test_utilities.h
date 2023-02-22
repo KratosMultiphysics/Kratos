@@ -18,7 +18,6 @@
 
 // Project includes
 #include "trilinos_space.h"
-#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -50,6 +49,9 @@ public:
     using TrilinosSparseMatrixType = TrilinosSparseSpaceType::MatrixType;
     using TrilinosVectorType = TrilinosSparseSpaceType::VectorType;
 
+    using TrilinosLocalMatrixType = TrilinosLocalSpaceType::MatrixType;
+    using TrilinosLocalVectorType = TrilinosLocalSpaceType::VectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -59,92 +61,92 @@ public:
     ///@{
 
     /**
+    * @brief Generates a dummy diagonal local matrix for Trilinos
+    * @param rDataCommunicator The data communicator considered
+    * @param NumGlobalElements The global dimension of the matrix
+    * @param Offset The offset considered
+    * @param AddNoDiagonalValues If adding non diagonal values
+    */
+    static TrilinosLocalMatrixType GenerateDummyLocalMatrix(
+        const int NumGlobalElements = 12,
+        const double Offset = 0.0,
+        const bool AddNoDiagonalValues = false
+        );
+
+    /**
     * @brief Generates a dummy diagonal sparse matrix for Trilinos
     * @param rDataCommunicator The data communicator considered
     * @param NumGlobalElements The global dimension of the matrix
     * @param Offset The offset considered
+    * @param AddNoDiagonalValues If adding non diagonal values
     */
     static TrilinosSparseMatrixType GenerateDummySparseMatrix(
         const DataCommunicator& rDataCommunicator,
         const int NumGlobalElements = 12,
-        const double Offset = 0.0
-        )
-    {
-        // Generate Epetra communicator
-        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
-        Epetra_MpiComm epetra_comm(raw_mpi_comm);
-
-        // Create a map
-        Epetra_Map Map(NumGlobalElements,0,epetra_comm);
-
-        // Local number of rows
-        const int NumMyElements = Map.NumMyElements();
-
-        // Get update list
-        int* MyGlobalElements = Map.MyGlobalElements( );
-
-        // Create an integer vector NumNz that is used to build the EPetra Matrix.
-        // NumNz[i] is the Number of OFF-DIAGONAL term for the ith global equation
-        // on this processor
-        std::vector<int> NumNz(NumMyElements, 1);
-
-        // Create a Epetra_Matrix
-        TrilinosSparseMatrixType A(Copy, Map, NumNz.data());
-
-        double value;
-        for( int i=0 ; i<NumMyElements; ++i ) {
-            // Put in the diagonal entry
-            value = Offset + static_cast<double>(MyGlobalElements[i]);
-            A.InsertGlobalValues(MyGlobalElements[i], 1, &value, MyGlobalElements+i);
-        }
-
-        // Finish up, trasforming the matrix entries into local numbering,
-        // to optimize data transfert during matrix-vector products
-        A.FillComplete();
-
-        return A;
-    }
+        const double Offset = 0.0,
+        const bool AddNoDiagonalValues = false
+        );
 
     /**
-    * @brief Generates a dummy vector for Trilinos
+    * @brief Generates a dummy local vector for Trilinos
     * @param rDataCommunicator The data communicator considered
     * @param NumGlobalElements The global dimension of the matrix
     * @param Offset The offset considered
     */
-    static TrilinosVectorType GenerateDummyVector(
+    static TrilinosLocalVectorType GenerateDummyLocalVector(
+        const int NumGlobalElements = 12,
+        const double Offset = 0.0
+        );
+
+    /**
+    * @brief Generates a dummy sparse vector for Trilinos
+    * @param rDataCommunicator The data communicator considered
+    * @param NumGlobalElements The global dimension of the matrix
+    * @param Offset The offset considered
+    */
+    static TrilinosVectorType GenerateDummySparseVector(
         const DataCommunicator& rDataCommunicator,
         const int NumGlobalElements = 12,
         const double Offset = 0.0
-        )
-    {
-        // Generate Epetra communicator
-        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
-        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+        );
 
-        // Create a map
-        Epetra_Map Map(NumGlobalElements,0,epetra_comm);
+    /**
+    * @brief This method checks the values of a sparse vector with the given serial vector
+    * @param vector The matrix to check
+    * @param vector The reference matrix
+    * @param Tolerance The tolerance considered
+    */
+    static void CheckSparseVectorFromLocalVector(
+        const TrilinosVectorType& rA,
+        const TrilinosLocalVectorType& rB,
+        const double Tolerance = 1e-8
+        );
 
-        // Local number of rows
-        const int NumMyElements = Map.NumMyElements();
+    /**
+    * @brief This method checks the values of a sparse vector with the given indices and values
+    * @param rb The vector to check
+    * @param rIndexes The indices
+    * @param rValues The values
+    * @param Tolerance The tolerance considered
+    */
+    static void CheckSparseVector(
+        const TrilinosVectorType& rb,
+        const std::vector<int>& rIndexes,
+        const std::vector<double>& rValues,
+        const double Tolerance = 1e-8
+        );
 
-        // Get update list
-        int* MyGlobalElements = Map.MyGlobalElements( );
-
-        // Create a Epetra_Matrix
-        TrilinosVectorType b(Map);
-
-        double value;
-        for( int i=0 ; i<NumMyElements; ++i ) {
-            value = Offset + static_cast<double>(MyGlobalElements[i]);
-            b[0][i]= value;
-        }
-
-        b.GlobalAssemble();
-
-        return b;
-    }
+    /**
+    * @brief This method checks the values of a sparse matrix with the given serial matrix
+    * @param rA The matrix to check
+    * @param rB The reference matrix
+    * @param Tolerance The tolerance considered
+    */
+    static void CheckSparseMatrixFromLocalMatrix(
+        const TrilinosSparseMatrixType& rA,
+        const TrilinosLocalMatrixType& rB,
+        const double Tolerance = 1e-8
+        );
 
     /**
     * @brief This method checks the values of a sparse matrix with the given indices and values
@@ -155,40 +157,12 @@ public:
     * @param Tolerance The tolerance considered
     */
     static void CheckSparseMatrix(
-        const TrilinosSparseSpaceType::MatrixType& rA,
+        const TrilinosSparseMatrixType& rA,
         const std::vector<int>& rRowIndexes,
         const std::vector<int>& rColumnIndexes,
         const std::vector<double>& rValues,
         const double Tolerance = 1e-8
-        )
-    {
-        int row, column;
-        double value;
-        for (std::size_t counter = 0; counter < rRowIndexes.size(); ++counter) {
-            row = rRowIndexes[counter];
-            column = rColumnIndexes[counter];
-            value = rValues[counter];
-            for (int i = 0; i < rA.NumMyRows(); i++) {
-                int numEntries; // Number of non-zero entries
-                double* vals;   // Row non-zero values
-                int* cols;      // Column indices of row non-zero values
-                rA.ExtractMyRowView(i, numEntries, vals, cols);
-                const int row_gid = rA.RowMap().GID(i);
-                if (row == row_gid) {
-                    int j;
-                    for (j = 0; j < numEntries; j++) {
-                        const int col_gid = rA.ColMap().GID(cols[j]);
-                        if (col_gid == column) {
-                            KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], Tolerance)
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
+        );
     ///@}
 
 }; /// class TrilinosCPPTestUtilities
