@@ -23,7 +23,7 @@ class HRomTrainingUtility(object):
         settings.ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
 
         # Projection strategy (residual projection)
-        settings["projection_strategy"] = custom_settings["solving_strategy"] # To be consistent with the solving strategy
+        settings["projection_strategy"] = custom_settings["projection_strategy"] # To be consistent with the solving strategy
 
         # Create the HROM element selector
         element_selection_type = settings["element_selection_type"].GetString()

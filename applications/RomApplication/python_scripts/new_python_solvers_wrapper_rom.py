@@ -51,7 +51,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
     #TODO: We could do the same exercise as we do in the stage (module_name to ClassName equal to ModuleName if we standarize the solver names)
     aux_solver_settings = solver_settings.Clone()
     aux_solver_settings.RemoveValue("rom_settings")
-    aux_solver_settings.RemoveValue("solving_strategy")
+    aux_solver_settings.RemoveValue("projection_strategy")
     aux_base_solver_instance = solvers_wrapper_module.CreateSolverByParameters(KratosMultiphysics.Model(), aux_solver_settings, parallelism)
 
     # Create the ROM solver from the base solver

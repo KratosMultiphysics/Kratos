@@ -1,7 +1,7 @@
 {
     "train_hrom": false,
     "run_hrom": false,
-    "solving_strategy": "LSPG",
+    "projection_strategy": "LSPG",
     "train_petrov_galerkin": {
         "train": false,
         "basis_strategy": "Residuals",

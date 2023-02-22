@@ -20,7 +20,7 @@ def CreateSolver(cls, model, custom_settings):
         @classmethod
         def GetDefaultParameters(cls):
             default_settings = KratosMultiphysics.Parameters("""{
-                "solving_strategy" : "Galerkin",
+                "projection_strategy" : "Galerkin",
                 "rom_settings": {
                     "nodal_unknowns": [],
                     "number_of_rom_dofs" : 10
@@ -61,9 +61,9 @@ def CreateSolver(cls, model, custom_settings):
                     err_msg = "\'nodal_unknowns\' in \'rom_settings\' is not provided and there is a not-valid implementation in base solver."
                     err_msg += " Please manually set \'nodal_unknowns\' in \'rom_settings\'."
                     raise Exception(err_msg)
-            solving_strategy = self.settings["solving_strategy"].GetString()
+            projection_strategy = self.settings["projection_strategy"].GetString()
 
             # Return the validated ROM parameters
-            return self.settings["rom_settings"], solving_strategy
+            return self.settings["rom_settings"], projection_strategy
 
     return ROMSolver(model, custom_settings)
