@@ -7,7 +7,7 @@ from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTraining
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 
-from glob import glob 
+from glob import glob
 from os import remove
 
 def CreateRomAnalysisInstance(cls, global_model, parameters):
@@ -28,9 +28,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             # HROM operations flags
             self.rom_basis_process_list_check = True
-            self.rom_basis_output_process_check = True
+            #self.rom_basis_output_process_check = True #TODO include this process, but do so if the user is not interested in checking the approximation error
             self.run_hrom = self.rom_parameters["run_hrom"].GetBool() if self.rom_parameters.Has("run_hrom") else False
             self.train_hrom = self.rom_parameters["train_hrom"].GetBool() if self.rom_parameters.Has("train_hrom") else False
+            self.multiple_simulations = self.rom_parameters["multiple_simulations"].GetBool()
             if self.run_hrom and self.train_hrom:
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
@@ -44,7 +45,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             if (self.train_hrom or self.train_petrov_galerkin) and (self.run_hrom):
                 err_msg = "\'train_petrov_galerkin\' or \'train_hrom\' and \'run_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
                 raise Exception(err_msg)
-            
+
             # ROM solving strategy
             self.solving_strategy = self.rom_parameters["solving_strategy"].GetString() if self.rom_parameters.Has("solving_strategy") else "Galerkin"
             self.project_parameters["solver_settings"].AddString("solving_strategy",self.solving_strategy)
@@ -56,7 +57,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             ##Petrov Galerkin
             if self.solving_strategy=="Petrov-Galerkin":
                 self.petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
-            else:    
+            else:
                 self.project_parameters["solver_settings"]["rom_settings"].RemoveValue("petrov_galerkin_number_of_rom_dofs")
 
             # Create the ROM solver
@@ -64,35 +65,36 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 self.model,
                 self.project_parameters)
 
-        def _GetListOfProcesses(self):
-            # Get the already existent processes list
-            list_of_processes = super()._GetListOfProcesses()
+        #TODO include a flag to call these processes and eliminate the RomOutputProcess if the solution is not to be gathered
+        # def _GetListOfProcesses(self):
+        #     # Get the already existent processes list
+        #     list_of_processes = super()._GetListOfProcesses()
 
-            # Check if there is any instance of ROM basis output
-            if self.rom_basis_process_list_check:
-                for process in list_of_processes:
-                    if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
-                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from processes list."
-                        KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
-                        list_of_processes.remove(process)
-                self.rom_basis_process_list_check = False
+        #     # Check if there is any instance of ROM basis output
+        #     if self.rom_basis_process_list_check:
+        #         for process in list_of_processes:
+        #             if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
+        #                 warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from processes list."
+        #                 KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
+        #                 list_of_processes.remove(process)
+        #         self.rom_basis_process_list_check = False
 
-            return list_of_processes
+        #     return list_of_processes
 
-        def _GetListOfOutputProcesses(self):
-            # Get the already existent output processes list
-            list_of_output_processes = super()._GetListOfOutputProcesses()
+        # def _GetListOfOutputProcesses(self):
+        #     # Get the already existent output processes list
+        #     list_of_output_processes = super()._GetListOfOutputProcesses()
 
-            # Check if there is any instance of ROM basis output
-            if self.rom_basis_output_process_check:
-                for process in list_of_output_processes:
-                    if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
-                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from output processes list."
-                        KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
-                        list_of_output_processes.remove(process)
-                self.rom_basis_output_process_check = False
+        #     # Check if there is any instance of ROM basis output
+        #     if self.rom_basis_output_process_check:
+        #         for process in list_of_output_processes:
+        #             if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
+        #                 warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from output processes list."
+        #                 KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
+        #                 list_of_output_processes.remove(process)
+        #         self.rom_basis_output_process_check = False
 
-            return list_of_output_processes
+        #     return list_of_output_processes
 
         def _GetSimulationName(self):
             return "::[ROM Simulation]:: "
@@ -110,7 +112,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
             rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
 
-            # Set the right nodal ROM basis 
+            # Set the right nodal ROM basis
             aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
             for node in computing_model_part.Nodes:
                 node_id = str(node.Id)
@@ -118,7 +120,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     for i in range(rom_dofs):
                         aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
                 node.SetValue(KratosROM.ROM_BASIS, aux)
-            
+
             # Set the left nodal ROM basis if it is different than the right nodal ROM basis (i.e. Petrov-Galerkin)
             if (self.solving_strategy == "Petrov-Galerkin"):
                 petrov_galerkin_nodal_modes = self.rom_parameters["petrov_galerkin_nodal_modes"]
@@ -178,18 +180,22 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # This calls the physics FinalizeSolutionStep (e.g. BCs)
             super().FinalizeSolutionStep()
 
+
+        def GetHROM_utility(self):
+            return self.__hrom_training_utility
+
+
         def Finalize(self):
             # This calls the physics Finalize
             super().Finalize()
 
-            # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
-            if self.train_petrov_galerkin:
-                self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
-
             # Once simulation is completed, calculate and save the HROM weights
-            if self.train_hrom:
+            if self.train_hrom and not self.multiple_simulations:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
                 self.__hrom_training_utility.CreateHRomModelParts()
+                # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
+                if self.train_petrov_galerkin:
+                    self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
 
     return RomAnalysis(global_model, parameters)
 
