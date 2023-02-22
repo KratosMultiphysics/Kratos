@@ -540,10 +540,9 @@ namespace Kratos::Testing
         pScheme->InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
         pBuilderAndSolver->Build(pScheme, rModelPart, rA, rb);
-        // TODO: Activate when MPC work
-        // if(rModelPart.MasterSlaveConstraints().size() != 0) {
-        //     pBuilderAndSolver->ApplyConstraints(pScheme, rModelPart, rA, rb);
-        // }
+        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            pBuilderAndSolver->ApplyConstraints(pScheme, rModelPart, rA, rb);
+        }
         pBuilderAndSolver->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         return rA;
@@ -742,6 +741,54 @@ namespace Kratos::Testing
         // Check assembly
         TrilinosCPPTestUtilities::CheckSparseMatrix(rA_scale, row_indexes, column_indexes, values);
     }
+
+    // /**
+    // * Checks if the block builder and solver with constraints performs correctly the assemble of the system
+    // */
+    // KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite2)
+    // {
+    //     // The base model part
+    //     Model current_model;
+    //     ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+    //     // The data communicator
+    //     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+
+    //     // Generate Epetra communicator
+    //     KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    //     auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    //     Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+    //     // Basic build
+    //     BasicTestBuilderAndSolverDisplacement(r_model_part, r_comm, true);
+
+    //     // Create the solvers and things required
+    //     auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+    //     auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+    //     auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+
+    //     const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+    //     // Reference
+    //     // [6,6]((1,0,0,0,0,0),(0,1,0,0,0,0),(0,0,1,0,0,0),(0,0,0,1,0,0),(0,0,1,0,0,0),(0,0,0,0,0,1))
+    //     KRATOS_WATCH(p_builder_and_solver->GetConstraintRelationMatrix())
+
+    //     // // To create the solution of reference
+    //     // DebugLHS(rA, r_comm);
+
+    //     // // The solution check
+    //     // KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
+    //     // KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 6);
+    //     // KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
+
+    //     // // Values to check
+    //     // std::vector<int> row_indexes = {0, 1, 2, 2, 3, 4, 4, 5};
+    //     // std::vector<int> column_indexes = {0, 1, 2, 4, 3, 2, 4, 5};
+    //     // std::vector<double> values = {2069000000.0000000000000000, 1.0000000000000000, 4138000000.0000000000000000, -2069000000.0000000000000000, 1.0000000000000000, -2069000000.0000000000000000, 2069000000.0000000000000000, 1.0000000000000000};
+
+    //     // // Check assembly
+    //     // TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+    // }
 
     // NOTE: Fails with more than one partition
     // /**
