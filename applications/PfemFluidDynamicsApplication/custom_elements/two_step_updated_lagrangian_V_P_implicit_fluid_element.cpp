@@ -497,10 +497,10 @@ namespace Kratos
     KRATOS_TRY;
     if (this->GetProperties().Has(YIELD_SHEAR) && this->Has(YIELDED))
     {
-      double tolerance = 1e-10;
+      const double tolerance = 1e-10;
       if (this->GetProperties()[YIELD_SHEAR] > tolerance)
       {
-        double TauNorm = sqrt(0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
+        const double TauNorm = sqrt(0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
                               0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
                               rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2]);
 
@@ -529,11 +529,11 @@ namespace Kratos
 
     if (this->GetProperties().Has(YIELD_SHEAR) && this->Has(YIELDED))
     {
-      double tolerance = 1e-10;
+      const double tolerance = 1e-10;
       if (this->GetProperties()[YIELD_SHEAR] > tolerance)
       {
 
-        double TauNorm = sqrt(2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
+        const double TauNorm = sqrt(2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
                               2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
                               2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2] +
                               4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.UpdatedDeviatoricCauchyStress[3] +
