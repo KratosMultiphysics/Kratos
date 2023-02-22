@@ -369,7 +369,7 @@ private:
  *           placeholders can be added at compile time by tweaking the construction
  *           of the static member @ref ModelPartPattern::mModelpartPlaceholderMap.
  */
-class KRATOS_API(WR_APPLICATION) ModelPartPattern : public PlaceholderPattern
+class KRATOS_API(KRATOS_CORE) ModelPartPattern : public PlaceholderPattern
 {
 public:
     ///@name Type Definitions
