@@ -619,6 +619,9 @@ Enables(Default) or Disables the compilation of the embedded python interpreter 
 `-DKRATOS_BUILD_TESTING=ON/OFF`
 Enables(Default) or Disables the compilation of the C++ unitary tests for *Kratos* and Applications.
 
+`-DKRATOS_NO_TRY_CATCH=ON/OFF`
+Enables or Disables(Default) the prevention of code generation in `KRATOS_TRY` and `KRATOS_CATCH` macros to allow direct debug of the code through gdb without having to break at `__cxa_throw`.
+
 ### Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`
 Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.
