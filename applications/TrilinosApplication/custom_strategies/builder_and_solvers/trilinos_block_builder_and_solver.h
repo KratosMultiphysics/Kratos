@@ -684,9 +684,14 @@ public:
         KRATOS_CATCH("")
     }
 
-    //**************************************************************************
-    //**************************************************************************
-
+    /**
+     * @brief It computes the reactions of the system
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     */
     void CalculateReactions(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
@@ -1153,13 +1158,14 @@ protected:
             }
 
             // Generate the structure
-            for (auto& r_row_index : indices) {
+            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
                 // Filling the list of active global indices (non fixed)
-                const IndexType num_active_indices = r_row_index.size();
+                auto& r_row_index = indices[i];
+                const int num_active_indices = r_row_index.size();
 
                 if (num_active_indices != 0) {
-                    const std::vector<int> row_index_data(r_row_index.begin(), r_row_index.end());
-                    const int ierr = Tgraph.InsertGlobalIndices(num_active_indices, row_index_data.data(), num_active_indices, row_index_data.data());
+                    std::vector<int> row_index_data(r_row_index.begin(), r_row_index.end());
+                    const int ierr = Tgraph.InsertGlobalIndices(mFirstMyId + i, num_active_indices, row_index_data.data());
                     KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
             }
@@ -1175,6 +1181,11 @@ protected:
             // Generate the constant vector equivalent
             TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(map));
             mpConstantVector.swap(p_new_constant_vector);
+
+            // Count the row sizes
+            int nnz = block_for_each<SumReduction<int>>(indices, [](auto& rIndices) {return rIndices.size();});
+            nnz = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(nnz);
+            KRATOS_ERROR_IF_NOT(mpT->NumGlobalNonzeros() == nnz) << "Relation matrix not properly constructed, the number of non-zeros does not coincide with the expected one " << nnz << " vs " << mpT->NumGlobalNonzeros() << std::endl;
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
@@ -1254,9 +1265,8 @@ protected:
         // Filling with zero the matrix (creating the structure)
         START_TIMER("MatrixStructure", 0)
 
+        // Number of local dofs
         const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
-        const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_dofs;
-        std::vector<int> temp(temp_size, 0);
 
         // TODO: Check if these should be local elements, conditions and constraints
         auto& r_elements_array = rModelPart.Elements();
@@ -1264,10 +1274,14 @@ protected:
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
 
         // Generate map - use the "temp" array here
+        const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_dofs;
+        std::vector<int> temp_primary(temp_size, 0);
+        std::vector<int> temp_secondary(temp_size, 0);
         for (IndexType i = 0; i != number_of_local_dofs; i++) {
-            temp[i] = mFirstMyId + i;
+            temp_primary[i] = mFirstMyId + i;
+            temp_secondary[i] = mFirstMyId + i;
         }
-        Epetra_Map map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
+        Epetra_Map map(-1, number_of_local_dofs, temp_primary.data(), 0, mrComm);
 
         // Create and fill the graph of the matrix --> the temp array is
         // reused here with a different meaning
@@ -1282,15 +1296,15 @@ protected:
             // Filling the list of active global indices (non fixed)
             IndexType num_active_indices = 0;
             for (auto& r_id : equation_ids_vector) {
-                temp[num_active_indices] = r_id;
-                num_active_indices += 1;
+                temp_primary[num_active_indices] = r_id;
+                ++num_active_indices;
             }
 
             if (num_active_indices != 0) {
-                const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp_primary.data(), num_active_indices, temp_primary.data());
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
-            std::fill(temp.begin(), temp.end(), 0);
+            std::fill(temp_primary.begin(), temp_primary.end(), 0);
         }
 
         // Assemble all conditions
@@ -1300,15 +1314,15 @@ protected:
             // Filling the list of active global indices (non fixed)
             IndexType num_active_indices = 0;
             for (auto& r_id : equation_ids_vector) {
-                temp[num_active_indices] = r_id;
-                num_active_indices += 1;
+                temp_primary[num_active_indices] = r_id;
+                ++num_active_indices;
             }
 
             if (num_active_indices != 0) {
-                const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+                const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp_primary.data(), num_active_indices, temp_primary.data());
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
-            std::fill(temp.begin(), temp.end(), 0);
+            std::fill(temp_primary.begin(), temp_primary.end(), 0);
         }
 
         // Assemble all constraints
@@ -1317,21 +1331,23 @@ protected:
             r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
 
             // Filling the list of active global indices (non fixed)
-            IndexType num_active_indices = 0;
+            IndexType num_active_slave_indices = 0;
             for (auto& r_slave_id : slave_equation_ids_vector) {
-                temp[num_active_indices] = r_slave_id;
-                num_active_indices += 1;
+                temp_primary[num_active_slave_indices] = r_slave_id;
+                ++num_active_slave_indices;
             }
+            IndexType num_active_master_indices = 0;
             for (auto& r_master_id : master_equation_ids_vector) {
-                temp[num_active_indices] = r_master_id;
-                num_active_indices += 1;
+                temp_secondary[num_active_master_indices] = r_master_id;
+                ++num_active_master_indices;
             }
 
-            if (num_active_indices != 0) {
-                const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp.data(), num_active_indices, temp.data());
+            if ((num_active_slave_indices + num_active_master_indices) > 0) {
+                const int ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_master_indices, temp_secondary.data());
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
-            std::fill(temp.begin(), temp.end(), 0);
+            std::fill(temp_primary.begin(), temp_primary.end(), 0);
+            std::fill(temp_secondary.begin(), temp_secondary.end(), 0);
         }
 
         // Finalizing graph construction
