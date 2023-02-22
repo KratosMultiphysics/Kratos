@@ -1187,7 +1187,7 @@ protected:
 
             // Finalizing graph construction
             const int ierr = p_new_T->GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in GlobalAssemble. Error code: " << ierr << std::endl;
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in CsrMatrix.GlobalAssemble. Error code: " << ierr << std::endl;
 
             // Swap matrix
             mpT.swap(p_new_T);
@@ -1251,7 +1251,7 @@ protected:
         // Setting the master dofs into the T and C system
         for (auto eq_id : mMasterIds) {
             TSparseSpace::SetValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
-            TSparseSpace::SetValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 0.0);
+            TSparseSpace::SetValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
         }
 
         // Setting inactive slave dofs in the T and C system
