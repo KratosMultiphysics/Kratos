@@ -1002,6 +1002,26 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns constraint relation (T) matrix
+     * @return The constraint relation (T) matrix
+     */
+    typename TSparseSpace::MatrixType& GetConstraintRelationMatrix() override
+    {
+        auto& r_T = *mpT;
+        return r_T;
+    }
+
+    /**
+     * @brief This method returns constraint constant vector
+     * @return The constraint constant vector
+     */
+    typename TSparseSpace::VectorType& GetConstraintConstantVector() override
+    {
+        auto& r_constant_vector = *mpConstantVector;
+        return r_constant_vector;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
