@@ -382,61 +382,6 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBulkMatrix(Matrix &BulkMatrix,
-                                                                               const ShapeFunctionsType &rN,
-                                                                               const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-    {
-      for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        // LHS contribution
-        double Mij = Weight * rN[i] * rN[j];
-        BulkMatrix(i, j) += Mij;
-      }
-    }
-  }
-
-  template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::ComputeBulkMatrixConsistent(Matrix &BulkMatrix,
-                                                                                      const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    for (SizeType i = 0; i < NumNodes; ++i)
-    {
-      for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        // LHS contribution
-        double Mij = Weight / 12;
-        if (i == j)
-          Mij *= 2.0;
-        BulkMatrix(i, j) += Mij;
-      }
-    }
-  }
-
-  template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::ComputeBulkMatrixConsistent(Matrix &BulkMatrix,
-                                                                                      const double Weight)
-  {
-    KRATOS_ERROR << "TO IMPLEMENT AND CHECK " << std::endl;
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    for (SizeType i = 0; i < NumNodes; ++i)
-    {
-      for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        // LHS contribution
-        double Mij = Weight / 12;
-        if (i == j)
-          Mij *= 2.0;
-        BulkMatrix(i, j) += Mij;
-      }
-    }
-  }
-
-  template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBulkMatrixLump(Matrix &BulkMatrix,
                                                                                    const double Weight)
   {
@@ -512,26 +457,9 @@ namespace Kratos
   }
 
   template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchySplitted(
-      ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
-      double &Density, double &DeviatoricCoeff, double &VolumetricCoeff)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::UpdateStressTensor(ElementalVariables &rElementalVariables)
   {
-
-    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
-    auto constitutive_law_values =
-        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-
-    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
-    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
-    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
-    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
-    constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
-    constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
-
-    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
+    KRATOS_TRY;
 
     rElementalVariables.UpdatedTotalCauchyStress[0] =
         rElementalVariables.UpdatedDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
@@ -540,7 +468,33 @@ namespace Kratos
     rElementalVariables.UpdatedTotalCauchyStress[2] = rElementalVariables.UpdatedDeviatoricCauchyStress[2];
 
     this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+    KRATOS_CATCH("");
+  }
 
+  template <>
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::UpdateStressTensor(ElementalVariables &rElementalVariables)
+  {
+    KRATOS_TRY;
+
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[2] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[3] = rElementalVariables.UpdatedDeviatoricCauchyStress[3];
+    rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.UpdatedDeviatoricCauchyStress[4];
+    rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.UpdatedDeviatoricCauchyStress[5];
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
+    KRATOS_CATCH("");
+  }
+
+  template <>
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::SetYieldedElements(ElementalVariables &rElementalVariables)
+  {
+    KRATOS_TRY;
     if (this->GetProperties().Has(YIELD_SHEAR) && this->Has(YIELDED))
     {
       double tolerance = 1e-10;
@@ -565,61 +519,13 @@ namespace Kratos
           this->SetValue(YIELDED, false);
       }
     }
-
-    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1]) * 0.5;
-
-    double mechanicalDissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
-                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
-                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.SpatialDefRate[2];
-
-    this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
-
-    const double time_step = rCurrentProcessInfo[DELTA_TIME];
-    const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
-    const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
-
-    DeviatoricCoeff = rElementalVariables.ConstitutiveMatrix(voigt_size - 1, voigt_size - 1);
-    VolumetricCoeff = bulk_modulus * time_step;
-    Density = mpConstitutiveLaw->CalculateValue(constitutive_law_values, DENSITY, Density);
-
-    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
-    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
-    this->mMaterialDensity = Density;
+    KRATOS_CATCH("");
   }
 
   template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchySplitted(
-      ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
-      double &Density, double &DeviatoricCoeff, double &VolumetricCoeff)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::SetYieldedElements(ElementalVariables &rElementalVariables)
   {
-
-    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
-    auto constitutive_law_values =
-        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-
-    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
-    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
-    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
-    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
-    constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
-    constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
-
-    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
-
-    rElementalVariables.UpdatedTotalCauchyStress[0] =
-        rElementalVariables.UpdatedDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
-    rElementalVariables.UpdatedTotalCauchyStress[1] =
-        rElementalVariables.UpdatedDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
-    rElementalVariables.UpdatedTotalCauchyStress[2] =
-        rElementalVariables.UpdatedDeviatoricCauchyStress[2] + rElementalVariables.MeanPressure;
-    rElementalVariables.UpdatedTotalCauchyStress[3] = rElementalVariables.UpdatedDeviatoricCauchyStress[3];
-    rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.UpdatedDeviatoricCauchyStress[4];
-    rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.UpdatedDeviatoricCauchyStress[5];
-
-    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+    KRATOS_TRY;
 
     if (this->GetProperties().Has(YIELD_SHEAR) && this->Has(YIELDED))
     {
@@ -650,16 +556,34 @@ namespace Kratos
       }
     }
 
-    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2]) / 3.0;
+    KRATOS_CATCH("");
+  }
 
-    double mechanicalDissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
-                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
-                                   rElementalVariables.UpdatedDeviatoricCauchyStress[2] * (rElementalVariables.SpatialDefRate[2] - volumetric_strain) +
-                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.SpatialDefRate[3] +
-                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.SpatialDefRate[4] +
-                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.SpatialDefRate[5];
+  template <>
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchySplitted(
+      ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
+      double &Density, double &DeviatoricCoeff, double &VolumetricCoeff)
+  {
 
-    this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law_values =
+        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+
+    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
+    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
+    constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
+    constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
+
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
+
+    this->UpdateStressTensor(rElementalVariables);
+
+    this->SetYieldedElements(rElementalVariables); // only for non-newtonian laws
 
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
@@ -672,6 +596,49 @@ namespace Kratos
     this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
     this->mMaterialVolumetricCoefficient = VolumetricCoeff;
     this->mMaterialDensity = Density;
+
+    this->ComputeMechanicalDissipation(rElementalVariables);
+  }
+
+  template <>
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchySplitted(
+      ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
+      double &Density, double &DeviatoricCoeff, double &VolumetricCoeff)
+  {
+
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law_values =
+        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+
+    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
+    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
+    constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
+    constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
+
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
+
+    this->UpdateStressTensor(rElementalVariables);
+
+    this->SetYieldedElements(rElementalVariables); // only for non-newtonian laws
+
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
+    const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
+
+    DeviatoricCoeff = rElementalVariables.ConstitutiveMatrix(voigt_size - 1, voigt_size - 1);
+    VolumetricCoeff = bulk_modulus * time_step;
+    Density = mpConstitutiveLaw->CalculateValue(constitutive_law_values, DENSITY, Density);
+
+    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
+    this->mMaterialDensity = Density;
+
+    this->ComputeMechanicalDissipation(rElementalVariables);
   }
 
   template class TwoStepUpdatedLagrangianVPImplicitFluidElement<2>;

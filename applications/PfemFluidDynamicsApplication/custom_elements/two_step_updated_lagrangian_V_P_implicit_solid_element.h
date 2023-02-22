@@ -355,6 +355,8 @@ namespace Kratos
 
     double GetThetaContinuity() override { return 1.0; };
 
+    void UpdateStressTensor(ElementalVariables &rElementalVariables);
+
     ///@}
     ///@name Protected  Access
     ///@{
