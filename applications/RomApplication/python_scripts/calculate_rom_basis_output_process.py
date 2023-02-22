@@ -135,6 +135,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "multiple_simulations" : False,
             "train_hrom": False,
             "run_hrom": False,
+            "solving_strategy": "Galerkin",
             "train_petrov_galerkin": {
                 "train": False,
                 "basis_strategy": "Residuals",
