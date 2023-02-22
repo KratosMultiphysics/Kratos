@@ -1834,6 +1834,23 @@ namespace Kratos {
 
       // Open files
       RVEOpenFiles();
+
+      // Read old contact forces
+      std::fstream f_old_elastic_forces;
+      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
+      KRATOS_ERROR_IF_NOT(f_old_elastic_forces) << "Could not open file f_old_elastic_forces.txt!" << std::endl;
+      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
+        int particle_id, n_neighbors;
+        f_old_elastic_forces >> particle_id >> n_neighbors;
+        for (int j = 0; j < n_neighbors; j++) {
+          double fx, fy, fz;
+          f_old_elastic_forces >> fx >> fy >> fz;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][0] = fx;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][1] = fy;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][2] = fz;
+        }
+      }
+      f_old_elastic_forces.close();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
