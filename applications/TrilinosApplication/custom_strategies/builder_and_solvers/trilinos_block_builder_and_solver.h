@@ -1110,14 +1110,6 @@ protected:
             const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
             std::vector<std::unordered_set<IndexType>> indices(number_of_local_dofs);
 
-            // Generate map
-            const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_dofs;
-            std::vector<int> temp(temp_size, 0);
-
-            // Create and fill the graph of the matrix
-            Epetra_Map map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
-            Epetra_FECrsGraph Tgraph(Copy, map, mGuessRowSize);
-
             std::vector<LockObject> lock_array(indices.size());
 
             struct TLS
@@ -1157,6 +1149,26 @@ protected:
                 indices[i].insert(mFirstMyId + i); // Ensure that the diagonal is there in T
             }
 
+            // Generate map
+            const int num_global_elements = BaseType::mEquationSystemSize;
+            Epetra_Map map(num_global_elements, 0, mrComm);
+
+            // Create and fill the graph of the matrix
+            std::vector<int> row_nnz(BaseType::mEquationSystemSize, 0);
+            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+                auto& r_row_index = indices[i];
+                row_nnz[mFirstMyId + i] = r_row_index.size();
+            }
+
+            // Get data communicator
+            auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+            for (auto& nnz : row_nnz) {
+                nnz = r_data_comm.SumAll(nnz);
+            }
+
+            // Generate a new matrix pointer according to this non-zero values
+            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, map, row_nnz.data()));
+
             // Generate the structure
             for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
                 // Filling the list of active global indices (non fixed)
@@ -1165,17 +1177,17 @@ protected:
 
                 if (num_active_indices != 0) {
                     std::vector<int> row_index_data(r_row_index.begin(), r_row_index.end());
-                    const int ierr = Tgraph.InsertGlobalIndices(mFirstMyId + i, num_active_indices, row_index_data.data());
-                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                    std::vector<double> values(num_active_indices, 0.0);
+                    const int ierr = p_new_T->InsertGlobalValues(mFirstMyId + i, num_active_indices, values.data(), row_index_data.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in CsrMatrix.InsertGlobalValues. Error code: " << ierr << std::endl;
                 }
             }
 
             // Finalizing graph construction
-            const int ierr = Tgraph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+            const int ierr = p_new_T->GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in GlobalAssemble. Error code: " << ierr << std::endl;
 
-            // Generate a new matrix pointer according to this graph
-            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
+            // Swap matrix
             mpT.swap(p_new_T);
 
             // Generate the constant vector equivalent
@@ -1183,8 +1195,7 @@ protected:
             mpConstantVector.swap(p_new_constant_vector);
 
             // Count the row sizes
-            int nnz = block_for_each<SumReduction<int>>(indices, [](auto& rIndices) {return rIndices.size();});
-            nnz = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(nnz);
+            const int nnz = block_for_each<SumReduction<int>>(row_nnz, [](auto nnz) {return nnz;});
             KRATOS_ERROR_IF_NOT(mpT->NumGlobalNonzeros() == nnz) << "Relation matrix not properly constructed, the number of non-zeros does not coincide with the expected one " << nnz << " vs " << mpT->NumGlobalNonzeros() << std::endl;
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
@@ -1352,7 +1363,7 @@ protected:
 
         // Finalizing graph construction
         const int ierr = Agraph.GlobalAssemble();
-        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in GlobalAssemble. Error code: " << ierr << std::endl;
 
         // Generate a new matrix pointer according to this graph
         TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
