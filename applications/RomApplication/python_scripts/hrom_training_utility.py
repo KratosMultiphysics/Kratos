@@ -61,7 +61,7 @@ class HRomTrainingUtility(object):
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
         if (self.projection_strategy=="galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
-        elif (self.projection_strategy=="Petrov-Galerkin"):
+        elif (self.projection_strategy=="petrov_galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
         else: 
             err_msg = "Projection strategy \'{}\' for hrom is not supported.".format(self.projection_strategy)
