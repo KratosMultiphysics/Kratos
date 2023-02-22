@@ -876,6 +876,9 @@ public:
                     rb[0][local_slave_equation_id] = 0.0;
                 }
             });
+
+            // Global assembly
+            rb.GlobalAssemble();
         }
 
         KRATOS_CATCH("")
@@ -934,6 +937,10 @@ public:
                     }
                 }
             });
+
+            // Global assembly
+            rb.GlobalAssemble();
+            rA.GlobalAssemble();
         }
 
         KRATOS_CATCH("")
