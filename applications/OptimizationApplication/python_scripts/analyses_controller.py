@@ -32,7 +32,7 @@ class AnalysesController:
             if not execution_policy_wrapper.GetExecutionPolicyName() in self.execution_policy_wrappers.keys():
                 self.execution_policy_wrappers[execution_policy_wrapper.GetExecutionPolicyName()] = execution_policy_wrapper
             else:
-                raise RuntimeError(f"Found already existing exeuction policy with the name \"{execution_policy_wrapper.GetExecutionPolicyName()}\". Please provide unique names.")
+                raise RuntimeError(f"Found already existing execution policy with the name \"{execution_policy_wrapper.GetExecutionPolicyName()}\". Please provide unique names.")
 
     # --------------------------------------------------------------------------
     def GetExecutionPolicyDecorator(self, execution_policy_name: str) -> ExecutionPolicyDecorator:
