@@ -72,11 +72,16 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Initialize the snapshots data list
         self.snapshots_data_list = []
 
+        # Set the flag allowing to run multiple simulations using this process #TODO cope with arbitrarily large cases (parallelism)
+        self.multiple_simulations = settings["multiple_simulations"].GetBool()
+
+
     @classmethod
     def GetDefaultParameters(self):
         default_settings = KratosMultiphysics.Parameters("""{
             "help": "A process to set the snapshots matrix and calculate the ROM basis from it.",
             "model_part_name": "",
+            "multiple_simulations" : false,
             "snapshots_control_type": "step",
             "snapshots_interval": 1.0,
             "nodal_unknowns": [],
@@ -114,13 +119,22 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                 while self.next_output <= step:
                     self.next_output += self.snapshots_interval
 
-    def ExecuteFinalize(self):
+
+    def _GetSnapshotsMatrix(self):
+        snapshots_matrix = numpy.empty((self.n_nodal_unknowns*self.n_nodes,self.n_data_cols))
+        for i_col in range(self.n_data_cols):
+            aux_col = numpy.array(self.snapshots_data_list[i_col])
+            snapshots_matrix[:,i_col] = aux_col.transpose()
+        return snapshots_matrix
+
+
+    def _PrintRomBasis(self, snapshots_matrix):
         # Initialize the Python dictionary with the default settings
         # Note that this order is kept if Python 3.6 onwards is used
         rom_basis_dict = {
+            "multiple_simulations" : False,
             "train_hrom": False,
             "run_hrom": False,
-            "solving_strategy": "Galerkin",
             "train_petrov_galerkin": {
                 "train": False,
                 "basis_strategy": "Residuals",
@@ -134,14 +148,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         }
         #TODO: I'd rename elements_and_weights to hrom_weights
 
-        # Set a NumPy array with the snapshots data
-        n_nodes = self.model_part.NumberOfNodes()
-        n_data_cols = len(self.snapshots_data_list)
-        n_nodal_unknowns = len(self.snapshot_variables_list)
-        snapshots_matrix = numpy.empty((n_nodal_unknowns*n_nodes,n_data_cols))
-        for i_col in range(n_data_cols):
-            aux_col = numpy.array(self.snapshots_data_list[i_col])
-            snapshots_matrix[:,i_col] = aux_col.transpose()
+        if self.multiple_simulations:
+            rom_basis_dict["multiple_simulations"] = True
 
         # Calculate the randomized SVD of the snapshots matrix
         u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
@@ -153,8 +161,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         i = 0
         for node in self.model_part.Nodes:
-            rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
-            i += n_nodal_unknowns
+            rom_basis_dict["nodal_modes"][node.Id] = u[i:i+self.n_nodal_unknowns].tolist()
+            i += self.n_nodal_unknowns
 
         # Export the ROM basis dictionary
         if self.rom_basis_output_format == "json":
@@ -164,6 +172,16 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
+
+
+    def ExecuteFinalize(self):
+        # Prepare a NumPy array with the snapshots data
+        self.n_nodes = self.model_part.NumberOfNodes()
+        self.n_data_cols = len(self.snapshots_data_list)
+        self.n_nodal_unknowns = len(self.snapshot_variables_list)
+
+        if not self.multiple_simulations:
+            self._PrintRomBasis(self._GetSnapshotsMatrix())
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"
