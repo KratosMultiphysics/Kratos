@@ -75,8 +75,8 @@ class OptimizationInfo:
         return len(self.__iteration_data)
 
     def GetSolutionStepData(self, solution_step_index: int) -> dict:
-        if solution_step_index < 0:
-            raise RuntimeError(f"solution_step_index should be positive. [ solution_Step_index = {solution_step_index} ].")
+        if solution_step_index not in range(len(self.__iteration_data)):
+            raise RuntimeError(f"Since the buffer size is {len(self.__iteration_data)}, the solution_step_index should be within [0, {len(self.__iteration_data)}). [ solution_Step_index = {solution_step_index} ].")
         current_step_index = (self.__buffer_index - solution_step_index) % len(self.__iteration_data)
         return self.__iteration_data[current_step_index]
 

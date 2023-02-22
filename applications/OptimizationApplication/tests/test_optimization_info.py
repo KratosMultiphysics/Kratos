@@ -33,7 +33,8 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertEqual(optimization_info["step"], 4)
         self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
         self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(3)["step"], 4)
+        with self.assertRaises(RuntimeError):
+            optimization_info.GetSolutionStepData(3)["step"]
 
     def test_AdvanceSolutionStepSet(self):
         optimization_info = OptimizationInfo()
@@ -60,7 +61,9 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertEqual(optimization_info["step"], 4)
         self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
         self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(3)["step"], 4)
+
+        with self.assertRaises(RuntimeError):
+            optimization_info.GetSolutionStepData(3)["step"]
 
     def test_OptimizationProcess(self):
         optimization_info = OptimizationInfo()
