@@ -229,7 +229,7 @@ private:
  *                "<placeholder_2>" : "efg"
  *            @endcode
  */
-class KRATOS_API(WR_APPLICATION) PlaceholderPattern
+class KRATOS_API(KRATOS_CORE) PlaceholderPattern
 {
 public:
     ///@name Type Definitions
