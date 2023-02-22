@@ -56,7 +56,7 @@ class PetrovGalerkinTrainingUtility(object):
         if self.basis_strategy=="Jacobian":
             snapshots_matrix = self.__rom_residuals_utility.GetProjectedGlobalLHS()
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generated matrix of projected Jacobian.")
-        elif self.basis_strategy=="Residuals":
+        elif self.basis_strategy=="residuals":
             snapshots_matrix = []
             files_to_read_and_delete = glob('*.res.mm')#TODO: Stop writing to disk.
             for to_erase_file in files_to_read_and_delete:
@@ -82,7 +82,7 @@ class PetrovGalerkinTrainingUtility(object):
     def __GetPetrovGalerkinTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
                 "train": false,
-                "basis_strategy": "Residuals",
+                "basis_strategy": "residuals",
                 "include_phi": false,
                 "svd_truncation_tolerance": 1.0e-6,
                 "echo_level": 0

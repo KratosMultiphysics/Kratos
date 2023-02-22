@@ -4,7 +4,7 @@
     "projection_strategy": "LSPG",
     "train_petrov_galerkin": {
         "train": false,
-        "basis_strategy": "Residuals",
+        "basis_strategy": "residuals",
         "include_phi": false,
         "svd_truncation_tolerance": 0.0
     },
