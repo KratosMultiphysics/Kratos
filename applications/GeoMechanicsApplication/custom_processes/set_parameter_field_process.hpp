@@ -34,11 +34,11 @@ namespace Kratos {
 
 
 /**
- * @class SetMovingLoadProcess
- * @ingroup StructuralMechanicsApplication
- * @brief Process to set the moving load 
- * @details This process sorts the moving load conditions, it calculates the value and velocity of the moving load. And it places the load on the right position per
- * solution step.
+ * @class SetParameterFieldProcess
+ * @ingroup GeoMechanicsApplication
+ * @brief Process to set a parameter field
+ * @details This process sets values from a custom parameter field per individual element within the model part. the possibilities are: setting a parameter field from an
+ * input function; setting a parameter field with a user defined python script; setting a parameter field from a json file.
  * @author Aron Noordam
 */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SetParameterFieldProcess : public Process
@@ -66,25 +66,11 @@ public:
     ///@{
 
     /**
-     * \brief  Initializes the set moving load process. Check if load functions and a velocity function are present in the parameters.
-     * Sort vector of conditions, and find the start position of the moving load, within the conditions vector.
+     * \brief  Initializes the set parameter field process. Checks what type of input field is given,
      */
     void ExecuteInitialize() override;
 
-    void ExecuteBeforeSolutionLoop() override;
-    ///**
-    // * \brief Initialize solution step. Calculate the load based on the load functions if present, else retrieve the load from the input parameters.
-    // * Loop over the conditions and find, on which condition the load is located. Then set the load on the condition element, if the load is located
-    // * within the element. If the moving load is not located on the condition element, set the load to zero.
-    // */
-    //void ExecuteInitializeSolutionStep() override;
-
-    ///**
-    // * \brief Finalizes solution step. Sets load velocity based on load velocity function if present, else load velocity is retrieved from the input values.
-    // * Then move the load based on the current position and the load velocity.
-    // */
-    //void ExecuteFinalizeSolutionStep() override;
-
+    
     ///@}
     ///@name Input and output
     ///@{
@@ -112,14 +98,18 @@ private:
     ModelPart& mrModelPart;
     Parameters mParameters;
 
-    // bool which indicates if a load function is used to determine the value of the load
-    bool mUseTimeFunction;
-
 
     ///@}
     ///@name Private Operations
     ///@{
-    void SetValueAtElement(Element::Pointer pElement, const Variable<double>& rVar, double Value);
+
+    /**
+     * \brief Sets the value of a certain variable for only 1 element
+     * \param rElement element for which a variable should be altered
+     * \param rVar variable type which is to be altered
+     * \param Value new value for the to be altered variable
+     */
+	void SetValueAtElement(Element& rElement, const Variable<double>& rVar, double Value);
 
     ///@}
     ///@name Serialization
@@ -127,7 +117,7 @@ private:
 
     ///@}
 
-}; // Class SetMovingLoadProcess
+}; // Class SetParameterFieldProcess
 
 ///@}
 

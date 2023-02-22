@@ -9,6 +9,4 @@ def run(input,output):
 
     output["values"] = new_values
 
-    print(input)
-    print(output)
 
