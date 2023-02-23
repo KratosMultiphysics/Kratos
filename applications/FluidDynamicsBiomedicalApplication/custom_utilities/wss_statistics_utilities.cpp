@@ -96,6 +96,8 @@ void WssStatisticsUtilities::CalculateWSS(
 
 void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
 {
+    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(STEP)) << "'STEP' is not present in '" << rModelPart.FullName() << "' ProcessInfo container." << std::endl;
+    const unsigned int step = rModelPart.GetProcessInfo()[STEP];
     block_for_each(rModelPart.Nodes(), [&step](NodeType& rNode){
         // Accumulate the current step contribution to the Oscillatory Shear Index (OSI)
         // Note that this requires the tangential WSS to be already computed (see CalculateWSS)
