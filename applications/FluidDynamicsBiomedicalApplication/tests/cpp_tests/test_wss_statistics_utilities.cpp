@@ -88,9 +88,9 @@ KRATOS_TEST_CASE_IN_SUITE(WSSStatisticsUtilitiesWSS, FluidDynamicsBiomedicalAppl
     // Check results
     const double tolerance = 1.0e-8;
     const auto &r_node = *(r_test_skin_model_part.NodesEnd() - 1);
-    std::vector<double> expected_wss_norm_stress = {11.6666870136, 11.6666870136, 11.6666870136};
-    std::vector<double> expected_wss_tang_stress = {-6.66667829347, -1.66666957337, 8.33334786684};
-    KRATOS_CHECK_NEAR(r_node.GetValue(WSS), 10.8012533349, tolerance);
+    std::vector<double> expected_wss_norm_stress = {16.1658075373, 16.1658075373, 16.1658075373};
+    std::vector<double> expected_wss_tang_stress = {-105.07179677, -98.1435935394, -84.2871870789};
+    KRATOS_CHECK_NEAR(r_node.GetValue(WSS), 166.663065299, tolerance);
     KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(WSS_NORMAL_STRESS), expected_wss_norm_stress, tolerance);
     KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(WSS_TANGENTIAL_STRESS), expected_wss_tang_stress, tolerance);
 }
