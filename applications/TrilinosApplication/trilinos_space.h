@@ -401,10 +401,25 @@ public:
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
-        MatrixType aux(::View, Map, NumNz.data());
+        MatrixType aux_1(::View, Map, NumNz.data());
 
-        TransposeMult(rB, rD, aux, {true, false});
-        Mult(aux, rB, rA);
+        // First multiplication
+        TransposeMult(rB, rD, aux_1, {true, false});
+
+        // Already existing matrix
+        if (rA.NumGlobalNonzeros() > 0) {
+            // Create an Epetra_Matrix
+            MatrixType aux_2(::View, Map, NumNz.data());
+
+            // Second multiplication
+            Mult(aux_1, rB, aux_2);
+
+            // Doing a swap
+            std::swap(rA, aux_2);
+        } else { // Empty matrix
+            // Second multiplication
+            Mult(aux_1, rB, rA);
+        }
     }
 
     /**
@@ -428,10 +443,25 @@ public:
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
-        MatrixType aux(::View, Map, NumNz.data());
+        MatrixType aux_1(::View, Map, NumNz.data());
 
-        Mult(rB, rD, aux);
-        TransposeMult(aux, rB, rA, {false, true});
+        // First multiplication
+        Mult(rB, rD, aux_1);
+
+        // Already existing matrix
+        if (rA.NumGlobalNonzeros() > 0) {
+            // Create an Epetra_Matrix
+            MatrixType aux_2(::View, Map, NumNz.data());
+
+            // Second multiplication
+            TransposeMult(aux_1, rB, aux_2, {false, true});
+
+            // Doing a swap
+            std::swap(rA, aux_2);
+        } else { // Empty matrix
+            // Second multiplication
+            TransposeMult(aux_1, rB, rA, {false, true});
+        }
     }
 
     /**
