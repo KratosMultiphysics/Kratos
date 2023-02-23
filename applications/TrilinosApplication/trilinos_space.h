@@ -1093,7 +1093,6 @@ public:
      * @param rProcessInfo The problem process info
      * @param rA The LHS matrix
      * @param rb The RHS vector
-     * @param rDataCommunicator The data communicator considered
      * @param ScalingDiagonal The type of caling diagonal considered
      * @return The scale norm
      */
@@ -1101,7 +1100,6 @@ public:
         const ProcessInfo& rProcessInfo,
         MatrixType& rA,
         VectorType& rb,
-        const DataCommunicator& rDataCommunicator,
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
         )
     {
@@ -1111,7 +1109,7 @@ public:
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
         // The diagonal considered
-        const double scale_factor = GetScaleNorm(rProcessInfo, rA, rDataCommunicator, ScalingDiagonal);
+        const double scale_factor = GetScaleNorm(rProcessInfo, rA, ScalingDiagonal);
 
         for (int i = 0; i < rA.NumMyRows(); i++) {
             int numEntries; // Number of non-zero entries
@@ -1152,14 +1150,12 @@ public:
      * @brief This method returns the scale norm considering for scaling the diagonal
      * @param rProcessInfo The problem process info
      * @param rA The LHS matrix
-     * @param rDataCommunicator The data communicator considered
      * @param ScalingDiagonal The type of caling diagonal considered
      * @return The scale norm
      */
     static double GetScaleNorm(
         const ProcessInfo& rProcessInfo,
         const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator,
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
         )
     {
@@ -1173,11 +1169,11 @@ public:
                 return rProcessInfo.GetValue(BUILD_SCALE_FACTOR);
             }
             case SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL:
-                return GetDiagonalNorm(rA, rDataCommunicator)/static_cast<double>(Size1(rA));
+                return GetDiagonalNorm(rA)/static_cast<double>(Size1(rA));
             case SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL:
-                return GetMaxDiagonal(rA, rDataCommunicator);
+                return GetMaxDiagonal(rA);
             default:
-                return GetMaxDiagonal(rA, rDataCommunicator);
+                return GetMaxDiagonal(rA);
         }
 
         KRATOS_CATCH("");
@@ -1188,20 +1184,12 @@ public:
      * @param rA The LHS matrix
      * @return The diagonal norm
      */
-    static double GetDiagonalNorm(
-        const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator
-        )
+    static double GetDiagonalNorm(const MatrixType& rA)
     {
         KRATOS_TRY
 
-        // Generate Epetra communicator
-        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
-        Epetra_MpiComm epetra_comm(raw_mpi_comm);
-
         const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, epetra_comm);
+        Epetra_Map map(global_elems, 0, rA.Comm());
         Epetra_Vector diagonal(map);
         rA.ExtractDiagonalCopy(diagonal);
 
@@ -1213,17 +1201,13 @@ public:
     /**
      * @brief This method returns the diagonal max value
      * @param rA The LHS matrix
-     * @param rDataCommunicator The data communicator considered
      * @return The diagonal  max value
      */
-    static double GetAveragevalueDiagonal(
-        const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator
-        )
+    static double GetAveragevalueDiagonal(const MatrixType& rA)
     {
         KRATOS_TRY
 
-        return 0.5 * (GetMaxDiagonal(rA, rDataCommunicator) + GetMinDiagonal(rA, rDataCommunicator));
+        return 0.5 * (GetMaxDiagonal(rA) + GetMinDiagonal(rA));
 
         KRATOS_CATCH("");
     }
@@ -1231,23 +1215,14 @@ public:
     /**
      * @brief This method returns the diagonal max value
      * @param rA The LHS matrix
-     * @param rDataCommunicator The data communicator considered
      * @return The diagonal  max value
      */
-    static double GetMaxDiagonal(
-        const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator
-        )
+    static double GetMaxDiagonal(const MatrixType& rA)
     {
         KRATOS_TRY
 
-        // Generate Epetra communicator
-        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
-        Epetra_MpiComm epetra_comm(raw_mpi_comm);
-
         const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, epetra_comm);
+        Epetra_Map map(global_elems, 0, rA.Comm());
         Epetra_Vector diagonal(map);
         rA.ExtractDiagonalCopy(diagonal);
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Max(diagonal);
@@ -1258,23 +1233,14 @@ public:
     /**
      * @brief This method returns the diagonal min value
      * @param rA The LHS matrix
-     * @param rDataCommunicator The data communicator considered
      * @return The diagonal min value
      */
-    static double GetMinDiagonal(
-        const MatrixType& rA,
-        const DataCommunicator& rDataCommunicator
-        )
+    static double GetMinDiagonal(const MatrixType& rA)
     {
         KRATOS_TRY
 
-        // Generate Epetra communicator
-        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
-        Epetra_MpiComm epetra_comm(raw_mpi_comm);
-
         const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, epetra_comm);
+        Epetra_Map map(global_elems, 0, rA.Comm());
         Epetra_Vector diagonal(map);
         rA.ExtractDiagonalCopy(diagonal);
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Min(diagonal);
