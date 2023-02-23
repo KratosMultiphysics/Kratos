@@ -86,7 +86,7 @@ void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
             r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
             r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
 
-        if (is_triangle) {
+        if (is_triangle && r_geometry.Area() > std::numeric_limits<double>::epsilon()) {
             WriteFacet(r_geometry);
         }
     }
@@ -100,7 +100,7 @@ void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
             r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
             r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
 
-        if (is_triangle) {
+        if (is_triangle && r_geometry.Area() > std::numeric_limits<double>::epsilon()) {
             WriteFacet(r_geometry);
         }
     }
