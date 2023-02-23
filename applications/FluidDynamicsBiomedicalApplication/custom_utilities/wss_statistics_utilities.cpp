@@ -84,8 +84,10 @@ void WssStatisticsUtilities::CalculateWSS(
         // Calculate the distributed projections
         const array_1d<double,3>& r_reaction = rNode.FastGetSolutionStepValue(REACTION);
         const double projection = inner_prod(r_reaction, normal);
-        noalias(normal_load) = (projection/normal_norm) * normal;
-        noalias(tangential_load) = (r_reaction - normal_load) / normal_norm;
+        noalias(normal_load) = projection * normal;
+        noalias(tangential_load) = r_reaction - normal_load;
+        normal_load /= normal_norm;
+        tangential_load /= normal_norm;
 
         // Save computed magnitudes
         rNode.GetValue(WSS) = norm_2(tangential_load);
