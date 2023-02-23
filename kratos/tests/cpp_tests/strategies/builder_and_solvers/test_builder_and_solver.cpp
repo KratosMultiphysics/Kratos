@@ -502,6 +502,16 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+        KRATOS_CHECK(r_T.size1() == 6);
+        KRATOS_CHECK(r_T.size2() == 6);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(0,0), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(2,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(5,5), 1.0, tolerance);
     }
 
     /**
