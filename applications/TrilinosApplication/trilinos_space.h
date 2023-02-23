@@ -396,26 +396,33 @@ public:
         auto& r_comm = rA.Comm();
 
         // Create a map
-        const int size = Size2(rB);
-        Epetra_Map Map(size, 0, r_comm);
+        const int size1 = Size2(rB);
+        Epetra_Map map1(size1, 0, r_comm);
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
-        MatrixType aux_1(::View, Map, NumNz.data());
+        MatrixType aux_1(::Copy, map1, NumNz.data());
 
         // First multiplication
         TransposeMult(rB, rD, aux_1, {true, false});
 
         // Already existing matrix
         if (rA.NumGlobalNonzeros() > 0) {
+            // Create a map
+            const int size2 = Size1(rA);
+            Epetra_Map map2(size2, 0, r_comm);
+
             // Create an Epetra_Matrix
-            MatrixType aux_2(::View, Map, NumNz.data());
+            MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            Mult(aux_1, rB, aux_2);
+            Mult(aux_1, rB, *aux_2);
 
             // Doing a swap
-            std::swap(rA, aux_2);
+            std::swap(rA, *aux_2);
+
+            // Delete the new matrix
+            delete aux_2;
         } else { // Empty matrix
             // Second multiplication
             Mult(aux_1, rB, rA);
@@ -438,26 +445,33 @@ public:
         auto& r_comm = rA.Comm();
 
         // Create a map
-        const int size = Size1(rB);
-        Epetra_Map Map(size, 0, r_comm);
+        const int size1 = Size1(rB);
+        Epetra_Map map1(size1, 0, r_comm);
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
-        MatrixType aux_1(::View, Map, NumNz.data());
+        MatrixType aux_1(::Copy, map1, NumNz.data());
 
         // First multiplication
         Mult(rB, rD, aux_1);
 
         // Already existing matrix
         if (rA.NumGlobalNonzeros() > 0) {
+            // Create a map
+            const int size2 = Size1(rA);
+            Epetra_Map map2(size2, 0, r_comm);
+
             // Create an Epetra_Matrix
-            MatrixType aux_2(::View, Map, NumNz.data());
+            MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            TransposeMult(aux_1, rB, aux_2, {false, true});
+            TransposeMult(aux_1, rB, *aux_2, {false, true});
 
             // Doing a swap
-            std::swap(rA, aux_2);
+            std::swap(rA, *aux_2);
+
+            // Delete the new matrix
+            delete aux_2;
         } else { // Empty matrix
             // Second multiplication
             TransposeMult(aux_1, rB, rA, {false, true});
