@@ -725,13 +725,13 @@ public:
         const unsigned int system_size = Size1(rT);
 
         // Count active indices
-        unsigned int slave_active_indices = 0;
+        int slave_active_indices = 0;
         for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
             if (rSlaveEquationId[i] < system_size) {
                 ++slave_active_indices;
             }
         }
-        unsigned int master_active_indices = 0;
+        int master_active_indices = 0;
         for (unsigned int i = 0; i < rMasterEquationId.size(); i++) {
             if (rMasterEquationId[i] < system_size) {
                 ++master_active_indices;
@@ -739,29 +739,30 @@ public:
         }
 
         if (slave_active_indices > 0 && master_active_indices > 0) {
-            // Size Epetra vectors
-            Epetra_IntSerialDenseVector indices(slave_active_indices);
-            Epetra_SerialDenseMatrix values(slave_active_indices, master_active_indices);
+            std::vector<int> indices(slave_active_indices);
+            std::vector<double> values(master_active_indices);
 
             // Fill epetra vectors
             unsigned int loc_i = 0;
             for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
                 if (rSlaveEquationId[i] < system_size) {
-                    indices[loc_i] = rSlaveEquationId[i];
+                    const int current_global_row = rSlaveEquationId[i];
 
                     unsigned int loc_j = 0;
                     for (unsigned int j = 0; j < rMasterEquationId.size(); j++) {
                         if (rMasterEquationId[j] < system_size) {
-                            values(loc_i, loc_j) = rTContribution(i, j);
+                            indices[loc_j] = rMasterEquationId[j];
+                            values[loc_j] = rTContribution(i, j);
                             ++loc_j;
                         }
                     }
+
+                    const int ierr = rT.SumIntoGlobalValues(current_global_row, master_active_indices, values.data(), indices.data());
+                    KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+
                     ++loc_i;
                 }
             }
-
-            int ierr = rT.SumIntoGlobalValues(indices, values);
-            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
 
@@ -784,7 +785,7 @@ public:
         const unsigned int system_size = Size(rb);
 
         // Count active indices
-        int active_indices = 0;
+        unsigned int active_indices = 0;
         for (unsigned int i = 0; i < rEquationId.size(); i++)
             if (rEquationId[i] < system_size)
                 ++active_indices;
@@ -824,7 +825,7 @@ public:
         const unsigned int system_size = Size(rC);
 
         // Count active indices
-        int slave_active_indices = 0;
+        unsigned int slave_active_indices = 0;
         for (unsigned int i = 0; i < rSlaveEquationId.size(); i++)
             if (rSlaveEquationId[i] < system_size)
                 ++slave_active_indices;
