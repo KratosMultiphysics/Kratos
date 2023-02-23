@@ -282,7 +282,7 @@ void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(const P
         kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
-    // Set te constitutive law values
+    // Set the constitutive law values
     ConstitutiveVariables constitutive_variables(strain_size);
     ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
     auto& r_cons_law_options = cons_law_values.GetOptions();
@@ -1525,19 +1525,90 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
 void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
+    // Check if the Orthogonal SubScales (OSS) are active
+    const bool oss_switch = rCurrentProcessInfo.Has(OSS_SWITCH) ? rCurrentProcessInfo[OSS_SWITCH] : false;
+
+    // Resize output container
     const SizeType n_gauss = r_integration_points.size();
     if (rOutput.size() != n_gauss) {
         rOutput.resize(n_gauss);
     }
 
-    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+    if (mConstitutiveLawVector[0]->Has(rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
+    } else if (rVariable == VOLUMETRIC_STRAIN_SUBSCALE) {
+        // Create the kinematics container and fill the nodal data
+        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            for (IndexType d = 0; d < dim; ++d) {
+                kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+            }
+            kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        }
+
+        // Set the constitutive law values
+        ConstitutiveVariables constitutive_variables(strain_size);
+        ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        auto& r_cons_law_options = cons_law_values.GetOptions();
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        // Calculate the Gauss points volumetric strain subscale values
+        Vector voigt_identity = ZeroVector(strain_size);
+        for (IndexType d = 0; d < dim; ++d) {
+            voigt_identity[d] = 1.0;
+        }
+
+        Vector psi_i(dim);
+        Vector disp_i(dim);
+        Matrix B_i(strain_size, dim);
+        for (IndexType i_gauss = 0; i_gauss < mConstitutiveLawVector.size(); ++i_gauss) {
+            // Initialize current value
+            rOutput[i_gauss] = 0.0;
+
+            // Recompute the kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            // Set the constitutive variables
+            CalculateConstitutiveVariables(
+                kinematic_variables,
+                constitutive_variables,
+                cons_law_values,
+                i_gauss,r_integration_points,
+                ConstitutiveLaw::StressMeasure_Cauchy);
+
+            // Calculate tau_2 stabilization constant
+            const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
+            const double shear_modulus = CalculateShearModulus(constitutive_variables.D);
+            const double tau_2 = std::min(1.0e-2, 4.0 * shear_modulus / bulk_modulus);
+
+            // Calculate current gauss point subscale value
+            for (IndexType i = 0; i < n_nodes; ++i) {
+                for (IndexType d = 0; d < dim; ++d) {
+                    for (IndexType k = 0;  k < strain_size; ++k) {
+                        B_i(k,d) = kinematic_variables.B(k, i * dim + d);
+                    }
+                    disp_i[d] = kinematic_variables.Displacements(i*n_nodes + d);
+                }
+                noalias(psi_i) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
+                const double eps_vol_i = kinematic_variables.N[i] * kinematic_variables.VolumetricNodalStrains[i];
+                rOutput[i_gauss] += tau_2 * (inner_prod(psi_i, disp_i) - eps_vol_i);
+                if (oss_switch) {
+                    const double eps_vol_proj_i = kinematic_variables.N[i] * r_geometry[i].GetValue(VOLUMETRIC_STRAIN_PROJECTION);
+                    rOutput[i_gauss] -= tau_2 * eps_vol_proj_i;
+                }
+            }
+        }
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -1549,8 +1620,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
 void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
@@ -1614,6 +1684,126 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>> &rVariable,
+    std::vector<array_1d<double, 3>> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+
+    // Check if the Orthogonal SubScales (OSS) are active
+    const bool oss_switch = rCurrentProcessInfo.Has(OSS_SWITCH) ? rCurrentProcessInfo[OSS_SWITCH] : false;
+
+    // Get dynamic data if required
+    const double density = mIsDynamic ? GetProperties()[DENSITY] : 0.0;
+    const double dt = mIsDynamic ? rCurrentProcessInfo[DELTA_TIME] : 0.0;
+
+    // Resize output container
+    const SizeType n_gauss = r_integration_points.size();
+    if (rOutput.size() != n_gauss) {
+        rOutput.resize(n_gauss);
+    }
+
+    if (mConstitutiveLawVector[0]->Has(rVariable)) {
+        GetValueOnConstitutiveLaw(rVariable, rOutput);
+    } else if (rVariable == DISPLACEMENT_SUBSCALE) {
+        // Create the kinematics container and fill the nodal data
+        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            for (IndexType d = 0; d < dim; ++d) {
+                kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+            }
+            kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        }
+
+        // Set the constitutive law values
+        ConstitutiveVariables constitutive_variables(strain_size);
+        ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        auto& r_cons_law_options = cons_law_values.GetOptions();
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        // Calculate the Gauss points displacement subscale values
+        Vector m_T;
+        Vector voigt_identity;
+        if (mIsDynamic) {
+            voigt_identity =  ZeroVector(strain_size);
+            for (IndexType d = 0; d < dim; ++d) {
+                voigt_identity[d] = 1.0;
+            }
+            m_T = prod(voigt_identity, mAnisotropyTensor);
+        }
+
+        Vector aux_u_s(dim);
+        Vector grad_eps(dim);
+        array_1d<double, 3> body_force;
+        array_1d<double, 3> u_proj_gauss;
+        for (IndexType i_gauss = 0; i_gauss < mConstitutiveLawVector.size(); ++i_gauss) {
+            // Recompute the kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            // Set the constitutive variables
+            CalculateConstitutiveVariables(
+                kinematic_variables,
+                constitutive_variables,
+                cons_law_values,
+                i_gauss,r_integration_points,
+                ConstitutiveLaw::StressMeasure_Cauchy);
+
+            // Calculate tau_1 stabilization constant
+            const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rCurrentProcessInfo);
+
+            // Get current Gauss point data
+            const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
+            noalias(body_force) = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+            noalias(grad_eps) = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
+
+            // If dynamic subscales are active, add the dynamic subscale component
+            aux_u_s = bulk_modulus * grad_eps;
+            for (IndexType d = 0; d < dim; ++d) {
+                aux_u_s[d] += body_force[d];
+            }
+            if (mIsDynamic) {
+                aux_u_s += (density / std::pow(dt,2)) * (2.0*mDisplacementSubscale1[i_gauss] - mDisplacementSubscale2[i_gauss]);
+            }
+
+            // Substract the projection in case the OSS is active
+            if (oss_switch) {
+                // Calculate the displacement residual projection at current Gauss point
+                noalias(u_proj_gauss) = ZeroVector(3);
+                for (IndexType i = 0; i < n_nodes; ++i) {
+                    const double N_i = kinematic_variables.N[i];
+                    const auto& r_u_proj_i = r_geometry[i].GetValue(DISPLACEMENT_PROJECTION);
+                    noalias(u_proj_gauss) += N_i * r_u_proj_i;
+                }
+                // Substract the nodal projection to get the orthogonal subscale value
+                for (IndexType d = 0; d < dim; ++d) {
+                    aux_u_s[d] -= u_proj_gauss[d];
+                }
+            }
+
+            // Multiply by the stabilization parameter
+            aux_u_s *= tau_1;
+
+            // Save current value in the output container
+            for (IndexType d = 0; d < dim; ++d) {
+                rOutput[i_gauss][d] = aux_u_s[d];
+            }
+        }
+    } else {
+        CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 const Parameters SmallDisplacementMixedVolumetricStrainElement::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
@@ -1624,11 +1814,11 @@ const Parameters SmallDisplacementMixedVolumetricStrainElement::GetSpecification
         "output"                     : {
             "gauss_point"            : ["CAUCHY_STRESS_VECTOR"],
             "nodal_historical"       : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
-            "nodal_non_historical"   : [],
-            "entity"                 : []
+            "nodal_non_historical"   : ["DISPLACEMENT_PROJECTION", "VOLUMETRIC_STRAIN_PROJECTION"],
+            "entity"                 : ["DISPLACEMENT_SUBSCALE", "VOLUMETRIC_STRAIN_SUBSCALE"]
         },
         "required_variables"         : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
-        "required_dofs"              : [],
+        "required_dofs"              : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Quadrilateral2D4", "Tetrahedra3D4","Hexahedra3D8"],
         "element_integrates_in_time" : true,
