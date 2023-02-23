@@ -1345,9 +1345,7 @@ protected:
             }
 
             // Count the row sizes
-            std::size_t nnz = 0;
-            for (IndexType i = 0; i < indices.size(); ++i)
-                nnz += indices[i].size();
+            const std::size_t nnz = block_for_each<SumReduction<std::size_t>>(indices, [](auto& rIndices) {return rIndices.size();});
 
             mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
             mConstantVector.resize(indices.size(), false);
@@ -1531,14 +1529,11 @@ protected:
 
         }
 
-        //destroy locks
+        // Destroy locks
         lock_array = std::vector< LockObject >();
 
-        //count the row sizes
-        unsigned int nnz = 0;
-        for (unsigned int i = 0; i < indices.size(); i++) {
-            nnz += indices[i].size();
-        }
+        // Count the row sizes
+        const std::size_t nnz = block_for_each<SumReduction<std::size_t>>(indices, [](auto& rIndices) {return rIndices.size();});
 
         A = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
