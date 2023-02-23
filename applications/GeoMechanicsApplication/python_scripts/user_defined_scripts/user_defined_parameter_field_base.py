@@ -31,10 +31,15 @@ class ParameterFieldBase:
         self.__input_dict = input_dict
         self.__output_dict = output_dict
 
-        assert "values" in self.__input_dict
-        assert "coordinates" in self.__input_dict
+        if "values" not in self.__input_dict:
+            raise Exception("'values' is not a key in the input dictionary for the parameter field")
 
-        assert len(self.__input_dict["values"]) == len(self.__input_dict["coordinates"])
+        if "coordinates" not in self.__input_dict:
+            raise Exception("'coordinates' is not a key in the input dictionary for the parameter field")
+
+        if len(self.__input_dict["values"]) != len(self.__input_dict["coordinates"]):
+            raise Exception("'values' and 'coordinates' do not have the same length in the input dictionary for "
+                            "the parameter field")
 
     def validate_output(self):
         """
@@ -43,12 +48,16 @@ class ParameterFieldBase:
 
         """
 
-        assert "values" in self.__output_dict
-        assert len(self.__output_dict["values"]) == len(self.__input_dict["coordinates"])
+        if "values" not in self.__output_dict:
+            raise Exception("'values' is not a key in the output dictionary for the parameter field")
 
-    def run(self):
+        if len(self.__output_dict["values"]) != len(self.__input_dict["coordinates"]):
+            raise Exception("'values' and 'coordinates' do not have the same length in the output dictionary for "
+                            "the parameter field")
+
+    def generate_field(self):
         """
-        Runs custom parameter field
+        Generates custom parameter field
 
         """
         pass

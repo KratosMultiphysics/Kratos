@@ -2,13 +2,13 @@
 from KratosMultiphysics.GeoMechanicsApplication.user_defined_scripts.user_defined_parameter_field_base \
     import ParameterFieldBase
 
+
 class ParameterField(ParameterFieldBase):
     """
     Base class of a user defined parameter field
     """
 
-
-    def run(self):
+    def generate_field(self):
         """
         Creates custom parameter field
 
