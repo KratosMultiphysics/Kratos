@@ -25,12 +25,8 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "custom_python/add_custom_optimization_algorithm_to_python.h"
-#include "custom_algorithms/algorithm_steepest_descent.h"
-#include "custom_algorithms/algorithm_gradient_projection.h"
-
+#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/geometrical/symmetry_utility.h"
 
 // ==============================================================================
 
@@ -40,26 +36,20 @@ namespace Python {
 
 
 // ==============================================================================
-void  AddCustomOptimizationAlgorithmToPython(pybind11::module& m)
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-    typedef UblasSpace<double, Matrix, Vector> DenseSpace;
 
     // ================================================================
     // 
     // ================================================================
-    py::class_<AlgorithmSteepestDescent >(m, "AlgorithmSteepestDescent")
-        .def(py::init<std::string, Model&, Parameters& >())
-        .def("Initialize", &AlgorithmSteepestDescent::Initialize)
-        .def("CalculateSolutionStep", &AlgorithmSteepestDescent::CalculateSolutionStep)
-        ;  
-
-    py::class_<AlgorithmGradientProjection >(m, "AlgorithmGradientProjection")
-        .def(py::init<std::string, Model&, LinearSolver<DenseSpace, DenseSpace>&, Parameters& >())
-        .def("Initialize", &AlgorithmGradientProjection::Initialize)
-        .def("CalculateSolutionStep", &AlgorithmGradientProjection::CalculateSolutionStep)
-        ;  
- 
+    py::class_<SymmetryUtility >(m, "SymmetryUtility")
+        .def(py::init<std::string, ModelPart&, Parameters>())
+        .def("Initialize", &SymmetryUtility::Initialize)
+        .def("Update", &SymmetryUtility::Update)
+        .def("ApplyOnVectorField", &SymmetryUtility::ApplyOnVectorField)
+        .def("ApplyOnScalarField", &SymmetryUtility::ApplyOnScalarField)
+        ;
 }
 
 }  // namespace Python.
