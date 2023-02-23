@@ -3,7 +3,7 @@ from importlib import import_module
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassMouleFromKratos
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
@@ -25,7 +25,7 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
         analysis_settings = parameters["analysis_settings"]
 
         if analysis_module == "KratosMultiphysics":
-            analysis_module = GetClassMouleFromKratos(analysis_type)
+            analysis_module = GetClassModuleFromKratos(analysis_type)
 
         self.model_parts = []
         analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"

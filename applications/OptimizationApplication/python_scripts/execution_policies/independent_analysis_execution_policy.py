@@ -5,7 +5,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.multistage_analysis import MultistageAnalysis
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassMouleFromKratos
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
@@ -27,7 +27,7 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
         self.analysis_settings = parameters["analysis_settings"]
 
         if self.analysis_module == "KratosMultiphysics":
-            self.analysis_module = GetClassMouleFromKratos(self.analysis_type)
+            self.analysis_module = GetClassModuleFromKratos(self.analysis_type)
 
         self.analysis_full_module = f"{self.analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(self.analysis_type)}"
 
