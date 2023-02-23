@@ -296,6 +296,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilin
     TrilinosLocalMatrixType multiply_reference;
     MathUtils<double>::BtDBProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+
+    // Non zero matrix
+    auto second_mult = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+
+    // Solution
+    TrilinosSparseSpaceType::BtDBProductOperation(second_mult, matrix_1, matrix_2);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(second_mult, multiply_reference);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilinosApplicationMPITestSuite)
@@ -328,6 +335,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilin
     TrilinosLocalMatrixType multiply_reference;
     MathUtils<double>::BDBtProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+
+    // Non zero matrix
+    auto second_mult = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+
+    // Solution
+    TrilinosSparseSpaceType::BDBtProductOperation(second_mult, matrix_1, matrix_2);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(second_mult, multiply_reference);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosInplaceMult, KratosTrilinosApplicationMPITestSuite)
