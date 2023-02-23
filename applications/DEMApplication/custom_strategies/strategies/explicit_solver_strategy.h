@@ -287,12 +287,14 @@ namespace Kratos {
         bool   mRVE_FlatWalls;          // Flag for flat rigid walls
         bool   mRVE_Solve;              // Flag for evaluating RVE in current step
         bool   mRVE_Compress;           // Flag for evaluating RVE in current step
+        bool   mRVE_Equilibrium;        // Flag for static equilibrium of particles
         int    mRVE_FreqWrite = 1;      // Frequency for writing results as a multiplication factor of the evaluating frequency
         int    mRVE_Dimension;          // RVE dimension: 2D or 3D
         int    mRVE_NumParticles;       // Total number of particles inside RVE (does not consider wall particles)
         int    mRVE_NumParticlesInner;  // Total number of inner particles (not in contact with walls)
         int    mRVE_NumParticlesWalls;  // Total number of wall particles
         int    mRVE_NumContacts;        // Total number of contacts in RVE
+        int    mRVE_EqSteps = 0;        // Number of RVE solution steps in equilibrium
         double mRVE_AvgCoordNum;        // Average coordination number per particle
         double mRVE_AvgCoordNumInner;   // Average coordination number of inner particles (not in contact with walls)
         double mRVE_VolSolid;           // Volume of solid (particles) in RVE discounting overlaps
@@ -331,6 +333,7 @@ namespace Kratos {
         std::ofstream mRVE_FileContactNumber;
         std::ofstream mRVE_FileCoordNumber;
         std::ofstream mRVE_FileForceChain;
+        std::ofstream mRVE_FileElasticContactForces;
         std::ofstream mRVE_FileRoseDiagram;
         std::ofstream mRVE_FileAnisotropy;
         std::ofstream mRVE_FileFabricTensor;
@@ -357,12 +360,12 @@ namespace Kratos {
         double RVEComputeTotalVolume    (void);
         double RVEComputeParticleVolume (SphericParticle* p_particle);
         void   RVEComputePorosity       (void);
+        void   RVEStopCompression       (void);
 
-        void RVEWriteFiles (void);
-        void RVEOpenFiles  (void);
-        void RVECloseFiles (void);
-
-        std::ofstream mRVE_FileElasticContactForces;
+        void RVEWriteFiles    (void);
+        void RVEReadOldForces (void);
+        void RVEOpenFiles     (void);
+        void RVECloseFiles    (void);
 
         //==========================================================================================================================================
         // HIERARCHICAL MULTISCALE RVE - FINISH

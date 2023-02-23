@@ -1812,10 +1812,11 @@ namespace Kratos {
       ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
 
       // Initialize properties
-      mRVE_FlatWalls  = r_conditions.size() > 0;
-      mRVE_Compress   = true;
-      mRVE_FreqWrite *= r_process_info[RVE_EVAL_FREQ];
-      mRVE_Dimension  = r_process_info[DOMAIN_SIZE];
+      mRVE_FlatWalls   = r_conditions.size() > 0;
+      mRVE_Compress    = true;
+      mRVE_Equilibrium = false;
+      mRVE_FreqWrite  *= r_process_info[RVE_EVAL_FREQ];
+      mRVE_Dimension   = r_process_info[DOMAIN_SIZE];
 
       // Assemble vectors of wall elements
       RVEAssembleWallVectors();
@@ -1836,21 +1837,7 @@ namespace Kratos {
       RVEOpenFiles();
 
       // Read old contact forces
-      std::fstream f_old_elastic_forces;
-      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
-      KRATOS_ERROR_IF_NOT(f_old_elastic_forces) << "Could not open file f_old_elastic_forces.txt!" << std::endl;
-      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
-        int particle_id, n_neighbors;
-        f_old_elastic_forces >> particle_id >> n_neighbors;
-        for (int j = 0; j < n_neighbors; j++) {
-          double fx, fy, fz;
-          f_old_elastic_forces >> fx >> fy >> fz;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][0] = fx;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][1] = fy;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][2] = fz;
-        }
-      }
-      f_old_elastic_forces.close();
+      RVEReadOldForces();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -1950,6 +1937,10 @@ namespace Kratos {
       else
         mRVE_WallStress = 0.0;  // TODO: Not computed for particle walls
 
+      // Save previous values
+      double prev_effect_stress = mRVE_EffectStress;
+      double prev_dev_stress    = mRVE_DevStress;
+
       // Compute fabric anisotropy and stresses
       if (mRVE_NumContacts == 0.0) {
         const int dim  = mRVE_Dimension;
@@ -2011,32 +2002,17 @@ namespace Kratos {
       RVEWriteFiles();
 
       // Stop compression
-      ModelPart& r_dem_model_part = GetModelPart();
-      const double limit_stress = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
+      RVEStopCompression();
 
-      if (mRVE_Compress && std::abs(mRVE_EffectStress) >= limit_stress) {
-        mRVE_Compress = false;
+      // Check equilibrium
+      const double eps = std::numeric_limits<double>::epsilon();
+      if (!mRVE_Compress && std::abs(mRVE_EffectStress - prev_effect_stress) < eps && std::abs(mRVE_DevStress - prev_dev_stress) < eps)
+        mRVE_EqSteps++;
+      else
+        mRVE_EqSteps = 0;
 
-        ModelPart& fem_model_part = GetFemModelPart();
-        ModelPart::ConditionsContainerType& r_conditions = fem_model_part.GetCommunicator().LocalMesh().Conditions();
-
-        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-          ModelPart& submp = *sub_model_part;
-          array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
-          linear_velocity[0] = 0.0;
-          linear_velocity[1] = 0.0;
-          linear_velocity[2] = 0.0;
-        }
-
-        for (unsigned int i = 0; i < r_conditions.size(); i++) {
-          ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
-          DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
-          for (unsigned int inode = 0; inode < p_wall->GetGeometry().size(); inode++) {
-            array_1d<double, 3>& wall_velocity = p_wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
-            noalias(wall_velocity) = ZeroVector(3);
-          }
-        }
-      }
+      if (mRVE_EqSteps >= 10)
+        mRVE_Equilibrium = true;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2338,6 +2314,54 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEStopCompression(void) {
+      ModelPart& r_dem_model_part = GetModelPart();
+      const double limit_stress = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
+
+      if (mRVE_Compress && std::abs(mRVE_EffectStress) >= limit_stress) {
+        mRVE_Compress = false;
+
+        if (mRVE_FlatWalls) {
+          ModelPart& fem_model_part = GetFemModelPart();
+          ModelPart::ConditionsContainerType& r_conditions = fem_model_part.GetCommunicator().LocalMesh().Conditions();
+
+          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+            ModelPart& submp = *sub_model_part;
+            array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
+            linear_velocity[0] = 0.0;
+            linear_velocity[1] = 0.0;
+            linear_velocity[2] = 0.0;
+          }
+
+          for (unsigned int i = 0; i < r_conditions.size(); i++) {
+            ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+            DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+            for (unsigned int inode = 0; inode < p_wall->GetGeometry().size(); inode++) {
+              array_1d<double, 3>& wall_velocity = p_wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
+              noalias(wall_velocity) = ZeroVector(3);
+            }
+          }
+        }
+
+        else {
+          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_dem_model_part.SubModelPartsBegin(); sub_model_part != r_dem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+            ModelPart& submp = *sub_model_part;
+            array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
+            if (linear_velocity[0] != 0.0 || linear_velocity[1] != 0.0 || linear_velocity[2] != 0.0) {
+              linear_velocity[0] = 0.0;
+              linear_velocity[1] = 0.0;
+              linear_velocity[2] = 0.0;
+            }
+          }
+          for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
+            if (mListOfSphericParticles[i]->mWall)
+              mListOfSphericParticles[i]->mMoving = false;
+          }
+        }
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEWriteFiles(void) {
       ModelPart&   r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
@@ -2411,6 +2435,22 @@ namespace Kratos {
         mRVE_FileForceChain << time_step << " " << time << " ";
         for (int i = 0; i < mRVE_ForceChain.size(); i++) mRVE_FileForceChain << mRVE_ForceChain[i] << " ";
         mRVE_FileForceChain << std::endl;
+      }
+
+      if (mRVE_FileElasticContactForces.is_open() && mRVE_Equilibrium) {
+        for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+          const int n_neighbors = mListOfSphericParticles[i]->mNeighbourElements.size();
+          mRVE_FileElasticContactForces << i << " ";
+          mRVE_FileElasticContactForces << n_neighbors << " ";
+          for (int j = 0; j < n_neighbors; j++) {
+            array_1d<double, 3> force = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
+            mRVE_FileElasticContactForces << force[0] << " ";
+            mRVE_FileElasticContactForces << force[1] << " ";
+            mRVE_FileElasticContactForces << force[2] << " ";
+          }
+          mRVE_FileElasticContactForces << std::endl;
+        }
+        mRVE_FileElasticContactForces.close();
       }
 
       if (mRVE_FileRoseDiagram.is_open()) {
@@ -2498,22 +2538,27 @@ namespace Kratos {
                                    << "[[" << mRVE_TangentTensor(8,0) << "],[" << mRVE_TangentTensor(8,1) << "],[" << mRVE_TangentTensor(8,2) << "],[" << mRVE_TangentTensor(8,3) << "],[" << mRVE_TangentTensor(8,4) << "],[" << mRVE_TangentTensor(8,5) << "],[" << mRVE_TangentTensor(8,6) << "],[" << mRVE_TangentTensor(8,7) << "],[" << mRVE_TangentTensor(8,8) << "]]"
                                    << std::endl;
       }
+    }
 
-      if (mRVE_FileElasticContactForces.is_open() && time > 10.0) {
-        for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
-          const int n_neighbors = (int)mListOfSphericParticles[i]->mNeighbourElements.size();
-          mRVE_FileElasticContactForces << i << " ";
-          mRVE_FileElasticContactForces << n_neighbors << " ";
-          for (unsigned int j = 0; j < n_neighbors; j++) {
-            array_1d<double,3> force = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
-            mRVE_FileElasticContactForces << force[0] << " ";
-            mRVE_FileElasticContactForces << force[1] << " ";
-            mRVE_FileElasticContactForces << force[2] << " ";
-          }
-          mRVE_FileElasticContactForces << std::endl;
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEReadOldForces(void) {
+      std::fstream f_old_elastic_forces;
+      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
+      KRATOS_ERROR_IF_NOT(f_old_elastic_forces) << "Could not open file f_old_elastic_forces.txt!" << std::endl;
+
+      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+        int particle_id, n_neighbors;
+        f_old_elastic_forces >> particle_id >> n_neighbors;
+        for (int j = 0; j < n_neighbors; j++) {
+          double fx, fy, fz;
+          f_old_elastic_forces >> fx >> fy >> fz;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][0] = fx;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][1] = fy;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][2] = fz;
         }
-        mRVE_FileElasticContactForces.close();
       }
+
+      f_old_elastic_forces.close();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2560,6 +2605,9 @@ namespace Kratos {
       mRVE_FileForceChain << "2 - TIME | ";
       mRVE_FileForceChain << "3 - [X1 Y1 Z1 X2 Y2 Z2 F] of each contact";
       mRVE_FileForceChain << std::endl;
+
+      mRVE_FileElasticContactForces.open("rve_elastic_forces.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileElasticContactForces) << "Could not open file rve_elastic_forces.txt!" << std::endl;
 
       mRVE_FileRoseDiagram.open("rve_rose_diagram.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagram) << "Could not open file rve_rose_diagram.txt!" << std::endl;
@@ -2619,25 +2667,22 @@ namespace Kratos {
       mRVE_FileTangentTensor << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
       mRVE_FileTangentTensor << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
       mRVE_FileTangentTensor << std::endl;
-
-      mRVE_FileElasticContactForces.open("rve_elastic_forces.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mRVE_FileElasticContactForces) << "Could not open file rve_elastic_forces.txt!" << std::endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVECloseFiles(void) {
-      if (mRVE_FileCoordinates.is_open())   mRVE_FileCoordinates.close();
-      if (mRVE_FilePorosity.is_open())      mRVE_FilePorosity.close();
-      if (mRVE_FileContactNumber.is_open()) mRVE_FileContactNumber.close();
-      if (mRVE_FileCoordNumber.is_open())   mRVE_FileCoordNumber.close();
-      if (mRVE_FileForceChain.is_open())    mRVE_FileForceChain.close();
-      if (mRVE_FileRoseDiagram.is_open())   mRVE_FileRoseDiagram.close();
-      if (mRVE_FileAnisotropy.is_open())    mRVE_FileAnisotropy.close();
-      if (mRVE_FileFabricTensor.is_open())  mRVE_FileFabricTensor.close();
-      if (mRVE_FileStress.is_open())        mRVE_FileStress.close();
-      if (mRVE_FileCauchyTensor.is_open())  mRVE_FileCauchyTensor.close();
-      if (mRVE_FileTangentTensor.is_open()) mRVE_FileTangentTensor.close();
+      if (mRVE_FileCoordinates.is_open())          mRVE_FileCoordinates.close();
+      if (mRVE_FilePorosity.is_open())             mRVE_FilePorosity.close();
+      if (mRVE_FileContactNumber.is_open())        mRVE_FileContactNumber.close();
+      if (mRVE_FileCoordNumber.is_open())          mRVE_FileCoordNumber.close();
+      if (mRVE_FileForceChain.is_open())           mRVE_FileForceChain.close();
       if (mRVE_FileElasticContactForces.is_open()) mRVE_FileElasticContactForces.close();
+      if (mRVE_FileRoseDiagram.is_open())          mRVE_FileRoseDiagram.close();
+      if (mRVE_FileAnisotropy.is_open())           mRVE_FileAnisotropy.close();
+      if (mRVE_FileFabricTensor.is_open())         mRVE_FileFabricTensor.close();
+      if (mRVE_FileStress.is_open())               mRVE_FileStress.close();
+      if (mRVE_FileCauchyTensor.is_open())         mRVE_FileCauchyTensor.close();
+      if (mRVE_FileTangentTensor.is_open())        mRVE_FileTangentTensor.close();
     }
 
     //==========================================================================================================================================
