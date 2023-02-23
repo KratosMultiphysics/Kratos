@@ -80,13 +80,7 @@ void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
 {
     for (auto & r_entity : rThisEntities) {
         const auto & r_geometry = r_entity.GetGeometry();
-
-        // restrict to triangles only for now
-        const bool is_triangle = (
-            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
-            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
-
-        if (is_triangle && r_geometry.Area() > std::numeric_limits<double>::epsilon()) {
+        if (IsValidGeometry(r_geometry)) {
             WriteFacet(r_geometry);
         }
     }
@@ -95,12 +89,7 @@ void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
 void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
 {
     for (auto & r_geometry : rThisGeometries) {
-        // restrict to triangles only for now
-        const bool is_triangle = (
-            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
-            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
-
-        if (is_triangle && r_geometry.Area() > std::numeric_limits<double>::epsilon()) {
+        if (IsValidGeometry(r_geometry)) {
             WriteFacet(r_geometry);
         }
     }
@@ -136,6 +125,16 @@ void StlIO::PrintInfo(std::ostream& rOStream) const{
 /// Print object's data.
 void StlIO::PrintData(std::ostream& rOStream) const{
 
+}
+
+
+bool StlIO::IsValidGeometry(const Geometry<Node<3>>& rGeometry) const {
+    // restrict to triangles only for now
+    const bool is_triangle = (
+        rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
+        rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
+
+    return (is_triangle && rGeometry.Area() > std::numeric_limits<double>::epsilon());
 }
 
 void StlIO::ReadSolid(ModelPart & rThisModelPart)
