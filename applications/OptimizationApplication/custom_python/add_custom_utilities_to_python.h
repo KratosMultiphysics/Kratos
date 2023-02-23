@@ -10,8 +10,10 @@
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
 
-#if !defined(KRATOS_ADD_CONTROLS_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CONTROLS_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
+
+#pragma once
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -32,9 +34,9 @@
 namespace Kratos {
 namespace Python {
 
-void  AddCustomControlsToPython(pybind11::module& m);
+void  AddCustomUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_CONTROLS_TO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined
