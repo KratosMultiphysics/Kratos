@@ -6,7 +6,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_info impo
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
 
-def GetClassMouleFromKratos(class_name: str) -> str:
+def GetClassModuleFromKratos(class_name: str) -> str:
     snake_case_class_name = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(class_name)
     kratos_path = GetKratosMultiphysicsPath()
 
