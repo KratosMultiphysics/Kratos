@@ -696,12 +696,12 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     else if (r_prop.Has(rVariable))
     {
         // map initial material property to gauss points, as required for the output 
-	    if (rOutput.size() != mConstitutiveLawVector.size())
-	        rOutput.resize(mConstitutiveLawVector.size());
+        if (rOutput.size() != mConstitutiveLawVector.size())
+            rOutput.resize(mConstitutiveLawVector.size());
 
-	    for (unsigned int i = 0; i < rOutput.size(); ++i) {
-	        rOutput[i] = r_prop.GetValue(rVariable);
-	    }
+        for (unsigned int i = 0; i < rOutput.size(); ++i) {
+            rOutput[i] = r_prop.GetValue(rVariable);
+        }
     }
     else {
         if ( rOutput.size() != mConstitutiveLawVector.size() )

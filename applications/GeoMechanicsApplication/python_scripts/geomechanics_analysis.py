@@ -2,16 +2,7 @@ import time as timer
 import os
 import sys
 
-import mkl
-
-os.system(r'"D:\installed_software\intel\oneAPI\mkl\latest\env\vars.bat" intel64 lp64')
-sys.path.append(r"D:\software_development\Kratos\bin\Release")
-sys.path.append(r"D:\software_development\Kratos\bin\Release\libs")
-
-os.add_dll_directory(r'D:\installed_software\intel\oneAPI\mkl\2023.0.0\redist\intel64')
-#sys.path.append(r"D:\installed_software\intel\oneAPI\mkl\2023.0.0\lib\intel64")
-
-
+sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
@@ -146,14 +137,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
         self._GetSolver().solver.SetRebuildLevel(self.rebuild_level)
 
-        import time as import_time
-
-        t_print = import_time.time()
-
         while self.KeepAdvancingSolutionLoop():
-
-            t_print = import_time.time()
-
             if (self.delta_time > self.max_delta_time):
                 self.delta_time = self.max_delta_time
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to max_delta_time: ", self.max_delta_time)
@@ -178,20 +162,9 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = new_time
                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.delta_time
 
-
-                print(import_time.time() - t_print)
                 self.InitializeSolutionStep()
-                ini_time = import_time.time()
-                print(f"ini_time = {ini_time-t_print}")
                 self._GetSolver().Predict()
-
-                predict_time = import_time.time()
-                print(f"predict_time = {predict_time - ini_time}")
                 converged = self._GetSolver().SolveSolutionStep()
-
-                solve_time = import_time.time()
-                print(f"solve_time = {solve_time - predict_time}")
-
                 self._GetSolver().solver.SetStiffnessMatrixIsBuilt(True)
 
                 if (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] >= self.max_iterations or not converged):
@@ -215,8 +188,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                         new_time = self.end_time
                         self.delta_time = new_time - t
 
-            print(import_time.time() - t_print)
-
             if (not converged):
                 raise Exception('The maximum number of cycles is reached without convergence!')
 
@@ -230,8 +201,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
 
 if __name__ == '__main__':
-
-    n_t = mkl.get_max_threads()
     from sys import argv
 
     if len(argv) > 2:
@@ -243,17 +212,10 @@ if __name__ == '__main__':
         err_msg += '    "python geomechanics_analysis.py <my-parameter-file>.json"\n'
         raise Exception(err_msg)
 
-    import os
-
-    os.chdir(r"D:\software_development\kratos_tests\moving_load_soil_quadr_parameter_field_super_fine.gid")
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
         parameter_file_name = "ProjectParameters.json"
-
-
-    # sys.path.cwd(r"D:\software_development\kratos_tests\parameter_field.gid")
-    # parameter_file_name = r"D:\software_development\kratos_tests\parameter_field.gid\ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
@@ -261,5 +223,3 @@ if __name__ == '__main__':
     model = Kratos.Model()
     simulation = GeoMechanicsAnalysis(model,parameters)
     simulation.Run()
-
-

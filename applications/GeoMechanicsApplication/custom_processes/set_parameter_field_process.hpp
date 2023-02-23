@@ -109,7 +109,7 @@ private:
      * \param rVar variable type which is to be altered
      * \param Value new value for the to be altered variable
      */
-	void SetValueAtElement(Element& rElement, const Variable<double>& rVar, double Value);
+     void SetValueAtElement(Element& rElement, const Variable<double>& rVar, double Value);
 
     ///@}
     ///@name Serialization

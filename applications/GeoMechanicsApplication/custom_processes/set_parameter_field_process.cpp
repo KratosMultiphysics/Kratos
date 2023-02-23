@@ -40,7 +40,7 @@ namespace Kratos
             "variable_name"   : "CUSTOM",
             "func_type"       : "input",               
             "function"        : "0",
-			"dataset"         : "dummy"
+            "dataset"         : "dummy"
         }  )"
     );
     Parameters mParameters;
@@ -100,7 +100,7 @@ void SetParameterFieldProcess::ExecuteInitialize()
 
             // get new data from the data set
             const std::string dataset = mParameters["dataset"].GetString();
-        	Parameters new_data = Parameters(dataset);
+            Parameters new_data = Parameters(dataset);
             Vector data_vector = new_data["values"].GetVector();
 
             // set new data on the elements
