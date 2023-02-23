@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// =================================================================================
 
 #if defined(KRATOS_PYTHON)
 
@@ -29,6 +31,7 @@
 #include "custom_python/add_custom_responses_to_python.h"
 #include "custom_python/add_custom_optimization_algorithm_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 // ==============================================================================
 
@@ -49,6 +52,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     AddCustomControlsToPython(m);
     AddCustomOptimizationAlgorithmToPython(m);
     AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //registering variables in python
 
@@ -123,11 +127,13 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
 
     // thickness control
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PT);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PPT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FT);    
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, D_CT);  
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, D_PT); 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, D_PT_D_FT); 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, D_PPT_D_FT); 
 
     // topology control
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PD);
