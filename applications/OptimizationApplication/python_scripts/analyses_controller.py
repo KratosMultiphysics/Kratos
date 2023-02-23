@@ -12,7 +12,8 @@
 #
 
 # additional imports
-from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 # ==============================================================================
@@ -27,36 +28,36 @@ class AnalysesController:
         self.model_parts_controller = model_parts_controller
         self.model = model
 
-        self.execution_policy_wrappers = {}
+        self.execution_policy_decorators = {}
         for execution_policy_settings in self.execution_policies_settings:
-            execution_policy_wrapper = ExecutionPolicyWrapper(self.model, execution_policy_settings)
-            if not execution_policy_wrapper.GetExecutionPolicyName() in self.execution_policy_wrappers.keys():
-                self.execution_policy_wrappers[execution_policy_wrapper.GetExecutionPolicyName()] = execution_policy_wrapper
+            execution_policy_wrapper = ExecutionPolicyDecorator(self.model, execution_policy_settings, OptimizationInfo())
+            if not execution_policy_wrapper.GetExecutionPolicyName() in self.execution_policy_decorators.keys():
+                self.execution_policy_decorators[execution_policy_wrapper.GetExecutionPolicyName()] = execution_policy_wrapper
             else:
-                raise RuntimeError(f"Found already existing exeuction policy with the name \"{execution_policy_wrapper.GetExecutionPolicyName()}\". Please provide unique names.")
+                raise RuntimeError(f"Found already existing execution policy with the name \"{execution_policy_wrapper.GetExecutionPolicyName()}\". Please provide unique names.")
 
     # --------------------------------------------------------------------------
-    def GetExecutionPolicyWrapper(self, execution_policy_name: str):
-        if not execution_policy_name in self.execution_policy_wrappers.keys():
+    def GetExecutionPolicyDecorator(self, execution_policy_name: str) -> ExecutionPolicyDecorator:
+        if not execution_policy_name in self.execution_policy_decorators.keys():
             raise RuntimeError("AnalysesController: Try to get an execution policy {} which does not exist.".format(execution_policy_name))
         else:
-            return self.execution_policy_wrappers[execution_policy_name]
+            return self.execution_policy_decorators[execution_policy_name]
 
     # --------------------------------------------------------------------------
     def GetAnalysis(self, execution_policy_name: str):
-        return self.GetExecutionPolicyWrapper(execution_policy_name).GetExecutionPolicy().analysis
+        return self.GetExecutionPolicyDecorator(execution_policy_name).GetExecutionPolicy().analysis
 
     # --------------------------------------------------------------------------
     def Initialize(self):
-        for execution_policy_wrapper in self.execution_policy_wrappers.values():
+        for execution_policy_wrapper in self.execution_policy_decorators.values():
             execution_policy_name = execution_policy_wrapper.GetExecutionPolicyName()
             with TimeLogger(self.__class__.__name__, f"Initializing {execution_policy_name}...", f"Finished initializing {execution_policy_name}"):
-                execution_policy_wrapper.Initialize({})
+                execution_policy_wrapper.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
     def RunAnalysis(self, execution_policy_name: str):
         with TimeLogger(self.__class__.__name__, f"Starting {execution_policy_name}...", f"Finished execution of {execution_policy_name}."):
-            self.GetExecutionPolicyWrapper(execution_policy_name).Execute({})
+            self.GetExecutionPolicyDecorator(execution_policy_name).Execute()
 
     # --------------------------------------------------------------------------
     def RunAll(self):

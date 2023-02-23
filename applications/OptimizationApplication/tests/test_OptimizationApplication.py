@@ -18,6 +18,7 @@ from optimization_test_factory import shell_shape_opt_test
 from optimization_test_factory import shell_thick_opt_test
 from symmetry_utilities_tests.symmetry_tests import SymmetryUtilitiesTest
 from test_execution_policies import TestExecutionPolicies
+from test_optimization_info import TestOptimizationInfo
 
 # Nightly tests
 
@@ -44,6 +45,7 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExecutionPolicies]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SymmetryUtilitiesTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationInfo]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
