@@ -40,7 +40,7 @@ def CreateSolver(cls, model, custom_settings):
             if solving_strategy in available_solving_strategies:
                 return available_solving_strategies[solving_strategy](linear_solver, rom_parameters)
             else:
-                err_msg = "\'Solving_strategy\': '" +solving_strategy+"' is not available. Please select one of the following: "+ str(list(available_solving_strategies.keys()))
+                err_msg = f"'Solving_strategy': '{solving_strategy}' is not available. Please select one of the following: {list(available_solving_strategies.keys())}."
                 raise ValueError(err_msg)
 
         def _ValidateAndReturnRomParameters(self):
