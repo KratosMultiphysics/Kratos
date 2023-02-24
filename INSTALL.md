@@ -89,7 +89,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
           Once installing, please **do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''**
 
-          Minimum required version: CMake 3.14
+          Minimum required version: CMake 3.20
 
       - Python
 
@@ -618,6 +618,9 @@ Enables(Default) or Disables the compilation of the embedded python interpreter 
 
 `-DKRATOS_BUILD_TESTING=ON/OFF`
 Enables(Default) or Disables the compilation of the C++ unitary tests for *Kratos* and Applications.
+
+`-DKRATOS_NO_TRY_CATCH=ON/OFF`
+Enables or Disables(Default) the prevention of code generation in `KRATOS_TRY` and `KRATOS_CATCH` macros to allow direct debug of the code through gdb without having to break at `__cxa_throw`.
 
 ### Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`

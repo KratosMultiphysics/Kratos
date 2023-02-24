@@ -189,7 +189,7 @@ public:
           else if (dimension == 3)
           {
             double elementalVolume = 0;
-            if (i_elem->GetGeometry().Dimension() == 3)
+            if (i_elem->GetGeometry().WorkingSpaceDimension() == 3)
               elementalVolume = i_elem->GetGeometry().Volume();
             if (numNodes == 4)
             {
