@@ -23,7 +23,7 @@ def CreateSolver(cls, model, custom_settings):
                 "projection_strategy" : "galerkin",
                 "rom_settings": {
                     "nodal_unknowns": [],
-                    "number_of_rom_dofs" : 0
+                    "number_of_rom_dofs": 0
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
