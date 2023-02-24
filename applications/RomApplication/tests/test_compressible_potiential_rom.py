@@ -5,7 +5,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 
-
 if kratos_utilities.CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication"):
     import KratosMultiphysics.CompressiblePotentialFlowApplication as KratosPotentialFlow
 
