@@ -1343,8 +1343,19 @@ protected:
                 ++num_active_master_indices;
             }
 
-            if ((num_active_slave_indices + num_active_master_indices) > 0) {
-                const int ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_master_indices, temp_secondary.data());
+            // First adding the pure slave dofs
+            if (num_active_slave_indices > 0) {
+                const int ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_slave_indices, temp_primary.data());
+                KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                // Now adding cross master-slave dofs
+                if (num_active_master_indices > 0) {
+                    ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_master_indices, temp_secondary.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                }
+            }
+            // Second adding pure master dofs
+            if (num_active_master_indices > 0) {
+                int ierr = Agraph.InsertGlobalIndices(num_active_master_indices, temp_secondary.data(), num_active_master_indices, temp_secondary.data());
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
             std::fill(temp_primary.begin(), temp_primary.end(), 0);
