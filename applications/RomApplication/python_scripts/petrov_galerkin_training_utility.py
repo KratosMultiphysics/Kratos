@@ -2,7 +2,6 @@
 import json
 import numpy as np
 import os
-import scipy.linalg
 from glob import glob
 
 # Importing the Kratos Library
@@ -53,7 +52,7 @@ class PetrovGalerkinTrainingUtility(object):
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","RomResidualsUtility created.")
 
         # Generate the matrix of residuals or projected Jacobians.
-        if self.basis_strategy=="Jacobian":
+        if self.basis_strategy=="jacobian":
             snapshots_matrix = self.__rom_residuals_utility.GetProjectedGlobalLHS()
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generated matrix of projected Jacobian.")
         elif self.basis_strategy=="residuals":
@@ -66,7 +65,7 @@ class PetrovGalerkinTrainingUtility(object):
             snapshots_matrix = np.array(snapshots_matrix).T
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generating matrix of residuals.")
         else:
-            err_msg = "\'self.basis_strategy\' is not available. Select either Jacobian or Residuals."
+            err_msg = "\'self.basis_strategy\' is not available. Select either 'jacobian' or 'residuals'."
             raise Exception(err_msg)
 
         np_snapshots_matrix = np.array(snapshots_matrix, copy=False)
@@ -151,6 +150,7 @@ class PetrovGalerkinTrainingUtility(object):
 
         return u
 
+    @classmethod
     def __OrthogonalProjector(self, A, B):
         # A - B @(B.T @ A)
         BtA = B.T@A
