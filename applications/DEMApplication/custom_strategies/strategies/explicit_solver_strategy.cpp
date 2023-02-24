@@ -1817,6 +1817,7 @@ namespace Kratos {
       mRVE_Equilibrium = false;
       mRVE_FreqWrite  *= r_process_info[RVE_EVAL_FREQ];
       mRVE_Dimension   = r_process_info[DOMAIN_SIZE];
+      mRVE_EqSteps     = 0;
 
       // Assemble vectors of wall elements
       RVEAssembleWallVectors();
@@ -1997,6 +1998,9 @@ namespace Kratos {
         }
         mRVE_DevStress = sqrt(double_dot_product);
       }
+
+      // Compute uniformity of rose diagram
+      RVEComputeRoseUniformity();
 
       // Write files
       RVEWriteFiles();
@@ -2314,6 +2318,55 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEComputeRoseUniformity(void) {
+      // Mean
+      double mean_rose_xy_all = 0.0;
+      double mean_rose_az_all = 0.0;
+      double mean_rose_xy_inn = 0.0;
+      double mean_rose_az_inn = 0.0;
+
+      for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) {
+        mean_rose_xy_all += mRVE_RoseDiagram(0, i);
+        mean_rose_az_all += mRVE_RoseDiagram(1, i);
+      }
+      for (int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) {
+        mean_rose_xy_inn += mRVE_RoseDiagramInner(0, i);
+        mean_rose_az_inn += mRVE_RoseDiagramInner(1, i);
+      }
+
+      mean_rose_xy_all /= mRVE_RoseDiagram.size2();
+      mean_rose_az_all /= mRVE_RoseDiagram.size2();
+      mean_rose_xy_inn /= mRVE_RoseDiagramInner.size2();
+      mean_rose_az_inn /= mRVE_RoseDiagramInner.size2();
+
+      // Variance
+      double var_rose_xy_all = 0.0;
+      double var_rose_az_all = 0.0;
+      double var_rose_xy_inn = 0.0;
+      double var_rose_az_inn = 0.0;
+
+      for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) {
+        var_rose_xy_all += (mRVE_RoseDiagram(0,i) - mean_rose_xy_all);
+        var_rose_az_all += (mRVE_RoseDiagram(1,i) - mean_rose_az_all);
+      }
+      for (int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) {
+        var_rose_xy_inn += pow(mRVE_RoseDiagramInner(0,i) - mean_rose_xy_inn, 2.0);
+        var_rose_az_inn += pow(mRVE_RoseDiagramInner(1,i) - mean_rose_az_inn, 2.0);
+      }
+
+      var_rose_xy_all /= mRVE_RoseDiagram.size2();
+      var_rose_az_all /= mRVE_RoseDiagram.size2();
+      var_rose_xy_inn /= mRVE_RoseDiagramInner.size2();
+      var_rose_az_inn /= mRVE_RoseDiagramInner.size2();
+
+      // Standard deviation
+      mRVE_StdDevRoseXYAll = sqrt(var_rose_xy_all);
+      mRVE_StdDevRoseAzAll = sqrt(var_rose_az_all);
+      mRVE_StdDevRoseXYInn = sqrt(var_rose_xy_inn);
+      mRVE_StdDevRoseAzInn = sqrt(var_rose_az_inn);
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEStopCompression(void) {
       ModelPart& r_dem_model_part = GetModelPart();
       const double limit_stress = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
@@ -2465,15 +2518,24 @@ namespace Kratos {
         mRVE_FileRoseDiagram << "]";
 
         mRVE_FileRoseDiagram << "[ ";
-        for (unsigned int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagramInner(0, i) << " ";
+        for (unsigned int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagramInner(0,i) << " ";
         mRVE_FileRoseDiagram << "] ";
 
         mRVE_FileRoseDiagram << "[ ";
-        for (unsigned int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagramInner(1, i) << " ";
+        for (unsigned int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagramInner(1,i) << " ";
         mRVE_FileRoseDiagram << "]";
 
         mRVE_FileRoseDiagram << std::endl;
       }
+
+      if (mRVE_FileRoseDiagramUniformity.is_open())
+        mRVE_FileRoseDiagramUniformity << time_step << " "
+                                       << time      << " "
+                                       << mRVE_StdDevRoseXYAll << " "
+                                       << mRVE_StdDevRoseAzAll << " "
+                                       << mRVE_StdDevRoseXYInn << " "
+                                       << mRVE_StdDevRoseAzInn
+                                       << std::endl;
 
       if (mRVE_FileAnisotropy.is_open())
         mRVE_FileAnisotropy << time_step << " "
@@ -2619,6 +2681,16 @@ namespace Kratos {
       mRVE_FileRoseDiagram << "6 - [ARRAY OF AZIMUTH ANGLES - INNER PARTICLES]";
       mRVE_FileRoseDiagram << std::endl;
 
+      mRVE_FileRoseDiagramUniformity.open("rve_rose_diagram_uniformity.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagramUniformity) << "Could not open file rve_rose_diagram_uniformity.txt!" << std::endl;
+      mRVE_FileRoseDiagramUniformity << "1 - STEP | ";
+      mRVE_FileRoseDiagramUniformity << "2 - TIME | ";
+      mRVE_FileRoseDiagramUniformity << "3 - STD DEV XY ALL | ";
+      mRVE_FileRoseDiagramUniformity << "4 - STD DEV AZ ALL | ";
+      mRVE_FileRoseDiagramUniformity << "5 - STD DEV XY INN | ";
+      mRVE_FileRoseDiagramUniformity << "6 - STD DEV AZ INN";
+      mRVE_FileRoseDiagramUniformity << std::endl;
+
       mRVE_FileAnisotropy.open("rve_anisotropy.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FileAnisotropy) << "Could not open file rve_anisotropy.txt!" << std::endl;
       mRVE_FileAnisotropy << "1 - STEP | ";
@@ -2671,18 +2743,19 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVECloseFiles(void) {
-      if (mRVE_FileCoordinates.is_open())          mRVE_FileCoordinates.close();
-      if (mRVE_FilePorosity.is_open())             mRVE_FilePorosity.close();
-      if (mRVE_FileContactNumber.is_open())        mRVE_FileContactNumber.close();
-      if (mRVE_FileCoordNumber.is_open())          mRVE_FileCoordNumber.close();
-      if (mRVE_FileForceChain.is_open())           mRVE_FileForceChain.close();
-      if (mRVE_FileElasticContactForces.is_open()) mRVE_FileElasticContactForces.close();
-      if (mRVE_FileRoseDiagram.is_open())          mRVE_FileRoseDiagram.close();
-      if (mRVE_FileAnisotropy.is_open())           mRVE_FileAnisotropy.close();
-      if (mRVE_FileFabricTensor.is_open())         mRVE_FileFabricTensor.close();
-      if (mRVE_FileStress.is_open())               mRVE_FileStress.close();
-      if (mRVE_FileCauchyTensor.is_open())         mRVE_FileCauchyTensor.close();
-      if (mRVE_FileTangentTensor.is_open())        mRVE_FileTangentTensor.close();
+      if (mRVE_FileCoordinates.is_open())           mRVE_FileCoordinates.close();
+      if (mRVE_FilePorosity.is_open())              mRVE_FilePorosity.close();
+      if (mRVE_FileContactNumber.is_open())         mRVE_FileContactNumber.close();
+      if (mRVE_FileCoordNumber.is_open())           mRVE_FileCoordNumber.close();
+      if (mRVE_FileForceChain.is_open())            mRVE_FileForceChain.close();
+      if (mRVE_FileElasticContactForces.is_open())  mRVE_FileElasticContactForces.close();
+      if (mRVE_FileRoseDiagram.is_open())           mRVE_FileRoseDiagram.close();
+      if (mRVE_FileRoseDiagramUniformity.is_open()) mRVE_FileRoseDiagramUniformity.close();
+      if (mRVE_FileAnisotropy.is_open())            mRVE_FileAnisotropy.close();
+      if (mRVE_FileFabricTensor.is_open())          mRVE_FileFabricTensor.close();
+      if (mRVE_FileStress.is_open())                mRVE_FileStress.close();
+      if (mRVE_FileCauchyTensor.is_open())          mRVE_FileCauchyTensor.close();
+      if (mRVE_FileTangentTensor.is_open())         mRVE_FileTangentTensor.close();
     }
 
     //==========================================================================================================================================

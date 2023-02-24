@@ -286,7 +286,7 @@ namespace Kratos {
         // Properties
         bool   mRVE_FlatWalls;          // Flag for flat rigid walls
         bool   mRVE_Solve;              // Flag for evaluating RVE in current step
-        bool   mRVE_Compress;           // Flag for evaluating RVE in current step
+        bool   mRVE_Compress;           // Flag for compressing RVE
         bool   mRVE_Equilibrium;        // Flag for static equilibrium of particles
         int    mRVE_FreqWrite = 1;      // Frequency for writing results as a multiplication factor of the evaluating frequency
         int    mRVE_Dimension;          // RVE dimension: 2D or 3D
@@ -294,7 +294,7 @@ namespace Kratos {
         int    mRVE_NumParticlesInner;  // Total number of inner particles (not in contact with walls)
         int    mRVE_NumParticlesWalls;  // Total number of wall particles
         int    mRVE_NumContacts;        // Total number of contacts in RVE
-        int    mRVE_EqSteps = 0;        // Number of RVE solution steps in equilibrium
+        int    mRVE_EqSteps;            // Number of RVE solution steps in equilibrium
         double mRVE_AvgCoordNum;        // Average coordination number per particle
         double mRVE_AvgCoordNumInner;   // Average coordination number of inner particles (not in contact with walls)
         double mRVE_VolSolid;           // Volume of solid (particles) in RVE discounting overlaps
@@ -306,6 +306,10 @@ namespace Kratos {
         double mRVE_DevStress;          // Deviatoric stress
         double mRVE_WallForces;         // Total force applied by walls (normal only)
         double mRVE_WallStress;         // Total stress applied by walls (normal only)
+        double mRVE_StdDevRoseXYAll;    // Std dev of rose values in XY plane for all particles
+        double mRVE_StdDevRoseAzAll;    // Std dev of rose values in Az plane for all particles
+        double mRVE_StdDevRoseXYInn;    // Std dev of rose values in XY plane for inner particles
+        double mRVE_StdDevRoseAzInn;    // Std dev of rose values in Az plane for inner particles
 
         std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE flat walls in negative X direction
         std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE flat walls in positive X direction
@@ -335,6 +339,7 @@ namespace Kratos {
         std::ofstream mRVE_FileForceChain;
         std::ofstream mRVE_FileElasticContactForces;
         std::ofstream mRVE_FileRoseDiagram;
+        std::ofstream mRVE_FileRoseDiagramUniformity;
         std::ofstream mRVE_FileAnisotropy;
         std::ofstream mRVE_FileFabricTensor;
         std::ofstream mRVE_FileStress;
@@ -360,6 +365,7 @@ namespace Kratos {
         double RVEComputeTotalVolume    (void);
         double RVEComputeParticleVolume (SphericParticle* p_particle);
         void   RVEComputePorosity       (void);
+        void   RVEComputeRoseUniformity (void);
         void   RVEStopCompression       (void);
 
         void RVEWriteFiles    (void);
