@@ -17,7 +17,7 @@ class TestThermalRom(KratosUnittest.TestCase):
 
     def testConvDiffStationaryRom2D(self):
         self.work_folder = "thermal_static_test_files/ROM/"
-        parameters_filename = "ProjectParametersROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -40,7 +40,7 @@ class TestThermalRom(KratosUnittest.TestCase):
 
     def testConvDiffDynamicRom2D(self):
         self.work_folder = "thermal_dynamic_test_files/ROM/"
-        parameters_filename = "ProjectParametersROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
         time_snapshots = [500,1200,2500,3000,3600]

@@ -17,7 +17,7 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
 
     def testStructuralStaticLSPGRom2D(self):
         self.work_folder = "structural_static_test_files/LSPGROM/"
-        parameters_filename = "ProjectParametersLSPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputLSPGROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -59,7 +59,7 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
 
     def testStructuralDynamicLSPGRom2D(self):
         self.work_folder = "structural_dynamic_test_files/LSPGROM/"
-        parameters_filename = "ProjectParametersLSPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputLSPGROM.npy"
 
         time_snapshots = [2,4,6,8,10]

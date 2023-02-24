@@ -17,7 +17,7 @@ class TestStructuralPGRom(KratosUnittest.TestCase):
 
     def testStructuralStaticPGRom2D(self):
         self.work_folder = "structural_static_test_files/PGROM/"
-        parameters_filename = "ProjectParametersPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputPGROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -59,7 +59,7 @@ class TestStructuralPGRom(KratosUnittest.TestCase):
 
     def testStructuralDynamicPGRom2D(self):
         self.work_folder = "structural_dynamic_test_files/PGROM/"
-        parameters_filename = "ProjectParametersPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputPGROM.npy"
 
         time_snapshots = [2,4,6,8,10]

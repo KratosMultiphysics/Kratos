@@ -17,7 +17,7 @@ class TestThermalPGRom(KratosUnittest.TestCase):
 
     def testConvDiffStationaryPGRom2D(self):
         self.work_folder = "thermal_static_test_files/PGROM/"
-        parameters_filename = "ProjectParametersPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputPGROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -40,7 +40,7 @@ class TestThermalPGRom(KratosUnittest.TestCase):
 
     def testConvDiffDynamicPGRom2D(self):
         self.work_folder = "thermal_dynamic_test_files/PGROM/"
-        parameters_filename = "ProjectParametersPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputPGROM.npy"
 
         time_snapshots = [500,1200,2500,3000,3600]
