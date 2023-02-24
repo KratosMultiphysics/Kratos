@@ -18,7 +18,7 @@
             "input_filename": "../Structure_Static_2D"
         },
         "material_import_settings": {
-            "materials_filename": "../StructuralMaterialsROM.json"
+            "materials_filename": "../StructuralMaterials.json"
         },
         "time_stepping": {
             "time_step": 1.0

@@ -18,7 +18,7 @@
             "input_filename": "../Structure_Static_2D"
         },
         "material_import_settings": {
-            "materials_filename": "../StructuralMaterialsROM.json"
+            "materials_filename": "../StructuralMaterials.json"
         },
         "time_stepping": {
             "time_step": 1.0
@@ -66,7 +66,7 @@
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 50.0,
                 "direction"       : [1,0.0,0.0],
-                "interval"        : [1.0,2.0]
+                "interval"        : [1.0,"End"]
             }
         }],
         "list_other_processes": []
