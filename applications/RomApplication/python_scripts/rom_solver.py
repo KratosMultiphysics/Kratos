@@ -23,7 +23,7 @@ def CreateSolver(cls, model, custom_settings):
                 "projection_strategy" : "galerkin",
                 "rom_settings": {
                     "nodal_unknowns": [],
-                    "number_of_rom_dofs" : 10
+                    "number_of_rom_dofs" : 0
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -34,7 +34,7 @@ def CreateSolver(cls, model, custom_settings):
             rom_parameters, solving_strategy = self._ValidateAndReturnRomParameters()
             available_solving_strategies = {
                 "galerkin": KratosROM.ROMBuilderAndSolver, 
-                "LSPG": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
             }
             if solving_strategy in available_solving_strategies:
