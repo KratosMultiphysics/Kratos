@@ -27,8 +27,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "utilities/math_utils.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 namespace LeastSquaresPetrovGalerkinROMBuilderAndSolverTestingInternal {
 
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
