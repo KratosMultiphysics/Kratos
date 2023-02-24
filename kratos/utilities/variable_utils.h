@@ -4,30 +4,27 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
 //                   Vicente Mataix Ferrandiz
 //
-//
 
-#if !defined(KRATOS_VARIABLE_UTILS )
-#define  KRATOS_VARIABLE_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/reduction_utilities.h"
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -806,6 +803,26 @@ public:
     }
 
     /**
+     * @brief Erases the container non historical variable
+     * @param rVariable reference to the scalar variable to be erased
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType, class TVarType>
+    void EraseNonHistoricalVariable(
+        const TVarType& rVariable,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        block_for_each(rContainer, [&rVariable](auto& rEntity){
+                rEntity.GetData().Erase(rVariable);
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Clears the container data value container
      * @param rContainer Reference to the objective container
      */
@@ -991,7 +1008,7 @@ public:
      * @param rOriginNodes Reference to the objective node set
      * @return selected_nodes: List of filtered nodes
      */
-    NodesContainerType SelectNodeList(
+    [[nodiscard]] NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
         const double Value,
         const NodesContainerType& rOriginNodes
@@ -1161,7 +1178,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation vector result
      */
-    array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -1173,7 +1190,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumNonHistoricalNodeScalarVariable(
+    [[nodiscard]] double SumNonHistoricalNodeScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1208,7 +1225,7 @@ public:
      * @return TDataType Value of the summation
      */
     template< class TDataType, class TVarType = Variable<TDataType> >
-    TDataType SumHistoricalVariable(
+    [[nodiscard]] TDataType SumHistoricalVariable(
         const TVarType &rVariable,
         const ModelPart &rModelPart,
         const unsigned int BuffStep = 0
@@ -1234,7 +1251,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective condition set
      * @return sum_value: summation result
      */
-    array_1d<double, 3> SumConditionVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumConditionVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -1246,7 +1263,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumConditionScalarVariable(
+    [[nodiscard]] double SumConditionScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1287,7 +1304,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumElementScalarVariable(
+    [[nodiscard]] double SumElementScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1435,7 +1452,8 @@ public:
      * @param rNodes array of nodes from which coordinates will be extracted
      * @param Dimension number of desired components
      */
-    Vector GetCurrentPositionsVector(
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetCurrentPositionsVector(
         const ModelPart::NodesContainerType& rNodes,
         const unsigned int Dimension
         );
@@ -1451,7 +1469,8 @@ public:
      * @param rNodes array of nodes from which coordinates will be extracted
      * @param Dimension number of desired components
      */
-    Vector GetInitialPositionsVector(
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetInitialPositionsVector(
         const ModelPart::NodesContainerType& rNodes,
         const unsigned int Dimension
         );
@@ -1501,7 +1520,7 @@ public:
      * @param Step step in the database
      * @param Dimension number of components in output
      */
-    Vector GetSolutionStepValuesVector(
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
                                 const ModelPart::NodesContainerType& rNodes,
                                 const Variable<array_1d<double,3>>& rVar,
                                 const unsigned int Step,
@@ -1518,7 +1537,7 @@ public:
      * @param rVar the variable being addressed
      * @param Step step in the database
      */
-    Vector GetSolutionStepValuesVector(
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
                                 const ModelPart::NodesContainerType& rNodes,
                                 const Variable<double>& rVar,
                                 const unsigned int Step
@@ -1568,7 +1587,7 @@ public:
      * @param Step step in the database
      * @param Dimension number of components in output
      */
-    Vector GetValuesVector(
+    [[nodiscard]] Vector GetValuesVector(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<array_1d<double,3>>& rVar,
         const unsigned int Dimension=3
@@ -1585,7 +1604,7 @@ public:
      * @param rVar the variable being addressed
      * @param Step step in the database
      */
-    Vector GetValuesVector(
+    [[nodiscard]] Vector GetValuesVector(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<double>& rVar
         );
@@ -1680,10 +1699,10 @@ private:
     }
 
     template <class TContainerType>
-    TContainerType& GetContainer(ModelPart& rModelPart);
+    [[nodiscard]] TContainerType& GetContainer(ModelPart& rModelPart);
 
     template <class TContainerType>
-    const TContainerType& GetContainer(const ModelPart& rModelPart);
+    [[nodiscard]] const TContainerType& GetContainer(const ModelPart& rModelPart);
 
     template<class TDataType>
     static void AuxiliaryHistoricalValueSetter(
@@ -1754,5 +1773,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_VARIABLE_UTILS  defined */

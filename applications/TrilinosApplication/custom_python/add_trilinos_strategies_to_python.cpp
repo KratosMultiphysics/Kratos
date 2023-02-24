@@ -4,23 +4,21 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
 
 // Project includes
 #include "includes/define_python.h"
 #include "custom_python/add_trilinos_strategies_to_python.h"
-
-//Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "trilinos_space.h"
@@ -41,9 +39,7 @@
 //configuration files
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -166,8 +162,6 @@ void AddStrategies(pybind11::module& m)
     ;
 }
 
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

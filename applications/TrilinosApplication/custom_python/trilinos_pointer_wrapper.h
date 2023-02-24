@@ -1,23 +1,20 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:		 BSD License
-//					     Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_TRILINOS_POINTER_WRAPPER_H_INCLUDED)
-#define KRATOS_TRILINOS_POINTER_WRAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
-
-//Trilinos includes
 
 // Project includes
 #include "trilinos_space.h"
@@ -278,5 +275,3 @@ private:
 }; // Class AuxiliaryVectorWrapper
 
 } // namespace Kratos.
-
-#endif // KRATOS_TRILINOS_POINTER_WRAPPER_H_INCLUDED  defined

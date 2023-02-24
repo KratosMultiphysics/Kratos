@@ -80,7 +80,7 @@ void LinearElastic2DBeamLaw::GetLawFeatures(Features& rFeatures)
 void LinearElastic2DBeamLaw::
     CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     // Stiffness of beams is based on Eq.16b and 17c of the following paper:
     // Pica, Wood, Hinton (1980) "Finite element analysis of geometrically 
@@ -107,7 +107,7 @@ void LinearElastic2DBeamLaw::
     C(INDEX_2D_PLANE_STRESS_XX, INDEX_2D_PLANE_STRESS_YY) = c0*NU;
     C(INDEX_2D_PLANE_STRESS_YY, INDEX_2D_PLANE_STRESS_XX) = c0*NU;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -116,13 +116,13 @@ void LinearElastic2DBeamLaw::
                        Vector& rStressVector,
                        ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     Matrix C;
     this->CalculateElasticMatrix(C, rValues);
     noalias(rStressVector) = prod(C, rStrainVector);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

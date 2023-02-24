@@ -95,6 +95,18 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(empty_value_item.HasItem("test"));
 
     double value = 3.14;
+    RegistryValueItem<double> value_registry_item("value_item", value);
+    KRATOS_CHECK_STRING_EQUAL(value_registry_item.Name(),"value_item");
+    KRATOS_CHECK(value_registry_item.HasValue());
+    KRATOS_CHECK_IS_FALSE(value_registry_item.HasItems());
+    KRATOS_CHECK_IS_FALSE(value_registry_item.HasItem("test"));
+
+    KRATOS_CHECK_DOUBLE_EQUAL(value_registry_item.GetValue<double>(), 3.14);
+
+    std::string value_item_json = R"("value_item" : "3.14"
+)";
+    KRATOS_CHECK_STRING_EQUAL(value_registry_item.ToJson(), value_item_json);
+
     RegistryItem registry_item("items");
     registry_item.AddItem<double>("sub_value_item", value);
     KRATOS_CHECK_IS_FALSE(registry_item.HasValue());

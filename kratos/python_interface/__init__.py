@@ -1,7 +1,21 @@
 import os
 import sys
+
+# This is a "dirty" fix to force python to keep loading shared libraries from
+# the PATH in windows (See https://docs.python.org/3/library/os.html#os.add_dll_directory)
+# THIS NEEDS TO BE EXECUTED BEFORE ANY DLL / DEPENDENCY IS LOADED.
+if os.name == 'nt': # This means "Windows"
+    for lib_path in os.environ["PATH"].split(os.pathsep):
+        try:
+            os.add_dll_directory(lib_path.replace("\\","/"))
+        except Exception as e:
+            # We need to capture possible invalid paths.
+            pass
+
 from . import kratos_globals
 from . import python_registry
+from . import python_registry_lists
+from . import python_registry_utilities
 
 if sys.version_info < (3, 8):
     raise Exception("Kratos only supports Python version 3.8 and above")
@@ -91,6 +105,9 @@ RegisterPrototype = python_registry.RegisterPrototype
 # Remove CppRegistry from locals() in order to give preference to the exception thrown in __getattr__
 # This is required since we cannot use properties as usual due to the fact that we have no instance of CppRegistry (it is a static variable in c++)
 locals().pop("CppRegistry")
+
+# Loop and register the Python registry lists
+python_registry_utilities.RegisterAll("KratosMultiphysics", python_registry_lists)
 
 # Detect kratos library version
 python_version = KratosGlobals.Kernel.PythonVersion()

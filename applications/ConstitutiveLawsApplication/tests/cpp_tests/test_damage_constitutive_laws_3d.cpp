@@ -68,21 +68,18 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
 
     KRATOS_CHECK(cl.Has(DAMAGE));  // = True
     KRATOS_CHECK(cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS));  // = True
     KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
 
     Vector internal_variables_w(3);
     internal_variables_w[0] = 0.0;
     internal_variables_w[1] = 0.1;
-    internal_variables_w[2] = 0.2;
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
     Vector internal_variables_r;
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
 
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 3., 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r.size(), 2., 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
 }
 
 
