@@ -217,4 +217,3 @@ KRATOS_TEST_CASE_IN_SUITE(LeastSquaresPetrovGalerkinROMBuilderAndSolver, RomAppl
 }
 
 }
-}
