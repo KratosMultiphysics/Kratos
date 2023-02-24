@@ -876,9 +876,9 @@ public:
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
-                const IndexType local_slave_equation_id = mSlaveIds[Index]; /// TODO: I am assuming these are local dofs ids, maybe I change it later, please check it!
-                if (mInactiveSlaveDofs.find(local_slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    rb[0][local_slave_equation_id] = 0.0;
+                const IndexType slave_equation_id = mSlaveIds[Index];
+                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    TSparseSpace::SetValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                 }
             });
 
@@ -924,22 +924,10 @@ public:
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
-                const IndexType local_slave_equation_id = mSlaveIds[Index]; /// TODO: I am assuming these are local dofs ids, maybe I change it later, please check it!
-                if (mInactiveSlaveDofs.find(local_slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    int numEntries; // Number of non-zero entries
-                    double* vals;   // Row non-zero values
-                    int* cols;      // Column indices of row non-zero values
-                    rA.ExtractMyRowView(local_slave_equation_id, numEntries, vals, cols);
-                    const int row_gid = rA.RowMap().GID(local_slave_equation_id);
-                    int j;
-                    for (j = 0; j < numEntries; j++) {
-                        const int col_gid = rA.ColMap().GID(cols[j]);
-                        // Set diagonal value
-                        if (col_gid == row_gid) {
-                            vals[j] = max_diag;// mScaleFactor; /// NOTE: We may consider the scale factor instead
-                            rb[0][local_slave_equation_id] = 0.0;
-                        }
-                    }
+                const IndexType slave_equation_id = mSlaveIds[Index];
+                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    TSparseSpace::SetValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, max_diag);
+                    TSparseSpace::SetValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                 }
             });
 
