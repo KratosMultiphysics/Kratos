@@ -796,7 +796,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")
         .def("ConvertCamelCaseToSnakeCase",
-             StringUtilities::ConvertCammelCaseToSnakeCase,
+             StringUtilities::ConvertCamelCaseToSnakeCase,
              "CamelCase to snake_case conversion.")
         .def("ConvertSnakeCaseToCamelCase",
              StringUtilities::ConvertSnakeCaseToCamelCase,

@@ -162,6 +162,8 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         broadcast_int = self.world.Broadcast(self.rank, source_rank)
         broadcast_double = self.world.Broadcast(2.0*self.rank, source_rank)
         broadcast_string = self.world.Broadcast(str(self.rank), source_rank)
+        broadcast_vector = self.world.Broadcast(Kratos.Vector(3, self.rank + 1), source_rank)
+        broadcast_matrix = self.world.Broadcast(Kratos.Matrix(3, 3, self.rank + 1), source_rank)
         broadcast_int_list = self.world.BroadcastInts([self.rank,-self.rank], source_rank)
         broadcast_double_list = self.world.BroadcastDoubles([2.0*self.rank,-2.0*self.rank], source_rank)
         broadcast_string_list = self.world.BroadcastStrings([f"{self.rank}_{i}" for i in range(3)], source_rank)
@@ -172,6 +174,8 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         self.assertEqual(broadcast_int_list, [source_rank, -source_rank])
         self.assertEqual(broadcast_double_list, [2.0*source_rank, -2.0*source_rank])
         self.assertEqual(broadcast_string_list, [f"{source_rank}_{i}" for i in range(3)])
+        self.assertVectorAlmostEqual(broadcast_vector, Kratos.Vector(3, source_rank + 1), 12)
+        self.assertMatrixAlmostEqual(broadcast_matrix, Kratos.Matrix(3, 3, source_rank + 1), 12)
 
     def testScatterOperations(self):
         source_rank = self.size-1
