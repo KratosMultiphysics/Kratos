@@ -1345,7 +1345,7 @@ protected:
 
             // First adding the pure slave dofs
             if (num_active_slave_indices > 0) {
-                const int ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_slave_indices, temp_primary.data());
+                int ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_slave_indices, temp_primary.data());
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 // Now adding cross master-slave dofs
                 if (num_active_master_indices > 0) {
