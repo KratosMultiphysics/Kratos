@@ -439,6 +439,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     CalculateAll( MatrixType& rLeftHandSideMatrix,
                   VectorType& rRightHandSideVector,
                   const ProcessInfo& CurrentProcessInfo,
+                  const ProcessInfo& rCurrentProcessInfo,
                   const bool CalculateStiffnessMatrixFlag,
                   const bool CalculateResidualVectorFlag)
 {
