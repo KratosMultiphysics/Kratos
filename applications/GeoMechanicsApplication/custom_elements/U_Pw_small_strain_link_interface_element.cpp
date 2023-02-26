@@ -425,9 +425,9 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                                           GPoint );
        
         //send the retention variables to constitutive model
-            mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation,rCurrentProcessInfo);
-            mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation,rCurrentProcessInfo);
-            mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction,rCurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation,CurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation,CurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction,CurrentProcessInfo);
        
        
        
