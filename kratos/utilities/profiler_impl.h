@@ -25,8 +25,15 @@ namespace Kratos::Internals {
 
 template <class T>
 Profiler<T>::Scope::Scope(Profiler::Item& rItem)
+    : Scope(rItem, Clock::now())
+{
+}
+
+
+template <class T>
+Profiler<T>::Scope::Scope(Profiler::Item& rItem, std::chrono::high_resolution_clock::time_point Begin)
     : mrItem(rItem),
-      mBegin(Clock::now())
+      mBegin(Begin)
 {
     ++mrItem.mCallCount;
     ++mrItem.mRecursionLevel;
@@ -36,8 +43,12 @@ Profiler<T>::Scope::Scope(Profiler::Item& rItem)
 template <class T>
 Profiler<T>::Scope::~Scope()
 {
-    if (!--mrItem.mRecursionLevel)
-        mrItem.mTime += std::chrono::duration_cast<Profiler::TimeUnit>(Clock::now() - mBegin);
+    if (!--mrItem.mRecursionLevel) {
+        const auto duration = std::chrono::duration_cast<Profiler::TimeUnit>(Clock::now() - mBegin);
+        mrItem.mCumulative += duration;
+        mrItem.mMin = std::min(mrItem.mMin, duration);
+        mrItem.mMax = std::max(mrItem.mMax, duration);
+    }
 }
 
 

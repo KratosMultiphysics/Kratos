@@ -45,6 +45,12 @@ private:
         Item(CodeLocation&& rLocation);
 
     private:
+        Item(std::size_t CallCount,
+             Duration CumulativeDuration,
+             Duration MinDuration,
+             Duration MaxDuration,
+             CodeLocation&& rLocation);
+
         Item& operator+=(const Item& rOther);
 
     private:
@@ -54,10 +60,33 @@ private:
 
         std::size_t mCallCount;
 
-        Duration mTime;
+        Duration mCumulative;
+
+        Duration mMin;
+
+        Duration mMax;
 
         CodeLocation mLocation;
     }; // class Item
+
+    struct SourceLocationHash
+    {
+        std::size_t operator()(const CodeLocation& r_argument) const
+        {
+            std::string string(r_argument.GetFileName());
+            string.append(std::to_string(r_argument.GetLineNumber()));
+            return std::hash<std::string>()(string);
+        }
+    };
+
+    struct SourceLocationEquality
+    {
+        bool operator()(const CodeLocation& r_lhs,
+                        const CodeLocation& r_rhs) const
+        {
+            return (std::string(r_lhs.GetFileName()) == std::string(r_rhs.GetFileName())) && (r_lhs.GetLineNumber() == r_rhs.GetLineNumber());
+        }
+    };
 
 public:
     /// @brief RAII wrapper for updating an @ref Item.
@@ -67,7 +96,9 @@ public:
         ~Scope();
 
     private:
-        Scope(Item& r_item);
+        Scope(Item& rItem);
+
+        Scope(Item& rItem, std::chrono::high_resolution_clock::time_point Begin);
 
         Scope(Scope&&) = delete;
 
@@ -88,6 +119,13 @@ public:
         const std::chrono::high_resolution_clock::time_point mBegin;
     }; // class Scope
 
+    using ItemMap = std::unordered_map<
+        CodeLocation,
+        Item,
+        SourceLocationHash,
+        SourceLocationEquality
+    >;
+
 public:
     Profiler();
 
@@ -102,6 +140,11 @@ public:
     [[nodiscard]] Item& Create(CodeLocation&& rItem);
 
     [[nodiscard]] Scope Profile(Item& rItem);
+
+    /// @brief Collect results from all threads into a single map.
+    ItemMap Aggregate() const;
+
+    void Write(std::ostream& rStream) const;
 
 private:
     Profiler(const Profiler&) = delete;
@@ -125,12 +168,19 @@ private:
      */
     std::unordered_map<std::thread::id,std::list<Item>> mItemContainerMap;
 
+    /// @brief @ref Item for measuring the total lifetime of the @ref Profiler.
+    Item mItem;
+
     /// @brief @ref Scope measuring the total lifetime of the @ref Profiler.
     std::unique_ptr<Scope> mpScope;
 
     /// @brief Path to the output file to write the results to upon destruction.
     std::filesystem::path mOutputPath;
 }; // class Profiler
+
+
+template <class T>
+std::ostream& operator<<(std::ostream& rStream, const Profiler<T>& rProfiler);
 
 
 template <class TTimeUnit>
@@ -150,9 +200,9 @@ private:
 
 
 #if defined(KRATOS_ENABLE_PROFILING)
-    #define KRATOS_DEFINE_SCOPE_PROFILER(KRATOS_TIME_UNIT, CODE_LOCATION)                                                           \
+    #define KRATOS_DEFINE_SCOPE_PROFILER(KRATOS_TIME_UNIT, CODE_LOCATION)                                                     \
         thread_local static auto& KRATOS_STATIC_PROFILER_REF = Kratos::Internals::ProfilerSingleton<KRATOS_TIME_UNIT>::Get(); \
-        thread_local static auto& KRATOS_SCOPE_PROFILED_ITEM = KRATOS_STATIC_PROFILER_REF.Create(CODE_LOCATION);                                    \
+        thread_local static auto& KRATOS_SCOPE_PROFILED_ITEM = KRATOS_STATIC_PROFILER_REF.Create(CODE_LOCATION);              \
         const auto KRATOS_SCOPE_PROFILER = KRATOS_STATIC_PROFILER_REF.Profile(KRATOS_SCOPE_PROFILED_ITEM)
 
     #define KRATOS_PROFILE_SCOPE_MILLI(CODE_LOCATION) KRATOS_DEFINE_SCOPE_PROFILER(std::chrono::milliseconds, CODE_LOCATION)

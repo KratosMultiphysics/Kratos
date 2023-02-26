@@ -1,4 +1,5 @@
 // --- Core Includes ---
+#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/profiler.h"
 
@@ -18,20 +19,39 @@ namespace Kratos::Internals {
 
 
 template <class T>
-Profiler<T>::Item::Item(CodeLocation&& r_location)
-    : mRecursionLevel(0),
-      mCallCount(0),
-      mTime(0),
-      mLocation(std::move(r_location))
+Profiler<T>::Item::Item(CodeLocation&& rLocation)
+    : Item(0,
+           Duration(0),
+           Duration(0),
+           Duration(0),
+           std::move(rLocation))
 {
 }
 
 
 template <class T>
-typename Profiler<T>::Item& Profiler<T>::Item::operator+=(const Item& r_rhs)
+Profiler<T>::Item::Item(std::size_t CallCount,
+                        Duration CumulativeDuration,
+                        Duration MinDuration,
+                        Duration MaxDuration,
+                        CodeLocation&& rLocation)
+    : mRecursionLevel(0),
+      mCallCount(CallCount),
+      mCumulative(CumulativeDuration),
+      mMin(MinDuration),
+      mMax(MaxDuration),
+      mLocation(std::move(rLocation))
 {
-    mCallCount += r_rhs.mCallCount;
-    mTime += r_rhs.mTime;
+}
+
+
+template <class T>
+typename Profiler<T>::Item& Profiler<T>::Item::operator+=(const Item& rOther)
+{
+    mCallCount += rOther.mCallCount;
+    mCumulative += rOther.mCumulative;
+    mMin = std::min(mMin, rOther.mMin);
+    mMax = std::max(mMax, rOther.mMax);
     return *this;
 }
 
@@ -46,6 +66,7 @@ Profiler<T>::Profiler()
 template <class T>
 Profiler<T>::Profiler(std::filesystem::path&& r_outputPath)
     : mItemContainerMap(),
+      mItem(KRATOS_CODE_LOCATION),
       mpScope(),
       mOutputPath(std::move(r_outputPath))
 {
@@ -65,9 +86,8 @@ Profiler<T>::Profiler(std::filesystem::path&& r_outputPath)
         r_thread.join();
     threads.clear();
 
-    // Insert first item measuring the total runtime
-    auto& r_item = this->Create(CodeLocation());
-    mpScope.reset(new Scope(r_item)); // <== no, this doesn't immediately become a dangling reference
+    // Measure the total lifetime of the profiler
+    mpScope.reset(new Scope(mItem));
 }
 
 
@@ -78,27 +98,6 @@ typename Profiler<T>::Item& Profiler<T>::Create(CodeLocation&& r_item)
     r_list.emplace_back(std::move(r_item));
     return r_list.back();
 }
-
-
-struct SourceLocationHash
-{
-    std::size_t operator()(const CodeLocation& r_argument) const
-    {
-        std::string string(r_argument.GetFileName());
-        string.append(std::to_string(r_argument.GetLineNumber()));
-        return std::hash<std::string>()(string);
-    }
-};
-
-
-struct SourceLocationEquals
-{
-    bool operator()(const CodeLocation& r_lhs,
-                    const CodeLocation& r_rhs) const
-    {
-        return (std::string(r_lhs.GetFileName()) == std::string(r_rhs.GetFileName())) && (r_lhs.GetLineNumber() == r_rhs.GetLineNumber());
-    }
-};
 
 
 namespace {
@@ -130,75 +129,111 @@ std::string GetTimeUnit<std::chrono::nanoseconds>()
 
 
 template <class T>
-Profiler<T>::~Profiler()
+typename Profiler<T>::ItemMap Profiler<T>::Aggregate() const
 {
-    // Stop the total timer
-    mpScope.reset();
-    const auto totalTime = mItemContainerMap[std::this_thread::get_id()].front().mTime;
-    mItemContainerMap[std::this_thread::get_id()].pop_front();
+    KRATOS_TRY
 
-    std::unordered_map<
-        CodeLocation,
-        Item,
-        SourceLocationHash,
-        SourceLocationEquals
-    > aggregateMap;
-
-    // Combine maps from all threads
-    for (const auto& r_threadMapPair : mItemContainerMap)
-    {
-        for (const auto& r_item : r_threadMapPair.second)
-        {
-            auto it = aggregateMap.find(r_item.mLocation);
-            if (it == aggregateMap.end())
-                it = aggregateMap.emplace(r_item.mLocation, r_item).first;
-            else
+    // Aggregate maps from all threads
+    ItemMap output;
+    for (const auto& r_threadMapPair : mItemContainerMap) {
+        for (const auto& r_item : r_threadMapPair.second) {
+            auto it = output.find(r_item.mLocation);
+            if (it == output.end()) {
+                it = output.emplace(r_item.mLocation, r_item).first;
+            } else {
                 it->second += r_item;
+            }
         } // for item in vector
     } // for (location, vector) in map
 
+    return output;
+
+    KRATOS_CATCH("")
+}
+
+
+template <class T>
+void Profiler<T>::Write(std::ostream& rStream) const
+{
+    KRATOS_TRY
+
+    // Time the profiler's scope without changing its state
+    Item profiler_item(this->mItem);
+    --profiler_item.mCallCount;
+    --profiler_item.mRecursionLevel;
+    {Scope(profiler_item, this->mpScope->mBegin);} // Force update the copied item
+
+    auto aggregate_map = this->Aggregate();
+
     // Sort items based on their total duration
     using Numeric = typename Duration::rep;
-    std::vector<std::tuple<CodeLocation,std::size_t,Numeric>> items;
-    items.reserve(aggregateMap.size());
-    for (const auto& r_pair : aggregateMap)
-        items.emplace_back(r_pair.first, r_pair.second.mCallCount, r_pair.second.mTime.count());
+    std::vector<const Item*> items;
+    items.reserve(aggregate_map.size());
+    for (const auto& r_pair : aggregate_map) {
+        items.push_back(&r_pair.second);
+    }
+
     std::sort(items.begin(),
               items.end(),
-              [](const auto& r_lhs, const auto& r_rhs)
-                {return std::get<Numeric>(r_lhs) < std::get<Numeric>(r_rhs);});
+              [](const auto& rpLeft, const auto& rpRight)
+                {return rpLeft->mCumulative < rpRight->mCumulative;});
 
+
+    // Start with metadata
     Parameters root;
-
-    // Add metadata
     {
         Parameters object;
         object.AddString("name", "total");
         object.AddString("timeUnit", GetTimeUnit<T>());
-        object.AddInt("time", totalTime.count());
+        object.AddInt("total", profiler_item.mCumulative.count());
         root.AddValue("meta", std::move(object));
     }
 
     // Add all items
     root.AddEmptyArray("results");
     Parameters results = root["results"];
-    for (const auto& r_item : items)
-    {
+    for (const typename Profiler<T>::Item* p_item : items) {
         Parameters result;
-        const auto& r_location = std::get<0>(r_item);
+        const auto& r_location = p_item->mLocation;
         result.AddString("file", std::string(r_location.GetFileName()));
         result.AddInt("line", int(r_location.GetLineNumber()));
-        result.AddString("function", std::string(std::get<0>(r_item).GetFunctionName()));
-        result.AddInt("callCount", std::get<1>(r_item));
+        result.AddString("function", std::string(r_location.GetFunctionName()));
+        result.AddInt("callCount", p_item->mCallCount);
 
         std::stringstream stream;
-        stream << std::get<2>(r_item);
-        result.AddString("time", stream.str());
+        stream << std::chrono::duration_cast<TimeUnit>(p_item->mCumulative).count();
+        result.AddString("total", stream.str());
+
+        stream.str("");
+        stream << std::chrono::duration_cast<TimeUnit>(p_item->mMin).count();
+        result.AddString("min", stream.str());
+
+        stream.str("");
+        stream << std::chrono::duration_cast<TimeUnit>(p_item->mMax).count();
+        result.AddString("max", stream.str());
+
         results.Append(result);
     }
 
+    rStream << root.PrettyPrintJsonString() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+
+template <class T>
+std::ostream& operator<<(std::ostream& rStream, const Profiler<T>& rProfiler)
+{
+    rProfiler.Write(rStream);
+    return rStream;
+}
+
+
+template <class T>
+Profiler<T>::~Profiler()
+{
     std::ofstream file(mOutputPath);
-    file << root.WriteJsonString() << std::endl;
+    file << *this;
 }
 
 
@@ -223,14 +258,17 @@ std::mutex ProfilerSingleton<T>::mMutex;
 
 template class Profiler<std::chrono::milliseconds>;
 template class ProfilerSingleton<std::chrono::milliseconds>;
+template std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::milliseconds>&);
 
 
 template class Profiler<std::chrono::microseconds>;
 template class ProfilerSingleton<std::chrono::microseconds>;
+template std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::microseconds>&);
 
 
 template class Profiler<std::chrono::nanoseconds>;
 template class ProfilerSingleton<std::chrono::nanoseconds>;
+template std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::nanoseconds>&);
 
 
 } // namespace cie::utils
