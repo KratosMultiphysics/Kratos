@@ -166,7 +166,6 @@ void Profiler<T>::Write(std::ostream& rStream) const
     auto aggregate_map = this->Aggregate();
 
     // Sort items based on their total duration
-    using Numeric = typename Duration::rep;
     std::vector<const Item*> items;
     items.reserve(aggregate_map.size());
     for (const auto& r_pair : aggregate_map) {
