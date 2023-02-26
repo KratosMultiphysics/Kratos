@@ -534,7 +534,7 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         BondedLocalElasticContactForce[0] -= kt_el * mAccumulatedBondedTangentialLocalDisplacement[0]; // 0: first tangential
         BondedLocalElasticContactForce[1] -= kt_el * mAccumulatedBondedTangentialLocalDisplacement[1]; // 1: second tangential
     } else {
-        //TODO: maybe a friction force due to the break bond should be added here
+        //TODO: maybe a friction force due to the broekn bond should be added here
         BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
         BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
     }
