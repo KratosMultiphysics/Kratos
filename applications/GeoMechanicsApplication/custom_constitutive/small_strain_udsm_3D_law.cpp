@@ -1351,6 +1351,17 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<Vector>& rThisVariable,
       mIncrementOfSuction[1] = rValue[1];
 
    }
+    else {
+  // the existing function, i.e.
+   const int index = GetStateVariableIndex(rThisVariable);
+
+   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                        << "GetValue: Variable: "
+                        << rThisVariable
+                        << " does not exist in UDSM. Requested index: " << index << std::endl;
+
+   mStateVariablesFinalized[index] = rValue;
+}
    
    // KRATOS_INFO("12-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
 

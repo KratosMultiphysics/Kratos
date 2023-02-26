@@ -254,6 +254,13 @@ protected:
                                                     Matrix& DN_DX,
                                                     const IndexType& PointNumber) const;
 
+   void CalculateRetentionResponse( ElementVariables &rVariables,
+                                     RetentionLaw::Parameters &rRetentionParameters,
+                                     const unsigned int &GPoint );
+   
+   
+   
+   
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
@@ -316,9 +323,7 @@ protected:
     void SetRetentionParameters(const ElementVariables& rVariables,
                                 RetentionLaw::Parameters& rRetentionParameters);
 
-    void CalculateRetentionResponse( ElementVariables &rVariables,
-                                     RetentionLaw::Parameters &rRetentionParameters,
-                                     const unsigned int &GPoint );
+    
 
     void CalculateSoilDensity(ElementVariables &rVariables);
 

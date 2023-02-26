@@ -49,9 +49,10 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
     using BaseType::mRetentionLawVector;
+    using BaseType::CalculateRetentionResponse;
     using BaseType::mConstitutiveLawVector;
     using BaseType::mIsInitialised;
-    using BaseType::CalculateRetentionResponse;
+    
 
     typedef typename BaseType::ElementVariables ElementVariables;
 

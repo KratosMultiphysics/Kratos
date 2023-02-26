@@ -420,6 +420,18 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                                                                   Variables.JointWidth,
                                                                   GPoint);
 
+        this->CalculateRetentionResponse( Variables,
+                                          RetentionParameters,
+                                          GPoint );
+       
+        //send the retention variables to constitutive model
+            mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation,rCurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation,rCurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction,rCurrentProcessInfo);
+       
+       
+       
+       
         //Compute BodyAcceleration and Permeability Matrix
         GeoElementUtilities::
             InterpolateVariableWithComponents<TDim, TNumNodes>( Variables.BodyAcceleration,
@@ -434,9 +446,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-        this->CalculateRetentionResponse( Variables,
-                                          RetentionParameters,
-                                          GPoint );
+       
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 

@@ -508,7 +508,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.save("InitializedModel",           mIsModelInitialized);
          rSerializer.save("Attributes",                 mAttributes);
          rSerializer.save("StressVectorFinalized",      mStressVectorFinalized);
-         rSerializer.save("StrainVectorFinalized",      mStrainVectorFinalized);
+         rSerializer.save("StressAndUnsatVector",       mStressAndUnsatVector);
          rSerializer.save("StateVariablesFinalized",    mStateVariablesFinalized);
          rSerializer.save("DegreeOfSaturaion",          mDegreeOfSaturaion);
          rSerializer.save("DerivativeOfSaturation",     mDerivativeOfSaturation);
@@ -521,7 +521,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.load("InitializedModel",           mIsModelInitialized);
          rSerializer.load("Attributes",                 mAttributes);
          rSerializer.load("StressVectorFinalized",      mStressVectorFinalized);
-         rSerializer.load("StrainVectorFinalized",      mStrainVectorFinalized);
+         rSerializer.load("StressAndUnsatVector",       mStressAndUnsatVector);
          rSerializer.load("StateVariablesFinalized",    mStateVariablesFinalized);
          rSerializer.load("DegreeOfSaturaion",          mDegreeOfSaturaion);
          rSerializer.load("DerivativeOfSaturation",     mDerivativeOfSaturation);

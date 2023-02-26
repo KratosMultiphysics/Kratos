@@ -87,6 +87,18 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         // In some references, e.g. Bathe, suggested to use Almansi strain measure
         this->CalculateStrain(Variables, GPoint);
 
+
+         this->CalculateRetentionResponse( Variables,
+                                          RetentionParameters,
+                                          GPoint );
+       
+        //send the retention variables to constitutive model
+            mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation,rCurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation,rCurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction,rCurrentProcessInfo);
+       
+
+
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
@@ -106,7 +118,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+       
 
         // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);

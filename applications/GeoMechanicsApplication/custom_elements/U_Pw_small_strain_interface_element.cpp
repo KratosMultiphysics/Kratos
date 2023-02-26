@@ -1355,15 +1355,26 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                                            Variables.JointWidth,
                                                            TransversalPermeability );
 
+          CalculateRetentionResponse( Variables,
+                                    RetentionParameters,
+                                    GPoint );
+       
+       //send the retention variables to constitutive model
+            mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation,rCurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation,rCurrentProcessInfo);
+            mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction,rCurrentProcessInfo);
+       
+       
+       
+       
+       
         //Compute constitutive tensor and stresses
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         ModifyInactiveElementStress(Variables.JointWidth, mStressVector[GPoint]);
 
-        CalculateRetentionResponse( Variables,
-                                    RetentionParameters,
-                                    GPoint );
+        
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 

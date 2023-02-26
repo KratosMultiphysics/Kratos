@@ -231,6 +231,11 @@ protected:
     virtual void InitializeElementVariables( ElementVariables &rVariables,
                                              const ProcessInfo &CurrentProcessInfo );
 
+
+     void CalculateRetentionResponse( ElementVariables &rVariables,
+                                     RetentionLaw::Parameters &rRetentionParameters,
+                                     const unsigned int &GPoint );                                        
+
     void SetConstitutiveParameters(ElementVariables &rVariables,
                                    ConstitutiveLaw::Parameters &rConstitutiveParameters);
 
@@ -318,9 +323,7 @@ protected:
     void InitializeProperties( ElementVariables &rVariables );
     double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
 
-    void CalculateRetentionResponse( ElementVariables &rVariables,
-                                     RetentionLaw::Parameters &rRetentionParameters,
-                                     const unsigned int &GPoint );
+    
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &rExtrapolationMatrix);
 
