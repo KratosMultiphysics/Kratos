@@ -151,9 +151,9 @@ private:
 
 #if defined(KRATOS_ENABLE_PROFILING)
     #define KRATOS_DEFINE_SCOPE_PROFILER(KRATOS_TIME_UNIT, CODE_LOCATION)                                                           \
-        thread_local static auto& KRATOS_SCOPE_PROFILED_ITEM =                                                                      \
-            Kratos::Internals::ProfilerSingleton<KRATOS_TIME_UNIT>::Get().Create(CODE_LOCATION);                                    \
-        const auto KRATOS_SCOPE_PROFILER = Kratos::Internals::ProfilerSingleton<KRATOS_TIME_UNIT>::Get().Profile(KRATOS_SCOPE_PROFILED_ITEM)
+        thread_local static auto& KRATOS_STATIC_PROFILER_REF = Kratos::Internals::ProfilerSingleton<KRATOS_TIME_UNIT>::Get(); \
+        thread_local static auto& KRATOS_SCOPE_PROFILED_ITEM = KRATOS_STATIC_PROFILER_REF.Create(CODE_LOCATION);                                    \
+        const auto KRATOS_SCOPE_PROFILER = KRATOS_STATIC_PROFILER_REF.Profile(KRATOS_SCOPE_PROFILED_ITEM)
 
     #define KRATOS_PROFILE_SCOPE_MILLI(CODE_LOCATION) KRATOS_DEFINE_SCOPE_PROFILER(std::chrono::milliseconds, CODE_LOCATION)
 
