@@ -76,7 +76,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override {
+    std::string Info() const override {
         return "SetParameterFieldProcess";
     }
 
