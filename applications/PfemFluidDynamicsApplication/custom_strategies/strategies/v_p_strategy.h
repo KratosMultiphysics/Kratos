@@ -698,10 +698,8 @@ namespace Kratos
           long double eleErrorL2VelocityY = 0;
           long double eleErrorL2Pressure = 0;
 
-          // ShapeFunctionDerivativesArrayType DN_DX;
           Matrix NContainer;
           NContainer = geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
-          // this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
           const Vector &N = row(NContainer, 0);
           //  itElem->EvaluateInPoint(elementalPressure,PRESSURE,N);
