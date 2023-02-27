@@ -45,7 +45,7 @@ public:
         mpTable = model_part.pGetTable(TableId);
         mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ public:
                         rNode.FastGetSolutionStepValue(var) = pressure;
                         if (mIsFixed) rNode.Fix(var);
                     } else {
-                        rNode.Free(var);
+                        if (mIsFixedProvided) rNode.Free(var);
                     }
                 });
             } else {

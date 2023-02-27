@@ -64,7 +64,7 @@ def interpolate(baseData, xValue):
 
 def getTimesDisplacement(node):
     timeDisplacement =[]
-    with open(os.path.join('.', "mesh1_0.post.res"), 'r') as fo:
+    with open(os.path.join('.', "mesh1.post.res"), 'r') as fo:
         for line in fo:
             if line.startswith('Result "DISPLACEMENT" "Kratos"'):
                 time = float(line.split()[3])

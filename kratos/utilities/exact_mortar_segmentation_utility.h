@@ -530,7 +530,7 @@ protected:
     {
 //         const double tolerance = std::numeric_limits<double>::epsilon(); // NOTE: Giving some problems, too tight
         const double tolerance = 1.0e-15;
-        return (norm_2(rPointDest.Coordinates() - rPointOrig.Coordinates()) < tolerance) ? true : false;
+        return rPointDest.Distance(rPointOrig) < tolerance;
     }
 
     /**

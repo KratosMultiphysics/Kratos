@@ -432,9 +432,7 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -476,7 +474,7 @@ private:
     void RegisterThisVariable(){
         std::string variable_path = "variables.all." + Name();
         if(!Registry::HasItem(variable_path)){
-            Registry::AddItem<RegistryValueItem<VariableType>>(variable_path, *this);
+            Registry::AddItem<VariableType>(variable_path, *this);
         }
     }
 

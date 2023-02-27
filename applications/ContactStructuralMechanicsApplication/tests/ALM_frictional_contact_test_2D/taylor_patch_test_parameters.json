@@ -49,7 +49,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_fixed_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -61,7 +60,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_rolling_support_y",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
@@ -73,7 +71,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_rolling_support_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
@@ -87,7 +84,6 @@
             "check"                 : "DirectorVectorNonZero direction",
             "process_name"          : "ApplyVectorOnConditionsProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : "4.0e6 * t",
@@ -99,7 +95,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"          : "AssignScalarVariableToConditionsProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD_Y",
                 "value"           : -4.0e6,
@@ -110,7 +105,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"          : "AssignScalarVariableToConditionsProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD_X",
                 "value"           : "2.0e4 + 2.0e5 * (t - 1.0)",

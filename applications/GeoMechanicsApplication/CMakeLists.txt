@@ -27,7 +27,8 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp	
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp		
 )
 
 ## GeoMechanics testing sources
@@ -99,10 +100,3 @@ install(TARGETS KratosGeoMechanicsApplication DESTINATION libs )
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosGeoMechanicsCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosGeoMechanicsApplication" PARENT_SCOPE)
-
-project(KratosGeoFlow)
-set(KratosGeoFlowSources ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/GeoFlow.cpp ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/GeoFlow.h)
-add_executable(KratosGeoFlow ${KratosGeoFlowSources})
-target_link_libraries(KratosGeoFlow PUBLIC KratosCore KratosGeoMechanicsCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
-set_target_properties(KratosGeoFlow PROPERTIES LINKER_LANGUAGE CXX)
-install(TARGETS KratosGeoFlow DESTINATION libs)

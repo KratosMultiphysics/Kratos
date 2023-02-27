@@ -245,7 +245,7 @@ public:
 
         // Check that the base model part is conformed by simplex elements
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
-        const unsigned int dim = r_aux_geom.Dimension();
+        const unsigned int dim = r_aux_geom.WorkingSpaceDimension();
         if(dim == 2){
             KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle." << std::endl;
@@ -253,7 +253,7 @@ public:
             KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedron" << std::endl;
         } else {
-            KRATOS_ERROR << "Wrong geometry Dimension(). Expected 2 or 3 and obtained: " << dim;
+            KRATOS_ERROR << "Wrong geometry WorkingSpaceDimension(). Expected 2 or 3 and obtained: " << dim;
         }
 
         // Construct the linear solver pointer
@@ -555,7 +555,7 @@ protected:
                                 for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
                                     i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable, mBufferPosition) * int_obj_N[i_node];
                                 }
-                                i_edge_d += norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
+                                i_edge_d += intersection_point.Distance(r_i_edge_geom[0]) / r_i_edge_geom.Length();
                             }
                         }
 

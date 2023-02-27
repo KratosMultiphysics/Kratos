@@ -77,6 +77,7 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
 /* CONDITIONS */
@@ -91,6 +92,7 @@
 #include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
 #include "custom_conditions/displacement_control_condition.h"
+#include "custom_conditions/moving_load_condition.h"
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
@@ -309,6 +311,8 @@ private:
     const SmallDisplacement mSmallDisplacement2D6N;
     const SmallDisplacement mSmallDisplacement2D8N;
     const SmallDisplacement mSmallDisplacement2D9N;
+    const SmallDisplacement mSmallDisplacement2D10N;
+    const SmallDisplacement mSmallDisplacement2D15N;
     const SmallDisplacement mSmallDisplacement3D4N;
     const SmallDisplacement mSmallDisplacement3D5N;
     const SmallDisplacement mSmallDisplacement3D6N;
@@ -326,6 +330,9 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
+    const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
 
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D3N;
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D4N;
@@ -352,6 +359,8 @@ private:
     const TotalLagrangian mTotalLagrangian2D6N;
     const TotalLagrangian mTotalLagrangian2D8N;
     const TotalLagrangian mTotalLagrangian2D9N;
+    const TotalLagrangian mTotalLagrangian2D10N;
+    const TotalLagrangian mTotalLagrangian2D15N;
     const TotalLagrangian mTotalLagrangian3D4N;
     const TotalLagrangian mTotalLagrangian3D5N;
     const TotalLagrangian mTotalLagrangian3D6N;
@@ -374,6 +383,8 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian2D6N;
     const UpdatedLagrangian mUpdatedLagrangian2D8N;
     const UpdatedLagrangian mUpdatedLagrangian2D9N;
+    const UpdatedLagrangian mUpdatedLagrangian2D10N;
+    const UpdatedLagrangian mUpdatedLagrangian2D15N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
     const UpdatedLagrangian mUpdatedLagrangian3D5N;
     const UpdatedLagrangian mUpdatedLagrangian3D6N;
@@ -420,11 +431,15 @@ private:
     // Line load
     const LineLoadCondition<2> mLineLoadCondition2D2N;
     const LineLoadCondition<2> mLineLoadCondition2D3N;
+    const LineLoadCondition<2> mLineLoadCondition2D4N;
+    const LineLoadCondition<2> mLineLoadCondition2D5N;
     const LineLoadCondition<3> mLineLoadCondition3D2N;
     const LineLoadCondition<3> mLineLoadCondition3D3N;
 
     const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D2N;
     const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D3N;
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D4N;
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D5N;
     const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D2N;
     const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D3N;
 
@@ -459,6 +474,12 @@ private:
 
     // Displacement-Control Conditions
     const DisplacementControlCondition mDisplacementControlCondition3D1N;
+
+    // Moving load
+    const MovingLoadCondition<2,2> mMovingLoadCondition2D2N;
+    const MovingLoadCondition<2, 3> mMovingLoadCondition2D3N;
+    const MovingLoadCondition<3, 2> mMovingLoadCondition3D2N;
+    const MovingLoadCondition<3, 3> mMovingLoadCondition3D3N;
 
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws

@@ -55,7 +55,7 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         # get name of output file
         _, output_file_name = os.path.split(file_path)
-        output_file_name = os.path.splitext(output_file_name)[0] + "_0.post.res"
+        output_file_name = os.path.splitext(output_file_name)[0] + ".post.res"
         output_file_path = os.path.join(file_path,output_file_name)
 
         # clear old results
