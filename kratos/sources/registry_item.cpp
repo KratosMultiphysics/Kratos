@@ -85,7 +85,7 @@ namespace Kratos
 
     std::string RegistryItem::GetValueString() const
     {
-        return mpValue.type().name();
+        return (this->*(this->mGetValueStringMethod))();
     }
 
     std::string RegistryItem::ToJson(std::string const& rTabSpacing, const std::size_t Level) const

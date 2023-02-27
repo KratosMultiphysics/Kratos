@@ -145,19 +145,33 @@ public:
 
     /// Constructor with the name
     RegistryItem(const std::string& rName)
-        : mName(rName), mpValue(Kratos::make_shared<SubRegistryItemType>()) {}
+        : mName(rName),
+          mpValue(Kratos::make_shared<SubRegistryItemType>()),
+          mGetValueStringMethod(&RegistryItem::GetRegistryItemType) {}
 
     /// Constructor with the name and value
+    template<class TItemType>
     RegistryItem(
         const std::string&  rName,
-        std::any pValue)
-        : mName(rName), mpValue(pValue) {}
+        const TItemType& rValue)
+        : mName(rName),
+          mpValue(Kratos::make_shared<TItemType>(rValue)),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
+
+    /// Constructor with the name and shared ptr
+    template<class TItemType>
+    RegistryItem(
+        const std::string&  rName,
+        const shared_ptr<TItemType>& pValue)
+        : mName(rName),
+          mpValue(pValue),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
 
     // Copy constructor deleted
     RegistryItem(RegistryItem const& rOther) = delete;
 
     /// Destructor.
-    virtual ~RegistryItem() = default;
+    ~RegistryItem() = default;
 
     /// Assignment operator deleted.
     RegistryItem& operator=(RegistryItem& rOther) = delete;
@@ -242,17 +256,17 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
-    virtual std::string ToJson(std::string const& rTabSpacing = "", const std::size_t Level = 0) const;
+    std::string ToJson(std::string const& rTabSpacing = "", const std::size_t Level = 0) const;
 
-    virtual std::string GetValueString() const;
+    std::string GetValueString() const;
 
     ///@}
 private:
@@ -262,16 +276,28 @@ private:
     std::string mName;
     std::any mpValue;
 
+    std::string (RegistryItem::*mGetValueStringMethod)() const;
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    std::string GetRegistryItemType() const
+    {
+        return mpValue.type().name();
+    }
+
+    template<class TItemType>
+    std::string GetItemString() const
+    {
+        std::stringstream buffer;
+        buffer << this->GetValue<TItemType>();
+        return buffer.str();
+    }
+
     ///@}
     ///@name Private classes
     ///@{
-
-    // This class is only a helper class to have the Json output
-    // with proper strings for each registry item. Therefore,
-    // this is hidden and not accessible from outside
-    // RegistryItem class
-    template<typename TItemType>
-    class RegistryValueItem;
 
     class SubRegistryItemFunctor
     {
@@ -294,7 +320,7 @@ private:
             std::string const& ItemName,
             TArgumentsList&&... Arguments)
         {
-            return Kratos::make_shared<RegistryValueItem<TItemType>>(ItemName, Kratos::make_shared<TItemType>(std::forward<TArgumentsList>(Arguments)...));
+            return Kratos::make_shared<RegistryItem>(ItemName, Kratos::make_shared<TItemType>(std::forward<TArgumentsList>(Arguments)...));
         }
 
     };
@@ -310,46 +336,6 @@ private:
     ///@}
 
 }; // Class RegistryItem
-
-// This class is only a helper class to have the Json output
-// with proper strings for each registry item. Therefore,
-// this is hidden and not accessible from outside
-// RegistryItem class
-template<typename TItemType>
-class RegistryItem::RegistryValueItem : public RegistryItem
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of RegistryValueItem
-    KRATOS_CLASS_POINTER_DEFINITION(RegistryValueItem);
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    RegistryValueItem(
-        std::string const& rName,
-        std::any pValue)
-        : RegistryItem(rName, pValue) {}
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    // Overrides to get the value string
-    // for JSON output.
-    std::string GetValueString() const override
-    {
-        std::stringstream buffer;
-        buffer << this->GetValue<TItemType>();
-        return buffer.str();
-    }
-
-    ///@}
-
-};
 
 ///@}
 ///@name Input and output
