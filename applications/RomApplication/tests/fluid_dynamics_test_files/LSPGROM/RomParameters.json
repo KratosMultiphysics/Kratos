@@ -1,4 +1,5 @@
 {
+    "rom_manager": false,
     "train_hrom": false,
     "run_hrom": false,
     "projection_strategy": "lspg",
