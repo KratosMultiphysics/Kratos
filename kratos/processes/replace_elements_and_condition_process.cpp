@@ -32,23 +32,24 @@ namespace {
  * @param rEntityContainer Container of elements susceptible to be replaces
  * @param rSetOfIds Set of entities ids we want to replace
  */
-template <class TEntity>
+template <class TContainer>
 void ReplaceEntities(
-    const TEntity& rReferenceEntity,
-    PointerVectorSet<TEntity, IndexedObject, std::less<typename IndexedObject::result_type>, std::equal_to<typename IndexedObject::result_type>, typename TEntity::Pointer, std::vector< typename TEntity::Pointer>>& rEntityContainer,
-    std::unordered_set<std::size_t>& rSetOfIds
+    const typename TContainer::value_type& rReferenceEntity,
+    TContainer& rEntityContainer,
+    const std::unordered_set<std::size_t>& rSetOfIds
     )
 {
     KRATOS_TRY;
 
     const auto& r_reference_geometry = rReferenceEntity.GetGeometry();
     const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-    IndexPartition<std::size_t>(rEntityContainer.size()).for_each([&](std::size_t Index){
+    IndexPartition<std::size_t>(rEntityContainer.size()).for_each([&rReferenceEntity, &rEntityContainer, &rSetOfIds, &r_reference_geometry, &r_reference_geometry_type](std::size_t Index){
         auto it_entity = rEntityContainer.begin() + Index;
-        if (rSetOfIds.find(it_entity->Id()) != rSetOfIds.end()) {
+        const std::size_t id = it_entity->Id();
+        if (rSetOfIds.find(id) != rSetOfIds.end()) {
             auto p_geometry = it_entity->pGetGeometry();
-            KRATOS_DEBUG_ERROR_IF_NOT(p_geometry->GetGeometryType() == r_reference_geometry_type) << "Trying to replace an element with a different geometry type. Reference entity " << r_reference_geometry.Info() << " vs  " << p_geometry->Info() << "\n Entity info: " << rReferenceEntity.Info() << std::endl;
-            auto p_new_entity = rReferenceEntity.Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());
+            KRATOS_DEBUG_ERROR_IF_NOT(p_geometry->GetGeometryType() == r_reference_geometry_type) << "Trying to replace an entity with a different geometry type. Reference entity " << r_reference_geometry.Info() << " vs  " << p_geometry->Info() << "\n Entity info: " << rReferenceEntity.Info() << std::endl;
+            auto p_new_entity = rReferenceEntity.Create(id, p_geometry, it_entity->pGetProperties());
             // Deep copy data and flags
             p_new_entity->Set(Flags(*it_entity));
 
@@ -65,34 +66,37 @@ void ReplaceEntities(
  * @param rEntityContainer Container of elements susceptible to be replaces
  * @param rSetOfIds Set of entities ids we want to replace
  */
-template <class TEntity>
+template <class TContainer>
 void ReplaceEntities(
     const Parameters ListReferenceEntity,
-    PointerVectorSet<TEntity, IndexedObject, std::less<typename IndexedObject::result_type>, std::equal_to<typename IndexedObject::result_type>, typename TEntity::Pointer, std::vector< typename TEntity::Pointer>>& rEntityContainer,
-    std::unordered_set<std::size_t>& rSetOfIds
+    TContainer& rEntityContainer,
+    const std::unordered_set<std::size_t>& rSetOfIds
     )
 {
     KRATOS_TRY;
 
-    typename TEntity::Pointer p_reference_entity = nullptr;
-    GeometryData::KratosGeometryType current_geometry_type = GeometryData::KratosGeometryType::Kratos_generic_type;
-    GeometryData::KratosGeometryType reference_geometry_type = GeometryData::KratosGeometryType::Kratos_generic_type;
-    IndexPartition<std::size_t>(rEntityContainer.size()).for_each([&](std::size_t Index){
+    struct TLS {
+        typename TContainer::value_type::Pointer p_reference_entity = nullptr;
+        GeometryData::KratosGeometryType current_geometry_type = GeometryData::KratosGeometryType::Kratos_generic_type;
+        GeometryData::KratosGeometryType reference_geometry_type = GeometryData::KratosGeometryType::Kratos_generic_type;
+    };
+    IndexPartition<std::size_t>(rEntityContainer.size()).for_each(TLS(), [&ListReferenceEntity, &rEntityContainer, &rSetOfIds](std::size_t Index, TLS& rTLS){
         auto it_entity = rEntityContainer.begin() + Index;
-        if (rSetOfIds.find(it_entity->Id()) != rSetOfIds.end()) {
+        const std::size_t id = it_entity->Id();
+        if (rSetOfIds.find(id) != rSetOfIds.end()) {
             auto p_geometry = it_entity->pGetGeometry();
             const auto& r_geometry_type = p_geometry->GetGeometryType();
             // Checking if geometry type is the same
-            if (r_geometry_type != current_geometry_type) {
-                const std::string& r_type = GeometryUtils::GetGeometryName(r_geometry_type);
-                KRATOS_ERROR_IF_NOT(ListReferenceEntity.Has(r_type)) << "Trying to replace an element with a different geometry type. No reference entity found for geometry type: " << r_type << "\nReference list: " << ListReferenceEntity << std::endl;
-                const auto& r_reference_entity = KratosComponents<TEntity>::Get(ListReferenceEntity[r_type].GetString());
-                p_reference_entity = r_reference_entity.Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());;
-                current_geometry_type = r_geometry_type;
-                reference_geometry_type = r_reference_entity.GetGeometry().GetGeometryType();
+            if (r_geometry_type != rTLS.current_geometry_type) {
+                const std::string& r_type = GetElementName(r_geometry_type);
+                KRATOS_ERROR_IF_NOT(ListReferenceEntity.Has(r_type)) << "Trying to replace an entity with a different geometry type. No reference entity found for geometry type: " << r_type << "\nReference list: " << ListReferenceEntity << std::endl;
+                const auto& r_reference_entity = KratosComponents<typename TContainer::value_type>::Get(ListReferenceEntity[r_type].GetString());
+                rTLS.p_reference_entity = r_reference_entity.Create(id, p_geometry, it_entity->pGetProperties());;
+                rTLS.current_geometry_type = r_geometry_type;
+                rTLS.reference_geometry_type = r_reference_entity.GetGeometry().GetGeometryType();
             }
-            KRATOS_DEBUG_ERROR_IF_NOT(r_geometry_type == reference_geometry_type) << "Trying to replace an element with a different geometry type. Reference entity " << p_reference_entity->GetGeometry().Info() << " vs  " << p_geometry->Info() << "\n Entity info: " << p_reference_entity->Info() << std::endl;
-            auto p_new_entity = p_reference_entity->Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());
+            KRATOS_DEBUG_ERROR_IF_NOT(r_geometry_type == rTLS.reference_geometry_type) << "Trying to replace an entity with a different geometry type. Reference entity " << rTLS.p_reference_entity->GetGeometry().Info() << " vs  " << p_geometry->Info() << "\n Entity info: " << rTLS.p_reference_entity->Info() << std::endl;
+            auto p_new_entity = rTLS.p_reference_entity->Create(id, p_geometry, it_entity->pGetProperties());
             // Deep copy data and flags
             p_new_entity->Set(Flags(*it_entity));
 
@@ -109,37 +113,40 @@ void ReplaceEntities(
  * @param rEntityContainer Container of elements susceptible to be replaces
  * @param rSetOfIds Set of entities ids we want to replace
  */
-template <class TEntity>
+template <class TContainer>
 void ReplaceEntities(
     const std::string& rName,
-    PointerVectorSet<TEntity, IndexedObject, std::less<typename IndexedObject::result_type>, std::equal_to<typename IndexedObject::result_type>, typename TEntity::Pointer, std::vector< typename TEntity::Pointer>>& rEntityContainer,
-    std::unordered_set<std::size_t>& rSetOfIds
+    TContainer& rEntityContainer,
+    const std::unordered_set<std::size_t>& rSetOfIds
     )
 {
     KRATOS_TRY;
 
-    typename TEntity::Pointer p_reference_entity = nullptr;
-    GeometryData::KratosGeometryType current_geometry_type = GeometryData::KratosGeometryType::Kratos_generic_type;
-    GeometryData::KratosGeometryType reference_geometry_type = GeometryData::KratosGeometryType::Kratos_generic_type;
-    IndexPartition<std::size_t>(rEntityContainer.size()).for_each([&](std::size_t Index){
+    struct TLS {
+        typename TContainer::value_type::Pointer p_reference_entity = nullptr;
+        GeometryData::KratosGeometryType current_geometry_type = GeometryData::KratosGeometryType::Kratos_generic_type;
+        GeometryData::KratosGeometryType reference_geometry_type = GeometryData::KratosGeometryType::Kratos_generic_type;
+    };
+    IndexPartition<std::size_t>(rEntityContainer.size()).for_each(TLS(), [&rName, &rEntityContainer, &rSetOfIds](std::size_t Index, TLS& rTLS){
         auto it_entity = rEntityContainer.begin() + Index;
-        if (rSetOfIds.find(it_entity->Id()) != rSetOfIds.end()) {
+        const std::size_t id = it_entity->Id();
+        if (rSetOfIds.find(id) != rSetOfIds.end()) {
             auto p_geometry = it_entity->pGetGeometry();
             const auto& r_geometry_type = p_geometry->GetGeometryType();
             // Checking if geometry type is the same
-            if (r_geometry_type != current_geometry_type) {
+            if (r_geometry_type != rTLS.current_geometry_type) {
                 const std::size_t dimension = p_geometry->WorkingSpaceDimension();
                 const std::size_t number_of_nodes = p_geometry->size();
                 const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(rName, "#D", std::to_string(dimension) + "D");
                 const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", std::to_string(number_of_nodes) + "N");
-                KRATOS_ERROR_IF_NOT(KratosComponents<TEntity>::Has(replace_number_of_nodes)) << "Entity not registered: " << replace_number_of_nodes << std::endl;
-                const auto& r_reference_entity = KratosComponents<TEntity>::Get(replace_number_of_nodes);
-                p_reference_entity = r_reference_entity.Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());;
-                current_geometry_type = r_geometry_type;
-                reference_geometry_type = r_reference_entity.GetGeometry().GetGeometryType();
+                KRATOS_ERROR_IF_NOT(KratosComponents<typename TContainer::value_type>::Has(replace_number_of_nodes)) << "Entity not registered: " << replace_number_of_nodes << std::endl;
+                const auto& r_reference_entity = KratosComponents<typename TContainer::value_type>::Get(replace_number_of_nodes);
+                rTLS.p_reference_entity = r_reference_entity.Create(id, p_geometry, it_entity->pGetProperties());;
+                rTLS.current_geometry_type = r_geometry_type;
+                rTLS.reference_geometry_type = r_reference_entity.GetGeometry().GetGeometryType();
             }
-            KRATOS_DEBUG_ERROR_IF_NOT(r_geometry_type == reference_geometry_type) << "Trying to replace an element with a different geometry type. Reference entity " << p_reference_entity->GetGeometry().Info() << " vs  " << p_geometry->Info() << "\n Entity info: " << p_reference_entity->Info() << std::endl;
-            auto p_new_entity = p_reference_entity->Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());
+            KRATOS_DEBUG_ERROR_IF_NOT(r_geometry_type == rTLS.reference_geometry_type) << "Trying to replace an entity with a different geometry type. Reference entity " << rTLS.p_reference_entity->GetGeometry().Info() << " vs  " << p_geometry->Info() << "\n Entity info: " << rTLS.p_reference_entity->Info() << std::endl;
+            auto p_new_entity = rTLS.p_reference_entity->Create(it_entity->Id(), p_geometry, it_entity->pGetProperties());
             // Deep copy data and flags
             p_new_entity->Set(Flags(*it_entity));
 
@@ -308,10 +315,10 @@ void ReplaceElementsAndConditionsProcess::Execute()
             const std::string& r_element_name = mSettings["element_name"].GetString();
             ReplaceEntities(KratosComponents<Element>::Get(r_element_name), r_root_model_part.Elements(), set_element_ids);
         } else if (mDefinitionElementCondition[0] == DefinitionType::Multiple) {
-            ReplaceEntities<Element>(mSettings["element_name"], r_root_model_part.Elements(), set_element_ids);
+            ReplaceEntities(mSettings["element_name"], r_root_model_part.Elements(), set_element_ids);
         } else {
             const std::string& r_element_name = mSettings["element_name"].GetString();
-            ReplaceEntities<Element>(r_element_name, r_root_model_part.Elements(), set_element_ids);
+            ReplaceEntities(r_element_name, r_root_model_part.Elements(), set_element_ids);
         }
         for (auto& r_sub_model_part : r_root_model_part.SubModelParts()) {
             UpdateElementsInSubModelPart(r_sub_model_part, r_root_model_part, set_element_ids);
@@ -338,10 +345,10 @@ void ReplaceElementsAndConditionsProcess::Execute()
             const std::string& r_condition_name = mSettings["condition_name"].GetString();
             ReplaceEntities(KratosComponents<Condition>::Get(r_condition_name), r_root_model_part.Conditions(), set_conditions_ids);
         } else if (mDefinitionElementCondition[1] == DefinitionType::Multiple) {
-            ReplaceEntities<Condition>(mSettings["condition_name"], r_root_model_part.Conditions(), set_conditions_ids);
+            ReplaceEntities(mSettings["condition_name"], r_root_model_part.Conditions(), set_conditions_ids);
         } else {
             const std::string& r_condition_name = mSettings["condition_name"].GetString();
-            ReplaceEntities<Condition>(r_condition_name, r_root_model_part.Conditions(), set_conditions_ids);
+            ReplaceEntities(r_condition_name, r_root_model_part.Conditions(), set_conditions_ids);
         }
         for (auto& r_sub_model_part : r_root_model_part.SubModelParts()) {
             UpdateConditionsInSubModelPart(r_sub_model_part, r_root_model_part, set_conditions_ids);
