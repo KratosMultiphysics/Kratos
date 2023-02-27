@@ -88,7 +88,7 @@ void ReplaceEntities(
             const auto& r_geometry_type = p_geometry->GetGeometryType();
             // Checking if geometry type is the same
             if (r_geometry_type != rTLS.current_geometry_type) {
-                const std::string& r_type = GetElementName(r_geometry_type);
+                const std::string& r_type = GeometryUtils::GetGeometryName(r_geometry_type);
                 KRATOS_ERROR_IF_NOT(ListReferenceEntity.Has(r_type)) << "Trying to replace an entity with a different geometry type. No reference entity found for geometry type: " << r_type << "\nReference list: " << ListReferenceEntity << std::endl;
                 const auto& r_reference_entity = KratosComponents<typename TContainer::value_type>::Get(ListReferenceEntity[r_type].GetString());
                 rTLS.p_reference_entity = r_reference_entity.Create(id, p_geometry, it_entity->pGetProperties());;
