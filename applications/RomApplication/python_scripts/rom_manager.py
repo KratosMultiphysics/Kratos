@@ -31,19 +31,19 @@ class RomManager(object):
     def Fit(self):
         #######################
         ######  Galerkin ######
-        if self.general_rom_manager_parameters["solving_strategy"].GetString() == "Galerkin":
+        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LauchTraiROM()
-                self._ChangeRomFlags(simulation_to_run = "ROM")
+                self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
                 rom_snapshots = self.LauchROM()
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
-                self._ChangeRomFlags(simulation_to_run = "trainHROM")
+                self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
                 self.LauchTraiHROM()
-                self._ChangeRomFlags(simulation_to_run = "runHROM")
+                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
                 hrom_snapshots = self.LauchHROM()
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################
@@ -51,21 +51,21 @@ class RomManager(object):
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["solving_strategy"].GetString() == "LSPG":
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LauchTraiROM()
-                self._ChangeRomFlags(simulation_to_run = "LSPG")
+                self._ChangeRomFlags(simulation_to_run = "lspg")
                 rom_snapshots = self.LauchROM()
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in training_stages):
-                raise Exception('Sorry, Hyper Reduction not yet implemented for LSPG')
+                raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
         #######################################
 
 
         ##########################
         ###  Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["solving_strategy"].GetString() == "Petrov-Galerkin":
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LauchTraiROM()
@@ -90,38 +90,38 @@ class RomManager(object):
             mu_test = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         #######################
         ######  Galerkin ######
-        if self.general_rom_manager_parameters["solving_strategy"].GetString() == "Galerkin":
+        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
             testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
             if any(item == "ROM" for item in testing_stages):
                 fom_snapshots = self.LauchTestFOM(mu_test)
-                self._ChangeRomFlags(simulation_to_run = "ROM")
+                self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
                 rom_snapshots = self.LauchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only test HROM, but not ROM
-                self._ChangeRomFlags(simulation_to_run = "runHROM")
+                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
                 hrom_snapshots = self.LauchTestHROM(mu_test)
                 self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
 
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["solving_strategy"].GetString() == "LSPG":
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
             testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
             if any(item == "ROM" for item in testing_stages):
                 fom_snapshots = self.LauchTestFOM(mu_test)
-                self._ChangeRomFlags(simulation_to_run = "LSPG")
+                self._ChangeRomFlags(simulation_to_run = "lspg")
                 rom_snapshots = self.LauchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in testing_stages):
-                raise Exception('Sorry, Hyper Reduction not yet implemented for LSPG')
+                raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
         #######################################
 
 
         ##########################
         ###  Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["solving_strategy"].GetString() == "Petrov-Galerkin":
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
             testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
             if any(item == "ROM" for item in testing_stages):
                 fom_snapshots = self.LauchTestFOM(mu_test)
@@ -139,11 +139,16 @@ class RomManager(object):
 
 
     def PrintErrors(self):
-        print('printing errors')
-        print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
-        print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
-        print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
-        print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
+        training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+        testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
+        if any(item == "ROM" for item in training_stages):
+            print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
+        if any(item == "HROM" for item in training_stages) and not(self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg"):
+            print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
+        if any(item == "ROM" for item in testing_stages):
+            print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
+        if any(item == "HROM" for item in testing_stages) and not(self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg"):
+            print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
     def LauchTraiROM(self):
@@ -347,30 +352,32 @@ class RomManager(object):
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
         """
         This method updates the Flags present in the RomParameters.json file
-        for launching the correct part of the ROM workflow: ROM, TrainHROM, RunHROM
+        for launching the correct part of the ROM workflow
         """
         #other options: "trainHROM", "runHROM"
         #taken from code by Philipa & Catharina
         parameters_file_name = './RomParameters.json'
         with open(parameters_file_name, 'r+') as parameter_file:
             f=json.load(parameter_file)
-            if simulation_to_run=='ROM':
+            if simulation_to_run=='GalerkinROM':
+                f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=False
-            elif simulation_to_run=='trainHROM':
+            elif simulation_to_run=='trainHROMGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
-            elif simulation_to_run=='runHROM':
+            elif simulation_to_run=='runHROMGalerkin':
+                f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=True
-            elif simulation_to_run=='LSPG':
+            elif simulation_to_run=='lspg':
                 f['train_hrom']=False
                 f['run_hrom']=False
-                f['solving_strategy']="LSPG"
+                f['projection_strategy']="lspg"
             elif simulation_to_run=='TrainPG':
                 f['train_hrom']=False
                 f['run_hrom']=False
-                f['solving_strategy']="LSPG"
+                f['projection_strategy']="lspg"
                 f['train_petrov_galerkin']['train'] = True
                 f['train_petrov_galerkin']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_training_parameters"]["basis_strategy"].GetString()
                 f['train_petrov_galerkin']['include_phi'] = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_training_parameters"]["include_phi"].GetBool()
@@ -378,20 +385,20 @@ class RomManager(object):
             elif simulation_to_run=='PG':
                 f['train_hrom']=False
                 f['run_hrom']=False
-                f['solving_strategy']="Petrov-Galerkin"
+                f['projection_strategy']="petrov_galerkin"
                 f['train_petrov_galerkin']['train'] = False
             elif simulation_to_run=='trainHROMPetrovGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
-                f['solving_strategy']="Petrov-Galerkin"
+                f['projection_strategy']="petrov_galerkin"
                 f['train_petrov_galerkin']['train'] = False
             elif simulation_to_run=='runHROMPetrovGalerkin':
                 f['train_hrom']=False
                 f['run_hrom']=True
-                f['solving_strategy']="Petrov-Galerkin"
+                f['projection_strategy']="petrov_galerkin"
                 f['train_petrov_galerkin']['train'] = False
             else:
-                raise Exception('Unknown flag change for RomParameters.json')
+                raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
             json.dump(f,parameter_file,indent=4)
             parameter_file.truncate()
@@ -444,6 +451,7 @@ class RomManager(object):
         defaults["Parameters"]["model_part_name"].SetString(self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString())
         defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
         defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
+        defaults["Parameters"]["snapshots_interval"].SetDouble(self.general_rom_manager_parameters["ROM"]["snapshots_interval"].GetDouble())
 
         return defaults
 
