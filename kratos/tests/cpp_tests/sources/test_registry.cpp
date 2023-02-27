@@ -103,8 +103,9 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
 
     KRATOS_CHECK_DOUBLE_EQUAL(value_registry_item.GetValue<double>(), 3.14);
 
-    std::string value_item_json = R"("value_item" : "3.14"
-)";
+    std::string value_item_json = R"({
+"value_item": "3.14"
+})";
     KRATOS_CHECK_STRING_EQUAL(value_registry_item.ToJson(), value_item_json);
 
     RegistryItem registry_item("items");
