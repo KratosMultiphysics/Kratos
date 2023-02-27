@@ -84,17 +84,13 @@ namespace Kratos
         typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
             ImplicitSolvingStrategyType;
 
-        typedef ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
-            ResidualBasedNewtonRaphsonStrategyType;
-
         typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
             GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
         // Dof arrays
         typedef SetIdentityFunction<Dof<double>> result_type;
         typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<result_type>,
-                                 std::equal_to<result_type>, Dof<double> *>
-            DofsArrayType;
+                                 std::equal_to<result_type>, Dof<double> *> DofsArrayType;
 
         ConvergenceCriteriaType::Pointer convergence_criteria() override;
         LinearSolverType::Pointer solver_settings() override;

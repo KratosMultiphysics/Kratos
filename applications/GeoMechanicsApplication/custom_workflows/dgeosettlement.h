@@ -17,6 +17,7 @@
 /* External includes */
 
 #include <geo_mechanics_application.h>
+#include "dgeoapplication.h"
 
 namespace Kratos
 {
@@ -25,5 +26,11 @@ namespace Kratos
     public:
         KratosGeoSettlement();
         ~KratosGeoSettlement(){}
+
+        int execute_application(std::string workingDirectory, std::string parameterName,
+            std::function<void(char*)> logCallback,
+            std::function<void(double)> reportProgress,
+            std::function<void(char*)> reportTextualProgress,
+            std::function<bool()> shouldCancel);
     };
 }
