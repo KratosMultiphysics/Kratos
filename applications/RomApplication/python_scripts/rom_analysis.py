@@ -47,15 +47,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 raise Exception(err_msg)
 
             # ROM solving strategy
-            self.solving_strategy = self.rom_parameters["solving_strategy"].GetString() if self.rom_parameters.Has("solving_strategy") else "Galerkin"
-            self.project_parameters["solver_settings"].AddString("solving_strategy",self.solving_strategy)
+            self.solving_strategy = self.rom_parameters["projection_strategy"].GetString() if self.rom_parameters.Has("projection_strategy") else "galerkin"
+            self.project_parameters["solver_settings"].AddString("projection_strategy",self.solving_strategy)
 
             # Add or remove parameters depending on the solving strategy
             ##LSPG
-            if self.solving_strategy=="LSPG":
+            if self.solving_strategy=="lspg":
                 self.project_parameters["solver_settings"]["rom_settings"].AddBool("train_petrov_galerkin", self.train_petrov_galerkin)
             ##Petrov Galerkin
-            if self.solving_strategy=="Petrov-Galerkin":
+            if self.solving_strategy=="petrov_galerkin":
                 self.petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
             else:
                 self.project_parameters["solver_settings"]["rom_settings"].RemoveValue("petrov_galerkin_number_of_rom_dofs")
@@ -122,7 +122,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 node.SetValue(KratosROM.ROM_BASIS, aux)
 
             # Set the left nodal ROM basis if it is different than the right nodal ROM basis (i.e. Petrov-Galerkin)
-            if (self.solving_strategy == "Petrov-Galerkin"):
+            if (self.solving_strategy == "petrov_galerkin"):
                 petrov_galerkin_nodal_modes = self.rom_parameters["petrov_galerkin_nodal_modes"]
                 petrov_galerkin_nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
                 aux = KratosMultiphysics.Matrix(petrov_galerkin_nodal_dofs, self.petrov_galerkin_rom_dofs)

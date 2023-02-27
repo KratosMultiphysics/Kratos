@@ -367,6 +367,7 @@ namespace Kratos::Testing
         constexpr double tolerance = 1e-8;
         KRATOS_CHECK(rA.size1() == 6);
         KRATOS_CHECK(rA.size2() == 6);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 4138000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,4), -2069000000.0, tolerance);
@@ -434,7 +435,7 @@ namespace Kratos::Testing
         constexpr double tolerance = 1e-8;
         KRATOS_CHECK(rA.size1() == 6);
         KRATOS_CHECK(rA.size2() == 6);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);    
+        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
@@ -501,6 +502,66 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+        KRATOS_CHECK(r_T.size1() == 6);
+        KRATOS_CHECK(r_T.size2() == 6);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(0,0), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(2,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(5,5), 1.0, tolerance);
+    }
+
+    /**
+    * Checks if the block builder and solver with inactive constraints performs correctly the assemble of the system
+    */
+    KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithInactiveConstraints, KratosCoreFastSuite)
+    {
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        BasicTestBuilderAndSolverDisplacement(r_model_part, true);
+
+        // Deactivate the constraints (there is only one, but this code can be reused if needed in other tests)
+        for (auto& r_const : r_model_part.MasterSlaveConstraints()) {
+            r_const.Set(ACTIVE, false);
+        }
+
+        SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+        LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+
+        const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+        // The solution check
+        constexpr double tolerance = 1e-8;
+        KRATOS_CHECK(rA.size1() == 6);
+        KRATOS_CHECK(rA.size2() == 6);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 4138000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(2,4), -2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,2), -2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+
+        // Check the T matrix
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+
+        // // To create the solution of reference
+        // DebugLHS(r_T);
+
+        // Check T matrix, must be an identity matrix
+        KRATOS_CHECK(r_T.size1() == 6);
+        KRATOS_CHECK(r_T.size2() == 6);
+        for (int i = 0; i < 6; ++i) {
+            KRATOS_CHECK_RELATIVE_NEAR(r_T(i,i), 1.0, tolerance);
+        }
     }
 
     /**

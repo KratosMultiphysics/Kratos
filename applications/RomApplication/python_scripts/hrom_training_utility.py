@@ -23,7 +23,7 @@ class HRomTrainingUtility(object):
         settings.ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
 
         # Projection strategy (residual projection)
-        settings["projection_strategy"] = custom_settings["solving_strategy"] # To be consistent with the solving strategy
+        settings["projection_strategy"] = custom_settings["projection_strategy"] # To be consistent with the solving strategy
 
         # Create the HROM element selector
         element_selection_type = settings["element_selection_type"].GetString()
@@ -59,12 +59,12 @@ class HRomTrainingUtility(object):
 
         # Generate the matrix of projected residuals
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
-        if (self.projection_strategy=="Galerkin"):
+        if (self.projection_strategy=="galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
-        elif (self.projection_strategy=="Petrov-Galerkin"):
+        elif (self.projection_strategy=="petrov_galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else:
-            err_msg = "Projection strategy \'{}\' for hrom is not supported.".format(self.projection_strategy)
+        else: 
+            err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
             raise Exception(err_msg)
 
         np_res_mat = np.array(res_mat, copy=False)
@@ -136,7 +136,7 @@ class HRomTrainingUtility(object):
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
             "create_hrom_visualization_model_part" : true,
-            "projection_strategy": "Galerkin"
+            "projection_strategy": "galerkin"
         }""")
         return default_settings
 

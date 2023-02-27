@@ -17,7 +17,7 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
 
     def testStructuralStaticLSPGRom2D(self):
         self.work_folder = "structural_static_test_files/LSPGROM/"
-        parameters_filename = "ProjectParametersLSPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputLSPGROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -45,21 +45,10 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
-            # Save the obtained results in TEMPERATURE variable and visualize
-            output_results = False
-            if output_results:
-                i = 0
-                for node in self.simulation._GetSolver().GetComputingModelPart().Nodes:
-                    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, obtained_output[i])
-                    i += 1
-                    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, obtained_output[i])
-                    i += 1
-                self.PostProcess("test_rbf_shape_functions_utility_1x1_square_G")
-
 
     def testStructuralDynamicLSPGRom2D(self):
         self.work_folder = "structural_dynamic_test_files/LSPGROM/"
-        parameters_filename = "ProjectParametersLSPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputLSPGROM.npy"
 
         time_snapshots = [2,4,6,8,10]

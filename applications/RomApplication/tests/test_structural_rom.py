@@ -17,7 +17,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
 
     def testStructuralStaticRom2D(self):
         self.work_folder = "structural_static_test_files/ROM/"
-        parameters_filename = "ProjectParametersROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -80,7 +80,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
 
     def testStructuralDynamicRom2D(self):
         self.work_folder = "structural_dynamic_test_files/ROM/"
-        parameters_filename = "ProjectParametersROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
         time_snapshots = [2,4,6,8,10]

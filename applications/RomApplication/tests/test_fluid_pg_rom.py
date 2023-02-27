@@ -17,7 +17,7 @@ class TestFluidPGRom(KratosUnittest.TestCase):
 
     def testFluidPGRom2D(self):
         self.work_folder = "fluid_dynamics_test_files/PGROM/"
-        parameters_filename = "ProjectParametersPGROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputPGROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):

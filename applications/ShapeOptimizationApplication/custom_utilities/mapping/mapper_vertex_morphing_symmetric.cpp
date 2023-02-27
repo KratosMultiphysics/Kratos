@@ -170,9 +170,8 @@ void MapperVertexMorphingSymmetric::InitializeComputationOfMappingMatrix()
 void MapperVertexMorphingSymmetric::CreateFilterFunction()
 {
     const std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-    const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-    mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
+    mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type);
 }
 
 void MapperVertexMorphingSymmetric::InitializeMappingVariables()
@@ -324,7 +323,7 @@ void MapperVertexMorphingSymmetric::ComputeWeightForAllNeighbors(
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
     {
         const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-        const double weight = mpFilterFunction->ComputeWeight( destination_node.Coordinates(), neighbor_node.Coordinates() );
+        const double weight = mpFilterFunction->ComputeWeight( destination_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(destination_node) );
 
         list_of_weights[neighbor_itr] = weight;
         sum_of_weights += weight;

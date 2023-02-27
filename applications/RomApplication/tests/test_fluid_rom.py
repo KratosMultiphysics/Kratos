@@ -17,7 +17,7 @@ class TestFluidRom(KratosUnittest.TestCase):
 
     def testFluidRom2D(self):
         self.work_folder = "fluid_dynamics_test_files/ROM/"
-        parameters_filename = "ProjectParametersROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):

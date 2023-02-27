@@ -20,10 +20,10 @@ def CreateSolver(cls, model, custom_settings):
         @classmethod
         def GetDefaultParameters(cls):
             default_settings = KratosMultiphysics.Parameters("""{
-                "solving_strategy" : "Galerkin",
+                "projection_strategy" : "galerkin",
                 "rom_settings": {
                     "nodal_unknowns": [],
-                    "number_of_rom_dofs" : 10
+                    "number_of_rom_dofs": 0
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -33,14 +33,14 @@ def CreateSolver(cls, model, custom_settings):
             linear_solver = self._GetLinearSolver()
             rom_parameters, solving_strategy = self._ValidateAndReturnRomParameters()
             available_solving_strategies = {
-                "Galerkin": KratosROM.ROMBuilderAndSolver, 
-                "LSPG": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
-                "Petrov-Galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
+                "galerkin": KratosROM.ROMBuilderAndSolver, 
+                "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
             }
             if solving_strategy in available_solving_strategies:
                 return available_solving_strategies[solving_strategy](linear_solver, rom_parameters)
             else:
-                err_msg = "\'Solving_strategy\': '" +solving_strategy+"' is not available. Please select one of the following: "+ str(list(available_solving_strategies.keys()))
+                err_msg = f"'Solving_strategy': '{solving_strategy}' is not available. Please select one of the following: {list(available_solving_strategies.keys())}."
                 raise ValueError(err_msg)
 
         def _ValidateAndReturnRomParameters(self):
@@ -61,9 +61,9 @@ def CreateSolver(cls, model, custom_settings):
                     err_msg = "\'nodal_unknowns\' in \'rom_settings\' is not provided and there is a not-valid implementation in base solver."
                     err_msg += " Please manually set \'nodal_unknowns\' in \'rom_settings\'."
                     raise Exception(err_msg)
-            solving_strategy = self.settings["solving_strategy"].GetString()
+            projection_strategy = self.settings["projection_strategy"].GetString()
 
             # Return the validated ROM parameters
-            return self.settings["rom_settings"], solving_strategy
+            return self.settings["rom_settings"], projection_strategy
 
     return ROMSolver(model, custom_settings)

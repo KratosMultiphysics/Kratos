@@ -170,12 +170,10 @@ class DamUpliftCircularConditionLoadProcess : public Process
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-            double ref_coord = mReferenceCoordinate + mWaterLevel;
-
             if (mDrain == true)
             {
                 double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-                double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((width_dam - mDistanceDrain) / width_dam) + mHeightDrain;
+                double aux_drain = coefficient_effectiveness * ((mWaterLevel - mReferenceCoordinate) - mHeightDrain) * ((width_dam - mDistanceDrain) / width_dam) + mHeightDrain;
 
 #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
@@ -190,7 +188,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
 
                     //// We compute the first part of the uplift law
-                    mUpliftPressure = mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
+                    mUpliftPressure = mSpecific * ((mWaterLevel - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
 
                     //// If uplift pressure is greater than the limit we compute the second part and we update the value
                     if (mUpliftPressure <= mSpecific * aux_drain)
@@ -222,7 +220,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                     // Computing the current distance to the focus.
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
 
-                    mUpliftPressure = mSpecific * (ref_coord - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
+                    mUpliftPressure = mSpecific * (mWaterLevel - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
 
                     if (mUpliftPressure < 0.0)
                     {
@@ -295,12 +293,10 @@ class DamUpliftCircularConditionLoadProcess : public Process
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-            double ref_coord = mReferenceCoordinate + mWaterLevel;
-
             if (mDrain == true)
             {
                 double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-                double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((width_dam - mDistanceDrain) / width_dam) + mHeightDrain;
+                double aux_drain = coefficient_effectiveness * ((mWaterLevel - mReferenceCoordinate) - mHeightDrain) * ((width_dam - mDistanceDrain) / width_dam) + mHeightDrain;
 
 #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
@@ -315,7 +311,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
 
                     //// We compute the first part of the uplift law
-                    mUpliftPressure = mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
+                    mUpliftPressure = mSpecific * ((mWaterLevel - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
 
                     //// If uplift pressure is greater than the limit we compute the second part and we update the value
                     if (mUpliftPressure <= mSpecific * aux_drain)
@@ -347,7 +343,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                     // Computing the current distance to the focus.
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
 
-                    mUpliftPressure = mSpecific * (ref_coord - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
+                    mUpliftPressure = mSpecific * (mWaterLevel - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
 
                     if (mUpliftPressure < 0.0)
                     {

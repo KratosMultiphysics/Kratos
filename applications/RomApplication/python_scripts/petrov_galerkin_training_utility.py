@@ -2,7 +2,6 @@
 import json
 import numpy as np
 import os
-import scipy.linalg
 from glob import glob
 
 # Importing the Kratos Library
@@ -53,10 +52,10 @@ class PetrovGalerkinTrainingUtility(object):
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","RomResidualsUtility created.")
 
         # Generate the matrix of residuals or projected Jacobians.
-        if self.basis_strategy=="Jacobian":
+        if self.basis_strategy=="jacobian":
             snapshots_matrix = self.__rom_residuals_utility.GetProjectedGlobalLHS()
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generated matrix of projected Jacobian.")
-        elif self.basis_strategy=="Residuals":
+        elif self.basis_strategy=="residuals":
             snapshots_matrix = []
             files_to_read_and_delete = glob('*.res.mm')#TODO: Stop writing to disk.
             for to_erase_file in files_to_read_and_delete:
@@ -66,7 +65,7 @@ class PetrovGalerkinTrainingUtility(object):
             snapshots_matrix = np.array(snapshots_matrix).T
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generating matrix of residuals.")
         else:
-            err_msg = "\'self.basis_strategy\' is not available. Select either Jacobian or Residuals."
+            err_msg = "\'self.basis_strategy\' is not available. Select either 'jacobian' or 'residuals'."
             raise Exception(err_msg)
 
         np_snapshots_matrix = np.array(snapshots_matrix, copy=False)
@@ -82,7 +81,7 @@ class PetrovGalerkinTrainingUtility(object):
     def __GetPetrovGalerkinTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
                 "train": false,
-                "basis_strategy": "Residuals",
+                "basis_strategy": "residuals",
                 "include_phi": false,
                 "svd_truncation_tolerance": 1.0e-6,
                 "echo_level": 0
@@ -146,6 +145,7 @@ class PetrovGalerkinTrainingUtility(object):
 
         return u
 
+    @classmethod
 
     def _GetSnapshotsMatrix(self):
         # Set up the snapshots matrix for new basis
