@@ -334,15 +334,19 @@ public:
      * @param rA The first matrix considered
      * @param rB The second matrix considered
      * @param rC The result of the multiplication
+     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
+     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
      */
     static void Mult(
         const MatrixType& rA,
         const MatrixType& rB,
-        MatrixType& rC
+        MatrixType& rC,
+        const bool CallFillCompleteOnResult = true,
+        const bool KeepAllHardZeros = false
         )
     {
         constexpr bool transpose_flag = false;
-        EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC);
+        EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC, CallFillCompleteOnResult, KeepAllHardZeros);
     }
 
     /**
@@ -369,15 +373,19 @@ public:
      * @param rB The second matrix considered
      * @param rC The result of the multiplication
      * @param TransposeFlag Flags to transpose the matrices
+     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
+     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
      */
     static void TransposeMult(
         const MatrixType& rA,
         const MatrixType& rB,
         MatrixType& rC,
-        const std::pair<bool, bool> TransposeFlag = {false, false}
+        const std::pair<bool, bool> TransposeFlag = {false, false},
+        const bool CallFillCompleteOnResult = true,
+        const bool KeepAllHardZeros = false
         )
     {
-        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag.first, rB, TransposeFlag.second, rC);
+        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag.first, rB, TransposeFlag.second, rC, CallFillCompleteOnResult, KeepAllHardZeros);
     }
 
     /**
@@ -385,11 +393,15 @@ public:
      * @param rA The resulting matrix
      * @param rD The "center" matrix
      * @param rB The matrices to be transposed
+     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
+     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
      */
     static void BtDBProductOperation(
         MatrixType& rA,
         const MatrixType& rD,
-        const MatrixType& rB
+        const MatrixType& rB,
+        const bool CallFillCompleteOnResult = true,
+        const bool KeepAllHardZeros = false
         )
     {
         // Gets the Epetra_Communicator
@@ -404,7 +416,7 @@ public:
         MatrixType aux_1(::Copy, map1, NumNz.data());
 
         // First multiplication
-        TransposeMult(rB, rD, aux_1, {true, false});
+        TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
 
         // Already existing matrix
         if (rA.NumGlobalNonzeros() > 0) {
@@ -416,7 +428,7 @@ public:
             MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            Mult(aux_1, rB, *aux_2);
+            Mult(aux_1, rB, *aux_2, CallFillCompleteOnResult, KeepAllHardZeros);
 
             // Doing a swap
             std::swap(rA, *aux_2);
@@ -425,7 +437,7 @@ public:
             delete aux_2;
         } else { // Empty matrix
             // Second multiplication
-            Mult(aux_1, rB, rA);
+            Mult(aux_1, rB, rA, CallFillCompleteOnResult, KeepAllHardZeros);
         }
     }
 
@@ -434,11 +446,15 @@ public:
      * @param rA The resulting matrix
      * @param rD The "center" matrix
      * @param rB The matrices to be transposed
+     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
+     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
      */
     static void BDBtProductOperation(
         MatrixType& rA,
         const MatrixType& rD,
-        const MatrixType& rB
+        const MatrixType& rB,
+        const bool CallFillCompleteOnResult = true,
+        const bool KeepAllHardZeros = false
         )
     {
         // Gets the Epetra_Communicator
@@ -453,7 +469,7 @@ public:
         MatrixType aux_1(::Copy, map1, NumNz.data());
 
         // First multiplication
-        Mult(rB, rD, aux_1);
+        Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
 
         // Already existing matrix
         if (rA.NumGlobalNonzeros() > 0) {
@@ -465,7 +481,7 @@ public:
             MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            TransposeMult(aux_1, rB, *aux_2, {false, true});
+            TransposeMult(aux_1, rB, *aux_2, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
 
             // Doing a swap
             std::swap(rA, *aux_2);
@@ -474,7 +490,7 @@ public:
             delete aux_2;
         } else { // Empty matrix
             // Second multiplication
-            TransposeMult(aux_1, rB, rA, {false, true});
+            TransposeMult(aux_1, rB, rA, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
         }
     }
 
