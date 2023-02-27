@@ -291,15 +291,19 @@ bool   mRVESolve;                 // Flag for evaluating RVE in current step
 bool   mInner;                    // Flag for inner particle
 bool   mMoving;                   // Flag for particle movement
 int    mWall;                     // Flag for wall particle (0 = No; 1 = X-; 2 = X+; 3 = Y-; 4 = Y+; 5 = Z-; 6 = Z+)
+int    mNumContacts;              // Number of unique contacts between all particles and walls (with neighbors with higher ID)
+int    mNumContactsInner;         // Number of unique contacts involving inner particles (with neighbors with higher ID)
 int    mCoordNum;                 // Number of total contacts (coordination number)
-int    mNumContacts;              // Number of unique contacts (with neighbors with higher ID)
 double mVolOverlap;               // Volume of overlap with unique contacts
 double mWallForces;               // Force applied by walls (normal only)
 std::vector<double> mForceChain;  // Vector of force chains coordinates: [x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, ...]
 Matrix mRoseDiagram;              // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
-Matrix mFabricTensor;             // Fabric tensor with unique contacts
-Matrix mCauchyTensor;             // Cauchy stress tensor with unique contacts
-Matrix mTangentTensor;            // Tangent operator tensor with unique contacts
+Matrix mFabricTensor;             // Fabric tensor with unique contacts (all contacts)
+Matrix mFabricTensorInner;        // Fabric tensor with unique contacts (only contacts involving inner particles)
+Matrix mCauchyTensor;             // Cauchy stress tensor with unique contacts (all contacts)
+Matrix mCauchyTensorInner;        // Cauchy stress tensor with unique contacts (only contacts involving inner particles)
+Matrix mTangentTensor;            // Tangent operator tensor with unique contacts (all contacts)
+Matrix mTangentTensorInner;       // Tangent operator tensor with unique contacts (only contacts involving inner particles)
 
 //==========================================================================================================================================
 // HIERARCHICAL MULTISCALE RVE - FINISH

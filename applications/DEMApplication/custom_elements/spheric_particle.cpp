@@ -916,7 +916,12 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
               mRoseDiagram(1,idx_az)++;
 
               if (GetId() < data_buffer.mpOtherParticle->GetId() || data_buffer.mpOtherParticle->mWall > 0) { // Unique contacts (each binary contact evaluated only once)
+                bool has_inner = (mInner || data_buffer.mpOtherParticle->mInner);
+
+                // Update number of contacts
                 mNumContacts++;
+                if (has_inner)
+                  mNumContactsInner++;
 
                 // Overlap volume
                 const int dim = r_process_info[DOMAIN_SIZE];
@@ -967,10 +972,19 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                         const int idx_2 = 2 * k + l;
                         mTangentTensor(idx_1,idx_2) += kn * normal[i]  * branch[j] * normal[k]  * branch[l] +
                                                        kt * tangent[i] * branch[j] * tangent[k] * branch[l];
+                        if (has_inner) {
+                          mTangentTensorInner(idx_1,idx_2) += kn * normal[i]  * branch[j] * normal[k]  * branch[l] +
+                                                              kt * tangent[i] * branch[j] * tangent[k] * branch[l];
+                        }
                       }
                     }
                     mFabricTensor(i,j) += normal[i] * normal[j];
                     mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
+
+                    if (has_inner) {
+                      mFabricTensorInner(i,j) += normal[i] * normal[j];
+                      mCauchyTensorInner(i,j) += branch[i] * GlobalContactForce[j];
+                    }
                   }
                 }
               }

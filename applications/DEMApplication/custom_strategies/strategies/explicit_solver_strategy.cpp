@@ -1831,7 +1831,7 @@ namespace Kratos {
       mRVE_NumParticles = mListOfSphericParticles.size() - mRVE_NumParticlesWalls;
 
       // Particles movement
-      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++)
+      for (int i = 0; i < mListOfSphericParticles.size(); i++)
         mListOfSphericParticles[i]->mMoving = true;
 
       // Open files
@@ -1856,17 +1856,21 @@ namespace Kratos {
         const int dim  = mRVE_Dimension;
         const int dim2 = mRVE_Dimension * mRVE_Dimension;
 
-        mRVE_NumContacts       = 0;
-        mRVE_NumParticlesInner = 0;
-        mRVE_AvgCoordNum       = 0.0;
-        mRVE_AvgCoordNumInner  = 0.0;
-        mRVE_VolSolid          = 0.0;
-        mRVE_WallForces        = 0.0;
-        mRVE_RoseDiagram       = ZeroMatrix(2,40);
-        mRVE_RoseDiagramInner  = ZeroMatrix(2,40);
-        mRVE_FabricTensor      = ZeroMatrix(dim,dim);
-        mRVE_CauchyTensor      = ZeroMatrix(dim,dim);
-        mRVE_TangentTensor     = ZeroMatrix(dim2,dim2);
+        mRVE_NumContacts        = 0;
+        mRVE_NumContactsInner   = 0;
+        mRVE_NumParticlesInner  = 0;
+        mRVE_AvgCoordNum        = 0.0;
+        mRVE_AvgCoordNumInner   = 0.0;
+        mRVE_VolSolid           = 0.0;
+        mRVE_WallForces         = 0.0;
+        mRVE_RoseDiagram        = ZeroMatrix(2,40);
+        mRVE_RoseDiagramInner   = ZeroMatrix(2,40);
+        mRVE_FabricTensor       = ZeroMatrix(dim,dim);
+        mRVE_FabricTensorInner  = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensor       = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensorInner  = ZeroMatrix(dim,dim);
+        mRVE_TangentTensor      = ZeroMatrix(dim2,dim2);
+        mRVE_TangentTensorInner = ZeroMatrix(dim2,dim2);
         mRVE_ForceChain.clear();
       }
     }
@@ -1881,15 +1885,19 @@ namespace Kratos {
       const int dim2 = mRVE_Dimension * mRVE_Dimension;
 
       if (p_particle->mWall == 0) {
-        p_particle->mInner         = true;
-        p_particle->mCoordNum      = 0;
-        p_particle->mNumContacts   = 0;
-        p_particle->mVolOverlap    = 0.0;
-        p_particle->mWallForces    = 0.0;
-        p_particle->mRoseDiagram   = ZeroMatrix(2, 40);
-        p_particle->mFabricTensor  = ZeroMatrix(dim, dim);
-        p_particle->mCauchyTensor  = ZeroMatrix(dim, dim);
-        p_particle->mTangentTensor = ZeroMatrix(dim2, dim2);
+        p_particle->mInner              = (p_particle->mNeighbourRigidFaces.size() == 0);
+        p_particle->mNumContacts        = 0;
+        p_particle->mNumContactsInner   = 0;
+        p_particle->mCoordNum           = 0;
+        p_particle->mVolOverlap         = 0.0;
+        p_particle->mWallForces         = 0.0;
+        p_particle->mRoseDiagram        = ZeroMatrix(2,40);
+        p_particle->mFabricTensor       = ZeroMatrix(dim,dim);
+        p_particle->mFabricTensorInner  = ZeroMatrix(dim,dim);
+        p_particle->mCauchyTensor       = ZeroMatrix(dim,dim);
+        p_particle->mCauchyTensorInner  = ZeroMatrix(dim, dim);
+        p_particle->mTangentTensor      = ZeroMatrix(dim2,dim2);
+        p_particle->mTangentTensorInner = ZeroMatrix(dim2, dim2);
         p_particle->mForceChain.clear();
       }
     }
@@ -1911,8 +1919,12 @@ namespace Kratos {
 
         if (p_particle->mInner) {
           mRVE_NumParticlesInner++;
-          mRVE_AvgCoordNumInner += p_particle->mCoordNum;
-          mRVE_RoseDiagramInner += p_particle->mRoseDiagram;
+          mRVE_NumContactsInner   += p_particle->mNumContactsInner;
+          mRVE_AvgCoordNumInner   += p_particle->mCoordNum;
+          mRVE_RoseDiagramInner   += p_particle->mRoseDiagram;
+          mRVE_FabricTensorInner  += p_particle->mFabricTensorInner;
+          mRVE_CauchyTensorInner  += p_particle->mCauchyTensorInner;
+          mRVE_TangentTensorInner += p_particle->mTangentTensorInner;
         }
       }
       else {
@@ -1925,11 +1937,14 @@ namespace Kratos {
       if (!mRVE_Solve) return;
 
       // Average coordination number
-      mRVE_AvgCoordNum /= mRVE_NumParticles;
+      mRVE_AvgCoordNum      /= mRVE_NumParticles;
       mRVE_AvgCoordNumInner /= mRVE_NumParticlesInner;
 
-      // Compute porosity and void ratio
+      // Compute volume
       mRVE_VolTotal = RVEComputeTotalVolume();
+      mRVE_VolInner = RVEComputeInnerVolume();
+
+      // Compute porosity and void ratio
       RVEComputePorosity();
 
       // Compute stress applied by walls
@@ -1942,62 +1957,8 @@ namespace Kratos {
       double prev_effect_stress = mRVE_EffectStress;
       double prev_dev_stress    = mRVE_DevStress;
 
-      // Compute fabric anisotropy and stresses
-      if (mRVE_NumContacts == 0.0) {
-        const int dim  = mRVE_Dimension;
-        const int dim2 = mRVE_Dimension * mRVE_Dimension;
-
-        mRVE_FabricTensor  = ZeroMatrix(dim,dim);
-        mRVE_CauchyTensor  = ZeroMatrix(dim,dim);
-        mRVE_TangentTensor = ZeroMatrix(dim2,dim2);
-        mRVE_Anisotropy    = 0.0;
-        mRVE_EffectStress  = 0.0;
-        mRVE_DevStress     = 0.0;
-      }
-
-      else {
-        double deviatoric_fabric;
-        double deviatoric_stress;
-        double cauchy_trace = 0.0;
-        double double_dot_product = 0.0;
-
-        for (int i = 0; i < mRVE_Dimension; i++) {
-          for (int j = 0; j < mRVE_Dimension; j++) {
-            for (int k = 0; k < mRVE_Dimension; k++) {
-              for (int l = 0; l < mRVE_Dimension; l++) {
-                const int idx_1 = 2 * i + j;
-                const int idx_2 = 2 * k + l;
-                mRVE_TangentTensor(idx_1,idx_2) /= mRVE_VolTotal;
-              }
-            }
-            mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
-            mRVE_CauchyTensor(i,j) /= mRVE_VolTotal;
-
-            if (i == j) {
-              deviatoric_fabric = 4.0 * (mRVE_FabricTensor(i,j) - (1.0 / mRVE_Dimension));
-              cauchy_trace += mRVE_CauchyTensor(i,j);
-            }
-            else {
-              deviatoric_fabric = 4.0 * mRVE_FabricTensor(i,j);
-            }
-
-            double_dot_product += 0.5 * deviatoric_fabric * deviatoric_fabric;
-          }
-        }
-        mRVE_Anisotropy   = sqrt(double_dot_product);
-        mRVE_EffectStress = cauchy_trace / mRVE_Dimension;
-
-        // Second loop to compute deviatoric stress
-        double_dot_product = 0.0;
-
-        for (int i = 0; i < mRVE_Dimension; i++) {
-          for (int j = 0; j < mRVE_Dimension; j++) {
-            deviatoric_stress = (i==j) ? mRVE_CauchyTensor(i,j)-mRVE_EffectStress : mRVE_CauchyTensor(i,j);
-            double_dot_product += 0.5 * deviatoric_stress * deviatoric_stress;
-          }
-        }
-        mRVE_DevStress = sqrt(double_dot_product);
-      }
+      // Compute homogenized parameters
+      RVEHomogenization();
 
       // Compute uniformity of rose diagram
       RVEComputeRoseUniformity();
@@ -2305,8 +2266,36 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    double ExplicitSolverStrategy::RVEComputeInnerVolume(void) {
+      if (!mRVE_FlatWalls || (mRVE_NumParticles - mRVE_NumParticlesInner) < 5)
+        return mRVE_VolTotal;
+
+      // Coordinates of outter particles (only those that are in contact with an inner particle)
+      std::vector<array_1d<double,3>> outter_coordinates;
+
+      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+        if (mListOfSphericParticles[i]->mInner == false) {
+          for (int j = 0; j < mListOfSphericParticles[i]->mNeighbourElements.size(); j++) {
+            if (mListOfSphericParticles[i]->mNeighbourElements[j]->mInner == true) {
+              array_1d<double,3> coordinates = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
+              outter_coordinates.push_back(coordinates);
+              break;
+            }
+          }
+        }
+      }
+
+      // Volume of convex hull
+      std::string switches = "PQev";
+      const int num_points = outter_coordinates.size();
+
+      //struct triangulateio in, out, vorout;
+      return mRVE_VolTotal;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
     double ExplicitSolverStrategy::RVEComputeParticleVolume(SphericParticle* p_particle) {
-      if      (mRVE_Dimension == 2) return Globals::Pi * p_particle->GetRadius() * p_particle->GetRadius();
+      if      (mRVE_Dimension == 2) return Globals::Pi * p_particle->GetRadius() * p_particle->GetRadius(); // Area
       else if (mRVE_Dimension == 3) return p_particle->CalculateVolume();
       else return 0.0;
     }
@@ -2318,6 +2307,92 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEHomogenization(void) {
+      if (mRVE_NumContactsInner == 0.0) {
+        const int dim  = mRVE_Dimension;
+        const int dim2 = mRVE_Dimension * mRVE_Dimension;
+
+        mRVE_FabricTensor       = ZeroMatrix(dim,dim);
+        mRVE_FabricTensorInner  = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensor       = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensorInner  = ZeroMatrix(dim,dim);
+        mRVE_TangentTensor      = ZeroMatrix(dim2,dim2);
+        mRVE_TangentTensorInner = ZeroMatrix(dim2,dim2);
+        mRVE_Anisotropy         = 0.0;
+        mRVE_AnisotropyInner    = 0.0;
+        mRVE_EffectStress       = 0.0;
+        mRVE_EffectStressInner  = 0.0;
+        mRVE_DevStress          = 0.0;
+        mRVE_DevStressInner     = 0.0;
+      }
+
+      else {
+        double deviatoric_fabric;
+        double deviatoric_fabric_inner;
+        double deviatoric_stress;
+        double deviatoric_stress_inner;
+        double cauchy_trace             = 0.0;
+        double cauchy_trace_inner       = 0.0;
+        double double_dot_product       = 0.0;
+        double double_dot_product_inner = 0.0;
+
+        for (int i = 0; i < mRVE_Dimension; i++) {
+          for (int j = 0; j < mRVE_Dimension; j++) {
+            for (int k = 0; k < mRVE_Dimension; k++) {
+              for (int l = 0; l < mRVE_Dimension; l++) {
+                const int idx_1 = 2 * i + j;
+                const int idx_2 = 2 * k + l;
+                mRVE_TangentTensor(idx_1,idx_2)      /= mRVE_VolTotal;
+                mRVE_TangentTensorInner(idx_1,idx_2) /= mRVE_VolInner;
+              }
+            }
+            mRVE_FabricTensor(i,j)      /= mRVE_NumContacts;
+            mRVE_FabricTensorInner(i,j) /= mRVE_NumContactsInner;
+
+            mRVE_CauchyTensor(i,j)      /= mRVE_VolTotal;
+            mRVE_CauchyTensorInner(i,j) /= mRVE_VolInner;
+
+            if (i == j) {
+              deviatoric_fabric       = 4.0 * (mRVE_FabricTensor(i,j)      - (1.0 / mRVE_Dimension));
+              deviatoric_fabric_inner = 4.0 * (mRVE_FabricTensorInner(i,j) - (1.0 / mRVE_Dimension));
+
+              cauchy_trace       += mRVE_CauchyTensor(i,j);
+              cauchy_trace_inner += mRVE_CauchyTensorInner(i,j);
+            }
+            else {
+              deviatoric_fabric       = 4.0 * mRVE_FabricTensor(i,j);
+              deviatoric_fabric_inner = 4.0 * mRVE_FabricTensor(i,j);
+            }
+
+            double_dot_product       += 0.5 * deviatoric_fabric       * deviatoric_fabric;
+            double_dot_product_inner += 0.5 * deviatoric_fabric_inner * deviatoric_fabric_inner;
+          }
+        }
+        mRVE_Anisotropy        = sqrt(double_dot_product);
+        mRVE_AnisotropyInner   = sqrt(double_dot_product_inner);
+
+        mRVE_EffectStress      = cauchy_trace       / mRVE_Dimension;
+        mRVE_EffectStressInner = cauchy_trace_inner / mRVE_Dimension;
+
+        // Second loop to compute deviatoric stress
+        double_dot_product       = 0.0;
+        double_dot_product_inner = 0.0;
+
+        for (int i = 0; i < mRVE_Dimension; i++) {
+          for (int j = 0; j < mRVE_Dimension; j++) {
+            deviatoric_stress       = (i==j) ? mRVE_CauchyTensor(i,j)      - mRVE_EffectStress      : mRVE_CauchyTensor(i,j);
+            deviatoric_stress_inner = (i==j) ? mRVE_CauchyTensorInner(i,j) - mRVE_EffectStressInner : mRVE_CauchyTensorInner(i,j);
+
+            double_dot_product       += 0.5 * deviatoric_stress       * deviatoric_stress;
+            double_dot_product_inner += 0.5 * deviatoric_stress_inner * deviatoric_stress_inner;
+          }
+        }
+        mRVE_DevStress      = sqrt(double_dot_product);
+        mRVE_DevStressInner = sqrt(double_dot_product_inner);
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEComputeRoseUniformity(void) {
       // Mean
       double mean_rose_xy_all = 0.0;
@@ -2326,12 +2401,12 @@ namespace Kratos {
       double mean_rose_az_inn = 0.0;
 
       for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) {
-        mean_rose_xy_all += mRVE_RoseDiagram(0, i);
-        mean_rose_az_all += mRVE_RoseDiagram(1, i);
+        mean_rose_xy_all += mRVE_RoseDiagram(0,i);
+        mean_rose_az_all += mRVE_RoseDiagram(1,i);
       }
       for (int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) {
-        mean_rose_xy_inn += mRVE_RoseDiagramInner(0, i);
-        mean_rose_az_inn += mRVE_RoseDiagramInner(1, i);
+        mean_rose_xy_inn += mRVE_RoseDiagramInner(0,i);
+        mean_rose_az_inn += mRVE_RoseDiagramInner(1,i);
       }
 
       mean_rose_xy_all /= mRVE_RoseDiagram.size2();
@@ -2346,8 +2421,8 @@ namespace Kratos {
       double var_rose_az_inn = 0.0;
 
       for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) {
-        var_rose_xy_all += (mRVE_RoseDiagram(0,i) - mean_rose_xy_all);
-        var_rose_az_all += (mRVE_RoseDiagram(1,i) - mean_rose_az_all);
+        var_rose_xy_all += pow(mRVE_RoseDiagram(0,i) - mean_rose_xy_all, 2.0);
+        var_rose_az_all += pow(mRVE_RoseDiagram(1,i) - mean_rose_az_all, 2.0);
       }
       for (int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) {
         var_rose_xy_inn += pow(mRVE_RoseDiagramInner(0,i) - mean_rose_xy_inn, 2.0);
@@ -2412,6 +2487,28 @@ namespace Kratos {
           }
         }
       }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEReadOldForces(void) {
+      std::fstream f_old_elastic_forces;
+      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
+      if (!f_old_elastic_forces)
+        return;
+
+      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+        int particle_id, n_neighbors;
+        f_old_elastic_forces >> particle_id >> n_neighbors;
+        for (int j = 0; j < n_neighbors; j++) {
+          double fx, fy, fz;
+          f_old_elastic_forces >> fx >> fy >> fz;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][0] = fx;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][1] = fy;
+          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][2] = fz;
+        }
+      }
+
+      f_old_elastic_forces.close();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2600,27 +2697,6 @@ namespace Kratos {
                                    << "[[" << mRVE_TangentTensor(8,0) << "],[" << mRVE_TangentTensor(8,1) << "],[" << mRVE_TangentTensor(8,2) << "],[" << mRVE_TangentTensor(8,3) << "],[" << mRVE_TangentTensor(8,4) << "],[" << mRVE_TangentTensor(8,5) << "],[" << mRVE_TangentTensor(8,6) << "],[" << mRVE_TangentTensor(8,7) << "],[" << mRVE_TangentTensor(8,8) << "]]"
                                    << std::endl;
       }
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------------------------------
-    void ExplicitSolverStrategy::RVEReadOldForces(void) {
-      std::fstream f_old_elastic_forces;
-      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
-      KRATOS_ERROR_IF_NOT(f_old_elastic_forces) << "Could not open file f_old_elastic_forces.txt!" << std::endl;
-
-      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
-        int particle_id, n_neighbors;
-        f_old_elastic_forces >> particle_id >> n_neighbors;
-        for (int j = 0; j < n_neighbors; j++) {
-          double fx, fy, fz;
-          f_old_elastic_forces >> fx >> fy >> fz;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][0] = fx;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][1] = fy;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][2] = fz;
-        }
-      }
-
-      f_old_elastic_forces.close();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------

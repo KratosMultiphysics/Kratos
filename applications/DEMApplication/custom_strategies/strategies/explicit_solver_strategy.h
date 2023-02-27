@@ -290,20 +290,25 @@ namespace Kratos {
         bool   mRVE_Equilibrium;        // Flag for static equilibrium of particles
         int    mRVE_FreqWrite = 1;      // Frequency for writing results as a multiplication factor of the evaluating frequency
         int    mRVE_Dimension;          // RVE dimension: 2D or 3D
+        int    mRVE_EqSteps;            // Number of RVE solution steps in equilibrium
         int    mRVE_NumParticles;       // Total number of particles inside RVE (does not consider wall particles)
         int    mRVE_NumParticlesInner;  // Total number of inner particles (not in contact with walls)
         int    mRVE_NumParticlesWalls;  // Total number of wall particles
-        int    mRVE_NumContacts;        // Total number of contacts in RVE
-        int    mRVE_EqSteps;            // Number of RVE solution steps in equilibrium
+        int    mRVE_NumContacts;        // Total number of contacts in RVE (all contacts)
+        int    mRVE_NumContactsInner;   // Total number of inner contacts in RVE (considers only contacts involving inner particles)
         double mRVE_AvgCoordNum;        // Average coordination number per particle
         double mRVE_AvgCoordNumInner;   // Average coordination number of inner particles (not in contact with walls)
         double mRVE_VolSolid;           // Volume of solid (particles) in RVE discounting overlaps
-        double mRVE_VolTotal;           // RVE total volume
+        double mRVE_VolTotal;           // RVE total volume (volume inside flat walls)
+        double mRVE_VolInner;           // RVE inner volume (considering only inner particles)
         double mRVE_Porosity;           // RVE porosity (discounting overlaps)
         double mRVE_VoidRatio;          // RVE void ratio (discounting overlaps)
-        double mRVE_Anisotropy;         // Fabric anisotropy
-        double mRVE_EffectStress;       // Mean effective stress
-        double mRVE_DevStress;          // Deviatoric stress
+        double mRVE_Anisotropy;         // Fabric anisotropy (all particles)
+        double mRVE_AnisotropyInner;    // Fabric anisotropy (inner particles)
+        double mRVE_EffectStress;       // Mean effective stress (all particles)
+        double mRVE_EffectStressInner;  // Mean effective stress (inner particles)
+        double mRVE_DevStress;          // Deviatoric stress (all particles)
+        double mRVE_DevStressInner;     // Deviatoric stress (inner particles)
         double mRVE_WallForces;         // Total force applied by walls (normal only)
         double mRVE_WallStress;         // Total stress applied by walls (normal only)
         double mRVE_StdDevRoseXYAll;    // Std dev of rose values in XY plane for all particles
@@ -328,9 +333,12 @@ namespace Kratos {
         std::vector<double> mRVE_ForceChain; // Vector of force chains coordinates: [x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, ...]
         Matrix mRVE_RoseDiagram;             // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
         Matrix mRVE_RoseDiagramInner;        // Rose diagram of contacts for inner particles (not in contact with walls)
-        Matrix mRVE_FabricTensor;            // Fabric tensor
-        Matrix mRVE_CauchyTensor;            // Cauchy stress tensor
-        Matrix mRVE_TangentTensor;           // Tangent operator tensor
+        Matrix mRVE_FabricTensor;            // Fabric tensor (all particles)
+        Matrix mRVE_FabricTensorInner;       // Fabric tensor (inner particles)
+        Matrix mRVE_CauchyTensor;            // Cauchy stress tensor (all particles)
+        Matrix mRVE_CauchyTensorInner;       // Cauchy stress tensor (inner particles)
+        Matrix mRVE_TangentTensor;           // Tangent operator tensor (all particles)
+        Matrix mRVE_TangentTensorInner;      // Tangent operator tensor (inner particles)
 
         std::ofstream mRVE_FileCoordinates;
         std::ofstream mRVE_FilePorosity;
@@ -363,13 +371,15 @@ namespace Kratos {
 
         double RVEComputeTotalSurface   (void);
         double RVEComputeTotalVolume    (void);
+        double RVEComputeInnerVolume    (void);
         double RVEComputeParticleVolume (SphericParticle* p_particle);
         void   RVEComputePorosity       (void);
+        void   RVEHomogenization        (void);
         void   RVEComputeRoseUniformity (void);
         void   RVEStopCompression       (void);
 
-        void RVEWriteFiles    (void);
         void RVEReadOldForces (void);
+        void RVEWriteFiles    (void);
         void RVEOpenFiles     (void);
         void RVECloseFiles    (void);
 
