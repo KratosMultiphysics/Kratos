@@ -145,7 +145,6 @@ class PetrovGalerkinTrainingUtility(object):
 
         return u
 
-    @classmethod
 
     def _GetSnapshotsMatrix(self):
         # Set up the snapshots matrix for new basis
@@ -156,6 +155,7 @@ class PetrovGalerkinTrainingUtility(object):
             snapshots_matrix = np.c_[snapshots_matrix,self.time_step_snapshots_matrix_container[0]]
         return snapshots_matrix
 
+    @classmethod
     def __OrthogonalProjector(self, A, B):
         # A - B @(B.T @ A)
         BtA = B.T@A
