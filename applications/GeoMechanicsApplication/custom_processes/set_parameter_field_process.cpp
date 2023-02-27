@@ -75,7 +75,7 @@ void SetParameterFieldProcess::ExecuteInitialize()
         const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
 
         // set parameter field from input function
-        if (mParameters["func_type"].GetString().compare("input") == 0)
+        if (mParameters["func_type"].GetString() == "input")
         {
 
             BasicGenericFunctionUtility parameter_function = BasicGenericFunctionUtility(mParameters["function"].GetString());
