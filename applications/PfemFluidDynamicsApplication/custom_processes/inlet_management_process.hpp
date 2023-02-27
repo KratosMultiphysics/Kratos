@@ -23,12 +23,12 @@
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//Flags:    (checked)
-//          (set)
-//          (modified)
-//          (reset)
+/// VARIABLES used:
+// Data:
+// Flags:    (checked)
+//           (set)
+//           (modified)
+//           (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -64,14 +64,14 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-  /// Default constructor.
-  InletManagementProcess(ModelPart &rModelPart,
-                         MesherUtilities::MeshingParameters &rRemeshingParameters,
-                         int EchoLevel)
-      : mrModelPart(rModelPart),
-        mrRemesh(rRemeshingParameters)
-  {
-    KRATOS_INFO("InletManagementProcess") << " activated "<< std::endl;
+    /// Default constructor.
+    InletManagementProcess(ModelPart &rModelPart,
+                           MesherUtilities::MeshingParameters &rRemeshingParameters,
+                           int EchoLevel)
+        : mrModelPart(rModelPart),
+          mrRemesh(rRemeshingParameters)
+    {
+      KRATOS_INFO("InletManagementProcess") << " activated " << std::endl;
 
       mEchoLevel = EchoLevel;
     }
@@ -109,6 +109,7 @@ namespace Kratos
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
       unsigned int numberOfEulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
+      unsigned int numberOfLagrangianInletNodes = mrRemesh.Info->NumberOfLagrangianInletNodes;
 
       if (currentTime < 2 * timeInterval)
       {
@@ -118,15 +119,13 @@ namespace Kratos
         mrRemesh.Info->InitialNumberOfNodes = mrRemesh.Info->NumberOfNodes;
       }
 
-      if (currentTime > 1.5 * timeInterval && numberOfEulerianInletNodes==0)
+      if (currentTime > 1.5 * timeInterval && numberOfLagrangianInletNodes > 0)
       {
         CheckAndCreateNewInletLayer();
       }
       else
       {
-        numberOfEulerianInletNodes=0;
-        CountEulerianInletNodes(numberOfEulerianInletNodes);
-        mrRemesh.Info->NumberOfEulerianInletNodes=numberOfEulerianInletNodes;
+        CountInletNodes();
       }
 
       if (mEchoLevel > 1)
@@ -211,7 +210,7 @@ namespace Kratos
 
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        if (i_node->GetValue(EULERIAN_INLET)==false)
+        if (i_node->GetValue(LAGRANGIAN_INLET) == true)
         {
 
           ElementWeakPtrVectorType &neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
@@ -241,7 +240,7 @@ namespace Kratos
                 clonedNodes[numberClonedNodes] = pnode;
                 numberClonedNodes++;
               }
-              //inlet nodes will be replaced at their initial position
+              // inlet nodes will be replaced at their initial position
               i_node->X() = i_node->X0();
               i_node->Y() = i_node->Y0();
               i_node->FastGetSolutionStepValue(DISPLACEMENT_X, 0) = 0;
@@ -263,10 +262,10 @@ namespace Kratos
       for (unsigned int i = 0; i < sizeClonedNodes; i++)
       {
 
-      Node<3>::Pointer pnode = clonedNodes[i];
-      double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
-      double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
-      unsigned int id = NodeIdParent + 1; //total model part node size
+        Node<3>::Pointer pnode = clonedNodes[i];
+        double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
+        double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
+        unsigned int id = NodeIdParent + 1; // total model part node size
 
         if (NodeId > NodeIdParent)
         {
@@ -279,6 +278,7 @@ namespace Kratos
         {
           pnode->Free(VELOCITY_Z);
         }
+        pnode->GetValue(LAGRANGIAN_INLET) = false;
         pnode->Reset(INLET);
         pnode->Reset(RIGID);
         pnode->Reset(BOUNDARY);
@@ -289,18 +289,26 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
-    void CountEulerianInletNodes(unsigned int &eulerianInletNodes)
+    void CountInletNodes()
 
     {
       KRATOS_TRY
 
+      unsigned int eulerianInletNodes = 0;
+      unsigned int lagrangianInletNodes = 0;
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        if (i_node->GetValue(EULERIAN_INLET)==true)
+        if (i_node->GetValue(EULERIAN_INLET) == true)
         {
           eulerianInletNodes += 1;
         }
+        if (i_node->GetValue(LAGRANGIAN_INLET) == true)
+        {
+          lagrangianInletNodes += 1;
+        }
       }
+      mrRemesh.Info->NumberOfEulerianInletNodes = eulerianInletNodes;
+      mrRemesh.Info->NumberOfLagrangianInletNodes = lagrangianInletNodes;
 
       KRATOS_CATCH("")
     }
@@ -323,7 +331,7 @@ namespace Kratos
     /// this function is a private function
 
     /// Copy constructor.
-    //Process(Process const& rOther);
+    // Process(Process const& rOther);
 
     ///@}
 

@@ -258,16 +258,13 @@ namespace Kratos
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
-                        if (vertices.back().Is(INLET))
+                        if (vertices.back().GetValue(EULERIAN_INLET) == true)
                         {
-                            if (vertices.back().GetValue(EULERIAN_INLET) == true)
-                            {
-                                numEulerianInlet++;
-                            }
-                            else
-                            {
-                                numLagrangianInlet++;
-                            }
+                            numEulerianInlet++;
+                        }
+                        if (vertices.back().GetValue(LAGRANGIAN_INLET) == true)
+                        {
+                            numLagrangianInlet++;
                         }
 
                         if (refiningBox == true && vertices.back().IsNot(RIGID))
@@ -484,7 +481,6 @@ namespace Kratos
                                 }
                             }
                         }
-
                     }
 
                     // // to control that the element has a good shape

@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_SET_LAGRANGIAN_INLET_PROCESS_H_INCLUDED)
-#define KRATOS_SET_LAGRANGIAN_INLET_PROCESS_H_INCLUDED
+#if !defined(KRATOS_SET_EULERIAN_INLET_PROCESS_H_INCLUDED)
+#define KRATOS_SET_EULERIAN_INLET_PROCESS_H_INCLUDED
 
 // External includes
 
@@ -22,12 +22,12 @@
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
 #include "custom_utilities/mesher_utilities.hpp"
 
-/// VARIABLES used:
-// Data:
-// Flags:    (checked)
-//           (set)
-//           (modified)
-//           (reset)
+///VARIABLES used:
+//Data:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -41,7 +41,7 @@ namespace Kratos
     if the ThresholdVariable  is larger than a ReferenceThreshold
 */
 
-  class SetLagrangianInletProcess
+  class SetEulerianInletProcess
       : public Process
   {
   public:
@@ -49,7 +49,7 @@ namespace Kratos
     ///@{
 
     /// Pointer definition of Process
-    KRATOS_CLASS_POINTER_DEFINITION(SetLagrangianInletProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(SetEulerianInletProcess);
 
     typedef ModelPart::NodeType NodeType;
     typedef ModelPart::ConditionType ConditionType;
@@ -60,18 +60,18 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    SetLagrangianInletProcess(ModelPart &rModelPart,
-                              int EchoLevel)
-        : mrModelPart(rModelPart)
-    {
-      KRATOS_INFO("SetLagrangianInletProcess") << " activated " << std::endl;
+  /// Default constructor.
+  SetEulerianInletProcess(ModelPart &rModelPart,
+                  int EchoLevel)
+      : mrModelPart(rModelPart)
+  {
+    KRATOS_INFO("SetEulerianInletProcess") << " activated "<< std::endl;
 
       mEchoLevel = EchoLevel;
     }
 
     /// Destructor.
-    virtual ~SetLagrangianInletProcess() {}
+    virtual ~SetEulerianInletProcess() {}
 
     ///@}
     ///@name Operators
@@ -93,13 +93,14 @@ namespace Kratos
       KRATOS_TRY
 
       if (mEchoLevel > 1)
-        std::cout << "  SET LAGRANGIAN INLET PROCESS ]; " << std::endl;
+        std::cout << "  SET EULERIAN INLET PROCESS ]; " << std::endl;
 
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         i_node->Set(INLET);
         i_node->Set(RIGID);
-        i_node->GetValue(LAGRANGIAN_INLET) = true;
+        i_node->Reset(FREE_SURFACE);
+        i_node->GetValue(EULERIAN_INLET) = true;
       }
 
       KRATOS_CATCH(" ")
@@ -120,13 +121,13 @@ namespace Kratos
     /// Turn back information as a string.
     std::string Info() const override
     {
-      return "SetLagrangianInletProcess";
+      return "SetEulerianInletProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream &rOStream) const override
     {
-      rOStream << "SetLagrangianInletProcess";
+      rOStream << "SetEulerianInletProcess";
     }
 
     ///@}
@@ -169,12 +170,12 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    SetLagrangianInletProcess &operator=(SetLagrangianInletProcess const &rOther);
+    SetEulerianInletProcess &operator=(SetEulerianInletProcess const &rOther);
 
     /// this function is a private function
 
     /// Copy constructor.
-    // Process(Process const& rOther);
+    //Process(Process const& rOther);
 
     ///@}
 
@@ -191,11 +192,11 @@ namespace Kratos
 
   /// input stream function
   inline std::istream &operator>>(std::istream &rIStream,
-                                  SetLagrangianInletProcess &rThis);
+                                  SetEulerianInletProcess &rThis);
 
   /// output stream function
   inline std::ostream &operator<<(std::ostream &rOStream,
-                                  const SetLagrangianInletProcess &rThis)
+                                  const SetEulerianInletProcess &rThis)
   {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -207,4 +208,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_SET_LAGRANGIAN_INLET_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_SET_EULERIAN_INLET_PROCESS_H_INCLUDED  defined

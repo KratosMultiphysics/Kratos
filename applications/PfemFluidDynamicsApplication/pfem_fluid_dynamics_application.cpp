@@ -144,6 +144,7 @@ namespace Kratos
 
     //Papanastasiou variables
     KRATOS_REGISTER_VARIABLE(EULERIAN_INLET);
+    KRATOS_REGISTER_VARIABLE(LAGRANGIAN_INLET);
 
     // Papanastasiou variables
     KRATOS_REGISTER_VARIABLE(YIELDED);

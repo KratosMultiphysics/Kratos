@@ -125,7 +125,8 @@ namespace Kratos
 
 			unsigned int eulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
 			int ElementsToRefine = mrRemesh.Info->RemovedNodes;
-			if (ElementsToRefine < eulerianInletNodes)
+			 // TO IMPROVE. REFINING SHOULD BE DONE AUTOMATICALLY NEAR THE EULERIAN INLET. THIS WAY THERE IS THE RISK OF INCREASING EXCESSIVELY THE NODES NUMBER
+			if (ElementsToRefine < eulerianInletNodes) 
 			{
 				ElementsToRefine = eulerianInletNodes;
 			}
@@ -1167,16 +1168,13 @@ namespace Kratos
 				{
 					freesurfaceNodes++;
 				}
-				if (Element[pn].Is(INLET))
+				if (Element[pn].GetValue(EULERIAN_INLET) == true)
 				{
-					if (Element[pn].GetValue(EULERIAN_INLET) == true)
-					{
-						eulerianInletNodes++;
-					}
-					else
-					{
-						lagrangianInletNodes++;
-					}
+					eulerianInletNodes++;
+				}
+				if (Element[pn].GetValue(LAGRANGIAN_INLET) == true)
+				{
+					lagrangianInletNodes++;
 				}
 			}
 
@@ -1421,16 +1419,13 @@ namespace Kratos
 				{
 					freesurfaceNodes++;
 				}
-				if (Element[pn].Is(INLET))
+				if (Element[pn].GetValue(EULERIAN_INLET) == true)
 				{
-					if (Element[pn].GetValue(EULERIAN_INLET) == true)
-					{
-						eulerianInletNodes++;
-					}
-					else
-					{
-						lagrangianInletNodes++;
-					}
+					eulerianInletNodes++;
+				}
+				if (Element[pn].GetValue(LAGRANGIAN_INLET) == true)
+				{
+					lagrangianInletNodes++;
 				}
 			}
 
