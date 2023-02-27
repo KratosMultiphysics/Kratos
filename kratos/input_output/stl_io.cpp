@@ -133,8 +133,11 @@ bool StlIO::IsValidGeometry(const Geometry<Node<3>>& rGeometry) const {
     const bool is_triangle = (
         rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
         rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
-
-    return (is_triangle && rGeometry.Area() > std::numeric_limits<double>::epsilon());
+    const bool area_greater_than_zero = rGeometry.Area() > std::numeric_limits<double>::epsilon();
+    if (!area_greater_than_zero) {
+        KRATOS_WARNING_ONCE("STLIO") << "Ignoring geometries with area = 0.0\n";
+    }
+    return (is_triangle && area_greater_than_zero);
 }
 
 void StlIO::ReadSolid(ModelPart & rThisModelPart)
