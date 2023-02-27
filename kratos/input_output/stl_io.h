@@ -206,7 +206,9 @@ private:
 
     void WriteFacet(const GeometryType & rGeom);
 
-    bool IsValidGeometry(const Geometry<Node<3>>& rGeometry) const;
+    bool IsValidGeometry(
+        const Geometry<Node<3>>& rGeometry,
+        std::size_t& rNumDegenerateGeos) const;
 
     ///@}
     ///@name Private  Access
