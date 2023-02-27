@@ -31,7 +31,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             #self.rom_basis_output_process_check = True #TODO include this process, but do so if the user is not interested in checking the approximation error
             self.run_hrom = self.rom_parameters["run_hrom"].GetBool() if self.rom_parameters.Has("run_hrom") else False
             self.train_hrom = self.rom_parameters["train_hrom"].GetBool() if self.rom_parameters.Has("train_hrom") else False
-            self.multiple_simulations = self.rom_parameters["multiple_simulations"].GetBool()
+            self.rom_manager = self.rom_parameters["rom_manager"].GetBool()
             if self.run_hrom and self.train_hrom:
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
@@ -184,13 +184,16 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
         def GetHROM_utility(self):
             return self.__hrom_training_utility
 
+        def GetPetrovGalerkinTrainUtility(self):
+            return self.__petrov_galerkin_training_utility
+
 
         def Finalize(self):
             # This calls the physics Finalize
             super().Finalize()
 
             # Once simulation is completed, calculate and save the HROM weights
-            if self.train_hrom and not self.multiple_simulations:
+            if self.train_hrom and not self.rom_manager:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
                 self.__hrom_training_utility.CreateHRomModelParts()
                 # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
