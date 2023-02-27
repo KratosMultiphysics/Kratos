@@ -266,8 +266,6 @@ public:
 
     std::string ToJson(std::string const& rTabSpacing = "", const std::size_t Level = 0) const;
 
-    std::string GetValueString() const;
-
     ///@}
 private:
     ///@name Private Member Variables
@@ -275,7 +273,6 @@ private:
 
     std::string mName;
     std::any mpValue;
-
     std::string (RegistryItem::*mGetValueStringMethod)() const;
 
     ///@}
@@ -328,6 +325,8 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    std::string GetValueString() const;
 
     SubRegistryItemType& GetSubRegistryItemMap();
 
