@@ -93,13 +93,17 @@ class MechanicalSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
+        # Set the Orthogonal SubScales (OSS) switch
+        # Note that this needs to be done before the scheme initialize in order to allocate the projection variables
+        self.main_model_part.ProcessInfo[KratosMultiphysics.OSS_SWITCH] = self.settings["use_orthogonal_subscales"].GetBool()
 
         # Set if the analysis is restarted
         if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         else:
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -124,6 +128,7 @@ class MechanicalSolver(PythonSolver):
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
             "use_old_stiffness_in_first_iteration": false,
+            "use_orthogonal_subscales": false,
             "compute_reactions": true,
             "solving_strategy_settings": {
                 "type" : "newton_raphson",

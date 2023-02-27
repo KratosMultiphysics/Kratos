@@ -67,19 +67,17 @@ class ImplicitMechanicalSolver(MechanicalSolver):
             # Resetting the global equations ids
             self._GetBuilderAndSolver().SetUpSystem(self.GetComputingModelPart())
 
-    def Initialize(self):
-        # TODO: Properly set this
-        # Set the Orthogonal SubScales switch
-        # Note that this needs to be done before the scheme initialize
-        self.main_model_part.ProcessInfo[KratosMultiphysics.OSS_SWITCH] = True
-
-        # Using the base InitializeSolutionStep
-        super().Initialize()
-
     #### Private functions ####
 
     def _CreateScheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
+
+        # Check that OSS are supported by current scheme
+        oss_available_schemes = ["newmark","bossak"]
+        if self.settings["use_orthogonal_subscales"].GetBool():
+            if not scheme_type in oss_available_schemes:
+                err_msg = f"'{scheme_type}' scheme does not support OSS. Please switch 'use_orthogonal_subscales' off."
+                raise Exception(err_msg)
 
         # Setting the Rayleigh damping parameters
         process_info = self.main_model_part.ProcessInfo
