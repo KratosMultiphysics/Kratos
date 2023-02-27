@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_SET_INLET_PROCESS_H_INCLUDED)
-#define KRATOS_SET_INLET_PROCESS_H_INCLUDED
+#if !defined(KRATOS_SET_LAGRANGIAN_INLET_PROCESS_H_INCLUDED)
+#define KRATOS_SET_LAGRANGIAN_INLET_PROCESS_H_INCLUDED
 
 // External includes
 
@@ -41,7 +41,7 @@ namespace Kratos
     if the ThresholdVariable  is larger than a ReferenceThreshold
 */
 
-  class SetInletProcess
+  class SetLagrangianInletProcess
       : public Process
   {
   public:
@@ -49,7 +49,7 @@ namespace Kratos
     ///@{
 
     /// Pointer definition of Process
-    KRATOS_CLASS_POINTER_DEFINITION(SetInletProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(SetLagrangianInletProcess);
 
     typedef ModelPart::NodeType NodeType;
     typedef ModelPart::ConditionType ConditionType;
@@ -61,17 +61,17 @@ namespace Kratos
     ///@{
 
   /// Default constructor.
-  SetInletProcess(ModelPart &rModelPart,
+  SetLagrangianInletProcess(ModelPart &rModelPart,
                   int EchoLevel)
       : mrModelPart(rModelPart)
   {
-    KRATOS_INFO("SetInletProcess") << " activated "<< std::endl;
+    KRATOS_INFO("SetLagrangianInletProcess") << " activated "<< std::endl;
 
       mEchoLevel = EchoLevel;
     }
 
     /// Destructor.
-    virtual ~SetInletProcess() {}
+    virtual ~SetLagrangianInletProcess() {}
 
     ///@}
     ///@name Operators
@@ -93,16 +93,10 @@ namespace Kratos
       KRATOS_TRY
 
       if (mEchoLevel > 1)
-        std::cout << "  SET INLET PROCESS ]; " << std::endl;
+        std::cout << "  SET LAGRANGIAN INLET PROCESS ]; " << std::endl;
 
-      // const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        // count++;
-        // if (i_node->Is(RIGID))
-        // {
-        //   i_node->GetValue(NO_MESH) = true;
-        // }
         i_node->Set(INLET);
         i_node->Set(RIGID);
         i_node->Reset(FREE_SURFACE);
@@ -127,13 +121,13 @@ namespace Kratos
     /// Turn back information as a string.
     std::string Info() const override
     {
-      return "SetInletProcess";
+      return "SetLagrangianInletProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream &rOStream) const override
     {
-      rOStream << "SetInletProcess";
+      rOStream << "SetLagrangianInletProcess";
     }
 
     ///@}
@@ -176,7 +170,7 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    SetInletProcess &operator=(SetInletProcess const &rOther);
+    SetLagrangianInletProcess &operator=(SetLagrangianInletProcess const &rOther);
 
     /// this function is a private function
 
@@ -198,11 +192,11 @@ namespace Kratos
 
   /// input stream function
   inline std::istream &operator>>(std::istream &rIStream,
-                                  SetInletProcess &rThis);
+                                  SetLagrangianInletProcess &rThis);
 
   /// output stream function
   inline std::ostream &operator<<(std::ostream &rOStream,
-                                  const SetInletProcess &rThis)
+                                  const SetLagrangianInletProcess &rThis)
   {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -214,4 +208,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_SET_INLET_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_SET_LAGRANGIAN_INLET_PROCESS_H_INCLUDED  defined

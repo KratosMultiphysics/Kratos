@@ -427,17 +427,7 @@ namespace Kratos
                                     }
                                 }
                             }
-                            if (numEulerianInlet > 0)
-                            {
-                                if (currentTime < 20 * timeInterval)
-                                {
-                                    Alpha *= 2.5;
-                                }
-                                else
-                                {
-                                    Alpha *= 2.0;
-                                }
-                            }
+
                             Geometry<Node<3>> *triangle = new Triangle2D3<Node<3>>(vertices);
                             double elementArea = triangle->Area();
                             if (elementArea < CriticalVolume)
@@ -494,17 +484,7 @@ namespace Kratos
                                 }
                             }
                         }
-                        if (numEulerianInlet > 0)
-                        {
-                            if (currentTime < 20 * timeInterval)
-                            {
-                                Alpha *= 2.5;
-                            }
-                            else
-                            {
-                                Alpha *= 2.0;
-                            }
-                        }
+
                     }
 
                     // // to control that the element has a good shape

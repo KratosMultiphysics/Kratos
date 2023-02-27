@@ -124,8 +124,11 @@ namespace Kratos
 			}
 
 			unsigned int eulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
-
-			int ElementsToRefine = mrRemesh.Info->RemovedNodes + eulerianInletNodes;
+			int ElementsToRefine = mrRemesh.Info->RemovedNodes;
+			if (ElementsToRefine < eulerianInletNodes)
+			{
+				ElementsToRefine = eulerianInletNodes;
+			}
 
 			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
 			int numberOfNodes = mrRemesh.Info->NumberOfNodes;
@@ -187,20 +190,10 @@ namespace Kratos
 						if (dimension == 2)
 						{
 							SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, CountNodes, ElementsToRefine);
-
-							// if (eulerianInletNodes > 0)
-							// {
-							// 	SelectEdgeToRefine2DInletZone(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
-							// }
 						}
 						else if (dimension == 3)
 						{
 							SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, CountNodes, ElementsToRefine);
-
-							// if (eulerianInletNodes > 0)
-							// {
-							// 	SelectEdgeToRefine3DInletZone(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
-							// }
 						}
 
 					} // elements loop
@@ -248,20 +241,11 @@ namespace Kratos
 					if (dimension == 2)
 					{
 						SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine, nodesInTransitionZone);
-						// if (eulerianInletNodes > 0)
-						// {
-						// 	SelectEdgeToRefine2DInletZone(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
-						// }					
-}
+					}
 					else if (dimension == 3)
 					{
 						SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine, nodesInTransitionZone);
-					
-						// if (eulerianInletNodes > 0)
-						// {
-						// 	SelectEdgeToRefine3DInletZone(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
-						// }
-}
+					}
 
 				} // elements loop
 
@@ -729,7 +713,7 @@ namespace Kratos
 
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
-				if (Element[pn].GetValue(EULERIAN_INLET)==true)
+				if (Element[pn].GetValue(EULERIAN_INLET) == true)
 				{
 					eulerianInletNodes++;
 				}
@@ -743,7 +727,7 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 2.1 * mrRemesh.Refine->CriticalRadius; //higher than the normal one to avoid increasing number of nodes
+			double limitEdgeLength = 2.1 * mrRemesh.Refine->CriticalRadius; // higher than the normal one to avoid increasing number of nodes
 			double safetyCoefficient2D = 1.5;
 
 			if (eulerianInletNodes > 0 && toEraseNodeFound == false)
@@ -932,7 +916,7 @@ namespace Kratos
 				{
 					toEraseNodeFound = true;
 				}
-				if (Element[pn].GetValue(EULERIAN_INLET)==true)
+				if (Element[pn].GetValue(EULERIAN_INLET) == true)
 				{
 					eulerianInletNodes++;
 				}
@@ -942,7 +926,7 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 2.25 * mrRemesh.Refine->CriticalRadius; //higher than the normal one to avoid increasing number of nodes
+			double limitEdgeLength = 2.25 * mrRemesh.Refine->CriticalRadius; // higher than the normal one to avoid increasing number of nodes
 			double safetyCoefficient3D = 1.6;
 
 			if (eulerianInletNodes > 0 && toEraseNodeFound == false)
@@ -979,7 +963,7 @@ namespace Kratos
 						}
 					}
 				}
-				//Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
+				// Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 				bool dangerousElement = false;
 				if (rigidNodes > 1)
 				{
@@ -1030,7 +1014,7 @@ namespace Kratos
 					dangerousElement = true;
 				}
 
-				//just to fill the vector
+				// just to fill the vector
 				if (dangerousElement == false && toEraseNodeFound == false)
 				{
 
@@ -1185,10 +1169,10 @@ namespace Kratos
 				}
 				if (Element[pn].Is(INLET))
 				{
-					if (Element[pn].GetValue(EULERIAN_INLET)==true)
+					if (Element[pn].GetValue(EULERIAN_INLET) == true)
 					{
 						eulerianInletNodes++;
-				}
+					}
 					else
 					{
 						lagrangianInletNodes++;
@@ -1226,11 +1210,6 @@ namespace Kratos
 			else if (freesurfaceNodes > 0)
 			{
 				penalization = 0.875;
-			}
-
-			if (eulerianInletNodes > 0) //nodes close to the Eulerian inlet are added in a separated function
-			{
-				penalization = 1.25;
 			}
 
 			double ElementalVolume = Element.Area();
@@ -1298,7 +1277,6 @@ namespace Kratos
 				dangerousElement = true;
 			}
 
-			// if (dangerousElement == false && toEraseNodeFound == false && eulerianInletNodes < 0.5)
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
 				unsigned int maxCount = 3;
@@ -1445,7 +1423,7 @@ namespace Kratos
 				}
 				if (Element[pn].Is(INLET))
 				{
-					if (Element[pn].GetValue(EULERIAN_INLET)==true)
+					if (Element[pn].GetValue(EULERIAN_INLET) == true)
 					{
 						eulerianInletNodes++;
 					}
@@ -1487,11 +1465,6 @@ namespace Kratos
 			{
 				penalization = 0.95;
 			}
-
-			// if (eulerianInletNodes > 0)
-			// {
-			// 	penalization = 0;
-			// }
 
 			double ElementalVolume = Element.Volume();
 

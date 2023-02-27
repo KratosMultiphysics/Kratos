@@ -10,11 +10,11 @@ from KratosMultiphysics.PfemFluidDynamicsApplication.assign_vector_components_to
 def Factory(custom_settings, Model):
     if(type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignInletProcess(Model, custom_settings["Parameters"])
+    return AssignEulerianInletProcess(Model, custom_settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 
-class AssignInletProcess(AssignVectorComponentsToNodesProcess):
+class AssignEulerianInletProcess(AssignVectorComponentsToNodesProcess):
     def __init__(self, Model, custom_settings ):
 
         AssignVectorComponentsToNodesProcess.__init__(self, Model, custom_settings)
@@ -22,7 +22,7 @@ class AssignInletProcess(AssignVectorComponentsToNodesProcess):
         self.model_part = Model[custom_settings["model_part_name"].GetString()]
 
         self.echo_level=0
-        self.model_inlet =  KratosPfemFluid.SetLagrangianInlet(self.model_part,self.echo_level)
+        self.model_inlet =  KratosPfemFluid.SetEulerianInlet(self.model_part,self.echo_level)
         self.model_inlet.Execute()
 
 
