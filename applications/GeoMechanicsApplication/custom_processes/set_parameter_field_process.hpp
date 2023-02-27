@@ -47,12 +47,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of SetMovingLoadProcess
     KRATOS_CLASS_POINTER_DEFINITION(SetParameterFieldProcess);
-
-    typedef std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -66,7 +66,7 @@ public:
     ///@{
 
     /**
-     * \brief  Initializes the set parameter field process. Checks what type of input field is given,
+     * \brief  Initializes the set parameter field process. Checks what type of input field is given and generates the parameter field
      */
     void ExecuteInitialize() override;
 
@@ -85,9 +85,6 @@ public:
         rOStream << "SetParameterFieldProcess";
     }
 
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {
-    }
 
     ///@}
 
@@ -109,7 +106,25 @@ private:
      * \param rVar variable type which is to be altered
      * \param Value new value for the to be altered variable
      */
-     void SetValueAtElement(Element& rElement, const Variable<double>& rVar, double Value);
+     static void SetValueAtElement(Element& rElement, const Variable<double>& rVar, const double Value);
+
+     /**
+     * \brief Sets the parameter field, using an input function
+     * \param rVar variable type which is to be used to generate the parameter field
+     */
+     void SetParameterFieldUsingInputFunction(const Variable<double>& rVar);
+
+     /**
+     * \brief Sets the parameter field, using a user defined python function
+     * \param rVar variable type which is to be used to generate the parameter field
+     */
+     void SetParameterFieldUsingPythonFunction(const Variable<double>& rVar);
+
+     /**
+     * \brief Sets the parameter field, using an input json file
+     * \param rVar variable type which is to be used to generate the parameter field
+     */
+     void SetParameterFieldUsingInputJson(const Variable<double>& rVar);
 
     ///@}
     ///@name Serialization

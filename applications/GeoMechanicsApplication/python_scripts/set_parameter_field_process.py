@@ -4,9 +4,10 @@ import importlib
 import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+        raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
     return SetParameterFieldProcess(Model, settings["Parameters"])
 
 
@@ -101,7 +102,7 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
 
             # validate and generate custom defined parameter field
             custom_class.validate_input(input_dict, return_dict)
-            custom_class.run()
+            custom_class.generate_field()
             custom_class.validate_output()
 
             self.params["dataset"].SetString(json.dumps(return_dict))

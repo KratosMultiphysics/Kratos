@@ -28,12 +28,12 @@ namespace Kratos
 {
 
     SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart,
-                                                            Parameters Settings)
-                                                            : mrModelPart(rModelPart),
+                                                       const Parameters Settings)
+                                                            : Process(), mrModelPart(rModelPart),
                                                             mParameters(Settings)
 {
     // function type: python, cpp, input
-    Parameters default_parameters(R"(
+    const Parameters default_parameters(R"(
         {
             "help"            : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
             "model_part_name" : "please_specify_model_part_name",
@@ -43,16 +43,14 @@ namespace Kratos
             "dataset"         : "dummy"
         }  )"
     );
-    Parameters mParameters;
 
     mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
 }
 
 
-void SetParameterFieldProcess::SetValueAtElement(Element& rElement, const Variable<double>& rVar, double Value)
+void SetParameterFieldProcess::SetValueAtElement(Element& rElement, const Variable<double>& rVar, const double Value)
 {
-
 
     Properties& r_prop = rElement.GetProperties();
 
@@ -66,74 +64,88 @@ void SetParameterFieldProcess::SetValueAtElement(Element& rElement, const Variab
 }
 
 
+void SetParameterFieldProcess::SetParameterFieldUsingInputFunction(const Variable<double>& rVar)
+{
+    auto parameter_function = BasicGenericFunctionUtility(mParameters["function"].GetString());
+    const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
+
+    for (Element& r_element : mrModelPart.Elements()) {
+
+        const auto& r_geom = r_element.GetGeometry();
+
+        // calculate parameter value at current element
+        const double val = parameter_function.CallFunction(r_geom.Center().X(), r_geom.Center().Y(), r_geom.Center().Z(), current_time, 0, 0, 0);
+
+        SetValueAtElement(r_element, rVar, val);
+
+    }
+}
+
+
+void SetParameterFieldProcess::SetParameterFieldUsingPythonFunction(const Variable<double>& rVar)
+{
+    // get new data from the data set
+    const std::string dataset = mParameters["dataset"].GetString();
+    const Parameters new_data{ dataset };
+    const Vector data_vector = new_data["values"].GetVector();
+
+    // set new data on the elements
+    IndexType i = 0;
+    for (Element& r_element : mrModelPart.Elements())
+    {
+        SetValueAtElement(r_element, rVar, data_vector[i]);
+        i++;
+    }
+}
+
+
+void SetParameterFieldProcess::SetParameterFieldUsingInputJson(const Variable<double>& rVar)
+{
+    // Read json string in field parameters file, create Parameters
+    const std::string& field_file_name = mParameters["dataset"].GetString();
+
+    KRATOS_ERROR_IF_NOT(std::filesystem::exists(field_file_name)) << "The parameter field file specified with name \"" << field_file_name << "\" does not exist!" << std::endl;
+
+    std::ifstream ifs(field_file_name);
+    Parameters new_data(ifs);
+    Vector data_vector = new_data["values"].GetVector();
+
+    KRATOS_ERROR_IF_NOT(data_vector.size() == mrModelPart.Elements().size()) << "The parameter field: \""
+        << field_file_name << "\" does not have the same size as the amount of elements within the model part!" << std::endl;
+
+    IndexType i = 0;
+    for (Element& r_element : mrModelPart.Elements())
+    {
+        SetValueAtElement(r_element, rVar, data_vector[i]);
+        i++;
+    }
+}
+
+
+
+
 void SetParameterFieldProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
     if (!this->mrModelPart.GetProcessInfo()[IS_RESTARTED]){
 
-        const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
+        const auto& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
 
         // set parameter field from input function
-        if (mParameters["func_type"].GetString().compare("input") == 0)
+        if (mParameters["func_type"].GetString() == "input")
         {
-
-            BasicGenericFunctionUtility parameter_function = BasicGenericFunctionUtility(mParameters["function"].GetString());
-
-            const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
-
-            for (Element& r_element : mrModelPart.Elements()) {
-
-                auto& r_geom = r_element.GetGeometry();
-
-                // calculate parameter value at current element
-                const double val = parameter_function.CallFunction(r_geom.Center().X(), r_geom.Center().Y(), r_geom.Center().Z(), current_time, 0, 0, 0);
-                
-
-                this->SetValueAtElement(r_element, r_var, val);
-
-            }
+            this->SetParameterFieldUsingInputFunction(r_var);
         }
         // set parameter field with a python function
-        else if (mParameters["func_type"].GetString().compare("python") == 0)
+        else if (mParameters["func_type"].GetString() == "python")
         {
-
-            // get new data from the data set
-            const std::string dataset = mParameters["dataset"].GetString();
-            Parameters new_data = Parameters(dataset);
-            Vector data_vector = new_data["values"].GetVector();
-
-            // set new data on the elements
-            IndexType i = 0;
-            for (Element& r_element : mrModelPart.Elements())
-            {
-                this->SetValueAtElement(r_element, r_var, data_vector[i]);
-                i++;
-            }
+            this->SetParameterFieldUsingPythonFunction(r_var);
         }
         // set parameter field from an input json
-        else if (mParameters["func_type"].GetString().compare("json") == 0)
+        else if (mParameters["func_type"].GetString() == "json")
         {
-
-
-            // Read json string in field parameters file, create Parameters
-            const std::string& field_file_name = mParameters["dataset"].GetString();
-
-            KRATOS_ERROR_IF_NOT(std::filesystem::exists(field_file_name)) << "The parameter field file specified with name \"" << field_file_name << "\" does not exist!" << std::endl;
-
-            std::ifstream ifs(field_file_name);
-            Parameters new_data(ifs);
-            Vector data_vector = new_data["values"].GetVector();
-
-            KRATOS_ERROR_IF_NOT(data_vector.size() == mrModelPart.Elements().size()) << "The parameter field: \""
-        	<< field_file_name << "\" does not have the same size as the amount of elements within the model part!" << std::endl;
-
-            IndexType i = 0;
-            for (Element& r_element : mrModelPart.Elements())
-            {
-                this->SetValueAtElement(r_element, r_var, data_vector[i]);
-                i++;
-            }
+            this->SetParameterFieldUsingInputJson(r_var);
         }
     }
     KRATOS_CATCH("")
