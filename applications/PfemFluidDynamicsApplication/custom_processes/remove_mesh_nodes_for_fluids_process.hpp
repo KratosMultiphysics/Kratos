@@ -121,7 +121,7 @@ namespace Kratos
 			if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES))
 			{
 				bool some_node_is_removed = false;
-
+				
 				if (mEchoLevel > 1)
 					std::cout << " REMOVE_NODES is TRUE " << std::endl;
 

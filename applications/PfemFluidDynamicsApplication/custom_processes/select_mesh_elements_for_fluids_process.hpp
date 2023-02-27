@@ -162,7 +162,6 @@ namespace Kratos
                     unsigned int numfreesurf = 0;
                     unsigned int numboundary = 0;
                     unsigned int numrigid = 0;
-                    unsigned int numEulerianInlet = 0;
                     unsigned int numLagrangianInlet = 0;
                     unsigned int numisolated = 0;
                     bool noremesh = false;
@@ -257,10 +256,6 @@ namespace Kratos
                             normVelocityP[pn] = norm_2(velocityP0);
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
-                        }
-                        if (vertices.back().GetValue(EULERIAN_INLET) == true)
-                        {
-                            numEulerianInlet++;
                         }
                         if (vertices.back().GetValue(LAGRANGIAN_INLET) == true)
                         {
@@ -424,7 +419,6 @@ namespace Kratos
                                     }
                                 }
                             }
-
                             Geometry<Node<3>> *triangle = new Triangle2D3<Node<3>>(vertices);
                             double elementArea = triangle->Area();
                             if (elementArea < CriticalVolume)

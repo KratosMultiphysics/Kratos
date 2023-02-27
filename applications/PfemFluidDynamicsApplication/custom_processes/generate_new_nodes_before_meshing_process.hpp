@@ -1142,7 +1142,6 @@ namespace Kratos
 			unsigned int boundaryNodes = 0;
 			unsigned int freesurfaceNodes = 0;
 			unsigned int lagrangianInletNodes = 0;
-			unsigned int eulerianInletNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
@@ -1167,10 +1166,6 @@ namespace Kratos
 				if (Element[pn].Is(FREE_SURFACE))
 				{
 					freesurfaceNodes++;
-				}
-				if (Element[pn].GetValue(EULERIAN_INLET) == true)
-				{
-					eulerianInletNodes++;
 				}
 				if (Element[pn].GetValue(LAGRANGIAN_INLET) == true)
 				{
@@ -1397,7 +1392,6 @@ namespace Kratos
 			unsigned int rigidNodes = 0;
 			unsigned int freesurfaceNodes = 0;
 			unsigned int lagrangianInletNodes = 0;
-			unsigned int eulerianInletNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
@@ -1418,10 +1412,6 @@ namespace Kratos
 				if (Element[pn].Is(FREE_SURFACE))
 				{
 					freesurfaceNodes++;
-				}
-				if (Element[pn].GetValue(EULERIAN_INLET) == true)
-				{
-					eulerianInletNodes++;
 				}
 				if (Element[pn].GetValue(LAGRANGIAN_INLET) == true)
 				{
