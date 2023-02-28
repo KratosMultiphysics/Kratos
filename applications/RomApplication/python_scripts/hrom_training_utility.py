@@ -41,6 +41,7 @@ class HRomTrainingUtility(object):
         self.rom_settings = custom_settings["rom_settings"]
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
         self.projection_strategy = settings["projection_strategy"].GetString()
+        self.hrom_output_format = settings["hrom_format"].GetString()
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -63,10 +64,10 @@ class HRomTrainingUtility(object):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
         elif (self.projection_strategy=="petrov_galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else: 
+        else:
             err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
             raise Exception(err_msg)
-        
+
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
@@ -133,6 +134,8 @@ class HRomTrainingUtility(object):
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
+            "original_number_of_elements": 10,
+            "hrom_format": "numpy",
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
@@ -195,8 +198,15 @@ class HRomTrainingUtility(object):
             w, z = self.__AddSelectedElementsWithZeroWeights(w,z, missing_condition_parents)
 
 
-        np.save('WeightsMatrix.npy',w)
-        np.save('ElementsVector.npy',z)
+
+        if self.hrom_output_format=="numpy":
+            np.save('WeightsMatrix.npy',w)
+            np.save('ElementsVector.npy',z)
+
+        elif self.hrom_output_format=="json":
+            with open('RomParameters.json','r') as f:
+                updated_rom_parameters = json.load(f)
+                updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 

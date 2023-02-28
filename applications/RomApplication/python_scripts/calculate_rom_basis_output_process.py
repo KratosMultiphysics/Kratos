@@ -58,8 +58,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Set the ROM basis output settings
         self.rom_basis_output_format = settings["rom_basis_output_format"].GetString()
-        if not self.rom_basis_output_format == "json":
-            err_msg = "Provided \'rom_basis_output_format\' is {}. Available options are \'json\'.".format(self.rom_basis_output_format)
+        if not self.rom_basis_output_format == "json" and not self.rom_basis_output_format == "numpy" :
+            err_msg = "Provided \'rom_basis_output_format\' is {}. Available options are \'json\' and \'numpy\'.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
         self.rom_basis_output_name = settings["rom_basis_output_name"].GetString()
 
@@ -80,7 +80,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "snapshots_control_type": "step",
             "snapshots_interval": 1.0,
             "nodal_unknowns": [],
-            "rom_basis_output_format": "json",
+            "rom_basis_output_format": "numpy",
             "rom_basis_output_name": "RomParameters",
             "svd_truncation_tolerance": 1.0e-6
         }""")
@@ -136,6 +136,9 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Set a NumPy array with the snapshots data
         n_nodes = self.model_part.NumberOfNodes()
+        n_elements = self.model_part.NumberOfElements()
+        rom_basis_dict["hrom_settings"]["original_number_of_elements"] = n_elements
+        rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
         n_data_cols = len(self.snapshots_data_list)
         n_nodal_unknowns = len(self.snapshot_variables_list)
         snapshots_matrix = numpy.empty((n_nodal_unknowns*n_nodes,n_data_cols))
