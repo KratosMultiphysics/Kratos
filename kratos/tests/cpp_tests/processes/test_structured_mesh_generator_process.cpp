@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -22,8 +22,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 
-namespace Kratos {
-    namespace Testing {
+namespace Kratos::Testing {
 
         KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessHexahedra, KratosCoreFastSuite)
         {
@@ -45,7 +44,10 @@ namespace Kratos {
             Parameters mesher_parameters(R"(
             {
                 "number_of_divisions":10,
-                "element_name": "Element3D4N"
+                "create_skin_sub_model_part": true,
+                "skin_sub_model_part_name": "Skin",
+                "element_name": "Element3D4N",
+                "condition_name": "SurfaceCondition"
             }  )");
 
             std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
@@ -92,7 +94,9 @@ namespace Kratos {
             {
                 "number_of_divisions":10,
                 "element_name": "Element2D3N",
-                "create_skin_sub_model_part": false
+                "create_skin_sub_model_part": false,
+                "create_body_sub_model_part": true,
+                "body_sub_model_part_name": "DomainModelPart"
             }  )");
 
             std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
@@ -114,8 +118,12 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(total_area, 100., 1.E-6) << "with total_area = " << total_area;
 
             KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("Skin"));
+            KRATOS_CHECK(model_part.HasSubModelPart("DomainModelPart"))
+            const auto& r_domain_model_part = model_part.GetSubModelPart("DomainModelPart");
+            KRATOS_CHECK_EQUAL(r_domain_model_part.NumberOfNodes(), number_of_nodes);
+            KRATOS_CHECK_EQUAL(r_domain_model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
         }
-    }
-}  // namespace Kratos.
+
+}  // namespace Kratos::Testing.
 
 
