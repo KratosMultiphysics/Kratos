@@ -171,7 +171,7 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
         //     };
         //     break;
         default:
-            KRATOS_ERROR << "Non supported geometry type." << std::endl;
+            KRATOS_ERROR << "Non supported geometry type for mass shape sensitivity calculation (CalculateMassShapeSensitivity())." << std::endl;
     }
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement){
