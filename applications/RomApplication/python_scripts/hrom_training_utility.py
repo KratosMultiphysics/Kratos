@@ -22,6 +22,9 @@ class HRomTrainingUtility(object):
         settings = custom_settings["hrom_settings"]
         settings.ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
 
+        # Projection strategy (residual projection)
+        settings["projection_strategy"] = custom_settings["projection_strategy"] # To be consistent with the solving strategy
+
         # Create the HROM element selector
         element_selection_type = settings["element_selection_type"].GetString()
         if element_selection_type == "empirical_cubature":
@@ -37,6 +40,7 @@ class HRomTrainingUtility(object):
         self.echo_level = settings["echo_level"].GetInt()
         self.rom_settings = custom_settings["rom_settings"]
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
+        self.projection_strategy = settings["projection_strategy"].GetString()
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -53,16 +57,24 @@ class HRomTrainingUtility(object):
 
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
 
-        # Generate the matrix of residuals
-        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of residuals.")
-        res_mat = self.__rom_residuals_utility.GetResiduals()
+        # Generate the matrix of projected residuals
+        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
+        if (self.projection_strategy=="galerkin"):
+                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        elif (self.projection_strategy=="petrov_galerkin"):
+                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
+        else: 
+            err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
+            raise Exception(err_msg)
+        
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
     def CalculateAndSaveHRomWeights(self):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
-        self.hyper_reduction_element_selector.SetUp(residual_basis)
+        n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
+        self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
 
         # Save the HROM weights in numpy format
@@ -124,7 +136,8 @@ class HRomTrainingUtility(object):
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
-            "create_hrom_visualization_model_part" : true
+            "create_hrom_visualization_model_part" : true,
+            "projection_strategy": "galerkin"
         }""")
         return default_settings
 
@@ -133,7 +146,8 @@ class HRomTrainingUtility(object):
         n_steps = len(self.time_step_residual_matrix_container)
         residuals_snapshot_matrix = self.time_step_residual_matrix_container[0]
         for i in range(1,n_steps):
-            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[i]]
+            del self.time_step_residual_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
+            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[0]]
 
         # Calculate the randomized and truncated SVD of the residual snapshots
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
