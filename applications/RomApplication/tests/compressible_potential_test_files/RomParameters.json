@@ -1,6 +1,7 @@
 {
     "train_hrom": false,
     "run_hrom": false,
+    "rom_format":"numpy",
     "rom_settings": {
         "nodal_unknowns": [
             "AUXILIARY_VELOCITY_POTENTIAL",
