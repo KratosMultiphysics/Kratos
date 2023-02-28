@@ -5,7 +5,7 @@ class ResponseFunction(Kratos.Process):
         super().__init__()
 
     def Check(self):
-        raise NotImplementedError("Calling base class ResponseFunction::Check method. Please implement in the derrived class.")
+        raise NotImplementedError("Calling base class ResponseFunction::Check method. Please implement in the derived class.")
 
     def CalculateValue(self) -> float:
         raise NotImplementedError("Calling base class ResponseFunction::CalculateValue method. Please implement in the derrived class.")
