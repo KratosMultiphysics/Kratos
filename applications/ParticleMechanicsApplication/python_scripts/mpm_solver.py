@@ -315,6 +315,7 @@ class MPMSolver(PythonSolver):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             self._ImportModelPart(self.initial_mesh_model_part, self.settings["model_import_settings"])
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
+            self.settings["model_import_settings"]["input_filename"].SetString("MPM_Material")
             self._ImportModelPart(self.material_point_model_part, self.settings["model_import_settings"])
         else:
             raise Exception("Other input options are not implemented yet.")
