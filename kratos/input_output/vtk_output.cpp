@@ -230,12 +230,12 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     output_file_name += ".vtk";
 
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        const std::string output_path = mOutputSettings["output_path"].GetString();
+        const std::filesystem::path output_path = mOutputSettings["output_path"].GetString();
 
         // Create folder if it doesn't exist before
         FilesystemExtensions::MPISafeCreateDirectories(output_path);
 
-        output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
+        output_file_name = (output_path / output_file_name).string();
     }
 
     return output_file_name;

@@ -12,7 +12,7 @@
 //
 
 // System includes
- 
+
 // External includes
 
 // Project includes
@@ -80,6 +80,89 @@ void InterpolateDiscontinuousMeshVariableToSkinArray(
     const std::string &rInterfaceSide)
 {
     rEmbeddedSkinUtility.InterpolateDiscontinuousMeshVariableToSkin(rVariable, rEmbeddedVariable, rInterfaceSide);
+}
+
+// MLS shape functions utility
+void AuxiliaryCalculateMLSShapeFunctions(
+    const std::size_t Dim,
+    const std::size_t Order,
+    const Matrix& rPoints,
+    const array_1d<double,3>& rX,
+    const double h,
+    Vector& rN)
+{
+    switch (Dim)
+    {
+    case 2:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>(rPoints, rX, h, rN);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,2>(rPoints, rX, h, rN);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    case 3:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>(rPoints, rX, h, rN);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,2>(rPoints, rX, h, rN);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    default:
+        KRATOS_ERROR << "Wrong dimension: " << Dim << std::endl;
+        break;
+    }
+}
+
+void AuxiliaryCalculateMLSShapeFunctionsAndGradients(
+    const std::size_t Dim,
+    const std::size_t Order,
+    const Matrix& rPoints,
+    const array_1d<double,3>& rX,
+    const double h,
+    Vector& rN,
+    Matrix& rDNDX)
+{
+    if (Dim == 2) {
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>(rPoints, rX, h, rN, rDNDX);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,2>(rPoints, rX, h, rN, rDNDX);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    } else if (Dim == 3) {
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,1>(rPoints, rX, h, rN, rDNDX);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,2>(rPoints, rX, h, rN, rDNDX);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    } else {
+        KRATOS_ERROR << "Wrong dimension: " << Dim << std::endl;
+    }
 }
 
 void AddGeometricalUtilitiesToPython(pybind11::module &m)
@@ -333,10 +416,8 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
 
     // MLS shape functions utility
     py::class_<MLSShapeFunctionsUtility>(m,"MLSShapeFunctionsUtility")
-        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2>)
-        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
-        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
-        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        .def_static("CalculateShapeFunctions", &AuxiliaryCalculateMLSShapeFunctions)
+        .def_static("CalculateShapeFunctionsAndGradients", &AuxiliaryCalculateMLSShapeFunctionsAndGradients)
         ;
 
     // Radial Basis FUnctions utility

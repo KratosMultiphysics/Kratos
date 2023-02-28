@@ -778,7 +778,7 @@ private:
                                 const double nodal_area_contribution = rThisMortarOperators.DOperator(i_node, i_node);
 
                                 // The original node coordinates
-                                const auto& r_slave_node_coordinates = r_slave_geometry[i_node].Coordinates();
+                                const auto& r_slave_node = r_slave_geometry[i_node];
 
                                 // Iterating over other paired geometrical objects
                                 const auto& r_index_masp_master = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.GetCondition(master_id).GetValue(INDEX_SET) : r_const_origin_model_part.GetElement(master_id).GetValue(INDEX_SET);
@@ -789,12 +789,12 @@ private:
                                         GeometryType& r_auxiliar_slave_geometry =  const_cast<GeometryType&>(mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? r_const_destination_model_part.GetCondition(auxiliar_slave_id).GetGeometry() : r_const_destination_model_part.GetElement(auxiliar_slave_id).GetGeometry());
 
                                         for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
-                                            // The auxiliar node coordinates
-                                            const auto& r_auxiliar_slave_node_coordinates = r_auxiliar_slave_geometry[j_node].Coordinates();
-                                            const double distance = norm_2(r_auxiliar_slave_node_coordinates - r_slave_node_coordinates);
+                                            // The auxiliary node distance
+                                            auto& r_auxiliary_slave_node = r_auxiliar_slave_geometry[j_node];
+                                            const double distance = r_auxiliary_slave_node.Distance(r_slave_node);
                                             const double contribution_coeff = 1.0/std::pow((1.0 + distance/(discontinous_interface_factor * element_length)), 2);
 
-                                            double& r_nodal_area = r_auxiliar_slave_geometry[j_node].GetValue(NODAL_AREA);
+                                            double& r_nodal_area = r_auxiliary_slave_node.GetValue(NODAL_AREA);
                                             AtomicAdd(r_nodal_area, contribution_coeff * nodal_area_contribution);
                                         }
                                     }
