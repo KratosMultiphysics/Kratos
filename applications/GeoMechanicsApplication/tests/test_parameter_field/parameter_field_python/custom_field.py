@@ -13,7 +13,7 @@ class ParameterField(ParameterFieldBase):
         Creates custom parameter field
 
         """
-        super(ParameterField, self).run()
+        super(ParameterField, self).generate_field()
 
         input_dict = self.get_input()
         output_dict = self.get_output()
