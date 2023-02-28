@@ -49,7 +49,7 @@ class AddTextureNormalDistributionProcess(KM.Process):
         self.echo = settings["echo_level"].GetInt()
 
 
-    def ExecuteInitializeSolutionStep(self):
+    def ExecuteInitialize(self):
         """This method is executed in order to initialize the current step
 
         Keyword arguments:
@@ -58,5 +58,24 @@ class AddTextureNormalDistributionProcess(KM.Process):
         # Here we compute the normal field
         normal_calculation_utils = KM.NormalCalculationUtils()
         normal_calculation_utils.CalculateUnitNormalsNonHistorical(self.model_part, 3)
+        number_nodes = len(self.model_part.Nodes)
+        normal = KM.Array3([0,0,0])
+
+        # We generate a random normal distribution
+        norm_distr = np.random.normal(self.mu, self.sigma, number_nodes)
+        counter = 0
+
+        for node in self.model_part.Nodes:
+            normal = node.GetValue(KM.NORMAL)
+            node.X0 += norm_distr[counter] * normal[0]
+            node.Y0 += norm_distr[counter] * normal[1]
+            node.Z0 += norm_distr[counter] * normal[2]
+            node.X  += norm_distr[counter] * normal[0]
+            node.Y  += norm_distr[counter] * normal[1]
+            node.Z  += norm_distr[counter] * normal[2]
+            counter += 1
+        
+        # Now we print a backup of the nodes coordinates used in the simulation
+        
 
 
