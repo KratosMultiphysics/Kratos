@@ -163,7 +163,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 ElementsVector = np.load("ElementsVector.npy") #FIXME: FIX THE +1
                 #FIXME for a HROM using the Hyper-reduced model part without unselected elements, the number of elements originally present in the model part should be provided!
                 #TODO Decide whether storing an extra ingeter "OriginalNumberOfElements.npy" or saving all the HROM info as a numpy structure(less transparent to new users)
-                OriginalNumberOfElements = computing_model_part.NumberOfElements()
+                OriginalNumberOfElements = self.rom_parameters["hrom_settings"]["original_number_of_elements"].GetInt()
                 for i in range(WeightsMatrix.shape[0]):
                     if ElementsVector[i] < OriginalNumberOfElements:
                         computing_model_part.GetElement(int( ElementsVector[i])+1).SetValue(KratosROM.HROM_WEIGHT, WeightsMatrix[i]  )
