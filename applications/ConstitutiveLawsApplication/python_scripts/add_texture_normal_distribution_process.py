@@ -10,7 +10,10 @@ def Factory(settings, Model):
 
 class AddTextureNormalDistributionProcess(KM.Process):
 
-    """This process perturbates the coordinates of the nodes of the designated submodelpart according to a normal distribution with [mu,sigma] by using numpy capabilities (https://numpy.org/doc/stable/reference/random/generated/numpy.random.normal.html)
+    """
+    This process perturbates the coordinates of the nodes of the designated submodelpart according to a normal distribution with [mu,sigma] by using numpy capabilities (https://numpy.org/doc/stable/reference/random/generated/numpy.random.normal.html)
+
+    Note: the process assumes that the submodelpart includes a set of conditions to be able to compute the normal field.
 
 
     Public member variables:
@@ -29,18 +32,14 @@ class AddTextureNormalDistributionProcess(KM.Process):
         KM.Process.__init__(self)
 
         # The value can be a double or a string (function)
-        default_settings = KM.Parameters(
-            """
-        {
+        default_settings = KM.Parameters("""{
             "help"                       : "This process perturbates the coordinates of the nodes according to a normal distribution",
             "model_part_name"            : "please_specify_model_part_name",
             "normal_mu"                  : 0.0,
             "normal_sigma"               : 0.1,
             "print_modified_coordinates" : true,
             "echo_level"                 : 1
-        }
-        """
-        )
+        }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
@@ -56,6 +55,8 @@ class AddTextureNormalDistributionProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
+        # Here we compute the normal field
+        normal_calculation_utils = KM.NormalCalculationUtils()
+        normal_calculation_utils.CalculateUnitNormalsNonHistorical(self.model_part, 3)
 
 
