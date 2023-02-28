@@ -258,7 +258,7 @@ void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
     KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, rGeometricalConflictingPropertySensitivityVariable))
         << rModelPart.FullName() << " has elements with properties having both "
         << rGeometricalPropertySensitivityVariable.Name() << " and " << rGeometricalCoflictingPropertySensitivityVariable.Name()
-        << ". Please seperate the model part such that either one of them is present in elemental properties.\n";
+        << ". Please separate the model part such that either one of them is present in elemental properties.\n";
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
         rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
