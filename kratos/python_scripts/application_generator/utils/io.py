@@ -33,7 +33,7 @@ def Formatc(stringList, where):
     return string
 
 def ToUpperFromCamel(appCamel):
-    ''' Converts a Camel-Case string into a upercase snake_case string '''
+    ''' Converts a Camel-Case string into a uppercase snake_case string '''
 
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', appCamel)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).upper()
