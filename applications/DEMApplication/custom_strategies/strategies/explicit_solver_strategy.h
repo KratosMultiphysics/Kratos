@@ -347,12 +347,16 @@ namespace Kratos {
         std::ofstream mRVE_FileForceChain;
         std::ofstream mRVE_FileElasticContactForces;
         std::ofstream mRVE_FileRoseDiagram;
+        std::ofstream mRVE_FileRoseDiagramInner;
         std::ofstream mRVE_FileRoseDiagramUniformity;
         std::ofstream mRVE_FileAnisotropy;
         std::ofstream mRVE_FileFabricTensor;
+        std::ofstream mRVE_FileFabricTensorInner;
         std::ofstream mRVE_FileStress;
         std::ofstream mRVE_FileCauchyTensor;
+        std::ofstream mRVE_FileCauchyTensorInner;
         std::ofstream mRVE_FileTangentTensor;
+        std::ofstream mRVE_FileTangentTensorInner;
 
         // Methods
         void RVEInitialize             (void);
