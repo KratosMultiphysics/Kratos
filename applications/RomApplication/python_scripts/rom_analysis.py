@@ -136,10 +136,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             #### Set the nodal ROM basis ####
             Nodes = np.load("NodeIds.npy")
             RightModes = np.load("RightBasisMatrix.npy")
+            if RightModes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
+                RightModes.reshape(-1,1)
             RightModes = RightModes[:,:rom_dofs]
             if (self.solving_strategy == "petrov_galerkin"):
+                petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
                 LeftModes = np.load("LeftBasisMatrix.npy")
-                LeftModes = LeftModes[:,:rom_dofs]
+                if LeftModes.ndim ==1:
+                    LeftModes.reshape(-1,1)
+                LeftModes = LeftModes[:,:petrov_galerkin_rom_dofs]
 
             for node_id in Nodes:
                 computing_model_part.GetNode(node_id).SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(RightModes[(node_id-1)*nodal_dofs:((node_id-1)*nodal_dofs)+nodal_dofs, :]) ) # ROM basis
