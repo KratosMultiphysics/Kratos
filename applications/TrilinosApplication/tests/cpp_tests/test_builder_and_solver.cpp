@@ -540,7 +540,7 @@ namespace Kratos::Testing
         pScheme->InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
         pBuilderAndSolver->Build(pScheme, rModelPart, rA, rb);
-        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+        if(rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
             pBuilderAndSolver->ApplyConstraints(pScheme, rModelPart, rA, rb);
         }
         pBuilderAndSolver->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
