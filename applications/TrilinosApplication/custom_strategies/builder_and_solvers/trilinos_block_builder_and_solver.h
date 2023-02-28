@@ -1111,7 +1111,7 @@ protected:
 
                 // Slave DoFs
                 for (const auto id_i : rTls.slave_ids) {
-                    rTls.temp_indices[id_i].insert(rTls.master_ids.begin(), rTls.master_ids.end());
+                    rTls.temp_indices[id_i - mFirstMyId].insert(rTls.master_ids.begin(), rTls.master_ids.end());
                 }
 
                 // Merging all the temporal indexes
