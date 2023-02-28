@@ -385,7 +385,7 @@ public:
 
         STOP_TIMER("Build", 0)
 
-        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+        if(rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
             const auto timer_constraints = BuiltinTimer();
             START_TIMER("ApplyConstraints", 0)
             ApplyConstraints(pScheme, rModelPart, rA, rb);
@@ -437,7 +437,7 @@ public:
 
         BuildRHS(pScheme, rModelPart, rb);
 
-        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+        if(rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
             START_TIMER("ApplyRHSConstraints", 0)
             ApplyRHSConstraints(pScheme, rModelPart, rb);
             STOP_TIMER("ApplyRHSConstraints", 0)
@@ -864,7 +864,7 @@ public:
     {
         KRATOS_TRY
 
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
             BuildMasterSlaveConstraints(rModelPart);
 
             // Reference to T
@@ -905,7 +905,7 @@ public:
     {
         KRATOS_TRY
 
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
             BuildMasterSlaveConstraints(rModelPart);
 
             // Reference to T
@@ -1090,7 +1090,7 @@ protected:
 
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
-        if (rModelPart.MasterSlaveConstraints().size() > 0) {
+        if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
             START_TIMER("ConstraintsRelationMatrixStructure", 0)
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
