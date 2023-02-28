@@ -242,7 +242,7 @@ void MassResponseUtils::CalculateMassCrossAreaSensitivity(
 void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
     ModelPart& rModelPart,
     const Variable<double>& rGeometricalPropertySensitivityVariable,
-    const Variable<double>& rGeometricalCoflictingPropertySensitivityVariable,
+    const Variable<double>& rGeometricalConflictingPropertySensitivityVariable,
     const Variable<double>& rOutputSensitivityVariable)
 {
     KRATOS_TRY
