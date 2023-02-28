@@ -47,15 +47,6 @@ class EigenSolver(MechanicalSolver):
         this_defaults.AddMissingParameters(base_parameters)
         return this_defaults
 
-    def Initialize(self):
-        # TODO: Properly set this
-        # Set the Orthogonal SubScales switch
-        # Note that this needs to be done before the scheme initialize
-        self.main_model_part.ProcessInfo[KratosMultiphysics.OSS_SWITCH] = True
-
-        # Using the base InitializeSolutionStep
-        super().Initialize()
-
     #### Private functions ####
 
     def _CreateScheme(self):
