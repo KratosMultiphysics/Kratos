@@ -99,7 +99,7 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
 
     KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, THICKNESS) && HasVariableInProperties(rModelPart, CROSS_AREA))
         << rModelPart.FullName()
-        << " has elements with properties having both THICKNESS and CROSS_AREA. Please seperate the model part such that either one of them is present in elemental properties.\n";
+        << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
     const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
                                     ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
