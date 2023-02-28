@@ -87,7 +87,7 @@ void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
     }
     KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
         << "Model part contained " << num_degenerate_geometries
-        << " geometries with area = 0.0, skipping these geometries.\n"
+        << " geometries with area = 0.0, skipping these geometries.\n";
 }
 
 void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
@@ -100,7 +100,7 @@ void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
     }
     KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
         << "Model part contained " << num_degenerate_geometries
-        << " geometries with area = 0.0, skipping these geometries.\n"
+        << " geometries with area = 0.0, skipping these geometries.\n";
 }
 
 
