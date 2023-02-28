@@ -93,6 +93,8 @@ class AddTextureNormalDistributionProcess(KM.Process):
             counter += 1
             if self.print_coords:
                 # Now we print a backup of the nodes coordinates used in the simulation
+                if counter == 1:
+                    self.ascii_writer.write("The applied distribution has a mean of " + "{0:.4e}".format(np.mean(norm_distr)).rjust(11) + " and a standard deviation of " + "{0:.4e}".format(np.std(norm_distr)).rjust(11) + "\n\n")
                 self.ascii_writer.write(str(node.Id)+ "\t\t")
                 self.ascii_writer.write("{0:.4e}".format(node.X0).rjust(11) + "\t")
                 self.ascii_writer.write("{0:.4e}".format(node.Y0).rjust(11) + "\t")
