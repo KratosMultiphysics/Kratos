@@ -61,6 +61,9 @@ class AddTextureNormalDistributionProcess(KM.Process):
         header = "# In this file we print the used perturbed coordinates of the nodes:" + "\n\n" + "Id		X            Y           Z\n"
         self.ascii_writer = AsciiWriter.TimeBasedAsciiFileWriterUtility(self.model_part, ascii_writer_params, header).file
 
+        if len(self.model_part.Conditions) == 0:
+            raise RuntimeError('The provided submodelpart does not include any condition...')
+
 
     def ExecuteInitialize(self):
         """This method is executed in order to initialize the current step
