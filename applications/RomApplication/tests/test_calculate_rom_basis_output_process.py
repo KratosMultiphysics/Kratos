@@ -33,7 +33,6 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
             "snapshots_interval": 1.0,
             "nodal_unknowns": ["TEMPERATURE"],
             "rom_basis_output_format": "json",
-            "rom_basis_output_name": "RomParameters",
             "svd_truncation_tolerance": 1.0e-6
         }""")
 
@@ -89,12 +88,11 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
     def __CheckResults(self, check_hrom_settings):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Load ROM basis output file
-            output_filename = "{}.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
-            with open(output_filename) as f:
+            with open("RomParameters.json") as f:
                 output_data = json.load(f)
 
             # Load reference file
-            reference_filename = "{}Results.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
+            reference_filename = "RomParametersResults.json"
             with open(reference_filename) as f:
                 reference_data = json.load(f)
 
