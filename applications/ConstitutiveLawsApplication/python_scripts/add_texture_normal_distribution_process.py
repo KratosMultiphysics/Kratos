@@ -1,5 +1,7 @@
 import KratosMultiphysics as KM
 import numpy as np
+from pathlib import Path
+import KratosMultiphysics.time_based_ascii_file_writer_utility as AsciiWriter
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -33,12 +35,14 @@ class AddTextureNormalDistributionProcess(KM.Process):
 
         # The value can be a double or a string (function)
         default_settings = KM.Parameters("""{
-            "help"                       : "This process perturbates the coordinates of the nodes according to a normal distribution",
-            "model_part_name"            : "please_specify_model_part_name",
-            "normal_mu"                  : 0.0,
-            "normal_sigma"               : 0.1,
-            "print_modified_coordinates" : true,
-            "echo_level"                 : 1
+            "help"                         : "This process perturbates the coordinates of the nodes according to a normal distribution",
+            "model_part_name"              : "please_specify_model_part_name",
+            "normal_mu"                    : 0.0,
+            "normal_sigma"                 : 0.1,
+            "print_modified_coordinates"   : true,
+            "backup_coordinates_file_name" : "perturbed_coordinates.dat",
+            "echo_level"                   : 1,
+            "output_path"                  : ""
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -47,6 +51,15 @@ class AddTextureNormalDistributionProcess(KM.Process):
         self.sigma = settings["normal_sigma"].GetDouble() # standard deviation
         self.print_coords = settings["print_modified_coordinates"].GetBool()
         self.echo = settings["echo_level"].GetInt()
+        self.file_name = settings["backup_coordinates_file_name"].GetString()
+
+        ascii_writer_params = KM.Parameters("""{}""")
+        ascii_writer_params.AddValue("file_name", settings["backup_coordinates_file_name"])
+        ascii_writer_params.AddValue("output_path", settings["output_path"])
+        ascii_writer_params.AddEmptyValue("file_extension")
+        ascii_writer_params["file_extension"].SetString(Path(self.file_name).suffix)
+        header = "# In this file we print the used perturbed coordinates of the nodes:" + "\n\n" + "Id		X            Y           Z\n"
+        self.ascii_writer = AsciiWriter.TimeBasedAsciiFileWriterUtility(self.model_part, ascii_writer_params, header).file
 
 
     def ExecuteInitialize(self):
@@ -65,6 +78,7 @@ class AddTextureNormalDistributionProcess(KM.Process):
         norm_distr = np.random.normal(self.mu, self.sigma, number_nodes)
         counter = 0
 
+        # We modify the initial coordinates of the nodes to generate the new texture
         for node in self.model_part.Nodes:
             normal = node.GetValue(KM.NORMAL)
             node.X0 += norm_distr[counter] * normal[0]
@@ -74,8 +88,12 @@ class AddTextureNormalDistributionProcess(KM.Process):
             node.Y  += norm_distr[counter] * normal[1]
             node.Z  += norm_distr[counter] * normal[2]
             counter += 1
-        
-        # Now we print a backup of the nodes coordinates used in the simulation
-        
+            if self.print_coords:
+                # Now we print a backup of the nodes coordinates used in the simulation
+                self.ascii_writer.write(str(node.Id)+ "\t\t")
+                self.ascii_writer.write("{0:.4e}".format(node.X0).rjust(11) + "\t")
+                self.ascii_writer.write("{0:.4e}".format(node.Y0).rjust(11) + "\t")
+                self.ascii_writer.write("{0:.4e}".format(node.Z0).rjust(11) + "\n")
+
 
 
