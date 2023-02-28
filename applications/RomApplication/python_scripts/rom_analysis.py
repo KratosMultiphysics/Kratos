@@ -135,10 +135,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             #### Set the nodal ROM basis ####
             Nodes = np.load("NodeIds.npy")
-            RightModes = np.load("ModesMatrix.npy")
+            RightModes = np.load("RightBasisMatrix.npy")
             RightModes = RightModes[:,:rom_dofs]
             if (self.solving_strategy == "petrov_galerkin"):
-                LeftModes = np.load("ModesMatrix.npy")
+                LeftModes = np.load("LeftBasisMatrix.npy")
                 LeftModes = LeftModes[:,:rom_dofs]
 
             for node_id in Nodes:
