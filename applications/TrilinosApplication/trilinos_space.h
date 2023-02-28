@@ -345,9 +345,13 @@ public:
         const bool KeepAllHardZeros = false
         )
     {
+        KRATOS_TRY
+
         constexpr bool transpose_flag = false;
         const int ierr = EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC, CallFillCompleteOnResult, KeepAllHardZeros);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra multiplication failure. This may result if A or B are not already Filled, or if errors occur in putting values into C, etc. " << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -386,8 +390,12 @@ public:
         const bool KeepAllHardZeros = false
         )
     {
+        KRATOS_TRY
+
         const int ierr = EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag.first, rB, TransposeFlag.second, rC, CallFillCompleteOnResult, KeepAllHardZeros);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra multiplication failure. This may result if A or B are not already Filled, or if errors occur in putting values into C, etc. " << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     /**
