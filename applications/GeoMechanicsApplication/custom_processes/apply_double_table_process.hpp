@@ -58,7 +58,7 @@ public:
 
             block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
                 if (mIsFixed) rNode.Fix(var);
-                else          rNode.Free(var);
+                else if (mIsFixedProvided) rNode.Free(var);
 
                 rNode.FastGetSolutionStepValue(var) = mInitialValue;
             });

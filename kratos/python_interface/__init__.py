@@ -1,10 +1,24 @@
 import os
-import re
 import sys
-from . import kratos_globals
 
-if sys.version_info < (3, 6):
-    raise Exception("Kratos only supports Python version 3.6 and above")
+# This is a "dirty" fix to force python to keep loading shared libraries from
+# the PATH in windows (See https://docs.python.org/3/library/os.html#os.add_dll_directory)
+# THIS NEEDS TO BE EXECUTED BEFORE ANY DLL / DEPENDENCY IS LOADED.
+if os.name == 'nt': # This means "Windows"
+    for lib_path in os.environ["PATH"].split(os.pathsep):
+        try:
+            os.add_dll_directory(lib_path.replace("\\","/"))
+        except Exception as e:
+            # We need to capture possible invalid paths.
+            pass
+
+from . import kratos_globals
+from . import python_registry
+from . import python_registry_lists
+from . import python_registry_utilities
+
+if sys.version_info < (3, 8):
+    raise Exception("Kratos only supports Python version 3.8 and above")
 
 class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -17,6 +31,12 @@ class KratosPaths(object):
 # import core library (Kratos.so)
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
+
+def __getattr__(name):
+    if name == "CppRegistry":
+        err_msg = "c++ registry must be accessed through 'KratosMultiphysics.Registry'."
+        raise Exception(err_msg)
+    raise AttributeError(f"Module {__name__} has no attribute {name}.")
 
 def __ModuleInitDetail():
     """
@@ -73,22 +93,32 @@ def __ModuleInitDetail():
                 ]
                 Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
 
-    # Try to detect kratos library version
-    try:
-        kre = re.compile('Kratos\.([^\d]+)(\d+).+')
-        kratos_version_info = [(kre.match(f))[2] for f in os.listdir(KratosPaths.kratos_libs) if kre.match(f)][0]
-
-        if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
-            print("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
-                sys.version_info.major, sys.version_info.minor,
-                kratos_version_info[0], kratos_version_info[1]
-            ))
-    except:
-        print("Warning: Could not determine python version used to build kratos.")
-
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
 KratosGlobals = __ModuleInitDetail()
+
+# Create the Python global registry
+# Note that this interfaces the c++ registry.
+Registry = python_registry.PythonRegistry()
+RegisterPrototype = python_registry.RegisterPrototype
+
+# Remove CppRegistry from locals() in order to give preference to the exception thrown in __getattr__
+# This is required since we cannot use properties as usual due to the fact that we have no instance of CppRegistry (it is a static variable in c++)
+locals().pop("CppRegistry")
+
+# Loop and register the Python registry lists
+python_registry_utilities.RegisterAll("KratosMultiphysics", python_registry_lists)
+
+# Detect kratos library version
+python_version = KratosGlobals.Kernel.PythonVersion()
+python_version = python_version.replace("Python","")
+kratos_version_info = python_version.split(".")
+
+if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
+    Logger.PrintWarning("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
+        sys.version_info.major, sys.version_info.minor,
+        kratos_version_info[0], kratos_version_info[1]
+    ))
 
 # print the process id e.g. for attaching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":

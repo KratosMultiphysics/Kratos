@@ -121,7 +121,7 @@ namespace Kratos
     std::cout << "           |_| |_| \\___|_|_|_|_| |_|\\_,_|_\\__,_|DYNAMICS " << std::endl;
     std::cout << "Initializing KratosPfemFluidDynamicsApplication...       " << std::endl;
 
-    //Register Variables (variables created in pfem_fluid_dynamics_application_variables.cpp)
+    // Register Variables (variables created in pfem_fluid_dynamics_application_variables.cpp)
 
     // Material postprocess + invariants
     // KRATOS_REGISTER_VARIABLE(M_MODULUS)
@@ -138,26 +138,30 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(STEPS_WITH_CHANGED_DT);
     KRATOS_REGISTER_VARIABLE(MAIN_MATERIAL_PROPERTY);
     KRATOS_REGISTER_VARIABLE(ISOLATED_NODE);
+    KRATOS_REGISTER_VARIABLE(NODAL_H_WALL);
+
+    KRATOS_REGISTER_VARIABLE(MECHANICAL_DISSIPATION);
 
     //Papanastasiou variables
+    KRATOS_REGISTER_VARIABLE(EULERIAN_INLET);
+    KRATOS_REGISTER_VARIABLE(LAGRANGIAN_INLET);
+
+    // Papanastasiou variables
     KRATOS_REGISTER_VARIABLE(YIELDED);
     KRATOS_REGISTER_VARIABLE(FLOW_INDEX);
     KRATOS_REGISTER_VARIABLE(YIELD_SHEAR);
     KRATOS_REGISTER_VARIABLE(ADAPTIVE_EXPONENT);
 
-    //Frictional Viscoplastic variables
+    // Frictional Viscoplastic variables
     KRATOS_REGISTER_VARIABLE(COHESION);
 
-    //mu(I)-rheology variables
+    // mu(I)-rheology variables
     KRATOS_REGISTER_VARIABLE(STATIC_FRICTION);
     KRATOS_REGISTER_VARIABLE(DYNAMIC_FRICTION);
     KRATOS_REGISTER_VARIABLE(INERTIAL_NUMBER_ZERO);
     KRATOS_REGISTER_VARIABLE(GRAIN_DIAMETER);
     KRATOS_REGISTER_VARIABLE(GRAIN_DENSITY);
     KRATOS_REGISTER_VARIABLE(REGULARIZATION_COEFFICIENT);
-    KRATOS_REGISTER_VARIABLE(INFINITE_FRICTION);
-    KRATOS_REGISTER_VARIABLE(INERTIAL_NUMBER_ONE);
-    KRATOS_REGISTER_VARIABLE(ALPHA_PARAMETER);
 
     KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY);
     KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION);
@@ -198,7 +202,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(SOLID_DEVIATORIC_COEFFICIENT);
     KRATOS_REGISTER_VARIABLE(SOLID_INTERFACE_NODE);
 
-    //Register Elements
+    // Register Elements
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement2D", mTwoStepUpdatedLagrangianVPImplicitElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement2Dquadratic", mTwoStepUpdatedLagrangianVPImplicitElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement3D", mTwoStepUpdatedLagrangianVPImplicitElement3D);
@@ -260,39 +264,39 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderPspgUpdatedLagrangianElement3D", mThreeStepSecondOrderPspgUpdatedLagrangianElement3D);
     KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderPspgUpdatedLagrangianElement3Dquadratic", mThreeStepSecondOrderPspgUpdatedLagrangianElement3Dquadratic);
 
-    //Register Conditions
+    // Register Conditions
 
-    //Register Fluid Constitutive Laws
+    // Register Fluid Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham2DLaw", mBingham2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent2DLaw", mBinghamTemperatureDependent2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent3DLaw", mBinghamTemperatureDependent3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley2DLaw", mHerschelBulkley2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley3DLaw", mHerschelBulkley3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic2DLaw", mFrictionalViscoplastic2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic3DLaw", mFrictionalViscoplastic3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent2DLaw", mBinghamTemperatureDependent2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent3DLaw", mBinghamTemperatureDependent3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplasticTemperatureDependent2DLaw", mFrictionalViscoplasticTemperatureDependent2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplasticTemperatureDependent3DLaw", mFrictionalViscoplasticTemperatureDependent3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian2DLaw", mNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian3DLaw", mNewtonian3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent2DLaw", mNewtonianTemperatureDependent2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent3DLaw", mNewtonianTemperatureDependent3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology2DLaw", mPapanastasiouMuIRheology2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology3DLaw", mPapanastasiouMuIRheology3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("JopMuIRheology3DLaw", mJopMuIRheology3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BarkerMuIRheology3DLaw", mBarkerMuIRheology3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BarkerBercovierMuIRheology3DLaw", mBarkerBercovierMuIRheology3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BercovierMuIRheology3DLaw", mBercovierMuIRheology3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheology2DLaw", mMuIRheology2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheology3DLaw", mMuIRheology3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheologyTemperatureDependent2DLaw", mMuIRheologyTemperatureDependent2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheologyTemperatureDependent3DLaw", mMuIRheologyTemperatureDependent3DLaw);
 
-    //Register Solid Constitutive Laws
+    // Register Solid Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Hypoelastic2DLaw", mHypoelastic2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Hypoelastic3DLaw", mHypoelastic3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HypoelasticTemperatureDependent2DLaw", mHypoelasticTemperatureDependent2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HypoelasticTemperatureDependent3DLaw", mHypoelasticTemperatureDependent3DLaw);
 
-    //Register Flow Rules
+    // Register Flow Rules
 
-    //Register Yield Criterion
+    // Register Yield Criterion
 
-    //Register Hardening Laws
+    // Register Hardening Laws
   }
 
 } // namespace Kratos.

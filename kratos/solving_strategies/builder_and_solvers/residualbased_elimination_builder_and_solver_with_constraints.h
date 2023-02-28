@@ -1385,6 +1385,9 @@ protected:
             IndexType* Arow_indices = rA.index1_data().begin();
             IndexType* Acol_indices = rA.index2_data().begin();
 
+            // Define  zero value tolerance
+            const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
             // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
             #pragma omp parallel for
             for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
@@ -1392,7 +1395,7 @@ protected:
                 const IndexType col_end = Arow_indices[k+1];
                 bool empty = true;
                 for (IndexType j = col_begin; j < col_end; ++j) {
-                    if(Avalues[j] != 0.0) {
+                    if(std::abs(Avalues[j]) > zero_tolerance) {
                         empty = false;
                         break;
                     }

@@ -6,14 +6,6 @@ include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
-# Use Metis 5 by default
-OPTION ( USE_METIS_5 "Using Metis 5 (and not 4)" ON )
-
-if(${USE_METIS_5} MATCHES OFF)
-    message( FATAL_ERROR "Support for Metis version < 5 has been dropped")
-endif(${USE_METIS_5} MATCHES OFF)
-
-add_definitions(-DKRATOS_USE_METIS_5)
 find_package(METIS REQUIRED)
 include_directories(${METIS_INCLUDE_DIR})
 link_directories(${METIS_LIBRARIES})
@@ -23,6 +15,7 @@ install(FILES ${METIS_LIBRARIES} DESTINATION libs)
 file( GLOB KRATOS_METIS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
 ## Metis python interface sources
@@ -35,7 +28,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 
 add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE} ${KRATOS_METIS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMetisCore PUBLIC KratosCore KratosMPICore ${METIS_LIBRARY})
+target_link_libraries(KratosMetisCore PUBLIC KratosCore ${METIS_LIBRARIES})
 set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
 
 ###############################################################

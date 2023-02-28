@@ -96,10 +96,10 @@ namespace ConstraintUtilities
      */
     void KRATOS_API(KRATOS_CORE) PreComputeExplicitConstraintMassAndInertia(
         ModelPart& rModelPart,
-        const std::string DofDisplacementVariableName = "DISPLACEMENT",
-        const std::string MassVariableName = "NODAL_MASS",
-        const std::string DofRotationVariableName = "ROTATION",
-        const std::string InertiaVariableName = "NODAL_INERTIA_TENSOR"
+        const std::string& DofDisplacementVariableName = "DISPLACEMENT",
+        const std::string& MassVariableName = "NODAL_MASS",
+        const std::string& DofRotationVariableName = "ROTATION",
+        const std::string& InertiaVariableName = "NODAL_INERTIA_TENSOR"
         );
 
 }; // namespace ConstraintUtilities

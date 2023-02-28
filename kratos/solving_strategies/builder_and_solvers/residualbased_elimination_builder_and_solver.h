@@ -8,6 +8,7 @@
 //                Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborators:   Vicente Mataix
 //
 //
 
@@ -31,6 +32,7 @@
 #include "includes/model_part.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -932,6 +934,8 @@ public:
         TSystemVectorType& rb
         ) override
     {
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
     }
 
     /**
@@ -971,7 +975,9 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "elimination_builder_and_solver"
+            "name"                                 : "elimination_builder_and_solver",
+            "block_builder"                        : false,
+            "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal"
         })");
 
         // Getting base class default parameters
@@ -1034,8 +1040,13 @@ protected:
     ///@{
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
-   std::vector<omp_lock_t> mLockArray;
+   std::vector<omp_lock_t> mLockArray; /// TODO: Replace with std::vector<LockObject>
 #endif
+
+    double mScaleFactor = 1.0;         /// The manually set scale factor
+
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;; /// We identify the scaling considered for the dirichlet dofs
+
 
     ///@}
     ///@name Protected Operators
@@ -1328,6 +1339,38 @@ protected:
         return pos;
     }
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Setting flags<
+        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
+
+        if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
+        }
+
+        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
+        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
+            mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL;
+        } else { // Otherwise we will assume we impose a numerical value
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
+        }
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1469,7 +1512,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 

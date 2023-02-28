@@ -19,25 +19,25 @@
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "generic_small_strain_isotropic_plasticity.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
 
 // Yield surfaces
-#include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/auxiliar_files/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
@@ -71,7 +71,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Auxiliar values
+    // Auxiliary values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
@@ -105,7 +105,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
     } else { // We check for plasticity
         // Integrate Stress plasticity
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
@@ -195,6 +195,8 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateTa
     } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbationV2) {
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
+    }  else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
+        BaseType::CalculateElasticMatrix( rValues.GetConstitutiveMatrix(), rValues);
     }
 }
 
@@ -292,7 +294,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Auxiliar values
+    // Auxiliary values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
@@ -302,7 +304,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
     // Integrate Stress plasticity
-    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
@@ -471,7 +473,8 @@ Vector& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::GetValue
         return rValue;
     }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-        rValue = mPlasticStrain;
+        rValue.resize(VoigtSize, false);
+        noalias(rValue) = mPlasticStrain;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -583,12 +586,9 @@ Matrix& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
     Matrix& rValue
     )
 {
-    if (this->Has(rThisVariable)) {
-        return this->GetValue(rThisVariable, rValue);
-    } else {
-        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    }
-    return rValue;
+
+    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+
 }
 
 /***********************************************************************************/

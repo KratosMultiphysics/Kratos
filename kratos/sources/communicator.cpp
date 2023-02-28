@@ -454,12 +454,32 @@ bool Communicator::SynchronizeNonHistoricalDataToMax(Variable<double> const& Thi
     return true;
 }
 
+bool Communicator::SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
 {
     return true;
 }
 
 bool Communicator::SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable)
 {
     return true;
 }

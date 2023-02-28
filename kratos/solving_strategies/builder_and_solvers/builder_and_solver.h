@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_BUILDER_AND_SOLVER )
-#define  KRATOS_BUILDER_AND_SOLVER
+#pragma once
 
 /* System includes */
 #include <set>
@@ -677,6 +676,24 @@ public:
         return mEchoLevel;
     }
 
+    /**
+     * @brief This method returns constraint relation (T) matrix
+     * @return The constraint relation (T) matrix
+     */
+    virtual typename TSparseSpace::MatrixType& GetConstraintRelationMatrix()
+    {
+        KRATOS_ERROR << "GetConstraintRelationMatrix is not implemented in base BuilderAndSolver" << std::endl;
+    }
+
+    /**
+     * @brief This method returns constraint constant vector
+     * @return The constraint constant vector
+     */
+    virtual typename TSparseSpace::VectorType& GetConstraintConstantVector()
+    {
+        KRATOS_ERROR << "GetConstraintConstantVector is not implemented in base BuilderAndSolver" << std::endl;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -821,5 +838,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_BUILDER_AND_SOLVER  defined */
