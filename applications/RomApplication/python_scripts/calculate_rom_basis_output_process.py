@@ -151,18 +151,27 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
         rom_basis_dict["projection_strategy"] = "galerkin" # Galerkin: (Phi.T@K@Phi dq= Phi.T@b), LSPG = (K@Phi dq= b), Petrov-Galerkin = (Psi.T@K@Phi dq = Psi.T@b)
 
-        # Storing modes in Numpy format
-        numpy.save('ModesMatrix.npy', u)
-        numpy.save('NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
-
-        # Export the ROM basis dictionary
         if self.rom_basis_output_format == "json":
-            output_filename = self.rom_basis_output_name + "." + self.rom_basis_output_format
-            with open(output_filename, 'w') as f:
-                json.dump(rom_basis_dict, f, indent = 4)
+            # Storing modes in JSON format
+            i = 0
+            for node in self.model_part.Nodes:
+                rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
+                i += n_nodal_unknowns
+
+        elif self.rom_basis_output_format == "numpy":
+            # Storing modes in Numpy format
+            numpy.save('RightBasisMatrix.npy', u)
+            numpy.save('NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
+
+
+        # Creating the RomParameters.json containing or not the modes depending on "self.rom_basis_output_format"
+        output_filename = self.rom_basis_output_name + ".json"
+        with open(output_filename, 'w') as f:
+            json.dump(rom_basis_dict, f, indent = 4)
+
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"
