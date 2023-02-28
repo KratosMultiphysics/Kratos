@@ -14,4 +14,4 @@ class ResponseFunction(Kratos.Process):
         raise NotImplementedError("Calling base class ResponseFunction::CalculateSensitivity method. Please implement in the derrived class.")
 
     def GetModelPart(self) -> Kratos.ModelPart:
-        raise NotImplementedError("Calling base class ResponseFunction::GetModelPart method. Please implement in the derrived class.")
+        raise NotImplementedError("Calling base class ResponseFunction::GetModelPart method. Please implement in the derived class.")
