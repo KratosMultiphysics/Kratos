@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class TestOptimizationInfo(kratos_unittest.TestCase):
     class TestRoutine(Kratos.Process):
@@ -33,7 +33,8 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertEqual(optimization_info["step"], 4)
         self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
         self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(3)["step"], 4)
+        with self.assertRaises(RuntimeError):
+            optimization_info.GetSolutionStepData(3)["step"]
 
     def test_AdvanceSolutionStepSet(self):
         optimization_info = OptimizationInfo()
@@ -60,9 +61,11 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertEqual(optimization_info["step"], 4)
         self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
         self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(3)["step"], 4)
 
-    def test_OptimizationProcesss(self):
+        with self.assertRaises(RuntimeError):
+            optimization_info.GetSolutionStepData(3)["step"]
+
+    def test_OptimizationProcess(self):
         optimization_info = OptimizationInfo()
         optimization_info.SetBufferSize(1)
         temp = TestOptimizationInfo.TestRoutine()

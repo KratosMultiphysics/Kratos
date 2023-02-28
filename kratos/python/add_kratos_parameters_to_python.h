@@ -17,18 +17,11 @@
 
 // External includes
 
-
 // Project includes
 
-
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void  AddKratosParametersToPython(pybind11::module& m);
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

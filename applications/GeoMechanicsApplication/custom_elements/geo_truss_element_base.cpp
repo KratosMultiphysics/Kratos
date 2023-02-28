@@ -721,7 +721,7 @@ template< >
 void GeoTrussElementBase<2,2>::
     WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     Vector current_displacement = ZeroVector(DIM*NUM_NODES);
     GetValuesVector(current_displacement, 0);
@@ -730,7 +730,7 @@ void GeoTrussElementBase<2,2>::
     rReferenceCoordinates[2] = GetGeometry()[1].X0() + current_displacement[2];
     rReferenceCoordinates[3] = GetGeometry()[1].Y0() + current_displacement[3];
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -942,7 +942,7 @@ void GeoTrussElementBase<3,2>::
     CalculateGeometricStiffnessMatrix(FullDofMatrixType& rGeometricStiffnessMatrix,
                                       const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     double E = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
@@ -1042,7 +1042,7 @@ void GeoTrussElementBase<2,2>::
     CalculateGeometricStiffnessMatrix(FullDofMatrixType& rGeometricStiffnessMatrix,
                                       const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     double E = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
@@ -1108,7 +1108,7 @@ void GeoTrussElementBase<3,2>::
     CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
                                     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     double E = ReturnTangentModulus1D(rCurrentProcessInfo);
 
@@ -1298,7 +1298,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 double GeoTrussElementBase<TDim,TNumNodes>::
     ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     double tangent_modulus(0.00);
 
     Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
@@ -1311,7 +1311,7 @@ double GeoTrussElementBase<TDim,TNumNodes>::
 
     return tangent_modulus;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //--------------------------------------------------------------------------------------------

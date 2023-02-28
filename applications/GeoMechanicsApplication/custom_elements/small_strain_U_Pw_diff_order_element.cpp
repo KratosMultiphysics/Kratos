@@ -158,7 +158,7 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
 
     return 0;
 
-    KRATOS_CATCH( "" );
+    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2344,7 +2344,7 @@ void SmallStrainUPwDiffOrderElement::
 void SmallStrainUPwDiffOrderElement::
     CalculateSoilDensity(ElementVariables &rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
     const PropertiesType& rProp = this->GetProperties();
 
@@ -2354,7 +2354,7 @@ void SmallStrainUPwDiffOrderElement::
                          + (1.0 - rProp[POROSITY] )*rProp[DENSITY_SOLID];
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 
 }
 
