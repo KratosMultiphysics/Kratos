@@ -1,0 +1,39 @@
+name: Nightly Doxygen Build
+
+on:
+  schedule:
+    - cron:  '0 1 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read|write
+
+jobs:
+  doxygen_nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+        with:
+          repository: KratosMultiphysics/Kratos
+          ref: master
+          path: master
+      - name: Checkout doxygen branch
+        uses: actions/checkout@v3
+        with:
+          repository: KratosMultiphysics/Kratos
+          ref: docs/doxygen_output
+          path: doxygen
+      - name: Installing doxygen
+        shell: bash
+        run: sudo apt-get install doxygen graphviz -y
+      - name: Build doxygen web page
+        shell: bash
+        run: cd master/documents && doxygen kratos_doxyfile
+      - name: copy html to docs/doxygen_output branch
+        shell: bash
+        run: cp -r master/documents/html doxygen/documents/

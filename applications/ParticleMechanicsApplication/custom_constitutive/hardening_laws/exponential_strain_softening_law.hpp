@@ -94,7 +94,7 @@ public:
     * @param[in] rThisVariable Identifier variable: INTERNAL_FRICTION_ANGLE, COHESION, INTERNAL_DILATANCY_ANGLE
     * @return Softening rate of change parameter
     */
-    double& CalculateHardening(double &rHardening, const double &rAlpha, const Variable<double>& rThisVariable) override;
+    double& CalculateHardening(double &rHardening, const double &rAlpha, const Variable<double>& rThisVariable, const Properties& rProperties) override;
 
     ///@}
     ///@name Access
