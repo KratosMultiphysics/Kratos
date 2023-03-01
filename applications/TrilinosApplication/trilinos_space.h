@@ -429,7 +429,7 @@ public:
 
         // First multiplication
         if (EnforceInitialGraph) {
-            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult);
+            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, true);
         } else {
             TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
         }
@@ -441,18 +441,16 @@ public:
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            MatrixType aux_1_copy = MatrixType(::Copy, rA.Graph());
             MatrixType B_copy = MatrixType(::Copy, rA.Graph());
 
             // We copy values
-            CopyMatrixValues(aux_1_copy, aux_1);
             CopyMatrixValues(B_copy, rB);
 
             // Create an Epetra_Matrix
             MatrixType aux_2(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            Mult(aux_1_copy, B_copy, aux_2, CallFillCompleteOnResult);
+            Mult(aux_1, B_copy, aux_2, CallFillCompleteOnResult);
 
             // We copy values
             CopyMatrixValues(rA, aux_2);
@@ -512,7 +510,7 @@ public:
 
         // First multiplication
         if (EnforceInitialGraph) {
-            Mult(rB, rD, aux_1, CallFillCompleteOnResult);
+            Mult(rB, rD, aux_1, CallFillCompleteOnResult, true);
         } else {
             Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
         }
@@ -524,18 +522,16 @@ public:
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            MatrixType aux_1_copy = MatrixType(::Copy, rA.Graph());
             MatrixType B_copy = MatrixType(::Copy, rA.Graph());
 
             // We copy values
-            CopyMatrixValues(aux_1_copy, aux_1);
             CopyMatrixValues(B_copy, rB);
 
             // Create an Epetra_Matrix
             MatrixType aux_2(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            TransposeMult(aux_1_copy, B_copy, aux_2, {false, true}, CallFillCompleteOnResult);
+            TransposeMult(aux_1, B_copy, aux_2, {false, true}, CallFillCompleteOnResult);
 
             // We copy values
             CopyMatrixValues(rA, aux_2);
