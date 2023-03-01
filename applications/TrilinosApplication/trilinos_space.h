@@ -441,10 +441,16 @@ public:
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            auto aux_2 = MatrixType(::Copy, map2, NumNz.data());
+            MatrixType aux_1_copy = MatrixType(::Copy, rA.Graph());
+
+            // We copy values
+            CopyMatrixValues(aux_1_copy, aux_1);
+
+            // Create an Epetra_Matrix
+            MatrixType aux_2(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            Mult(aux_1, rB, aux_2, CallFillCompleteOnResult);
+            Mult(aux_1_copy, rB, aux_2, CallFillCompleteOnResult);
 
             // We copy values
             CopyMatrixValues(rA, aux_2);
@@ -516,10 +522,16 @@ public:
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            auto aux_2 = MatrixType(::Copy, map2, NumNz.data());
+            MatrixType aux_1_copy = MatrixType(::Copy, rA.Graph());
+
+            // We copy values
+            CopyMatrixValues(aux_1_copy, aux_1);
+
+            // Create an Epetra_Matrix
+            MatrixType aux_2(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            TransposeMult(aux_1, rB, aux_2, {false, true});
+            TransposeMult(aux_1_copy, rB, aux_2, {false, true}, CallFillCompleteOnResult);
 
             // We copy values
             CopyMatrixValues(rA, aux_2);
