@@ -405,13 +405,15 @@ public:
      * @param rB The matrices to be transposed
      * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
      * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
+     * @tparam TEnforceInitialGraph If the initial graph is enforced, or a new one is generated
      */
     static void BtDBProductOperation(
         MatrixType& rA,
         const MatrixType& rD,
         const MatrixType& rB,
         const bool CallFillCompleteOnResult = true,
-        const bool KeepAllHardZeros = false
+        const bool KeepAllHardZeros = false,
+        const bool EnforceInitialGraph = false
         )
     {
         // Gets the Epetra_Communicator
@@ -426,28 +428,48 @@ public:
         MatrixType aux_1(::Copy, map1, NumNz.data());
 
         // First multiplication
-        TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
+        if (EnforceInitialGraph) {
+            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult);
+        } else {
+            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
+        }
 
-        // Already existing matrix
-        if (rA.NumGlobalNonzeros() > 0) {
+        // If we enforce the initial connectivity
+        if (EnforceInitialGraph) {
             // Create a map
             const int size2 = Size1(rA);
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
+            auto aux_2 = MatrixType(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            Mult(aux_1, rB, *aux_2, CallFillCompleteOnResult, KeepAllHardZeros);
+            Mult(aux_1, rB, aux_2, CallFillCompleteOnResult);
 
-            // Doing a swap
-            std::swap(rA, *aux_2);
+            // We copy values
+            CopyMatrixValues(rA, aux_2);
+        } else { // A new matrix
+            // Already existing matrix
+            if (rA.NumGlobalNonzeros() > 0) {
+                // Create a map
+                const int size2 = Size1(rA);
+                Epetra_Map map2(size2, 0, r_comm);
 
-            // Delete the new matrix
-            delete aux_2;
-        } else { // Empty matrix
-            // Second multiplication
-            Mult(aux_1, rB, rA, CallFillCompleteOnResult, KeepAllHardZeros);
+                // Create an Epetra_Matrix
+                MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
+
+                // Second multiplication
+                Mult(aux_1, rB, *aux_2, CallFillCompleteOnResult, KeepAllHardZeros);
+
+                // Doing a swap
+                std::swap(rA, *aux_2);
+
+                // Delete the new matrix
+                delete aux_2;
+            } else { // Empty matrix
+                // Second multiplication
+                Mult(aux_1, rB, rA, CallFillCompleteOnResult, KeepAllHardZeros);
+            }
         }
     }
 
@@ -458,13 +480,15 @@ public:
      * @param rB The matrices to be transposed
      * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
      * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
+     * @tparam TEnforceInitialGraph If the initial graph is enforced, or a new one is generated
      */
     static void BDBtProductOperation(
         MatrixType& rA,
         const MatrixType& rD,
         const MatrixType& rB,
         const bool CallFillCompleteOnResult = true,
-        const bool KeepAllHardZeros = false
+        const bool KeepAllHardZeros = false,
+        const bool EnforceInitialGraph = false
         )
     {
         // Gets the Epetra_Communicator
@@ -479,28 +503,48 @@ public:
         MatrixType aux_1(::Copy, map1, NumNz.data());
 
         // First multiplication
-        Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
+        if (EnforceInitialGraph) {
+            Mult(rB, rD, aux_1, CallFillCompleteOnResult);
+        } else {
+            Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
+        }
 
-        // Already existing matrix
-        if (rA.NumGlobalNonzeros() > 0) {
+        // If we enforce the initial connectivity
+        if (EnforceInitialGraph) {
             // Create a map
             const int size2 = Size1(rA);
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
+            auto aux_2 = MatrixType(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            TransposeMult(aux_1, rB, *aux_2, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
+            TransposeMult(aux_1, rB, aux_2, {false, true});
 
-            // Doing a swap
-            std::swap(rA, *aux_2);
+            // We copy values
+            CopyMatrixValues(rA, aux_2);
+        } else { // A new matrix
+            // Already existing matrix
+            if (rA.NumGlobalNonzeros() > 0) {
+                // Create a map
+                const int size2 = Size1(rA);
+                Epetra_Map map2(size2, 0, r_comm);
 
-            // Delete the new matrix
-            delete aux_2;
-        } else { // Empty matrix
-            // Second multiplication
-            TransposeMult(aux_1, rB, rA, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
+                // Create an Epetra_Matrix
+                MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
+
+                // Second multiplication
+                TransposeMult(aux_1, rB, *aux_2, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
+
+                // Doing a swap
+                std::swap(rA, *aux_2);
+
+                // Delete the new matrix
+                delete aux_2;
+            } else { // Empty matrix
+                // Second multiplication
+                TransposeMult(aux_1, rB, rA, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
+            }
         }
     }
 
@@ -980,6 +1024,53 @@ public:
         delete pv;
         return final_vector;
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Copy values from one matrix to another
+     * @details It is assumed that the sparcity of both matrices is compatible
+     * @param rA The matrix where assigning values
+     * @param rB The matrix to be copied
+     */
+    static void CopyMatrixValues(
+        MatrixType& rA,
+        const MatrixType& rB
+        )
+    {
+        // Clear A matrix
+        SetToZero(rA);
+
+        // Copy values from rB to intermediate
+        int i_B, i_A, j_B, j_A;
+        i_A = 0;
+        int numEntries_B; // Number of non-zero entries (rB matrix)
+        double* vals_B;   // Row non-zero values (rB matrix)
+        int* cols_B;      // Column indices of row non-zero values (rB matrix)
+        int numEntries_A; // Number of non-zero entries (intermediate)
+        double* vals_A;   // Row non-zero values (intermediate)
+        int* cols_A;      // Column indices of row non-zero values (intermediate)
+        for (i_B = 0; i_B < rB.NumMyRows(); i_B++) {
+            rB.ExtractMyRowView(i_B, numEntries_B, vals_B, cols_B);
+            const int row_gid_B = rB.RowMap().GID(i_B);
+            for (i_A = i_A; i_A < rA.NumMyRows(); i_A++) {
+                const int row_gid_A = rA.RowMap().GID(i_A);
+                if (row_gid_B == row_gid_A) {
+                    break;
+                }
+            }
+            rA.ExtractMyRowView(i_A, numEntries_A, vals_A, cols_A);
+            j_A = 0;
+            for (j_B = 0; j_B < numEntries_B; j_B++) {
+                const int col_gid_B = rB.ColMap().GID(cols_B[j_B]);
+                for (j_A = j_A; j_A < numEntries_A; j_A++) {
+                    const int col_gid_A = rA.ColMap().GID(cols_A[j_A]);
+                    if (col_gid_B == col_gid_A) {
+                        break;
+                    }
+                }
+                vals_A[j_A] = vals_B[j_B];
+            }
+        }
     }
 
     /**
