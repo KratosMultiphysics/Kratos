@@ -409,16 +409,21 @@ def Compute_error(main_model_part, sub_model_part_fluid) :
             # exact_grad[1] = 0.25 * (-2*node.Y + 2*node.Y / (node.X**2 + node.Y**2))  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
             
             # sin(x)*cos(y)
-            exact = math.sin(node.X) * math.cos(node.Y)
-            exact_grad[0] = math.cos(node.X) * math.cos(node.Y)
-            exact_grad[1] = -math.sin(node.X) * math.sin(node.Y)
+            # exact = math.sin(node.X) * math.cos(node.Y)
+            # exact_grad[0] = math.cos(node.X) * math.cos(node.Y)
+            # exact_grad[1] = -math.sin(node.X) * math.sin(node.Y)
+
+            # sin(x)*cos(y)+log(1+x**2+y**2)
+            exact = math.sin(node.X)*math.cos(node.Y)+math.log(1+node.X**2+node.Y**2)
+            exact_grad[0] =0
+            exact_grad[1] = 0
 
             ## Senza Logaritmo
             # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
             # exact_grad[0] = 0.25 * (-2*node.X)  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
             # exact_grad[1] = 0.25 * (-2*node.Y)  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
 
-            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0 :
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0:
                 if abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact) > max_err :
                     max_err = abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact)
                 total_number_fluid_nodes = total_number_fluid_nodes + 1
@@ -520,6 +525,10 @@ def Compute_T_matrix (result, node, projection_surr_nodes, i) :
 def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_element, projection_surr_nodes, T, node, j) :
     # Interpolate the value at the projection 
     dirichlet_projection = Interpolation(skin_model_part, closest_element, projection_surr_nodes, j-1, node)
+    # dirichlet_projection = 0.25*(9 - ((projection_surr_nodes[j-1][0])**2 + (projection_surr_nodes[j-1][1])**2) ) 
+    # dirichlet_projection =   0.25*(9-(projection_surr_nodes[j-1][0])**2-(projection_surr_nodes[j-1][1])**2-2*math.log(3) + math.log((projection_surr_nodes[j-1][0])**2+(projection_surr_nodes[j-1][1])**2)) + 0.25 *math.sin(projection_surr_nodes[j-1][0]) * math.sinh(projection_surr_nodes[j-1][1])
+    # dirichlet_projection = math.sin(node.X)*math.cos(node.Y)+math.log(1+node.X**2+node.Y**2)
+
     my_result = result[node.Id]
     # print('\n', node.Id)
     # print('\n')
@@ -565,5 +574,5 @@ def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_eleme
         node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, dirichlet_projection)
         node.Fix(KratosMultiphysics.TEMPERATURE)
         print('grad == 0, OOOOOOOOOOOOOO, sabelo')
-        exit()
+        # exit()
     return 0 

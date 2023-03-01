@@ -28,8 +28,9 @@ def CreateSolver(main_model_part, custom_settings):
 
 class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_solver.ConvectionDiffusionStationarySolver):
     print('ci siamo')
-    skin_model_part = Import_Structural_model_part('Structural_distanceToSkin')
-
+    skin_model_part = Import_Structural_model_part('Structural_onda')
+    #  "value"           : "0.25*(9-x**2-y**2-2*ln(3) + ln(x**2+y**2)) +  0.25 * sin(x) * sinh(y)"
+    #  "value"           : "cos(x)*cos(y) - sin(x)*sin(y) + 2*sin(x)*cos(y)",
     def __init__(self, main_model_part, custom_settings):
         super().__init__(main_model_part, custom_settings)
         # * Here I don't have access to the model_part yet
@@ -39,7 +40,6 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
 
 
     def Initialize(self):
@@ -48,7 +48,7 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         iter = 0
         main_model_part = self.GetComputingModelPart()
         for node in main_model_part.Nodes :
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0, [1.0, 1.0, 0.0])
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0, [5.0, 10.0, 0.0])
             node.Fix(KratosMultiphysics.VELOCITY_X)
             node.Fix(KratosMultiphysics.VELOCITY_Y)
             node.Fix(KratosMultiphysics.VELOCITY_Z)
@@ -63,9 +63,10 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(main_model_part, skin_model_part).Execute()
 
-        for node in main_model_part.Nodes :
-            print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
-        exit()
+        # for node in main_model_part.Nodes :
+        #     print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
+        # exit()
+
         # Find the surrogate boundary nodes
         a = KratosMultiphysics.FindSurrogateNodesProcess2D(main_model_part, skin_model_part)
         a.Execute()
@@ -98,7 +99,9 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9 - ((node.X)**2 + (node.Y)**2) ) ) # --> Paraboloide
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, math.sin(node.X) * math.cos(node.Y))
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, math.sin(node.X) * math.cos(node.Y))
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, math.sin(node.X)*math.cos(node.Y)+math.log(1+node.X**2+node.Y**2))
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (1-node.X))
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
         # Calculate the required neighbours
@@ -147,7 +150,8 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         for node in self.surrogate_sub_model_part.Nodes :
             name = "T_" + str(j-1)
             T = globals()[name]
-            Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
+            if node.X != 1.0 :
+                Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
             j = j + 1
         
     def InitializeSolutionStep(self):
@@ -202,7 +206,7 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
     def Finalize(self):
         super().Finalize()
-        # This is compiles after solving all the solution steps
+        ## This is compiles after solving all the solution steps
         file_tre = open("Surr_B.txt", "w")
         for node in self.surrogate_sub_model_part.Nodes :
             file_tre.write(str(node.X))
@@ -211,22 +215,12 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
             file_tre.write('\n')
         file_tre.close()
 
-        # # main_model_part = self.GetComputingModelPart()
-        main_model_part = self.main_model_part
+        # # # main_model_part = self.GetComputingModelPart()
+        # main_model_part = self.main_model_part
         
         # Check the error if the exact solution is known
-        self.errorL2, self.errorH1, self.max_err = Compute_error(main_model_part, self.sub_model_part_fluid)
+        self.errorL2, self.errorH1, self.max_err = Compute_error(self.main_model_part, self.sub_model_part_fluid)
         print(self.max_err)
-        file_tre1 = open("Surr_B1.txt", "w")
-        for node in self.surrogate_sub_model_part.Nodes :
-            if node.Is(SLAVE) :
-                file_tre1.write(str(node.X))
-                file_tre1.write('  ')
-                file_tre1.write(str(node.Y))
-                file_tre1.write('  ')
-                file_tre1.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node.X-node.Y)))
-                file_tre1.write('\n')
-        file_tre1.close()
 
 
         ## Sebastian 2.0 --> save TEMPERATURE
@@ -236,6 +230,14 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         velocity_numpy = np.array(temperature)
         print(velocity_numpy.shape)
         np.save("SBtemperature.npy", velocity_numpy)
+
+        file_white = open("elem_white.txt", "w")
+        for elem in self.main_model_part.Elements :
+            if elem.IsNot(ACTIVE) :
+                file_white.write(str(elem.Id))
+                file_white.write('\n')
+        file_white.close()
+
 
 
 

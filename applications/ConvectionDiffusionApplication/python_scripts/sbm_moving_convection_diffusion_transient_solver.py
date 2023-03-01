@@ -130,7 +130,6 @@ class SBMMovingConvectionDiffusionTransientSolver(convection_diffusion_stationar
             j = j + 1
         
     def InitializeSolutionStep(self):
-        super().InitializeSolutionStep()
         self.time = self.time + self.time_step
         self.iter = self.iter + 1
         main_model_part = self.GetComputingModelPart()
@@ -156,6 +155,7 @@ class SBMMovingConvectionDiffusionTransientSolver(convection_diffusion_stationar
                 elem.Set(VISITED,False)
     
         ## Remove MPC and regreate them
+        # print(main_model_part.GetRootModelPart())
         for constraint in main_model_part.MasterSlaveConstraints :
             constraint.Set(KratosMultiphysics.TO_ERASE)
         main_model_part.RemoveMasterSlaveConstraintsFromAllLevels(KratosMultiphysics.TO_ERASE)
@@ -246,8 +246,8 @@ class SBMMovingConvectionDiffusionTransientSolver(convection_diffusion_stationar
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
                 node.Fix(KratosMultiphysics.TEMPERATURE)
         
-
-        
+        # Initialize solution step (Alla fine!)
+        super().InitializeSolutionStep()
         
 
     def FinalizeSolutionStep(self):

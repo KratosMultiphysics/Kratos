@@ -29,6 +29,7 @@ class SBMConvectionDiffusionTransientSolver(convection_diffusion_transient_solve
     print('ci siamo transient solver')
     skin_model_part = Import_Structural_model_part('Structural_circle1x1_huge')
     # skin_model_part = Import_Structural_model_part('Structural_rectangle0.1')
+    # skin_model_part = Import_Structural_model_part('Structural_storto_huge')
 
 
     def __init__(self, main_model_part, custom_settings):
@@ -87,8 +88,8 @@ class SBMConvectionDiffusionTransientSolver(convection_diffusion_transient_solve
         # Set the BC at the skin mesh________________________________________________________________________________________________
         for node in skin_model_part.Nodes:
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (self.time)**2 * math.sin(2*node.X) * math.cos(2*node.Y))
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (self.time)**2 *(node.Y-0.1)* math.sin(8*node.X) * math.cos(8*node.Y))
-            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (node.Y-0.1)* math.sin(2*node.X) * math.cos(2*node.Y))
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (self.time)**2 * math.sin(8*node.X) * math.cos(8*node.Y))
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (self.time)**2 * math.sin(2*node.X) * math.cos(2*node.Y))
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
         # Calculate the required neighbours
@@ -139,8 +140,9 @@ class SBMConvectionDiffusionTransientSolver(convection_diffusion_transient_solve
         ## pdb.set_trace()
         ## modify the skin_model_part exact solution (when the exact solution depends on time) 
         for node in self.skin_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (self.time)**2* (node.Y-0.1) * math.sin(8*node.X) * math.cos(8*node.Y))
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (self.time)**2* (node.Y-0.1) * math.sin(8*node.X) * math.cos(8*node.Y))
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (self.time)**2 *(node.Y-0.1)* math.sin(2*node.X) * math.cos(2*node.Y))
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (self.time)**2 * math.sin(8*node.X) * math.cos(8*node.Y))
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
         # Remove MPC and regreate them
@@ -186,6 +188,13 @@ class SBMConvectionDiffusionTransientSolver(convection_diffusion_transient_solve
         self.errorL2, self.errorH1, self.max_err = self.Compute_error_transient(self.main_model_part, self.sub_model_part_fluid, self.time)
 
         print("L_inf err = ", self.max_err)
+
+        file_white = open("elem_white.txt", "w")
+        for elem in self.main_model_part.Elements :
+            if elem.IsNot(ACTIVE) :
+                file_white.write(str(elem.Id))
+                file_white.write('\n')
+        file_white.close()
 
 
         # ## Sebastian 2.0 --> save TEMPERATURE
@@ -247,13 +256,13 @@ class SBMConvectionDiffusionTransientSolver(convection_diffusion_transient_solve
         for node in main_model_part.Nodes :
             exact_grad = KratosMultiphysics.Array3()
             ## sin(x)*cos(y)
-            # exact = time**2 * math.sin(2*node.X) * math.cos(2*node.Y)
-            # exact_grad[0] = 2* time**2 *math.cos(2*node.X) * math.cos(2*node.Y)
-            # exact_grad[1] = - 2* time**2 * math.sin(2*node.X) * math.sin(2*node.Y)
+            exact = time**2 * math.sin(8*node.X) * math.cos(8*node.Y)
+            exact_grad[0] = 2* time**2 *math.cos(2*node.X) * math.cos(2*node.Y)
+            exact_grad[1] = - 2* time**2 * math.sin(2*node.X) * math.sin(2*node.Y)
             ## (1-0.y)
-            exact = (time)**2 *(node.Y-0.1)* math.sin(8*node.X) * math.cos(8*node.Y)
-            exact_grad[0] = 2* time**2 *(node.Y-0.1)*math.cos(2*node.X) * math.cos(2*node.Y)
-            exact_grad[1] = time**2 * math.sin(2*node.X) * (math.cos(2*node.Y)-2*(1-node.Y)*math.sin(2*node.Y))
+            # exact = (time)**2 *(node.Y-0.1)* math.sin(8*node.X) * math.cos(8*node.Y)
+            # exact_grad[0] = 2* time**2 *(node.Y-0.1)*math.cos(2*node.X) * math.cos(2*node.Y)
+            # exact_grad[1] = time**2 * math.sin(2*node.X) * (math.cos(2*node.Y)-2*(1-node.Y)*math.sin(2*node.Y))
             if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0 :
                 if abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact) > max_err :
                     max_err = abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact)
