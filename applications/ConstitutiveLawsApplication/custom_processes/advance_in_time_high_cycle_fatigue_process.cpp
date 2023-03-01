@@ -39,6 +39,9 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     bool cycle_found = false;
     std::vector<double> damage;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
+    //double increment;
+
+    this->CyclicLoad();  //This method checks if a cyclic load is being applied.
 
     if (!process_info[DAMAGE_ACTIVATION]) {
 
@@ -63,22 +66,73 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
         bool advancing_strategy = false;
         this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in
-                                                                        //terms of max stress and reversion factor variation.
+                                                                        //terms of max stress and reversion factor variation.                                                                                                                              
+        double increment = 0.0;
         if (advancing_strategy) {
-            double increment = 0.0;
-            if (!process_info[DAMAGE_ACTIVATION]) {
-                this->TimeIncrement(increment);
-                if (increment > 0.0) {
-                    this->TimeAndCyclesUpdate(increment);
-                    process_info[ADVANCE_STRATEGY_APPLIED] = true;
-                }
-            } else {
-                increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
+            this->TimeIncrement(increment);
+            if (increment > 0.0) {
                 this->TimeAndCyclesUpdate(increment);
                 process_info[ADVANCE_STRATEGY_APPLIED] = true;
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvanceInTimeHighCycleFatigueProcess::CyclicLoad()
+{
+    auto& process_info = mrModelPart.GetProcessInfo();
+    double time = process_info[TIME];
+    double delta_time;
+    if (mThisParameters["solver_settings"]["time_stepping"].Has("time_step")) {
+        delta_time = mThisParameters["solver_settings"]["time_stepping"]["time_step"].GetDouble();
+    } else if (mThisParameters["solver_settings"]["time_stepping"].Has("time_step_table")) {
+        const Matrix time_step_table = mThisParameters["solver_settings"]["time_stepping"]["time_step_table"].GetMatrix();
+        KRATOS_ERROR << "Advance in time process not prepared yet for time_step_table!" << std::endl;
+    } else {
+        KRATOS_ERROR << "Time stepping not defined!" << std::endl;
+    }
+
+    //Monotonic (false) or cyclic (true) load. If a monotonic and a cyclic load coexist, cyclic type will be considered
+    // bool current_load_type = false;
+    bool new_model_part = false;
+    bool break_condition = false;
+
+    const bool has_constraints_list = mThisParameters["fatigue"].Has("constraints_process_list");
+    if (!has_constraints_list) {
+        KRATOS_ERROR << "Using the advance in time strategy without using the constraints_process_list" << std::endl;
+    }
+
+    if (has_constraints_list) {
+        std::vector<std::string> constraints_list = mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
+        //Loop on the cyclic constraints list
+        for (unsigned int i = 0; i < constraints_list.size(); i++) {
+            for (unsigned int j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++) {
+                std::string model_part_name = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["model_part_name"].GetString();
+                double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
+                double model_part_end_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][1].GetDouble();
+                if (constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time) {
+                    // current_load_type = true;
+                    new_model_part = false; //This is done just in case a new monotonic load coexists with a cyclic load.
+                                            //Then the thresholds used as reference should not be updated. This needs to be checked.
+
+                    //Checking if this is the first step of a new model part
+                    double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
+                    if (time - delta_time <= model_part_start_time) {
+                        new_model_part = true;
+                    }
+                }
+            }
+            // if (current_load_type) {
+            //     break;
+            // }
+        }
+    }
+
+    // process_info[CURRENT_LOAD_TYPE] = current_load_type;
+    process_info[NEW_MODEL_PART] = new_model_part;
 }
 
 /***********************************************************************************/
@@ -175,8 +229,10 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
     double time = process_info[TIME];
     bool current_constraints_process_list_detected = false;
 
-    double user_avancing_time = mThisParameters["fatigue"]["advancing_strategy_time"].GetDouble();
-    double user_avancing_cycles = mThisParameters["fatigue"]["advancing_strategy_cycles"].GetDouble();
+    double user_advancing_time = mThisParameters["fatigue"]["advancing_strategy_time"].GetDouble();
+    double user_advancing_cycles = mThisParameters["fatigue"]["advancing_strategy_cycles"].GetDouble();
+    double user_advancing_time_damage = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
+    double user_advancing_cycles_damage = mThisParameters["fatigue"]["advancing_strategy_cycles_damage"].GetDouble();
     std::vector<std::string> constraints_list = mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
     double model_part_final_time = mThisParameters["problem_data"]["end_time"].GetDouble();
     for (unsigned int i = 0; i < constraints_list.size(); i++) {
@@ -194,32 +250,63 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
     }
 
     double model_part_advancing_time = model_part_final_time - time;
-    min_time_increment = std::min(user_avancing_time, model_part_advancing_time);
+    if (!process_info[DAMAGE_ACTIVATION]) {
+        min_time_increment = std::min(user_advancing_time, model_part_advancing_time);
+    }else{
+        min_time_increment = std::min(user_advancing_time_damage, model_part_advancing_time);
+    }
+
 
     // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-    for (auto& r_elem : mrModelPart.Elements()) {
-        unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
-        r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
-        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
-        r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
-        r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
-        r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
-        for (unsigned int i = 0; i < number_of_ip; i++) {
-            if (max_stress[i] > s_th[i]) {  //This is used to guarantee that only IP in fatigue conditions are taken into account
-                double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
-                double user_avancing_cycles_conversion_to_time = user_avancing_cycles * period[i];
-                if (Nf_conversion_to_time < min_time_increment) {
-                    min_time_increment = Nf_conversion_to_time;
+        if (!process_info[DAMAGE_ACTIVATION]) {
+            for (auto &r_elem : mrModelPart.Elements()){
+                unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+                r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
+                r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
+                r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
+                r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
+                r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
+                for (unsigned int i = 0; i < number_of_ip; i++)
+                {
+                    if (max_stress[i] > s_th[i])
+                    { // This is used to guarantee that only IP in fatigue conditions are taken into account
+                        double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
+                        double user_advancing_cycles_conversion_to_time = user_advancing_cycles * period[i];
+                        if (Nf_conversion_to_time < min_time_increment)
+                        {
+                            min_time_increment = Nf_conversion_to_time;
+                        }
+                        if (user_advancing_cycles_conversion_to_time < min_time_increment)
+                        {
+                            min_time_increment = user_advancing_cycles_conversion_to_time;
+                        }
+                    }
                 }
-                if (user_avancing_cycles_conversion_to_time < min_time_increment) {
-                    min_time_increment = user_avancing_cycles_conversion_to_time;
-
+            }
+        }else{
+            for (auto &r_elem : mrModelPart.Elements()){
+                unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+                r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
+                r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
+                r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
+                for (unsigned int i = 0; i < number_of_ip; i++)
+                {
+                    if (max_stress[i] > s_th[i])
+                    { // This is used to guarantee that only IP in fatigue conditions are taken into account
+                        double user_advancing_cycles_conversion_to_time = user_advancing_cycles_damage * period[i];
+                        if (user_advancing_cycles_conversion_to_time < min_time_increment)
+                        {
+                            min_time_increment = user_advancing_cycles_conversion_to_time;
+                        }
+                    }
                 }
             }
         }
-    }
-	rIncrement = min_time_increment;
+    
+
+    rIncrement = min_time_increment;
+
 }
 
 /***********************************************************************************/
@@ -236,7 +323,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
         std::vector<int>  local_number_of_cycles;
         std::vector<int>  global_number_of_cycles;
         std::vector<double> period;
-        double time_increment = 0.0;
+        double time_increment;
         std::vector<double> previous_cycle_time;    //time when the previous cycle finished. It is used to obtain the new period for the current cycle
 
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();

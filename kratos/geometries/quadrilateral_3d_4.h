@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Bodhinanda Chandra
 //
 
-#if !defined(KRATOS_QUADRILATERAL_3D_4_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_3D_4_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,6 +24,7 @@
 // Project includes
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
@@ -453,16 +453,8 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        double area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /**
@@ -1822,5 +1814,3 @@ const GeometryDimension Quadrilateral3D4<TPointType>::msGeometryDimension(
     2, 3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

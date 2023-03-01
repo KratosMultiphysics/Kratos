@@ -11,12 +11,9 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_PROCESS_H_INCLUDED )
-#define  KRATOS_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
@@ -67,7 +64,6 @@ public:
     /// Destructor.
     ~Process() override {}
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -77,7 +73,6 @@ public:
     {
         Execute();
     }
-
 
     ///@}
     ///@name Operations
@@ -190,11 +185,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -217,21 +210,14 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
-
-
-
 
     ///@}
     ///@name Un accessible methods
@@ -243,7 +229,6 @@ private:
     /// Copy constructor.
     //Process(Process const& rOther);
 
-
     ///@}
 
 }; // Class Process
@@ -253,11 +238,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -275,7 +258,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_PROCESS_H_INCLUDED  defined

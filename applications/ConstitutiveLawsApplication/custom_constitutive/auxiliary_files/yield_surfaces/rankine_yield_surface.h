@@ -125,10 +125,10 @@ public:
         array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
         // The rEquivalentStress is the maximum principal stress
-        if constexpr (Dimension == 3)
-            rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
+        if (Dimension == 3)  // TODO: Add constexpr with C++17
+            rEquivalentStress = std::max(std::max(std::abs(principal_stress_vector[0]), std::abs(principal_stress_vector[1])), std::abs(principal_stress_vector[2]));
         else // 2D
-            rEquivalentStress = std::max(principal_stress_vector[0], principal_stress_vector[1]);
+            rEquivalentStress = std::max(std::abs(principal_stress_vector[0]), std::abs(principal_stress_vector[1]));
     }
 
     /**
