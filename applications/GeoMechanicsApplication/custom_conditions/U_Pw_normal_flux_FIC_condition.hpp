@@ -45,24 +45,23 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
     typedef typename UPwNormalFluxCondition<TDim,TNumNodes>::NormalFluxVariables NormalFluxVariables;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    UPwNormalFluxFICCondition() : UPwNormalFluxCondition<TDim,TNumNodes>() {}
+    UPwNormalFluxFICCondition() : UPwNormalFluxFICCondition(0, nullptr, nullptr) {}
 
-    // Constructor 1
-    UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwNormalFluxFICCondition(IndexType                NewId,
+                              GeometryType::Pointer    pGeometry )
+        : UPwNormalFluxFICCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Constructor 2
-    UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
-    {
-        mThisIntegrationMethod = this->GetIntegrationMethod();
-    }
+    UPwNormalFluxFICCondition( IndexType               NewId,
+                               GeometryType::Pointer   pGeometry,
+                               PropertiesType::Pointer pProperties )
+        : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
+    {}
 
-    // Destructor
     ~UPwNormalFluxFICCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

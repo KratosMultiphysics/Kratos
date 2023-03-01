@@ -44,7 +44,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
     //Previous definitions
     GeometryType& r_geom = this->GetGeometry();
 
-    GeometryData::IntegrationMethod integration_method = this->mThisIntegrationMethod;
+    GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
     const unsigned int num_g_points = r_integration_points.size();
     const unsigned int local_dim = r_geom.LocalSpaceDimension();
@@ -117,7 +117,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     //Previous definitions
     GeometryType& r_geom = this->GetGeometry();
 
-    GeometryData::IntegrationMethod r_integration_method = this->mThisIntegrationMethod;
+    GeometryData::IntegrationMethod r_integration_method = this->GetIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(r_integration_method);
     const unsigned int num_g_points = r_integration_points.size();
     const unsigned int local_dim = r_geom.LocalSpaceDimension();
