@@ -2,7 +2,7 @@ import KratosMultiphysics
 from KratosMultiphysics import KratosUnittest
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
+from KratosMultiphysics.ParticleMechanicsApplication import TrilinosExtension as TrilinosParticle
 
 class TestTransferConditions(KratosUnittest.TestCase):
     ''' This class provides all required methods to test the MPM_MPI_Utilities::TransferConditions function.
@@ -139,15 +139,17 @@ class TestTransferConditions(KratosUnittest.TestCase):
         ''' Two dirichlet conditions are created in rank=0 and send to all other processes.
             One neumann or coupled/interface condition is created in rank=1 and send to all other processes.
             The test is passed if all receiving processes hold the correct conditions. '''
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
+        data_comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+        rank = data_comm.Rank()
+        size = data_comm.Size()
+
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("mp_dirichlet_conditions")
 
-        rank = data_comm.Rank()
-        size = data_comm.Size()
-        send_conditions = []
-
-        for i in range(size):
-            send_conditions.append( KratosMultiphysics.ConditionsArray() )
+        send_conditions = [ KratosMultiphysics.ConditionsArray() for _ in range(size) ]
+        recv_conditions = [ KratosMultiphysics.ConditionsArray() for _ in range(size) ]
 
         if rank == 0: #Sender
             self._create_particle_condition(mp, dimension, condition_type="dirichlet", condition_id=1)
@@ -171,9 +173,9 @@ class TestTransferConditions(KratosUnittest.TestCase):
                         self._assign_pseudo_variables(cond, condition_type_2)
                         send_conditions[i].append(cond)
 
-        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(mp)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(mp, data_comm)
         # Exchange elements
-        KratosParticle.MPM_MPI_Utilities.TransferConditions(mp, send_conditions)
+        TrilinosParticle.MPM_MPI_Utilities.TransferConditions(mp, send_conditions, recv_conditions)
 
         # Check
         if rank == 0:

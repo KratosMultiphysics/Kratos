@@ -14,10 +14,15 @@
 #include "mpi_utilities.h"
 #include "particle_mechanics_application_variables.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
-    void MPM_MPI_Utilities::TransferElements( ModelPart& rModelPart, std::vector<ElementsContainerType>& rSendElements, std::vector<ElementsContainerType>& rRecvElements)
+    void MPM_MPI_Utilities::TransferElements(
+        ModelPart& rModelPart,
+        std::vector<ElementsContainerType>& rSendElements,
+        std::vector<ElementsContainerType>& rRecvElements
+        )
     {
         const unsigned int rank = rModelPart.GetCommunicator().MyPID();
         const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
@@ -34,28 +39,26 @@ namespace Kratos {
         // Exchange elements
         rModelPart.GetCommunicator().TransferObjects(rSendElements, rRecvElements);
 
-        // Attention: To loop over one element container "slot" k is only possible, 
-        // because all containers hold same elements. This might change in the future.
-        unsigned int k = 0;
-        if( size > 1 && rank == 0){
-            k = 1;
+        for(auto& send : rSendElements){
+            VariableUtils().SetFlag(TO_ERASE, true, send);
         }
-        const auto it_send_elements_begin = rSendElements[k].begin();
-        const unsigned int number_sent_elements = rSendElements[k].size();
-
-        IndexPartition<unsigned int>(number_sent_elements).for_each(
-            [it_send_elements_begin](unsigned int j){
-                auto it = it_send_elements_begin + j;
-                it->Set(TO_ERASE);
-            }
-        );
         
         rModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
+        // Each process adds the elements received from other processes to the model part
+        for(auto& recv : rRecvElements){
+            rModelPart.AddElements(recv.begin(),recv.end());
+        }
+
         rSendElements.clear();
+        rRecvElements.clear();
     }
 
-    void MPM_MPI_Utilities::TransferConditions(ModelPart& rModelPart, std::vector<ConditionsContainerType>& rSendConditions, std::vector<ConditionsContainerType>& rRecvConditions)
+    void MPM_MPI_Utilities::TransferConditions(
+        ModelPart& rModelPart,
+        std::vector<ConditionsContainerType>& rSendConditions,
+        std::vector<ConditionsContainerType>& rRecvConditions
+        )
     {
         const unsigned int rank = rModelPart.GetCommunicator().MyPID();
         const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
@@ -72,25 +75,19 @@ namespace Kratos {
         // Exchange conditions
         rModelPart.GetCommunicator().TransferObjects(rSendConditions, rRecvConditions);
 
-        // Attention: Loop over one condition container "slot" k is only possible, 
-        // because all containers hold same elements. This might change in the future.
-        unsigned int k = 0;
-        if( size > 1 && rank == 0){
-            k = 1;
+        for(auto& send : rSendConditions){
+            VariableUtils().SetFlag(TO_ERASE, true, send);
         }
-        const auto it_send_econditions_begin = rSendConditions[k].begin();
-        const unsigned int number_sent_econditions = rSendConditions[k].size();
-
-        IndexPartition<unsigned int>(number_sent_econditions).for_each(
-            [it_send_econditions_begin](unsigned int j){
-                auto it = it_send_econditions_begin + j;
-                it->Set(TO_ERASE);
-            }
-        );
-
+        
         rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
+        // Each process adds the conditions received from other processes to the model part
+        for(auto& recv : rRecvConditions){
+            rModelPart.AddConditions(recv.begin(),recv.end());
+        }
+
         rSendConditions.clear();
+        rRecvConditions.clear();
     }
 
     void MPM_MPI_Utilities::SynchronizeActiveDofsAtInterface(ModelPart& rModelPart){
@@ -206,6 +203,7 @@ namespace Kratos {
             }
         }
     }
+
     // ##############################################################################################
     // !!!This function is no longer needed. However, function is kept for some while just in case.!!!
     // ##############################################################################################

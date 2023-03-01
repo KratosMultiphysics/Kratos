@@ -10,14 +10,13 @@
 //  Main authors:    Manuel Meßmer
 //
 
-#ifndef KRATOS_MPM_MPI_UTILITIES_INCLUDE_H
-#define KRATOS_MPM_MPI_UTILITIES_INCLUDE_H
+#pragma once
 
-// system includes
+// System includes
 
-// external includes
+// External includes
 
-// kratos includes
+// Kratos includes
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
 
@@ -57,9 +56,10 @@ public:
      * @param rSendElements list of objects to be send.      SendObjects[i] -> Objects to   process i
      * @param rRecvElements list of objects to be recieved.  RecvObjects[i] -> Objects from process i
      **/
-    static void TransferElements(ModelPart& rModelPart,
-                          std::vector<ElementsContainerType>& rSendElements,
-                          std::vector<ElementsContainerType>& rRecvElements);
+    static void TransferElements(
+        ModelPart& rModelPart,
+        std::vector<ElementsContainerType>& rSendElements,
+        std::vector<ElementsContainerType>& rRecvElements);
 
     /**
      * @brief Interface to exchange conditions.
@@ -67,9 +67,10 @@ public:
      * @param rSendCondition list of conditions to be send.      SendObjects[i] -> Objects to   process i
      * @param rRecvCondition list of objects to be recieved.     RecvObjects[i] -> Objects from process i
      **/
-    static void TransferConditions(ModelPart& rModelPart,
-                            std::vector<ConditionsContainerType>& rSendCondition,
-                            std::vector<ConditionsContainerType>& rRecvCondition);
+    static void TransferConditions(
+        ModelPart& rModelPart,
+        std::vector<ConditionsContainerType>& rSendCondition,
+        std::vector<ConditionsContainerType>& rRecvCondition);
 
     /**
      * @brief Synchronize the Is(ACTIVE) flag at the interface meshes.
@@ -104,8 +105,8 @@ public:
     ///@}
 
 }; // end class MPM_MPI_Utilities
+
 ///@} classes
 ///@} addToGroup
-} // end namespace Kratos
 
-#endif // end KRATOS_MPM_MPI_UTILITIES_INCLUDE_H
+} // end namespace Kratos
