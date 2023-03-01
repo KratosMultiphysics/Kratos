@@ -913,6 +913,53 @@ public:
     }
 
     /**
+     * @brief Copy values from one matrix to another
+     * @details It is assumed that the sparcity of both matrices is compatible
+     * @param rA The matrix where assigning values
+     * @param rB The matrix to be copied
+     */
+    static void CopyMatrixValues(
+        MatrixType& rA,
+        const MatrixType& rB
+        )
+    {
+        // Clear A matrix
+        SetToZero(rA);
+
+        // Copy values from rB to intermediate
+        int i_B, i_A, j_B, j_A;
+        i_A = 0;
+        int numEntries_B; // Number of non-zero entries (rB matrix)
+        double* vals_B;   // Row non-zero values (rB matrix)
+        int* cols_B;      // Column indices of row non-zero values (rB matrix)
+        int numEntries_A; // Number of non-zero entries (intermediate)
+        double* vals_A;   // Row non-zero values (intermediate)
+        int* cols_A;      // Column indices of row non-zero values (intermediate)
+        for (i_B = 0; i_B < rB.NumMyRows(); i_B++) {
+            rB.ExtractMyRowView(i_B, numEntries_B, vals_B, cols_B);
+            const int row_gid_B = rB.RowMap().GID(i_B);
+            for (i_A = i_A; i_A < rA.NumMyRows(); i_A++) {
+                const int row_gid_A = rA.RowMap().GID(i_A);
+                if (row_gid_B == row_gid_A) {
+                    break;
+                }
+            }
+            rA.ExtractMyRowView(i_A, numEntries_A, vals_A, cols_A);
+            j_A = 0;
+            for (j_B = 0; j_B < numEntries_B; j_B++) {
+                const int col_gid_B = rB.ColMap().GID(cols_B[j_B]);
+                for (j_A = j_A; j_A < numEntries_A; j_A++) {
+                    const int col_gid_A = rA.ColMap().GID(cols_A[j_A]);
+                    if (col_gid_B == col_gid_A) {
+                        break;
+                    }
+                }
+                vals_A[j_A] = vals_B[j_B];
+            }
+        }
+    }
+
+    /**
      * @brief This method checks and corrects the zero diagonal values
      * @details This method returns the scale norm considering for scaling the diagonal
      * @param rProcessInfo The problem process info
