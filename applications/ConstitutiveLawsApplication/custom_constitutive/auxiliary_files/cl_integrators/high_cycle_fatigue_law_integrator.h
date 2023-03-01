@@ -171,8 +171,7 @@ public:
                                             double& rB0,
                                             double& rSth,
                                             double& rAlphat,
-                                            double& rN_f,
-                                            const double FatigueReductionFactorSmoothness)
+                                            double& rN_f)
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
@@ -200,6 +199,7 @@ public:
         const double BETAF = r_fatigue_coefficients[4];
         const double AUXR1 = r_fatigue_coefficients[5];
         const double AUXR2 = r_fatigue_coefficients[6];
+        const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
 
         if (std::abs(ReversionFactor) < 1.0) {
             rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
@@ -242,9 +242,8 @@ public:
      * @param Sth Endurance limit of the fatigue model.
      * @param Alphat Internal variable of the fatigue model.
      * @param rFatigueReductionFactor Reduction factor from the previous step to be reevaluated.
-     * @param rWohlerStress Normalized Wohler stress used to build the life prediction curves (SN curve).
      */
-    static void CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters,
+    static void CalculateFatigueReductionFactor(const Properties& rMaterialParameters,
                                                                 const double MaxStress,
                                                                 double ReversionFactor,
                                                                 unsigned int LocalNumberOfCycles,
@@ -252,11 +251,13 @@ public:
                                                                 const double B0,
                                                                 const double Sth,
                                                                 const double Alphat,
-                                                                double& rFatigueReductionFactor,
-                                                                double& rWohlerStress,
-                                                                const double FatigueReductionFactorSmoothness)
+                                                                double& rFatigueReductionFactor)
 	{
-        const double BETAF = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+        
+        const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
+        const double BETAF = r_fatigue_coefficients[4];
+        const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
+
         if (GlobalNumberOfCycles > 2){
             double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
 
@@ -273,10 +274,10 @@ public:
                     ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i-1]);
                 }
             }
-            rWohlerStress = (Sth + (ultimate_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
-            if (std::abs(ReversionFactor) > 0.999){
-                rWohlerStress = 1.0;
-            } 
+            // rWohlerStress = (Sth + (ultimate_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
+            // if (std::abs(ReversionFactor) > 0.999){
+            //     rWohlerStress = 1.0;
+            // } 
         }
               
         if (MaxStress > Sth) {
