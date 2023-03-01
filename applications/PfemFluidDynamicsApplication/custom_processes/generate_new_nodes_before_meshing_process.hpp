@@ -123,7 +123,13 @@ namespace Kratos
 				mrRemesh.Info->InitialNumberOfNodes = mrRemesh.Info->NumberOfNodes;
 			}
 
+			unsigned int eulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
 			int ElementsToRefine = mrRemesh.Info->RemovedNodes;
+			// TO IMPROVE. REFINING SHOULD BE DONE AUTOMATICALLY NEAR THE EULERIAN INLET. THIS WAY THERE IS THE RISK OF INCREASING EXCESSIVELY THE NODES NUMBER
+			if (ElementsToRefine < eulerianInletNodes)
+			{
+				ElementsToRefine = eulerianInletNodes;
+			}
 
 			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
 			int numberOfNodes = mrRemesh.Info->NumberOfNodes;
@@ -185,20 +191,10 @@ namespace Kratos
 						if (dimension == 2)
 						{
 							SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, CountNodes, ElementsToRefine);
-
-							// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
-							// {
-							// 	InsertNodeInCornerElement2D(ie->GetGeometry(), CornerWallNewPositions, CornerWallNodesIDToInterpolate, CornerWallNewDofs, cornerWallNewNodes);
-							// }
 						}
 						else if (dimension == 3)
 						{
 							SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, CountNodes, ElementsToRefine);
-
-							// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
-							// {
-							// 	InsertNodeInCornerElement3D(ie->GetGeometry(), CornerWallNewPositions, CornerWallNodesIDToInterpolate, CornerWallNewDofs, cornerWallNewNodes);
-							// }
 						}
 
 					} // elements loop
@@ -352,7 +348,7 @@ namespace Kratos
 			unsigned int rigidNodes = 0;
 			unsigned int freesurfaceNodes = 0;
 
-			for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -459,7 +455,7 @@ namespace Kratos
 			unsigned int freesurfaceNodes = 0;
 			unsigned int toEraseNodes = 0;
 
-			for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -691,15 +687,442 @@ namespace Kratos
 							CopyDofs(Element[idFreeNode].GetDofs(), NewDofs[CountNodes]);
 							NewPositions[CountNodes] = NewPosition;
 							CountNodes++;
-							// std::cout << "  NewPosition  NewPosition NewPosition " << NewPosition << std::endl;
-							// std::cout <<idsWallNodes[0] <<" idA " <<idA << std::endl;
-							// std::cout <<idsWallNodes[1] <<" idB " <<idB << std::endl;
-							// std::cout <<idFreeNode<< " idC " <<idC << std::endl;
 						}
 					}
 				}
 			}
 
+			KRATOS_CATCH("")
+		}
+
+		void SelectEdgeToRefine2DInletZone(Element::GeometryType &Element,
+										   std::vector<array_1d<double, 3>> &NewPositions,
+										   std::vector<double> &BiggestVolumes,
+										   std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+										   std::vector<Node<3>::DofsContainerType> &NewDofs,
+										   int &CountNodes,
+										   int ElementsToRefine)
+		{
+			KRATOS_TRY
+
+			const unsigned int nds = Element.size();
+
+			int maxNodeToAddAtTheInlet = mrRemesh.Info->NumberOfEulerianInletNodes + ElementsToRefine;
+			unsigned int rigidNodes = 0;
+			unsigned int eulerianInletNodes = 0;
+			bool toEraseNodeFound = false;
+
+			for (unsigned int pn = 0; pn < nds; ++pn)
+			{
+				if (Element[pn].GetValue(EULERIAN_INLET) == true)
+				{
+					eulerianInletNodes++;
+				}
+				if (Element[pn].Is(TO_ERASE))
+				{
+					toEraseNodeFound = true;
+				}
+				if (Element[pn].Is(RIGID))
+				{
+					rigidNodes++;
+				}
+			}
+
+			const double limitEdgeLength = 2.1 * mrRemesh.Refine->CriticalRadius; // higher than the normal one to avoid increasing number of nodes
+			const double safetyCoefficient2D = 1.5;
+
+			if (eulerianInletNodes > 0 && toEraseNodeFound == false)
+			{
+				const double ElementalVolume = Element.Area();
+
+				array_1d<double, 3> Edges(3, 0.0);
+				array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
+				array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
+				double WallCharacteristicDistance = 0;
+				array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+				double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
+				Edges[0] = std::sqrt(SquaredLength);
+				FirstEdgeNode[0] = 0;
+				SecondEdgeNode[0] = 1;
+				if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
+				{
+					WallCharacteristicDistance = Edges[0];
+				}
+				unsigned int Counter = 0;
+				for (unsigned int i = 2; i < nds; i++)
+				{
+					for (unsigned int j = 0; j < i; j++)
+					{
+						noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+						SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
+						Counter += 1;
+						Edges[Counter] = std::sqrt(SquaredLength);
+						FirstEdgeNode[Counter] = j;
+						SecondEdgeNode[Counter] = i;
+						if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
+						{
+							WallCharacteristicDistance = Edges[Counter];
+						}
+					}
+				}
+
+				bool dangerousElement = false;
+				if (rigidNodes > 1)
+				{
+					for (unsigned int i = 0; i < 3; i++)
+					{
+						if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient2D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
+							(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
+						{
+							Edges[i] = 0;
+						}
+						if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
+							(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
+						{
+							Edges[i] = 0;
+						}
+					}
+				}
+				if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0) || rigidNodes == 3)
+				{
+					dangerousElement = true;
+				}
+
+				if (dangerousElement == false && toEraseNodeFound == false)
+				{
+					unsigned int maxCount = 3;
+					double LargestEdge = 0;
+
+					for (unsigned int i = 0; i < 3; i++)
+					{
+						if (Edges[i] > LargestEdge)
+						{
+							maxCount = i;
+							LargestEdge = Edges[i];
+						}
+					}
+
+					if (CountNodes < maxNodeToAddAtTheInlet && LargestEdge > limitEdgeLength)
+					{
+
+						array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
+
+						bool suitableElement = true;
+						for (int j = 0; j < CountNodes; j++)
+						{
+							const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
+							const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
+							if (diffX < 0 && diffY < 0) //  the node is in the same zone of a previously inserted node
+							{
+								suitableElement = false;
+							}
+						}
+
+						if (suitableElement)
+						{
+							NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
+							NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
+							if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
+							{
+								CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+							}
+							else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
+							{
+								CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+							}
+							else
+							{
+								std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
+							}
+							BiggestVolumes[CountNodes] = ElementalVolume;
+							NewPositions[CountNodes] = NewPosition;
+							CountNodes++;
+						}
+					}
+					else if (rigidNodes < 3)
+					{
+						for (int nn = (ElementsToRefine - 1); nn < maxNodeToAddAtTheInlet; nn++)
+						{
+							if (ElementalVolume > BiggestVolumes[nn])
+							{
+
+								bool suitableElement = true;
+								if (maxCount < 3 && LargestEdge > limitEdgeLength)
+								{
+									array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
+									if (maxNodeToAddAtTheInlet > 1 && CountNodes > 0)
+									{
+										for (int j = 0; j < maxNodeToAddAtTheInlet; j++)
+										{
+											const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
+											const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
+											if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node
+											{
+												suitableElement = false;
+											}
+										}
+									}
+
+									if (suitableElement)
+									{
+										NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
+										NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
+										if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
+										{
+											CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+										}
+										else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
+										{
+											CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+										}
+										else
+										{
+											std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
+										}
+										BiggestVolumes[nn] = ElementalVolume;
+										NewPositions[nn] = NewPosition;
+									}
+								}
+
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			KRATOS_CATCH("")
+		}
+
+		void SelectEdgeToRefine3DInletZone(Element::GeometryType &Element,
+										   std::vector<array_1d<double, 3>> &NewPositions,
+										   std::vector<double> &BiggestVolumes,
+										   std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+										   std::vector<Node<3>::DofsContainerType> &NewDofs,
+										   int &CountNodes,
+										   int ElementsToRefine)
+		{
+			KRATOS_TRY
+
+			const unsigned int nds = Element.size();
+
+			int maxNodeToAddAtTheInlet = mrRemesh.Info->NumberOfEulerianInletNodes + ElementsToRefine;
+			unsigned int rigidNodes = 0;
+			unsigned int eulerianInletNodes = 0;
+			bool toEraseNodeFound = false;
+
+			for (unsigned int pn = 0; pn < nds; ++pn)
+			{
+				if (Element[pn].Is(TO_ERASE))
+				{
+					toEraseNodeFound = true;
+				}
+				if (Element[pn].GetValue(EULERIAN_INLET) == true)
+				{
+					eulerianInletNodes++;
+				}
+				if (Element[pn].Is(RIGID))
+				{
+					rigidNodes++;
+				}
+			}
+
+			const double limitEdgeLength = 2.25 * mrRemesh.Refine->CriticalRadius; // higher than the normal one to avoid increasing number of nodes
+			const double safetyCoefficient3D = 1.6;
+
+			if (eulerianInletNodes > 0 && toEraseNodeFound == false)
+			{
+				const double ElementalVolume = Element.Volume();
+
+				array_1d<double, 6> Edges(6, 0.0);
+				array_1d<unsigned int, 6> FirstEdgeNode(6, 0);
+				array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
+				double WallCharacteristicDistance = 0;
+				array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+				double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+				Edges[0] = std::sqrt(SquaredLength);
+				FirstEdgeNode[0] = 0;
+				SecondEdgeNode[0] = 1;
+				if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
+				{
+					WallCharacteristicDistance = Edges[0];
+				}
+				unsigned int Counter = 0;
+				for (unsigned int i = 2; i < nds; i++)
+				{
+					for (unsigned int j = 0; j < i; j++)
+					{
+						noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+						SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+						Counter += 1;
+						Edges[Counter] = std::sqrt(SquaredLength);
+						FirstEdgeNode[Counter] = j;
+						SecondEdgeNode[Counter] = i;
+						if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
+						{
+							WallCharacteristicDistance = Edges[Counter];
+						}
+					}
+				}
+				// Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
+				bool dangerousElement = false;
+				if (rigidNodes > 1)
+				{
+					for (unsigned int i = 0; i < 6; i++)
+					{
+						if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient3D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
+							(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
+						{
+							Edges[i] = 0;
+						}
+						if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
+							(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
+						{
+							Edges[i] = 0;
+						}
+					}
+				}
+				else if (rigidNodes == 1)
+				{
+					if (Element[0].Is(RIGID))
+					{
+						Edges[0] = 0;
+						Edges[1] = 0;
+						Edges[3] = 0;
+					}
+					if (Element[1].Is(RIGID))
+					{
+						Edges[0] = 0;
+						Edges[2] = 0;
+						Edges[4] = 0;
+					}
+					if (Element[2].Is(RIGID))
+					{
+						Edges[1] = 0;
+						Edges[2] = 0;
+						Edges[5] = 0;
+					}
+					if (Element[3].Is(RIGID))
+					{
+						Edges[3] = 0;
+						Edges[4] = 0;
+						Edges[5] = 0;
+					}
+				}
+
+				if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0 && Edges[3] == 0 && Edges[4] == 0 && Edges[5] == 0) || rigidNodes > 2)
+				{
+					dangerousElement = true;
+				}
+
+				// just to fill the vector
+				if (dangerousElement == false && toEraseNodeFound == false)
+				{
+
+					unsigned int maxCount = 6;
+					double LargestEdge = 0;
+
+					for (unsigned int i = 0; i < 6; i++)
+					{
+						if (Edges[i] > LargestEdge)
+						{
+							maxCount = i;
+							LargestEdge = Edges[i];
+						}
+					}
+
+					if (CountNodes < maxNodeToAddAtTheInlet && LargestEdge > limitEdgeLength)
+					{
+						array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
+
+						bool suitableElement = true;
+						for (int j = 0; j < CountNodes; j++)
+						{
+							const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
+							const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
+							const double diffZ = std::abs(NewPositions[j][2] - NewPosition[2]) - mrRemesh.Refine->CriticalRadius * 0.5;
+							if (diffX < 0 && diffY < 0 && diffZ < 0) //  the node is in the same zone of a previously inserted node
+							{
+								suitableElement = false;
+							}
+						}
+
+						if (suitableElement)
+						{
+							NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
+							NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
+							if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
+							{
+								CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+							}
+							else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
+							{
+								CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+							}
+							else
+							{
+								std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
+							}
+							BiggestVolumes[CountNodes] = ElementalVolume;
+							NewPositions[CountNodes] = NewPosition;
+							CountNodes++;
+						}
+					}
+
+					else if (rigidNodes < 4)
+					{
+
+						for (int nn = (ElementsToRefine - 1); nn < maxNodeToAddAtTheInlet; nn++)
+						{
+							if (ElementalVolume > BiggestVolumes[nn])
+							{
+
+								bool suitableElement = true;
+								if (maxCount < 6 && LargestEdge > limitEdgeLength)
+								{
+									array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
+
+									if (maxNodeToAddAtTheInlet > 1 && CountNodes > 0)
+									{
+										for (int j = 0; j < maxNodeToAddAtTheInlet; j++)
+										{
+											const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
+											const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
+											const double diffZ = std::abs(NewPositions[j][2] - NewPosition[2]) - mrRemesh.Refine->CriticalRadius * 0.5;
+											if (diffX < 0 && diffY < 0 && diffZ < 0) // the node is in the same zone of a previously inserted node
+											{
+												suitableElement = false;
+											}
+										}
+									}
+
+									if (suitableElement)
+									{
+										NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
+										NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
+										if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
+										{
+											CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+										}
+										else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
+										{
+											CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+										}
+										else
+										{
+											std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
+										}
+										BiggestVolumes[nn] = ElementalVolume;
+										NewPositions[nn] = NewPosition;
+									}
+								}
+
+								break;
+							}
+						}
+					}
+				}
+			}
 			KRATOS_CATCH("")
 		}
 
@@ -718,13 +1141,13 @@ namespace Kratos
 			unsigned int rigidNodes = 0;
 			unsigned int boundaryNodes = 0;
 			unsigned int freesurfaceNodes = 0;
-			unsigned int inletNodes = 0;
+			unsigned int lagrangianInletNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
 			bool suitableElementForSecondAdd = true;
 
-			for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -744,9 +1167,9 @@ namespace Kratos
 				{
 					freesurfaceNodes++;
 				}
-				if (Element[pn].Is(INLET))
+				if (Element[pn].GetValue(LAGRANGIAN_INLET) == true)
 				{
-					inletNodes++;
+					lagrangianInletNodes++;
 				}
 			}
 
@@ -768,7 +1191,7 @@ namespace Kratos
 			if (rigidNodes > 1)
 			{
 				penalization = 0.8;
-				if (inletNodes > 0)
+				if (lagrangianInletNodes > 0)
 				{
 					penalization = 0.9;
 				}
@@ -869,8 +1292,8 @@ namespace Kratos
 					bool suitableElement = true;
 					for (int j = 0; j < CountNodes; j++)
 					{
-						double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
-						double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
+						const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
+						const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
 						if (diffX < 0 && diffY < 0) //  the node is in the same zone of a previously inserted node
 						{
 							suitableElement = false;
@@ -914,8 +1337,8 @@ namespace Kratos
 								{
 									for (int j = 0; j < ElementsToRefine; j++)
 									{
-										double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
-										double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
+										const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
+										const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
 										if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node
 										{
 											// std::cout << " the nodes has more or less the same position of a previously inserted node" << NewPositions[j][0] << " " << NewPositions[j][1] << " versus " << NewPosition[0] << " " << NewPosition[1] << std::endl;
@@ -968,13 +1391,13 @@ namespace Kratos
 
 			unsigned int rigidNodes = 0;
 			unsigned int freesurfaceNodes = 0;
-			unsigned int inletNodes = 0;
+			unsigned int lagrangianInletNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
 			bool suitableElementForSecondAdd = true;
 
-			for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -990,9 +1413,9 @@ namespace Kratos
 				{
 					freesurfaceNodes++;
 				}
-				if (Element[pn].Is(INLET))
+				if (Element[pn].GetValue(LAGRANGIAN_INLET) == true)
 				{
-					inletNodes++;
+					lagrangianInletNodes++;
 				}
 			}
 
@@ -1014,7 +1437,7 @@ namespace Kratos
 			if (rigidNodes > 2)
 			{
 				penalization = 0.7;
-				if (inletNodes > 0)
+				if (lagrangianInletNodes > 0)
 				{
 					penalization = 0.9;
 				}
@@ -1049,7 +1472,6 @@ namespace Kratos
 				for (unsigned int j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					// CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 					Counter += 1;
 					Edges[Counter] = std::sqrt(SquaredLength);
@@ -1144,9 +1566,9 @@ namespace Kratos
 					bool suitableElement = true;
 					for (int j = 0; j < CountNodes; j++)
 					{
-						double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
-						double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
-						double diffZ = fabs(NewPositions[j][2] - NewPosition[2]) - meanMeshSize * 0.5;
+						const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
+						const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
+						const double diffZ = std::abs(NewPositions[j][2] - NewPosition[2]) - meanMeshSize * 0.5;
 						if (diffX < 0 && diffY < 0 && diffZ < 0) //  the node is in the same zone of a previously inserted node
 						{
 							suitableElement = false;
@@ -1191,9 +1613,9 @@ namespace Kratos
 								{
 									for (int j = 0; j < ElementsToRefine; j++)
 									{
-										double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
-										double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
-										double diffZ = fabs(NewPositions[j][2] - NewPosition[2]) - meanMeshSize * 0.5;
+										const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
+										const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
+										const double diffZ = std::abs(NewPositions[j][2] - NewPosition[2]) - meanMeshSize * 0.5;
 										if (diffX < 0 && diffY < 0 && diffZ < 0) // the node is in the same zone of a previously inserted node
 										{
 											suitableElementForSecondAdd = false;
@@ -1251,12 +1673,12 @@ namespace Kratos
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			const double currentTime = rCurrentProcessInfo[TIME];
 			bool insideTransitionZone = false;
-			for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; ++pn)
 			{
 				mMesherUtilities.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideTransitionZone);
 			}
 
-			for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -1423,12 +1845,12 @@ namespace Kratos
 			bool insideTransitionZone = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
-			for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; ++pn)
 			{
 				mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideTransitionZone);
 			}
 
-			for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
