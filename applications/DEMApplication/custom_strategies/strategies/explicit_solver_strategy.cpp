@@ -1871,6 +1871,7 @@ namespace Kratos {
         mRVE_CauchyTensorInner  = ZeroMatrix(dim,dim);
         mRVE_TangentTensor      = ZeroMatrix(dim2,dim2);
         mRVE_TangentTensorInner = ZeroMatrix(dim2,dim2);
+        mRVE_SkinParticles.clear();
         mRVE_ForceChain.clear();
       }
     }
@@ -1886,6 +1887,7 @@ namespace Kratos {
 
       if (p_particle->mWall == 0) {
         p_particle->mInner              = (p_particle->mNeighbourRigidFaces.size() == 0);
+        p_particle->mSkin               = false;
         p_particle->mNumContacts        = 0;
         p_particle->mNumContactsInner   = 0;
         p_particle->mCoordNum           = 0;
@@ -1895,9 +1897,9 @@ namespace Kratos {
         p_particle->mFabricTensor       = ZeroMatrix(dim,dim);
         p_particle->mFabricTensorInner  = ZeroMatrix(dim,dim);
         p_particle->mCauchyTensor       = ZeroMatrix(dim,dim);
-        p_particle->mCauchyTensorInner  = ZeroMatrix(dim, dim);
+        p_particle->mCauchyTensorInner  = ZeroMatrix(dim,dim);
         p_particle->mTangentTensor      = ZeroMatrix(dim2,dim2);
-        p_particle->mTangentTensorInner = ZeroMatrix(dim2, dim2);
+        p_particle->mTangentTensorInner = ZeroMatrix(dim2,dim2);
         p_particle->mForceChain.clear();
       }
     }
@@ -1925,6 +1927,9 @@ namespace Kratos {
           mRVE_FabricTensorInner  += p_particle->mFabricTensorInner;
           mRVE_CauchyTensorInner  += p_particle->mCauchyTensorInner;
           mRVE_TangentTensorInner += p_particle->mTangentTensorInner;
+        }
+        else if (p_particle->mSkin) {
+          mRVE_SkinParticles.push_back(p_particle);
         }
       }
       else {
@@ -2267,30 +2272,74 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     double ExplicitSolverStrategy::RVEComputeInnerVolume(void) {
-      if (!mRVE_FlatWalls || (mRVE_NumParticles - mRVE_NumParticlesInner) < 5)
+      const int num_particles = mRVE_SkinParticles.size();
+      if (!mRVE_FlatWalls || num_particles < 3)
         return mRVE_VolTotal;
+      
+      // Create and clear IO
+      std::string switches = "PQ";
+      struct triangulateio in, out, vorout;
+      ClearTriangle(in);
+      ClearTriangle(out);
+      ClearTriangle(vorout);
 
-      // Coordinates of outter particles (only those that are in contact with an inner particle)
-      std::vector<array_1d<double,3>> outter_coordinates;
+      // Build input
+      in.numberofpoints = num_particles;
+      in.pointlist = (double*)malloc(sizeof(double) * in.numberofpoints * 2);
 
-      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
-        if (mListOfSphericParticles[i]->mInner == false) {
-          for (int j = 0; j < mListOfSphericParticles[i]->mNeighbourElements.size(); j++) {
-            if (mListOfSphericParticles[i]->mNeighbourElements[j]->mInner == true) {
-              array_1d<double,3> coordinates = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
-              outter_coordinates.push_back(coordinates);
-              break;
-            }
-          }
-        }
+      for (int i = 0; i < in.numberofpoints; i++) {
+        array_1d<double,3> coords = mRVE_SkinParticles[i]->GetGeometry()[0].Coordinates();
+        in.pointlist[2 * i + 0] = coords[0];
+        in.pointlist[2 * i + 1] = coords[1];
       }
 
-      // Volume of convex hull
-      std::string switches = "PQev";
-      const int num_points = outter_coordinates.size();
+      // Perform triangulation
+      int fail = 0;
+      try {
+        triangulate(&switches[0], &in, &out, &vorout);
+      }
+      catch (int error_code) {
+        fail = error_code;
+      }
 
-      //struct triangulateio in, out, vorout;
-      return mRVE_VolTotal;
+      if (fail || out.numberoftriangles == 0 || in.numberofpoints != out.numberofpoints) {
+        KRATOS_ERROR << "Fail to generate triangulation!" << std::endl;
+        FreeTriangle(in);
+        FreeTriangle(out);
+        FreeTriangle(vorout);
+        return 0.0;
+      }
+
+      // Compute volume of convex hukll (area in 2D)
+      double total_volume = 0.0;
+      for (int i = 0; i < out.numberoftriangles; i++) {
+        // Get vertices IDs
+        const int v1 = out.trianglelist[3 * i + 0] - 1;
+        const int v2 = out.trianglelist[3 * i + 1] - 1;
+        const int v3 = out.trianglelist[3 * i + 2] - 1;
+
+        // Get vertices coordinates
+        const double x1 = out.pointlist[2 * v1 + 0];
+        const double y1 = out.pointlist[2 * v1 + 1];
+        const double x2 = out.pointlist[2 * v2 + 0];
+        const double y2 = out.pointlist[2 * v2 + 1];
+        const double x3 = out.pointlist[2 * v3 + 0];
+        const double y3 = out.pointlist[2 * v3 + 1];
+
+        // Add triangle area
+        total_volume += fabs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
+      }
+
+      // Free memory
+      FreeTriangle(in);
+      FreeTriangle(out);
+      FreeTriangle(vorout);
+
+      ClearTriangle(in);
+      ClearTriangle(out);
+      ClearTriangle(vorout);
+
+      return total_volume;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2940,6 +2989,76 @@ namespace Kratos {
       if (mRVE_FileCauchyTensorInner.is_open())     mRVE_FileCauchyTensorInner.close();
       if (mRVE_FileTangentTensor.is_open())         mRVE_FileTangentTensor.close();
       if (mRVE_FileTangentTensorInner.is_open())    mRVE_FileTangentTensorInner.close();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::ClearTriangle(struct triangulateio& rTr)
+    {
+      KRATOS_TRY
+
+      rTr.pointlist                  = (REAL*)NULL;
+      rTr.pointattributelist         = (REAL*)NULL;
+      rTr.pointmarkerlist            = (int*)NULL;
+      rTr.numberofpoints             = 0;
+      rTr.numberofpointattributes    = 0;
+
+      rTr.trianglelist               = (int*)NULL;
+      rTr.triangleattributelist      = (REAL*)NULL;
+      rTr.trianglearealist           = (REAL*)NULL;
+      rTr.neighborlist               = (int*)NULL;
+      rTr.numberoftriangles          = 0;
+      rTr.numberofcorners            = 3; //for three node triangles
+      rTr.numberoftriangleattributes = 0;
+
+      rTr.segmentlist                = (int*)NULL;
+      rTr.segmentmarkerlist          = (int*)NULL;
+      rTr.numberofsegments           = 0;
+
+      rTr.holelist                   = (REAL*)NULL;
+      rTr.numberofholes              = 0;
+
+      rTr.regionlist                 = (REAL*)NULL;
+      rTr.numberofregions            = 0;
+
+      rTr.edgelist                   = (int*)NULL;
+      rTr.edgemarkerlist             = (int*)NULL;
+      rTr.normlist                   = (REAL*)NULL;
+      rTr.numberofedges              = 0;
+
+      KRATOS_CATCH("")
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::FreeTriangle(struct triangulateio& rTr)
+    {
+      KRATOS_TRY
+
+      if (rTr.numberoftriangles) {
+        if (rTr.trianglelist)          trifree(rTr.trianglelist);
+        if (rTr.triangleattributelist) trifree(rTr.triangleattributelist);
+        if (rTr.trianglearealist)      trifree(rTr.trianglearealist);
+        if (rTr.neighborlist)          trifree(rTr.neighborlist);
+      }
+      if (rTr.segmentlist)       trifree(rTr.segmentlist);
+      if (rTr.segmentmarkerlist) trifree(rTr.segmentmarkerlist);
+      if (rTr.holelist) {
+        delete[] rTr.holelist;
+        rTr.numberofholes = 0;
+      }
+      if (rTr.regionlist) {
+        delete[] rTr.regionlist;
+        rTr.numberofregions = 0;
+      }
+      if (rTr.edgelist)       trifree(rTr.edgelist);
+      if (rTr.edgemarkerlist) trifree(rTr.edgemarkerlist);
+      if (rTr.normlist)       trifree(rTr.normlist);
+      if (rTr.numberofpoints) {
+        if (rTr.pointlist)          trifree(rTr.pointlist);
+        if (rTr.pointattributelist) trifree(rTr.pointattributelist);
+        if (rTr.pointmarkerlist)    trifree(rTr.pointmarkerlist);
+      }
+
+      KRATOS_CATCH("")
     }
 
     //==========================================================================================================================================

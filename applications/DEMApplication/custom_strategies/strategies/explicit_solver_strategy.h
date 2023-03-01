@@ -8,6 +8,17 @@
 #if !defined(KRATOS_EXPLICIT_SOLVER_STRATEGY)
 #define KRATOS_EXPLICIT_SOLVER_STRATEGY
 
+#ifdef   SINGLE
+#define  REAL float
+#else    // not SINGLE
+#define  REAL double
+#endif   // not SINGLE
+
+#ifndef TRILIBRARY
+#define TRILIBRARY
+#endif
+
+#include "triangle.h"
 
 // Project includes
 #include "utilities/timer.h"
@@ -50,6 +61,11 @@
 #endif
 
 namespace Kratos {
+
+    extern "C" {
+      void triangulate(char*, struct triangulateio*, struct triangulateio*, struct triangulateio*);
+      void trifree(void*);
+    }
 
     class ExplicitSolverSettings {
     public:
@@ -323,6 +339,8 @@ namespace Kratos {
         std::vector<DEMWall*> mRVE_WallZMin; // Vector of RVE flat walls in negative Z direction
         std::vector<DEMWall*> mRVE_WallZMax; // Vector of RVE flat walls in positive Z direction
 
+        std::vector<SphericParticle*> mRVE_SkinParticles; // Vector of skin particles (particles in contact with walls and inner particles)
+
         std::vector<SphericParticle*> mRVE_WallParticleXMin; // Vector of RVE particle walls in negative X direction
         std::vector<SphericParticle*> mRVE_WallParticleXMax; // Vector of RVE particle walls in positive X direction
         std::vector<SphericParticle*> mRVE_WallParticleYMin; // Vector of RVE particle walls in negative Y direction
@@ -386,6 +404,9 @@ namespace Kratos {
         void RVEWriteFiles    (void);
         void RVEOpenFiles     (void);
         void RVECloseFiles    (void);
+
+        void ClearTriangle (struct triangulateio& rTr);
+        void FreeTriangle  (struct triangulateio& rTr);
 
         //==========================================================================================================================================
         // HIERARCHICAL MULTISCALE RVE - FINISH

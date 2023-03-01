@@ -288,7 +288,8 @@ std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighb
 
 // Properties
 bool   mRVESolve;                 // Flag for evaluating RVE in current step
-bool   mInner;                    // Flag for inner particle
+bool   mInner;                    // Flag for inner particle (only in contact with particles)
+bool   mSkin;                     // Flag for skin particle (in contact with walls and particles)
 bool   mMoving;                   // Flag for particle movement
 int    mWall;                     // Flag for wall particle (0 = No; 1 = X-; 2 = X+; 3 = Y-; 4 = Y+; 5 = Z-; 6 = Z+)
 int    mNumContacts;              // Number of unique contacts between all particles and walls (with neighbors with higher ID)

@@ -918,6 +918,9 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
               if (GetId() < data_buffer.mpOtherParticle->GetId() || data_buffer.mpOtherParticle->mWall > 0) { // Unique contacts (each binary contact evaluated only once)
                 bool has_inner = (mInner || data_buffer.mpOtherParticle->mInner);
 
+                // Check for skin particle
+                if (!mSkin) mSkin = (mNeighbourRigidFaces.size() > 0 && data_buffer.mpOtherParticle->mInner);
+
                 // Update number of contacts
                 mNumContacts++;
                 if (has_inner)
