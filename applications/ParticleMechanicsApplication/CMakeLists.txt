@@ -84,5 +84,4 @@ set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosParticleMechanicsA
 if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling trilinos extension for KratosParticleMechanicsApplication")
   add_subdirectory(trilinos_extension)
-  file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE} ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp)
 endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
