@@ -93,7 +93,8 @@ void SetParameterFieldProcess::SetParameterFieldUsingPythonFunction(const Variab
     IndexType i = 0;
     for (Element& r_element : mrModelPart.Elements())
     {
-        SetValueAtElement(r_element, rVar, r_data_vector[i++]);
+        SetValueAtElement(r_element, rVar, r_data_vector[i]);
+        ++i;
     }
 }
 
@@ -115,7 +116,8 @@ void SetParameterFieldProcess::SetParameterFieldUsingInputJson(const Variable<do
     IndexType i = 0;
     for (Element& r_element : mrModelPart.Elements())
     {
-        SetValueAtElement(r_element, rVar, data_vector[i++]);
+        SetValueAtElement(r_element, rVar, data_vector[i]);
+        ++i;
     }
 }
 
