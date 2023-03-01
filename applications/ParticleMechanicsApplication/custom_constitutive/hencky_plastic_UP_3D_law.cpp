@@ -178,9 +178,9 @@ void HenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const Ma
 
 }
 
-void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
+void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables, const Properties& rProperties )
 {
-    mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
+    mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix, rProperties);
 
     // Obtain the domain pressure
     double pressure;
@@ -189,8 +189,8 @@ void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const Par
     pressure *= rElasticVariables.DeterminantF;
 
     // Material parameters
-    const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double poisson_ratio    = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double young_modulus = rProperties[YOUNG_MODULUS];
+    const double poisson_ratio    = rProperties[POISSON_RATIO];
 
     // Bulk modulus
     double bulk_modulus = young_modulus / (3.0 * (1.0 - 2.0*poisson_ratio));

@@ -315,7 +315,7 @@ void ParallelEnvironment::UnregisterDataCommunicatorDetail(const std::string& Na
     int num_erased = mDataCommunicators.erase(Name);
     KRATOS_WARNING_IF("ParallelEnvironment", num_erased == 0)
     << "Trying to unregister a DataCommunicator with name " << Name
-    << " but no DataCommunicator of that name exsits."
+    << " but no DataCommunicator of that name exists."
     << " No changes were made." << std::endl;
     if (num_erased == 1)
     {

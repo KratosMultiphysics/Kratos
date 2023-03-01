@@ -142,7 +142,7 @@
                 "value"           : [0.0,0.0,0.0]
             }
         },{
-            "python_module" : "assign_inlet_process",
+            "python_module" : "assign_lagrangian_inlet_process",
             "kratos_module" : "KratosMultiphysics.PfemFluidDynamicsApplication",
             "Parameters"    : {
                 "model_part_name" : "PfemFluidModelPart.INLET_Inlet_Auto1",

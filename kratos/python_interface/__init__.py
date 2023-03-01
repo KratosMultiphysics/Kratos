@@ -120,7 +120,7 @@ if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.mi
         kratos_version_info[0], kratos_version_info[1]
     ))
 
-# Print the process id e.g. for attatching a debugger
+# print the process id e.g. for attaching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())
 
