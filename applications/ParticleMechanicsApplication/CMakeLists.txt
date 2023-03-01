@@ -29,7 +29,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosParticleMechanicsCore SHARED ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE} ${KRATOS_PARTICLE_MECHANICS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosParticleMechanicsCore PUBLIC KratosCore ${EXTRA_LIBRARIES})
+target_link_libraries(KratosParticleMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosParticleMechanicsCore PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
 
 # Define Kratos library which defines the basic python interface
