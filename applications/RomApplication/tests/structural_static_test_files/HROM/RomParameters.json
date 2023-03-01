@@ -15,7 +15,10 @@
         ],
         "number_of_rom_dofs": 2
     },
-    "hrom_settings": {},
+    "hrom_settings": {
+        "hrom_format":"numpy",
+        "original_number_of_elements":116
+    },
     "nodal_modes": {
         "1": [
             [
