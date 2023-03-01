@@ -154,7 +154,7 @@ private:
     {
         if (!Registry::HasItem(RegistryEntryName)) {
             auto& r_item = Registry::AddItem<RegistryItem>(RegistryEntryName);
-            r_item.AddItem<RegistryValueItem<TPrototypeType>>("Prototype", rPrototype);
+            r_item.AddItem<TPrototypeType>("Prototype", rPrototype);
         } else {
             KRATOS_ERROR << "'" << RegistryEntryName << "' is already registered." << std::endl;
         }
