@@ -293,7 +293,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
             When the return mapping is finished NewElasticLeftCauchyGreen is the NEW elastic left cauchy green tensor.
             If and only if GetElasticLeftCachyGreen is a protected member of the flow rule that I am using.
             Otherwise a public member of the flow rule base class has to be added as in this case.*/
-        mpMPMFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, stress_matrix, hencky_main_strain_matrix);
+        mpMPMFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, stress_matrix, hencky_main_strain_matrix, rValues.GetMaterialProperties());
 
         mPlasticRegion = 0;
         if( ReturnMappingVariables.Options.Is(ParticleFlowRule::PLASTIC_REGION) )
@@ -311,7 +311,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         Matrix aux_constitutive_matrix = ZeroMatrix(6,6);
 
         double alfa = 0.0;
-        this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, ElasticVariables.CauchyGreenMatrix, alfa, aux_constitutive_matrix, ElasticVariables);
+        this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, ElasticVariables.CauchyGreenMatrix, alfa, aux_constitutive_matrix, ElasticVariables, rValues.GetMaterialProperties());
         constitutive_matrix = this->SetConstitutiveMatrixToAppropiateDimension(constitutive_matrix, aux_constitutive_matrix);
 
     }
@@ -319,7 +319,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     //6.-Update the variables at the end of iteration
     if( options.Is( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ) )
     {
-         mpMPMFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
+         mpMPMFlowRule->UpdateInternalVariables ( ReturnMappingVariables, rValues.GetMaterialProperties() );
 
         // Update final left cauchy green B_(n+1)
         mElasticLeftCauchyGreen = mpMPMFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables);
@@ -341,7 +341,7 @@ void HenckyElasticPlastic3DLaw::CalculatePrincipalStressTrial(const MaterialResp
     const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
 
-    mpMPMFlowRule->CalculatePrincipalStressTrial(rReturnMappingVariables, rNewElasticLeftCauchyGreen, rStressMatrix);
+    mpMPMFlowRule->CalculatePrincipalStressTrial(rReturnMappingVariables, rNewElasticLeftCauchyGreen, rStressMatrix, rValues.GetMaterialProperties());
 
 }
 
@@ -373,9 +373,9 @@ void HenckyElasticPlastic3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, co
 //************************************************************************************
 //************************************************************************************
 
-void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
+void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables, const Properties& rProperties )
 {
-    mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
+    mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix, rProperties);
 }
 
 //************************************************************************************

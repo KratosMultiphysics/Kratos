@@ -105,7 +105,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         elif (self.comparison_type == "vtk"):
             self.__CompareVtkFile()
         else:
-            raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
+            raise NameError('Requested comparison type "' + self.comparison_type + '" not implemented yet')
 
         if self.remove_output_file:
             kratos_utils.DeleteFileIfExisting(self.output_file_name)
