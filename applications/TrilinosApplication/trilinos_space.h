@@ -441,10 +441,16 @@ public:
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            auto aux_2 = MatrixType(::Copy, map2, NumNz.data());
+            MatrixType aux_1_copy = MatrixType(::Copy, rA.Graph());
+
+            // We copy values
+            CopyMatrixValues(aux_1_copy, aux_1);
+
+            // Create an Epetra_Matrix
+            MatrixType aux_2(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            Mult(aux_1, rB, aux_2, CallFillCompleteOnResult);
+            Mult(aux_1_copy, rB, aux_2, CallFillCompleteOnResult);
 
             // We copy values
             CopyMatrixValues(rA, aux_2);
@@ -516,10 +522,16 @@ public:
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            auto aux_2 = MatrixType(::Copy, map2, NumNz.data());
+            MatrixType aux_1_copy = MatrixType(::Copy, rA.Graph());
+
+            // We copy values
+            CopyMatrixValues(aux_1_copy, aux_1);
+
+            // Create an Epetra_Matrix
+            MatrixType aux_2(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            TransposeMult(aux_1, rB, aux_2, {false, true});
+            TransposeMult(aux_1_copy, rB, aux_2, {false, true}, CallFillCompleteOnResult);
 
             // We copy values
             CopyMatrixValues(rA, aux_2);
@@ -1216,7 +1228,7 @@ public:
         SetToZero(rA);
 
         // Copy values from rB to intermediate
-        int i_B, i_A, j_B, j_A;
+        int i_B, i_A, j_B, j_A, aux_index;
         i_A = 0;
         int numEntries_B; // Number of non-zero entries (rB matrix)
         double* vals_B;   // Row non-zero values (rB matrix)
@@ -1227,7 +1239,8 @@ public:
         for (i_B = 0; i_B < rB.NumMyRows(); i_B++) {
             rB.ExtractMyRowView(i_B, numEntries_B, vals_B, cols_B);
             const int row_gid_B = rB.RowMap().GID(i_B);
-            for (i_A = i_A; i_A < rA.NumMyRows(); i_A++) {
+            aux_index = i_A;
+            for (i_A = aux_index; i_A < rA.NumMyRows(); i_A++) {
                 const int row_gid_A = rA.RowMap().GID(i_A);
                 if (row_gid_B == row_gid_A) {
                     break;
@@ -1237,7 +1250,8 @@ public:
             j_A = 0;
             for (j_B = 0; j_B < numEntries_B; j_B++) {
                 const int col_gid_B = rB.ColMap().GID(cols_B[j_B]);
-                for (j_A = j_A; j_A < numEntries_A; j_A++) {
+                aux_index = j_A;
+                for (j_A = aux_index; j_A < numEntries_A; j_A++) {
                     const int col_gid_A = rA.ColMap().GID(cols_A[j_A]);
                     if (col_gid_B == col_gid_A) {
                         break;
