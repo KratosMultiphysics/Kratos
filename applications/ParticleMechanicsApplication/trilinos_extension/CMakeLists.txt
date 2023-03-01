@@ -10,6 +10,8 @@ file(
   GLOB_RECURSE
   KRATOS_PARTICLE_MECHANICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_builder_and_solver/*.cpp
 )
 
 ## Python module
