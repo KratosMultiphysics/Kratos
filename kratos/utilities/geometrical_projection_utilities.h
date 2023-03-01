@@ -34,13 +34,24 @@ namespace Kratos
  * @brief This is a class that provides auxiliar utilities for projections
  * @details This is a class that provides auxiliar utilities for the projections. Check the documentation for more details
  * @author Vicente Mataix Ferrandiz
- * Contact: vmataix@cimne.upc.edu
  */
-class GeometricalProjectionUtilities
+class KRATOS_API(KRATOS_CORE) GeometricalProjectionUtilities
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /**
+     * @brief How the distance is computed enum
+     */
+    enum class DistanceComputed
+    {
+        NO_RADIUS,
+        PROJECTION_ERROR,
+        RADIUS_PROJECTED,
+        RADIUS_NOT_PROJECTED_OUTSIDE,
+        RADIUS_NOT_PROJECTED_INSIDE
+    };
 
     /// Pointer definition of GeometricalProjectionUtilities
     KRATOS_CLASS_POINTER_DEFINITION( GeometricalProjectionUtilities );
@@ -226,6 +237,24 @@ public:
             return std::min(distance_a, distance_b);
         }
     }
+
+    /**
+     * @brief Computes the minimal distance to a line with radius contribution
+     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @param rDistance The distance
+     * @param rSegment The line segment
+     * @param rPoint The point to compute distance
+     * @param Radius The radius
+     * @param Tolerance Tolerance to check it falls inside the line
+     * @return The Distance computation type
+     */
+    static DistanceComputed FastMinimalDistanceOnLineWithRadius(
+        double& rDistance,
+        const Geometry<Node<3>>& rSegment,
+        const Point& rPoint,
+        const double Radius,
+        const double Tolerance = 1.0e-9
+        );
 
     /**
      * @brief Project a point over a line (2D only)
