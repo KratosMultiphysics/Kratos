@@ -59,7 +59,7 @@ public:
     ///@{
 
     SetParameterFieldProcess(ModelPart& rModelPart,
-                                  Parameters Parameters);
+                                  const Parameters& rParameters);
 
     ///@}
     ///@name Operations

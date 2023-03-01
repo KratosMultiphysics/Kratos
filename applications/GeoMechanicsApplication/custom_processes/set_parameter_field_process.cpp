@@ -28,9 +28,9 @@ namespace Kratos
 {
 
     SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart,
-                                                       const Parameters Settings)
+                                                       const Parameters& rSettings)
                                                             : Process(), mrModelPart(rModelPart),
-                                                            mParameters(Settings)
+                                                            mParameters(rSettings)
 {
     // function type: python, cpp, input
     const Parameters default_parameters(R"(
@@ -85,16 +85,15 @@ void SetParameterFieldProcess::SetParameterFieldUsingInputFunction(const Variabl
 void SetParameterFieldProcess::SetParameterFieldUsingPythonFunction(const Variable<double>& rVar)
 {
     // get new data from the data set
-    const std::string dataset = mParameters["dataset"].GetString();
-    const Parameters new_data{ dataset };
-    const Vector data_vector = new_data["values"].GetVector();
+    const std::string& r_dataset = mParameters["dataset"].GetString();
+    const Parameters new_data{ r_dataset };
+    const Vector& r_data_vector = new_data["values"].GetVector();
 
     // set new data on the elements
     IndexType i = 0;
     for (Element& r_element : mrModelPart.Elements())
     {
-        SetValueAtElement(r_element, rVar, data_vector[i]);
-        i++;
+        SetValueAtElement(r_element, rVar, r_data_vector[i++]);
     }
 }
 
@@ -108,7 +107,7 @@ void SetParameterFieldProcess::SetParameterFieldUsingInputJson(const Variable<do
 
     std::ifstream ifs(field_file_name);
     Parameters new_data(ifs);
-    Vector data_vector = new_data["values"].GetVector();
+    const Vector& data_vector = new_data["values"].GetVector();
 
     KRATOS_ERROR_IF_NOT(data_vector.size() == mrModelPart.Elements().size()) << "The parameter field: \""
         << field_file_name << "\" does not have the same size as the amount of elements within the model part!" << std::endl;
@@ -116,8 +115,7 @@ void SetParameterFieldProcess::SetParameterFieldUsingInputJson(const Variable<do
     IndexType i = 0;
     for (Element& r_element : mrModelPart.Elements())
     {
-        SetValueAtElement(r_element, rVar, data_vector[i]);
-        i++;
+        SetValueAtElement(r_element, rVar, data_vector[i++]);
     }
 }
 
