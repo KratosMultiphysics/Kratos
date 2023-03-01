@@ -89,8 +89,8 @@ namespace Testing
         double alpha = 0.1;
         double prev_pc = -119.4e3;
 
-        MC_result  = mc_yc_pointer->CalculateYieldCondition(MC_result, principal_stress, cohesion, friction_angle);
-        MCC_result = mcc_yc_pointer->CalculateYieldCondition(MCC_result, principal_stress, alpha, prev_pc);
+        MC_result  = mc_yc_pointer->CalculateYieldCondition(MC_result, principal_stress, cohesion, friction_angle, material_properties);
+        MCC_result = mcc_yc_pointer->CalculateYieldCondition(MCC_result, principal_stress, alpha, prev_pc, material_properties);
 
         // Check results
         KRATOS_CHECK_NEAR(MC_result, MC_analytical, 1);
@@ -124,7 +124,7 @@ namespace Testing
         double alpha = 0.1;
         double prev_pc = -119.4e3;
 
-        mcc_yc_pointer->CalculateYieldFunctionDerivative(principal_stress, MCC_derivative_result, alpha, prev_pc);
+        mcc_yc_pointer->CalculateYieldFunctionDerivative(principal_stress, MCC_derivative_result, alpha, prev_pc, material_properties);
 
         // Check results
         KRATOS_CHECK_NEAR(MCC_derivative_result[0], MCC_derivative_analytical[0], 1);
@@ -160,7 +160,7 @@ namespace Testing
         // Test parameters
         Vector MCC_derivative2_result = ZeroVector(6);
 
-        mcc_yc_pointer->CalculateYieldFunctionSecondDerivative(principal_stress, MCC_derivative2_result);
+        mcc_yc_pointer->CalculateYieldFunctionSecondDerivative(principal_stress, MCC_derivative2_result, material_properties);
 
         // Check results
         KRATOS_CHECK_NEAR(MCC_derivative2_result[0], MCC_derivative2_analytical[0], 1e-6);
