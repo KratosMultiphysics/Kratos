@@ -37,15 +37,3 @@ jobs:
       - name: copy html to docs/doxygen_output branch
         shell: bash
         run: cp -r master/documents/html doxygen/documents/
-      - name: GIT commit and push docs
-        env:
-          USER_NAME: github-bot
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: |
-          git config --local user.name $USER_NAME
-          git config --local user.email "in@valid.email"
-          git add -f documents/html
-          git commit -m "update docs"
-          git push -f https://$USER_NAME:$GITHUB_TOKEN@github.com/KratosMultiphysics/Kratos.git docs/doxygen_output
-
-

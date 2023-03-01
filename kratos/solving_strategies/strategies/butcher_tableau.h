@@ -109,7 +109,7 @@ public:
      *
      *  du^(i) = dt * A_ij*k_j
      *
-     * This method return the coefficients A_i[1...i]. The rest of coefficents
+     * This method return the coefficients A_i[1...i]. The rest of coefficients
      * A_i[i+1...n] are skipped. This is they are always zero for explicit
      * Runge-Kutta.
      *

@@ -505,7 +505,7 @@ namespace Kratos
 
       ElementsContainerType::iterator it = rElements.begin();
 
-      if ((it)->GetGeometry().Dimension() == dimension)
+      if ((it)->GetGeometry().WorkingSpaceDimension() == dimension)
       {
         return true;
       }
@@ -522,7 +522,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      if (rModelPart.Conditions().begin()->GetGeometry().Dimension() == dimension)
+      if (rModelPart.Conditions().begin()->GetGeometry().WorkingSpaceDimension() == dimension)
       {
         return true;
       }
