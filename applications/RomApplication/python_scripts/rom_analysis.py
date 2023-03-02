@@ -170,14 +170,14 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
                 elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
                     # Set the HROM weights in elements and conditions
-                    weights_matrix = np.load("WeightsMatrix.npy")
-                    elements_vector = np.load("ElementsVector.npy")
-                    original_number_of_elements = self.rom_parameters["hrom_settings"]["original_number_of_elements"].GetInt()
-                    for i in range(weights_matrix.shape[0]):
-                        if elements_vector[i] < original_number_of_elements:
-                            computing_model_part.GetElement(int( elements_vector[i])+1).SetValue(KratosROM.HROM_WEIGHT, weights_matrix[i]  ) #FIXME: FIX THE +1
-                        else:
-                            computing_model_part.GetCondition(int( elements_vector[i] - original_number_of_elements)+1).SetValue(KratosROM.HROM_WEIGHT, weights_matrix[i]  ) #FIXME: FIX THE +1
+                    element_indexes = np.load("HROM_ElementIds.npy")
+                    element_weights = np.load("HROM_ElementWeights.npy")
+                    condition_indexes = np.load("HROM_ConditionIds.npy")
+                    conditon_weights = np.load("HROM_ConditionWeights.npy")
+                    for i in range(np.size(element_indexes)):
+                        computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
+                    for i in range(np.size(condition_indexes)):
+                        computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
 
 
             # Check and Initialize Petrov Galerkin Training stage
