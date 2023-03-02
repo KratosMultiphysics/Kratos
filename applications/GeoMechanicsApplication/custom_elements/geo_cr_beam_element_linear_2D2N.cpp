@@ -74,7 +74,7 @@ void GeoCrBeamElementLinear2D2N::
                          VectorType& rRightHandSideVector,
                          const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // Kt
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
     Vector nodal_deformation = ZeroVector(msElementSize);
@@ -95,7 +95,7 @@ void GeoCrBeamElementLinear2D2N::
     CalculateRightHandSide(VectorType& rRightHandSideVector,
                            const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);
     rRightHandSideVector = ZeroVector(msElementSize);
@@ -188,7 +188,7 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     if (mIsInitialization)
     {
@@ -214,7 +214,7 @@ void GeoCrBeamElementLinear2D2N::InitializeSolutionStep(const ProcessInfo& rCurr
 //----------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     mIsInitialization = true;
 
@@ -224,24 +224,24 @@ void GeoCrBeamElementLinear2D2N::Initialize(const ProcessInfo& rCurrentProcessIn
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElementLinear2D2N);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElementLinear2D2N)
     rSerializer.save("InternalGlobalForcesFinalized",           mInternalGlobalForcesFinalized);
     rSerializer.save("InternalGlobalForcesFinalizedPrevious",   mInternalGlobalForcesFinalizedPrevious);
 }
 
 void GeoCrBeamElementLinear2D2N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElementLinear2D2N);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElementLinear2D2N)
     rSerializer.load("InternalGlobalForcesFinalized",           mInternalGlobalForcesFinalized);
     rSerializer.load("InternalGlobalForcesFinalizedPrevious",   mInternalGlobalForcesFinalizedPrevious);
 }

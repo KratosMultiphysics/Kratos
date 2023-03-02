@@ -88,20 +88,21 @@ void MCPlasticFlowRule::InitializeMaterial(YieldCriterionPointer& pYieldCriterio
 
     mEquivalentPlasticStrain = 0.0;
 
-    this->InitializeMaterialParameters();
+    this->InitializeMaterialParameters(rProp);
 }
 
 // Initialize material parameters which are able to change
-void MCPlasticFlowRule::InitializeMaterialParameters(){
-    mMaterialParameters.Cohesion      = mpYieldCriterion->GetHardeningLaw().GetProperties()[COHESION];
-    mMaterialParameters.FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
-    mMaterialParameters.DilatancyAngle= mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
+void MCPlasticFlowRule::InitializeMaterialParameters(const Properties& rProp){
+    mMaterialParameters.Cohesion      = rProp[COHESION];
+    mMaterialParameters.FrictionAngle = rProp[INTERNAL_FRICTION_ANGLE];
+    mMaterialParameters.DilatancyAngle= rProp[INTERNAL_DILATANCY_ANGLE];
 }
 
 bool MCPlasticFlowRule::CalculateReturnMapping(
             RadialReturnVariables& rReturnMappingVariables,
             const Matrix& rIncrementalDeformationGradient,
-            Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
+            Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen,
+            const Properties& rProp)
 {
     bool plasticity_active = false;
     rReturnMappingVariables.Options.Set(PLASTIC_REGION,false);
@@ -127,7 +128,7 @@ bool MCPlasticFlowRule::CalculateReturnMapping(
 
     // Check for the yield Condition -- calling the yield criterion
     rReturnMappingVariables.TrialStateFunction = 0.0;
-    rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, principal_stress, mMaterialParameters.Cohesion, mMaterialParameters.FrictionAngle);
+    rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, principal_stress, mMaterialParameters.Cohesion, mMaterialParameters.FrictionAngle, rProp);
 
     // If yield is reached, do return mapping
     if (rReturnMappingVariables.TrialStateFunction <= 0.0)
@@ -142,7 +143,7 @@ bool MCPlasticFlowRule::CalculateReturnMapping(
         unsigned int region = 0;
         BoundedVector<double,3> principal_stress_updated = ZeroVector(3);
 
-        bool converged = this->CalculateConsistencyCondition(rReturnMappingVariables, principal_stress, mElasticPrincipalStrain, region, principal_stress_updated);
+        bool converged = this->CalculateConsistencyCondition(rReturnMappingVariables, principal_stress, mElasticPrincipalStrain, region, principal_stress_updated, rProp);
         KRATOS_ERROR_IF(!converged) << "Warning:: Constitutive Law does not converge! "<<std::endl;
 
         mRegion = region;
@@ -159,7 +160,7 @@ bool MCPlasticFlowRule::CalculateReturnMapping(
 
     // Updated the PrincipalStrain vector
     BoundedMatrix<double,3,3> inv_elastic_matrix = ZeroMatrix(3,3);
-    this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
+    this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix, rProp);
 
     // Delta plastic strain
     BoundedVector<double,3> plastic_strain = prod(inv_elastic_matrix, DeltaPrincipalStress);
@@ -183,7 +184,7 @@ bool MCPlasticFlowRule::CalculateReturnMapping(
 
 }
 
-bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, const BoundedVector<double,3>& rPrincipalStress, const BoundedVector<double,3>& rPrincipalStrain, unsigned int& rRegion, BoundedVector<double,3>& rPrincipalStressUpdated)
+bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, const BoundedVector<double,3>& rPrincipalStress, const BoundedVector<double,3>& rPrincipalStrain, unsigned int& rRegion, BoundedVector<double,3>& rPrincipalStressUpdated, const Properties& rProp)
 {
 
     // Calculate stress return in principal stress
@@ -206,7 +207,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
 
     // Compute elastic matrix which takes account only for normal stresses
     BoundedMatrix<double,3,3> D = ZeroMatrix(3,3);
-    this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D);
+    this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D, rProp);
 
     // Compute the direction of the plastic return stress R_p
     BoundedVector<double,3> R_p = ZeroVector(3);
@@ -314,11 +315,11 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     return true;
 }
 
-void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rElasticMatrix)
+void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rElasticMatrix, const Properties& rProp)
 {
 
-    const double young_modulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double poisson_ratio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double young_modulus  = rProp[YOUNG_MODULUS];
+    const double poisson_ratio  = rProp[POISSON_RATIO];
 
     const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
     const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
@@ -339,10 +340,10 @@ void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rR
     }
 }
 
-void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rInverseElasticMatrix)
+void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rInverseElasticMatrix, const Properties& rProp)
 {
-    const double young_modulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double poisson_ratio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double young_modulus  = rProp[YOUNG_MODULUS];
+    const double poisson_ratio  = rProp[POISSON_RATIO];
 
     const double lame_lambda  = (young_modulus*poisson_ratio)/((1+poisson_ratio)*(1-2*poisson_ratio));
     const double lame_mu      =  young_modulus/(2*(1+poisson_ratio));
@@ -366,10 +367,10 @@ void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariable
     }
 }
 
-void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix)
+void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix, const Properties& rProp)
 {
-    const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double young_modulus = rProp[YOUNG_MODULUS];
+    const double poisson_ratio = rProp[POISSON_RATIO];
 
     const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
     const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
@@ -395,7 +396,7 @@ void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rRet
 
 }
 
-void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix, const Properties& rProp)
 {
     BoundedVector<double,3> main_strain = ZeroVector(3);
 
@@ -406,8 +407,8 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
 
     // Calculate the elastic matrix
     BoundedMatrix<double,3,3> ElasticMatrix = ZeroMatrix(3,3);
-    const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double young_modulus = rProp[YOUNG_MODULUS];
+    const double poisson_ratio = rProp[POISSON_RATIO];
     const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
     const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
 
@@ -563,7 +564,7 @@ void MCPlasticFlowRule::CalculateTransformationMatrix(const BoundedMatrix<double
     rA = trans(rA);
 }
 
-void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix)
+void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix, const Properties& rProp)
 {
     // Elastoplastic constitutive matrix
     if (rReturnMappingVariables.Options.Is(ParticleFlowRule::PLASTIC_REGION))
@@ -585,7 +586,7 @@ void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVari
         BoundedMatrix<double,6,6> D_ep = ZeroMatrix(6,6);
 
         //2. Calculate the ElastoPlastic Matrix depending on the region of return mapping
-        this->CalculateElastoPlasticMatrix(rReturnMappingVariables, mRegion, d_principal_stress, D_ep);
+        this->CalculateElastoPlasticMatrix(rReturnMappingVariables, mRegion, d_principal_stress, D_ep, rProp);
 
         //3. Consistent Constitutive matrix
         BoundedMatrix<double,6,6> D_elasto_plastic = ZeroMatrix(6,6);
@@ -606,16 +607,16 @@ void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVari
     //Elastic matrix
     else
     {
-        this->CalculateElasticMatrix(rReturnMappingVariables, rConsistMatrix);
+        this->CalculateElasticMatrix(rReturnMappingVariables, rConsistMatrix, rProp);
     }
 
 }
 
-void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, BoundedVector<double,3>& DiffPrincipalStress, BoundedMatrix<double,6,6>& rDep)
+void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, BoundedVector<double,3>& DiffPrincipalStress, BoundedMatrix<double,6,6>& rDep, const Properties& rProp)
 {
 
-    const double young_modulus      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double poisson_ratio      = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double young_modulus      = rProp[YOUNG_MODULUS];
+    const double poisson_ratio      = rProp[POISSON_RATIO];
     const double shear_contribution = young_modulus/(1.0+poisson_ratio)/2.0;
 
     const double friction_angle  = mMaterialParameters.FrictionAngle;
@@ -644,7 +645,7 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
 
             // Compute elastic matrix which takes account only for normal stresses
             BoundedMatrix<double,3,3> D = ZeroMatrix(3,3);
-            this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D);
+            this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D, rProp);
 
             this->CalculateDepSurface(D, F_norm, G_norm, aux_D_ep);
 
@@ -679,7 +680,7 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
             L_G_dir[2] = dilatancy_coefficient;
 
             BoundedMatrix<double,3,3> inv_elastic_matrix = ZeroMatrix(3,3);
-            this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
+            this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix, rProp);
             BoundedMatrix<double,3,3> aux_D_ep = ZeroMatrix(3,3);
 
             this->CalculateDepLine(inv_elastic_matrix, L_F_dir, L_G_dir, aux_D_ep);
@@ -714,7 +715,7 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
             L_G_dir[2] = dilatancy_coefficient;
 
             BoundedMatrix<double,3,3> inv_elastic_matrix = ZeroMatrix(3,3);
-            this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
+            this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix, rProp);
             BoundedMatrix<double,3,3> aux_D_ep = ZeroMatrix(3,3);
 
             this->CalculateDepLine(inv_elastic_matrix, L_F_dir, L_G_dir, aux_D_ep);
@@ -750,7 +751,7 @@ Matrix MCPlasticFlowRule::GetElasticLeftCauchyGreen(RadialReturnVariables& rRetu
     return output;
 }
 
-bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
+bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables, const Properties& rProp )
 {
     // Compute Delta Plastic Strain
     double norm_plastic_principal_strain = norm_2(mPlasticPrincipalStrain);
@@ -806,12 +807,35 @@ void MCPlasticFlowRule::ComputePlasticHardeningParameter(const BoundedVector<dou
 void MCPlasticFlowRule::save( Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleFlowRule )
+
+    rSerializer.save("mElasticPricipalStrain",mElasticPrincipalStrain);
+    rSerializer.save("mPlasticPrincipalStrain",mPlasticPrincipalStrain);
+    rSerializer.save("mElasticPreviousPrincipalStrain",mElasticPreviousPrincipalStrain);
+    rSerializer.save("mPrincipalStressTrial",mPrincipalStressTrial);
+    rSerializer.save("mPrincipalStressUpdated",mPrincipalStressUpdated);
+    rSerializer.save("mLargeStrainBool",mLargeStrainBool);
+    rSerializer.save("mRegion",mRegion);
+
+    rSerializer.save("mEquivalentPlasticStrain",mEquivalentPlasticStrain);
+
+    rSerializer.save("mMaterialParameters",mMaterialParameters);
 }
 
 void MCPlasticFlowRule::load( Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleFlowRule )
 
+    rSerializer.load("mElasticPricipalStrain",mElasticPrincipalStrain);
+    rSerializer.load("mPlasticPrincipalStrain",mPlasticPrincipalStrain);
+    rSerializer.load("mElasticPreviousPrincipalStrain",mElasticPreviousPrincipalStrain);
+    rSerializer.load("mPrincipalStressTrial",mPrincipalStressTrial);
+    rSerializer.load("mPrincipalStressUpdated",mPrincipalStressUpdated);
+    rSerializer.load("mLargeStrainBool",mLargeStrainBool);
+    rSerializer.load("mRegion",mRegion);
+
+    rSerializer.load("mEquivalentPlasticStrain",mEquivalentPlasticStrain);
+
+    rSerializer.load("mMaterialParameters",mMaterialParameters);
 }
 
 } //end namespace kratos

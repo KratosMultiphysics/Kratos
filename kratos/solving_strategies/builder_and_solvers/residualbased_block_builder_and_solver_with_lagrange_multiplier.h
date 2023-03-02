@@ -52,7 +52,7 @@ namespace Kratos
  * the end of the system ordered in reverse order with respect to the DofSet.
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
- * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * Additionally the constraints are solver considering Lagrange multiplier (or double Lagrange multiplier)
  * @note Based on https://www.code-aster.org/V2/doc/default/en/man_r/r3/r3.03.01.pdf
  * @tparam TSparseSpace The sparse system considered
@@ -227,7 +227,7 @@ public:
             TSparseSpace::SetToZero(rDx);
         }
 
-        // Prints informations about the current time
+        // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -391,9 +391,9 @@ public:
 
     /**
      * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
-     * unexpensive depending on the implementation choosen and on how the System Matrix is built.
+     * unexpensive depending on the implementation chosen and on how the System Matrix is built.
      * @details For explanation of how it works for a particular implementation the user
-     * should refer to the particular Builder And Solver choosen
+     * should refer to the particular Builder And Solver chosen
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix

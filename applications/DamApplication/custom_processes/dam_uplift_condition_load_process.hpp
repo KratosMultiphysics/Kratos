@@ -159,12 +159,10 @@ class DamUpliftConditionLoadProcess : public Process
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-            double ref_coord = mReferenceCoordinate + mWaterLevel;
-
             if (mDrain == true)
             {
                 double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-                double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
+                double aux_drain = coefficient_effectiveness * ((mWaterLevel - mReferenceCoordinate) - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
 
 #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
@@ -179,7 +177,7 @@ class DamUpliftConditionLoadProcess : public Process
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
                     // We compute the first part of the uplift law
-                    mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
+                    mUpliftPressure = (mSpecific * ((mWaterLevel - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
 
                     // If uplift pressure is greater than the limit we compute the second part and we update the value
                     if (mUpliftPressure <= mSpecific * aux_drain)
@@ -210,7 +208,7 @@ class DamUpliftConditionLoadProcess : public Process
 
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
-                    mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
+                    mUpliftPressure = (mSpecific * (mWaterLevel - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
 
                     if (mUpliftPressure < 0.0)
                     {
@@ -272,12 +270,10 @@ class DamUpliftConditionLoadProcess : public Process
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-            double ref_coord = mReferenceCoordinate + mWaterLevel;
-
             if (mDrain == true)
             {
                 double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-                double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
+                double aux_drain = coefficient_effectiveness * ((mWaterLevel - mReferenceCoordinate) - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
 
 #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
@@ -292,7 +288,7 @@ class DamUpliftConditionLoadProcess : public Process
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
                     // We compute the first part of the uplift law
-                    mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
+                    mUpliftPressure = (mSpecific * ((mWaterLevel - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
 
                     // If uplift pressure is greater than the limit we compute the second part and we update the value
                     if (mUpliftPressure <= mSpecific * aux_drain)
@@ -323,7 +319,7 @@ class DamUpliftConditionLoadProcess : public Process
 
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
-                    mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
+                    mUpliftPressure = (mSpecific * (mWaterLevel - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
 
                     if (mUpliftPressure < 0.0)
                     {
