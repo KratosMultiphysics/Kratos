@@ -49,7 +49,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
-        top_node_nbrs = [18, 17, 16, 15, 14, 13, 12]
+        top_node_nbrs = [9, 8, 7, 6]
         n_dim = 2
         self.assert_linear_elastic_block(simulation, top_node_nbrs, n_dim)
 
@@ -58,7 +58,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
-        top_node_nbrs = [24, 23, 22, 21, 20, 19, 18, 17, 16]
+        top_node_nbrs = [12, 11, 10, 9, 8]
         n_dim = 2
         self.assert_linear_elastic_block(simulation, top_node_nbrs, n_dim)
 
