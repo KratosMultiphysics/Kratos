@@ -1103,7 +1103,6 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
             return false;
         }
     }
-    return false;
 }
 
 /***********************************************************************************/
