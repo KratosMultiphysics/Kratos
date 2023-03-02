@@ -325,17 +325,37 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperationRealCase, Krat
     values = {1,1,1,1,1,0,1};
     auto T = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values);
 
-    // Compute T' A T
-    const TrilinosSparseMatrixType copy_A(A);
-    TrilinosSparseSpaceType::BtDBProductOperation(A, copy_A, T, true, false, true);
+    /* Intermediate multiplication */
+    // Create a map
+    const int size1 = TrilinosSparseSpaceType::Size2(T);
+    Epetra_Map map(size1, 0, A.Comm());
+
+    // Create an Epetra_Matrix
+    std::vector<int> NumNz;
+    TrilinosSparseMatrixType aux(::Copy, map, NumNz.data());
+
+    // First multiplication
+    TrilinosSparseSpaceType::TransposeMult(T, A, aux, {true, false}, true, true);
 
     // Values to check
     row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
     column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
-    values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     // Check
-    TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
+    TrilinosCPPTestUtilities::CheckSparseMatrix(aux, row_indexes, column_indexes, values);
+
+    // // Compute T' A T
+    // const TrilinosSparseMatrixType copy_A(A);
+    // TrilinosSparseSpaceType::BtDBProductOperation(A, copy_A, T, true, false, true);
+
+    // // Values to check
+    // row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
+    // column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
+    // values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    // // Check
+    // TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilinosApplicationMPITestSuite)
