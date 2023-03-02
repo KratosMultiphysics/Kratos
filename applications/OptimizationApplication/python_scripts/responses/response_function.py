@@ -15,7 +15,7 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def Check(self):
+    def Check(self) -> None:
         pass
 
     @abstractmethod
@@ -23,7 +23,7 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart):
+    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart) -> None:
         pass
 
     @abstractmethod

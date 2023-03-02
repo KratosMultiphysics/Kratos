@@ -13,12 +13,12 @@ class MassResponseFunction(ResponseFunction):
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model_part
 
-    def Check(self):
+    def Check(self) -> None:
         KratosOA.ResponseUtils.MassResponseUtils.Check(self.model_part)
 
     def CalculateValue(self) -> float:
         return KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(self.model_part)
 
-    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart):
+    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart) -> None:
         KratosOA.ResponseUtils.MassResponseUtils.CalculateSensitivity(sensitivity_model_part, sensitivity_variable)
 
