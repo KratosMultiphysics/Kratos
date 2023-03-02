@@ -247,7 +247,7 @@ class HRomTrainingUtility(object):
                 hrom_weights["Conditions"][int(z)-n_elements] = float(w)
         else:
             # Many elements found
-            for j in range (0,len(z)):
+            for j in range (len(z)):
                 if z[j] <=  n_elements -1:
                     hrom_weights["Elements"][int(z[j])] = float(w[j])
                 else:
