@@ -218,8 +218,6 @@ class HRomTrainingUtility(object):
 
         return updated_weights, updated_elements
 
-
-
     def __AddSelectedConditionsWithZeroWeights(self, original_weights, original_conditions, conditions_to_add, number_of_elements):
 
         added_conditions_ids = np.array(conditions_to_add)+number_of_elements
