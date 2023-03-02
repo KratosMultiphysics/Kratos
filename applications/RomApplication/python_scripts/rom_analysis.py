@@ -164,12 +164,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     # Set the HROM weights in elements and conditions
                     hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
                     for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                        print('value being imposed to element ',key , '  is:', value.GetDouble())
                         computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
                     hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
                     for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                        print('value being imposed to condition ',key , ' is:', value.GetDouble())
-
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
                 elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
                     # Set the HROM weights in elements and conditions
