@@ -226,7 +226,6 @@ class HRomTrainingUtility(object):
 
         return updated_weights, updated_conditions
 
-
     def __CreateDictionaryWithRomElementsAndWeights(self, w = None, z=None, n_elements = None):
 
         if w is None:
