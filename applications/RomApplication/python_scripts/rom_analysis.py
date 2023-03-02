@@ -135,8 +135,8 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             elif self.rom_parameters["rom_format"].GetString() == "numpy":
                 #### Set the nodal ROM basis ####
-                Nodes = np.load("NodeIds.npy")
-                RightModes = np.load("RightBasisMatrix.npy")
+                nodes = np.load("NodeIds.npy")
+                right_modes = np.load("RightBasisMatrix.npy")
                 if RightModes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
                     RightModes.reshape(-1,1)
                 RightModes = RightModes[:,:rom_dofs]
