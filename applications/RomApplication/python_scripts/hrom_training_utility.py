@@ -210,8 +210,6 @@ class HRomTrainingUtility(object):
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
-
-
     def __AddSelectedElementsWithZeroWeights(self, original_weights,original_elements, elements_to_add):
 
         added_elements_ids = np.array(elements_to_add)
