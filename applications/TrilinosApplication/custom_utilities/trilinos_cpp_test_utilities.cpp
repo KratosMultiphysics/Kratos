@@ -389,7 +389,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
                     break;
                 }
             }
-            end_index = current_row_index - 1;
+            end_index = current_row_index;
             initial_and_end_index.insert({i, std::make_pair(initial_index, end_index)});
             NumNz[i] = nnz;
             nnz = 0;
