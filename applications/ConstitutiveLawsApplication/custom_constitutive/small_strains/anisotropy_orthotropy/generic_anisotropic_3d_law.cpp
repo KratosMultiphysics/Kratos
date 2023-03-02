@@ -193,10 +193,6 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     KRATOS_ERROR_IF(vzx > 0.5) << "The Poisson_zx is greater than 0.5." << std::endl;
     KRATOS_ERROR_IF(vzy > 0.5) << "The Poisson_zy is greater than 0.5." << std::endl;
 
-    const double Gxy   = 1.0 / ((1.0 + vyx) / Ex + (1.0 + vxy) / Ey);
-    const double Gxz   = 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
-    const double Gyz   = 1.0 / ((1.0 + vzy) / Ey + (1.0 + vyz) / Ez);
-
     const double ctant = 1.0 / (1.0 - vxy * vyx - vzy * vyz - vzx * vxz - vxy * vyz * vzx - vxz * vyx * vzy);
 
     rElasticityTensor(0, 0) = Ex * (1.0 - vyz * vzy) * ctant;
@@ -211,9 +207,9 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     rElasticityTensor(2, 1) = Ez * (vyz + vyx * vxz) * ctant;
     rElasticityTensor(2, 2) = Ez * (1.0 - vxy * vyx) * ctant;
 
-    rElasticityTensor(3, 3) = Gxy;
-    rElasticityTensor(4, 4) = Gyz;
-    rElasticityTensor(5, 5) = Gxz;
+    rElasticityTensor(3, 3) = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + vyx) / Ex + (1.0 + vxy) / Ey);
+    rElasticityTensor(4, 4) = (rMaterialProperties.Has(SHEAR_MODULUS_YZ)) ? rMaterialProperties[SHEAR_MODULUS_YZ] : 1.0 / ((1.0 + vzy) / Ey + (1.0 + vyz) / Ez);
+    rElasticityTensor(5, 5) = (rMaterialProperties.Has(SHEAR_MODULUS_XZ)) ? rMaterialProperties[SHEAR_MODULUS_XZ] : 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
 
     KRATOS_CATCH("")
 }
