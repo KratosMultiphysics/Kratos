@@ -279,4 +279,146 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(
+    const TrilinosSparseSpaceType::MatrixType& rA,
+    const DataCommunicator& rDataCommunicator,
+    std::vector<int>& rRowIndexes,
+    std::vector<int>& rColumnIndexes,
+    std::vector<double>& rValues,
+    const bool PrintValues,
+    const double ThresholdIncludeHardZeros
+    )
+{
+    const int world_size = rDataCommunicator.Size();
+    KRATOS_ERROR_IF_NOT(world_size == 1) << "Debug must be done with one MPI core" << std::endl;
+
+    // If print values
+    if (PrintValues) {
+        std::cout << "\n        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), " << rA.NumGlobalRows() << ");\n";
+        std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), " << rA.NumGlobalCols() << ");\n";
+        std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), " << rA.NumGlobalNonzeros() << ");\n";
+    }
+
+    std::vector<double> values;
+    for (int i = 0; i < rA.NumMyRows(); i++) {
+        int numEntries; // Number of non-zero entries
+        double* vals;   // Row non-zero values
+        int* cols;      // Column indices of row non-zero values
+        rA.ExtractMyRowView(i, numEntries, vals, cols);
+        const int row_gid = rA.RowMap().GID(i);
+        int j;
+        for (j = 0; j < numEntries; j++) {
+            const int col_gid = rA.ColMap().GID(cols[j]);
+            if (std::abs(vals[j]) > ThresholdIncludeHardZeros) {
+                rRowIndexes.push_back(row_gid);
+                rColumnIndexes.push_back(col_gid);
+                rValues.push_back(vals[j]);
+            }
+        }
+    }
+    // If print values
+    if (PrintValues) {
+        std::cout << "\n        // Values to check\n";
+        std::cout << "        std::vector<int> row_indexes = {";
+        for(std::size_t i = 0; i < rRowIndexes.size() - 1; ++i) {
+            std::cout << rRowIndexes[i] << ", ";
+        }
+        std::cout << rRowIndexes[rRowIndexes.size() - 1] << "};";
+        std::cout << "\n        std::vector<int> column_indexes = {";
+        for(std::size_t i = 0; i < rColumnIndexes.size() - 1; ++i) {
+            std::cout << rColumnIndexes[i] << ", ";
+        }
+        std::cout << rColumnIndexes[rColumnIndexes.size() - 1] << "};";
+        std::cout << "\n        std::vector<double> values = {";
+        for(std::size_t i = 0; i < rValues.size() - 1; ++i) {
+            std::cout << std::fixed;
+            std::cout << std::setprecision(16);
+            std::cout << rValues[i] << ", ";
+        }
+        std::cout << std::fixed;
+        std::cout << std::setprecision(16);
+        std::cout << rValues[rValues.size() - 1] << "};" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::GenerateSparseMatrix(
+    const DataCommunicator& rDataCommunicator,
+    const int NumGlobalElements,
+    const std::vector<int>& rRowIndexes,
+    const std::vector<int>& rColumnIndexes,
+    const std::vector<double>& rValues
+    )
+{
+    // Generate Epetra communicator
+    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+    Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+    // Create a map
+    Epetra_Map Map(NumGlobalElements,0,epetra_comm);
+
+    // Local number of rows
+    const int NumMyElements = Map.NumMyElements();
+
+    // Get update list
+    int* MyGlobalElements = Map.MyGlobalElements();
+
+    // Create an integer vector NumNz that is used to build the EPetra Matrix.
+    const int size_global_vector = rRowIndexes.size();
+    std::vector<int> NumNz(NumMyElements, 0);
+    int current_row_index = 0;
+    int current_id = rRowIndexes[current_row_index];
+    int nnz = 0;
+    int initial_index, end_index;
+    std::unordered_map<int, std::pair<int, int>> initial_and_end_index;
+    for ( int i=0; i<NumMyElements; i++) {
+        if (MyGlobalElements[i] == rRowIndexes[current_row_index]) {
+            initial_index = current_row_index;
+            for (current_row_index = current_row_index; current_row_index < size_global_vector; ++current_row_index) {
+                if (current_id == rRowIndexes[current_row_index]) {
+                    ++nnz;
+                } else {
+                    current_id = rRowIndexes[current_row_index];
+                    break;
+                }
+            }
+            end_index = current_row_index - 1;
+            initial_and_end_index.insert({i, std::make_pair(initial_index, end_index)});
+            NumNz[i] = nnz;
+            nnz = 0;
+        }
+    }
+
+    // Create an Epetra_Matrix
+    TrilinosSparseMatrixType A(Copy, Map, NumNz.data());
+
+    // Fill matrix
+    auto it_end = initial_and_end_index.end();
+    auto it_index_begin = rColumnIndexes.begin();
+    auto it_values_begin = rValues.begin();
+    for( int i=0 ; i<NumMyElements; ++i ) {
+        auto it_find = initial_and_end_index.find(i);
+        if (it_find != it_end) {
+            const auto& r_pair = it_find->second;
+            initial_index = r_pair.first;
+            end_index = r_pair.second;
+            std::vector<int> indexes(it_index_begin + initial_index, it_index_begin + end_index);
+            std::vector<double> values(it_values_begin + initial_index, it_values_begin + end_index);
+            A.InsertGlobalValues(MyGlobalElements[i], end_index - initial_index, values.data(), indexes.data());
+        }
+    }
+
+    // Finish up, trasforming the matrix entries into local numbering,
+    // to optimize data transfert during matrix-vector products
+    A.FillComplete();
+
+    return A;
+}
+
 } /// namespace Kratos
