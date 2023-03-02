@@ -136,8 +136,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Set a NumPy array with the snapshots data
         n_nodes = self.model_part.NumberOfNodes()
-        n_elements = self.model_part.NumberOfElements()
-        rom_basis_dict["hrom_settings"]["original_number_of_elements"] = n_elements
         rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
         n_data_cols = len(self.snapshots_data_list)
         n_nodal_unknowns = len(self.snapshot_variables_list)
