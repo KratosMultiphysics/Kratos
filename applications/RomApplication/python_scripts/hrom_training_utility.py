@@ -134,7 +134,7 @@ class HRomTrainingUtility(object):
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
-            "original_number_of_elements": 10,
+            "original_number_of_elements": 0,
             "hrom_format": "numpy",
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
