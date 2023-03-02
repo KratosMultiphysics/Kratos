@@ -14,9 +14,9 @@ class TestMassResponseFunctionBase(kratos_unittest.TestCase):
         cls.response_function = MassResponseFunction(cls.model, cls.GetParameters(), None)
         cls.CreateElements()
 
-        cls.response_function.ExecuteInitialize()
+        cls.response_function.Initialize()
         cls.response_function.Check()
-        cls.response_function.ExecuteInitializeSolutionStep()
+        cls.response_function.InitializeSolutionStep()
         cls.ref_value = cls.response_function.CalculateValue()
 
     def _CalculateSensitivity(self, sensitivity_variable):

@@ -1,8 +1,17 @@
 import KratosMultiphysics as Kratos
 
-class ResponseFunction(Kratos.Process):
-    def __init__(self):
-        super().__init__()
+class ResponseFunction:
+    def Initialize(self) -> None:
+        pass
+
+    def InitializeSolutionStep(self) -> None:
+        pass
+
+    def FinalizeSolutionStep(self) -> None:
+        pass
+
+    def Finalize(self) -> None:
+        pass
 
     def Check(self):
         raise NotImplementedError("Calling base class ResponseFunction::Check method. Please implement in the derived class.")

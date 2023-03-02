@@ -4,8 +4,6 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 
 class MassResponseFunction(ResponseFunction):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _):
-        super().__init__()
-
         default_settings = Kratos.Parameters("""{
             "evaluated_model_part_name": "PLEASE_PROVIDE_A_MODEL_PART_NAME"
         }""")
