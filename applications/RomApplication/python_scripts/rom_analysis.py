@@ -142,7 +142,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 RightModes = RightModes[:,:rom_dofs]
                 if (self.solving_strategy == "petrov_galerkin"):
                     petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
-                    LeftModes = np.load("LeftBasisMatrix.npy")
+                    left_modes = np.load("LeftBasisMatrix.npy")
                     if LeftModes.ndim ==1:
                         LeftModes.reshape(-1,1)
                     LeftModes = LeftModes[:,:petrov_galerkin_rom_dofs]
