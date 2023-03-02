@@ -170,9 +170,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
                 elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
                     # Set the HROM weights in elements and conditions
-                    WeightsMatrix = np.load("WeightsMatrix.npy")
-                    ElementsVector = np.load("ElementsVector.npy")
-                    OriginalNumberOfElements = self.rom_parameters["hrom_settings"]["original_number_of_elements"].GetInt()
+                    weights_matrix = np.load("WeightsMatrix.npy")
+                    elements_vector = np.load("ElementsVector.npy")
+                    original_number_of_elements = self.rom_parameters["hrom_settings"]["original_number_of_elements"].GetInt()
                     for i in range(WeightsMatrix.shape[0]):
                         if ElementsVector[i] < OriginalNumberOfElements:
                             computing_model_part.GetElement(int( ElementsVector[i])+1).SetValue(KratosROM.HROM_WEIGHT, WeightsMatrix[i]  ) #FIXME: FIX THE +1
