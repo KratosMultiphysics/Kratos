@@ -380,7 +380,8 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     for ( int i=0; i<NumMyElements; i++) {
         if (MyGlobalElements[i] == rRowIndexes[current_row_index]) {
             initial_index = current_row_index;
-            for (current_row_index = current_row_index; current_row_index < size_global_vector; ++current_row_index) {
+            const int start_index = current_row_index;
+            for (current_row_index = start_index; current_row_index < size_global_vector; ++current_row_index) {
                 if (current_id == rRowIndexes[current_row_index]) {
                     ++nnz;
                 } else {
