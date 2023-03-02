@@ -2634,6 +2634,17 @@ namespace Kratos {
                              << mRVE_AvgCoordNumInner
                              << std::endl;
 
+      if (mRVE_FileInnerVolumeParticles.is_open()) {
+        mRVE_FileInnerVolumeParticles << time_step << " " << time << " ";
+        mRVE_FileInnerVolumeParticles << mRVE_InnerVolParticles.size() << " ";
+        for (int i = 0; i < mRVE_InnerVolParticles.size(); i++) {
+          array_1d<double,3> coords = mRVE_InnerVolParticles[i]->GetGeometry()[0].Coordinates();
+          const double radius       = mRVE_InnerVolParticles[i]->GetRadius();
+          mRVE_FileInnerVolumeParticles << coords[0] << " " << coords[1] << " " << coords[2] << " " << radius << " ";
+        }
+        mRVE_FileInnerVolumeParticles << std::endl;
+      }
+
       if (mRVE_FileForceChain.is_open()) {
         mRVE_FileForceChain << time_step << " " << time << " ";
         for (int i = 0; i < mRVE_ForceChain.size(); i++) mRVE_FileForceChain << mRVE_ForceChain[i] << " ";
@@ -2851,6 +2862,14 @@ namespace Kratos {
       mRVE_FileCoordNumber << "6 - AVG COORDINATION NUMBER - INNER";
       mRVE_FileCoordNumber << std::endl;
 
+      mRVE_FileInnerVolumeParticles.open("rve_inner_volume_particles.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileInnerVolumeParticles) << "Could not open file rve_inner_volume_particles.txt!" << std::endl;
+      mRVE_FileInnerVolumeParticles << "1 - STEP | ";
+      mRVE_FileInnerVolumeParticles << "2 - TIME | ";
+      mRVE_FileInnerVolumeParticles << "3 - Number of particles | ";
+      mRVE_FileInnerVolumeParticles << "4 - [X Y Z R] of each particles";
+      mRVE_FileInnerVolumeParticles << std::endl;
+
       mRVE_FileForceChain.open("rve_force_chain.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file rve_force_chain.txt!" << std::endl;
       mRVE_FileForceChain << "1 - STEP | ";
@@ -2979,6 +2998,7 @@ namespace Kratos {
       if (mRVE_FilePorosity.is_open())              mRVE_FilePorosity.close();
       if (mRVE_FileContactNumber.is_open())         mRVE_FileContactNumber.close();
       if (mRVE_FileCoordNumber.is_open())           mRVE_FileCoordNumber.close();
+      if (mRVE_FileInnerVolumeParticles.is_open())  mRVE_FileInnerVolumeParticles.close();
       if (mRVE_FileForceChain.is_open())            mRVE_FileForceChain.close();
       if (mRVE_FileElasticContactForces.is_open())  mRVE_FileElasticContactForces.close();
       if (mRVE_FileRoseDiagram.is_open())           mRVE_FileRoseDiagram.close();

@@ -362,6 +362,7 @@ namespace Kratos {
         std::ofstream mRVE_FilePorosity;
         std::ofstream mRVE_FileContactNumber;
         std::ofstream mRVE_FileCoordNumber;
+        std::ofstream mRVE_FileInnerVolumeParticles;
         std::ofstream mRVE_FileForceChain;
         std::ofstream mRVE_FileElasticContactForces;
         std::ofstream mRVE_FileRoseDiagram;
