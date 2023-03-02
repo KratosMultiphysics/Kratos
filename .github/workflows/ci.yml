@@ -15,7 +15,6 @@ on:
       - 'kratos/python_scripts/application_generator/**'
       - 'docs/**'
       - '.github/workflows/jekyll-gh-pages.yml'
-      - '.github/workflows/doxygen.yml'
 
   workflow_dispatch:
 
