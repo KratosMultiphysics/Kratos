@@ -41,7 +41,29 @@ public:
     ///@name Static operations
     ///@{
 
-    static double CalculateMass(const ModelPart& rModelPart);
+    static void Check(const ModelPart& rModelPart);
+
+    static double CalculateValue(const ModelPart& rModelPart);
+
+    template<class TDataType>
+    static void CalculateSensitivity(
+        ModelPart& rSensitivityModelPart,
+        const Variable<TDataType>& rSensitivityVariable);
+
+    ///@}
+private:
+    ///@name Private operations
+    ///@{
+
+    static bool HasVariableInProperties(
+        const ModelPart& rModelPart,
+        const Variable<double>& rVariable);
+
+    static void CalculateMassGeometricalPropertySensitivity(
+        ModelPart& rModelPart,
+        const Variable<double>& rGeometricalPropertySensitivityVariable,
+        const Variable<double>& rGeometricalCoflictingPropertySensitivityVariable,
+        const Variable<double>& rOutputSensitivityVariable);
 
     static void CalculateMassShapeSensitivity(
         ModelPart& rModelPart,
@@ -57,21 +79,6 @@ public:
 
     static void CalculateMassCrossAreaSensitivity(
         ModelPart& rModelPart,
-        const Variable<double>& rOutputSensitivityVariable);
-
-    ///@}
-private:
-    ///@name Private operations
-    ///@{
-
-    static bool HasVariableInProperties(
-        const ModelPart& rModelPart,
-        const Variable<double>& rVariable);
-
-    static void CalculateMassGeometricalPropertySensitivity(
-        ModelPart& rModelPart,
-        const Variable<double>& rGeometricalPropertySensitivityVariable,
-        const Variable<double>& rGeometricalCoflictingPropertySensitivityVariable,
         const Variable<double>& rOutputSensitivityVariable);
 
     ///@}
