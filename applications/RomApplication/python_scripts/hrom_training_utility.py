@@ -160,12 +160,12 @@ class HRomTrainingUtility(object):
         return u
 
     def __AppendHRomWeightsToRomParameters(self):
-        n_elements = self.solver.GetComputingModelPart().NumberOfElements()
-        w = np.squeeze(self.hyper_reduction_element_selector.w)
-        z = self.hyper_reduction_element_selector.z
+        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+        weights = np.squeeze(self.hyper_reduction_element_selector.w)
+        indexes = self.hyper_reduction_element_selector.z
 
         # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
-        hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(w,z,n_elements)
+        hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)
 
         #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
@@ -180,7 +180,7 @@ class HRomTrainingUtility(object):
             # Add the selected conditions to the conditions dict with a null weight
             for cond_id in minimum_conditions:
                 hrom_weights["Conditions"][cond_id] = 0.0
-            w, z = self.__AddSelectedConditionsWithZeroWeights(w, z, minimum_conditions, n_elements)
+            weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, minimum_conditions, number_of_elements)
 
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
@@ -195,13 +195,17 @@ class HRomTrainingUtility(object):
             # Add the missing parents to the elements dict with a null weight
             for parent_id in missing_condition_parents:
                 hrom_weights["Elements"][parent_id] = 0.0
-            w, z = self.__AddSelectedElementsWithZeroWeights(w,z, missing_condition_parents)
+            weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
 
 
         if self.hrom_output_format=="numpy":
-            np.save('WeightsMatrix.npy',w)
-            np.save('ElementsVector.npy',z)
+            element_indexes = np.where( indexes < number_of_elements )[0]
+            condition_indexes = np.where( indexes >= number_of_elements )[0]
+            np.save('HROM_ElementWeights.npy',weights[element_indexes])
+            np.save('HROM_ConditionWeights.npy',weights[condition_indexes])
+            np.save('HROM_ElementIds.npy',indexes[element_indexes]) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
+            np.save('HROM_ConditionIds.npy',indexes[condition_indexes]-number_of_elements) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
 
         elif self.hrom_output_format=="json":
             with open('RomParameters.json','r') as f:
@@ -226,31 +230,32 @@ class HRomTrainingUtility(object):
 
         return updated_weights, updated_conditions
 
-    def __CreateDictionaryWithRomElementsAndWeights(self, w = None, z=None, n_elements = None):
+    def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
-        if w is None:
-            w = np.load('WeightsMatrix.npy')
-        if z is None:
-            z = np.load('ElementsVector.npy')
-        if n_elements is None:
-            n_elements = self.solver.GetComputingModelPart().NumberOfElements()
+        if weights is None:
+            weights = np.r_[np.load('HROM_ElementWeights.npy'),np.load('HROM_ConditionWeights.npy')]
+        if indexes is None:
+            indexes = np.r_[np.load('HROM_ElementIds.npy'),np.load('HROM_ConditionIds.npy')]
+        if number_of_elements is None:
+            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
 
         hrom_weights = {}
         hrom_weights["Elements"] = {}
         hrom_weights["Conditions"] = {}
 
-        if type(z)==np.int64 or type(z)==np.int32:
+        if type(indexes)==np.int64 or type(indexes)==np.int32:
             # Only one element found !
-            if z <= n_elements-1:
-                hrom_weights["Elements"][int(z)] = float(w)
+            if indexes <= number_of_elements-1:
+                hrom_weights["Elements"][int(indexes)] = float(weights)
             else:
-                hrom_weights["Conditions"][int(z)-n_elements] = float(w)
+                hrom_weights["Conditions"][int(indexes)-number_of_elements] = float(weights)
         else:
             # Many elements found
-            for j in range (len(z)):
-                if z[j] <=  n_elements -1:
-                    hrom_weights["Elements"][int(z[j])] = float(w[j])
+            for j in range (len(indexes)):
+                if indexes[j] <=  number_of_elements -1:
+                    hrom_weights["Elements"][int(indexes[j])] = float(weights[j])
                 else:
-                    hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
+                    hrom_weights["Conditions"][int(indexes[j])-number_of_elements] = float(weights[j])
 
         return hrom_weights
+
