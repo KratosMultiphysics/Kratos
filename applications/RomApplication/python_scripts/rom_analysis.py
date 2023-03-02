@@ -135,23 +135,23 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             elif self.rom_parameters["rom_format"].GetString() == "numpy":
                 #### Set the nodal ROM basis ####
-                nodes = np.load("NodeIds.npy")
+                node_ids = np.load("NodeIds.npy")
                 right_modes = np.load("RightBasisMatrix.npy")
-                if RightModes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
-                    RightModes.reshape(-1,1)
-                RightModes = RightModes[:,:rom_dofs]
+                if right_modes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
+                    right_modes.reshape(-1,1)
+                right_modes = right_modes[:,:rom_dofs]
                 if (self.solving_strategy == "petrov_galerkin"):
                     petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
                     left_modes = np.load("LeftBasisMatrix.npy")
-                    if LeftModes.ndim ==1:
-                        LeftModes.reshape(-1,1)
-                    LeftModes = LeftModes[:,:petrov_galerkin_rom_dofs]
+                    if left_modes.ndim ==1:
+                        left_modes.reshape(-1,1)
+                    left_modes = left_modes[:,:petrov_galerkin_rom_dofs]
 
                 for node in computing_model_part.Nodes:
-                    offset = np.where(Nodes == node.Id)[0][0]*nodal_dofs
-                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(RightModes[offset:offset+nodal_dofs, :]) ) # ROM basis
+                    offset = np.where(node_ids == node.Id)[0][0]*nodal_dofs
+                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :]) ) # ROM basis
                     if (self.solving_strategy == "petrov_galerkin"):
-                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(LeftModes[offset:offset+nodal_dofs, :]) ) # ROM basis
+                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :]) ) # ROM basis
 
             # Check for HROM stages
             if self.train_hrom:
@@ -173,11 +173,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     weights_matrix = np.load("WeightsMatrix.npy")
                     elements_vector = np.load("ElementsVector.npy")
                     original_number_of_elements = self.rom_parameters["hrom_settings"]["original_number_of_elements"].GetInt()
-                    for i in range(WeightsMatrix.shape[0]):
-                        if ElementsVector[i] < OriginalNumberOfElements:
-                            computing_model_part.GetElement(int( ElementsVector[i])+1).SetValue(KratosROM.HROM_WEIGHT, WeightsMatrix[i]  ) #FIXME: FIX THE +1
+                    for i in range(weights_matrix.shape[0]):
+                        if elements_vector[i] < original_number_of_elements:
+                            computing_model_part.GetElement(int( elements_vector[i])+1).SetValue(KratosROM.HROM_WEIGHT, weights_matrix[i]  ) #FIXME: FIX THE +1
                         else:
-                            computing_model_part.GetCondition(int( ElementsVector[i] - OriginalNumberOfElements)+1).SetValue(KratosROM.HROM_WEIGHT, WeightsMatrix[i]  ) #FIXME: FIX THE +1
+                            computing_model_part.GetCondition(int( elements_vector[i] - original_number_of_elements)+1).SetValue(KratosROM.HROM_WEIGHT, weights_matrix[i]  ) #FIXME: FIX THE +1
 
 
             # Check and Initialize Petrov Galerkin Training stage
