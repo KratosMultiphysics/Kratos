@@ -1,6 +1,7 @@
+from abc import ABC, abstractmethod
 import KratosMultiphysics as Kratos
 
-class ResponseFunction:
+class ResponseFunction(ABC):
     def Initialize(self) -> None:
         pass
 
@@ -13,14 +14,18 @@ class ResponseFunction:
     def Finalize(self) -> None:
         pass
 
+    @abstractmethod
     def Check(self):
-        raise NotImplementedError("Calling base class ResponseFunction::Check method. Please implement in the derived class.")
+        pass
 
+    @abstractmethod
     def CalculateValue(self) -> float:
-        raise NotImplementedError("Calling base class ResponseFunction::CalculateValue method. Please implement in the derived class.")
+        pass
 
+    @abstractmethod
     def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart):
-        raise NotImplementedError("Calling base class ResponseFunction::CalculateSensitivity method. Please implement in the derived class.")
+        pass
 
+    @abstractmethod
     def GetModelPart(self) -> Kratos.ModelPart:
-        raise NotImplementedError("Calling base class ResponseFunction::GetModelPart method. Please implement in the derived class.")
+        pass
