@@ -338,7 +338,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         ;
 
-    //embeded skin utilities
+    //embedded skin utilities
     py::class_< EmbeddedSkinUtility < 2 > >(m,"EmbeddedSkinUtility2D")
         .def(py::init< ModelPart&, ModelPart&, const std::string >())
         .def("GenerateSkin", &EmbeddedSkinUtility < 2 > ::GenerateSkin)

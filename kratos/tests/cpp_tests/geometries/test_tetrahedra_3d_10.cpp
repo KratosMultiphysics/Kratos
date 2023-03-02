@@ -94,10 +94,6 @@ namespace{
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MaxEdgeLength(), "Calling base class 'MaxEdgeLength' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageEdgeLength, KratosCoreGeometriesFastSuite) {
-    auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->AverageEdgeLength(), "Calling base class 'AverageEdgeLength' method instead of derived class one.");
-  }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Circumradius, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
@@ -165,6 +161,28 @@ namespace{
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     TestAllShapeFunctionsLocalGradients(*geom);
+  }
+
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageEdgeLength, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateReferenceTetrahedra3D10();
+    KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.20710678119, 1e-7);
+  }
+
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10HasIntersection, KratosCoreGeometriesFastSuite) {
+    const Point LowPoint(0.1,0.1,-0.1);
+    const Point HighPoint(0.1,0.1,1.1);
+    
+    const Point OutLowPoint(1.1,0.1,-0.1);
+    const Point OutHighPoint(1.1,0.1,1.1);
+
+    auto geom = GenerateReferenceTetrahedra3D10();
+    KRATOS_CHECK(geom->HasIntersection(LowPoint, HighPoint));
+    KRATOS_CHECK_IS_FALSE(geom->HasIntersection(OutLowPoint, OutHighPoint));
+
+    auto curved_geom = GenerateCurvedTetrahedra3D10();
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+      curved_geom->HasIntersection(LowPoint, HighPoint),
+      "\"HasIntersection\" is not implemented for non-planar 10 noded tetrahedra.");
   }
 
 } // namespace Testing.

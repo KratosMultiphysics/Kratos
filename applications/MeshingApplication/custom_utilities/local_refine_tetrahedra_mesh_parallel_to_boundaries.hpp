@@ -54,9 +54,7 @@ public:
 
     /// Default constructors
     explicit LocalRefineTetrahedraMeshParallelToBoundaries(ModelPart& rModelPart)
-     : LocalRefineTetrahedraMesh(rModelPart),
-       mPreviousRefinementLevel(0),
-       mCurrentRefinementLevel(0)
+     : LocalRefineTetrahedraMesh(rModelPart)
     {
     }
 
@@ -74,51 +72,9 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_ERROR_IF(RefineOnReference && !mModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)) << "Missing DISPLACEMENT variable on solution step data." ;
-
-        compressed_matrix<int> Coord;                                              // The matrix that stores all the index of the geometry
-        std::vector<int> List_New_Nodes;                         // The news nodes
-        std::vector<array_1d<int, 2 > > Position_Node;           // Edges where are the news nodes
-        std::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
-
-        PointerVector< Element > New_Elements;
-        New_Elements.reserve(20);
-
-        // Initial renumber of nodes and elemetns
-        //TODO : DIFFERENCE WITH BASE CLASS 1
-        mPreviousRefinementLevel=0;
-        unsigned int id = 1;
-        for (auto it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); ++it) {
-            it->SetId(id++);
-            int node_refinement_level = it->GetValue(REFINEMENT_LEVEL);
-            if(node_refinement_level>mPreviousRefinementLevel) {
-                mPreviousRefinementLevel=node_refinement_level;
-            }
-        }
-        mCurrentRefinementLevel = mPreviousRefinementLevel+1;
-
-        IndexPartition<std::size_t>(mModelPart.NumberOfElements()).for_each([&](std::size_t index){
-            auto it_elem = mModelPart.ElementsBegin() + index;
-            it_elem->SetId(index+1);
-        });
-
-        IndexPartition<std::size_t>(mModelPart.NumberOfConditions()).for_each([&](std::size_t index){
-            auto it_cond = mModelPart.ConditionsBegin() + index;
-            it_cond->SetId(index+1);
-        });
-
-        if (RefineOnReference) {
-            VariableUtils().UpdateCurrentToInitialConfiguration(mModelPart.Nodes());
-        }
-
-        this->ResetFatherNodes(mModelPart); 
-
-        //TODO : DIFFERENCE WITH BASE CLASS 2
         //using the conditions to mark the boundary with the flag boundary
         //note that we DO NOT add the conditions to the model part
-        // we also temporarily substract -100 to be able to spot the new ones:
         block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
-            rNode.GetValue(REFINEMENT_LEVEL)-=100;
             rNode.Set(BOUNDARY,false);
         });
 
@@ -131,37 +87,8 @@ public:
             } 
         });
 
-        /* Calling all the functions necessaries to refine the mesh */
-        CSRRowMatrix(mModelPart, Coord);
+        LocalRefineGeometryMesh::LocalRefineMesh(RefineOnReference,InterpolateInternalVariables);
 
-        SearchEdgeToBeRefined(mModelPart, Coord);
-
-        CreateListOfNewNodes(mModelPart, Coord, List_New_Nodes, Position_Node);
-
-        CalculateCoordinateAndInsertNewNodes(mModelPart, Position_Node, List_New_Nodes);
-
-        EraseOldElementAndCreateNewElement(mModelPart, Coord, New_Elements, InterpolateInternalVariables);
-
-        EraseOldConditionsAndCreateNew(mModelPart, Coord);
-
-        RenumeringElementsAndNodes(mModelPart, New_Elements);
-
-        //TODO : DIFFERENCE WITH BASE CLASS 3. fixing refinement level on new and old nodes:
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
-            if(!rNode.Has(REFINEMENT_LEVEL)){
-                rNode.SetValue(REFINEMENT_LEVEL,mCurrentRefinementLevel);
-            }
-            else{
-                rNode.GetValue(REFINEMENT_LEVEL)+=100;
-            }
-        });
-        
-        
-        if (RefineOnReference) {
-            VariableUtils().UpdateCurrentPosition(mModelPart.Nodes(),DISPLACEMENT,0);
-        }
-
-        UpdateSubModelPartNodes(mModelPart);
 
         KRATOS_CATCH("");
     }
@@ -262,8 +189,6 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    int mPreviousRefinementLevel;
-    int mCurrentRefinementLevel;
     ///@}
     ///@name Protected member Variables
     ///@{

@@ -664,8 +664,7 @@ namespace Kratos
 
         // Compute the domain characteristic length
         typedef CombinedReduction<MaxReduction<double>,MaxReduction<double>,MaxReduction<double>,MinReduction<double>,MinReduction<double>,MinReduction<double>> CustomReduction;
-        double max_x, max_y, max_z, min_x, min_y, min_z;
-        std::tie(max_x,max_y,max_z,min_x,min_y,min_z) = block_for_each<CustomReduction>(r_model_part.Nodes(),[](const Node<3>& rNode){
+        auto [max_x,max_y,max_z,min_x,min_y,min_z] = block_for_each<CustomReduction>(r_model_part.Nodes(),[](const Node<3>& rNode){
             return std::make_tuple(rNode[0],rNode[1],rNode[2],rNode[0],rNode[1],rNode[2]);}
         );
         auto max_vector = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(std::vector<double>{max_x, max_y, max_z});

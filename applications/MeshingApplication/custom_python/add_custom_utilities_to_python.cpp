@@ -24,6 +24,7 @@
 #include "custom_utilities/projection.h"
 #include "custom_utilities/binbased_projection.h"
 #include "custom_utilities/local_refine_triangle_mesh.hpp"
+#include "custom_utilities/local_refine_triangle_mesh_conditions.hpp"
 #include "custom_utilities/local_refine_prism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
@@ -97,6 +98,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     (m,"LocalRefineTriangleMesh")
     .def(py::init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineTriangleMesh::LocalRefineMesh)
+    ;
+
+    py::class_<LocalRefineTriangleMeshConditions >
+    (m,"LocalRefineTriangleMeshConditions")
+    .def(py::init<ModelPart&>())
+    .def("LocalRefineMesh", &LocalRefineTriangleMeshConditions::LocalRefineMesh)
     ;
 
     py::class_<LocalRefinePrismMesh >
