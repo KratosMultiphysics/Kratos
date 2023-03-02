@@ -63,6 +63,8 @@ public:
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
 
+    void GetValuesVector(Vector& rValues, int Step) const override;
+
    void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
