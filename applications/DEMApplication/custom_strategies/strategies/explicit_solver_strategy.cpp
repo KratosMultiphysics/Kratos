@@ -1871,7 +1871,7 @@ namespace Kratos {
         mRVE_CauchyTensorInner  = ZeroMatrix(dim,dim);
         mRVE_TangentTensor      = ZeroMatrix(dim2,dim2);
         mRVE_TangentTensorInner = ZeroMatrix(dim2,dim2);
-        mRVE_SkinParticles.clear();
+        mRVE_InnerVolParticles.clear();
         mRVE_ForceChain.clear();
       }
     }
@@ -1927,9 +1927,12 @@ namespace Kratos {
           mRVE_FabricTensorInner  += p_particle->mFabricTensorInner;
           mRVE_CauchyTensorInner  += p_particle->mCauchyTensorInner;
           mRVE_TangentTensorInner += p_particle->mTangentTensorInner;
+          if (p_particle->mNeighbourElements.size() > 0) {
+            mRVE_InnerVolParticles.push_back(p_particle);
+          }
         }
         else if (p_particle->mSkin) {
-          mRVE_SkinParticles.push_back(p_particle);
+          mRVE_InnerVolParticles.push_back(p_particle);
         }
       }
       else {
@@ -2272,7 +2275,7 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     double ExplicitSolverStrategy::RVEComputeInnerVolume(void) {
-      const int num_particles = mRVE_SkinParticles.size();
+      const int num_particles = mRVE_InnerVolParticles.size();
       if (!mRVE_FlatWalls || num_particles < 3)
         return mRVE_VolTotal;
       
@@ -2288,7 +2291,7 @@ namespace Kratos {
       in.pointlist = (double*)malloc(sizeof(double) * in.numberofpoints * 2);
 
       for (int i = 0; i < in.numberofpoints; i++) {
-        array_1d<double,3> coords = mRVE_SkinParticles[i]->GetGeometry()[0].Coordinates();
+        array_1d<double,3> coords = mRVE_InnerVolParticles[i]->GetGeometry()[0].Coordinates();
         in.pointlist[2 * i + 0] = coords[0];
         in.pointlist[2 * i + 1] = coords[1];
       }

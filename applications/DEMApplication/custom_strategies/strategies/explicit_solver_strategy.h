@@ -339,7 +339,7 @@ namespace Kratos {
         std::vector<DEMWall*> mRVE_WallZMin; // Vector of RVE flat walls in negative Z direction
         std::vector<DEMWall*> mRVE_WallZMax; // Vector of RVE flat walls in positive Z direction
 
-        std::vector<SphericParticle*> mRVE_SkinParticles; // Vector of skin particles (particles in contact with walls and inner particles)
+        std::vector<SphericParticle*> mRVE_InnerVolParticles; // Vector of particles composing the inner volume
 
         std::vector<SphericParticle*> mRVE_WallParticleXMin; // Vector of RVE particle walls in negative X direction
         std::vector<SphericParticle*> mRVE_WallParticleXMax; // Vector of RVE particle walls in positive X direction
