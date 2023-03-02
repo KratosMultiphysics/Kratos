@@ -58,7 +58,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Set the ROM basis output settings
         self.rom_basis_output_format = settings["rom_basis_output_format"].GetString()
-        if not self.rom_basis_output_format == "json" and not self.rom_basis_output_format == "numpy" :
+        rom_basis_output_available_formats = ["json", "numpy"]
+        if self.rom_basis_output_format not in rom_basis_output_available_formats:
             err_msg = "Provided \'rom_basis_output_format\' is {}. Available options are \'json\' and \'numpy\'.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
 
