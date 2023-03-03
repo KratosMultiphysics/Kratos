@@ -130,14 +130,17 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
             // calculate the reference value
             rElement.CalculateRightHandSide(r_ref_rhs, r_process_info);
 
+            // initialize dummy element for parallelized perturbation based sensitivity calculation
+            // in each thread seperately
             if (!p_element) {
 
                 std::stringstream name;
                 const int thread_id = OpenMPUtils::ThisThread();
                 name << rModelPart.Name() << "_temp_" << thread_id;
                 GeometryType::PointsArrayType nodes;
-                #pragma omp critical
                 {
+                    KRATOS_CRITICAL_SECTION
+
                     model_part_names.push_back(name.str());
                     auto& tls_model_part = rModelPart.CreateSubModelPart(name.str());
 
@@ -207,7 +210,14 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
             r_node.Set(TO_ERASE, true);
         }
     }
+
+    // remove temporary nodes
     rModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+
+    // remove temporary model parts
+    for (const auto& r_model_part_name : model_part_names) {
+        rModelPart.RemoveSubModelPart(r_model_part_name);
+    }
 
     // Assemble nodal result
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputSensitivityVariable);
