@@ -196,8 +196,6 @@ class HRomTrainingUtility(object):
                 hrom_weights["Elements"][parent_id] = 0.0
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
-
-
         if self.hrom_output_format=="numpy":
             element_indexes = np.where( indexes < number_of_elements )[0]
             condition_indexes = np.where( indexes >= number_of_elements )[0]
