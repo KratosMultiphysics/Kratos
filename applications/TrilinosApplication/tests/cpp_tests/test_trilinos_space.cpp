@@ -202,7 +202,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMultMatrixMatrix, KratosTrilinosAp
 
     // Check
     const TrilinosLocalMatrixType multiply_reference = prod(local_matrix_1, local_matrix_2);
-    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference, r_comm);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTransposeMultMatrixVector, KratosTrilinosApplicationMPITestSuite)
@@ -263,7 +263,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTransposeMultMatrixMatrix, KratosT
 
     // Check
     const TrilinosLocalMatrixType multiply_reference = prod(trans(local_matrix_1), local_matrix_2);
-    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference, r_comm);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilinosApplicationMPITestSuite)
@@ -482,7 +482,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSetToZeroMatrix, KratosTrilinosApp
     TrilinosSparseSpaceType::SetToZero(matrix);
 
     // Check
-    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix, r_comm);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSetToZeroVector, KratosTrilinosApplicationMPITestSuite)
