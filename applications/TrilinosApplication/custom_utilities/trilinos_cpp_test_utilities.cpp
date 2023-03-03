@@ -372,7 +372,12 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     // Create an integer vector NumNz that is used to build the EPetra Matrix.
     const int size_global_vector = rRowIndexes.size();
     std::vector<int> NumNz(NumMyElements, 0);
-    int current_row_index = 0;
+    int current_row_index;
+    for (current_row_index=0; current_row_index<size_global_vector; ++current_row_index) {
+        if (MyGlobalElements[0] == rRowIndexes[current_row_index]) {
+            break;
+        }
+    }
     int current_id = rRowIndexes[current_row_index];
     int nnz = 0;
     int initial_index, end_index;
