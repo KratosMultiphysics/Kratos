@@ -25,6 +25,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
+#include "optimization_application_variables.h"
 
 // Include base h
 #include "linear_strain_energy_response_utils.h"
@@ -32,7 +33,7 @@
 namespace Kratos
 {
 
-double LinearStrainEnergyResponseUtils::CalculateStrainEnergy(ModelPart& rModelPart)
+double LinearStrainEnergyResponseUtils::CalculateValue(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -55,6 +56,42 @@ double LinearStrainEnergyResponseUtils::CalculateStrainEnergy(ModelPart& rModelP
     });
 
     return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_value);
+
+    KRATOS_CATCH("");
+}
+
+template<class TDataType>
+void LinearStrainEnergyResponseUtils::CalculateSensitivity(
+    ModelPart& rSensitivityModelPart,
+    const double PerturbationSize,
+    const Variable<TDataType>& rSensitivityVariable)
+{
+    KRATOS_TRY
+
+    std::stringstream error_msg;
+
+    error_msg << "Unsupported sensitivity w.r.t. " << rSensitivityVariable.Name()
+              << " requested for " << rSensitivityModelPart.FullName()
+              << ". Followings are supported variables:"
+              << "\n\tSHAPE_SENSITIVITY"
+              << "\n\tYOUNG_MODULUS_SENSITIVITY"
+              << "\n\tPOISSON_RATIO_SENSITIVITY";
+
+    if constexpr (std::is_same_v<TDataType, double>) {
+        if (rSensitivityVariable == YOUNG_MODULUS_SENSITIVITY) {
+            CalculateStrainEnergyYoungModulusSensitivity(rSensitivityModelPart, YOUNG_MODULUS_SENSITIVITY);
+        } else if (rSensitivityVariable == POISSON_RATIO_SENSITIVITY) {
+            CalculateStrainEnergyNonLinearSensitivity(rSensitivityModelPart, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+        } else {
+            KRATOS_ERROR << error_msg.str();
+        }
+    } else if constexpr (std::is_same_v<TDataType, array_1d<double, 3>>) {
+        if (rSensitivityVariable == SHAPE_SENSITIVITY) {
+            CalculateStrainEnergyShapeSensitivity(rSensitivityModelPart, PerturbationSize, SHAPE_SENSITIVITY);
+        } else {
+            KRATOS_ERROR << error_msg.str();
+        }
+    }
 
     KRATOS_CATCH("");
 }
@@ -255,5 +292,9 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyNonLinearSensitivity(
 
     KRATOS_CATCH("");
 }
+
+// template instantiations
+template void LinearStrainEnergyResponseUtils::CalculateSensitivity(ModelPart&, const double, const Variable<double>&);
+template void LinearStrainEnergyResponseUtils::CalculateSensitivity(ModelPart&, const double, const Variable<array_1d<double, 3>>&);
 
 }

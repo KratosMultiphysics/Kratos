@@ -38,10 +38,9 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<LinearStrainEnergyResponseUtils >(m, "LinearStrainEnergyResponseUtils")
-        .def_static("CalculateStrainEnergy", &LinearStrainEnergyResponseUtils::CalculateStrainEnergy)
-        .def_static("CalculateStrainEnergyShapeSensitivity", &LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity)
-        .def_static("CalculateStrainEnergyYoungModulusSensitivity", &LinearStrainEnergyResponseUtils::CalculateStrainEnergyYoungModulusSensitivity)
-        .def_static("CalculateStrainEnergyNonLinearSensitivity", &LinearStrainEnergyResponseUtils::CalculateStrainEnergyNonLinearSensitivity)
+        .def_static("CalculateValue", &LinearStrainEnergyResponseUtils::CalculateValue)
+        .def_static("CalculateSensitivity", &LinearStrainEnergyResponseUtils::CalculateSensitivity<double>)
+        .def_static("CalculateSensitivity", &LinearStrainEnergyResponseUtils::CalculateSensitivity<array_1d<double, 3>>)
         ;
 
 }
