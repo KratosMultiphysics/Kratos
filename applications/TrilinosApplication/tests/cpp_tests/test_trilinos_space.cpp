@@ -305,7 +305,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilin
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(second_mult, multiply_reference);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperationRealCase, KratosTrilinosApplicationMPITestSuite3)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperationRealCase, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -345,17 +345,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperationRealCase, Krat
     // Check
     TrilinosCPPTestUtilities::CheckSparseMatrix(aux, row_indexes, column_indexes, values);
 
-    // // Compute T' A T
-    // const TrilinosSparseMatrixType copy_A(A);
-    // TrilinosSparseSpaceType::BtDBProductOperation(A, copy_A, T, true, false, true);
+    // Compute T' A T
+    const TrilinosSparseMatrixType copy_A(A);
+    TrilinosSparseSpaceType::BtDBProductOperation(A, copy_A, T, true, false, true);
 
-    // // Values to check
-    // row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
-    // column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
-    // values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    // Values to check
+    row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
+    column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
+    values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-    // // Check
-    // TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
+    // Check
+    TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilinosApplicationMPITestSuite)
