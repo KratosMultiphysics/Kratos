@@ -210,6 +210,8 @@ class HRomTrainingUtility(object):
             with open('RomParameters.json','r') as f:
                 updated_rom_parameters = json.load(f)
                 updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
+            with open('RomParameters.json','w') as f:
+                json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
