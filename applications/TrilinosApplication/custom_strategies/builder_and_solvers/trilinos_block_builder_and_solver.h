@@ -1143,21 +1143,21 @@ protected:
             const int num_global_elements = BaseType::mEquationSystemSize;
             Epetra_Map map(num_global_elements, 0, mrComm);
 
+            // Local number of rows
+            const int local_number_of_elements = map.NumMyElements();
+
             // Create and fill the graph of the matrix
-            std::vector<int> row_nnz(BaseType::mEquationSystemSize, 0);
+            std::vector<int> global_row_nnz(BaseType::mEquationSystemSize, 0);
+            std::vector<int> local_row_nnz(local_number_of_elements, 0);
             for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
                 auto& r_row_index = indices[i];
-                row_nnz[mFirstMyId + i] = r_row_index.size();
-            }
-
-            // Get data communicator
-            auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-            for (auto& nnz : row_nnz) {
-                nnz = r_data_comm.SumAll(nnz);
+                const std::size_t number_of_row_nnz = r_row_index.size();
+                global_row_nnz[mFirstMyId + i] = number_of_row_nnz;
+                local_row_nnz[i] = number_of_row_nnz;
             }
 
             // Generate a new matrix pointer according to this non-zero values
-            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, map, row_nnz.data()));
+            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, map, local_row_nnz.data()));
 
             // Generate the structure
             for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
@@ -1174,8 +1174,8 @@ protected:
             }
 
             // Finalizing graph construction
-            const int ierr = p_new_T->GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in CsrMatrix.GlobalAssemble. Error code: " << ierr << std::endl;
+            const int ierr = p_new_T->FillComplete();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in CsrMatrix.FillComplete. Error code: " << ierr << std::endl;
 
             // Swap matrix
             mpT.swap(p_new_T);
@@ -1184,8 +1184,14 @@ protected:
             TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(map));
             mpConstantVector.swap(p_new_constant_vector);
 
+            // Get data communicator
+            auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+            for (auto& r_nnz : global_row_nnz) {
+                r_nnz = r_data_comm.SumAll(r_nnz);
+            }
+
             // Count the row sizes
-            const int nnz = block_for_each<SumReduction<int>>(row_nnz, [](auto nnz) {return nnz;});
+            const int nnz = block_for_each<SumReduction<int>>(global_row_nnz, [](auto nnz) {return nnz;});
             KRATOS_ERROR_IF_NOT(mpT->NumGlobalNonzeros() == nnz) << "Relation matrix not properly constructed, the number of non-zeros does not coincide with the expected one " << nnz << " vs " << mpT->NumGlobalNonzeros() << std::endl;
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
