@@ -82,7 +82,7 @@ void DepthIntegrationProcess<TDim>::Execute()
             results.resize(max_results);
         }
     };
-
+    // If you do an integral, why you are doing this for all nodes of the interface? AMontanino87
     block_for_each(mrInterfaceModelPart.Nodes(), locator_tls(), [&](NodeType& rNode, locator_tls& rTLS){
         Integrate(rNode, bottom, top, locator, rTLS.results, rTLS.N);
     });
