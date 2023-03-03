@@ -94,11 +94,15 @@ class HRomTrainingUtility(object):
         aux_model = KratosMultiphysics.Model()
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
+        if  self.hrom_output_format == "numpy":
+            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
+        elif self.hrom_output_format == "json":
+            with open('RomParameters.json','r') as f:
+                rom_parameters = KratosMultiphysics.Parameters(f.read())
+                hrom_info = rom_parameters["elements_and_weights"]
+
         # Get the weights and fill the HROM computing model part
-        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(
-            KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights())),
-            computing_model_part,
-            hrom_main_model_part)
+        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
