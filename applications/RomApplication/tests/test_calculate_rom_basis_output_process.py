@@ -33,6 +33,7 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
             "snapshots_interval": 1.0,
             "nodal_unknowns": ["TEMPERATURE"],
             "rom_basis_output_format": "json",
+            "rom_basis_output_name": "RomParameters",
             "svd_truncation_tolerance": 1.0e-6
         }""")
 
