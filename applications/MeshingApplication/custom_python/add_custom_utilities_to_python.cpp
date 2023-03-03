@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -44,10 +44,7 @@
     #include "external_includes/pragmatic_adapt_3d.h"
 #endif
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -180,8 +177,5 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("DeleteCutData", &Cutting_Isosurface_Application::DeleteCutData)
     ;
 
-
 }
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

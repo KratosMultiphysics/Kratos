@@ -13,8 +13,7 @@
 //  Co-authors:      Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH)
-#define  KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH
+#pragma once
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -789,5 +788,3 @@ private:
 };
 
 } // namespace Kratos.
-
-#endif // KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH  defined

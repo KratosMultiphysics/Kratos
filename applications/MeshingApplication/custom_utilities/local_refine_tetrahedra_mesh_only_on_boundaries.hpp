@@ -22,9 +22,8 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
-// Applicaion includes
+// Application includes
 #include "custom_utilities/local_refine_tetrahedra_mesh_parallel_to_boundaries.hpp"
-
 
 namespace Kratos
 {
@@ -62,11 +61,10 @@ public:
     ~LocalRefineTetrahedraMeshOnlyOnBoundaries() //TODO maybe {}
     = default;
 
-
     void SearchEdgeToBeRefined(
-            ModelPart& rThisModelPart,
-            compressed_matrix<int>& rCoord
-    ) override
+        ModelPart& rThisModelPart,
+        compressed_matrix<int>& rCoord
+        ) override
     {
         KRATOS_TRY;
         for (auto& r_elem: rThisModelPart.Elements()) {
