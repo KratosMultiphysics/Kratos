@@ -25,12 +25,6 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim,TNumNodes>::Create(IndexType
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-/// <summary>
-/// Calculates LHS stiffness part of absorbing boundary
-/// </summary>
-/// <param name="rLhsMatrix"></param>
-/// <param name="rRightHandSideVector"></param>
-/// <param name="CurrentProcessInfo"></param>
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -48,56 +42,55 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMatrix(BoundedMatrix<double, N_DOF, N_DOF>& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     //Previous definitions
-    GeometryType& rGeom = this->GetGeometry();
+    GeometryType& r_geom = this->GetGeometry();
 
-    GeometryData::IntegrationMethod rIntegrationMethod = this->mThisIntegrationMethod;
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(rIntegrationMethod);
-    const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim = rGeom.LocalSpaceDimension();
+    GeometryData::IntegrationMethod integration_method = this->mThisIntegrationMethod;
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
+    const unsigned int num_g_points = r_integration_points.size();
+    const unsigned int local_dim = r_geom.LocalSpaceDimension();
 
     //Containers of variables at all integration points
-    const Matrix& NContainer = rGeom.ShapeFunctionsValues(rIntegrationMethod);
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for (unsigned int i = 0; i < NumGPoints; ++i)
-        (JContainer[i]).resize(TDim, LocalDim, false);
-    rGeom.Jacobian(JContainer, rIntegrationMethod);
+    const Matrix& r_n_container = r_geom.ShapeFunctionsValues(integration_method);
+    GeometryType::JacobiansType j_container(num_g_points);
+    for (unsigned int i = 0; i < num_g_points; ++i)
+        j_container[i].resize(TDim, local_dim, false);
+    r_geom.Jacobian(j_container, integration_method);
 
     //Condition variables
-    BoundedMatrix<double, TDim, N_DOF> Nu = ZeroMatrix(TDim, N_DOF);
+    BoundedMatrix<double, TDim, N_DOF> nu_matrix = ZeroMatrix(TDim, N_DOF);
 
-    NormalLysmerAbsorbingVariables rVariables;
+    NormalLysmerAbsorbingVariables r_variables;
 
-    this->GetVariables(rVariables, rCurrentProcessInfo);
+    this->GetVariables(r_variables, rCurrentProcessInfo);
 
-
-    BoundedMatrix<double, TDim, N_DOF> AuxAbsKMatrix;
+    BoundedMatrix<double, TDim, N_DOF> aux_abs_k_matrix;
     rStiffnessMatrix = ZeroMatrix(N_DOF, N_DOF);
 
     //Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+    for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
 
         // calculate
-        rVariables.Ec = 0.0;
-        rVariables.G = 0.0;
-        for (unsigned int node = 0; node < rGeom.size(); ++node)
+        r_variables.Ec = 0.0;
+        r_variables.G = 0.0;
+        for (unsigned int node = 0; node < r_geom.size(); ++node)
         {
-            rVariables.Ec += NContainer(GPoint, node) * rVariables.EcNodes[node];
-            rVariables.G += NContainer(GPoint, node) * rVariables.GNodes[node];
+            r_variables.Ec += r_n_container(g_point, node) * r_variables.EcNodes[node];
+            r_variables.G += r_n_container(g_point, node) * r_variables.GNodes[node];
         }
 
-        this->CalculateNodalStiffnessMatrix(rVariables, rCurrentProcessInfo, rGeom);
+        this->CalculateNodalStiffnessMatrix(r_variables, r_geom);
 
         // calculate displacement shape function matrix
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu, NContainer, GPoint);
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(rVariables.IntegrationCoefficient,
-            JContainer[GPoint],
-            IntegrationPoints[GPoint].Weight());
+        this->CalculateIntegrationCoefficient(r_variables.IntegrationCoefficient,
+            j_container[g_point],
+            r_integration_points[g_point].Weight());
 
         // set stiffness part of absorbing matrix
-        AuxAbsKMatrix = prod(rVariables.KAbsMatrix, Nu);
-        rStiffnessMatrix += prod(trans(Nu), AuxAbsKMatrix) * rVariables.IntegrationCoefficient;
+        aux_abs_k_matrix = prod(r_variables.KAbsMatrix, nu_matrix);
+        rStiffnessMatrix += prod(trans(nu_matrix), aux_abs_k_matrix) * r_variables.IntegrationCoefficient;
     }
 }
 
@@ -116,72 +109,68 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector
     this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
 }
 
-/// <summary>
-/// Calculates LHS Damping part of abosrbing boundary
-/// </summary>
-/// <param name="rDampingMatrix"></param>
-/// <param name="CurrentProcessInfo"></param>
+
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& CurrentProcessInfo)
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 
     //Previous definitions
-    GeometryType& rGeom = this->GetGeometry();
+    GeometryType& r_geom = this->GetGeometry();
 
-    GeometryData::IntegrationMethod rIntegrationMethod = this->mThisIntegrationMethod;
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(rIntegrationMethod);
-    const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim = rGeom.LocalSpaceDimension();
+    GeometryData::IntegrationMethod r_integration_method = this->mThisIntegrationMethod;
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(r_integration_method);
+    const unsigned int num_g_points = r_integration_points.size();
+    const unsigned int local_dim = r_geom.LocalSpaceDimension();
 
     //Containers of variables at all integration points
-    const Matrix& NContainer = rGeom.ShapeFunctionsValues(rIntegrationMethod);
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for (unsigned int i = 0; i < NumGPoints; ++i)
-        (JContainer[i]).resize(TDim, LocalDim, false);
-    rGeom.Jacobian(JContainer, rIntegrationMethod);
+    const Matrix& r_n_container = r_geom.ShapeFunctionsValues(r_integration_method);
+    GeometryType::JacobiansType j_container(num_g_points);
+    for (unsigned int i = 0; i < num_g_points; ++i)
+        (j_container[i]).resize(TDim, local_dim, false);
+    r_geom.Jacobian(j_container, r_integration_method);
 
     //Condition variables
-    BoundedMatrix<double, TDim, N_DOF> Nu = ZeroMatrix(TDim, N_DOF);
+    BoundedMatrix<double, TDim, N_DOF> nu_matrix = ZeroMatrix(TDim, N_DOF);
 
-    NormalLysmerAbsorbingVariables rVariables;
-    this->GetVariables(rVariables, CurrentProcessInfo);
+    NormalLysmerAbsorbingVariables r_variables;
+    this->GetVariables(r_variables, rCurrentProcessInfo);
 
-    BoundedMatrix<double, TDim, N_DOF> AuxAbsMatrix;
-    BoundedMatrix<double, N_DOF, N_DOF> rAbsMatrix = ZeroMatrix(N_DOF, N_DOF);
+    BoundedMatrix<double, TDim, N_DOF> aux_abs_matrix;
+    BoundedMatrix<double, N_DOF, N_DOF> abs_matrix = ZeroMatrix(N_DOF, N_DOF);
 
     //Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+    for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
 
         // calculate
-        rVariables.rho = 0.0;
-        rVariables.Ec = 0.0;
-        rVariables.G = 0.0;
-        for (unsigned int node = 0; node < rGeom.size(); ++node)
+        r_variables.rho = 0.0;
+        r_variables.Ec = 0.0;
+        r_variables.G = 0.0;
+        for (unsigned int node = 0; node < r_geom.size(); ++node)
         {
-            rVariables.rho += NContainer(GPoint, node) * rVariables.rhoNodes[node];
-            rVariables.Ec += NContainer(GPoint, node) * rVariables.EcNodes[node];
-            rVariables.G += NContainer(GPoint, node) * rVariables.GNodes[node];
+            r_variables.rho += r_n_container(g_point, node) * r_variables.rhoNodes[node];
+            r_variables.Ec += r_n_container(g_point, node) * r_variables.EcNodes[node];
+            r_variables.G += r_n_container(g_point, node) * r_variables.GNodes[node];
         }
-        rVariables.vp = sqrt(rVariables.Ec / rVariables.rho);
-        rVariables.vs = sqrt(rVariables.G / rVariables.rho);
+        r_variables.vp = sqrt(r_variables.Ec / r_variables.rho);
+        r_variables.vs = sqrt(r_variables.G / r_variables.rho);
 
-        this->CalculateNodalDampingMatrix(rVariables, CurrentProcessInfo, rGeom);
+        this->CalculateNodalDampingMatrix(r_variables, r_geom);
 
         // calculate displacement shape function matrix
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu, NContainer, GPoint);
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(rVariables.IntegrationCoefficient,
-            JContainer[GPoint],
-            IntegrationPoints[GPoint].Weight());
+        this->CalculateIntegrationCoefficient(r_variables.IntegrationCoefficient,
+            j_container[g_point],
+            r_integration_points[g_point].Weight());
 
         // set damping part of absorbing matrix
-        AuxAbsMatrix = prod(rVariables.CAbsMatrix, Nu);
-        rAbsMatrix += prod(trans(Nu), AuxAbsMatrix) * rVariables.IntegrationCoefficient;
+        aux_abs_matrix = prod(r_variables.CAbsMatrix, nu_matrix);
+        abs_matrix += prod(trans(nu_matrix), aux_abs_matrix) * r_variables.IntegrationCoefficient;
     }
 
     // assemble left hand side vector
-    this->AddLHS(rDampingMatrix, rAbsMatrix);
+    this->AddLHS(rDampingMatrix, abs_matrix);
 }
 
 //----------------------------------------------------------------------------------------
@@ -223,35 +212,31 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValu
     KRATOS_CATCH("")
 }
 
-/// <summary>
-/// Gets the velocity vector of the absorbing boundary
-/// </summary>
-/// <param name="rValues"></param>
-/// <param name="Step"></param>
+
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& r_geom = this->GetGeometry();
 
     if (rValues.size() != CONDITION_SIZE)
         rValues.resize(CONDITION_SIZE, false);
 
-    if (TDim == 2) {
+    if constexpr(TDim == 2) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
             rValues[index++] = 0.0;
         }
     }
-    else if (TDim == 3) {
+    else if constexpr (TDim == 3) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
+            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
             rValues[index++] = 0.0;
         }
     }
@@ -262,80 +247,70 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vec
     KRATOS_CATCH("")
 }
 
-/// <summary>
-/// Calculates the damping constant in all directions 
-/// </summary>
-/// <param name="rVariables"></param>
-/// <param name="CurrentProcessInfo"></param>
-/// <param name="Geom"></param>
+
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom)
+CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const Element::GeometryType& rGeom)
 {
-    array_1d<double, 2> dampingConstants;
+    array_1d<double, 2> damping_constants;
 
     // calculate rotation matrix
-    BoundedMatrix<double, TDim, TDim> rotationMatrix;
-    CalculateRotationMatrix(rotationMatrix, Geom);
+    BoundedMatrix<double, TDim, TDim> rotation_matrix;
+    CalculateRotationMatrix(rotation_matrix, rGeom);
 
     const int local_perpendicular_direction = TDim - 1;
 
     // calculate constant traction vector part
-    dampingConstants[0] = rVariables.vs * rVariables.rho * rVariables.s_factor;
-    dampingConstants[1] = rVariables.vp * rVariables.rho * rVariables.p_factor;
+    damping_constants[0] = rVariables.vs * rVariables.rho * rVariables.s_factor;
+    damping_constants[1] = rVariables.vp * rVariables.rho * rVariables.p_factor;
 
-    BoundedMatrix<double, TDim, TDim> localCMatrix = ZeroMatrix(TDim, TDim);
-    BoundedMatrix<double, TDim, TDim> auxLocalCMatrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> local_c_matrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> aux_local_c_matrix = ZeroMatrix(TDim, TDim);
 
     rVariables.CAbsMatrix = ZeroMatrix(TDim, TDim);
 
     for (unsigned int idim = 0; idim < TDim; ++idim) {
-        localCMatrix(idim, idim) = dampingConstants[0];
+        local_c_matrix(idim, idim) = damping_constants[0];
     }
-    localCMatrix(local_perpendicular_direction, local_perpendicular_direction) = dampingConstants[1];
+    local_c_matrix(local_perpendicular_direction, local_perpendicular_direction) = damping_constants[1];
 
-    auxLocalCMatrix = prod(localCMatrix, rotationMatrix);
-    rVariables.CAbsMatrix = prod(trans(rotationMatrix), auxLocalCMatrix);
+    aux_local_c_matrix = prod(local_c_matrix, rotation_matrix);
+    rVariables.CAbsMatrix = prod(trans(rotation_matrix), aux_local_c_matrix);
 
     for (unsigned int idim = 0; idim < TDim; ++idim) {
             rVariables.CAbsMatrix(idim, idim) = abs(rVariables.CAbsMatrix(idim, idim));
     }
 }
 
-/// <summary>
-/// Calculates the stiffness constants in all directions
-/// </summary>
-/// <param name="rVariables"></param>
-/// <param name="CurrentProcessInfo"></param>
-/// <param name="Geom"></param>
+
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom)
+CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const Element::GeometryType& rGeom)
 {
-    array_1d<double, 2> stiffnessConstants;
+    array_1d<double, 2> stiffness_constants;
 
     // calculate rotation matrix
-    BoundedMatrix<double, TDim, TDim> rotationMatrix;
-    CalculateRotationMatrix(rotationMatrix, Geom);
+    BoundedMatrix<double, TDim, TDim> rotation_matrix;
+    CalculateRotationMatrix(rotation_matrix, rGeom);
 
     const int local_perpendicular_direction = TDim - 1;
 
     // calculate constant traction vector part
-    stiffnessConstants[0] = rVariables.G / rVariables.virtual_thickness;
-    stiffnessConstants[1] = rVariables.Ec / rVariables.virtual_thickness;
+    stiffness_constants[0] = rVariables.G / rVariables.virtual_thickness;
+    stiffness_constants[1] = rVariables.Ec / rVariables.virtual_thickness;
 
-    BoundedMatrix<double, TDim, TDim> localKMatrix = ZeroMatrix(TDim, TDim);
-    BoundedMatrix<double, TDim, TDim> auxLocalKMatrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> local_k_matrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> aux_local_k_matrix = ZeroMatrix(TDim, TDim);
 
     rVariables.KAbsMatrix = ZeroMatrix(TDim, TDim);
 
     for (unsigned int idim = 0; idim < TDim; ++idim) {
-        localKMatrix(idim, idim) = stiffnessConstants[0];
+        local_k_matrix(idim, idim) = stiffness_constants[0];
     }
-    localKMatrix(local_perpendicular_direction, local_perpendicular_direction) = stiffnessConstants[1];
+    local_k_matrix(local_perpendicular_direction, local_perpendicular_direction) = stiffness_constants[1];
 
-    auxLocalKMatrix = prod(localKMatrix, rotationMatrix);
-    rVariables.KAbsMatrix = prod(trans(rotationMatrix), auxLocalKMatrix);
+    aux_local_k_matrix = prod(local_k_matrix, rotation_matrix);
+    rVariables.KAbsMatrix = prod(trans(rotation_matrix), aux_local_k_matrix);
 
     for (unsigned int idim = 0; idim < TDim; ++idim) {
         rVariables.KAbsMatrix(idim, idim) = abs(rVariables.KAbsMatrix(idim, idim));
@@ -345,59 +320,59 @@ CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const 
 /// <summary>
 /// Calculates the extrapolation matrix for neighbour elements. Values from integration points are extrapolated to the nodes
 /// </summary>
-/// <param name="NeighbourElement"></param>
+/// <param name="rNeighbourElement"></param>
 /// <returns></returns>
 template< unsigned int TDim, unsigned int TNumNodes >
-Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatrixNeighbour(const Element& NeighbourElement)
+Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement)
 {
-    const GeometryData::IntegrationMethod rIntegrationMethodNeighbour = NeighbourElement.GetIntegrationMethod();
-    const GeometryType& rNeighbourGeom = NeighbourElement.GetGeometry();
-    const IndexType rNumNodesNeighbour = rNeighbourGeom.size();
-    const IndexType NumGPointsNeighbour = rNeighbourGeom.IntegrationPointsNumber(rIntegrationMethodNeighbour);
+    const GeometryData::IntegrationMethod integration_method_neighbour = rNeighbourElement.GetIntegrationMethod();
+    const GeometryType& r_neighbour_geom = rNeighbourElement.GetGeometry();
+    const IndexType r_num_nodes_neighbour = r_neighbour_geom.size();
+    const IndexType num_g_points_neighbour = r_neighbour_geom.IntegrationPointsNumber(integration_method_neighbour);
 
-    Matrix rExtrapolationMatrix = ZeroMatrix(rNumNodesNeighbour, NumGPointsNeighbour);
+    Matrix extrapolation_matrix = ZeroMatrix(r_num_nodes_neighbour, num_g_points_neighbour);
 
     // Calculate extrapolation matrix for 2d elements
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
-        if (rNumNodesNeighbour == 3)
+        if (r_num_nodes_neighbour == 3)
         {
-            GeoElementUtilities::CalculateExtrapolationMatrixTriangle(rExtrapolationMatrix, rIntegrationMethodNeighbour);
-            return rExtrapolationMatrix;
+            GeoElementUtilities::CalculateExtrapolationMatrixTriangle(extrapolation_matrix, integration_method_neighbour);
+            return extrapolation_matrix;
         }
-        if (rNumNodesNeighbour == 4)
+        if (r_num_nodes_neighbour == 4)
         {
-            GeoElementUtilities::CalculateExtrapolationMatrixQuad(rExtrapolationMatrix, rIntegrationMethodNeighbour);
-            return rExtrapolationMatrix;
+            GeoElementUtilities::CalculateExtrapolationMatrixQuad(extrapolation_matrix, integration_method_neighbour);
+            return extrapolation_matrix;
         }
        
     }
     // Calculate extrapolation matrix for 3d elements
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
-        if (rNumNodesNeighbour == 4)
+        if (r_num_nodes_neighbour == 4)
         {
-            GeoElementUtilities::CalculateExtrapolationMatrixTetra(rExtrapolationMatrix, rIntegrationMethodNeighbour);
-            return rExtrapolationMatrix;
+            GeoElementUtilities::CalculateExtrapolationMatrixTetra(extrapolation_matrix, integration_method_neighbour);
+            return extrapolation_matrix;
         }
-        if (rNumNodesNeighbour == 8)
+        if (r_num_nodes_neighbour == 8)
         {
-            GeoElementUtilities::CalculateExtrapolationMatrixHexa(rExtrapolationMatrix, rIntegrationMethodNeighbour);
-            return rExtrapolationMatrix;
+            GeoElementUtilities::CalculateExtrapolationMatrixHexa(extrapolation_matrix, integration_method_neighbour);
+            return extrapolation_matrix;
         }
 
     }
 
     // if no extrapolation matrix is implemented, take average values at gauss points
-    double averaging_factor = 1 / NumGPointsNeighbour;
-    for (unsigned int node = 0; node < rNumNodesNeighbour; ++node)
+    const double averaging_factor = 1 / num_g_points_neighbour;
+    for (unsigned int node = 0; node < r_num_nodes_neighbour; ++node)
     {
-        for (unsigned int GPoint = 0; GPoint < NumGPointsNeighbour; ++GPoint)
+        for (unsigned int g_point = 0; g_point < num_g_points_neighbour; ++g_point)
         {
-            rExtrapolationMatrix(node, GPoint) = averaging_factor;
+            extrapolation_matrix(node, g_point) = averaging_factor;
         }
     }
-    return rExtrapolationMatrix;
+    return extrapolation_matrix;
 }
 
 /// <summary>

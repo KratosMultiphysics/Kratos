@@ -63,11 +63,26 @@ public:
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
 
+    /**
+    * @brief Gets displacement vector at the condional nodes
+    * @param rValues displacement values
+    * @param Step buffer index, 0 is current time step; 1 is previous timestep; 2 is timestep before; etc
+    */
     void GetValuesVector(Vector& rValues, int Step) const override;
 
-   void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
+    /**
+    * @brief Gets velocity vector at the condional nodes
+    * @param rValues velocity values
+    * @param Step buffer index, 0 is current time step; 1 is previous timestep; 2 is timestep before; etc
+    */
+    void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
 
-   void CalculateRightHandSide(VectorType& rRightHandSideVector,
+    /**
+    * @brief Calculates the right hand side
+    * @param rRightHandSideVector global right hand side vector
+    * @param rCurrentProcessInfo Current process information
+    */
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
        const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -80,7 +95,6 @@ protected:
     struct NormalLysmerAbsorbingVariables
     {
         double IntegrationCoefficient;
-        array_1d<double,TNumNodes> Np;
         double rho; // density of soil mixture
         double Ec; // p wave modulus
         double G; // shear modulus
@@ -102,13 +116,35 @@ protected:
     // Member Variables
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
-    
+    /**
+    * @brief Calculates LHS Damping part of absorbing boundary
+    * @param rDampingMatrix Global damping matrix
+    * @param rCurrentProcessInfo Current process information
+    */
+	void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * @brief Calculates LHS and RHS stiffness part of absorbing boundary
+    * @param rLhsMatrix Global left hand side matrix
+    * @param rRightHandSideVector Global right hand side vector
+    * @param rCurrentProcessInfo Current process information
+    */
+    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * @brief Adds the condition matrix to the global left hand side
+    * @param rLeftHandSideMatrix Global Left hand side
+    * @param rUMatrix LHS displacement matrix of the current condition
+    */
     void AddLHS(MatrixType& rLeftHandSideMatrix, const BoundedMatrix<double, N_DOF, N_DOF>& rUMatrix);
 
-    void CalculateAndAddRHS(VectorType& rLeftHandSideMatrix, const MatrixType& rStiffnessMatrix);
+    /**
+    * @brief Calculates and adds terms to the RHS
+    * @param rRigtHandSideMatrix Global Right hand side
+    * @param rStiffnessMatrix condition stiffness matrix
+    */
+    void CalculateAndAddRHS(VectorType& rRightHandSideMatrix, const MatrixType& rStiffnessMatrix);
 
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& Geom);
 
@@ -116,9 +152,19 @@ protected:
 
     void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
+    /**
+     * @brief Calculates the damping constant in all directions
+     * @param rVariables Condition specific variables struct
+     * @param rGeom condition geometry
+     */
+    void CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const Element::GeometryType& rGeom);
 
-    void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
+    /**
+    * @brief Calculates the stiffness constant in all directions
+    * @param rVariables Condition specific variables struct
+    * @param rGeom condition geometry
+    */
+    void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const Element::GeometryType& rGeom);
 
     Matrix CalculateExtrapolationMatrixNeighbour(const Element& NeighbourElement);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -128,9 +174,13 @@ private:
 
     // Member Variables
 
-    MatrixType mStiffnessMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	/**
+     * @brief Calculates the stiffness matrix for the current condition
+     * @param rStiffnessMatrix The stiffness matrix to be calculated
+     * @param rCurrentProcessInfo Current process information
+     */
     void CalculateConditionStiffnessMatrix(BoundedMatrix<double, N_DOF, N_DOF>& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     // Serialization
