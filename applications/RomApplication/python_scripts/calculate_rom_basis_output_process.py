@@ -63,6 +63,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             err_msg = "Provided \'rom_basis_output_format\' is {}. Available options are \'json\' and \'numpy\'.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
 
+        self.rom_basis_output_name = settings["rom_basis_output_name"].GetString()
+
         # Get the SVD truncation tolerance
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
 
@@ -81,6 +83,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "snapshots_interval": 1.0,
             "nodal_unknowns": [],
             "rom_basis_output_format": "numpy",
+            "rom_basis_output_name": "RomParameters",
             "svd_truncation_tolerance": 1.0e-6
         }""")
 
@@ -169,7 +172,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             raise Exception(err_msg)
 
         # Creating the RomParameters.json containing or not the modes depending on "self.rom_basis_output_format"
-        output_filename = "RomParameters.json"
+        output_filename = self.rom_basis_output_name + ".json"
         with open(output_filename, 'w') as f:
             json.dump(rom_basis_dict, f, indent = 4)
 
