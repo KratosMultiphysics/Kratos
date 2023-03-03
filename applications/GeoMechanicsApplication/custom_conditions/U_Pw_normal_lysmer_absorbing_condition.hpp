@@ -85,6 +85,21 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
        const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+    * @brief Calculates LHS Damping part of absorbing boundary
+    * @param rDampingMatrix Global damping matrix
+    * @param rCurrentProcessInfo Current process information
+    */
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * @brief Calculates LHS and RHS stiffness part of absorbing boundary
+    * @param rLhsMatrix Global left hand side matrix
+    * @param rRightHandSideVector Global right hand side vector
+    * @param rCurrentProcessInfo Current process information
+    */
+    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -117,20 +132,6 @@ protected:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /**
-    * @brief Calculates LHS Damping part of absorbing boundary
-    * @param rDampingMatrix Global damping matrix
-    * @param rCurrentProcessInfo Current process information
-    */
-	void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-    * @brief Calculates LHS and RHS stiffness part of absorbing boundary
-    * @param rLhsMatrix Global left hand side matrix
-    * @param rRightHandSideVector Global right hand side vector
-    * @param rCurrentProcessInfo Current process information
-    */
-    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief Adds the condition matrix to the global left hand side
@@ -146,11 +147,26 @@ protected:
     */
     void CalculateAndAddRHS(VectorType& rRightHandSideMatrix, const MatrixType& rStiffnessMatrix);
 
-    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& Geom);
+    /**
+    * @brief Calculates the rotation matrix of the current condition
+    * @param rRotationMatrix rotation matrix of the current condition
+    * @param rGeom geometry of the current condition
+    */
+    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& rGeom);
 
-    void GetNeighbourElementVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
+    /**
+    * @brief This method gets the average of the variables of all the neighbour elements of the condition. 
+    * @param rVariables Condition specific variables struct
+    * @param rCurrentProcessInfo Current process information
+    */
+    void GetNeighbourElementVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
+    /**
+    * @brief Gets condition variables.
+    * @param rVariables Condition specific variables struct
+    * @param rCurrentProcessInfo Current process information
+    */
+    void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief Calculates the damping constant in all directions
@@ -166,7 +182,11 @@ protected:
     */
     void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const Element::GeometryType& rGeom);
 
-    Matrix CalculateExtrapolationMatrixNeighbour(const Element& NeighbourElement);
+    /**
+    * @brief Calculates the extrapolation matrix for neighbour elements.Values from integration points are extrapolated to the nodes
+    * @param rNeighbourElement The neighbouring element of the condition
+    */
+    Matrix CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
