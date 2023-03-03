@@ -524,7 +524,8 @@ public:
             it_sub_model_part->Conditions().Sort();
             it_sub_model_part->Conditions().erase(it_sub_model_part->Conditions().end() - to_be_deleted, it_sub_model_part->Conditions().end());
             if (rNewConditions.size() > 0) {
-                UpdateSubModelPartConditions(rModelPart, rNewConditions);
+                ModelPart &rSubModelPart = *it_sub_model_part;
+                UpdateSubModelPartConditions(rSubModelPart, rNewConditions);
             }
         }
     }

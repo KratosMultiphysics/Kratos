@@ -46,10 +46,12 @@ class TestLocalRefineOnlyOnBoundaries(KratosUnittest.TestCase):
         refined_vol = self._ComputeVolume(main_model_part.Elements)
         self.assertAlmostEqual(refined_vol, 1.0, 12)
         self.assertEqual(main_model_part.NumberOfElements(), 604)
+        self.assertEqual(current_model["main_model_part.MainPart.VolumeParts.Body1"].NumberOfConditions(), 0)
+        self.assertEqual(current_model["main_model_part.MainPart.VolumeParts.Body1"].NumberOfElements(), 604)
         self.assertEqual(main_model_part.NumberOfNodes(), 224)
         self.assertEqual(main_model_part.NumberOfConditions(), 360)
-
-
+        self.assertEqual(current_model["main_model_part.MainPart.Wall_BC.Wall1"].NumberOfConditions(), 360)
+        self.assertEqual(current_model["main_model_part.MainPart.Wall_BC.Wall1"].NumberOfElements(), 0)
 
 if __name__ == '__main__':
     KratosUnittest.main()
