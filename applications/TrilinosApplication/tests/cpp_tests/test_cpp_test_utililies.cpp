@@ -44,7 +44,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatr
     auto A = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values);
 
     // Check
-    TrilinosCPPTestUtilities::CheckSparseMatrix(A, r_comm, row_indexes, column_indexes, values);
+    TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatrixRealCase, KratosTrilinosApplicationMPITestSuite)
@@ -62,7 +62,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatr
     auto A = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values);
 
     // Check
-    TrilinosCPPTestUtilities::CheckSparseMatrix(A, r_comm, row_indexes, column_indexes, values);
+    TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
 
     // Generate T matrix
     row_indexes = {0,1,2,3,4,4,5};
@@ -71,7 +71,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatr
     auto T = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values);
 
     // Check
-    TrilinosCPPTestUtilities::CheckSparseMatrix(T, r_comm, row_indexes, column_indexes, values);
+    TrilinosCPPTestUtilities::CheckSparseMatrix(T, row_indexes, column_indexes, values);
 }
 
 } // namespace Kratos::Testing
