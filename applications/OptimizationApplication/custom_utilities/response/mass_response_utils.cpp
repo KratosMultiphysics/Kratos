@@ -11,8 +11,6 @@
 //                   Suneth Warnakulasuriya
 //
 
-// #pragma once
-
 // System includes
 #include <sstream>
 
