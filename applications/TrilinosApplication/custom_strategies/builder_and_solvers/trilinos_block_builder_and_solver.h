@@ -1136,46 +1136,35 @@ protected:
                     mSlaveIds.push_back(mFirstMyId + i);
                 indices[i].insert(mFirstMyId + i); // Ensure that the diagonal is there in T
             }
-
-            // TODO: Once everthing works, we should use Epetra Graph instead of CsrMatrix for sake of performance (avoid compute nnz of all partitions)
-
+            
             // Generate map
             const int num_global_elements = BaseType::mEquationSystemSize;
             Epetra_Map map(num_global_elements, 0, mrComm);
 
-            // Local number of rows
-            const int local_number_of_elements = map.NumMyElements();
-
-            // Create and fill the graph of the matrix
-            std::vector<int> global_row_nnz(BaseType::mEquationSystemSize, 0);
-            std::vector<int> local_row_nnz(local_number_of_elements, 0);
-            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-                auto& r_row_index = indices[i];
-                const std::size_t number_of_row_nnz = r_row_index.size();
-                global_row_nnz[mFirstMyId + i] = number_of_row_nnz;
-                local_row_nnz[i] = number_of_row_nnz;
-            }
-
-            // Generate a new matrix pointer according to this non-zero values
-            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, map, local_row_nnz.data()));
+            // The T graph
+            Epetra_FECrsGraph Tgraph(Copy, map, mGuessRowSize);
 
             // Generate the structure
+            std::vector<int> current_row(1,0);
             for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
                 // Filling the list of active global indices (non fixed)
                 auto& r_row_index = indices[i];
                 const int num_active_indices = r_row_index.size();
 
                 if (num_active_indices != 0) {
+                    current_row[0] = mFirstMyId + i;
                     std::vector<int> row_index_data(r_row_index.begin(), r_row_index.end());
-                    std::vector<double> values(num_active_indices, 0.0);
-                    const int ierr = p_new_T->InsertGlobalValues(mFirstMyId + i, num_active_indices, values.data(), row_index_data.data());
-                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in CsrMatrix.InsertGlobalValues. Error code: " << ierr << std::endl;
+                    const int ierr = Tgraph.InsertGlobalIndices(1, current_row.data(), num_active_indices, row_index_data.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
             }
 
             // Finalizing graph construction
-            const int ierr = p_new_T->FillComplete();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in CsrMatrix.FillComplete. Error code: " << ierr << std::endl;
+            const int ierr = Tgraph.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
+
+            // Generate a new matrix pointer according to this non-zero values
+            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
 
             // Swap matrix
             mpT.swap(p_new_T);
@@ -1183,6 +1172,13 @@ protected:
             // Generate the constant vector equivalent
             TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(map));
             mpConstantVector.swap(p_new_constant_vector);
+
+            // Compute NNZ
+            std::vector<int> global_row_nnz(BaseType::mEquationSystemSize, 0);
+            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+                auto& r_row_index = indices[i];
+                global_row_nnz[mFirstMyId + i] = r_row_index.size();
+            }
 
             // Get data communicator
             auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
