@@ -140,17 +140,20 @@ public:
     * @brief This method checks the values of a sparse matrix with the given serial matrix
     * @param rA The matrix to check
     * @param rB The reference matrix
+    * @param rDataCommunicator The data communicator considered
     * @param Tolerance The tolerance considered
     */
     static void CheckSparseMatrixFromLocalMatrix(
         const TrilinosSparseMatrixType& rA,
         const TrilinosLocalMatrixType& rB,
+        const DataCommunicator& rDataCommunicator,
         const double Tolerance = 1e-8
         );
 
     /**
     * @brief This method checks the values of a sparse matrix with the given indices and values
     * @param rA The matrix to check
+    * @param rDataCommunicator The data communicator considered
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
     * @param rValues The values
@@ -158,6 +161,7 @@ public:
     */
     static void CheckSparseMatrix(
         const TrilinosSparseMatrixType& rA,
+        const DataCommunicator& rDataCommunicator,
         const std::vector<int>& rRowIndexes,
         const std::vector<int>& rColumnIndexes,
         const std::vector<double>& rValues,
@@ -183,7 +187,7 @@ public:
         const bool PrintValues = false,
         const double ThresholdIncludeHardZeros = -1
         );
-        
+
     /**
     * @brief This method generates a sparse matrix from a set of row, columns and values
     * @param rDataCommunicator The data communicator considered
