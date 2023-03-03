@@ -36,6 +36,13 @@ class PetrovGalerkinTrainingUtility(object):
         self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
 
+        self.rom_format =  custom_settings["rom_format"].GetString()
+        available_rom_format = ["json", "numpy"]
+        if self.rom_format not in available_rom_format:
+            err_msg = "Provided \'rom format\' is {}. Available options are {}.".format(self.rom_format, available_rom_format)
+            raise Exception(err_msg)
+
+
     def AppendCurrentStepProjectedSystem(self):
         # Get the computing model part from the solver implementing the problem physics
         computing_model_part = self.solver.GetComputingModelPart()
@@ -109,10 +116,16 @@ class PetrovGalerkinTrainingUtility(object):
         n_nodal_unknowns = len(self.rom_settings["nodal_unknowns"].GetStringArray())
         petrov_galerkin_nodal_modes = {}
         computing_model_part = self.solver.GetComputingModelPart()
-        i = 0
-        for node in computing_model_part.Nodes:
-            petrov_galerkin_nodal_modes[node.Id] = u[i:i+n_nodal_unknowns].tolist()
-            i += n_nodal_unknowns
+
+        if self.rom_format == "json":
+            i = 0
+            for node in computing_model_part.Nodes:
+                petrov_galerkin_nodal_modes[node.Id] = u[i:i+n_nodal_unknowns].tolist()
+                i += n_nodal_unknowns
+
+        elif self.rom_format == "numpy":
+            # Storing Petrov-Galerkin modes in Numpy format
+            np.save('LeftBasisMatrix.npy', u)
 
         with open('RomParameters.json','r') as f:
             updated_rom_parameters = json.load(f)
