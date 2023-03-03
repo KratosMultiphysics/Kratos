@@ -32,9 +32,21 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim,TNumNodes>::Create(IndexType
 /// <param name="rRightHandSideVector"></param>
 /// <param name="CurrentProcessInfo"></param>
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 
+    BoundedMatrix<double, N_DOF, N_DOF> stiffness_matrix;
+
+    this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
+
+    this->AddLHS(rLhsMatrix, stiffness_matrix);
+
+    this->CalculateAndAddRHS(rRightHandSideVector, rLhsMatrix);
+}
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMatrix(BoundedMatrix<double, N_DOF, N_DOF>& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
     //Previous definitions
     GeometryType& rGeom = this->GetGeometry();
 
@@ -55,11 +67,11 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
 
     NormalLysmerAbsorbingVariables rVariables;
 
-    this->GetVariables(rVariables, CurrentProcessInfo);
-    
+    this->GetVariables(rVariables, rCurrentProcessInfo);
+
 
     BoundedMatrix<double, TDim, N_DOF> AuxAbsKMatrix;
-    BoundedMatrix<double, N_DOF, N_DOF> rAbsKMatrix = ZeroMatrix(N_DOF, N_DOF);
+    rStiffnessMatrix = ZeroMatrix(N_DOF, N_DOF);
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -73,7 +85,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
             rVariables.G += NContainer(GPoint, node) * rVariables.GNodes[node];
         }
 
-        this->CalculateNodalStiffnessMatrix(rVariables, CurrentProcessInfo, rGeom);
+        this->CalculateNodalStiffnessMatrix(rVariables, rCurrentProcessInfo, rGeom);
 
         // calculate displacement shape function matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu, NContainer, GPoint);
@@ -85,28 +97,23 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
 
         // set stiffness part of absorbing matrix
         AuxAbsKMatrix = prod(rVariables.KAbsMatrix, Nu);
-        rAbsKMatrix += prod(trans(Nu), AuxAbsKMatrix) * rVariables.IntegrationCoefficient;
-
+        rStiffnessMatrix += prod(trans(Nu), AuxAbsKMatrix) * rVariables.IntegrationCoefficient;
     }
-    rVariables.UMatrix = rAbsKMatrix;
+}
 
-    // assemble left hand side vector
-    if (rLhsMatrix.size1() != CONDITION_SIZE)
-        rLhsMatrix.resize(CONDITION_SIZE, CONDITION_SIZE, false);
 
-    noalias(rLhsMatrix) = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
-    this->CalculateAndAddLHS(rLhsMatrix, rVariables);
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BoundedMatrix<double, N_DOF, N_DOF> stiffness_matrix;
 
-    // no righthand side contribution
-    if (rRightHandSideVector.size() != CONDITION_SIZE)
-        rRightHandSideVector.resize(CONDITION_SIZE, false);
-    noalias(rRightHandSideVector) = ZeroVector(CONDITION_SIZE);
+    this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    Vector displacements_vector = ZeroVector(CONDITION_SIZE);
-    this->GetValuesVector(displacements_vector, 0);
+    MatrixType global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+    GeoElementUtilities::AssembleUBlockMatrix< TDim, TNumNodes >(global_stiffness_matrix, stiffness_matrix);
 
-    rRightHandSideVector -= prod(rLhsMatrix, displacements_vector);
-
+    this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
 }
 
 /// <summary>
@@ -172,15 +179,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         AuxAbsMatrix = prod(rVariables.CAbsMatrix, Nu);
         rAbsMatrix += prod(trans(Nu), AuxAbsMatrix) * rVariables.IntegrationCoefficient;
     }
-    rVariables.UMatrix = rAbsMatrix;
-
 
     // assemble left hand side vector
-    if (rDampingMatrix.size1() != CONDITION_SIZE)
-        rDampingMatrix.resize(CONDITION_SIZE, CONDITION_SIZE, false);
-    noalias(rDampingMatrix) = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
-
-    this->CalculateAndAddLHS(rDampingMatrix, rVariables);
+    this->AddLHS(rDampingMatrix, rAbsMatrix);
 }
 
 //----------------------------------------------------------------------------------------
@@ -499,17 +500,36 @@ GetVariables(
     rVariables.virtual_thickness = this->GetValue(VIRTUAL_THICKNESS);
 }
 
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
+CalculateAndAddRHS(VectorType& rRightHandSideVector, const MatrixType& rStiffnessMatrix)
+{
+
+    if (rRightHandSideVector.size() != CONDITION_SIZE)
+        rRightHandSideVector.resize(CONDITION_SIZE, false);
+    noalias(rRightHandSideVector) = ZeroVector(CONDITION_SIZE);
+
+    Vector displacements_vector = ZeroVector(CONDITION_SIZE);
+    this->GetValuesVector(displacements_vector, 0);
+
+    rRightHandSideVector -= prod(rStiffnessMatrix, displacements_vector);
+}
+
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-    NormalLysmerAbsorbingVariables& rVariables)
+AddLHS(MatrixType& rLeftHandSideMatrix, const BoundedMatrix<double, N_DOF, N_DOF>& rUMatrix)
 {
-    //Adding contribution to left hand side
+	// assemble left hand side vector
+    if (rLeftHandSideMatrix.size1() != CONDITION_SIZE)
+        rLeftHandSideMatrix.resize(CONDITION_SIZE, CONDITION_SIZE, false);
 
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+
+    //Adding contribution to left hand side
     GeoElementUtilities::
         AssembleUBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,
-            rVariables.UMatrix);
+            rUMatrix);
 }
 
 template< >

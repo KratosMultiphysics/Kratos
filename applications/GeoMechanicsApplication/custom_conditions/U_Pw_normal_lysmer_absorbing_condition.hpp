@@ -67,6 +67,9 @@ public:
 
    void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
 
+   void CalculateRightHandSide(VectorType& rRightHandSideVector,
+       const ProcessInfo& rCurrentProcessInfo) override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -78,7 +81,6 @@ protected:
     {
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
-        BoundedMatrix<double, N_DOF, N_DOF> UMatrix;
         double rho; // density of soil mixture
         double Ec; // p wave modulus
         double G; // shear modulus
@@ -104,7 +106,9 @@ protected:
 
     void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
     
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, NormalLysmerAbsorbingVariables& rVariables);
+    void AddLHS(MatrixType& rLeftHandSideMatrix, const BoundedMatrix<double, N_DOF, N_DOF>& rUMatrix);
+
+    void CalculateAndAddRHS(VectorType& rLeftHandSideMatrix, const MatrixType& rStiffnessMatrix);
 
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& Geom);
 
@@ -124,7 +128,10 @@ private:
 
     // Member Variables
 
+    MatrixType mStiffnessMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void CalculateConditionStiffnessMatrix(BoundedMatrix<double, N_DOF, N_DOF>& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     // Serialization
     
