@@ -38,6 +38,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<double> damage;
+    std::vector<double> damage_matrix, damage_fiber;
+    std::vector<double> high_cycle_fatigue_damage;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
 
     if (!process_info[DAMAGE_ACTIVATION]) {
@@ -48,9 +50,16 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         for (auto& r_elem : mrModelPart.Elements()) {
             unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
             r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+            r_elem.CalculateOnIntegrationPoints(DAMAGE_MATRIX, damage_matrix, process_info);
+            r_elem.CalculateOnIntegrationPoints(DAMAGE_FIBER, damage_fiber, process_info);
+            r_elem.CalculateOnIntegrationPoints(HIGH_CYCLE_FATIGUE_DAMAGE, high_cycle_fatigue_damage, process_info);
             for (unsigned int i = 0; i < number_of_ip; i++) {
-                    if (damage[i] > 0.0) {
+                    if (high_cycle_fatigue_damage[i] > 0.0) {
                         process_info[DAMAGE_ACTIVATION] = true;
+                        KRATOS_WATCH(damage)
+                        KRATOS_WATCH(damage_matrix)
+                        KRATOS_WATCH(damage_fiber)
+                        KRATOS_WATCH(high_cycle_fatigue_damage)
                         break;
                     }
             }

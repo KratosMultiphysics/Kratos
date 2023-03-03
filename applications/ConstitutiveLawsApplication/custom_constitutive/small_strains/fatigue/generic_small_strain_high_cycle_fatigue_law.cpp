@@ -211,6 +211,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 template <class TConstLawIntegratorType>
 void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    
     // Integrate Stress Damage
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -278,6 +279,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             }
         }
     }
+   
 }
 
 /***********************************************************************************/
@@ -450,6 +452,8 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
         return true;
     } else if (rThisVariable == CYCLE_PERIOD) {
         return true;
+    } else if (rThisVariable == HIGH_CYCLE_FATIGUE_DAMAGE) {
+        return true;
     } else {
         return BaseType::Has(rThisVariable);
     }
@@ -516,6 +520,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
         mPreviousCycleTime = rValue;
     } else if (rThisVariable == CYCLE_PERIOD) {
         mPeriod = rValue;
+    } else if (rThisVariable == HIGH_CYCLE_FATIGUE_DAMAGE) {
+        this->GetDamage() = rValue;
     } else {
         return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -581,6 +587,8 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
         rValue = mPreviousCycleTime;
     } else if (rThisVariable == CYCLE_PERIOD) {
         rValue = mPeriod;
+    } else if (rThisVariable == HIGH_CYCLE_FATIGUE_DAMAGE) {
+        rValue = this->GetDamage();
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -597,10 +605,11 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     double& rValue
     )
 {
-    if (this->Has(rThisVariable))
-        return this->GetValue(rThisVariable, rValue);
-    else
+    if (rThisVariable == HCF_UNIAXIAL_STRESS_FIBER) {
+        return BaseType::CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+    } else {
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
 }
 
 /***********************************************************************************/

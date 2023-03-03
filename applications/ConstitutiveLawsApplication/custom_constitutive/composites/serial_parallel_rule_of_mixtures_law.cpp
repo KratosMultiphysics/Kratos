@@ -1097,7 +1097,7 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
     } else {
         if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
             return true;
-        } else if (rThisVariable == DAMAGE_MATRIX || DAMAGE_FIBER) {
+        } else if (rThisVariable == DAMAGE_MATRIX || rThisVariable == DAMAGE_FIBER) {
             return true;
         } else {
             return false;
@@ -1184,6 +1184,14 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
         const auto r_props_fiber_cl  = *(it_cl_begin + 1);
         rParameterValues.SetMaterialProperties(r_props_fiber_cl);
         mpFiberConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+        rParameterValues.SetMaterialProperties(props);
+        return rValue;
+    } else if (rThisVariable == HCF_UNIAXIAL_STRESS_FIBER) {
+        const auto &props = rParameterValues.GetMaterialProperties();
+        const auto it_cl_begin = props.GetSubProperties().begin();
+        const auto r_props_fiber_cl  = *(it_cl_begin + 1);
+        rParameterValues.SetMaterialProperties(r_props_fiber_cl);
+        mpFiberConstitutiveLaw->CalculateValue(rParameterValues, HCF_UNIAXIAL_STRESS_FIBER, rValue);
         rParameterValues.SetMaterialProperties(props);
         return rValue;
     }
