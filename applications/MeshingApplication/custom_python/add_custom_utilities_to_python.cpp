@@ -29,7 +29,7 @@
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
 #include "custom_utilities/local_refine_tetrahedra_mesh_parallel_to_boundaries.hpp"
-
+#include "custom_utilities/local_refine_tetrahedra_mesh_only_on_boundaries.hpp"
 
 #ifdef  USE_TETGEN_NONFREE_TPL
     #include "custom_utilities/tetgen_volume_mesher.h"
@@ -134,6 +134,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     (m,"LocalRefineTetrahedraMeshParallelToBoundaries")
     .def(py::init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineTetrahedraMeshParallelToBoundaries::LocalRefineMesh)
+    ;
+
+    py::class_<LocalRefineTetrahedraMeshOnlyOnBoundaries >
+    (m,"LocalRefineTetrahedraMeshOnlyOnBoundaries")
+    .def(py::init<ModelPart&>())
+    .def("LocalRefineMesh", &LocalRefineTetrahedraMeshOnlyOnBoundaries::LocalRefineMesh)
     ;
 
 #ifdef USE_TETGEN_NONFREE_TPL
