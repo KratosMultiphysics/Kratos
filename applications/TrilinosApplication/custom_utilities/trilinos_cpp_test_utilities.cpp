@@ -221,6 +221,7 @@ void TrilinosCPPTestUtilities::CheckSparseVector(
 void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
     const TrilinosSparseMatrixType& rA,
     const TrilinosLocalMatrixType& rB,
+    const DataCommunicator& rDataCommunicator,
     const double Tolerance
     )
 {
@@ -233,12 +234,15 @@ void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
     values.reserve(total_size);
     for (std::size_t i = 0; i < rB.size1(); ++i) {
         for (std::size_t j = 0; j < rB.size2(); ++j) {
-            row_indexes.push_back(i);
-            column_indexes.push_back(j);
-            values.push_back(rB(i, j));
+            const double value = rB(i, j);
+            if (std::abs(value) > std::numeric_limits<double>::epsilon()) {
+                row_indexes.push_back(i);
+                column_indexes.push_back(j);
+                values.push_back(value);
+            }
         }
     }
-    CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+    CheckSparseMatrix(rA, rDataCommunicator, row_indexes, column_indexes, values);
 }
 
 /***********************************************************************************/
@@ -246,12 +250,14 @@ void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
 
 void TrilinosCPPTestUtilities::CheckSparseMatrix(
     const TrilinosSparseMatrixType& rA,
+    const DataCommunicator& rDataCommunicator,
     const std::vector<int>& rRowIndexes,
     const std::vector<int>& rColumnIndexes,
     const std::vector<double>& rValues,
     const double Tolerance
     )
 {
+    int local_validated_values = 0;
     int row, column;
     double value;
     for (std::size_t counter = 0; counter < rRowIndexes.size(); ++counter) {
@@ -270,6 +276,7 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
                     const int col_gid = rA.ColMap().GID(cols[j]);
                     if (col_gid == column) {
                         KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], Tolerance)
+                        ++local_validated_values;
                         break;
                     }
                 }
@@ -277,6 +284,10 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
             }
         }
     }
+
+    // Checking that all the values has been validated
+    const std::size_t global_validated_values = rDataCommunicator.SumAll(local_validated_values);
+    KRATOS_CHECK_EQUAL(global_validated_values, rValues.size());
 }
 
 } /// namespace Kratos
