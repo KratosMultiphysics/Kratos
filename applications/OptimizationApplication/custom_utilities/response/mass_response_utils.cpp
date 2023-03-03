@@ -14,15 +14,18 @@
 // #pragma once
 
 // System includes
-#include "includes/define.h"
+#include <sstream>
 
 // Project includes
+#include "includes/define.h"
+#include "includes/variables.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
+#include "custom_utilities/optimization_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -50,7 +53,30 @@ bool MassResponseUtils::HasVariableInProperties(
     KRATOS_CATCH("");
 }
 
-double MassResponseUtils::CalculateMass(const ModelPart& rModelPart)
+void MassResponseUtils::Check(const ModelPart& rModelPart)
+{
+    const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+    if (!OptimizationUtils::IsVariableExistsInAllContainerProperties(rModelPart.Elements(), DENSITY, r_data_communicator)) {
+        KRATOS_ERROR << "Some elements' properties in " << rModelPart.FullName()
+                     << " does not have DENSITY variable.";
+    }
+
+    if (OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(rModelPart.Elements(), THICKNESS, r_data_communicator) &&
+        OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(rModelPart.Elements(), CROSS_AREA, r_data_communicator)) {
+        KRATOS_ERROR << rModelPart.FullName() << " has elements consisting THICKNESS and CROSS_AREA. "
+                     << "Please break down this response to SumResponseFunction where each sub "
+                     << "response function only has elements with either THICKNESS or CROSS_AREA.";
+    }
+
+    if (OptimizationUtils::GetContainerEntityGeometryType(rModelPart.Elements(), r_data_communicator) == GeometryData::KratosGeometryType::Kratos_generic_type) {
+        KRATOS_ERROR << rModelPart.FullName() << " has elements with different geometry types. "
+                     << "Please break down this response to SumResponseFunction where each sub "
+                     << "response function only has elements with one geometry type.";
+    }
+}
+
+double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -63,7 +89,7 @@ double MassResponseUtils::CalculateMass(const ModelPart& rModelPart)
 
     KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, THICKNESS) && HasVariableInProperties(rModelPart, CROSS_AREA))
         << rModelPart.FullName()
-        << " has elements with properties having both THICKNESS and CROSS_AREA. Please seperate the model part such that either one of them is present in elemental properties.\n";
+        << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
     const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
                                     ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
@@ -80,6 +106,44 @@ double MassResponseUtils::CalculateMass(const ModelPart& rModelPart)
     return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_mass);
 
     KRATOS_CATCH("")
+}
+
+template<class TDataType>
+void MassResponseUtils::CalculateSensitivity(
+    ModelPart& rSensitivityModelPart,
+    const Variable<TDataType>& rSensitivityVariable)
+{
+    KRATOS_TRY
+
+    std::stringstream error_msg;
+
+    error_msg << "Unsupported sensitivity w.r.t. " << rSensitivityVariable.Name()
+              << " requested for " << rSensitivityModelPart.FullName()
+              << ". Followings are supported variables:"
+              << "\n\tSHAPE_SENSITIVITY"
+              << "\n\tDENSITY_SENSITIVITY"
+              << "\n\tTHICKNESS_SENSITIVITY"
+              << "\n\tCROSS_AREA_SENSITIVITY";
+
+    if constexpr (std::is_same_v<TDataType, double>) {
+        if (rSensitivityVariable == DENSITY_SENSITIVITY) {
+            CalculateMassDensitySensitivity(rSensitivityModelPart, DENSITY_SENSITIVITY);
+        } else if (rSensitivityVariable == THICKNESS_SENSITIVITY) {
+            CalculateMassThicknessSensitivity(rSensitivityModelPart, THICKNESS_SENSITIVITY);
+        } else if (rSensitivityVariable == CROSS_AREA_SENSITIVITY) {
+            CalculateMassCrossAreaSensitivity(rSensitivityModelPart, CROSS_AREA_SENSITIVITY);
+        } else {
+            KRATOS_ERROR << error_msg.str();
+        }
+    } else if constexpr (std::is_same_v<TDataType, array_1d<double, 3>>) {
+        if (rSensitivityVariable == SHAPE_SENSITIVITY) {
+            CalculateMassShapeSensitivity(rSensitivityModelPart, SHAPE_SENSITIVITY);
+        } else {
+            KRATOS_ERROR << error_msg.str();
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 void MassResponseUtils::CalculateMassShapeSensitivity(
@@ -99,7 +163,7 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
 
     KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, THICKNESS) && HasVariableInProperties(rModelPart, CROSS_AREA))
         << rModelPart.FullName()
-        << " has elements with properties having both THICKNESS and CROSS_AREA. Please seperate the model part such that either one of them is present in elemental properties.\n";
+        << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
     const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
                                     ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
@@ -171,7 +235,7 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
         //     };
         //     break;
         default:
-            KRATOS_ERROR << "Non supported geometry type." << std::endl;
+            KRATOS_ERROR << "Non supported geometry type for mass shape sensitivity calculation (CalculateMassShapeSensitivity())." << std::endl;
     }
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement){
@@ -208,7 +272,7 @@ void MassResponseUtils::CalculateMassDensitySensitivity(
 
     KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, THICKNESS) && HasVariableInProperties(rModelPart, CROSS_AREA))
         << rModelPart.FullName()
-        << " has elements with properties having both THICKNESS and CROSS_AREA. Please seperate the model part such that either one of them is present in elemental properties.\n";
+        << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
     const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
                                     ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
@@ -242,7 +306,7 @@ void MassResponseUtils::CalculateMassCrossAreaSensitivity(
 void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
     ModelPart& rModelPart,
     const Variable<double>& rGeometricalPropertySensitivityVariable,
-    const Variable<double>& rGeometricalCoflictingPropertySensitivityVariable,
+    const Variable<double>& rGeometricalConflictingPropertySensitivityVariable,
     const Variable<double>& rOutputSensitivityVariable)
 {
     KRATOS_TRY
@@ -255,10 +319,10 @@ void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
         << rModelPart.FullName() << " which is required to compute sensitivities w.r.t. "
         << rGeometricalPropertySensitivityVariable.Name() << ".\n";
 
-    KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, rGeometricalCoflictingPropertySensitivityVariable))
+    KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, rGeometricalConflictingPropertySensitivityVariable))
         << rModelPart.FullName() << " has elements with properties having both "
-        << rGeometricalPropertySensitivityVariable.Name() << " and " << rGeometricalCoflictingPropertySensitivityVariable.Name()
-        << ". Please seperate the model part such that either one of them is present in elemental properties.\n";
+        << rGeometricalPropertySensitivityVariable.Name() << " and " << rGeometricalConflictingPropertySensitivityVariable.Name()
+        << ". Please separate the model part such that either one of them is present in elemental properties.\n";
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
         rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
@@ -266,6 +330,10 @@ void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
 
     KRATOS_CATCH("")
 }
+
+// template instantiations
+template void MassResponseUtils::CalculateSensitivity(ModelPart&, const Variable<double>&);
+template void MassResponseUtils::CalculateSensitivity(ModelPart&, const Variable<array_1d<double, 3>>&);
 
 ///@}
 }

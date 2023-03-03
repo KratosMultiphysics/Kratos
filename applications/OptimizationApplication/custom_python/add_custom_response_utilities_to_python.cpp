@@ -31,11 +31,10 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<MassResponseUtils >(m, "MassResponseUtils")
-        .def_static("CalculateMass", &MassResponseUtils::CalculateMass)
-        .def_static("CalculateMassShapeSensitivity", &MassResponseUtils::CalculateMassShapeSensitivity)
-        .def_static("CalculateMassDensitySensitivity", &MassResponseUtils::CalculateMassDensitySensitivity)
-        .def_static("CalculateMassThicknessSensitivity", &MassResponseUtils::CalculateMassThicknessSensitivity)
-        .def_static("CalculateMassCrossAreaSensitivity", &MassResponseUtils::CalculateMassCrossAreaSensitivity)
+        .def_static("Check", &MassResponseUtils::Check)
+        .def_static("CalculateValue", &MassResponseUtils::CalculateValue)
+        .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity<double>)
+        .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity<array_1d<double, 3>>)
         ;
 
     py::class_<LinearStrainEnergyResponseUtils >(m, "LinearStrainEnergyResponseUtils")
