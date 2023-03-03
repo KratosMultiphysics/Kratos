@@ -217,7 +217,7 @@ public:
     {
         KRATOS_TRY
 
-            int thread = OpenMPUtils::ThisThread();
+        int thread = OpenMPUtils::ThisThread();
 
         (rCurrentCondition).CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
@@ -297,7 +297,7 @@ public:
     {
         KRATOS_TRY
 
-            int thread = OpenMPUtils::ThisThread();
+        int thread = OpenMPUtils::ThisThread();
 
         (rCurrentCondition).CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
@@ -325,10 +325,6 @@ public:
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
-
-        //(rCurrentCondition).CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
-
-        //(rCurrentCondition).EquationIdVector(EquationId, CurrentProcessInfo);
 
         int thread = OpenMPUtils::ThisThread();
 
