@@ -442,15 +442,21 @@ class RomManager(object):
 
 
     def _SetRomTrainintParameters(self):
-
         defaults = self._GetDefaulRomBasisOutputParameters()
-        defaults["Parameters"]["rom_manager"].SetBool(True)
-        defaults["Parameters"]["svd_truncation_tolerance"].SetDouble(self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble())
-        defaults["Parameters"]["model_part_name"].SetString(self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString())
-        defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
-        defaults["Parameters"]["rom_basis_output_name"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString())
-        defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
-        defaults["Parameters"]["snapshots_interval"].SetDouble(self.general_rom_manager_parameters["ROM"]["snapshots_interval"].GetDouble())
+        defaults["Parameters"]["rom_manager"].SetBool(True) #we set the flag to true when inside the RomManager to trigger particular behaviour for multiple parameters
+
+        if self.general_rom_manager_parameters["ROM"].Has("svd_truncation_tolerance"):
+            defaults["Parameters"]["svd_truncation_tolerance"].SetDouble(self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble())
+        if self.general_rom_manager_parameters["ROM"].Has("model_part_name"):
+            defaults["Parameters"]["model_part_name"].SetString(self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString())
+        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_format"):
+            defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
+        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name"):
+            defaults["Parameters"]["rom_basis_output_name"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString())
+        if self.general_rom_manager_parameters["ROM"].Has("nodal_unknowns"):
+            defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
+        if self.general_rom_manager_parameters["ROM"].Has("snapshots_interval"):
+            defaults["Parameters"]["snapshots_interval"].SetDouble(self.general_rom_manager_parameters["ROM"]["snapshots_interval"].GetDouble())
 
         return defaults
 
