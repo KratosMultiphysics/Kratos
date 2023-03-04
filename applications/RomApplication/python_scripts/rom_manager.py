@@ -158,16 +158,16 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         SnapshotsMatrix = []
-        for id, mu in enumerate(mu_train):
+        for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'FOM',mu,id)
+            parameters = self._StoreResultsByName(parameters,'FOM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
-                if type(process) == CalculateRomBasisOutputProcess:
+                if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
         SnapshotsMatrix = np.block(SnapshotsMatrix)
@@ -184,16 +184,16 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         SnapshotsMatrix = []
-        for id, mu in enumerate(mu_train):
+        for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'ROM',mu,id)
+            parameters = self._StoreResultsByName(parameters,'ROM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
-                if type(process) == CalculateRomBasisOutputProcess:
+                if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
         SnapshotsMatrix = np.block(SnapshotsMatrix)
@@ -209,9 +209,9 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         PetrovGalerkinTrainMatrix = []
-        for id, mu in enumerate(mu_train):
+        for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'ROM',mu,id)
+            parameters = self._StoreResultsByName(parameters,'ROM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
@@ -228,7 +228,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         RedidualsSnapshotsMatrix = []
-        for id, mu in enumerate(mu_train):
+        for mu in mu_train:
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._StoreNoResults(parameters)
             model = KratosMultiphysics.Model()
@@ -252,16 +252,16 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         SnapshotsMatrix = []
-        for id, mu in enumerate(mu_train):
+        for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreResultsByName(parameters,'HROM',mu,id)
+            parameters = self._StoreResultsByName(parameters,'HROM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
-                if type(process) == CalculateRomBasisOutputProcess:
+                if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
         SnapshotsMatrix = np.block(SnapshotsMatrix)
@@ -277,16 +277,16 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         SnapshotsMatrix = []
-        for id, mu in enumerate(mu_test):
+        for Id, mu in enumerate(mu_test):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'FOM_Test',mu,id)
+            parameters = self._StoreResultsByName(parameters,'FOM_Test',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
-                if type(process) == CalculateRomBasisOutputProcess:
+                if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
         SnapshotsMatrix = np.block(SnapshotsMatrix)
@@ -303,16 +303,16 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         SnapshotsMatrix = []
-        for id, mu in enumerate(mu_test):
+        for Id, mu in enumerate(mu_test):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'ROM_Test',mu,id)
+            parameters = self._StoreResultsByName(parameters,'ROM_Test',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
-                if type(process) == CalculateRomBasisOutputProcess:
+                if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
         SnapshotsMatrix = np.block(SnapshotsMatrix)
@@ -329,16 +329,16 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         SnapshotsMatrix = []
-        for id, mu in enumerate(mu_test):
+        for Id, mu in enumerate(mu_test):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreResultsByName(parameters,'HROM_Test',mu,id)
+            parameters = self._StoreResultsByName(parameters,'HROM_Test',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
-                if type(process) == CalculateRomBasisOutputProcess:
+                if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
         SnapshotsMatrix = np.block(SnapshotsMatrix)
@@ -415,12 +415,12 @@ class RomManager(object):
 
 
 
-    def _StoreResultsByName(self,parameters,results_name,mu, id):
+    def _StoreResultsByName(self,parameters,results_name,mu, Id):
 
         if  self.general_rom_manager_parameters["output_name"].GetString() == "mu":
             case_name = (", ".join(map(str, mu)))
         elif self.general_rom_manager_parameters["output_name"].GetString() == "id":
-            case_name = str(id)
+            case_name = str(Id)
         if self.general_rom_manager_parameters["save_gid_output"].GetBool():
             parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString('Results/'+ results_name +  case_name)
         else:
