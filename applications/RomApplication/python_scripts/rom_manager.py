@@ -11,40 +11,40 @@ import json
 
 class RomManager(object):
 
-    def __init__(self,project_parameters_name, general_rom_manager_parameters, CustomizeSimulation, UpdateProjectParameters,mu=None):
-        #FIXME There is room for improvement of this prototype:
+    def __init__(self,project_parameters_name, general_rom_manager_parameters, CustomizeSimulation, UpdateProjectParameters):
+        #FIXME:
         # - Use a method (upcoming) for smothly retrieving solutions. In here we are using the RomBasisOutput process in order to store the solutions
         # - There is some redundancy between the methods that launch the simulations. Can we create a single method?
         # - We must use the Hyper-Reduced model part for the HROM simulations. (The one in which we have eliminated the non selected elements and conditions)
         # - Not yet paralellised with COMPSs
-        self.mu = mu
         self.project_parameters_name = project_parameters_name
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.rom_training_parameters = self._SetRomTrainintParameters()
         self.hrom_training_parameters = self.SetHromTrainingParameters()
         self.CustomizeSimulation = CustomizeSimulation
         self.UpdateProjectParameters = UpdateProjectParameters
+
+
+
+    def Fit(self, mu=None):
         if mu is None:
-            self.mu = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
-
-
-    def Fit(self):
+            mu = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         #######################
         ######  Galerkin ######
         if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.LauchTraiROM()
+                fom_snapshots = self.LauchTraiROM(mu)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                rom_snapshots = self.LauchROM()
+                rom_snapshots = self.LauchROM(mu)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                self.LauchTraiHROM()
+                self.LauchTraiHROM(mu)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                hrom_snapshots = self.LauchHROM()
+                hrom_snapshots = self.LauchHROM(mu)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################
 
@@ -54,9 +54,9 @@ class RomManager(object):
         elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.LauchTraiROM()
+                fom_snapshots = self.LauchTraiROM(mu)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                rom_snapshots = self.LauchROM()
+                rom_snapshots = self.LauchROM(mu)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in training_stages):
                 raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
@@ -68,18 +68,18 @@ class RomManager(object):
         elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.LauchTraiROM()
+                fom_snapshots = self.LauchTraiROM(mu)
                 self._ChangeRomFlags(simulation_to_run = "TrainPG")
-                self.TrainPG()
+                self.TrainPG(mu)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                rom_snapshots = self.LauchROM()
+                rom_snapshots = self.LauchROM(mu)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                self.LauchTraiHROM()
+                self.LauchTraiHROM(mu)
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                hrom_snapshots = self.LauchHROM()
+                hrom_snapshots = self.LauchHROM(mu)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
 
@@ -151,14 +151,14 @@ class RomManager(object):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
-    def LauchTraiROM(self):
+    def LauchTraiROM(self, mu):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         SnapshotsMatrix = []
-        for id, mu in enumerate(self.mu):
+        for id, mu in enumerate(mu):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
             parameters = self._StoreResultsByName(parameters,'FOM',mu,id)
@@ -176,7 +176,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def LauchROM(self):
+    def LauchROM(self, mu):
         """
         This method should be parallel capable
         """
@@ -184,7 +184,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         SnapshotsMatrix = []
-        for id, mu in enumerate(self.mu):
+        for id, mu in enumerate(mu):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
             parameters = self._StoreResultsByName(parameters,'ROM',mu,id)
@@ -201,7 +201,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def TrainPG(self):
+    def TrainPG(self, mu):
         """
         This method should be parallel capable
         """
@@ -209,7 +209,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         PetrovGalerkinTrainMatrix = []
-        for id, mu in enumerate(self.mu):
+        for id, mu in enumerate(mu):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._StoreResultsByName(parameters,'ROM',mu,id)
             model = KratosMultiphysics.Model()
@@ -220,7 +220,7 @@ class RomManager(object):
         simulation.GetPetrovGalerkinTrainUtility().CalculateAndSaveBasis(np.block(PetrovGalerkinTrainMatrix))
 
 
-    def LauchTraiHROM(self):
+    def LauchTraiHROM(self, mu):
         """
         This method should be parallel capable
         """
@@ -228,7 +228,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         RedidualsSnapshotsMatrix = []
-        for id, mu in enumerate(self.mu):
+        for id, mu in enumerate(mu):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._StoreNoResults(parameters)
             model = KratosMultiphysics.Model()
@@ -244,7 +244,7 @@ class RomManager(object):
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
 
 
-    def LauchHROM(self):
+    def LauchHROM(self, mu):
         """
         This method should be parallel capable
         """
@@ -252,7 +252,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         SnapshotsMatrix = []
-        for id, mu in enumerate(self.mu):
+        for id, mu in enumerate(mu):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreResultsByName(parameters,'HROM',mu,id)
@@ -273,9 +273,7 @@ class RomManager(object):
         """
         This method should be parallel capable
         """
-        # FIXME Since we are using the RomBasisOutputProcess for storing the snapshots in this prototype, calling it with a single training parameter will automatically generate
-        # the RomBasis. We must include a method to retrive solutions in the nodes
-        # In this example it will not cause problems, because since there are more than 1 parameter "mu", the Finalize() method wont re-create the RomParameters.json
+        # FIXME We must include a method to retrive solutions in the nodes and stop using the CalculateRomBasisOutputProcess to stote snapshots
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         SnapshotsMatrix = []
@@ -450,6 +448,7 @@ class RomManager(object):
         defaults["Parameters"]["svd_truncation_tolerance"].SetDouble(self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble())
         defaults["Parameters"]["model_part_name"].SetString(self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString())
         defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
+        defaults["Parameters"]["rom_basis_output_name"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString())
         defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
         defaults["Parameters"]["snapshots_interval"].SetDouble(self.general_rom_manager_parameters["ROM"]["snapshots_interval"].GetDouble())
 
