@@ -181,10 +181,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             for node in self.model_part.Nodes:
                 rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
                 i += n_nodal_unknowns
-        i = 0
-        for node in self.model_part.Nodes:
-            rom_basis_dict["nodal_modes"][node.Id] = u[i:i+self.n_nodal_unknowns].tolist()
-            i += self.n_nodal_unknowns
 
         elif self.rom_basis_output_format == "numpy":
             # Storing modes in Numpy format
@@ -194,7 +190,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
 
-        # Creating the RomParameters.json containing or not the modes depending on "self.rom_basis_output_format"
+        # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
         output_filename = self.rom_basis_output_name + ".json"
         with open(output_filename, 'w') as f:
             json.dump(rom_basis_dict, f, indent = 4)

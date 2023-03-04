@@ -158,10 +158,6 @@ class HRomTrainingUtility(object):
 
         return u
 
-    def __AppendHRomWeightsToRomParameters(self):
-        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
-        weights = np.squeeze(self.hyper_reduction_element_selector.w)
-        indexes = self.hyper_reduction_element_selector.z
 
 
     def _GetResidualsProjectedMatrix(self):
@@ -175,11 +171,10 @@ class HRomTrainingUtility(object):
 
 
 
-
     def AppendHRomWeightsToRomParameters(self):
-        n_elements = self.solver.GetComputingModelPart().NumberOfElements()
-        w = np.squeeze(self.hyper_reduction_element_selector.w)
-        z = self.hyper_reduction_element_selector.z
+        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+        weights = np.squeeze(self.hyper_reduction_element_selector.w)
+        indexes = self.hyper_reduction_element_selector.z
 
         # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
         hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)
