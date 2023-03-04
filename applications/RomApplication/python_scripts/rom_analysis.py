@@ -29,7 +29,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             # HROM operations flags
             self.rom_basis_process_list_check = True
-            #self.rom_basis_output_process_check = True #TODO include this process, but do so if the user is not interested in checking the approximation error
+            self.rom_basis_output_process_check = True
             self.run_hrom = self.rom_parameters["run_hrom"].GetBool() if self.rom_parameters.Has("run_hrom") else False
             self.train_hrom = self.rom_parameters["train_hrom"].GetBool() if self.rom_parameters.Has("train_hrom") else False
             self.rom_manager = self.rom_parameters["rom_manager"].GetBool()
@@ -66,36 +66,35 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 self.model,
                 self.project_parameters)
 
-        #TODO include a flag to call these processes and eliminate the RomOutputProcess if the solution is not to be gathered
-        # def _GetListOfProcesses(self):
-        #     # Get the already existent processes list
-        #     list_of_processes = super()._GetListOfProcesses()
+        def _GetListOfProcesses(self):
+            # Get the already existent processes list
+            list_of_processes = super()._GetListOfProcesses()
 
-        #     # Check if there is any instance of ROM basis output
-        #     if self.rom_basis_process_list_check:
-        #         for process in list_of_processes:
-        #             if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
-        #                 warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from processes list."
-        #                 KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
-        #                 list_of_processes.remove(process)
-        #         self.rom_basis_process_list_check = False
+            # Check if there is any instance of ROM basis output
+            if self.rom_basis_process_list_check and not self.rom_manager: #eliminate the RomOutputProcess if not run inside the RomManager
+                for process in list_of_processes:
+                    if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
+                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from processes list."
+                        KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
+                        list_of_processes.remove(process)
+                self.rom_basis_process_list_check = False
 
-        #     return list_of_processes
+            return list_of_processes
 
-        # def _GetListOfOutputProcesses(self):
-        #     # Get the already existent output processes list
-        #     list_of_output_processes = super()._GetListOfOutputProcesses()
+        def _GetListOfOutputProcesses(self):
+            # Get the already existent output processes list
+            list_of_output_processes = super()._GetListOfOutputProcesses()
 
-        #     # Check if there is any instance of ROM basis output
-        #     if self.rom_basis_output_process_check:
-        #         for process in list_of_output_processes:
-        #             if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
-        #                 warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from output processes list."
-        #                 KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
-        #                 list_of_output_processes.remove(process)
-        #         self.rom_basis_output_process_check = False
+            # Check if there is any instance of ROM basis output
+            if self.rom_basis_output_process_check and not self.rom_manager: #eliminate the RomOutputProcess if not run inside the RomManager
+                for process in list_of_output_processes:
+                    if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
+                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from output processes list."
+                        KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
+                        list_of_output_processes.remove(process)
+                self.rom_basis_output_process_check = False
 
-        #     return list_of_output_processes
+            return list_of_output_processes
 
         def _GetSimulationName(self):
             return "::[ROM Simulation]:: "
@@ -116,20 +115,6 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Set the right nodal ROM basis
             if self.rom_parameters["rom_format"].GetString() == "json":
                 aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
-            # Set the right nodal ROM basis
-            aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
-            for node in computing_model_part.Nodes:
-                node_id = str(node.Id)
-                for j in range(nodal_dofs):
-                    for i in range(rom_dofs):
-                        aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
-                node.SetValue(KratosROM.ROM_BASIS, aux)
-
-            # Set the left nodal ROM basis if it is different than the right nodal ROM basis (i.e. Petrov-Galerkin)
-            if (self.solving_strategy == "petrov_galerkin"):
-                petrov_galerkin_nodal_modes = self.rom_parameters["petrov_galerkin_nodal_modes"]
-                petrov_galerkin_nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
-                aux = KratosMultiphysics.Matrix(petrov_galerkin_nodal_dofs, self.petrov_galerkin_rom_dofs)
                 for node in computing_model_part.Nodes:
                     node_id = str(node.Id)
                     for j in range(nodal_dofs):
