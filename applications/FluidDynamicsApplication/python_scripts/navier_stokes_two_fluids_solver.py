@@ -345,7 +345,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # Create and read an auxiliary materials file for each one of the fields (only on one rank)
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials = KratosMultiphysics.Parameters()
                     aux_materials.AddEmptyArray("properties")
                     aux_materials["properties"].Append(i_material)

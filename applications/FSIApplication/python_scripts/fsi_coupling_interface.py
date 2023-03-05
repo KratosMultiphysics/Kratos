@@ -56,7 +56,7 @@ class FSICouplingInterface:
 
         # Check and get the output variable(s) data type
         aux_list = []
-        for variable in self.output_variable_list:
+        for variable in self.output_variable_list.values():
             if KratosMultiphysics.KratosGlobals.Kernel.HasDoubleVariable(variable.GetString()):
                 aux_list.append(True)
             elif KratosMultiphysics.KratosGlobals.Kernel.HasArrayVariable(variable.GetString()):
@@ -274,13 +274,13 @@ class FSICouplingInterface:
         self._fsi_interface_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = domain_size
 
         # Add the required variables to the FSI coupling interface model part
-        for variable_name in self.input_variable_list:
+        for variable_name in self.input_variable_list.values():
             input_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name.GetString())
             self._fsi_interface_model_part.AddNodalSolutionStepVariable(input_variable)
-        for variable_name in self.output_variable_list:
+        for variable_name in self.output_variable_list.values():
             output_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name.GetString())
             self._fsi_interface_model_part.AddNodalSolutionStepVariable(output_variable)
-        for variable_name in self.auxiliary_variable_list:
+        for variable_name in self.auxiliary_variable_list.values():
             auxiliary_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name.GetString())
             self._fsi_interface_model_part.AddNodalSolutionStepVariable(auxiliary_variable)
 
