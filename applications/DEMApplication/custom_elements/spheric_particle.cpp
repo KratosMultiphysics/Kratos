@@ -200,8 +200,6 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 
     if (this->IsNot(BLOCKED)) node.GetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
 
-    node.GetSolutionStepValue(GROUP_ID) = 0;
-
     mClusterId = -1;
 
     if (this->Is(DEMFlags::HAS_ROTATION)) {
