@@ -41,6 +41,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
+        .def_static("IsVariableInList", &OptimizationUtils::IsVariableInList)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, double>)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ElementsContainerType,double>)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
