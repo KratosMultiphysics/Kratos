@@ -115,17 +115,22 @@ private:
      void SetParameterFieldUsingInputFunction(const Variable<double>& rVar);
 
      /**
-     * \brief Sets the parameter field, using a user defined python function
+     * \brief Sets the parameter field, using a custom Parameter structure
      * \param rVar variable type which is to be used to generate the parameter field
      */
-     void SetParameterFieldUsingPythonFunction(const Variable<double>& rVar);
+     void SetParameterFieldUsingParametersClass(const Variable<double>& rVar, Parameters& rParameters);
 
      /**
      * \brief Sets the parameter field, using an input json file
      * \param rVar variable type which is to be used to generate the parameter field
      */
-     void SetParameterFieldUsingInputJson(const Variable<double>& rVar);
+     void SetParameterFieldUsingJsonFile(const Variable<double>& rVar);
 
+     /**
+     * \brief Sets the parameter field, using a json string
+     * \param rVar variable type which is to be used to generate the parameter field
+     */
+     void SetParameterFieldUsingJsonString(const  Variable<double>& rVar);
     ///@}
     ///@name Serialization
     ///@{

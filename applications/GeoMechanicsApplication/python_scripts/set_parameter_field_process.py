@@ -24,7 +24,7 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
     'GeoMechanicsApplication->python_scripts->user_defined_scripts->user_defined_parameter_field_base.py'
     the name of the script (without '.py') should be filled in at the 'function' parameter in the projectparameters.json
 
-    | option 3, func_type = 'json': with this option, a parameter field can be directly read from a json dictionary.
+    | option 3, func_type = 'json_file': with this option, a parameter field can be directly read from a json dictionary.
     This dictionary has to contain the 'values' key, which is a 1D list of all the field values. The list has to have
     the same size as the elements within the model part, and need to be accordingly sorted. The filename should be
     filled in at the 'dataset' parameter, within the projectparameters.json
@@ -41,6 +41,8 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
         self.params.AddValue("func_type", settings["func_type"])
         self.params.AddValue("function", settings["function"])
         self.params.AddValue("dataset", settings["dataset"])
+        if "json_file" in settings["func_type"].GetString():
+            self.params.AddValue("dataset_file_name", settings["dataset_file_name"])
         self.process = KratosGeo.SetParameterFieldProcess(self.model_part, self.params)
 
     def ExecuteInitialize(self):
@@ -55,6 +57,8 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
 
         # if the type of parameter field is a user defined python script:
         if self.params["func_type"].GetString() == "python":
+
+            self.params["func_type"].SetString("json_string")
 
             # initialise input and output
             input_dict = {}

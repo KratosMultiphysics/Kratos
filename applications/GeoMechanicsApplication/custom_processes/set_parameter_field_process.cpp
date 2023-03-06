@@ -35,12 +35,13 @@ namespace Kratos
     // function type: python, cpp, input
     const Parameters default_parameters(R"(
         {
-            "help"            : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
-            "model_part_name" : "please_specify_model_part_name",
-            "variable_name"   : "CUSTOM",
-            "func_type"       : "input",               
-            "function"        : "0",
-            "dataset"         : "dummy"
+            "help"              : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
+            "model_part_name"   : "please_specify_model_part_name",
+            "variable_name"     : "CUSTOM",
+            "func_type"         : "input",               
+            "function"          : "0",
+            "dataset"           : "dummy",
+            "dataset_file_name" : "dummy"
         }  )"
     );
 
@@ -82,12 +83,13 @@ void SetParameterFieldProcess::SetParameterFieldUsingInputFunction(const Variabl
 }
 
 
-void SetParameterFieldProcess::SetParameterFieldUsingPythonFunction(const Variable<double>& rVar)
+void SetParameterFieldProcess::SetParameterFieldUsingParametersClass(const Variable<double>& rVar, Parameters& rParameters)
 {
-    // get new data from the data set
-    const std::string& r_dataset = mParameters["dataset"].GetString();
-    const Parameters new_data{ r_dataset };
-    const Vector& r_data_vector = new_data["values"].GetVector();
+
+    const Vector& r_data_vector = rParameters["values"].GetVector();
+
+    KRATOS_ERROR_IF_NOT(r_data_vector.size() == mrModelPart.Elements().size()) << "The parameter field "
+    	"does not have the same size as the amount of elements within the model part!" << std::endl;
 
     // set new data on the elements
     IndexType i = 0;
@@ -98,27 +100,27 @@ void SetParameterFieldProcess::SetParameterFieldUsingPythonFunction(const Variab
     }
 }
 
+void SetParameterFieldProcess::SetParameterFieldUsingJsonString(const  Variable<double>& rVar)
+{
+    // get new data from the data set
+    const std::string& r_dataset = mParameters["dataset"].GetString();
 
-void SetParameterFieldProcess::SetParameterFieldUsingInputJson(const Variable<double>& rVar)
+
+    Parameters new_data{ r_dataset };
+    this->SetParameterFieldUsingParametersClass(rVar, new_data);
+
+}
+void SetParameterFieldProcess::SetParameterFieldUsingJsonFile(const Variable<double>& rVar)
 {
     // Read json string in field parameters file, create Parameters
-    const std::string& field_file_name = mParameters["dataset"].GetString();
-
+    const std::string& field_file_name = mParameters["dataset_file_name"].GetString();
     KRATOS_ERROR_IF_NOT(std::filesystem::exists(field_file_name)) << "The parameter field file specified with name \"" << field_file_name << "\" does not exist!" << std::endl;
 
     std::ifstream ifs(field_file_name);
-    Parameters new_data(ifs);
-    const Vector& data_vector = new_data["values"].GetVector();
+    Parameters new_data{ ifs };
 
-    KRATOS_ERROR_IF_NOT(data_vector.size() == mrModelPart.Elements().size()) << "The parameter field: \""
-        << field_file_name << "\" does not have the same size as the amount of elements within the model part!" << std::endl;
+    this->SetParameterFieldUsingParametersClass(rVar, new_data);
 
-    IndexType i = 0;
-    for (Element& r_element : mrModelPart.Elements())
-    {
-        SetValueAtElement(r_element, rVar, data_vector[i]);
-        ++i;
-    }
 }
 
 
@@ -137,15 +139,16 @@ void SetParameterFieldProcess::ExecuteInitialize()
         {
             this->SetParameterFieldUsingInputFunction(r_var);
         }
-        // set parameter field with a python function
-        else if (mParameters["func_type"].GetString() == "python")
+        // set parameter field with a json string
+        else if (mParameters["func_type"].GetString() == "json_string")
         {
-            this->SetParameterFieldUsingPythonFunction(r_var);
+
+            this->SetParameterFieldUsingJsonString(r_var);
         }
-        // set parameter field from an input json
-        else if (mParameters["func_type"].GetString() == "json")
+        // set parameter field from a json input file
+        else if (mParameters["func_type"].GetString() == "json_file")
         {
-            this->SetParameterFieldUsingInputJson(r_var);
+            this->SetParameterFieldUsingJsonFile(r_var);
         }
     }
     KRATOS_CATCH("")

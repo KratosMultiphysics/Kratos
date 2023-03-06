@@ -107,7 +107,7 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError) as cm:
             test_helper.run_kratos(file_path)
 
-        self.assertTrue(r'Error: The parameter field: "invalid_parameter_field.json" does not have the same size as '
+        self.assertTrue(r'Error: The parameter field does not have the same size as '
                         r'the amount of elements within the model part!' in str(cm.exception))
 
 

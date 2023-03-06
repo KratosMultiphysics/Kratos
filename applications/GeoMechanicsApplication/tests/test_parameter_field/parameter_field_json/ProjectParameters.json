@@ -126,9 +126,10 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.parameter_field",
             "variable_name":   "YOUNG_MODULUS",
-            "func_type":       "json",
+            "func_type":       "json_file",
             "function":        "dummy",
-			"dataset":         "parameter_field.json"
+            "dataset":         "dummy",
+			"dataset_file_name":         "parameter_field.json"
         }
     }],
     "loads_process_list": [{
