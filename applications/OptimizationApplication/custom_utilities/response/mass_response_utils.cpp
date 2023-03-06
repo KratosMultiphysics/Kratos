@@ -106,38 +106,47 @@ double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-template<class TDataType>
-void MassResponseUtils::CalculateSensitivity(
-    ModelPart& rSensitivityModelPart,
-    const Variable<TDataType>& rSensitivityVariable)
+void MassResponseUtils::CalculateSensitivity(std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rModelPartVariableInfo)
 {
     KRATOS_TRY
 
-    std::stringstream error_msg;
-
-    error_msg << "Unsupported sensitivity w.r.t. " << rSensitivityVariable.Name()
-              << " requested for " << rSensitivityModelPart.FullName()
-              << ". Followings are supported variables:"
-              << "\n\tSHAPE_SENSITIVITY"
-              << "\n\tDENSITY_SENSITIVITY"
-              << "\n\tTHICKNESS_SENSITIVITY"
-              << "\n\tCROSS_AREA_SENSITIVITY";
-
-    if constexpr (std::is_same_v<TDataType, double>) {
-        if (rSensitivityVariable == DENSITY_SENSITIVITY) {
-            CalculateMassDensitySensitivity(rSensitivityModelPart, DENSITY_SENSITIVITY);
-        } else if (rSensitivityVariable == THICKNESS_SENSITIVITY) {
-            CalculateMassThicknessSensitivity(rSensitivityModelPart, THICKNESS_SENSITIVITY);
-        } else if (rSensitivityVariable == CROSS_AREA_SENSITIVITY) {
-            CalculateMassCrossAreaSensitivity(rSensitivityModelPart, CROSS_AREA_SENSITIVITY);
-        } else {
-            KRATOS_ERROR << error_msg.str();
+    // clear all the sensitivity variables for nodes. Here we assume there are
+    // no overlapping regions in Elements and/or Conditions between provided rSensitivityModelParts hence, SetValue is
+    // used in Elements and/or Condtions. Nodal sensitivities are added so that common nodes between two model parts
+    // will have correct sensitivities.
+    for (auto& it : rModelPartVariableInfo) {
+        for (auto& r_variable : it.second) {
+            std::visit([&](auto&& r_variable) {
+                if (*r_variable == SHAPE_SENSITIVITY) {
+                    VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, it.first->Nodes());
+                }
+            }, r_variable);
         }
-    } else if constexpr (std::is_same_v<TDataType, array_1d<double, 3>>) {
-        if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-            CalculateMassShapeSensitivity(rSensitivityModelPart, SHAPE_SENSITIVITY);
-        } else {
-            KRATOS_ERROR << error_msg.str();
+    }
+
+    // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
+    for (auto& it : rModelPartVariableInfo) {
+        auto& r_sensitivity_modelPart = *(it.first);
+        for (auto& r_variable : it.second) {
+            std::visit([&](auto&& r_variable) {
+                if (*r_variable == DENSITY_SENSITIVITY) {
+                    CalculateMassDensitySensitivity(r_sensitivity_modelPart, DENSITY_SENSITIVITY);
+                } else if (*r_variable == THICKNESS_SENSITIVITY) {
+                    CalculateMassThicknessSensitivity(r_sensitivity_modelPart, THICKNESS_SENSITIVITY);
+                } else if (*r_variable == CROSS_AREA_SENSITIVITY) {
+                    CalculateMassCrossAreaSensitivity(r_sensitivity_modelPart, CROSS_AREA_SENSITIVITY);
+                } else if (*r_variable == SHAPE_SENSITIVITY) {
+                    CalculateMassShapeSensitivity(r_sensitivity_modelPart, SHAPE_SENSITIVITY);
+                } else {
+                    KRATOS_ERROR << "Unsupported sensitivity w.r.t. " << r_variable->Name()
+                                 << " requested for " << r_sensitivity_modelPart.FullName()
+                                 << ". Followings are supported variables:"
+                                 << "\n\tSHAPE_SENSITIVITY"
+                                 << "\n\tDENSITY_SENSITIVITY"
+                                 << "\n\tTHICKNESS_SENSITIVITY"
+                                 << "\n\tCROSS_AREA_SENSITIVITY";
+                }
+            }, r_variable);
         }
     }
 
@@ -149,8 +158,6 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
     const Variable<array_1d<double, 3>>& rOutputSensitivityVariable)
 {
     KRATOS_TRY
-
-    VariableUtils().SetNonHistoricalVariableToZero(rOutputSensitivityVariable, rModelPart.Nodes());
 
     if (rModelPart.NumberOfElements() == 0) {
         return;
@@ -328,10 +335,6 @@ void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
 
     KRATOS_CATCH("")
 }
-
-// template instantiations
-template void MassResponseUtils::CalculateSensitivity(ModelPart&, const Variable<double>&);
-template void MassResponseUtils::CalculateSensitivity(ModelPart&, const Variable<array_1d<double, 3>>&);
 
 ///@}
 }

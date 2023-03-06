@@ -33,6 +33,6 @@ class MassResponseFunction(ResponseFunction):
             value += KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(model_part)
         return value
 
-    def CalculateSensitivity(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, sensitivity_model_part: Kratos.ModelPart) -> None:
-        KratosOA.ResponseUtils.MassResponseUtils.CalculateSensitivity(sensitivity_model_part, sensitivity_variable)
+    def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[Kratos.ModelPart, list[SupportedSensitivityFieldVariableTypes]]') -> None:
+        KratosOA.ResponseUtils.MassResponseUtils.CalculateSensitivity(sensitivity_model_part_variable_info)
 

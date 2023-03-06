@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include <pybind11/stl.h>
 
 // Project includes
 
@@ -32,8 +33,7 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
     py::class_<MassResponseUtils >(m, "MassResponseUtils")
         .def_static("Check", &MassResponseUtils::Check)
         .def_static("CalculateValue", &MassResponseUtils::CalculateValue)
-        .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity<double>)
-        .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity<array_1d<double, 3>>)
+        .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity)
         ;
 }
 
