@@ -1095,8 +1095,8 @@ protected:
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // Generate indices database
-            const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
-            std::vector<std::unordered_set<IndexType>> indices(number_of_local_dofs);
+            const IndexType number_of_local_rows = mLastMyId - mFirstMyId;
+            std::vector<std::unordered_set<IndexType>> indices(number_of_local_rows);
 
             std::vector<LockObject> lock_array(indices.size());
 
@@ -1136,7 +1136,7 @@ protected:
                     mSlaveIds.push_back(mFirstMyId + i);
                 indices[i].insert(mFirstMyId + i); // Ensure that the diagonal is there in T
             }
-            
+
             // Generate map
             const int num_global_elements = BaseType::mEquationSystemSize;
             Epetra_Map map(num_global_elements, 0, mrComm);
@@ -1269,7 +1269,7 @@ protected:
         START_TIMER("MatrixStructure", 0)
 
         // Number of local dofs
-        const IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
+        const IndexType number_of_local_rows = mLastMyId - mFirstMyId;
 
         // TODO: Check if these should be local elements, conditions and constraints
         auto& r_elements_array = rModelPart.Elements();
@@ -1277,14 +1277,14 @@ protected:
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
 
         // Generate map - use the "temp" array here
-        const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_dofs;
+        const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_rows;
         std::vector<int> temp_primary(temp_size, 0);
         std::vector<int> temp_secondary(temp_size, 0);
-        for (IndexType i = 0; i != number_of_local_dofs; i++) {
+        for (IndexType i = 0; i != number_of_local_rows; i++) {
             temp_primary[i] = mFirstMyId + i;
             temp_secondary[i] = mFirstMyId + i;
         }
-        Epetra_Map map(-1, number_of_local_dofs, temp_primary.data(), 0, mrComm);
+        Epetra_Map map(-1, number_of_local_rows, temp_primary.data(), 0, mrComm);
 
         // Create and fill the graph of the matrix --> the temp array is
         // reused here with a different meaning
