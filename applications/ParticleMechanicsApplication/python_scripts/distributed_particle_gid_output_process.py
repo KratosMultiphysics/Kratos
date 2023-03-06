@@ -6,6 +6,7 @@ if CheckIfApplicationsAvailable("TrilinosApplication"):
 from KratosMultiphysics.ParticleMechanicsApplication.particle_gid_output_process import ParticleGiDOutputProcess
 
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+from KratosMultiphysics.ParticleMechanicsApplication import TrilinosExtension as TrilinosParticle
 import os
 
 def Factory(settings, Model):
@@ -28,7 +29,7 @@ class DistributedParticleGiDOutputProcess(ParticleGiDOutputProcess):
         # Initiate Output Mesh
         self.mesh_file_name = self.base_file_name + ".post.msh"
         # Write initial mesh to file
-        KratosParticle.MPM_MPI_Utilities.WriteGlobalParticlesToFile(self.model_part, self.mesh_file_name )
+        TrilinosParticle.MPM_MPI_Utilities.WriteGlobalParticlesToFile(self.model_part, self.mesh_file_name )
         # Initiate Output File
         self.result_file = open(self.base_file_name + ".post.res",'w')
         self.result_file.write("GiD Post Results File 1.0\n")
