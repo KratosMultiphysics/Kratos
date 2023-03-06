@@ -21,7 +21,7 @@ class MassResponseFunction(ResponseFunction):
             self.model_parts.append(model[model_part_name])
 
         if len(self.model_parts) == 0:
-            raise RuntimeError(f"No model parts were provided for MassResponseFunction.")
+            raise RuntimeError("No model parts were provided for MassResponseFunction.")
 
     def Check(self) -> None:
         for model_part in self.model_parts:
