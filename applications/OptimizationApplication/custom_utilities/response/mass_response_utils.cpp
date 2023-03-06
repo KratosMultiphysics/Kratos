@@ -23,7 +23,6 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "custom_utilities/optimization_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -124,7 +123,7 @@ double MassResponseUtils::CalculateModelPartValue(const ModelPart& rModelPart)
 
 void MassResponseUtils::CalculateSensitivity(
     const std::vector<ModelPart*>& rEvaluatedModelParts,
-    const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rSensitivityModelPartVariableInfo)
+    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo)
 {
     KRATOS_TRY
 
