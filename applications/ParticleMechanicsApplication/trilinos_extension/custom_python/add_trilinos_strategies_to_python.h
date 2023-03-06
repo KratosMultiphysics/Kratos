@@ -10,18 +10,13 @@
 //  Main author:     Manuel Messmer
 //
 
-#ifndef KRATOS_ADD_TRILINOS_STRATEGIES_TO_PYTHON_H_INCLUDED
-#define KRATOS_ADD_TRILINOS_STRATEGIES_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddTrilinosStrategiesToPython(pybind11::module& m);
 
-} // namespace Python
-} // namespace Kratos
-
-#endif // KRATOS_ADD_TRILINOS_STRATEGIES_TO_PYTHON_H_INCLUDED
+} // namespace Kratos::Python

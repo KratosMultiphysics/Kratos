@@ -16,15 +16,14 @@
 #include "add_trilinos_strategies_to_python.h"
 #include "add_custom_mpi_utilities_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
-PYBIND11_MODULE(KratosParticleMechanicsTrilinosExtension,m) {
+PYBIND11_MODULE(KratosParticleMechanicsTrilinosExtension,m)
+{
     AddTrilinosStrategiesToPython(m);
     AddCustomMPIUtilitiesToPython(m);
 }
 
-}// namespace Python
-}// namespace Kratos
+} // namespace Kratos::Python
 
 #endif

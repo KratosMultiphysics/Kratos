@@ -20,8 +20,7 @@
 #include "custom_utilities/mpm_mpi_search.h"
 #include "includes/model_part.h"
 
-namespace Kratos{
-namespace Python{
+namespace Kratos::Python {
 
     void SearchElementMPIAccordingToDimension(
             ModelPart& rBackgroundGridModelPart,
@@ -49,5 +48,4 @@ namespace Python{
             .def_static("WriteGlobalParticlesToFile", &MPM_MPI_Utilities::WriteGlobalParticlesToFile );
     }
 
- }  // namespace Python.
-} // Namespace Kratos
+} // Namespace Kratos::Python

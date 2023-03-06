@@ -30,8 +30,7 @@
 #include "../custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
 #include "../custom_builder_and_solvers/trilinos_mpm_block_builder_and_solver.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddTrilinosStrategiesToPython(pybind11::module& m){
 
@@ -70,5 +69,4 @@ void AddTrilinosStrategiesToPython(pybind11::module& m){
 
 }
 
-}// namespace Kratos
-}// namespace Pyton
+} // namespace Kratos::Python
