@@ -1,27 +1,19 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-#import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-
 # Import base class file
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 from KratosMultiphysics.ParticleMechanicsApplication.trilinos_mpm_solver import TrilinosMPMSolver
-from KratosMultiphysics.ParticleMechanicsApplication import TrilinosExtension as TrilinosExtension
+from KratosMultiphysics.ParticleMechanicsApplication import TrilinosExtension as TrilinosParticle
 
 def CreateSolver(model, custom_settings):
     return TrilinosMPMImplicitDynamicSolver(model, custom_settings)
 
 class TrilinosMPMImplicitDynamicSolver(TrilinosMPMSolver):
-    """The trilinos mpm static solver.
 
-    For more information see:
-    mpm_solver.py
-    trilinos_mpm_solver.py
-    """
     def __init__(self, model, custom_settings):
-        # Construct the base solver.
-        super(TrilinosMPMImplicitDynamicSolver, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMPMStaticSolver]:: ", "Construction finished")
+        super().__init__(model, custom_settings)
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMPMImplicitDynamicSolver]:: ", "Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -34,7 +26,7 @@ class TrilinosMPMImplicitDynamicSolver(TrilinosMPMSolver):
         return this_defaults
 
     def AddVariables(self):
-        super(TrilinosMPMImplicitDynamicSolver, self).AddVariables()
+        super().AddVariables()
         self._AddDynamicVariables(self.grid_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Variables are all added.")
 
@@ -43,7 +35,9 @@ class TrilinosMPMImplicitDynamicSolver(TrilinosMPMSolver):
         grid_model_part = self.GetGridModelPart()
         domain_size = self._GetDomainSize()
         block_size  = domain_size
-        if (self.settings["pressure_dofs"].GetBool()):
+        is_mixed_formulation = self.settings["pressure_dofs"].GetBool()
+        self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_MIXED_FORMULATION, is_mixed_formulation)
+        if is_mixed_formulation:
             block_size += 1
 
         # Setting the time integration schemes
@@ -61,11 +55,12 @@ class TrilinosMPMImplicitDynamicSolver(TrilinosMPMSolver):
 
         is_dynamic = self._IsDynamic()
 
-        return TrilinosExtension.TrilinosMPMResidualBasedBossakScheme( grid_model_part,
-                                                                       domain_size,
-                                                                       block_size,
-                                                                       damp_factor_m,
-                                                                       newmark_beta,
-                                                                       is_dynamic)
+        return TrilinosParticle.TrilinosMPMResidualBasedBossakScheme(grid_model_part,
+                                                                      domain_size,
+                                                                      block_size,
+                                                                      damp_factor_m,
+                                                                      newmark_beta,
+                                                                      is_dynamic)
+
     def _IsDynamic(self):
         return True
