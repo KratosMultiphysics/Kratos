@@ -24,15 +24,11 @@ class MassResponseFunction(ResponseFunction):
             raise RuntimeError("No model parts were provided for MassResponseFunction.")
 
     def Check(self) -> None:
-        for model_part in self.model_parts:
-            KratosOA.ResponseUtils.MassResponseUtils.Check(model_part)
+        KratosOA.ResponseUtils.MassResponseUtils.Check(self.model_parts)
 
     def CalculateValue(self) -> float:
-        value = 0.0
-        for model_part in self.model_parts:
-            value += KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(model_part)
-        return value
+        return KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(self.model_parts)
 
     def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[Kratos.ModelPart, list[SupportedSensitivityFieldVariableTypes]]') -> None:
-        KratosOA.ResponseUtils.MassResponseUtils.CalculateSensitivity(sensitivity_model_part_variable_info)
+        KratosOA.ResponseUtils.MassResponseUtils.CalculateSensitivity(self.model_parts, sensitivity_model_part_variable_info)
 

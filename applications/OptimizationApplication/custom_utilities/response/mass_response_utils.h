@@ -46,16 +46,22 @@ public:
     ///@name Static operations
     ///@{
 
-    static void Check(const ModelPart& rModelPart);
+    static void Check(std::vector<ModelPart const*> rModelParts);
 
-    static double CalculateValue(const ModelPart& rModelPart);
+    static double CalculateValue(std::vector<ModelPart const*> rModelParts);
 
-    static void CalculateSensitivity(const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rModelPartVariableInfo);
+    static void CalculateSensitivity(
+        const std::vector<ModelPart*>& rEvaluatedModelParts,
+        const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rSensitivityModelPartVariableInfo);
 
     ///@}
 private:
     ///@name Private operations
     ///@{
+
+    static void CheckModelPart(const ModelPart& rModelPart);
+
+    static double CalculateModelPartValue(const ModelPart& rModelPart);
 
     static bool HasVariableInProperties(
         const ModelPart& rModelPart,

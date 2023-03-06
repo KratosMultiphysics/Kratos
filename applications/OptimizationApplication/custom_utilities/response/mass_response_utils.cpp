@@ -51,7 +51,23 @@ bool MassResponseUtils::HasVariableInProperties(
     KRATOS_CATCH("");
 }
 
-void MassResponseUtils::Check(const ModelPart& rModelPart)
+void MassResponseUtils::Check(std::vector<ModelPart const*> rModelParts)
+{
+    for (const auto p_model_part : rModelParts) {
+        CheckModelPart(*p_model_part);
+    }
+}
+
+double MassResponseUtils::CalculateValue(std::vector<ModelPart const*> rModelParts)
+{
+    double value = 0.0;
+    for (const auto p_model_part : rModelParts) {
+        value += CalculateModelPartValue(*p_model_part);
+    }
+    return value;
+}
+
+void MassResponseUtils::CheckModelPart(const ModelPart& rModelPart)
 {
     const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
 
@@ -74,7 +90,7 @@ void MassResponseUtils::Check(const ModelPart& rModelPart)
     }
 }
 
-double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
+double MassResponseUtils::CalculateModelPartValue(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -106,15 +122,25 @@ double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-void MassResponseUtils::CalculateSensitivity(const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rModelPartVariableInfo)
+void MassResponseUtils::CalculateSensitivity(
+    const std::vector<ModelPart*>& rEvaluatedModelParts,
+    const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rSensitivityModelPartVariableInfo)
 {
     KRATOS_TRY
+
+    OptimizationUtils::ActivateEntitiesAndCheckOverlappingRegions(
+        rEvaluatedModelParts,
+        rSensitivityModelPartVariableInfo,
+        SELECTED,
+        {},
+        {},
+        {&SHAPE_SENSITIVITY, &DENSITY_SENSITIVITY, &THICKNESS_SENSITIVITY, &CROSS_AREA_SENSITIVITY});
 
     // clear all the sensitivity variables for nodes. Here we assume there are
     // no overlapping regions in Elements and/or Conditions between provided rSensitivityModelParts hence, SetValue is
     // used in Elements and/or Condtions. Nodal sensitivities are added so that common nodes between two model parts
     // will have correct sensitivities.
-    for (auto& it : rModelPartVariableInfo) {
+    for (auto& it : rSensitivityModelPartVariableInfo) {
         for (auto& r_variable : it.second) {
             std::visit([&](auto&& r_variable) {
                 if (*r_variable == SHAPE_SENSITIVITY) {
@@ -125,26 +151,18 @@ void MassResponseUtils::CalculateSensitivity(const std::unordered_map<ModelPart*
     }
 
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (const auto& it : rModelPartVariableInfo) {
-        auto& r_sensitivity_modelPart = *(it.first);
+    for (const auto& it : rSensitivityModelPartVariableInfo) {
+        auto& r_sensitivity_model_part = *(it.first);
         for (auto& r_variable : it.second) {
             std::visit([&](auto&& r_variable) {
                 if (*r_variable == DENSITY_SENSITIVITY) {
-                    CalculateMassDensitySensitivity(r_sensitivity_modelPart, DENSITY_SENSITIVITY);
+                    CalculateMassDensitySensitivity(r_sensitivity_model_part, DENSITY_SENSITIVITY);
                 } else if (*r_variable == THICKNESS_SENSITIVITY) {
-                    CalculateMassThicknessSensitivity(r_sensitivity_modelPart, THICKNESS_SENSITIVITY);
+                    CalculateMassThicknessSensitivity(r_sensitivity_model_part, THICKNESS_SENSITIVITY);
                 } else if (*r_variable == CROSS_AREA_SENSITIVITY) {
-                    CalculateMassCrossAreaSensitivity(r_sensitivity_modelPart, CROSS_AREA_SENSITIVITY);
+                    CalculateMassCrossAreaSensitivity(r_sensitivity_model_part, CROSS_AREA_SENSITIVITY);
                 } else if (*r_variable == SHAPE_SENSITIVITY) {
-                    CalculateMassShapeSensitivity(r_sensitivity_modelPart, SHAPE_SENSITIVITY);
-                } else {
-                    KRATOS_ERROR << "Unsupported sensitivity w.r.t. " << r_variable->Name()
-                                 << " requested for " << r_sensitivity_modelPart.FullName()
-                                 << ". Followings are supported variables:"
-                                 << "\n\tSHAPE_SENSITIVITY"
-                                 << "\n\tDENSITY_SENSITIVITY"
-                                 << "\n\tTHICKNESS_SENSITIVITY"
-                                 << "\n\tCROSS_AREA_SENSITIVITY";
+                    CalculateMassShapeSensitivity(r_sensitivity_model_part, SHAPE_SENSITIVITY);
                 }
             }, r_variable);
         }
@@ -244,19 +262,21 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
     }
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement){
-        auto& r_geometry = rElement.GetGeometry();
-        const IndexType dimension = r_geometry.WorkingSpaceDimension();
+        if (rElement.Is(SELECTED)) {
+            auto& r_geometry = rElement.GetGeometry();
+            const IndexType dimension = r_geometry.WorkingSpaceDimension();
 
-        const double density = rElement.GetProperties()[DENSITY];
-        const double thickness = get_thickness(rElement);
-        const double cross_area = get_cross_area(rElement);
+            const double density = rElement.GetProperties()[DENSITY];
+            const double thickness = get_thickness(rElement);
+            const double cross_area = get_cross_area(rElement);
 
-        for (IndexType c = 0; c < r_geometry.PointsNumber(); ++c) {
-            auto& r_derivative_value = r_geometry[c].GetValue(rOutputSensitivityVariable);
+            for (IndexType c = 0; c < r_geometry.PointsNumber(); ++c) {
+                auto& r_derivative_value = r_geometry[c].GetValue(rOutputSensitivityVariable);
 
-            for (IndexType k = 0; k < dimension; ++k) {
-                const double derivative_value = volume_derivative_method(c, k, r_geometry) * thickness * density * cross_area;
-                AtomicAdd(r_derivative_value[k], derivative_value);
+                for (IndexType k = 0; k < dimension; ++k) {
+                    const double derivative_value = volume_derivative_method(c, k, r_geometry) * thickness * density * cross_area;
+                    AtomicAdd(r_derivative_value[k], derivative_value);
+                }
             }
         }
     });
@@ -288,7 +308,9 @@ void MassResponseUtils::CalculateMassDensitySensitivity(
                                     : [](const ModelPart::ElementType& rElement) { return 1.0; };
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
-        rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
+        if (rElement.Is(SELECTED)) {
+            rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
+        }
     });
 
     KRATOS_CATCH("")
@@ -330,7 +352,9 @@ void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
         << ". Please separate the model part such that either one of them is present in elemental properties.\n";
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
-        rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
+        if (rElement.Is(SELECTED)) {
+            rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
+        }
     });
 
     KRATOS_CATCH("")
