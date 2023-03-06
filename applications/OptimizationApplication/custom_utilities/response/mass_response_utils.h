@@ -46,9 +46,9 @@ public:
     ///@name Static operations
     ///@{
 
-    static void Check(std::vector<ModelPart const*> rModelParts);
+    static void Check(const std::vector<ModelPart const*>& rModelParts);
 
-    static double CalculateValue(std::vector<ModelPart const*> rModelParts);
+    static double CalculateValue(const std::vector<ModelPart const*>& rModelParts);
 
     static void CalculateSensitivity(
         const std::vector<ModelPart*>& rEvaluatedModelParts,

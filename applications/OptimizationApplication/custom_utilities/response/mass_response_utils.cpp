@@ -51,14 +51,14 @@ bool MassResponseUtils::HasVariableInProperties(
     KRATOS_CATCH("");
 }
 
-void MassResponseUtils::Check(std::vector<ModelPart const*> rModelParts)
+void MassResponseUtils::Check(const std::vector<ModelPart const*>& rModelParts)
 {
     for (const auto p_model_part : rModelParts) {
         CheckModelPart(*p_model_part);
     }
 }
 
-double MassResponseUtils::CalculateValue(std::vector<ModelPart const*> rModelParts)
+double MassResponseUtils::CalculateValue(const std::vector<ModelPart const*>& rModelParts)
 {
     double value = 0.0;
     for (const auto p_model_part : rModelParts) {
