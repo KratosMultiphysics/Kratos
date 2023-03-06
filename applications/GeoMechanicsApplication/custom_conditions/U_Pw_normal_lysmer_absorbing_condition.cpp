@@ -644,7 +644,7 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix( BoundedMatrix<d
     //Quadrilateral_3d_4
     array_1d<double, 3> p_mid_0;
     array_1d<double, 3> p_mid_1;
-    const auto p_2 = array_1d(rGeom.GetPoint(2));
+    const auto p_2 = array_1d<double, 3>(rGeom.GetPoint(2));
     noalias(p_mid_0) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(3));
     noalias(p_mid_1) = 0.5 * (rGeom.GetPoint(1) + p_2);
 
