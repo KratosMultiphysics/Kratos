@@ -14,6 +14,9 @@
 #pragma once
 
 // System includes
+#include <unordered_map>
+#include <vector>
+#include <variant>
 
 // Project includes
 #include "includes/define.h"
@@ -37,23 +40,28 @@ public:
 
     using GeometryType = ModelPart::ElementType::GeometryType;
 
+    using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
+
     ///@}
     ///@name Static operations
     ///@{
 
-    static void Check(const ModelPart& rModelPart);
+    static void Check(const std::vector<ModelPart const*>& rModelParts);
 
-    static double CalculateValue(const ModelPart& rModelPart);
+    static double CalculateValue(const std::vector<ModelPart const*>& rModelParts);
 
-    template<class TDataType>
     static void CalculateSensitivity(
-        ModelPart& rSensitivityModelPart,
-        const Variable<TDataType>& rSensitivityVariable);
+        const std::vector<ModelPart*>& rEvaluatedModelParts,
+        const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rSensitivityModelPartVariableInfo);
 
     ///@}
 private:
     ///@name Private operations
     ///@{
+
+    static void CheckModelPart(const ModelPart& rModelPart);
+
+    static double CalculateModelPartValue(const ModelPart& rModelPart);
 
     static bool HasVariableInProperties(
         const ModelPart& rModelPart,

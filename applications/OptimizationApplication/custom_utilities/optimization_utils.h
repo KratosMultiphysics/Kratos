@@ -14,6 +14,8 @@
 
 // System includes
 #include <vector>
+#include <variant>
+#include <unordered_map>
 
 // Project includes
 #include "includes/define.h"
@@ -36,9 +38,22 @@ public:
 
     using IndexType = std::size_t;
 
+    using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
+
     ///@}
     ///@name Static operations
     ///@{
+
+    static bool IsVariableInList(
+        const SensitivityFieldVariableTypes& rVariable,
+        const std::vector<SensitivityFieldVariableTypes>& rVariablesList);
+
+    template<class TContainerType>
+    static IndexType GetNumberOfContainerItemsWithFlag(
+        const TContainerType& rContainer,
+        const DataCommunicator& rDataCommunicator,
+        const Flags& rFlag,
+        const bool FlagValue = true);
 
     template<class TContainerType>
     static GeometryData::KratosGeometryType GetContainerEntityGeometryType(
@@ -70,6 +85,14 @@ public:
     static void CopySolutionStepVariablesList(
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
+
+    static void ActivateEntitiesAndCheckOverlappingRegions(
+        const std::vector<ModelPart*>& rEvaluatedModelParts,
+        const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rSensitivityModelPartVariableInfo,
+        const Flags& rActivatedFlag,
+        const std::vector<SensitivityFieldVariableTypes>& rAllowedNodalSensitivityVariables,
+        const std::vector<SensitivityFieldVariableTypes>& rAllowedConditionSensitivityVariables,
+        const std::vector<SensitivityFieldVariableTypes>& rAllowedElementSensitivityVariables);
 
     ///@}
 };
