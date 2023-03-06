@@ -44,27 +44,6 @@ RUN powershell.exe -Command \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
 
-#Install python 3.6
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe -OutFile c:\temp\python36.exe; \
-    mkdir c:\python\36; \
-    Start-Process c:\temp\python36.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\36' -Wait; \
-    c:\python\36\python.exe -m pip install --upgrade pip; \
-    c:\python\36\python.exe -m pip install mypy; \
-    c:\python\36\python.exe -m pip install --upgrade setuptools wheel
-
-
-#Install python 3.7
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.7.7/python-3.7.7-amd64.exe -OutFile c:\temp\python37.exe; \
-    mkdir c:\python\37; \
-    Start-Process c:\temp\python37.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\37' -Wait; \
-    c:\python\37\python.exe -m pip install --upgrade pip; \
-    c:\python\37\python.exe -m pip install mypy; \
-    c:\python\37\python.exe -m pip install --upgrade setuptools wheel
-
 #Install python 3.8
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
@@ -93,6 +72,15 @@ RUN powershell.exe -Command \
     Start-Process c:\temp\python310.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\310' -Wait; \
     c:\python\310\python.exe -m pip install --upgrade pip; \
     c:\python\310\python.exe -m pip install --upgrade setuptools wheel
+
+#Install python 3.11
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.11.0/python-3.11.0-amd64.exe -OutFile c:\temp\python311.exe; \
+    mkdir c:\python\311; \
+    Start-Process c:\temp\python311.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\311' -Wait; \
+    c:\python\311\python.exe -m pip install --upgrade pip; \
+    c:\python\311\python.exe -m pip install --upgrade setuptools wheel
 
 # Download and extract boost
 RUN powershell.exe -Command \

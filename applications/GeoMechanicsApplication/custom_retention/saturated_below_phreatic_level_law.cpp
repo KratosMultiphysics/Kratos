@@ -48,7 +48,7 @@ SaturatedBelowPhreaticLevelLaw::~SaturatedBelowPhreaticLevelLaw()
 double SaturatedBelowPhreaticLevelLaw::
     CalculateSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const double &p = rParameters.GetFluidPressure();
 
@@ -65,7 +65,7 @@ double SaturatedBelowPhreaticLevelLaw::
 double SaturatedBelowPhreaticLevelLaw::
     CalculateEffectiveSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     return CalculateSaturation(rParameters);
 
@@ -76,18 +76,14 @@ double SaturatedBelowPhreaticLevelLaw::
 double SaturatedBelowPhreaticLevelLaw::
     CalculateDerivativeOfSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
-
     return 0.0;
-
-    KRATOS_CATCH("")
 }
 
 //-------------------------------------------------------------------------------------------------
 double SaturatedBelowPhreaticLevelLaw::
     CalculateRelativePermeability(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const double &p = rParameters.GetFluidPressure();
 
@@ -104,7 +100,7 @@ double SaturatedBelowPhreaticLevelLaw::
 double SaturatedBelowPhreaticLevelLaw::
     CalculateBishopCoefficient(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     return CalculateEffectiveSaturation(rParameters);
 

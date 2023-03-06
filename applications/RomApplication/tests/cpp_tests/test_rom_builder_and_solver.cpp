@@ -26,8 +26,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "utilities/math_utils.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 namespace ROMBuilderAndSolverTestingInternal {
 
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
@@ -216,5 +215,4 @@ KRATOS_TEST_CASE_IN_SUITE(ROMBuilderAndSolver, RomApplicationFastSuite)
     KRATOS_CHECK_NEAR(dx(2), 2.0 , 1e-8);
 }
 
-}
 }

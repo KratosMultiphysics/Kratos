@@ -95,15 +95,20 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CATCH_BLOCK_BEGIN class ExceptionBlock{public: void operator()(void){
 #define KRATOS_CATCH_BLOCK_END }} exception_block; exception_block();
 
-#ifndef __SUNPRO_CC
-#define KRATOS_TRY try {
-
-#define KRATOS_CATCH(MoreInfo) \
-  KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
+#ifndef KRATOS_NO_TRY_CATCH
+    #define KRATOS_TRY_IMPL try {
+    #define KRATOS_CATCH_IMPL(MoreInfo) KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
 #else
-#define KRATOS_TRY { };
+    #define KRATOS_TRY_IMPL {};
+    #define KRATOS_CATCH_IMPL(MoreInfo) {};
+#endif
 
-#define KRATOS_CATCH(MoreInfo) { };
+#ifndef __SUNPRO_CC
+    #define KRATOS_TRY KRATOS_TRY_IMPL
+    #define KRATOS_CATCH(MoreInfo) KRATOS_CATCH_IMPL(MoreInfo)
+#else
+    #define KRATOS_TRY {};
+    #define KRATOS_CATCH(MoreInfo) {};
 #endif
 
 //-----------------------------------------------------------------

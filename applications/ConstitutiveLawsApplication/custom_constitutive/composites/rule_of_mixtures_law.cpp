@@ -204,7 +204,6 @@ bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<double>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
-
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;

@@ -98,6 +98,8 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_DEVIATORIC_COEFFICIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_INTERFACE_NODE)
 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.EULERIAN_INLET)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.LAGRANGIAN_INLET)
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()
         if self._TimeBufferIsInitialized():

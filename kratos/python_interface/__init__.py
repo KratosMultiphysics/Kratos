@@ -14,6 +14,8 @@ if os.name == 'nt': # This means "Windows"
 
 from . import kratos_globals
 from . import python_registry
+from . import python_registry_lists
+from . import python_registry_utilities
 
 if sys.version_info < (3, 8):
     raise Exception("Kratos only supports Python version 3.8 and above")
@@ -104,6 +106,9 @@ RegisterPrototype = python_registry.RegisterPrototype
 # This is required since we cannot use properties as usual due to the fact that we have no instance of CppRegistry (it is a static variable in c++)
 locals().pop("CppRegistry")
 
+# Loop and register the Python registry lists
+python_registry_utilities.RegisterAll("KratosMultiphysics", python_registry_lists)
+
 # Detect kratos library version
 python_version = KratosGlobals.Kernel.PythonVersion()
 python_version = python_version.replace("Python","")
@@ -115,7 +120,7 @@ if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.mi
         kratos_version_info[0], kratos_version_info[1]
     ))
 
-# Print the process id e.g. for attatching a debugger
+# print the process id e.g. for attaching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())
 
