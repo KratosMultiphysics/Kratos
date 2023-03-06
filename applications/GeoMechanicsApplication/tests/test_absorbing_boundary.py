@@ -52,8 +52,10 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
         test_name = 'test_lysmer_boundary_stiff_column2d_quad'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
+        test_helper.run_kratos(file_path)
+
         # retrieve results from calculation
-        with open(os.path.join(file_path, "calculated_result.json") ) as fp:
+        with open(os.path.join(file_path, "calculated_result.json")) as fp:
             calculated_result = json.load(fp)
 
         output_indices = [0, 8, 16, 24, 32]
