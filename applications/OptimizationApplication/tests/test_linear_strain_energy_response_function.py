@@ -45,9 +45,9 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
 
             # creating the response function wrapper
             response_function_settings = Kratos.Parameters("""{
-                "evaluated_model_part_name": "Structure.structure",
-                "primal_analysis_name"     : "primal",
-                "perturbation_size"        : 1e-8
+                "evaluated_model_part_names": ["Structure.structure"],
+                "primal_analysis_name"      : "primal",
+                "perturbation_size"         : 1e-8
             }""")
             cls.response_function: LinearStrainEnergyResponseFunction = LinearStrainEnergyResponseFunction(cls.model, response_function_settings, cls.optimization_info)
 
