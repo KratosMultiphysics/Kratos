@@ -106,7 +106,7 @@ double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-void MassResponseUtils::CalculateSensitivity(std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rModelPartVariableInfo)
+void MassResponseUtils::CalculateSensitivity(const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rModelPartVariableInfo)
 {
     KRATOS_TRY
 
@@ -125,7 +125,7 @@ void MassResponseUtils::CalculateSensitivity(std::unordered_map<ModelPart*, std:
     }
 
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (auto& it : rModelPartVariableInfo) {
+    for (const auto& it : rModelPartVariableInfo) {
         auto& r_sensitivity_modelPart = *(it.first);
         for (auto& r_variable : it.second) {
             std::visit([&](auto&& r_variable) {

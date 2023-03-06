@@ -50,7 +50,7 @@ public:
 
     static double CalculateValue(const ModelPart& rModelPart);
 
-    static void CalculateSensitivity(std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rModelPartVariableInfo);
+    static void CalculateSensitivity(const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rModelPartVariableInfo);
 
     ///@}
 private:
