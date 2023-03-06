@@ -29,7 +29,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             self.model_parts.append(model[model_part_name])
 
         if len(self.model_parts) == 0:
-            raise RuntimeError(f"No model parts were provided for LinearStrainEnergyResponseFunction.")
+            raise RuntimeError("No model parts were provided for LinearStrainEnergyResponseFunction.")
 
     def Check(self) -> None:
         # all of the model parts needs to have the same root model part
