@@ -169,7 +169,7 @@ void OptimizationUtils::CopySolutionStepVariablesList(
 
 void OptimizationUtils::ActivateEntitiesAndCheckOverlappingRegions(
     const std::vector<ModelPart*>& rEvaluatedModelParts,
-    const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rSensitivityModelPartVariableInfo,
+    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
     const Flags& rActivatedFlag,
     const std::vector<SensitivityFieldVariableTypes>& rAllowedNodalSensitivityVariables,
     const std::vector<SensitivityFieldVariableTypes>& rAllowedConditionSensitivityVariables,

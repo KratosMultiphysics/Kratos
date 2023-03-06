@@ -40,6 +40,8 @@ public:
 
     using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
 
+    using SensitivityModelPartVariablesListMap = std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>;
+
     ///@}
     ///@name Static operations
     ///@{
@@ -88,7 +90,7 @@ public:
 
     static void ActivateEntitiesAndCheckOverlappingRegions(
         const std::vector<ModelPart*>& rEvaluatedModelParts,
-        const std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>& rSensitivityModelPartVariableInfo,
+        const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
         const Flags& rActivatedFlag,
         const std::vector<SensitivityFieldVariableTypes>& rAllowedNodalSensitivityVariables,
         const std::vector<SensitivityFieldVariableTypes>& rAllowedConditionSensitivityVariables,
