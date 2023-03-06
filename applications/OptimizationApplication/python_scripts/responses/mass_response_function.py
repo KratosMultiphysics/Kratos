@@ -1,6 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
+from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityVariableTypes
 
 class MassResponseFunction(ResponseFunction):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _):
@@ -28,6 +29,6 @@ class MassResponseFunction(ResponseFunction):
             value += KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(model_part)
         return value
 
-    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart) -> None:
+    def CalculateSensitivity(self, sensitivity_variable: SupportedSensitivityVariableTypes, sensitivity_model_part: Kratos.ModelPart) -> None:
         KratosOA.ResponseUtils.MassResponseUtils.CalculateSensitivity(sensitivity_model_part, sensitivity_variable)
 
