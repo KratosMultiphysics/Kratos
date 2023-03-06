@@ -2,5 +2,5 @@ from typing import Union
 
 import KratosMultiphysics as Kratos
 
-SupportedControlVariableTypes = Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]
-SupportedSensitivityVariableTypes = Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]
+# used union types for type hinting in python and for automated documentation generation
+SupportedSensitivityFieldVariableTypes = Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]
