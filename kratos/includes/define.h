@@ -803,6 +803,7 @@ namespace Kratos
 //Print Trace if defined
 #define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
 #define KRATOS_WATCH_CERR(variable) std::cerr << #variable << " : " << variable << std::endl;
+#define KRATOS_WATCH_MPI(variable, mpi_data_comm) std::cout << "RANK " << mpi_data_comm.Rank() + 1 << "/" << mpi_data_comm.Size() << "\t" << #variable << " : " << variable << std::endl;
 
 }  /* namespace Kratos.*/
 
