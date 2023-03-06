@@ -35,7 +35,7 @@ namespace Kratos
     // function type: python, cpp, input
     const Parameters default_parameters(R"(
         {
-            "help"              : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
+            "help"              : "This process sets a parameter field on a model part, where each element can have different material properties.",
             "model_part_name"   : "please_specify_model_part_name",
             "variable_name"     : "CUSTOM",
             "func_type"         : "input",               
