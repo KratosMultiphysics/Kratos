@@ -98,7 +98,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ModifiedCamClayYieldCriterion
         * @param[in] rOldPreconsolidationPressure The value of Preconsolidation Stress at the previous time step
         * @return Modified cam clay yield criterion
         */
-        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rOldPreconsolidationPressure) override;
+        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rOldPreconsolidationPressure, const Properties& rProp) override;
 
 
         /*
@@ -108,7 +108,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ModifiedCamClayYieldCriterion
         * @param[in] rAlpha Plastic volumetric strain
         * @param[in] rOldPreconsolidationPressure The value of Preconsolidation Stress at the previous time step
         */
-        void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha, const double& rOldPreconsolidationPressure) override;
+        void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha, const double& rOldPreconsolidationPressure, const Properties& rProp) override;
 
 
         /*
@@ -116,7 +116,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ModifiedCamClayYieldCriterion
         * @param[in] rStressVector Principal stresses
         * @param[in/out] rSecondDerivative Second stress derivative value of yield function
         */
-        void CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative) override;
+        void CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative, const Properties& rProp) override;
 
         ///@}
         ///@name Access
