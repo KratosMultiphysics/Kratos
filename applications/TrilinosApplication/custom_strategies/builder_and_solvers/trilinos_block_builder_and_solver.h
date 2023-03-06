@@ -210,11 +210,8 @@ public:
 
         // Assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            // Detect if the element is active or not. If the user did not make
-            // any choice the element is active by default
-            const bool element_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
-
-            if (element_is_active) {
+            // Detect if the element is active or not. If the user did not make any choice the element is active by default
+            if ((*it)->IsActive()) {
                 // Calculate elemental contribution
                 pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
@@ -229,11 +226,9 @@ public:
 
         // Assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
-            // detect if the element is active or not. If the user did not make
-            // any choice the element is active by default
-            const bool condition_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
-            if (condition_is_active) {
-                // Calculate elemental contribution
+            // Detect if the condition is active or not. If the user did not make any choice the condition is active by default
+            if ((*it)->IsActive()) {
+                // Calculate condition contribution
                 pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 // Assemble the condition contribution
