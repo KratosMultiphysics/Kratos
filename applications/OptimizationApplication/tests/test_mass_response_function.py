@@ -14,9 +14,9 @@ class TestMassResponseFunctionBase(kratos_unittest.TestCase):
         cls.response_function = MassResponseFunction(cls.model, cls.GetParameters(), None)
         cls.CreateElements()
 
-        cls.response_function.ExecuteInitialize()
+        cls.response_function.Initialize()
         cls.response_function.Check()
-        cls.response_function.ExecuteInitializeSolutionStep()
+        cls.response_function.InitializeSolutionStep()
         cls.ref_value = cls.response_function.CalculateValue()
 
     def _CalculateSensitivity(self, sensitivity_variable):
@@ -47,7 +47,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "evaluated_model_part_name": "test"
+            "evaluated_model_part_names": ["test"]
         }""")
 
     @classmethod
@@ -113,7 +113,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "evaluated_model_part_name": "test"
+            "evaluated_model_part_names": ["test"]
         }""")
 
     @classmethod
@@ -184,7 +184,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "evaluated_model_part_name": "test"
+            "evaluated_model_part_names": ["test"]
         }""")
 
     @classmethod

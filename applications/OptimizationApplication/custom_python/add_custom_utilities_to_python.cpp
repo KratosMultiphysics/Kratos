@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main author:     Suneth Warnakulasuriya
+//  Main author:     Reza Najian Asl,
+//                   Suneth Warnakulasuriya
 //
 
 // System includes
@@ -18,6 +19,7 @@
 // Project includes
 
 // Application includes
+#include "custom_utilities/geometrical/symmetry_utility.h"
 #include "custom_utilities/optimization_utils.h"
 
 // Include base h
@@ -29,6 +31,14 @@ namespace Python {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    py::class_<SymmetryUtility >(m, "SymmetryUtility")
+        .def(py::init<std::string, ModelPart&, Parameters>())
+        .def("Initialize", &SymmetryUtility::Initialize)
+        .def("Update", &SymmetryUtility::Update)
+        .def("ApplyOnVectorField", &SymmetryUtility::ApplyOnVectorField)
+        .def("ApplyOnScalarField", &SymmetryUtility::ApplyOnScalarField)
+        ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, double>)

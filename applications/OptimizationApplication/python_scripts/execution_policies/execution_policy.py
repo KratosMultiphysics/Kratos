@@ -5,4 +5,4 @@ class ExecutionPolicy(Kratos.Process):
         super().__init__()
 
     def Execute(self):
-        raise NotImplementedError("Calling base class ExecutionPolicy::Execute method. This should be implemented in the derrived class.")
+        raise NotImplementedError("Calling base class ExecutionPolicy::Execute method. This should be implemented in the derived class.")

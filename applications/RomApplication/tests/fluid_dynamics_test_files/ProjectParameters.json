@@ -17,10 +17,10 @@
         "solver_type"                 : "Monolithic",
         "model_import_settings"       : {
             "input_type"     : "mdpa",
-            "input_filename" : "../../../FluidDynamicsApplication/tests/CouetteFlowTest/couette_flow_test"
+            "input_filename" : "../../../../FluidDynamicsApplication/tests/CouetteFlowTest/couette_flow_test"
         },
         "material_import_settings"    : {
-            "materials_filename" : "../../../FluidDynamicsApplication/tests/CouetteFlowTest/FluidMaterials.json"
+            "materials_filename" : "../../../../FluidDynamicsApplication/tests/CouetteFlowTest/FluidMaterials.json"
         },
         "relative_velocity_tolerance" : 1e-6,
         "absolute_velocity_tolerance" : 1e-8,

@@ -48,7 +48,7 @@ VanGenuchtenLaw::~VanGenuchtenLaw()
 double VanGenuchtenLaw::
     CalculateSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const double &p = rParameters.GetFluidPressure();
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
@@ -73,7 +73,7 @@ double VanGenuchtenLaw::
 double VanGenuchtenLaw::
     CalculateEffectiveSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const double sat = CalculateSaturation(rParameters);
 
@@ -92,7 +92,7 @@ double VanGenuchtenLaw::
 double VanGenuchtenLaw::
     CalculateDerivativeOfSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const double &p = rParameters.GetFluidPressure();
 
     if (p > 0.0) {
@@ -117,7 +117,7 @@ double VanGenuchtenLaw::
 double VanGenuchtenLaw::
     CalculateRelativePermeability(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const double effSat = CalculateEffectiveSaturation(rParameters);
 
@@ -140,7 +140,7 @@ double VanGenuchtenLaw::
 double VanGenuchtenLaw::
     CalculateBishopCoefficient(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     return CalculateEffectiveSaturation(rParameters);
 

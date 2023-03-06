@@ -18,6 +18,7 @@
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "utilities/math_utils.h"
 #include "utilities/beam_math_utilities.hpp"
+#include "includes/variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/integration_utilities.h"
 

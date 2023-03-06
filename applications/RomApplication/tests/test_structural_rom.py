@@ -1,5 +1,6 @@
 import os
 import types
+import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -16,7 +17,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
 
     def testStructuralStaticRom2D(self):
         self.work_folder = "structural_static_test_files/ROM/"
-        parameters_filename = "ProjectParametersROM.json"
+        parameters_filename = "../ProjectParameters.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -78,9 +79,9 @@ class TestStructuralRom(KratosUnittest.TestCase):
             self.assertLess(l2, self.relative_tolerance)
 
     def testStructuralDynamicRom2D(self):
-        self.work_folder = "structural_dynamic_test_files"
-        parameters_filename = "ProjectParameters.json"
-        expected_output_filename = "ExpectedOutput.npy"
+        self.work_folder = "structural_dynamic_test_files/ROM/"
+        parameters_filename = "../ProjectParameters.json"
+        expected_output_filename = "ExpectedOutputROM.npy"
 
         time_snapshots = [2,4,6,8,10]
 

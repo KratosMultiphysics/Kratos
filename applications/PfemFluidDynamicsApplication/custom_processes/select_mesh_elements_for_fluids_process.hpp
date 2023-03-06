@@ -154,7 +154,7 @@ namespace Kratos
                 int el = 0;
                 int number = 0;
 
-                //#pragma omp parallel for reduction(+:number) private(el)
+                // #pragma omp parallel for reduction(+:number) private(el)
                 for (el = 0; el < OutNumberOfElements; el++)
                 {
                     Geometry<Node<3>> vertices;
@@ -162,7 +162,7 @@ namespace Kratos
                     unsigned int numfreesurf = 0;
                     unsigned int numboundary = 0;
                     unsigned int numrigid = 0;
-                    unsigned int numinlet = 0;
+                    unsigned int numLagrangianInlet = 0;
                     unsigned int numisolated = 0;
                     bool noremesh = false;
                     std::vector<double> normVelocityP;
@@ -257,9 +257,9 @@ namespace Kratos
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
-                        if (vertices.back().Is(INLET))
+                        if (vertices.back().GetValue(LAGRANGIAN_INLET) == true)
                         {
-                            numinlet++;
+                            numLagrangianInlet++;
                         }
 
                         if (refiningBox == true && vertices.back().IsNot(RIGID))
@@ -368,7 +368,7 @@ namespace Kratos
                         }
                     }
 
-                    if (numinlet > 0)
+                    if (numLagrangianInlet > 0)
                     {
                         Alpha *= 1.5;
                     }

@@ -41,7 +41,18 @@ public:
     ///@name Static operations
     ///@{
 
-    static double CalculateStrainEnergy(ModelPart& rModelPart);
+    static double CalculateValue(ModelPart& rModelPart);
+
+    template<class TDataType>
+    static void CalculateSensitivity(
+        ModelPart& rSensitivityModelPart,
+        const double PerturbationSize,
+        const Variable<TDataType>& rSensitivityVariable);
+
+    ///@}
+private:
+    ///@name Private static operations
+    ///@{
 
     static void CalculateStrainEnergyShapeSensitivity(
         ModelPart& rModelPart,
