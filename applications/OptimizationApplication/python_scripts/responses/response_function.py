@@ -14,6 +14,9 @@ class ResponseFunction(ABC):
     def Finalize(self) -> None:
         pass
 
+    def GetRequiredSensitivityVariablesListForControlVariable(self, control_variable: any) -> 'list[any]':
+        return [Kratos.KratosGlobals.GetVariable(f"{control_variable.Name}_SENSITIVITY")]
+
     @abstractmethod
     def Check(self) -> None:
         pass
@@ -24,8 +27,4 @@ class ResponseFunction(ABC):
 
     @abstractmethod
     def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart) -> None:
-        pass
-
-    @abstractmethod
-    def GetModelPart(self) -> Kratos.ModelPart:
         pass
