@@ -33,7 +33,16 @@
 namespace Kratos
 {
 
-double LinearStrainEnergyResponseUtils::CalculateValue(ModelPart& rModelPart)
+double LinearStrainEnergyResponseUtils::CalculateValue(const std::vector<ModelPart*>& rModelParts)
+{
+    double value = 0.0;
+    for (auto p_model_part : rModelParts) {
+        value += CalculateModelPartValue(*p_model_part);
+    }
+    return value;
+}
+
+double LinearStrainEnergyResponseUtils::CalculateModelPartValue(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -60,41 +69,67 @@ double LinearStrainEnergyResponseUtils::CalculateValue(ModelPart& rModelPart)
     KRATOS_CATCH("");
 }
 
-template<class TDataType>
 void LinearStrainEnergyResponseUtils::CalculateSensitivity(
-    ModelPart& rSensitivityModelPart,
-    const double PerturbationSize,
-    const Variable<TDataType>& rSensitivityVariable)
+    const std::vector<ModelPart*>& rEvaluatedModelParts,
+    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
+    const double PerturbationSize)
 {
     KRATOS_TRY
 
-    std::stringstream error_msg;
+    KRATOS_ERROR_IF(rEvaluatedModelParts.size() == 0)
+        << "No model parts are provided for evaluated model parts list.\n";
 
-    error_msg << "Unsupported sensitivity w.r.t. " << rSensitivityVariable.Name()
-              << " requested for " << rSensitivityModelPart.FullName()
-              << ". Followings are supported variables:"
-              << "\n\tSHAPE_SENSITIVITY"
-              << "\n\tYOUNG_MODULUS_SENSITIVITY"
-              << "\n\tPOISSON_RATIO_SENSITIVITY";
+    const auto p_ref_root_model_part = &(rEvaluatedModelParts[0]->GetRootModelPart());
 
-    if constexpr (std::is_same_v<TDataType, double>) {
-        if (rSensitivityVariable == YOUNG_MODULUS_SENSITIVITY) {
-            CalculateStrainEnergyYoungModulusSensitivity(rSensitivityModelPart, YOUNG_MODULUS_SENSITIVITY);
-        } else if (rSensitivityVariable == POISSON_RATIO_SENSITIVITY) {
-            CalculateStrainEnergyNonLinearSensitivity(rSensitivityModelPart, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
-        } else {
-            KRATOS_ERROR << error_msg.str();
+    // check for common root model parts
+    for (auto it : rSensitivityModelPartVariableInfo) {
+        KRATOS_ERROR_IF(it.first != p_ref_root_model_part)
+            << "Sensitivity model part "
+            << it.first->FullName() << " does not have the same root model part as in evaluated model part "
+            << p_ref_root_model_part->FullName() << ".\n";
+    }
+
+    OptimizationUtils::ActivateEntitiesAndCheckOverlappingRegions(
+        rEvaluatedModelParts,
+        rSensitivityModelPartVariableInfo,
+        SELECTED,
+        {},
+        {},
+        {&SHAPE_SENSITIVITY, &YOUNG_MODULUS_SENSITIVITY, &POISSON_RATIO_SENSITIVITY});
+
+    // clear all the sensitivity variables for nodes. Here we assume there are
+    // no overlapping regions in Elements and/or Conditions between provided rSensitivityModelParts hence, SetValue is
+    // used in Elements and/or Condtions. Nodal sensitivities are added so that common nodes between two model parts
+    // will have correct sensitivities.
+    for (auto& it : rSensitivityModelPartVariableInfo) {
+        for (auto& r_variable : it.second) {
+            std::visit([&](auto&& r_variable) {
+                if (*r_variable == SHAPE_SENSITIVITY) {
+                    VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, it.first->Nodes());
+                }
+            }, r_variable);
         }
-    } else if constexpr (std::is_same_v<TDataType, array_1d<double, 3>>) {
-        if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-            CalculateStrainEnergyShapeSensitivity(rSensitivityModelPart, PerturbationSize, SHAPE_SENSITIVITY);
-        } else {
-            KRATOS_ERROR << error_msg.str();
+    }
+
+    // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
+    for (const auto& it : rSensitivityModelPartVariableInfo) {
+        auto& r_sensitivity_model_part = *(it.first);
+        for (auto& r_variable : it.second) {
+            std::visit([&](auto&& r_variable) {
+                if (*r_variable == YOUNG_MODULUS_SENSITIVITY) {
+                    CalculateStrainEnergyYoungModulusSensitivity(r_sensitivity_model_part, YOUNG_MODULUS_SENSITIVITY);
+                } else if (*r_variable == POISSON_RATIO_SENSITIVITY) {
+                    CalculateStrainEnergyNonLinearSensitivity(r_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+                } else if (*r_variable == SHAPE_SENSITIVITY) {
+                    CalculateStrainEnergyShapeSensitivity(r_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
+                }
+            }, r_variable);
         }
     }
 
     KRATOS_CATCH("");
 }
+
 
 void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
     ModelPart& rModelPart,
@@ -102,8 +137,6 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
     const Variable<array_1d<double, 3>>& rOutputSensitivityVariable)
 {
     KRATOS_TRY
-
-    VariableUtils().SetNonHistoricalVariableToZero(rOutputSensitivityVariable, rModelPart.Nodes());
 
     using tls_type = std::tuple<Vector, Vector, Vector, Element::Pointer>;
 
@@ -233,10 +266,6 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyYoungModulusSensitivi
 
     using tls_type = std::tuple<Vector, Vector>;
 
-    block_for_each(rModelPart.Elements(), [&](auto& rElement){
-        rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
-    });
-
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
     block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
@@ -255,7 +284,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyYoungModulusSensitivi
             r_properties[YOUNG_MODULUS] = current_value;
 
             // now calculate the sensitivity
-            rElement.GetProperties().GetValue(rOutputSensitivityVariable) += 0.5 * inner_prod(r_u, r_sensitivity);
+            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.5 * inner_prod(r_u, r_sensitivity));
         }
     });
 
@@ -271,10 +300,6 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyNonLinearSensitivity(
     KRATOS_TRY
 
     using tls_type = std::tuple<Vector, Vector, Vector>;
-
-    block_for_each(rModelPart.Elements(), [&](auto& rElement){
-        rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
-    });
 
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
@@ -296,15 +321,11 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyNonLinearSensitivity(
             r_properties[rPrimalVariable] -= Delta;
 
             // now calculate the sensitivity
-            rElement.GetProperties().GetValue(rOutputSensitivityVariable) += 0.5 * inner_prod(r_u, r_perturbed_rhs - r_ref_rhs) / Delta;
+            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.5 * inner_prod(r_u, r_perturbed_rhs - r_ref_rhs) / Delta);
         }
     });
 
     KRATOS_CATCH("");
 }
-
-// template instantiations
-template void LinearStrainEnergyResponseUtils::CalculateSensitivity(ModelPart&, const double, const Variable<double>&);
-template void LinearStrainEnergyResponseUtils::CalculateSensitivity(ModelPart&, const double, const Variable<array_1d<double, 3>>&);
 
 }
