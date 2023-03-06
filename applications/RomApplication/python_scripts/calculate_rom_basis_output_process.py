@@ -74,11 +74,16 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Initialize the snapshots data list
         self.snapshots_data_list = []
 
+        # Set the flag allowing to run multiple simulations using this process #TODO cope with arbitrarily large cases (parallelism)
+        self.rom_manager = settings["rom_manager"].GetBool()
+
+
     @classmethod
     def GetDefaultParameters(self):
         default_settings = KratosMultiphysics.Parameters("""{
             "help": "A process to set the snapshots matrix and calculate the ROM basis from it.",
             "model_part_name": "",
+            "rom_manager" : false,
             "snapshots_control_type": "step",
             "snapshots_interval": 1.0,
             "nodal_unknowns": [],
@@ -116,10 +121,20 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                 while self.next_output <= step:
                     self.next_output += self.snapshots_interval
 
-    def ExecuteFinalize(self):
+
+    def _GetSnapshotsMatrix(self):
+        snapshots_matrix = numpy.empty((self.n_nodal_unknowns*self.n_nodes,self.n_data_cols))
+        for i_col in range(self.n_data_cols):
+            aux_col = numpy.array(self.snapshots_data_list[i_col])
+            snapshots_matrix[:,i_col] = aux_col.transpose()
+        return snapshots_matrix
+
+
+    def _PrintRomBasis(self, snapshots_matrix):
         # Initialize the Python dictionary with the default settings
         # Note that this order is kept if Python 3.6 onwards is used
         rom_basis_dict = {
+            "rom_manager" : False,
             "train_hrom": False,
             "run_hrom": False,
             "projection_strategy": "galerkin",
@@ -137,6 +152,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         }
         #TODO: I'd rename elements_and_weights to hrom_weights
 
+        if self.rom_manager:
+            rom_basis_dict["rom_manager"] = True
         # Set a NumPy array with the snapshots data
         n_nodes = self.model_part.NumberOfNodes()
         rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
@@ -155,6 +172,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
         rom_basis_dict["projection_strategy"] = "galerkin" # Galerkin: (Phi.T@K@Phi dq= Phi.T@b), LSPG = (K@Phi dq= b), Petrov-Galerkin = (Psi.T@K@Phi dq = Psi.T@b)
         rom_basis_dict["rom_format"] = self.rom_basis_output_format
+        rom_basis_dict["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = 0
+        #NOTE "petrov_galerkin_number_of_rom_dofs" is not used unless a Petrov-Galerkin simulation is called, in which case it shall be modified either manually or from the RomManager
 
         if self.rom_basis_output_format == "json":
             # Storing modes in JSON format
@@ -171,11 +190,21 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
 
-        # Creating the RomParameters.json containing or not the modes depending on "self.rom_basis_output_format"
+        # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
         output_filename = self.rom_basis_output_name + ".json"
         with open(output_filename, 'w') as f:
             json.dump(rom_basis_dict, f, indent = 4)
 
+
+
+    def ExecuteFinalize(self):
+        # Prepare a NumPy array with the snapshots data
+        self.n_nodes = self.model_part.NumberOfNodes()
+        self.n_data_cols = len(self.snapshots_data_list)
+        self.n_nodal_unknowns = len(self.snapshot_variables_list)
+
+        if not self.rom_manager:
+            self._PrintRomBasis(self._GetSnapshotsMatrix())
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"
