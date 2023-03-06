@@ -48,6 +48,10 @@ from particle_mechanics_test_factory import PQMPMExplicitQuadTest as TPQMPMExpli
 from particle_mechanics_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from particle_mechanics_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
+##### RESTART TESTS #####
+from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
+from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
+
 
 
 # Import from Test Factories (with different analysis flows)
@@ -135,6 +139,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TPQMPMExplicitQuadTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitTriTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitHexTest('test_execution'))
+
+    nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
+    nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

@@ -58,9 +58,11 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Set the ROM basis output settings
         self.rom_basis_output_format = settings["rom_basis_output_format"].GetString()
-        if not self.rom_basis_output_format == "json":
-            err_msg = "Provided \'rom_basis_output_format\' is {}. Available options are \'json\'.".format(self.rom_basis_output_format)
+        rom_basis_output_available_formats = ["json", "numpy"]
+        if self.rom_basis_output_format not in rom_basis_output_available_formats:
+            err_msg = "Provided \'rom_basis_output_format\' is {}. Available options are \'json\' and \'numpy\'.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
+
         self.rom_basis_output_name = settings["rom_basis_output_name"].GetString()
 
         # Get the SVD truncation tolerance
@@ -80,7 +82,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "snapshots_control_type": "step",
             "snapshots_interval": 1.0,
             "nodal_unknowns": [],
-            "rom_basis_output_format": "json",
+            "rom_basis_output_format": "numpy",
             "rom_basis_output_name": "RomParameters",
             "svd_truncation_tolerance": 1.0e-6
         }""")
@@ -121,6 +123,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "train_hrom": False,
             "run_hrom": False,
             "projection_strategy": "galerkin",
+            "rom_format": "numpy",
             "train_petrov_galerkin": {
                 "train": False,
                 "basis_strategy": "residuals",
@@ -136,6 +139,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Set a NumPy array with the snapshots data
         n_nodes = self.model_part.NumberOfNodes()
+        rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
         n_data_cols = len(self.snapshots_data_list)
         n_nodal_unknowns = len(self.snapshot_variables_list)
         snapshots_matrix = numpy.empty((n_nodal_unknowns*n_nodes,n_data_cols))
@@ -150,20 +154,28 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
         rom_basis_dict["projection_strategy"] = "galerkin" # Galerkin: (Phi.T@K@Phi dq= Phi.T@b), LSPG = (K@Phi dq= b), Petrov-Galerkin = (Psi.T@K@Phi dq = Psi.T@b)
+        rom_basis_dict["rom_format"] = self.rom_basis_output_format
 
-        i = 0
-        for node in self.model_part.Nodes:
-            rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
-            i += n_nodal_unknowns
-
-        # Export the ROM basis dictionary
         if self.rom_basis_output_format == "json":
-            output_filename = self.rom_basis_output_name + "." + self.rom_basis_output_format
-            with open(output_filename, 'w') as f:
-                json.dump(rom_basis_dict, f, indent = 4)
+            # Storing modes in JSON format
+            i = 0
+            for node in self.model_part.Nodes:
+                rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
+                i += n_nodal_unknowns
+
+        elif self.rom_basis_output_format == "numpy":
+            # Storing modes in Numpy format
+            numpy.save('RightBasisMatrix.npy', u)
+            numpy.save('NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
+
+        # Creating the RomParameters.json containing or not the modes depending on "self.rom_basis_output_format"
+        output_filename = self.rom_basis_output_name + ".json"
+        with open(output_filename, 'w') as f:
+            json.dump(rom_basis_dict, f, indent = 4)
+
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"

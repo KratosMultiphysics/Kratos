@@ -96,7 +96,7 @@ public:
     * @param[in] rFrictionAngle Current internal friction angle
     * @return Mohr coulomb yield criterion
     */
-    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle) override;
+    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle, const Properties& rProp) override;
 
     ///@name Access
     ///@{
