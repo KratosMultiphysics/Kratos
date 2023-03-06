@@ -644,9 +644,9 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix( BoundedMatrix<d
     //Quadrilateral_3d_4
     array_1d<double, 3> p_mid_0;
     array_1d<double, 3> p_mid_1;
-    const auto p_2 = array_1d<double, 3>(rGeom.GetPoint(2));
+    const auto& r_p_2 = array_1d<double, 3>(rGeom.GetPoint(2));
     noalias(p_mid_0) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(3));
-    noalias(p_mid_1) = 0.5 * (rGeom.GetPoint(1) + p_2);
+    noalias(p_mid_1) = 0.5 * (rGeom.GetPoint(1) + r_p_2);
 
     //Unitary vector in local x direction
     array_1d<double, 3> v_x;
@@ -658,7 +658,7 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix( BoundedMatrix<d
 
     //Unitary vector in local z direction
     array_1d<double, 3> v_y;
-    noalias(v_y) = p_2 - p_mid_0;
+    noalias(v_y) = r_p_2 - p_mid_0;
     array_1d<double, 3> v_z;
     MathUtils<double>::CrossProduct(v_z, v_x, v_y);
     const double norm_z = norm_2(v_z);
