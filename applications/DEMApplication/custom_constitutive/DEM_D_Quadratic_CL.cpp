@@ -87,9 +87,9 @@ namespace Kratos {
         const double equiv_poisson       = 2.0 * my_poisson * walls_poisson / (my_poisson + walls_poisson);
 
         //Get equivalent Shear Modulus
-        const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
-        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
-        const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
+        //const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
+        //const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
+        //const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double k_alpha = properties_of_this_contact[K_ALPHA];
