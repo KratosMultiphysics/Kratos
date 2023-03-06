@@ -264,7 +264,7 @@ private:
     ModelPart& mr3DModelPart;                                       /// The 3D model part
     ModelPart& mr1DModelPart;                                       /// The 1D model part
     Parameters mThisParameters;                                     /// The parameters containing the configuration
-    MapperType::Pointer mpMapper;                                   /// The mapper pointer
+    MapperType::Pointer mpMapper = nullptr;                         /// The mapper pointer
     std::vector<const Variable<double>*> mOriginListVariables;      /// The list of variables to be transferred (origin)
     std::vector<const Variable<double>*> mDestinationListVariables; /// The list of variables to be transferred (destination)
 

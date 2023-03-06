@@ -175,6 +175,8 @@ DataTransfer3D1DProcess::~DataTransfer3D1DProcess()
 
 void DataTransfer3D1DProcess::Execute()
 {
+    KRATOS_ERROR_IF(mpMapper == nullptr) << "The mapper is not initialized" << std::endl;
+
     // From 3D to 1D
     if (this->Is(MapperFlags::USE_TRANSPOSE)) { 
         InterpolateFrom3Dto1D();
