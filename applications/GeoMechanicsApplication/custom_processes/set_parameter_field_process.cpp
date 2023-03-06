@@ -128,29 +128,31 @@ void SetParameterFieldProcess::SetParameterFieldUsingJsonFile(const Variable<dou
 
 void SetParameterFieldProcess::ExecuteInitialize()
 {
+    if (mrModelPart.GetProcessInfo()[IS_RESTARTED]) {
+        return;
+    }
+
     KRATOS_TRY
 
-    if (!this->mrModelPart.GetProcessInfo()[IS_RESTARTED]){
 
-        const auto& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
+    const auto& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
 
-        // set parameter field from input function
-        if (mParameters["func_type"].GetString() == "input")
-        {
-            this->SetParameterFieldUsingInputFunction(r_var);
-        }
-        // set parameter field with a json string
-        else if (mParameters["func_type"].GetString() == "json_string")
-        {
-
-            this->SetParameterFieldUsingJsonString(r_var);
-        }
-        // set parameter field from a json input file
-        else if (mParameters["func_type"].GetString() == "json_file")
-        {
-            this->SetParameterFieldUsingJsonFile(r_var);
-        }
+    // set parameter field from input function
+    if (mParameters["func_type"].GetString() == "input")
+    {
+        this->SetParameterFieldUsingInputFunction(r_var);
     }
+    // set parameter field with a json string
+    else if (mParameters["func_type"].GetString() == "json_string")
+    {
+        this->SetParameterFieldUsingJsonString(r_var);
+    }
+    // set parameter field from a json input file
+    else if (mParameters["func_type"].GetString() == "json_file")
+    {
+        this->SetParameterFieldUsingJsonFile(r_var);
+    }
+
     KRATOS_CATCH("")
 }
 
