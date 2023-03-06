@@ -168,7 +168,7 @@ public:
         }
 
         //fill the communicator
-        ParallelFillCommunicator(mr_model_part).Execute();
+        ParallelFillCommunicator(mr_model_part, mr_model_part.GetCommunicator().GetDataCommunicator()).Execute();
         if (mrComm.MyPID() == 0) std::cout << "recalculation of communication plan completed" << std::endl;
 
         //clean up the data
@@ -745,7 +745,7 @@ public:
             Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
             ///* crea las nuevas conectividades
-            create_element = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
+            create_element = TriangleSplit::Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
             ///* crea los nuevos elementos
             if (create_element == true)
@@ -754,7 +754,7 @@ public:
                 for (int i = 0; i < nel; i++)
                 {
                     int i0, i1, i2;
-                    TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
+                    TriangleSplit::TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
 
                     Triangle2D3<Node < 3 > > geom(
                         this_model_part.Nodes()(i0),
@@ -775,7 +775,7 @@ public:
                         InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                     // Transfer elemental variables
-                    p_element->Data() = it->Data();
+                    p_element->GetData() = it->GetData();
                     //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
                     p_element->GetValue(SPLIT_ELEMENT) = false;
                     //p_element->SetValue(REFINEMENT_LEVEL, 1);
@@ -855,7 +855,7 @@ public:
         aux[4] = GetUpperTriangularMatrixValue(p_edge_ids, index_1, index_2, MaxNumEntries, NumEntries, Indices, id_values);
         aux[5] = GetUpperTriangularMatrixValue(p_edge_ids, index_2, index_0, MaxNumEntries, NumEntries, Indices, id_values);
 
-        TriangleSplitMode(aux, edge_ids);
+        TriangleSplit::TriangleSplitMode(aux, edge_ids);
 
 
         KRATOS_CATCH("")
@@ -1142,7 +1142,7 @@ protected:
                             InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                         // Transfer elemental variables
-                        p_element->Data() = it->Data();
+                        p_element->GetData() = it->GetData();
                         p_element->GetValue(SPLIT_ELEMENT) = false;
 
                         current_id++;
@@ -1346,7 +1346,7 @@ protected:
                 Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
                 ///* crea las nuevas conectividades
-                create_Condition = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
+                create_Condition = TriangleSplit::Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
                 ///* crea los nuevos Conditionos
                 if (create_Condition == true)
@@ -1355,7 +1355,7 @@ protected:
                     for (int i = 0; i < nel; i++)
                     {
                         int i0, i1, i2;
-                        TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
+                        TriangleSplit::TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
 
 //                            cout << i0 << " " << i1 << " " << i2 << endl;
 
@@ -1378,7 +1378,7 @@ protected:
                         //                            InterpolateInternalVariables(nel, *it.base(), p_Condition, rCurrentProcessInfo);
 
                         // Transfer Conditional variables
-                        p_Condition->Data() = it->Data();
+                        p_Condition->GetData() = it->GetData();
                         //p_Condition->SetValue(REFINEMENT_LEVEL, 1);
                         New_Conditions.push_back(p_Condition);
                         current_id++;

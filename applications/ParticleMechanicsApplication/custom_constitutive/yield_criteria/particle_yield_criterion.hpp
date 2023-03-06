@@ -138,7 +138,6 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         void InitializeMaterial (HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
 	{
 	        mpHardeningLaw = pHardeningLaw;
-		mpHardeningLaw->InitializeMaterial(rMaterialProperties);
 	}
 
 
@@ -172,18 +171,18 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         * @param[in] rBeta Used parameters
         * @return Yield criterion
         */
-        virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
+        virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables, const Properties& rProp)
 	{
 		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
 		return rStateFunction;
 	};
 
-        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha)
+        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const Properties& rProp)
 	{
 		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
-        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const double& rBeta)
+        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const double& rBeta, const Properties& rProp)
 	{
 		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
@@ -196,18 +195,18 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         * @param[in] rAlpha Used parameters
         * @param[in] rBeta Used parameters
         */
-	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative)
+	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const Properties& rProp)
 	{
 		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
 
         };
 
-	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha)
+	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha, const Properties& rProp)
 	{
 		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
-        virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha, const double& rBeta)
+        virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha, const double& rBeta, const Properties& rProp)
 	{
 		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
@@ -218,7 +217,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         * @param[in] rStressVector Principal stresses
         * @param[in/out] rSecondDerivative Second stress derivative value of yield function
         */
-        virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative)
+        virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative, const Properties& rProp)
 	{
 		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };

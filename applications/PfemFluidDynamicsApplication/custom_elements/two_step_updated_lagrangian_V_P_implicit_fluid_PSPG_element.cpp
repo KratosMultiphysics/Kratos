@@ -13,7 +13,7 @@
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_PSPG_element.h"
 #include "includes/cfd_variables.h"
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -49,18 +49,6 @@ namespace Kratos
       mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
     }
 
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
-  {
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
     KRATOS_CATCH("");
   }
 
@@ -285,8 +273,8 @@ namespace Kratos
 
       // noalias(rRightHandSideVector) += prod(DynamicStabilizationMatrix, AccelerationValues);
 
-      //the LHS matrix up to now just contains the laplacian term and the bound term
-      // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
+      // the LHS matrix up to now just contains the laplacian term and the bound term
+      //  noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
 
       this->GetPressureValues(PressureValues, 1);
       noalias(PressureValuesForRHS) += -PressureValues;
@@ -315,7 +303,7 @@ namespace Kratos
       VectorType PressureValues = ZeroVector(NumNodes);
       VectorType PressureValuesForRHS = ZeroVector(NumNodes);
       this->GetPressureValues(PressureValuesForRHS, 0);
-      //the LHS matrix up to now is void
+      // the LHS matrix up to now is void
 
       this->GetPressureValues(PressureValues, 1);
       noalias(PressureValuesForRHS) += -PressureValues;
@@ -353,7 +341,7 @@ namespace Kratos
     this->CalcMeanVelocityNorm(MeanVelocity, 0);
 
     // // Tau Fic
-    //Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
+    // Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
 
     // // Tau Tezduyar first proposal
     // double timeScale = 0.5 * (ElemSize / (2 * MeanVelocity) + DeltaTime);
@@ -471,8 +459,8 @@ namespace Kratos
       // double acc_Y = (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,1)) / TimeStep;
 
       RHSi += rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0) + rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
-      //RHSi += Tau * Density * (rDN_DX(i, 0) + rDN_DX(i, 1)) * rN[j] * (acc_X + acc_Y) ;
-      // RHSi +=  rN[i] *(rDN_DX(j, 0)*this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,0) + rDN_DX(j, 1)*this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0));
+      // RHSi += Tau * Density * (rDN_DX(i, 0) + rDN_DX(i, 1)) * rN[j] * (acc_X + acc_Y) ;
+      //  RHSi +=  rN[i] *(rDN_DX(j, 0)*this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,0) + rDN_DX(j, 1)*this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0));
     }
     rRightHandSideVector[i] += Weight * Tau * Density * RHSi;
   }

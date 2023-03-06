@@ -92,6 +92,25 @@ public:
             KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "DilatancyAngle = " << DilatancyAngle << std::endl;
         }
 
+    private:
+
+        friend class Serializer;
+
+        // A private default constructor necessary for serialization
+        void save(Serializer& rSerializer) const
+        {
+            rSerializer.save("Cohesion",Cohesion);
+            rSerializer.save("FrictionAngle",FrictionAngle);
+            rSerializer.save("DilatancyAngle",DilatancyAngle);
+        };
+
+        void load(Serializer& rSerializer)
+        {
+            rSerializer.load("Cohesion",Cohesion);
+            rSerializer.load("FrictionAngle",FrictionAngle);
+            rSerializer.load("DilatancyAngle",DilatancyAngle);
+        };
+
     };
 
     ///@}
@@ -116,17 +135,17 @@ public:
     /// Destructor.
     ~MCPlasticFlowRule() override;
 
-    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
+    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen, const Properties& rProp) override;
 
-    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables, const Properties& rProp ) override;
 
     Matrix GetElasticLeftCauchyGreen(RadialReturnVariables& rReturnMappingVariables) override;
 
     unsigned int GetPlasticRegion() override;
 
-    void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
+    void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix, const Properties& rProp) override;
 
-    void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
+    void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix, const Properties& rProp) override;
 
     ///@}
     ///@name Operators
@@ -200,26 +219,26 @@ protected:
     ///@{
     void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rProp) override;
 
-    void InitializeMaterialParameters();
+    void InitializeMaterialParameters(const Properties& rProp);
 
     virtual void ComputePlasticHardeningParameter(const BoundedVector<double,3>& rHenckyStrainVector, const double& rAlpha, double& rH);
 
-    bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, const BoundedVector<double,3>& rPrincipalStress, const BoundedVector<double,3>& rPrincipalStrain, unsigned int& region, BoundedVector<double,3>& rPrincipalStressUpdated);
+    bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, const BoundedVector<double,3>& rPrincipalStress, const BoundedVector<double,3>& rPrincipalStrain, unsigned int& region, BoundedVector<double,3>& rPrincipalStressUpdated, const Properties& rProp);
 
-    void ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rElasticMatrix);
+    void ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rElasticMatrix, const Properties& rProp);
 
     void CalculateDepSurface(BoundedMatrix<double,3,3>& rElasticMatrix, BoundedVector<double,3>& rFNorm, BoundedVector<double,3>& rGNorm, BoundedMatrix<double,3,3>& rAuxDep);
 
     void CalculateDepLine(BoundedMatrix<double,3,3>& rInvD, BoundedVector<double,3>& rFNorm, BoundedVector<double,3>& rGNorm, BoundedMatrix<double,3,3>& rAuxDep);
 
-    void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, BoundedVector<double,3>& DiffPrincipalStress, BoundedMatrix<double,6,6>& rDep);
+    void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, BoundedVector<double,3>& DiffPrincipalStress, BoundedMatrix<double,6,6>& rDep, const Properties& rProp);
 
     void ReturnStressFromPrincipalAxis(const BoundedMatrix<double,3,3>& rEigenVectors, const BoundedVector<double,3>& rPrincipalStress, Matrix& rStressMatrix);
 
 
-    void CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rInverseElasticMatrix);
+    void CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rInverseElasticMatrix, const Properties& rProp);
 
-    void CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
+    void CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix, const Properties& rProp);
 
     void CalculateModificationMatrix(const RadialReturnVariables& rReturnMappingVariables, BoundedMatrix<double,3,3>& rAuxT, BoundedMatrix<double,3,3>& rInvAuxT);
 

@@ -108,7 +108,6 @@ public:
                                       std::vector<array_1d<double,3>>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
-
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -202,6 +201,10 @@ protected:
 
     virtual void CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
                                                      std::vector<Matrix>& rOutput,
+                                                     const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateOnLobattoIntegrationPoints(const Variable<Vector>& rVariable,
+                                                     std::vector<Vector>& rOutput,
                                                      const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateInitialGap(const GeometryType& Geom);
@@ -311,6 +314,8 @@ protected:
 
     void SetConstitutiveParameters(InterfaceElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
+
+    Vector SetFullStressVector(const Vector& rStressVector);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

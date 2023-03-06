@@ -106,10 +106,6 @@ public:
     /// Definition of the DoF vector type
     typedef ModelPart::DofsVectorType DofsVectorType;
 
-    /// The definition of the DoF objects
-    typedef typename DofsArrayType::iterator DofIteratorType;
-    typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
-
     /// The definition of the DoF set type
     typedef typename std::unordered_set<DofType::Pointer, DofPointerHasher> DofSetType;
 
@@ -408,7 +404,7 @@ public:
     }
 
     /**
-     * @brief It applies certain operations at the system of equations at the begining of the solution step
+     * @brief It applies certain operations at the system of equations at the beginning of the solution step
      * @param rModelPart The model part to compute
      */
     virtual void InitializeSolutionStep(ModelPart& rModelPart)
@@ -496,9 +492,9 @@ public:
      * @param Level The level to set
      * @details The different levels of echo are:
      * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
+     * - 1: Printing time and basic information
      * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      * - 4: Print of stiffness matrix, b to Matrix Market
      */
     void SetEchoLevel(int Level)
@@ -591,7 +587,7 @@ protected:
 
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-     * @details The list of dofs is stores insde the ExplicitBuilder as it is closely connected to the way the matrix and RHS are built
+     * @details The list of dofs is stores inside the ExplicitBuilder as it is closely connected to the way the matrix and RHS are built
      * @param rModelPart The model part to compute
      */
     virtual void SetUpDofSet(const ModelPart& rModelPart)

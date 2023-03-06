@@ -121,6 +121,8 @@ void UpdatedLagrangianVImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted
 
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
+
+    this->ComputeMechanicalDissipation(rElementalVariables);
 }
 
 template <>
@@ -189,6 +191,8 @@ void UpdatedLagrangianVImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted
 
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
+
+    this->ComputeMechanicalDissipation(rElementalVariables);
 }
 
 template class UpdatedLagrangianVImplicitSolidElement<2>;

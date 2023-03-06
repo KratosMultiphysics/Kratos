@@ -14,6 +14,15 @@ class KratosGlobalsImpl(object):
         print("Kernel:", self.Kernel)
         print("Kratos Applications base folder:", self.ApplicationsRoot)
 
+    def HasFlag(self, FlagName):
+        """ This method returns if the flag with the given name exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        FlagName -- The name of the flag to check
+        """
+        return self.Kernel.HasFlag(FlagName)
+
     def GetFlag(self, FlagName):
         """ This method returns the flag with the given name
 

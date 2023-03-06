@@ -15,7 +15,7 @@
 #include "custom_elements/geo_curved_beam_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -72,7 +72,7 @@ int GeoCurvedBeamElement<TDim,TNumNodes>::
                      << this->Id()
                      << std::endl;
 
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         if ( TORSIONAL_INERTIA.Key() == 0 ||
              rProp.Has( TORSIONAL_INERTIA ) == false ||
              rProp[TORSIONAL_INERTIA] < 0.0 )
@@ -478,7 +478,7 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
 
     return atan2(dy, dx);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -526,7 +526,7 @@ void GeoCurvedBeamElement<3,3>::
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "Undefined dimension in CalculateTransformationMatrix" << std::endl;;
+    KRATOS_ERROR << "Undefined dimension in CalculateTransformationMatrix" << std::endl;
 
     KRATOS_CATCH("")
 }

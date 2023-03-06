@@ -1,5 +1,3 @@
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Importing Kratos
 import KratosMultiphysics
@@ -14,7 +12,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers available
     if solver_type == "pfem_fluid_solver" or solver_type == "PfemFluid":
         solver_module_name = "pfem_fluid_solver"
-        
+
+    elif solver_type == "pfem_fluid_thermal_solver" or solver_type == "PfemFluidThermal":
+        solver_module_name = "pfem_fluid_thermal_solver"
+
     elif solver_type == "pfem_fluid_three_step_solver" or solver_type == "PfemFluidThreeStep":
         solver_module_name = "pfem_fluid_three_step_solver"
 

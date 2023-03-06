@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -59,8 +58,6 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self.base_file_name = file_name
         self.model_part = model_part
 
-        self.step_count = 0
-        self.printed_step_count = 0
         self.next_output = 0.0
 
     # This function can be extended with new deprecated variables as they are generated
@@ -132,8 +129,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self.result_file = open(self.base_file_name + ".post.res",'w')
         self.result_file.write("GiD Post Results File 1.0\n")
 
-    def ExecuteInitializeSolutionStep(self):
-        self.step_count += 1
+    def ExecuteInitializeSolutionStep(self): pass
 
     def ExecuteFinalizeSolutionStep(self): pass
 
@@ -142,8 +138,6 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
     def PrintOutput(self):
         # Print the output
         time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        self.printed_step_count += 1
-        self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.printed_step_count
 
         # Write results to the initiated result file
         self._write_mp_results(time)
@@ -154,7 +148,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
                 while self._get_pretty_time(self.next_output) <= time:
                     self.next_output += self.output_frequency
             else:
-                while self.next_output <= self.step_count:
+                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.STEP]:
                     self.next_output += self.output_frequency
 
 
@@ -163,7 +157,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
             time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
             return (time >= self._get_pretty_time(self.next_output))
         else:
-            return ( self.step_count >= self.next_output )
+            return ( self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output )
 
 
     # Private Functions

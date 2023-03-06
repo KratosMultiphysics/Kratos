@@ -23,11 +23,14 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vorticity_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/acceleration_limitation_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_test_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_test_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_slip_utilities.cpp
 
   # elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_adjoint_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms_dem_coupled.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/alternative_qs_vms_dem_coupled.cpp
@@ -54,6 +57,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_fluid_navier_stokes_alpha_method.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/distance_smoothing_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/data_containers/qs_vms/qs_vms_residual_derivatives.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/weakly_compressible_navier_stokes.cpp
 
   # conditions
@@ -94,6 +99,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/two_fluids_inlet_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_entropy_viscosity_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_physics_based_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_y_plus_process.cpp
 )
 
 ## define python interface sources
@@ -141,6 +147,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py KratosMultiphysics/FluidDynamicsApplication/__init__.py )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_registry_lists.py KratosMultiphysics/FluidDynamicsApplication/python_registry_lists.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -163,7 +170,7 @@ install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 
 ## If trilinos is avaliable, switch on the Fluid trilinos extension
 if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
-  message("Enabling trilinos extension for KratosFluidDynamicsApplication")
+  message(STATUS "Enabling trilinos extension for KratosFluidDynamicsApplication")
   add_subdirectory(trilinos_extension)
 endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
 

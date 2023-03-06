@@ -144,13 +144,16 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    // Initialize parameters
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    mDeterminantF0 = 1;
-    mDeformationGradientF0 = IdentityMatrix(dimension);
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        // Initialize parameters
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        mDeterminantF0 = 1;
+        mDeformationGradientF0 = IdentityMatrix(dimension);
 
-    // Initialize constitutive law and materials
-    InitializeMaterial();
+        // Initialize constitutive law and materials
+        InitializeMaterial(rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -1018,7 +1021,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 }
 
 
-void UpdatedLagrangian::InitializeMaterial()
+void UpdatedLagrangian::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     GeneralVariables Variables;
@@ -1255,7 +1258,14 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int matrix_size = number_of_nodes * dimension;
+    unsigned int matrix_size;
+    if (rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)) {
+        matrix_size = number_of_nodes * (dimension + 1);
+    }
+    else {
+        matrix_size = number_of_nodes * dimension;
+    }
+
 
     if ( rDampingMatrix.size1() != matrix_size )
         rDampingMatrix.resize( matrix_size, matrix_size, false );

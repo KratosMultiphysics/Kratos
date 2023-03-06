@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
@@ -99,6 +98,8 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_DEVIATORIC_COEFFICIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_INTERFACE_NODE)
 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.EULERIAN_INLET)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.LAGRANGIAN_INLET)
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()
         if self._TimeBufferIsInitialized():

@@ -70,8 +70,13 @@ Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,GeometryType::Point
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::Calculate(const Variable<double>& rVariable,
-    double& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void QSVMS<TElementData>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
 void QSVMS<TElementData>::Calculate(
@@ -80,16 +85,28 @@ void QSVMS<TElementData>::Calculate(
     // Lumped projection terms
     if (rVariable == ADVPROJ) {
         this->CalculateProjections(rCurrentProcessInfo);
+    } else {
+        BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::Calculate(const Variable<Vector>& rVariable,
-    Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void QSVMS<TElementData>::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
-void QSVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
-    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void QSVMS<TElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry

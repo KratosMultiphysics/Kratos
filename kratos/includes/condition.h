@@ -93,11 +93,13 @@ public:
 
     typedef std::size_t SizeType;
 
+    typedef Dof<double> DofType;
+
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef std::vector<DofType::Pointer> DofsVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;

@@ -432,11 +432,11 @@ class UPwSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA,rayleigh_beta)
             if(solution_type == "implicit_quasi_static"):
                 if(rayleigh_alpha<1.0e-20 and rayleigh_beta<1.0e-20):
-                    scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
+                    scheme = KratosPoro.PoroNewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
-                    scheme = KratosPoro.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
+                    scheme = KratosPoro.PoroNewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
-                scheme = KratosPoro.NewmarkDynamicUPwScheme(beta,gamma,theta)
+                scheme = KratosPoro.PoroNewmarkDynamicUPwScheme(beta,gamma,theta)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 

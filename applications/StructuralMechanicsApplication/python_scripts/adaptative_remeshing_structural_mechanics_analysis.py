@@ -3,7 +3,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 # Other imports
-import sys
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_structural
 
 # Import the base structural analysis

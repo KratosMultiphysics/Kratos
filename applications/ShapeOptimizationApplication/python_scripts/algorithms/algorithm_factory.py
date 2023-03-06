@@ -8,8 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 
 # ==============================================================================
@@ -43,6 +41,18 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
     elif algorithm_name == "bead_optimization":
         from .algorithm_bead_optimization import AlgorithmBeadOptimization
         return AlgorithmBeadOptimization(optimization_settings,
+                                         analyzer,
+                                         communicator,
+                                         model_part_controller)
+    elif algorithm_name == "relaxed_gradient_projection":
+        from .algorithm_relaxed_gradient_projection import AlgorithmRelaxedGradientProjection
+        return AlgorithmRelaxedGradientProjection(optimization_settings,
+                                                  analyzer,
+                                                  communicator,
+                                                  model_part_controller)
+    elif algorithm_name == "shape_fraction_optimization":
+        from .algorithm_shape_fraction_optimization import AlgorithmShapeFractionOptimization
+        return AlgorithmShapeFractionOptimization(optimization_settings,
                                          analyzer,
                                          communicator,
                                          model_part_controller)

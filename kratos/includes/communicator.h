@@ -212,6 +212,8 @@ public:
 
     SizeType GlobalNumberOfConditions() const;
 
+    SizeType GlobalNumberOfMasterSlaveConstraints() const;
+
     SizeType GetNumberOfColors() const;
 
     void SetNumberOfColors(SizeType NewNumberOfColors);
@@ -347,15 +349,53 @@ public:
 
     virtual bool SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable);
 
-    /// Synchronize variable in nodal solution step data to the minimum value across all processes.
-    /** @param ThisVariable The variable to be synchronized.
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal data to the maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the absolute maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal data to the absolute maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the minimum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable);
 
-    /// Synchronize variable in nodal data to the minimum value across all processes.
-    /** @param ThisVariable The variable to be synchronized.
+    /**
+     * @brief Synchronize variable in nodal data to the minimum value across all processes. 
+     * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the absolute minimum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable);
+
+    /**
+     * @brief Synchronize variable in nodal data to the absolute minimum value across all processes. 
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable);
 
     virtual bool SynchronizeElementalFlags();
 

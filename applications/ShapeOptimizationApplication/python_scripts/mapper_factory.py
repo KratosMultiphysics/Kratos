@@ -8,8 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -41,8 +39,37 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "revolution_settings"        : {
             "point" : [0.0, 0.0, 0.0],
             "normal": [0.0, 0.0, 0.0]
+        },
+        "adaptive_filter_settings"   : {
+            "adaptive_filter_method": "curvature_based",
+            "radius_function": "analytic",
+            "radius_function_parameter": 1,
+            "minimum_filter_radius": 1e-3,
+            "curvature_limit": 1e-3,
+            "filter_radius_smoothing_iterations": 10
         }
     }""")
+
+    mapper_vertex_morphing_matrix_free = KSO.MapperVertexMorphingMatrixFree
+    mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegration
+    mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetric
+    mapper_vertex_morphing = KSO.MapperVertexMorphing
+    if mapper_settings.Has("filter_radius") and mapper_settings["filter_radius"].IsString():
+        if mapper_settings["filter_radius"].GetString() == "adaptive":
+            if mapper_settings.Has("adaptive_filter_method") and mapper_settings["adaptive_filter_method"].GetString() != "curvature_based":
+                raise Exception("For now, only \"curvature_based\" is available for \"adaptive_filter_method\".")
+            else:
+                mapper_vertex_morphing_matrix_free = KSO.MapperVertexMorphingMatrixFreeAdaptiveRadius
+                mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegrationAdaptiveRadius
+                mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetricAdaptiveRadius
+                mapper_vertex_morphing = KSO.MapperVertexMorphingAdaptiveRadius
+
+                if mapper_settings.Has("in_plane_morphing"):
+                    if mapper_settings["in_plane_morphing"].GetBool():
+                        raise Exception("\"in_plane_morphing\" is not yet supported with \"adaptive\" filter radius.")
+                mapper_settings["filter_radius"].SetDouble(-1.0)
+        else:
+            raise Exception("\"filter_radius\" either should be double value or \"adaptive\".")
 
     mapper_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -56,18 +83,18 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         if mapper_settings["improved_integration"].GetBool():
              raise ValueError ("Matrix free mapper does not yet allow for an improved integration!")
         else:
-            return KSO.MapperVertexMorphingMatrixFree(origin_model_part, destination_model_part, mapper_settings)
+            return mapper_vertex_morphing_matrix_free(origin_model_part, destination_model_part, mapper_settings)
     else:
         if mapper_settings["revolution"].GetBool() and mapper_settings["plane_symmetry"].GetBool():
             raise RuntimeError("revolution and plane_symmetry can not be combined!")
 
         if mapper_settings["improved_integration"].GetBool():
-            return KSO.MapperVertexMorphingImprovedIntegration(origin_model_part, destination_model_part, mapper_settings)
+            return mapper_vertex_morphing_improved_integration(origin_model_part, destination_model_part, mapper_settings)
         elif mapper_settings["plane_symmetry"].GetBool():
-            return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
+            return mapper_vertex_morphing_symmetric(origin_model_part, destination_model_part, mapper_settings)
         elif mapper_settings["revolution"].GetBool():
-            return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
+            return mapper_vertex_morphing_symmetric(origin_model_part, destination_model_part, mapper_settings)
         else:
-            return KSO.MapperVertexMorphing(origin_model_part, destination_model_part, mapper_settings)
+            return mapper_vertex_morphing(origin_model_part, destination_model_part, mapper_settings)
 
 # ==============================================================================

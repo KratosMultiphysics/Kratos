@@ -227,7 +227,7 @@ public:
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
         std::string dataSetName = "NodalResults";
-        std::string dataSetLabel = rVariable.Name();
+        const std::string& dataSetLabel = rVariable.Name();
 
         outputFile << std::setw(6)  << "-1" << "\n";                                                // Begin block
         outputFile << std::setw(6)  << as_integer(DatasetID::RESULTS_DATASET) << "\n";              // DatasetID
