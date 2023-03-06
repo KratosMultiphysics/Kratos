@@ -101,7 +101,7 @@ class PetrovGalerkinTrainingUtility(object):
         u_left,s_left,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
             snapshots_matrix,
             self.svd_truncation_tolerance)
-       del(snapshots_matrix)
+        del(snapshots_matrix)
         #Include Phi in the span of Psi
         if self.include_phi:
             #Read Galerkin modes from RomParameters.json
