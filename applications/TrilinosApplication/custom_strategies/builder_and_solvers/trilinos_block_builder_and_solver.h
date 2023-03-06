@@ -1215,13 +1215,8 @@ protected:
 
         // Iterate over the constraints
         for (auto& r_const : rModelPart.MasterSlaveConstraints()) {
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (r_const.IsDefined(ACTIVE))
-                constraint_is_active = r_const.Is(ACTIVE);
-
-            if (constraint_is_active) {
+            // Detect if the constraint is active or not. If the user did not make any choice the constraint. It is active by default
+            if (r_const.IsActive()) {
                 r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                 r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
