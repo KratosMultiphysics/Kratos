@@ -43,12 +43,9 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         self.primal_analysis_execution_policy_wrapper.Execute()
 
         # computes the strain energy
-        value = 0.0
-        for model_part in self.model_parts:
-            value += KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(model_part)
-        return value
+        return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_parts)
 
-    def CalculateSensitivity(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, sensitivity_model_part: Kratos.ModelPart) -> None:
-        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateSensitivity(sensitivity_model_part, self.perturbation_size, sensitivity_variable)
+    def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[Kratos.ModelPart, list[SupportedSensitivityFieldVariableTypes]]') -> None:
+        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateSensitivity(self.model_parts, sensitivity_model_part_variable_info, self.perturbation_size)
 
 
