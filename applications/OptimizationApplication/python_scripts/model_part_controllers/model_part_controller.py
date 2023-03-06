@@ -5,12 +5,6 @@ class ModelPartController(ABC):
     def Initialize(self) -> None:
         pass
 
-    def InitializeSolutionStep(self) -> None:
-        pass
-
-    def FinalizeSolutionStep(self) -> None:
-        pass
-
     def Finalize(self) -> None:
         pass
 

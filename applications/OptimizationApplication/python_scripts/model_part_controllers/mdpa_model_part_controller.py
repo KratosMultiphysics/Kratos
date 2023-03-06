@@ -4,8 +4,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_info impo
 
 class MdpaModelPartController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
-        super().__init__()
-
         default_settings = Kratos.Parameters("""{
             "model_part_name": "",
             "input_filename" : "",
@@ -41,7 +39,3 @@ class MdpaModelPartController(ModelPartController):
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model_part
-
-    def InitializeSolutionStep(self):
-        self.model_part.ProcessInfo[Kratos.STEP] = self.optimization_info["step"]
-        self.model_part.ProcessInfo[Kratos.TIME] = self.optimization_info["step"]
