@@ -1,9 +1,13 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityVariableTypes
+from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 
 class MassResponseFunction(ResponseFunction):
+    @classmethod
+    def GetSensitivityFieldVariables(cls) -> 'list[SupportedSensitivityFieldVariableTypes]':
+        return [Kratos.SHAPE_SENSITIVITY, KratosOA.DENSITY_SENSITIVITY, KratosOA.THICKNESS_SENSITIVITY, KratosOA.CROSS_AREA_SENSITIVITY]
+
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _):
         default_settings = Kratos.Parameters("""{
             "evaluated_model_part_names": [
@@ -29,6 +33,6 @@ class MassResponseFunction(ResponseFunction):
             value += KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(model_part)
         return value
 
-    def CalculateSensitivity(self, sensitivity_variable: SupportedSensitivityVariableTypes, sensitivity_model_part: Kratos.ModelPart) -> None:
+    def CalculateSensitivity(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, sensitivity_model_part: Kratos.ModelPart) -> None:
         KratosOA.ResponseUtils.MassResponseUtils.CalculateSensitivity(sensitivity_model_part, sensitivity_variable)
 
