@@ -42,20 +42,11 @@ public:
 
     using SensitivityModelPartVariablesListMap = std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>;
 
+    using SensitivityVariableModelPartsListMap = std::unordered_map<SensitivityFieldVariableTypes, std::vector<ModelPart*>>;
+
     ///@}
     ///@name Static operations
     ///@{
-
-    static bool IsVariableInList(
-        const SensitivityFieldVariableTypes& rVariable,
-        const std::vector<SensitivityFieldVariableTypes>& rVariablesList);
-
-    template<class TContainerType>
-    static IndexType GetNumberOfContainerItemsWithFlag(
-        const TContainerType& rContainer,
-        const DataCommunicator& rDataCommunicator,
-        const Flags& rFlag,
-        const bool FlagValue = true);
 
     template<class TContainerType>
     static GeometryData::KratosGeometryType GetContainerEntityGeometryType(
@@ -88,13 +79,16 @@ public:
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
 
-    static void ActivateEntitiesAndCheckOverlappingRegions(
-        const std::vector<ModelPart*>& rEvaluatedModelParts,
-        const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
-        const Flags& rActivatedFlag,
-        const std::vector<SensitivityFieldVariableTypes>& rAllowedNodalSensitivityVariables,
-        const std::vector<SensitivityFieldVariableTypes>& rAllowedConditionSensitivityVariables,
-        const std::vector<SensitivityFieldVariableTypes>& rAllowedElementSensitivityVariables);
+    template<class TContainerType>
+    static IndexType GetNumberOfContainerItemsWithFlag(
+        const TContainerType& rContainer,
+        const DataCommunicator& rDataCommunicator,
+        const Flags& rFlag,
+        const bool FlagValue = true);
+
+    static void ReverseSensitivityModelPartVariablesListMap(
+        SensitivityVariableModelPartsListMap& rOutput,
+        const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo);
 
     ///@}
 };

@@ -127,26 +127,40 @@ void MassResponseUtils::CalculateSensitivity(
 {
     KRATOS_TRY
 
-    OptimizationUtils::ActivateEntitiesAndCheckOverlappingRegions(
-        rEvaluatedModelParts,
-        rSensitivityModelPartVariableInfo,
-        SELECTED,
-        {},
-        {},
-        {&SHAPE_SENSITIVITY, &DENSITY_SENSITIVITY, &THICKNESS_SENSITIVITY, &CROSS_AREA_SENSITIVITY});
+    // reset entity flags for sensitivity model parts
+    for (auto& it : rSensitivityModelPartVariableInfo) {
+        VariableUtils().SetFlag(SELECTED, false, it.first->Elements());
+    }
+
+    // set entity flags for evaluated model parts
+    for (auto& p_model_part : rEvaluatedModelParts) {
+        VariableUtils().SetFlag(SELECTED, true, p_model_part->Elements());
+    }
+
+    // get number of overlapping entities
+    OptimizationUtils::SensitivityVariableModelPartsListMap reversed_map;
+    OptimizationUtils::ReverseSensitivityModelPartVariablesListMap(reversed_map, rSensitivityModelPartVariableInfo);
+    for (const auto& it : reversed_map) {
+        IndexType number_of_common_entities = 0;
+        for (const auto& p_model_part : it.second) {
+            number_of_common_entities += OptimizationUtils::GetNumberOfContainerItemsWithFlag(p_model_part->Elements(), p_model_part->GetCommunicator().GetDataCommunicator(), SELECTED);
+        }
+
+        KRATOS_ERROR_IF(number_of_common_entities == 0) << "No common entities between evaluated and sensitivity model parts found for sensitivity variables.";
+    }
 
     // clear all the sensitivity variables for nodes. Here we assume there are
     // no overlapping regions in Elements and/or Conditions between provided rSensitivityModelParts hence, SetValue is
     // used in Elements and/or Condtions. Nodal sensitivities are added so that common nodes between two model parts
     // will have correct sensitivities.
-    for (auto& it : rSensitivityModelPartVariableInfo) {
-        for (auto& r_variable : it.second) {
-            std::visit([&](auto&& r_variable) {
-                if (*r_variable == SHAPE_SENSITIVITY) {
-                    VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, it.first->Nodes());
+    for (const auto& it : reversed_map) {
+        std::visit([&](auto&& r_variable) {
+            if (*r_variable == SHAPE_SENSITIVITY) {
+                for (const auto p_model_part : it.second) {
+                    VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, p_model_part->Nodes());
                 }
-            }, r_variable);
-        }
+            }
+        }, it.first);
     }
 
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
@@ -162,6 +176,15 @@ void MassResponseUtils::CalculateSensitivity(
                     CalculateMassCrossAreaSensitivity(r_sensitivity_model_part, CROSS_AREA_SENSITIVITY);
                 } else if (*r_variable == SHAPE_SENSITIVITY) {
                     CalculateMassShapeSensitivity(r_sensitivity_model_part, SHAPE_SENSITIVITY);
+                } else {
+                    KRATOS_ERROR
+                        << "Unsupported sensitivity w.r.t. " << r_variable->Name()
+                        << " requested for " << r_sensitivity_model_part.FullName()
+                        << ". Followings are supported sensitivity variables:"
+                        << "\n\t" << DENSITY_SENSITIVITY.Name()
+                        << "\n\t" << THICKNESS_SENSITIVITY.Name()
+                        << "\n\t" << CROSS_AREA_SENSITIVITY.Name()
+                        << "\n\t" << SHAPE_SENSITIVITY.Name();
                 }
             }, r_variable);
         }

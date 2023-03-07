@@ -27,41 +27,6 @@
 namespace Kratos
 {
 
-bool OptimizationUtils::IsVariableInList(
-    const SensitivityFieldVariableTypes& rVariable,
-    const std::vector<SensitivityFieldVariableTypes>& rVariablesList)
-{
-    bool is_found = false;
-    std::visit([&](auto&& r_variable) {
-        is_found = std::find_if(rVariablesList.begin(), rVariablesList.end(), [&](auto& rVariableListVariableVariant) {
-            bool is_found = false;
-            std::visit([&](auto&& r_variable_list_variable) {
-                is_found = *(r_variable) == *(r_variable_list_variable);
-            }, rVariableListVariableVariant);
-
-            return is_found;
-        }) != rVariablesList.end();
-    }, rVariable);
-
-    return is_found;
-}
-
-template<class TContainerType>
-IndexType OptimizationUtils::GetNumberOfContainerItemsWithFlag(
-    const TContainerType& rContainer,
-    const DataCommunicator& rDataCommunicator,
-    const Flags& rFlag,
-    const bool FlagValue)
-{
-    KRATOS_TRY
-
-    return rDataCommunicator.SumAll(block_for_each<SumReduction<IndexType>>(rContainer, [&](const auto& rEntity) {
-        return rEntity.Is(rFlag) == FlagValue;
-    }));
-
-    KRATOS_CATCH("");
-}
-
 template<class TContainerType>
 GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(
     const TContainerType& rContainer,
@@ -167,135 +132,31 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
 }
 
-void OptimizationUtils::ActivateEntitiesAndCheckOverlappingRegions(
-    const std::vector<ModelPart*>& rEvaluatedModelParts,
-    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
-    const Flags& rActivatedFlag,
-    const std::vector<SensitivityFieldVariableTypes>& rAllowedNodalSensitivityVariables,
-    const std::vector<SensitivityFieldVariableTypes>& rAllowedConditionSensitivityVariables,
-    const std::vector<SensitivityFieldVariableTypes>& rAllowedElementSensitivityVariables)
+template<class TContainerType>
+IndexType OptimizationUtils::GetNumberOfContainerItemsWithFlag(
+    const TContainerType& rContainer,
+    const DataCommunicator& rDataCommunicator,
+    const Flags& rFlag,
+    const bool FlagValue)
 {
     KRATOS_TRY
 
-    const bool check_nodal_entities = rAllowedNodalSensitivityVariables.size() > 0;
-    const bool check_condition_entities = rAllowedConditionSensitivityVariables.size() > 0;
-    const bool check_element_entities = rAllowedElementSensitivityVariables.size() > 0;
-
-    // set all the sensitivity model part rActivatedFlag flags to false to avoid counting previously
-    // initialized rActivatedFlag flags to be counted as active.
-    for (auto& it : rSensitivityModelPartVariableInfo) {
-        auto& r_sensitivity_model_part = *(it.first);
-        if (check_nodal_entities) {
-            VariableUtils().SetFlag(rActivatedFlag, false, r_sensitivity_model_part.Nodes());
-        }
-
-        if (check_condition_entities) {
-            VariableUtils().SetFlag(rActivatedFlag, false, r_sensitivity_model_part.Conditions());
-        }
-
-        if (check_element_entities) {
-            VariableUtils().SetFlag(rActivatedFlag, false, r_sensitivity_model_part.Elements());
-        }
-    }
-
-    // setting active flag for nodes and elements of the evaluated model parts
-    for (auto p_model_part: rEvaluatedModelParts) {
-        if (check_nodal_entities) {
-            VariableUtils().SetFlag(rActivatedFlag, true, p_model_part->Nodes());
-        }
-
-        if (check_condition_entities) {
-            VariableUtils().SetFlag(rActivatedFlag, true, p_model_part->Conditions());
-        }
-
-        if (check_element_entities) {
-            VariableUtils().SetFlag(rActivatedFlag, true, p_model_part->Elements());
-        }
-    }
-
-    // Calculating overlaping number of entities between evaluated model parts and sensitivity model parts.
-    std::unordered_map<SensitivityFieldVariableTypes, IndexType> overlaping_number_of_entities_map;
-    for (auto& it : rSensitivityModelPartVariableInfo) {
-        const auto& r_sensitivity_model_part = *(it.first);
-        const auto& r_data_communicator = r_sensitivity_model_part.GetCommunicator().GetDataCommunicator();
-        for (auto& r_variable : it.second) {
-            if (IsVariableInList(r_variable, rAllowedNodalSensitivityVariables)) {
-                std::visit([&](auto&& r_variable) {
-                    overlaping_number_of_entities_map[r_variable] += OptimizationUtils::GetNumberOfContainerItemsWithFlag(r_sensitivity_model_part.Nodes(), r_data_communicator, rActivatedFlag);
-                }, r_variable);
-            } else if (IsVariableInList(r_variable, rAllowedConditionSensitivityVariables)) {
-                std::visit([&](auto&& r_variable) {
-                    overlaping_number_of_entities_map[r_variable] += OptimizationUtils::GetNumberOfContainerItemsWithFlag(r_sensitivity_model_part.Conditions(), r_data_communicator, rActivatedFlag);
-                }, r_variable);
-            } else if (IsVariableInList(r_variable, rAllowedElementSensitivityVariables)) {
-                std::visit([&](auto&& r_variable) {
-                    overlaping_number_of_entities_map[r_variable] += OptimizationUtils::GetNumberOfContainerItemsWithFlag(r_sensitivity_model_part.Elements(), r_data_communicator, rActivatedFlag);
-                }, r_variable);
-            } else {
-                    std::stringstream msg;
-                    std::visit([&](auto&& r_variable) {
-                        msg << "Unsupported sensitivity w.r.t. " << r_variable->Name()
-                            << " requested for " << r_sensitivity_model_part.FullName() << "."
-                            << "\nFollowings are supported sensitivity variables:";
-
-                        if (check_nodal_entities) {
-                            for (auto& r_supported_variable : rAllowedNodalSensitivityVariables) {
-                                std::visit([&](auto&& r_variable) {
-                                    msg << "\n\t" << r_variable->Name();
-                                }, r_supported_variable);
-                            }
-                        }
-
-                        if (check_condition_entities) {
-                            for (auto& r_supported_variable : rAllowedConditionSensitivityVariables) {
-                                std::visit([&](auto&& r_variable) {
-                                    msg << "\n\t" << r_variable->Name();
-                                }, r_supported_variable);
-                            }
-                        }
-
-                        if (check_element_entities) {
-                            for (auto& r_supported_variable : rAllowedElementSensitivityVariables) {
-                                std::visit([&](auto&& r_variable) {
-                                    msg << "\n\t" << r_variable->Name();
-                                }, r_supported_variable);
-                            }
-                        }
-                    }, r_variable);
-
-                    KRATOS_ERROR << msg.str();
-            }
-        }
-    }
-
-    // Checking whether there is an overlap for every sensitivity variable
-    for (const auto& it : overlaping_number_of_entities_map) {
-        if (it.second == 0) {
-            std::stringstream msg;
-
-            std::visit([&](auto&& r_variable) {
-                msg << "No overlapping entities found for " << r_variable->Name()
-                << " between evaluated model parts and sensitivity model parts. Followings are the evaluated model part names:";
-                for (auto p_model_part: rEvaluatedModelParts) {
-                    msg << "\n\t" << p_model_part->FullName();
-                }
-
-                msg << "\nFollowings are the sensitivity model parts with requested sensitivity variables:";
-                for (auto& it : rSensitivityModelPartVariableInfo) {
-                    msg << "\n\t" << it.first->FullName() << ": ";
-                    for (auto& r_variable : it.second) {
-                        std::visit([&](auto&& r_variable) {
-                            msg << "\n\t\t" << r_variable->Name();
-                        }, r_variable);
-                    }
-                }
-            }, it.first);
-
-            KRATOS_ERROR << msg.str();
-        }
-    }
+    return rDataCommunicator.SumAll(block_for_each<SumReduction<IndexType>>(rContainer, [&](const auto& rEntity) {
+        return rEntity.Is(rFlag) == FlagValue;
+    }));
 
     KRATOS_CATCH("");
+}
+
+void OptimizationUtils::ReverseSensitivityModelPartVariablesListMap(
+    SensitivityVariableModelPartsListMap& rOutput,
+    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo)
+{
+    for (const auto& it_1 : rSensitivityModelPartVariableInfo) {
+        for (const auto& it_2 : it_1.second) {
+            rOutput[it_2].push_back(it_1.first);
+        }
+    }
 }
 
 // template instantiations
