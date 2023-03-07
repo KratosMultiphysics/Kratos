@@ -11,7 +11,7 @@
         "model_part_name"                 : "Structure",
         "domain_size"                     : 3,
         "echo_level"                      : 1,
-        "analysis_type"                   : "linear",
+        "analysis_type"                   : "non_linear",
         "model_import_settings"           : {
             "input_type"     : "mdpa",
             "input_filename" : "initial_strain_cr_beam3D2N_test"
@@ -23,11 +23,11 @@
             "time_step" : 0.1
         },
         "line_search"                     : false,
-        "convergence_criterion"           : "residual_criterion",
-        "displacement_relative_tolerance" : 0.0001,
-        "displacement_absolute_tolerance" : 1e-9,
-        "residual_relative_tolerance"     : 0.0001,
-        "residual_absolute_tolerance"     : 1e-9,
+        "convergence_criterion"           : "displacement_criterion",
+        "displacement_relative_tolerance" : 1e-6,
+        "displacement_absolute_tolerance" : 1e-8,
+        "residual_relative_tolerance"     : 1e-6,
+        "residual_absolute_tolerance"     : 1e-8,
         "max_iteration"                   : 10,
         "rotation_dofs"                   : true,
         "volumetric_strain_dofs"          : false
