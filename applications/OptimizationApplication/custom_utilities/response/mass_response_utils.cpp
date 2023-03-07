@@ -141,12 +141,18 @@ void MassResponseUtils::CalculateSensitivity(
     OptimizationUtils::SensitivityVariableModelPartsListMap reversed_map;
     OptimizationUtils::ReverseSensitivityModelPartVariablesListMap(reversed_map, rSensitivityModelPartVariableInfo);
     for (const auto& it : reversed_map) {
+
         IndexType number_of_common_entities = 0;
         for (const auto& p_model_part : it.second) {
             number_of_common_entities += OptimizationUtils::GetNumberOfContainerItemsWithFlag(p_model_part->Elements(), p_model_part->GetCommunicator().GetDataCommunicator(), SELECTED);
         }
 
-        KRATOS_ERROR_IF(number_of_common_entities == 0) << "No common entities between evaluated and sensitivity model parts found for sensitivity variables.";
+        std::visit([&](auto&& r_variable) {
+                KRATOS_ERROR_IF(number_of_common_entities == 0)
+                    << "No common entities between evaluated and sensitivity "
+                       "model parts found for sensitivity variable "
+                    << r_variable->Name() << ".\n";
+        }, it.first);
     }
 
     // clear all the sensitivity variables for nodes. Here we assume there are
