@@ -12,7 +12,6 @@
 
 // System includes
 #include <cmath>
-#include <sstream>
 
 // Project includes
 #include "utilities/parallel_utilities.h"
