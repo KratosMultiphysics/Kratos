@@ -55,10 +55,6 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         self.model_part.GetCondition(4).Properties[Kratos.DENSITY] = 1.0
         self.assertTrue(self.utils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Conditions, Kratos.DENSITY, self.model_part.GetCommunicator().GetDataCommunicator()))
 
-    def test_IsVariableInList(self):
-        self.assertTrue(self.utils.IsVariableInList(Kratos.DISTANCE, [Kratos.DISTANCE, Kratos.VELOCITY]))
-        self.assertFalse(self.utils.IsVariableInList(Kratos.DISTANCE, [Kratos.PRESSURE, Kratos.VELOCITY]))
-
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
