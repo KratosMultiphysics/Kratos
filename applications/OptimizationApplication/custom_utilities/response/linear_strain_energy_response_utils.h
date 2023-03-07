@@ -59,7 +59,28 @@ private:
     ///@name Private static operations
     ///@{
 
+    template<class TEntityType>
+    static double CalculateEntityStrainEnergy(
+        TEntityType& rEntity,
+        Matrix& rLHS,
+        Vector& rRHS,
+        Vector& rX,
+        const ProcessInfo& rProcessInfo);
+
     static double CalculateModelPartValue(ModelPart& rModelPart);
+
+    template<class TEntityType>
+    static void CalculateStrainEnergyEntityShapeSensitivity(
+        TEntityType& rEntity,
+        Vector& rX,
+        Vector& rRefRHS,
+        Vector& rPerturbedRHS,
+        typename TEntityType::Pointer& pThreadLocalEntity,
+        ModelPart& rModelPart,
+        std::vector<std::string>& rModelPartNames,
+        const double Delta,
+        const IndexType MaxNodeId,
+        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
 
     static void CalculateStrainEnergyShapeSensitivity(
         ModelPart& rModelPart,
