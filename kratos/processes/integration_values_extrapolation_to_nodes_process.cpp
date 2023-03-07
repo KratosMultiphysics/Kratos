@@ -110,8 +110,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
         // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
         // NOTE: Is active by default
-        const bool element_is_active = rElem.IsDefined(ACTIVE) ? rElem.Is(ACTIVE) : true;
-        if (element_is_active) {
+        if (rElem.IsActive()) {
             auto& r_this_geometry = rElem.GetGeometry();
 
             // Auxiliar values
@@ -300,8 +299,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
         // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
         // NOTE: Is active by default
-        const bool element_is_active = rElem.IsDefined(ACTIVE) ? rElem.Is(ACTIVE) : true;
-        if (element_is_active) {
+        if (rElem.IsActive()) {
             // The geometry of the element
             auto& r_this_geometry = rElem.GetGeometry();
 
