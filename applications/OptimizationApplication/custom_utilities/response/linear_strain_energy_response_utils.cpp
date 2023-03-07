@@ -128,7 +128,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
     std::vector<std::string> model_part_names;
 
     block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
-        if ((!rElement.IsDefined(ACTIVE) || (rElement.Is(ACTIVE))) && rElement.Is(SELECTED)) {
+        if (rElement.Is(SELECTED) && rElement.IsActive()) {
             Vector& r_u = std::get<0>(rTLS);
             Vector& r_ref_rhs = std::get<1>(rTLS);
             Vector& r_perturbed_rhs = std::get<2>(rTLS);
@@ -249,7 +249,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyLinearlyDependentProp
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
     block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
-        if ((!rElement.IsDefined(ACTIVE) || (rElement.Is(ACTIVE))) && rElement.Is(SELECTED)) {
+        if (rElement.Is(SELECTED) && rElement.IsActive()) {
             Vector& r_u = std::get<0>(rTLS);
             Vector& r_sensitivity = std::get<1>(rTLS);
 
@@ -285,7 +285,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyFiniteDifferencePrope
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
     block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
-        if ((!rElement.IsDefined(ACTIVE) || (rElement.Is(ACTIVE))) && rElement.Is(SELECTED)) {
+        if (rElement.Is(SELECTED) && rElement.IsActive()) {
             Vector& r_u = std::get<0>(rTLS);
             Vector& r_ref_rhs = std::get<1>(rTLS);
             Vector& r_perturbed_rhs = std::get<2>(rTLS);
