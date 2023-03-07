@@ -251,7 +251,6 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyYoungModulusSensitivi
 
             rElement.GetValuesVector(r_u);
 
-            // now calculate perturbed
             auto& r_properties = rElement.GetProperties();
             const double current_value = r_properties[YOUNG_MODULUS];
 
