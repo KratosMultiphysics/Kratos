@@ -46,7 +46,6 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             # creating the response function wrapper
             response_function_settings = Kratos.Parameters("""{
                 "evaluated_model_part_names": ["Structure.structure"],
-                "primal_analysis_name"      : "primal",
                 "perturbation_size"         : 1e-8
             }""")
             cls.response_function: LinearStrainEnergyResponseFunction = LinearStrainEnergyResponseFunction(cls.model, response_function_settings, cls.optimization_info)
@@ -58,6 +57,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model["Structure.structure"], cls.model_part.Elements)
 
             cls.execution_policy_wrapper.ExecuteInitializeSolutionStep()
+            cls.execution_policy_wrapper.Execute()
             cls.ref_value = cls.response_function.CalculateValue()
 
     @classmethod
@@ -72,6 +72,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
         for entity in entities:
             adjoint_sensitivity = sensitivity_method(entity)
             update_method(entity, delta)
+            self.execution_policy_wrapper.Execute()
             value = response_function.CalculateValue()
             fd_sensitivity = (value - self.ref_value)/delta
             update_method(entity, -delta)
