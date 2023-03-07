@@ -32,11 +32,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             raise RuntimeError("No model parts were provided for LinearStrainEnergyResponseFunction.")
 
     def Check(self) -> None:
-        # all of the model parts needs to have the same root model part
-        root_model_part = self.model_parts[0].GetRootModelPart()
-        for model_part in self.model_parts:
-            if root_model_part != model_part.GetRootModelPart():
-                raise RuntimeError(f"Root model part mismatch. Evaluated model parts must have the same root model part. [ Required root model part = {root_model_part.FullName()}, current model part = {model_part.FullName()} ]")
+        pass
 
     def CalculateValue(self) -> float:
         # execute the primal analysis
