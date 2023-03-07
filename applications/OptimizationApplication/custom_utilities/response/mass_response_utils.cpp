@@ -338,6 +338,8 @@ void MassResponseUtils::CalculateMassDensitySensitivity(
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
         if (rElement.Is(SELECTED)) {
             rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
+        } else {
+            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
         }
     });
 
@@ -382,6 +384,8 @@ void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
         if (rElement.Is(SELECTED)) {
             rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
+        } else {
+            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
         }
     });
 
