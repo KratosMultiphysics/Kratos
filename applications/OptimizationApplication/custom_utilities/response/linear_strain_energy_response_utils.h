@@ -66,11 +66,12 @@ private:
         const double Delta,
         const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
 
-    static void CalculateStrainEnergyYoungModulusSensitivity(
+    static void CalculateStrainEnergyLinearlyDependentPropertySensitivity(
         ModelPart& rModelPart,
+        const Variable<double>& rPrimalVariable,
         const Variable<double>& rOutputSensitivityVariable);
 
-    static void CalculateStrainEnergyNonLinearSensitivity(
+    static void CalculateStrainEnergyFiniteDifferencePropertySensitivity(
         ModelPart& rModelPart,
         const double Delta,
         const Variable<double>& rPrimalVariable,

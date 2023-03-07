@@ -85,9 +85,11 @@ void LinearStrainEnergyResponseUtils::CalculateSensitivity(
         for (auto& r_variable : it.second) {
             std::visit([&](auto&& r_variable) {
                 if (*r_variable == YOUNG_MODULUS_SENSITIVITY) {
-                    CalculateStrainEnergyYoungModulusSensitivity(r_sensitivity_model_part, YOUNG_MODULUS_SENSITIVITY);
+                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
+                } else if (*r_variable == THICKNESS_SENSITIVITY) {
+                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, THICKNESS, THICKNESS_SENSITIVITY);
                 } else if (*r_variable == POISSON_RATIO_SENSITIVITY) {
-                    CalculateStrainEnergyNonLinearSensitivity(r_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+                    CalculateStrainEnergyFiniteDifferencePropertySensitivity(r_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
                 } else if (*r_variable == SHAPE_SENSITIVITY) {
                     CalculateStrainEnergyShapeSensitivity(r_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
                 } else {
@@ -96,6 +98,7 @@ void LinearStrainEnergyResponseUtils::CalculateSensitivity(
                         << " requested for " << r_sensitivity_model_part.FullName()
                         << ". Followings are supported sensitivity variables:"
                         << "\n\t" << YOUNG_MODULUS_SENSITIVITY.Name()
+                        << "\n\t" << THICKNESS_SENSITIVITY.Name()
                         << "\n\t" << POISSON_RATIO_SENSITIVITY.Name()
                         << "\n\t" << SHAPE_SENSITIVITY.Name();
                 }
@@ -234,8 +237,9 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
     KRATOS_CATCH("");
 }
 
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergyYoungModulusSensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergyLinearlyDependentPropertySensitivity(
     ModelPart& rModelPart,
+    const Variable<double>& rPrimalVariable,
     const Variable<double>& rOutputSensitivityVariable)
 {
     KRATOS_TRY
@@ -252,11 +256,11 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyYoungModulusSensitivi
             rElement.GetValuesVector(r_u);
 
             auto& r_properties = rElement.GetProperties();
-            const double current_value = r_properties[YOUNG_MODULUS];
+            const double current_value = r_properties[rPrimalVariable];
 
-            r_properties[YOUNG_MODULUS] = 1.0;
+            r_properties[rPrimalVariable] = 1.0;
             rElement.CalculateRightHandSide(r_sensitivity, r_process_info);
-            r_properties[YOUNG_MODULUS] = current_value;
+            r_properties[rPrimalVariable] = current_value;
 
             // now calculate the sensitivity
             rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.5 * inner_prod(r_u, r_sensitivity));
@@ -268,7 +272,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyYoungModulusSensitivi
     KRATOS_CATCH("");
 }
 
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergyNonLinearSensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergyFiniteDifferencePropertySensitivity(
     ModelPart& rModelPart,
     const double Delta,
     const Variable<double>& rPrimalVariable,
