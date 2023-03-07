@@ -23,6 +23,7 @@ from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as T
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
+from particle_mechanics_test_factory import CLDispNewtonianFluidTest as TCLDispNewtonianFluidTest
 
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
 from particle_mechanics_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTest
@@ -46,6 +47,10 @@ from particle_mechanics_test_factory import Explicit3dTetCompressibleOscillating
 from particle_mechanics_test_factory import PQMPMExplicitQuadTest as TPQMPMExplicitQuadTest
 from particle_mechanics_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from particle_mechanics_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
+
+##### RESTART TESTS #####
+from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
+from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
 
 
 
@@ -94,6 +99,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))  # FIXME:
 
     smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
+    smallSuite.addTest(TCLDispNewtonianFluidTest('test_execution'))
     smallSuite.addTest(TGravityApplicationTest('test_execution'))
     smallSuite.addTest(TGravityTimeStepTableTest('test_execution'))
 
@@ -133,6 +139,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TPQMPMExplicitQuadTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitTriTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitHexTest('test_execution'))
+
+    nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
+    nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

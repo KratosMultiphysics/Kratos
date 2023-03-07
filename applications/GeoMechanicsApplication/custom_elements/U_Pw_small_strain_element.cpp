@@ -501,6 +501,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const GeometryType& rGeom = this->GetGeometry();
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
+    auto& r_prop = this->GetProperties();
     if ( rOutput.size() != NumGPoints )
         rOutput.resize(NumGPoints);
 
@@ -589,33 +590,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             if (rVariable == RELATIVE_PERMEABILITY )   rOutput[GPoint] = Variables.RelativePermeability;
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
-        const double NumericalLimit = std::numeric_limits<double>::epsilon();
+        
         const PropertiesType& rProp = this->GetProperties();
 
         //Defining the shape functions, the jacobian and the shape functions local gradients Containers
         const Matrix& NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
 
-        //Defining necessary variables
-        array_1d<double,TNumNodes> NodalHydraulicHead;
-        for (unsigned int node=0; node < TNumNodes; ++node) {
-            array_1d<double,3> NodeVolumeAcceleration;
-            noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
-            const double g = norm_2(NodeVolumeAcceleration);
-            if (g > NumericalLimit) {
-                const double FluidWeight = g * rProp[DENSITY_WATER];
-
-                array_1d<double,3> NodeCoordinates;
-                noalias(NodeCoordinates) = rGeom[node].Coordinates();
-                array_1d<double,3> NodeVolumeAccelerationUnitVector;
-                noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
-
-                const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-                NodalHydraulicHead[node] =- inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector)
-                                          - PORE_PRESSURE_SIGN_FACTOR  * WaterPressure / FluidWeight;
-            } else {
-                NodalHydraulicHead[node] = 0.0;
-            }
-        }
+        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<TNumNodes>(rGeom, rProp);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -691,6 +672,12 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
             rOutput[GPoint] = Variables.ConstitutiveMatrix(variable_index, variable_index);
         }
+    }
+    else if (r_prop.Has(rVariable))
+    {
+        // map initial material property to gauss points, as required for the output 
+        rOutput.clear();
+        std::fill_n(std::back_inserter(rOutput), mConstitutiveLawVector.size(), r_prop.GetValue(rVariable));
     }
     else {
         if ( rOutput.size() != mConstitutiveLawVector.size() )

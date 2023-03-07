@@ -73,6 +73,39 @@ def get_stages(project_path,n_stages):
     stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
     return stages
 
+def get_separated_directory_names(project_path, n_stages):
+    """
+    Gets directory names for all construction stages in seperated directories as Stage_0, Stage_1, ...
+
+    :param project_path:
+    :param n_stages:
+    :return:
+    """
+    directory_names = [os.path.join(project_path, 'Stage_' +  str(i + 1)) for i in range(n_stages)]
+
+    return directory_names
+
+def get_separated_stages(directory_names):
+    """
+    Gets all construction stages in seperated directories as Stage_0, Stage_1, ...
+
+    :param project_path:
+    :param n_stages:
+    :return:
+    """
+    n_stages = len(directory_names)
+    # set stage parameters
+    parameters_stages = [None] * n_stages
+    for idx, directory_name in enumerate(directory_names):
+        parameter_file_name = directory_name + '/ProjectParameters.json'
+        with open(parameter_file_name, 'r') as parameter_file:
+            parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
+
+    model = Kratos.Model()
+    stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
+
+    return stages
+
 
 def get_displacement(simulation):
     """
@@ -249,6 +282,20 @@ def get_total_stress_tensor(simulation):
         KratosGeo.TOTAL_STRESS_TENSOR, model_part.ProcessInfo) for element in elements]
 
     return total_stress_tensors
+
+
+def get_on_integration_points(simulation, kratos_variable):
+    """
+    Gets the values of a Kratos variables on all integration points within a model part
+
+    :param simulation:
+    :return: local stress vector
+    """
+    model_part = simulation._list_of_output_processes[0].model_part
+    elements = model_part.Elements
+    results = [element.CalculateOnIntegrationPoints(
+        kratos_variable, model_part.ProcessInfo) for element in elements]
+    return results
 
 
 def get_local_stress_vector(simulation):
