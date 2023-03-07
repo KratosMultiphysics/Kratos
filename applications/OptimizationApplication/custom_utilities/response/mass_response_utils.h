@@ -14,12 +14,14 @@
 #pragma once
 
 // System includes
+#include <vector>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 
 // Application includes
+#include "custom_utilities/optimization_utils.h"
 
 namespace Kratos
 {
@@ -37,23 +39,30 @@ public:
 
     using GeometryType = ModelPart::ElementType::GeometryType;
 
+    using SensitivityFieldVariableTypes = OptimizationUtils::SensitivityFieldVariableTypes;
+
+    using SensitivityModelPartVariablesListMap = OptimizationUtils::SensitivityModelPartVariablesListMap;
+
     ///@}
     ///@name Static operations
     ///@{
 
-    static void Check(const ModelPart& rModelPart);
+    static void Check(const std::vector<ModelPart const*>& rModelParts);
 
-    static double CalculateValue(const ModelPart& rModelPart);
+    static double CalculateValue(const std::vector<ModelPart const*>& rModelParts);
 
-    template<class TDataType>
     static void CalculateSensitivity(
-        ModelPart& rSensitivityModelPart,
-        const Variable<TDataType>& rSensitivityVariable);
+        const std::vector<ModelPart*>& rEvaluatedModelParts,
+        const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo);
 
     ///@}
 private:
     ///@name Private operations
     ///@{
+
+    static void CheckModelPart(const ModelPart& rModelPart);
+
+    static double CalculateModelPartValue(const ModelPart& rModelPart);
 
     static bool HasVariableInProperties(
         const ModelPart& rModelPart,

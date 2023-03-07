@@ -23,5 +23,5 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateSensitivity(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, sensitivity_model_part: Kratos.ModelPart) -> None:
+    def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[Kratos.ModelPart, list[SupportedSensitivityFieldVariableTypes]]') -> None:
         pass

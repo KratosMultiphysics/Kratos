@@ -29,26 +29,19 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             self.model_parts.append(model[model_part_name])
 
         if len(self.model_parts) == 0:
-            raise RuntimeError(f"No model parts were provided for LinearStrainEnergyResponseFunction.")
+            raise RuntimeError("No model parts were provided for LinearStrainEnergyResponseFunction.")
 
     def Check(self) -> None:
-        # all of the model parts needs to have the same root model part
-        root_model_part = self.model_parts[0].GetRootModelPart()
-        for model_part in self.model_parts:
-            if root_model_part != model_part.GetRootModelPart():
-                raise RuntimeError(f"Root model part mismatch. Evaluated model parts must have the same root model part. [ Required root model part = {root_model_part.FullName()}, current model part = {model_part.FullName()} ]")
+        pass
 
     def CalculateValue(self) -> float:
         # execute the primal analysis
         self.primal_analysis_execution_policy_wrapper.Execute()
 
         # computes the strain energy
-        value = 0.0
-        for model_part in self.model_parts:
-            value += KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(model_part)
-        return value
+        return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_parts)
 
-    def CalculateSensitivity(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, sensitivity_model_part: Kratos.ModelPart) -> None:
-        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateSensitivity(sensitivity_model_part, self.perturbation_size, sensitivity_variable)
+    def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[Kratos.ModelPart, list[SupportedSensitivityFieldVariableTypes]]') -> None:
+        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateSensitivity(self.model_parts, sensitivity_model_part_variable_info, self.perturbation_size)
 
 

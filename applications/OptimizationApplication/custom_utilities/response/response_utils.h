@@ -29,15 +29,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) LinearStrainEnergyResponseUtils
+class KRATOS_API(OPTIMIZATION_APPLICATION) ResponseUtils
 {
 public:
     ///@name Type definitions
     ///@{
 
     using IndexType = std::size_t;
-
-    using GeometryType = ModelPart::ElementType::GeometryType;
 
     using SensitivityFieldVariableTypes = OptimizationUtils::SensitivityFieldVariableTypes;
 
@@ -47,34 +45,11 @@ public:
     ///@name Static operations
     ///@{
 
-    static double CalculateValue(const std::vector<ModelPart*>& rModelParts);
-
-    static void CalculateSensitivity(
+    static void CheckAndPrepareModelPartsForSensitivityComputation(
         const std::vector<ModelPart*>& rEvaluatedModelParts,
         const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
-        const double PerturbationSize);
-
-    ///@}
-private:
-    ///@name Private static operations
-    ///@{
-
-    static double CalculateModelPartValue(ModelPart& rModelPart);
-
-    static void CalculateStrainEnergyShapeSensitivity(
-        ModelPart& rModelPart,
-        const double Delta,
-        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
-
-    static void CalculateStrainEnergyYoungModulusSensitivity(
-        ModelPart& rModelPart,
-        const Variable<double>& rOutputSensitivityVariable);
-
-    static void CalculateStrainEnergyNonLinearSensitivity(
-        ModelPart& rModelPart,
-        const double Delta,
-        const Variable<double>& rPrimalVariable,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Flags& rFlag,
+        const std::vector<SensitivityFieldVariableTypes>& rUsedNodalSensitivityVariables);
 
     ///@}
 };

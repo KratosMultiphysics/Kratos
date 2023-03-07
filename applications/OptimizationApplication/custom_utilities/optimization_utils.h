@@ -14,6 +14,8 @@
 
 // System includes
 #include <vector>
+#include <variant>
+#include <unordered_map>
 
 // Project includes
 #include "includes/define.h"
@@ -35,6 +37,12 @@ public:
     ///@{
 
     using IndexType = std::size_t;
+
+    using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
+
+    using SensitivityModelPartVariablesListMap = std::unordered_map<ModelPart*, std::vector<SensitivityFieldVariableTypes>>;
+
+    using SensitivityVariableModelPartsListMap = std::unordered_map<SensitivityFieldVariableTypes, std::vector<ModelPart*>>;
 
     ///@}
     ///@name Static operations
@@ -70,6 +78,17 @@ public:
     static void CopySolutionStepVariablesList(
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
+
+    template<class TContainerType>
+    static IndexType GetNumberOfContainerItemsWithFlag(
+        const TContainerType& rContainer,
+        const DataCommunicator& rDataCommunicator,
+        const Flags& rFlag,
+        const bool FlagValue = true);
+
+    static void ReverseSensitivityModelPartVariablesListMap(
+        SensitivityVariableModelPartsListMap& rOutput,
+        const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo);
 
     ///@}
 };
