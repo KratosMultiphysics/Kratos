@@ -1978,8 +1978,11 @@ namespace Kratos {
       RVEStopCompression();
 
       // Check equilibrium
-      const double eps = std::numeric_limits<double>::epsilon();
-      if (!mRVE_Compress && std::abs(mRVE_EffectStress - prev_effect_stress) < eps && std::abs(mRVE_DevStress - prev_dev_stress) < eps)
+      double tol = 0.0000000001;
+      double ratio_eff = std::abs((mRVE_EffectStress-prev_effect_stress) / mRVE_EffectStress);
+      double ratio_dev = std::abs((mRVE_DevStress-prev_dev_stress) / mRVE_DevStress);
+
+      if (!mRVE_Compress && ratio_eff < tol && ratio_dev < tol)
         mRVE_EqSteps++;
       else
         mRVE_EqSteps = 0;
@@ -2498,7 +2501,7 @@ namespace Kratos {
       ModelPart& r_dem_model_part = GetModelPart();
       const double limit_stress = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
 
-      if (mRVE_Compress && std::abs(mRVE_EffectStress) >= limit_stress) {
+      if (mRVE_Compress && std::abs(mRVE_EffectStressInner) >= limit_stress) {
         mRVE_Compress = false;
 
         if (mRVE_FlatWalls) {
