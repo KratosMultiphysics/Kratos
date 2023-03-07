@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main author:     Reza Najian Asl
+//  Main author:     Suneth Warnakulasuriya
 //
 
 #pragma once
@@ -22,7 +22,7 @@
 namespace Kratos {
 namespace Python {
 
-void AddCustomUtilitiesToPython(pybind11::module& m);
+void AddCustomResponseUtilitiesToPython(pybind11::module& m);
 
 } // namespace Python.
 } // namespace Kratos.
