@@ -856,12 +856,7 @@ protected:
 
                     // Detect if the constraint is active or not. If the user did not make any choice the constraint
                     // It is active by default
-                    bool constraint_is_active = true;
-                    if( it_const->IsDefined(ACTIVE) ) {
-                        constraint_is_active = it_const->Is(ACTIVE);
-                    }
-
-                    if(constraint_is_active) {
+                    if(it_const->IsActive()) {
                         it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
                         // Slave DoFs
@@ -979,11 +974,7 @@ protected:
 
                 // Detect if the constraint is active or not. If the user did not make any choice the constraint
                 // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
+                if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 

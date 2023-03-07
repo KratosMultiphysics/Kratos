@@ -225,11 +225,7 @@ public:
                 auto it_elem = it_elem_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
 
@@ -247,11 +243,7 @@ public:
                 auto it_cond = it_cond_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
 
@@ -321,11 +313,7 @@ public:
                 auto it_elem = it_elem_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_elem, LHS_Contribution, equation_id, r_current_process_info);
 
@@ -339,11 +327,7 @@ public:
                 auto it_cond = it_cond_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_cond, LHS_Contribution, equation_id, r_current_process_info);
 
@@ -407,11 +391,7 @@ public:
                 auto it_elem = it_elem_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_elem, LHS_Contribution, equation_id, r_current_process_info);
 
@@ -425,11 +405,7 @@ public:
                 auto it_cond = it_cond_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_cond, LHS_Contribution, equation_id, r_current_process_info);
 
@@ -630,11 +606,7 @@ public:
                 auto it_elem = it_elem_begin + i;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                if (it_elem->IsActive()) {
                     // Calculate elemental Right Hand Side Contribution
                     pScheme->CalculateRHSContribution(*it_elem, RHS_Contribution, equation_id, r_current_process_info);
 
@@ -650,11 +622,7 @@ public:
             for (int i = 0; i < nconditions; ++i) {
                 auto it_cond = it_cond_begin + i;
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateRHSContribution(*it_cond, RHS_Contribution, equation_id, r_current_process_info);
 
