@@ -1409,6 +1409,7 @@ protected:
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+                it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                 // Detect if the constraint is active or not. If the user did not make any choice the constraint
                 // It is active by default
@@ -1418,7 +1419,6 @@ protected:
 
                 if (constraint_is_active) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                     for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
                         const IndexType i_global = slave_equation_ids[i];
@@ -1432,7 +1432,6 @@ protected:
                         AtomicAdd(r_value, constant_value);
                     }
                 } else { // Taking into account inactive constraints
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
                     auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 }
             }
