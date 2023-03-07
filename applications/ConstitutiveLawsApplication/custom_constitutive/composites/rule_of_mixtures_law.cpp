@@ -588,7 +588,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         Properties& r_prop = *(it_prop_begin + i_layer);
 
         rParameterValues.SetMaterialProperties(r_prop);
-        double aux_value;
+        double aux_value = 0.0;
         p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
         rValue += factor * aux_value;
     }
