@@ -648,11 +648,24 @@ CrBeamElement2D2N::CalculateDeformationParameters()
     Vector current_displacement = ZeroVector(msElementSize);
     GetValuesVector(current_displacement, 0);
 
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+
+    BoundedVector<double, 2> initial_strain_vector = ZeroVector(2);
+    double initial_unit_elongation = 0.0;
+    double initial_unit_rotation = 0.0;
+
+    if (Has(BEAM_INITIAL_STRAIN_VECTOR)) {
+    initial_strain_vector = GetValue(BEAM_INITIAL_STRAIN_VECTOR);
+    initial_unit_elongation = initial_strain_vector[0];
+    initial_unit_rotation = initial_strain_vector[1];
+    }
+
     BoundedVector<double, msLocalSize> deformation_parameters =
         ZeroVector(msLocalSize);
-    deformation_parameters[0] =
-        CalculateLength() - StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    deformation_parameters[0] = CalculateLength() - L;
+    deformation_parameters[0] -= initial_unit_elongation * L;
     deformation_parameters[1] = current_displacement[5] - current_displacement[2];
+    deformation_parameters[1] -= initial_unit_rotation * L;
     deformation_parameters[2] = current_displacement[5] + current_displacement[2];
     deformation_parameters[2] -= 2.00 * (CalculateDeformedElementAngle() -
                                          CalculateInitialElementAngle());
