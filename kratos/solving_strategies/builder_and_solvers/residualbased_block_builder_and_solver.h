@@ -1327,10 +1327,10 @@ protected:
                 }
 
                 // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].lock();
-                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].unlock();
+                for (auto& pair_temp_indices : temp_indices) {
+                    lock_array[pair_temp_indices.first].lock();
+                    indices[pair_temp_indices.first].insert(pair_temp_indices.second.begin(), pair_temp_indices.second.end());
+                    lock_array[pair_temp_indices.first].unlock();
                 }
             }
 
