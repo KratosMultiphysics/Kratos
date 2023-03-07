@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <sstream>
 
 // Project includes
 #include "utilities/variable_utils.h"
@@ -52,10 +53,24 @@ void ResponseUtils::CheckAndPrepareModelPartsForSensitivityComputation(
         }
 
         std::visit([&](auto&& r_variable) {
-                KRATOS_ERROR_IF(number_of_common_entities == 0)
-                    << "No common entities between evaluated and sensitivity "
+            if (number_of_common_entities == 0) {
+                std::stringstream msg;
+                msg << "No common entities between evaluated and sensitivity "
                        "model parts found for sensitivity variable "
-                    << r_variable->Name() << ".\n";
+                    << r_variable->Name() << ".";
+
+                msg << "\nFollowings are the evaluated model parts:";
+                for (const auto& p_model_part : rEvaluatedModelParts) {
+                    msg << "\n\t" << p_model_part->FullName();
+                }
+
+                msg << "\nFollowings are the sensitivity model parts:";
+                for (const auto& p_model_part : it.second) {
+                    msg << "\n\t" << p_model_part->FullName();
+                }
+
+                KRATOS_ERROR << msg.str();
+            }
         }, it.first);
     }
 
