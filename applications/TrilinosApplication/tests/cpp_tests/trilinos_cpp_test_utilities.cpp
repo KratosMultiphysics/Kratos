@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_utilities/trilinos_cpp_test_utilities.h"
+#include "trilinos_cpp_test_utilities.h"
 
 namespace Kratos
 {
