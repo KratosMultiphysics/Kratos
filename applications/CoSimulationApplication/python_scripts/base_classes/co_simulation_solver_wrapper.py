@@ -118,7 +118,7 @@ class CoSimulationSolverWrapper:
     def IsDefinedOnThisRank(self):
         return self.data_communicator.IsDefinedOnThisRank()
 
-    def GetInterfaceData(self, data_name):
+    def GetInterfaceData(self, data_name) -> CouplingInterfaceData:
         try:
             return self.data_dict[data_name]
         except KeyError:
