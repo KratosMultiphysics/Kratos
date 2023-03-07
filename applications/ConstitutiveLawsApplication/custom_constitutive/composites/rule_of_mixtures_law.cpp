@@ -581,6 +581,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
 
     // We combine the value of each layer
     rValue = 0.0;
+    double aux_value = 0.0;
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
         const double factor = mCombinationFactors[i_layer];
@@ -588,7 +589,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         Properties& r_prop = *(it_prop_begin + i_layer);
 
         rParameterValues.SetMaterialProperties(r_prop);
-        double aux_value = 0.0;
+        aux_value = 0.0;
         p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
         rValue += factor * aux_value;
     }
