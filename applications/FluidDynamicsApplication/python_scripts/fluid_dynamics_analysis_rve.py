@@ -5,7 +5,7 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import 
 # Importing other libraries
 import math
 
-class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
+class FluidDynamicsAnalysisRve(FluidDynamicsAnalysis):
     def __init__(self, model, project_parameters):
         # Validate RVE settings
         input_rve_settings = project_parameters["rve_settings"]
