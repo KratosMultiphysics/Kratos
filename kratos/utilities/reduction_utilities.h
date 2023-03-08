@@ -299,7 +299,7 @@ public:
     }
 
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
-    void ThreadSafeReduce(const MapReduction<MapType>& rOther)
+    void ThreadSafeReduce(MapReduction<MapType>& rOther)
     {
         KRATOS_CRITICAL_SECTION
         mValue.merge(rOther.mValue);
