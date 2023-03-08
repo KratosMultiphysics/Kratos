@@ -278,6 +278,36 @@ public:
     }
 };
 
+template<class KeyType, class ValueType, class Hasher = std::hash<KeyType>, class Comparator = std::equal_to<KeyType>, class Allocator = std::allocator<std::pair<KeyType, ValueType>>>
+class MapReducer
+{
+public:
+    using value_type = std::pair<KeyType, ValueType>;
+    using return_type = std::unordered_map<KeyType, ValueType, Hasher, Comparator, Allocator>;
+
+    return_type mValue;
+
+    /// access to reduced value
+    return_type GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(value_type rValue){
+        mValue.emplace(rValue);
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const HashMapReducer& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        for (const auto& it : rOther.mValue) {
+            mValue.emplace(it);
+        }
+    }
+};
+
 template <class... Reducer>
 struct CombinedReduction {
     typedef std::tuple<typename Reducer::value_type...> value_type;
