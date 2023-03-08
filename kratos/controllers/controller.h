@@ -51,7 +51,7 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit Controller() = default;
+    Controller() noexcept = default;
 
     /// Destructor.
     virtual ~Controller() {}
