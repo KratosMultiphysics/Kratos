@@ -70,7 +70,7 @@ private:
     static double CalculateModelPartValue(ModelPart& rModelPart);
 
     template<class TEntityType>
-    static void CalculateStrainEnergyEntityShapeSensitivity(
+    static void CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
         TEntityType& rEntity,
         Vector& rX,
         Vector& rRefRHS,
@@ -82,7 +82,7 @@ private:
         const IndexType MaxNodeId,
         const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
 
-    static void CalculateStrainEnergyShapeSensitivity(
+    static void CalculateStrainEnergySemiAnalyticShapeSensitivity(
         ModelPart& rModelPart,
         const double Delta,
         const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
@@ -92,7 +92,7 @@ private:
         const Variable<double>& rPrimalVariable,
         const Variable<double>& rOutputSensitivityVariable);
 
-    static void CalculateStrainEnergyFiniteDifferencePropertySensitivity(
+    static void CalculateStrainEnergySemiAnalyticPropertySensitivity(
         ModelPart& rModelPart,
         const double Delta,
         const Variable<double>& rPrimalVariable,

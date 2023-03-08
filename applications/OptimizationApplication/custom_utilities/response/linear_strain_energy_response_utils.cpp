@@ -106,9 +106,9 @@ void LinearStrainEnergyResponseUtils::CalculateSensitivity(
                 } else if (*r_variable == THICKNESS_SENSITIVITY) {
                     CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, THICKNESS, THICKNESS_SENSITIVITY);
                 } else if (*r_variable == POISSON_RATIO_SENSITIVITY) {
-                    CalculateStrainEnergyFiniteDifferencePropertySensitivity(r_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+                    CalculateStrainEnergySemiAnalyticPropertySensitivity(r_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
                 } else if (*r_variable == SHAPE_SENSITIVITY) {
-                    CalculateStrainEnergyShapeSensitivity(r_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
+                    CalculateStrainEnergySemiAnalyticShapeSensitivity(r_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
                 } else {
                     KRATOS_ERROR
                         << "Unsupported sensitivity w.r.t. " << r_variable->Name()
@@ -127,7 +127,7 @@ void LinearStrainEnergyResponseUtils::CalculateSensitivity(
 }
 
 template<class TEntityType>
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntityShapeSensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
     TEntityType& rEntity,
     Vector& rX,
     Vector& rRefRHS,
@@ -231,7 +231,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntityShapeSensitivit
 }
 
 
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeSensitivity(
     ModelPart& rModelPart,
     const double Delta,
     const Variable<array_1d<double, 3>>& rOutputSensitivityVariable)
@@ -249,7 +249,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
     std::vector<std::string> model_part_names;
 
     block_for_each(rModelPart.Elements(), tls_element_type(), [&](auto& rElement, tls_element_type& rTLS) {
-        CalculateStrainEnergyEntityShapeSensitivity(
+        CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
             rElement,
             std::get<0>(rTLS),
             std::get<1>(rTLS),
@@ -263,7 +263,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyShapeSensitivity(
     });
 
     block_for_each(rModelPart.Conditions(), tls_condition_type(), [&](auto& rCondition, tls_condition_type& rTLS) {
-        CalculateStrainEnergyEntityShapeSensitivity(
+        CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
             rCondition,
             std::get<0>(rTLS),
             std::get<1>(rTLS),
@@ -334,7 +334,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyLinearlyDependentProp
     KRATOS_CATCH("");
 }
 
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergyFiniteDifferencePropertySensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticPropertySensitivity(
     ModelPart& rModelPart,
     const double Delta,
     const Variable<double>& rPrimalVariable,
