@@ -20,6 +20,7 @@
 
 // Application includes
 #include "custom_utilities/geometrical/symmetry_utility.h"
+#include "custom_utilities/geometrical/neighbour_utils.h"
 #include "custom_utilities/optimization_utils.h"
 
 // Include base h
@@ -38,6 +39,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Update", &SymmetryUtility::Update)
         .def("ApplyOnVectorField", &SymmetryUtility::ApplyOnVectorField)
         .def("ApplyOnScalarField", &SymmetryUtility::ApplyOnScalarField)
+        ;
+
+    py::class_<NeighbourUtils >(m, "NeighbourUtils")
+        .def_static("InitializeParentElementForConditions", &NeighbourUtils::InitializeParentElementForConditions)
+        .def_static("GetConditionIdAndParentElementIdMap", &NeighbourUtils::GetConditionIdAndParentElementIdMap)
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
