@@ -92,7 +92,7 @@ public:
     /**
      * @brief Checks that input conditions are correct. 
      */
-    virtual int Check()
+    virtual int Check() const
     {
         return 0;
     }
