@@ -61,7 +61,7 @@ public:
     Controller(Controller const& rOther) {}
 
     /// Move constructor
-    Controller(Controller&& rOther) = default;
+    Controller(Controller&& rOther) noexcept = default;
 
     ///@}
     ///@name Operators
