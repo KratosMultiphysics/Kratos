@@ -14,6 +14,7 @@
 #include <utility>
 #include <numeric>
 #include <iostream>
+#include <unordered_map>
 
 // External includes
 
@@ -313,11 +314,13 @@ KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)
 {
+    using map_type = std::unordered_map<int, int>;
+
     int nsize = 1e3;
     std::vector<int> input_data_vector(nsize);
 
     std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
-    auto assembled_map = block_for_each<MapReduction<int, int>>(input_data_vector, [](int& rValue) {
+    auto assembled_map = block_for_each<MapReduction<map_type>>(input_data_vector, [](int& rValue) {
         return std::make_pair(rValue, rValue + 1);
     });
 
