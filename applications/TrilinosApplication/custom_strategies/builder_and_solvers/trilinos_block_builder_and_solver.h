@@ -600,7 +600,8 @@ public:
         int free_size = 0;
         auto& r_comm = rModelPart.GetCommunicator();
         const auto& r_data_comm = r_comm.GetDataCommunicator();
-        int current_rank = r_comm.MyPID();
+        const int current_rank = r_data_comm.Rank();
+        const int world_size = r_data_comm.Size();
 
         // Calculating number of fixed and free dofs
         for (const auto& r_dof : BaseType::mDofSet)
@@ -618,7 +619,7 @@ public:
         // The total size by the sum of all size in all threads
         global_size = r_data_comm.SumAll(free_size);
 
-        // finding the offset for the begining of the partition
+        // Finding the offset for the begining of the partition
         free_offset -= free_size;
 
         // Now setting the equation id with .
@@ -635,8 +636,22 @@ public:
 
         // by Riccardo ... it may be wrong!
         mFirstMyId = free_offset - mLocalSystemSize;
-        mLastMyId = mFirstMyId + mLocalSystemSize;
 
+        // For MPC we fill mFirstMyIds
+        if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
+            mFirstMyIds.resize(world_size);
+            mFirstMyIds[current_rank] = mFirstMyId;
+            const int tag_id_send = 0;
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                if (i_rank != current_rank) {
+                    r_data_comm.Recv(mFirstMyIds[i_rank], i_rank, tag_id_send);
+                } else {
+                    r_data_comm.Send(mFirstMyId, i_rank, tag_id_send);
+                }
+            }
+        }
+
+        // Synchronize DoFs
         r_comm.SynchronizeDofs();
     }
 
@@ -1060,8 +1075,9 @@ protected:
     EpetraCommunicatorType& mrComm; /// The MPI communicator
     int mGuessRowSize;              /// The guess row size
     IndexType mLocalSystemSize;     /// The local system size
-    int mFirstMyId;                 /// Auxiliary Id (I)
-    int mLastMyId;                  /// Auxiliary Id (II)
+    int mFirstMyId;                 /// Auxiliary Id (the first row of the local system)
+    int mLastMyId;                  /// Auxiliary Id (the last row of the local system) // TODO: This can be removed as can be deduced from mLocalSystemSize
+    std::vector<int> mFirstMyIds;   /// The ids corresponding to each partition (only used with MPC)
 
     /* MPC variables */
     TSystemMatrixPointerType mpT =  nullptr;              /// This is matrix containing the global relation for the constraints
@@ -1090,72 +1106,115 @@ protected:
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // Generate indices database
-            const IndexType number_of_local_rows = mLastMyId - mFirstMyId;
-            std::vector<std::unordered_set<IndexType>> indices(number_of_local_rows);
+            const IndexType number_of_local_rows = mLocalSystemSize;
 
-            std::vector<LockObject> lock_array(indices.size());
-
-            struct TLS
-            {
-                Element::EquationIdVectorType master_ids = Element::EquationIdVectorType(3,0);
-                Element::EquationIdVectorType slave_ids = Element::EquationIdVectorType(3,0);
-                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
-            };
-            block_for_each(rModelPart.MasterSlaveConstraints(), TLS(), [&](MasterSlaveConstraint& rConst, TLS& rTls){
-                rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, r_current_process_info);
-
-                // Slave DoFs
-                for (const auto id_i : rTls.slave_ids) {
-                    rTls.temp_indices[id_i - mFirstMyId].insert(rTls.master_ids.begin(), rTls.master_ids.end());
-                }
-
-                // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(rTls.temp_indices.size()); ++i) {
-                    lock_array[i].lock();
-                    indices[i].insert(rTls.temp_indices[i].begin(), rTls.temp_indices[i].end());
-                    lock_array[i].unlock();
-                }
-            });
-
-            // Destroy locks
-            lock_array = std::vector<LockObject>();
-
-            // Fill ids for master/slave
-            // NOTE: Ids are global (that's why we add mFirstMyId)
-            mSlaveIds.clear();
-            mMasterIds.clear();
-            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-                if (indices[i].size() == 0) // Master dof!
-                    mMasterIds.push_back(mFirstMyId + i);
-                else // Slave dof
-                    mSlaveIds.push_back(mFirstMyId + i);
-                indices[i].insert(mFirstMyId + i); // Ensure that the diagonal is there in T
+            // Generate map - use the "temp" array here
+            const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_rows;
+            std::vector<int> temp_primary(temp_size, 0);
+            std::vector<int> temp_secondary(temp_size, 0);
+            for (IndexType i = 0; i != number_of_local_rows; i++) {
+                temp_primary[i] = mFirstMyId + i;
             }
-
-            // Generate map
-            const int num_global_elements = BaseType::mEquationSystemSize;
-            Epetra_Map map(num_global_elements, 0, mrComm);
+            Epetra_Map map(-1, number_of_local_rows, temp_primary.data(), 0, mrComm);
+            std::fill(temp_primary.begin(), temp_primary.begin() + number_of_local_rows, 0);
 
             // The T graph
             Epetra_FECrsGraph Tgraph(Copy, map, mGuessRowSize);
 
-            // Generate the structure
-            std::vector<int> current_row(1,0);
-            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-                // Filling the list of active global indices (non fixed)
-                auto& r_row_index = indices[i];
-                const int num_active_indices = r_row_index.size();
-
-                if (num_active_indices != 0) {
-                    current_row[0] = mFirstMyId + i;
-                    std::vector<int> row_index_data(r_row_index.begin(), r_row_index.end());
-                    const int ierr = Tgraph.InsertGlobalIndices(1, current_row.data(), num_active_indices, row_index_data.data());
-                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.InsertGlobalIndices. Error code: " << ierr << std::endl;
-                }
+            // Adding diagonal values
+            int ierr;
+            std::vector<int> index_diagonal(1, 0);
+            for (IndexType i = 0; i < number_of_local_rows; ++i) {
+                index_diagonal[0] = mFirstMyId + i;
+                ierr = Tgraph.InsertGlobalIndices(1, index_diagonal.data(), 1, index_diagonal.data());
+                KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
 
+            // Vector containing indices belonging to slave DoFs, not used for graph, but for master/slave index identifiaction
+            std::unordered_set<std::size_t> indices;
+
+            // TODO: Check if these should be local constraints
+            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+
+            // Assemble all constraints
+            Element::EquationIdVectorType slave_equation_ids_vector, master_equation_ids_vector;
+            for (auto& r_const : r_constraints_array) {
+                r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
+
+                // Filling the list of active global indices (non fixed)
+                IndexType num_active_slave_indices = 0;
+                for (auto& r_slave_id : slave_equation_ids_vector) {
+                    temp_primary[num_active_slave_indices] = r_slave_id;
+                    ++num_active_slave_indices;
+                }
+                IndexType num_active_master_indices = 0;
+                for (auto& r_master_id : master_equation_ids_vector) {
+                    temp_secondary[num_active_master_indices] = r_master_id;
+                    ++num_active_master_indices;
+                }
+
+                // Adding cross master-slave dofs
+                if (num_active_slave_indices > 0 && num_active_master_indices > 0) {
+                    std::vector<int> slave_index(1, 0);
+                    for (IndexType i = 0; i < num_active_slave_indices; ++i) {
+                        slave_index[0] = temp_primary[i];
+                        indices.insert(temp_primary[i]);
+                        ierr = Tgraph.InsertGlobalIndices(1, slave_index.data(), num_active_master_indices, temp_secondary.data());
+                        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                    }
+                }
+                std::fill(temp_primary.begin(), temp_primary.begin() + num_active_slave_indices, 0);
+                std::fill(temp_secondary.begin(), temp_secondary.begin() + num_active_master_indices, 0);
+            }
+
+            /* Fill ids for master/slave */
+
+            // First clear the ones considered
+            mSlaveIds.clear();
+            mMasterIds.clear();
+
+            // Now prepare the auxiliary ones
+            auto& r_comm = rModelPart.GetCommunicator();
+            const auto& r_data_comm = r_comm.GetDataCommunicator();
+            const int current_rank = r_data_comm.Rank();
+            const int world_size = r_data_comm.Size();
+
+            // Auxiliary slave ids
+            std::vector<std::unordered_set<IndexType>> auxiliary_slave_ids(world_size);
+            for (auto index : indices) {
+                const IndexType rank = DeterminePartitionIndex(index);
+                auxiliary_slave_ids[rank].insert(index);
+            }
+            const int tag_sync_slave_id = 0;
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                if (i_rank != current_rank) {
+                    std::vector<IndexType> receive_slave_ids_vector;
+                    r_data_comm.Recv(receive_slave_ids_vector, i_rank, tag_sync_slave_id);
+                    auxiliary_slave_ids[i_rank].insert(receive_slave_ids_vector.begin(), receive_slave_ids_vector.end());
+                } else {
+                    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                        if (i_rank != current_rank) {
+                            const auto& r_slave_ids = auxiliary_slave_ids[i_rank];
+                            std::vector<IndexType> send_slave_ids_vector(r_slave_ids.begin(), r_slave_ids.end());
+                            r_data_comm.Send(send_slave_ids_vector, i_rank, tag_sync_slave_id);
+                        }
+                    }
+                }
+            }
+            mSlaveIds = std::vector<IndexType>(auxiliary_slave_ids[current_rank].begin(), auxiliary_slave_ids[current_rank].end());
+
+            // Master DoFs are complementary
+            std::unordered_set<IndexType> temp_master_ids;
+            for (IndexType i = 0; i < number_of_local_rows; ++i) {
+                temp_master_ids.insert(mFirstMyId + i);
+            }
+            for (auto id_slave : mSlaveIds) {
+                temp_master_ids.erase(id_slave);
+            }
+            mMasterIds = std::vector<IndexType>(temp_master_ids.begin(), temp_master_ids.end());
+
             // Finalizing graph construction
-            const int ierr = Tgraph.GlobalAssemble();
+            ierr = Tgraph.GlobalAssemble();
             KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
 
             // Generate a new matrix pointer according to this non-zero values
@@ -1167,23 +1226,6 @@ protected:
             // Generate the constant vector equivalent
             TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(map));
             mpConstantVector.swap(p_new_constant_vector);
-
-            // Compute NNZ
-            std::vector<int> global_row_nnz(BaseType::mEquationSystemSize, 0);
-            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-                auto& r_row_index = indices[i];
-                global_row_nnz[mFirstMyId + i] = r_row_index.size();
-            }
-
-            // Get data communicator
-            auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-            for (auto& r_nnz : global_row_nnz) {
-                r_nnz = r_data_comm.SumAll(r_nnz);
-            }
-
-            // Count the row sizes
-            const int nnz = block_for_each<SumReduction<int>>(global_row_nnz, [](auto nnz) {return nnz;});
-            KRATOS_ERROR_IF_NOT(mpT->NumGlobalNonzeros() == nnz) << "Relation matrix not properly constructed, the number of non-zeros does not coincide with the expected one " << nnz << " vs " << mpT->NumGlobalNonzeros() << std::endl;
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
@@ -1210,21 +1252,55 @@ protected:
         // Vector containing the localization in the system of the different terms
         Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
 
+        // Now prepare the auxiliary ones
+        auto& r_comm = rModelPart.GetCommunicator();
+        const auto& r_data_comm = r_comm.GetDataCommunicator();
+        const int current_rank = r_data_comm.Rank();
+        const int world_size = r_data_comm.Size();
+
+        // Auxiliary inactive slave ids
+        std::vector<std::unordered_set<IndexType>> auxiliary_inactive_slave_ids(world_size);
+
         // We clear the set
         mInactiveSlaveDofs.clear();
 
         // Iterate over the constraints
         for (auto& r_const : rModelPart.MasterSlaveConstraints()) {
+            r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
             // Detect if the constraint is active or not. If the user did not make any choice the constraint. It is active by default
             if (r_const.IsActive()) {
                 r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-                r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                 TSparseSpace::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
                 TSparseSpace::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
             } else { // Taking into account inactive constraints
-                r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-                mInactiveSlaveDofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
+                // Save the auxiliary ids of the the slave inactive DoFs
+                for (auto slave_id : slave_equation_ids) {
+                    const IndexType index_rank = DeterminePartitionIndex(slave_id);
+                    if (index_rank == current_rank) {
+                        mInactiveSlaveDofs.insert(slave_id);
+                    } else {
+                        auxiliary_inactive_slave_ids[index_rank].insert(slave_id);
+                    }
+                }
+            }
+        }
+
+        // Now we pass the info between partitions
+        const int tag_sync_inactive_slave_id = 0;
+        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+            if (i_rank != current_rank) {
+                std::vector<IndexType> receive_inactive_slave_ids_vector;
+                r_data_comm.Recv(receive_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
+                mInactiveSlaveDofs.insert(receive_inactive_slave_ids_vector.begin(), receive_inactive_slave_ids_vector.end());
+            } else {
+                for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                    if (i_rank != current_rank) {
+                        const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[i_rank];
+                        std::vector<IndexType> send_inactive_slave_ids_vector(r_inactive_slave_ids.begin(), r_inactive_slave_ids.end());
+                        r_data_comm.Send(send_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
+                    }
+                }
             }
         }
 
@@ -1259,7 +1335,7 @@ protected:
         START_TIMER("MatrixStructure", 0)
 
         // Number of local dofs
-        const IndexType number_of_local_rows = mLastMyId - mFirstMyId;
+        const IndexType number_of_local_rows = mLocalSystemSize;
 
         // TODO: Check if these should be local elements, conditions and constraints
         auto& r_elements_array = rModelPart.Elements();
@@ -1272,7 +1348,6 @@ protected:
         std::vector<int> temp_secondary(temp_size, 0);
         for (IndexType i = 0; i != number_of_local_rows; i++) {
             temp_primary[i] = mFirstMyId + i;
-            temp_secondary[i] = mFirstMyId + i;
         }
         Epetra_Map map(-1, number_of_local_rows, temp_primary.data(), 0, mrComm);
 
@@ -1281,6 +1356,9 @@ protected:
         Epetra_FECrsGraph Agraph(Copy, map, mGuessRowSize);
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Trilinos error int definition
+        int ierr;
 
         // Assemble all elements
         for (auto& r_elem : r_elements_array) {
@@ -1294,10 +1372,10 @@ protected:
             }
 
             if (num_active_indices != 0) {
-                const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp_primary.data(), num_active_indices, temp_primary.data());
+                ierr = Agraph.InsertGlobalIndices(num_active_indices, temp_primary.data(), num_active_indices, temp_primary.data());
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
-            std::fill(temp_primary.begin(), temp_primary.end(), 0);
+            std::fill(temp_primary.begin(), temp_primary.begin() + num_active_indices, 0);
         }
 
         // Assemble all conditions
@@ -1312,10 +1390,10 @@ protected:
             }
 
             if (num_active_indices != 0) {
-                const int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp_primary.data(), num_active_indices, temp_primary.data());
+                ierr = Agraph.InsertGlobalIndices(num_active_indices, temp_primary.data(), num_active_indices, temp_primary.data());
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
-            std::fill(temp_primary.begin(), temp_primary.end(), 0);
+            std::fill(temp_primary.begin(), temp_primary.begin() + num_active_indices, 0);
         }
 
         // Assemble all constraints
@@ -1337,8 +1415,12 @@ protected:
 
             // First adding the pure slave dofs
             if (num_active_slave_indices > 0) {
-                int ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_slave_indices, temp_primary.data());
-                KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                std::vector<int> index(1, 0);
+                for (IndexType i = 0; i < num_active_slave_indices; ++i) {
+                    index[0] = temp_primary[i];
+                    ierr = Agraph.InsertGlobalIndices(1, index.data(), 1, index.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                }
                 // Now adding cross master-slave dofs
                 if (num_active_master_indices > 0) {
                     ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_master_indices, temp_secondary.data());
@@ -1347,15 +1429,19 @@ protected:
             }
             // Second adding pure master dofs
             if (num_active_master_indices > 0) {
-                int ierr = Agraph.InsertGlobalIndices(num_active_master_indices, temp_secondary.data(), num_active_master_indices, temp_secondary.data());
-                KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                std::vector<int> index(1, 0);
+                for (IndexType i = 0; i < num_active_master_indices; ++i) {
+                    index[0] = temp_secondary[i];
+                    ierr = Agraph.InsertGlobalIndices(1, index.data(), 1, index.data());
+                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                }
             }
-            std::fill(temp_primary.begin(), temp_primary.end(), 0);
-            std::fill(temp_secondary.begin(), temp_secondary.end(), 0);
+            std::fill(temp_primary.begin(), temp_primary.begin() + num_active_slave_indices, 0);
+            std::fill(temp_secondary.begin(), temp_secondary.begin() + num_active_master_indices, 0);
         }
 
         // Finalizing graph construction
-        const int ierr = Agraph.GlobalAssemble();
+        ierr = Agraph.GlobalAssemble();
         KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in GlobalAssemble. Error code: " << ierr << std::endl;
 
         // Generate a new matrix pointer according to this graph
@@ -1444,6 +1530,22 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Determine in which partition the index belongs
+     * @param Index The index where determine the partition
+     * @return The partition where the index belongs
+     */
+    IndexType DeterminePartitionIndex(const IndexType Index)
+    {
+        IndexType index;
+        for (index = 0; index < mFirstMyIds.size() - 1; ++index) {
+            if (Index < mFirstMyIds[index + 1]) {
+                break;
+            }
+        }
+        return index;
+    }
 
     void AssembleLHS_CompleteOnFreeRows(TSystemMatrixType& rA,
                                         LocalSystemMatrixType& rLHS_Contribution,
