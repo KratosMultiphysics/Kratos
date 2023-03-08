@@ -174,16 +174,16 @@ private:
     ///@name Private Operations
     ///@{
 
-    void GetBoundingVolumeLimits(double& rMin, double& rMax);
+    // void GetBoundingVolumeLimits(double& rMin, double& rMax);
 
     void ReadAndSetValues(
         NodeType& rNode,
         BinBasedFastPointLocator<TDim>& rLocator,
         typename BinBasedFastPointLocator<TDim>::ResultContainerType& rResults);
 
-    array_1d<double,3> InterpolateVelocity(
-        const Element::Pointer ElementId,
-        const Vector& rShapeFunctionValues) const;
+    // array_1d<double,3> InterpolateVelocity(
+    //     const Element::Pointer ElementId,
+    //     const Vector& rShapeFunctionValues) const;
 
     template<class TDataType, class TVarType = Variable<TDataType>>
     void SetValue(NodeType& rNode, const TVarType& rVariable, TDataType rValue)
@@ -203,7 +203,7 @@ private:
             return rNode.GetValue(rVariable);
     }
 
-    void FindBoundaryNeighbors();
+    // void FindBoundaryNeighbors();
 
     void CopyValues(const NodeType& rOriginNode, NodeType& rDestinationNode);
 

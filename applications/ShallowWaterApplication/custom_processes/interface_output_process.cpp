@@ -92,16 +92,16 @@ void InterfaceOutputProcess<TDim>::Execute()
     }
 }
 
-template<std::size_t TDim>
-void InterfaceOutputProcess<TDim>::GetBoundingVolumeLimits(double& rMin, double& rMax)
-{
-    using MultipleReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
+// template<std::size_t TDim>
+// void InterfaceOutputProcess<TDim>::GetBoundingVolumeLimits(double& rMin, double& rMax)
+// {
+//     using MultipleReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
 
-    std::tie(rMin, rMax) = block_for_each<MultipleReduction>(mrVolumeModelPart.Nodes(), [&](NodeType& node){
-        const double distance = inner_prod(mDirection, node);
-        return std::make_tuple(distance, distance);
-    });
-}
+//     std::tie(rMin, rMax) = block_for_each<MultipleReduction>(mrVolumeModelPart.Nodes(), [&](NodeType& node){
+//         const double distance = inner_prod(mDirection, node);
+//         return std::make_tuple(distance, distance);
+//     });
+// }
 
 template<std::size_t TDim>
 void InterfaceOutputProcess<TDim>::ReadAndSetValues(
@@ -126,20 +126,20 @@ void InterfaceOutputProcess<TDim>::ReadAndSetValues(
 
 }
 
-template<std::size_t TDim>
-array_1d<double,3> InterfaceOutputProcess<TDim>::InterpolateVelocity(
-    const Element::Pointer pElement,
-    const Vector& rShapeFunctionValues) const
-{
-    KRATOS_DEBUG_ERROR_IF(pElement->GetGeometry().size() != rShapeFunctionValues.size()) << "DInterfaceOutputProcess: check the found element!" << std::endl;
-    array_1d<double,3> velocity = ZeroVector(3);
-    int n = 0;
-    for (auto& r_node : pElement->GetGeometry()) {
-        velocity += rShapeFunctionValues[n] * r_node.FastGetSolutionStepValue(VELOCITY);
-        n++;
-    }
-    return velocity;
-}
+// template<std::size_t TDim>
+// array_1d<double,3> InterfaceOutputProcess<TDim>::InterpolateVelocity(
+//     const Element::Pointer pElement,
+//     const Vector& rShapeFunctionValues) const
+// {
+//     KRATOS_DEBUG_ERROR_IF(pElement->GetGeometry().size() != rShapeFunctionValues.size()) << "DInterfaceOutputProcess: check the found element!" << std::endl;
+//     array_1d<double,3> velocity = ZeroVector(3);
+//     int n = 0;
+//     for (auto& r_node : pElement->GetGeometry()) {
+//         velocity += rShapeFunctionValues[n] * r_node.FastGetSolutionStepValue(VELOCITY);
+//         n++;
+//     }
+//     return velocity;
+// }
 
 template<std::size_t TDim>
 int InterfaceOutputProcess<TDim>::Check()
@@ -151,56 +151,56 @@ int InterfaceOutputProcess<TDim>::Check()
     return 0;
 }
 
-template<std::size_t TDim>
-void InterfaceOutputProcess<TDim>::FindBoundaryNeighbors()
-{
-    // Step 1, find the center of the nodes
-    const int num_nodes = mrInterfaceModelPart.NumberOfNodes();
-    array_1d<double,3> center = block_for_each<SumReduction<array_1d<double,3>>>(
-        mrInterfaceModelPart.Nodes(), [&](NodeType& rNode){return rNode.Coordinates();}
-    );
-    center /= num_nodes;
+// template<std::size_t TDim>
+// void InterfaceOutputProcess<TDim>::FindBoundaryNeighbors()
+// {
+//     // Step 1, find the center of the nodes
+//     const int num_nodes = mrInterfaceModelPart.NumberOfNodes();
+//     array_1d<double,3> center = block_for_each<SumReduction<array_1d<double,3>>>(
+//         mrInterfaceModelPart.Nodes(), [&](NodeType& rNode){return rNode.Coordinates();}
+//     );
+//     center /= num_nodes;
 
-    // Step 2, compute the distances from the center
-    std::vector<double> distances(num_nodes);
-    IndexPartition<int>(num_nodes).for_each([&](int i){
-        auto it_node = mrInterfaceModelPart.NodesBegin() + i;
-        double distance = norm_2(center - *it_node);
-        distances[i] = distance;
-    });
+//     // Step 2, compute the distances from the center
+//     std::vector<double> distances(num_nodes);
+//     IndexPartition<int>(num_nodes).for_each([&](int i){
+//         auto it_node = mrInterfaceModelPart.NodesBegin() + i;
+//         double distance = norm_2(center - *it_node);
+//         distances[i] = distance;
+//     });
 
-    // Step 3, the two further nodes are the boundaries
-    std::size_t i_first_node = std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
-    double max_distance = distances[i_first_node];
-    distances[i_first_node] = 0.0;
-    std::size_t i_second_node = std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
-    mpFirstBoundaryNode = &*(mrInterfaceModelPart.NodesBegin() + i_first_node);
-    mpSecondBoundaryNode = &*(mrInterfaceModelPart.NodesBegin() + i_second_node);
+//     // Step 3, the two further nodes are the boundaries
+//     std::size_t i_first_node = std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
+//     double max_distance = distances[i_first_node];
+//     distances[i_first_node] = 0.0;
+//     std::size_t i_second_node = std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
+//     mpFirstBoundaryNode = &*(mrInterfaceModelPart.NodesBegin() + i_first_node);
+//     mpSecondBoundaryNode = &*(mrInterfaceModelPart.NodesBegin() + i_second_node);
 
-    // Step 4, compute the distances from the first node, the closer is the neighbor
-    IndexPartition<int>(num_nodes).for_each([&](int i){
-        auto it_node = mrInterfaceModelPart.NodesBegin() + i;
-        double distance = norm_2(*mpFirstBoundaryNode - *it_node);
-        if (distance < 1e-6) {
-            distance = max_distance; // this is the boundary itself
-        }
-        distances[i] = distance;
-    });
-    std::size_t i_first_neigh = std::distance(distances.begin(), std::min_element(distances.begin(), distances.end()));
-    mpFirstBoundaryNeighbor = &*(mrInterfaceModelPart.NodesBegin() + i_first_neigh);
+//     // Step 4, compute the distances from the first node, the closer is the neighbor
+//     IndexPartition<int>(num_nodes).for_each([&](int i){
+//         auto it_node = mrInterfaceModelPart.NodesBegin() + i;
+//         double distance = norm_2(*mpFirstBoundaryNode - *it_node);
+//         if (distance < 1e-6) {
+//             distance = max_distance; // this is the boundary itself
+//         }
+//         distances[i] = distance;
+//     });
+//     std::size_t i_first_neigh = std::distance(distances.begin(), std::min_element(distances.begin(), distances.end()));
+//     mpFirstBoundaryNeighbor = &*(mrInterfaceModelPart.NodesBegin() + i_first_neigh);
 
-    // Step 5, compute the distances from the second node, the closer is the neighbor
-    IndexPartition<int>(num_nodes).for_each([&](int i){
-        auto it_node = mrInterfaceModelPart.NodesBegin() + i;
-        double distance = norm_2(*mpSecondBoundaryNode - *it_node);
-        if (distance < 1e-6) {
-            distance = max_distance; // this is the boundary itself
-        }
-        distances[i] = distance;
-    });
-    std::size_t i_second_neigh = std::distance(distances.begin(), std::min_element(distances.begin(), distances.end()));
-    mpSecondBoundaryNeighbor = &*(mrInterfaceModelPart.NodesBegin() + i_second_neigh);
-}
+//     // Step 5, compute the distances from the second node, the closer is the neighbor
+//     IndexPartition<int>(num_nodes).for_each([&](int i){
+//         auto it_node = mrInterfaceModelPart.NodesBegin() + i;
+//         double distance = norm_2(*mpSecondBoundaryNode - *it_node);
+//         if (distance < 1e-6) {
+//             distance = max_distance; // this is the boundary itself
+//         }
+//         distances[i] = distance;
+//     });
+//     std::size_t i_second_neigh = std::distance(distances.begin(), std::min_element(distances.begin(), distances.end()));
+//     mpSecondBoundaryNeighbor = &*(mrInterfaceModelPart.NodesBegin() + i_second_neigh);
+// }
 
 template<std::size_t TDim>
 void InterfaceOutputProcess<TDim>::CopyValues(const NodeType& rOriginNode, NodeType& rDestinationNode)
