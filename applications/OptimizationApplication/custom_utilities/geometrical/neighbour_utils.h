@@ -39,21 +39,28 @@ public:
     ///@{
 
     /**
-     * @brief This method initializes NEIGHBOUR_ELEMENTS variable of conditions with its parent element
+     * @brief This method initializes NEIGHBOUR_ELEMENTS variable of conditions with its parent elements
      *
-     * This method initializes the NEIGHBOUR_ELEMENTS variable of each condition with one item, which
-     * is the parent element which a condition is sharing a face (in 3D), an edge (in 2D), point (in 1D).
+     * This method initializes the NEIGHBOUR_ELEMENTS variable of each condition with their parent elements.
+     *
+     * In elements with LocalSpaceDimension == 3, this assign parent elements for surface conditions, line conditions
+     * and point conditions
+     *
+     * In elements with LocalSpaceDimension == 2, this assigns parent elements for line conditions and point conditions.
      *
      * The input model part must contain both elements and conditions (including each conditions parents).
      *
      * This should work in MPI as well, because, MPI mesh partitioner always keeps conditions and their parents
      * in the same partition (i.e. rank), hence the methodology does not differ if run in MPI or OpenMP.
      *
+     * In the case of Point conditions, this assigns only the local parents to the node (or ghost node). Hence,
+     * the computations done on to those nodes, should be assembled to have MPI compatibility.
+     *
      * This is an expensive initialization, so number of calls to this method should be kept minimum.
      *
      * @param rModelPart Input model part which contains conditions and their parent elements.
      */
-    static void InitializeParentElementForConditions(ModelPart& rModelPart);
+    static void InitializeParentElementsForConditions(ModelPart& rModelPart);
 
     /**
      * @brief Get the Condition Id And Parent Element Ids Map using the initialized NEIGHBOUR_ELEMENTS varaible of conditions
@@ -61,11 +68,11 @@ public:
      * This method gives a map of condition id, condition parent element ids for the given rModelPart. This method
      * should be only called once the NEIGHBOUR_ELEMENTS of the given model part conditions have been properly initialized.
      *
-     * @see InitializeParentElementForConditions
+     * @see InitializeParentElementsForConditions
      * @param rModelPart
      * @return std::unordered_map<IndexType, std::vector<IndexType>>
      */
-    static std::unordered_map<IndexType, std::vector<IndexType>> GetConditionIdAndParentElementIdMap(const ModelPart& rModelPart);
+    static std::unordered_map<IndexType, std::vector<IndexType>> GetConditionIdAndParentElementIdsMap(const ModelPart& rModelPart);
 
     ///@}
 private:

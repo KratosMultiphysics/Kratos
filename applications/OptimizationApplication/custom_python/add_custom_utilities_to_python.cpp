@@ -42,8 +42,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<NeighbourUtils >(m, "NeighbourUtils")
-        .def_static("InitializeParentElementForConditions", &NeighbourUtils::InitializeParentElementForConditions)
-        .def_static("GetConditionIdAndParentElementIdMap", &NeighbourUtils::GetConditionIdAndParentElementIdMap)
+        .def_static("InitializeParentElementsForConditions", &NeighbourUtils::InitializeParentElementsForConditions)
+        .def_static("GetConditionIdAndParentElementIdsMap", &NeighbourUtils::GetConditionIdAndParentElementIdsMap)
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")

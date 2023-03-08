@@ -25,7 +25,7 @@
 
 namespace Kratos {
 
-void NeighbourUtils::InitializeParentElementForConditions(ModelPart& rModelPart)
+void NeighbourUtils::InitializeParentElementsForConditions(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -137,7 +137,7 @@ void NeighbourUtils::InitializeParentElementForConditions(ModelPart& rModelPart)
     KRATOS_CATCH("");
 }
 
-std::unordered_map<IndexType, std::vector<IndexType>> NeighbourUtils::GetConditionIdAndParentElementIdMap(const ModelPart& rModelPart)
+std::unordered_map<IndexType, std::vector<IndexType>> NeighbourUtils::GetConditionIdAndParentElementIdsMap(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 

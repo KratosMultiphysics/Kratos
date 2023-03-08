@@ -8,7 +8,6 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.testing.utilities  import ReadModelPart
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
-@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestNeighbourUtils(kratos_unittest.TestCase):
     def test_InitializeParentElementForConditions(self):
         model = Kratos.Model()
@@ -25,8 +24,8 @@ class TestNeighbourUtils(kratos_unittest.TestCase):
        # create the primal analysis execution policy wrapper
         with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             ReadModelPart("Structure", model_part)
-            KratosOA.NeighbourUtils.InitializeParentElementForConditions(model_part)
-            computed_map = KratosOA.NeighbourUtils.GetConditionIdAndParentElementIdMap(model_part)
+            KratosOA.NeighbourUtils.InitializeParentElementsForConditions(model_part)
+            computed_map = KratosOA.NeighbourUtils.GetConditionIdAndParentElementIdsMap(model_part)
             for k, v in computed_map.items():
                 self.assertEqual(ref_map[k], v)
 
