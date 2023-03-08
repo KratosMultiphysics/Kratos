@@ -162,7 +162,7 @@ public:
 std::istream& operator >> (std::istream& rIStream, Controller& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream, const Controller& rThis)
+std::ostream& operator << (std::ostream& rOStream, const Controller& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
