@@ -28,12 +28,18 @@ def CreatePredictors(predictor_settings_list, solvers, parent_echo_level):
         predictors.append(CreatePredictor(predictor_settings, solver))
     return predictors
 
-def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_data_communicator, parent_echo_level):
+def CreateConvergenceAccelerators(convergence_accelerator_settings_list: KM.Parameters,
+                                  solvers: "collections.OrderedDict[str,CoSimulationSolverWrapper]",
+                                  parent_data_communicator: KM.DataCommunicator,
+                                  parent_echo_level: int):
     convergence_accelerators = []
     for conv_acc_settings in convergence_accelerator_settings_list:
         solver = solvers[conv_acc_settings["solver"].GetString()]
+        interface_data_dict = solver.data_dict
         AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
-        convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings, solver, parent_data_communicator))
+        convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings,
+                                                                      interface_data_dict,
+                                                                      parent_data_communicator))
 
     return convergence_accelerators
 
