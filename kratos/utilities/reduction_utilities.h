@@ -279,7 +279,7 @@ public:
 };
 
 template<class KeyType, class ValueType, class Hasher = std::hash<KeyType>, class Comparator = std::equal_to<KeyType>, class Allocator = std::allocator<std::pair<KeyType, ValueType>>>
-class MapReducer
+class MapReduction
 {
 public:
     using value_type = std::pair<KeyType, ValueType>;

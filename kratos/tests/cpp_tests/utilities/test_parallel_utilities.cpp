@@ -311,6 +311,23 @@ KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
     KRATOS_CHECK_VECTOR_EQUAL(assembled_vector, expct_data_vector);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+    auto assembled_map = block_for_each<MapReduction<int, int>>(input_data_vector, [](int& rValue) {
+        return std::make_pair(rValue, rValue + 1);
+    });
+
+    for (const auto i : input_data_vector) {
+        KRATOS_CHECK_EQUAL(assembled_map[i], i+1);
+    }
+
+    KRATOS_CHECK_VECTOR_EQUAL(assembled_vector, expct_data_vector);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 {
     int nsize = 1e3;
