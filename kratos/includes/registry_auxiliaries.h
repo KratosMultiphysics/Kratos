@@ -107,6 +107,18 @@ public:
         RegisterPrototype(module_path, rOperationPrototype);
     }
 
+    template<typename TPrototypeType>
+    static void RegisterControllerWithPrototype(
+        const std::string ModuleName,
+        const std::string ControllerName,
+        TPrototypeType rControllerPrototype)
+    {
+        const std::string all_path = std::string("Controllers.All.") + ControllerName;
+        RegisterPrototype(all_path, rControllerPrototype);
+        const std::string module_path = std::string("Controllers.") + ModuleName + std::string(".") + ControllerName;
+        RegisterPrototype(module_path, rControllerPrototype);
+    }
+
     ///@}
     ///@name Access
     ///@{

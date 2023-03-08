@@ -129,6 +129,8 @@ void KratosApplication::RegisterKratosCore() {
     // Registering all the standard (model - parameters constructible) processes
     KratosApplication::RegisterProcesses();
 
+    KratosApplication::RegisterControllers();
+
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();
