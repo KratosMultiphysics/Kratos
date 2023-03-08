@@ -76,7 +76,7 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     for(IndexType i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_begin + i;
 
-        // Detect if the element is active or not. If the user did not make any choice the element is active by default
+        // If the element is active
         if (it_elem->IsActive()) {
             GeometryType& r_geometry = it_elem->GetGeometry();
 
@@ -116,7 +116,7 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     for(IndexType i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_begin + i;
 
-        // Detect if the element is active or not. If the user did not make any choice the element is active by default
+        // If the element is active
         if (it_elem->IsActive()) {
             GeometryType& r_geometry = it_elem->GetGeometry();
 

@@ -854,8 +854,7 @@ protected:
                 for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
                     auto it_const = it_const_begin + i_const;
 
-                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                    // It is active by default
+                    // If the constraint is active
                     if(it_const->IsActive()) {
                         it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
@@ -972,8 +971,7 @@ protected:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
+                // If the constraint is active
                 if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);

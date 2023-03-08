@@ -88,8 +88,7 @@ namespace EntitiesUtilities
         block_for_each(
             r_entities_array,
             [&r_current_process_info](TEntityType& rEntity) {
-                // Detect if the entity is active or not. If the user did not make any choice the entity
-                // It is active by default
+                // If the entity is active
                 if (rEntity.IsActive()) {
                     rEntity.Initialize(r_current_process_info);
                 }

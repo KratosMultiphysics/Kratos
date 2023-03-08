@@ -108,8 +108,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     };
 
     block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
-        // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
-        // NOTE: Is active by default
+        // Only active elements
         if (rElem.IsActive()) {
             auto& r_this_geometry = rElem.GetGeometry();
 
@@ -297,8 +296,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 
     // Fill the average value
     block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
-        // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
-        // NOTE: Is active by default
+        // Only active elements
         if (rElem.IsActive()) {
             // The geometry of the element
             auto& r_this_geometry = rElem.GetGeometry();

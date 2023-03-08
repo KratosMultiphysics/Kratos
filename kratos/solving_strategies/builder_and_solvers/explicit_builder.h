@@ -331,8 +331,7 @@ public:
             // Assemble all elements
             for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
                 auto it_elem = r_elements_array.begin() + i_elem;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                // TODO: We will require to update this as soon as we remove the mIsDefined from the Flags
+                // If the element is active
                 if (it_elem->IsActive()) {
                     // Calculate elemental explicit residual contribution
                     // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
@@ -344,8 +343,7 @@ public:
 #pragma omp for schedule(guided, 512)
             for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
                 auto it_cond = r_conditions_array.begin() + i_cond;
-                // Detect if the condition is active or not. If the user did not make any choice the condition is active by default
-                // TODO: We will require to update this as soon as we remove the mIsDefined from the Flags
+                // If the condition is active
                 if (it_cond->IsActive()) {
                     // Calculate condition explicit residual contribution
                     // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables

@@ -1244,8 +1244,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i=0; i<nelements; i++) {
                 typename ElementsArrayType::iterator it = pElements.begin() + i;
-                // Detect if the element is active or not. If the user did not make any choice the element
-                // is active by default
+                // If the element is active
                 if(it->IsActive()) {
                     //calculate elemental Right Hand Side Contribution
                     pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
@@ -1263,8 +1262,7 @@ protected:
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++) {
                 auto it = ConditionsArray.begin() + i;
-                // Detect if the element is active or not. If the user did not make any choice the element
-                // is active by default
+                // If the condition is active
                 if(it->IsActive()) {
                     //calculate elemental contribution
                     pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
@@ -1392,8 +1390,7 @@ protected:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
+                // If the constraint is active
                 if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
