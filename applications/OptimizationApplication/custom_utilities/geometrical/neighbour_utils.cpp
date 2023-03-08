@@ -30,6 +30,7 @@ void NeighbourUtils::InitializeParentElementsForConditions(ModelPart& rModelPart
     KRATOS_TRY
 
     using key_type = std::vector<IndexType>;
+    using map_type = std::unordered_map<key_type, Condition*, KeyHasherRange<key_type>, KeyComparorRange<key_type>>;
 
     KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0)
         << rModelPart.FullName() << " does not contain any elements which are required for initialize parent elements for conditions.";
@@ -38,7 +39,7 @@ void NeighbourUtils::InitializeParentElementsForConditions(ModelPart& rModelPart
         << rModelPart.FullName() << " does not contain any conditions which are required for initialize parent elements for conditions.";
 
     // first generate the map of condition and its node ids
-    const auto& map = block_for_each<HashMapReducer<key_type, Condition*, KeyHasherRange<key_type>, KeyComparorRange<key_type>>>(rModelPart.Conditions(), [&](auto& rCondition) {
+    const auto& map = block_for_each<MapReduction<map_type>>(rModelPart.Conditions(), [&](auto& rCondition) {
         key_type node_ids;
         for (const auto& r_node : rCondition.GetGeometry()) {
             node_ids.push_back(r_node.Id());
@@ -141,7 +142,7 @@ std::unordered_map<IndexType, std::vector<IndexType>> NeighbourUtils::GetConditi
 {
     KRATOS_TRY
 
-    return block_for_each<HashMapReducer<IndexType, std::vector<IndexType>>>(rModelPart.Conditions(), [&](const auto& rCondition) {
+    return block_for_each<MapReduction<std::unordered_map<IndexType, std::vector<IndexType>>>>(rModelPart.Conditions(), [&](const auto& rCondition) {
         std::vector<IndexType> ids;
         for (const auto& p_element : rCondition.GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
             ids.push_back(p_element->Id());
