@@ -54,7 +54,7 @@ public:
     Controller() noexcept = default;
 
     /// Destructor.
-    virtual ~Controller() {}
+    virtual ~Controller() = default;
 
     /// Copy constructor.
     //TODO: Check. It is required by the registry
