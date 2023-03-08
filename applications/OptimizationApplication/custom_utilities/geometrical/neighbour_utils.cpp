@@ -95,23 +95,6 @@ void NeighbourUtils::InitializeParentElementForConditions(ModelPart& rModelPart)
                     r_neighbour_elements_vector.push_back(Element::WeakPointer(&rElement));
                 }
             }
-
-            // check for points.
-            const auto& r_boundary_points = r_geometry.GeneratePoints();
-            for (const auto& r_boundary_point : r_boundary_points) {
-                key_type node_ids;
-                for (const auto& r_boundary_node : r_boundary_point) {
-                    node_ids.push_back(r_boundary_node.Id());
-                }
-                std::sort(node_ids.begin(), node_ids.end());
-
-                const auto& p_found_it = map.find(node_ids);
-                if (p_found_it != map.end()) {
-                    KRATOS_CRITICAL_SECTION
-                    auto& r_neighbour_elements_vector = p_found_it->second->GetValue(NEIGHBOUR_ELEMENTS);
-                    r_neighbour_elements_vector.push_back(Element::WeakPointer(&rElement));
-                }
-            }
         } else if (dimension == 2) {
             // 2 dimensional geometries can have conditions which can be either edge or point.
             // hence edges and points needs to be checked.
@@ -133,27 +116,21 @@ void NeighbourUtils::InitializeParentElementForConditions(ModelPart& rModelPart)
                     r_neighbour_elements_vector.push_back(Element::WeakPointer(&rElement));
                 }
             }
-
-            // check for points.
-            const auto& r_boundary_points = r_geometry.GeneratePoints();
-            for (const auto& r_boundary_point : r_boundary_points) {
-                key_type node_ids;
-                for (const auto& r_boundary_node : r_boundary_point) {
-                    node_ids.push_back(r_boundary_node.Id());
-                }
-                std::sort(node_ids.begin(), node_ids.end());
-
-                const auto& p_found_it = map.find(node_ids);
-                if (p_found_it != map.end()) {
-                    KRATOS_CRITICAL_SECTION
-                    auto& r_neighbour_elements_vector = p_found_it->second->GetValue(NEIGHBOUR_ELEMENTS);
-                    r_neighbour_elements_vector.push_back(Element::WeakPointer(&rElement));
-                }
-            }
         } else {
             KRATOS_ERROR << "Unsupported LocalSpaceDimension for element with id "
                          << rElement.Id() << " found in " << rModelPart.FullName()
                          << ". [ dimension = " << dimension << " ].\n";
+        }
+
+        // check for points.
+        const auto& r_boundary_points = r_geometry.GeneratePoints();
+        for (const auto& r_boundary_point : r_boundary_points) {
+            const auto& p_found_it = map.find({r_boundary_point[0].Id()});
+            if (p_found_it != map.end()) {
+                KRATOS_CRITICAL_SECTION
+                auto& r_neighbour_elements_vector = p_found_it->second->GetValue(NEIGHBOUR_ELEMENTS);
+                r_neighbour_elements_vector.push_back(Element::WeakPointer(&rElement));
+            }
         }
     });
 
