@@ -24,7 +24,7 @@
 #include "custom_processes/apply_sinusoidal_function_process.h"
 #include "custom_processes/calculate_distance_to_boundary_process.h"
 #include "custom_processes/depth_integration_process.h"
-#include "custom_processes/sw_process.h"
+#include "custom_processes/interface_output_process.h"
 
 
 namespace Kratos
@@ -72,13 +72,13 @@ namespace Python
         .def(py::init<Model&, Parameters>())
         ;
 
-        py::class_<SWProcess<2>, SWProcess<2>::Pointer, Process>
-        (m, "SWProcess2D")
+        py::class_<InterfaceOutputProcess<2>, InterfaceOutputProcess<2>::Pointer, Process>
+        (m, "InterfaceOutputProcess2D")
         .def(py::init<Model&, Parameters>())
         ;
 
-        py::class_<SWProcess<3>, SWProcess<3>::Pointer, Process>
-        (m, "SWProcess3D")
+        py::class_<InterfaceOutputProcess<3>, InterfaceOutputProcess<3>::Pointer, Process>
+        (m, "InterfaceOutputProcess3D")
         .def(py::init<Model&, Parameters>())
         ;
 

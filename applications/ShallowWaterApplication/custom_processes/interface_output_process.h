@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_SW_PROCESS_H_INCLUDED
-#define KRATOS_SW_PROCESS_H_INCLUDED
+#ifndef KRATOS_INTERFACE_OUTPUT_PROCESS_H_INCLUDED
+#define KRATOS_INTERFACE_OUTPUT_PROCESS_H_INCLUDED
 
 
 // System includes
@@ -53,21 +53,21 @@ namespace Kratos
 class ModelPart;
 
 /**
- * @class SWProcess
+ * @class InterfaceOutputProcess
  * @ingroup ShallowWaterApplication
  * @brief Calculate the minimum distance from all the nodes to a boundary condition in 2D
  * @details The boundary conditions are assumed to be contained in a line
  * @author Miguel Maso Sotomayor/Andrea Montanino
  */
 template<std::size_t TDim>
-class KRATOS_API(SHALLOW_WATER_APPLICATION) SWProcess : public Process
+class KRATOS_API(SHALLOW_WATER_APPLICATION) InterfaceOutputProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SWProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SWProcess);
+    /// Pointer definition of InterfaceOutputProcess
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceOutputProcess);
 
     /// Definition of the node type
     using NodeType = Node<3>;
@@ -83,17 +83,17 @@ public:
      * @brief Default constructor
      * @details Removed
      */
-    SWProcess() = delete;
+    InterfaceOutputProcess() = delete;
 
     /**
      * @brief Constructor with Model and Parameters
      */
-    SWProcess(Model& rModel, Parameters ThisParameters = Parameters());
+    InterfaceOutputProcess(Model& rModel, Parameters ThisParameters = Parameters());
 
     /**
      * @brief Destructor
      */
-    ~SWProcess() override = default;
+    ~InterfaceOutputProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -127,7 +127,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override {
         std::stringstream buffer;
-        buffer << "SWProcess";
+        buffer << "InterfaceOutputProcess";
         return buffer.str();
     }
 
@@ -222,14 +222,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    SWProcess& operator=(SWProcess const& rOther) = delete;
+    InterfaceOutputProcess& operator=(InterfaceOutputProcess const& rOther) = delete;
 
     /// Copy constructor.
-    SWProcess(SWProcess const& rOther) = delete;
+    InterfaceOutputProcess(InterfaceOutputProcess const& rOther) = delete;
 
     ///@}
 
-}; // Class SWProcess
+}; // Class InterfaceOutputProcess
 
 ///@}
 
