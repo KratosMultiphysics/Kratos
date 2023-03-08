@@ -646,7 +646,11 @@ public:
                 if (i_rank != current_rank) {
                     r_data_comm.Recv(mFirstMyIds[i_rank], i_rank, tag_id_send);
                 } else {
-                    r_data_comm.Send(mFirstMyId, i_rank, tag_id_send);
+                    for (int j_rank = 0; j_rank < world_size; ++j_rank) {
+                        if (j_rank != current_rank) {
+                            r_data_comm.Send(mFirstMyId, j_rank, tag_id_send);
+                        }
+                    }
                 }
             }
         }
@@ -1192,11 +1196,11 @@ protected:
                     r_data_comm.Recv(receive_slave_ids_vector, i_rank, tag_sync_slave_id);
                     auxiliary_slave_ids[i_rank].insert(receive_slave_ids_vector.begin(), receive_slave_ids_vector.end());
                 } else {
-                    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                        if (i_rank != current_rank) {
-                            const auto& r_slave_ids = auxiliary_slave_ids[i_rank];
+                    for (int j_rank = 0; j_rank < world_size; ++j_rank) {
+                        if (j_rank != current_rank) {
+                            const auto& r_slave_ids = auxiliary_slave_ids[j_rank];
                             std::vector<IndexType> send_slave_ids_vector(r_slave_ids.begin(), r_slave_ids.end());
-                            r_data_comm.Send(send_slave_ids_vector, i_rank, tag_sync_slave_id);
+                            r_data_comm.Send(send_slave_ids_vector, j_rank, tag_sync_slave_id);
                         }
                     }
                 }
@@ -1294,11 +1298,11 @@ protected:
                 r_data_comm.Recv(receive_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
                 mInactiveSlaveDofs.insert(receive_inactive_slave_ids_vector.begin(), receive_inactive_slave_ids_vector.end());
             } else {
-                for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                    if (i_rank != current_rank) {
-                        const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[i_rank];
+                for (int j_rank = 0; j_rank < world_size; ++j_rank) {
+                    if (j_rank != current_rank) {
+                        const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[j_rank];
                         std::vector<IndexType> send_inactive_slave_ids_vector(r_inactive_slave_ids.begin(), r_inactive_slave_ids.end());
-                        r_data_comm.Send(send_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
+                        r_data_comm.Send(send_inactive_slave_ids_vector, j_rank, tag_sync_inactive_slave_id);
                     }
                 }
             }
