@@ -302,9 +302,7 @@ public:
     void ThreadSafeReduce(const MapReduction<MapType>& rOther)
     {
         KRATOS_CRITICAL_SECTION
-        for (const auto& it : rOther.mValue) {
-            mValue.emplace(it);
-        }
+        mValue.merge(rOther.mValue);
     }
 };
 
