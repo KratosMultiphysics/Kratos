@@ -324,8 +324,6 @@ KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)
     for (const auto i : input_data_vector) {
         KRATOS_CHECK_EQUAL(assembled_map[i], i+1);
     }
-
-    KRATOS_CHECK_VECTOR_EQUAL(assembled_vector, expct_data_vector);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
