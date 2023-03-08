@@ -6,10 +6,10 @@ from KratosMultiphysics.ShallowWaterApplication.coupling import depth_integratio
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return InterfaceOutputProcess(model, settings["Parameters"])
+    return WriteFromSwAtInterfaceProcess(model, settings["Parameters"])
 
-class InterfaceOutputProcess(BaseProcess.DepthIntegrationOutputProcess):
-    """InterfaceOutputProcess
+class WriteFromSwAtInterfaceProcess(BaseProcess.DepthIntegrationOutputProcess):
+    """WriteFromSwAtInterfaceProcess
 
     This process stores the varialbes of a SW simulation into specific nodes, 
     used as interface, and printed in HDF5 format.
@@ -30,7 +30,7 @@ class InterfaceOutputProcess(BaseProcess.DepthIntegrationOutputProcess):
         }""")
 
     def __init__(self, model, settings):
-        """The constructor of the InterfaceOutputProcess"""
+        """The constructor of the WriteFromSwAtInterfaceProcess"""
 
         KM.OutputProcess.__init__(self)
         self.settings = settings
@@ -43,8 +43,8 @@ class InterfaceOutputProcess(BaseProcess.DepthIntegrationOutputProcess):
         self.variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT]
 
         if self.volume_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            self.integration_process = SW.InterfaceOutputProcess2D(model, self._CreateIntegrationParameters())
+            self.integration_process = SW.WriteFromSwAtInterfaceProcess2D(model, self._CreateIntegrationParameters())
         else:
-            self.integration_process = SW.InterfaceOutputProcess3D(model, self._CreateIntegrationParameters())
+            self.integration_process = SW.WriteFromSwAtInterfaceProcess3D(model, self._CreateIntegrationParameters())
         self.hdf5_process = single_mesh_temporal_output_process.Factory(self._CreateHDF5Parameters(), model)
 

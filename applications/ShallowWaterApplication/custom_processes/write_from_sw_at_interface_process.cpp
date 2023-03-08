@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "interface_output_process.h"
+#include "write_from_sw_at_interface_process.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "shallow_water_application_variables.h"
@@ -27,7 +27,7 @@ namespace Kratos
 {
 
 template<std::size_t TDim>
-const Parameters InterfaceOutputProcess<TDim>::GetDefaultParameters() const
+const Parameters WriteFromSwAtInterfaceProcess<TDim>::GetDefaultParameters() const
 {
     auto default_parameters = Parameters(R"(
     {
@@ -41,7 +41,7 @@ const Parameters InterfaceOutputProcess<TDim>::GetDefaultParameters() const
 }
 
 template<std::size_t TDim>
-InterfaceOutputProcess<TDim>::InterfaceOutputProcess(
+WriteFromSwAtInterfaceProcess<TDim>::WriteFromSwAtInterfaceProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : Process(),
@@ -61,13 +61,13 @@ InterfaceOutputProcess<TDim>::InterfaceOutputProcess(
         VariableUtils().SetNonHistoricalVariableToZero(HEIGHT, mrInterfaceModelPart.Nodes());
     }
 
-    if (mExtrapolateBoundaries) {
-        FindBoundaryNeighbors();
-    }
+    // if (mExtrapolateBoundaries) {
+    //     FindBoundaryNeighbors();
+    // }
 }
 
 template<std::size_t TDim>
-void InterfaceOutputProcess<TDim>::Execute()
+void WriteFromSwAtInterfaceProcess<TDim>::Execute()
 {
     
     BinBasedFastPointLocator<TDim> locator(mrVolumeModelPart);
@@ -93,7 +93,7 @@ void InterfaceOutputProcess<TDim>::Execute()
 }
 
 // template<std::size_t TDim>
-// void InterfaceOutputProcess<TDim>::GetBoundingVolumeLimits(double& rMin, double& rMax)
+// void WriteFromSwAtInterfaceProcess<TDim>::GetBoundingVolumeLimits(double& rMin, double& rMax)
 // {
 //     using MultipleReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
 
@@ -104,7 +104,7 @@ void InterfaceOutputProcess<TDim>::Execute()
 // }
 
 template<std::size_t TDim>
-void InterfaceOutputProcess<TDim>::ReadAndSetValues(
+void WriteFromSwAtInterfaceProcess<TDim>::ReadAndSetValues(
     NodeType& rNode,
     BinBasedFastPointLocator<TDim>& rLocator,
     typename BinBasedFastPointLocator<TDim>::ResultContainerType& rResults)
@@ -127,11 +127,11 @@ void InterfaceOutputProcess<TDim>::ReadAndSetValues(
 }
 
 // template<std::size_t TDim>
-// array_1d<double,3> InterfaceOutputProcess<TDim>::InterpolateVelocity(
+// array_1d<double,3> WriteFromSwAtInterfaceProcess<TDim>::InterpolateVelocity(
 //     const Element::Pointer pElement,
 //     const Vector& rShapeFunctionValues) const
 // {
-//     KRATOS_DEBUG_ERROR_IF(pElement->GetGeometry().size() != rShapeFunctionValues.size()) << "DInterfaceOutputProcess: check the found element!" << std::endl;
+//     KRATOS_DEBUG_ERROR_IF(pElement->GetGeometry().size() != rShapeFunctionValues.size()) << "WriteFromSwAtInterfaceProcess: check the found element!" << std::endl;
 //     array_1d<double,3> velocity = ZeroVector(3);
 //     int n = 0;
 //     for (auto& r_node : pElement->GetGeometry()) {
@@ -142,7 +142,7 @@ void InterfaceOutputProcess<TDim>::ReadAndSetValues(
 // }
 
 template<std::size_t TDim>
-int InterfaceOutputProcess<TDim>::Check()
+int WriteFromSwAtInterfaceProcess<TDim>::Check()
 {
     const auto dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
     KRATOS_ERROR_IF(dimension != 2 && dimension != 3) << Info() << ": Wrong DOMAIN_SIZE equal to " << dimension << "in model part " << mrVolumeModelPart.Name() << std::endl;
@@ -152,7 +152,7 @@ int InterfaceOutputProcess<TDim>::Check()
 }
 
 // template<std::size_t TDim>
-// void InterfaceOutputProcess<TDim>::FindBoundaryNeighbors()
+// void WriteFromSwAtInterfaceProcess<TDim>::FindBoundaryNeighbors()
 // {
 //     // Step 1, find the center of the nodes
 //     const int num_nodes = mrInterfaceModelPart.NumberOfNodes();
@@ -203,14 +203,14 @@ int InterfaceOutputProcess<TDim>::Check()
 // }
 
 template<std::size_t TDim>
-void InterfaceOutputProcess<TDim>::CopyValues(const NodeType& rOriginNode, NodeType& rDestinationNode)
+void WriteFromSwAtInterfaceProcess<TDim>::CopyValues(const NodeType& rOriginNode, NodeType& rDestinationNode)
 {
     SetValue(rDestinationNode, HEIGHT, GetValue<double>(rOriginNode, HEIGHT));
     SetValue(rDestinationNode, VELOCITY, GetValue<array_1d<double,3>>(rOriginNode, VELOCITY));
     SetValue(rDestinationNode, MOMENTUM, GetValue<array_1d<double,3>>(rOriginNode, MOMENTUM));
 }
 
-template class InterfaceOutputProcess<2>;
-template class InterfaceOutputProcess<3>;
+template class WriteFromSwAtInterfaceProcess<2>;
+template class WriteFromSwAtInterfaceProcess<3>;
 
 }  // namespace Kratos.

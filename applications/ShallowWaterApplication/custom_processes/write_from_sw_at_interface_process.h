@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_INTERFACE_OUTPUT_PROCESS_H_INCLUDED
-#define KRATOS_INTERFACE_OUTPUT_PROCESS_H_INCLUDED
+#ifndef KRATOS_WRITE_FROM_SW_AT_INTERFACE_PROCESS_H_INCLUDED
+#define KRATOS_WRITE_FROM_SW_AT_INTERFACE_PROCESS_H_INCLUDED
 
 
 // System includes
@@ -53,21 +53,21 @@ namespace Kratos
 class ModelPart;
 
 /**
- * @class InterfaceOutputProcess
+ * @class WriteFromSwAtInterfaceProcess
  * @ingroup ShallowWaterApplication
  * @brief Calculate the minimum distance from all the nodes to a boundary condition in 2D
  * @details The boundary conditions are assumed to be contained in a line
  * @author Miguel Maso Sotomayor/Andrea Montanino
  */
 template<std::size_t TDim>
-class KRATOS_API(SHALLOW_WATER_APPLICATION) InterfaceOutputProcess : public Process
+class KRATOS_API(SHALLOW_WATER_APPLICATION) WriteFromSwAtInterfaceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of InterfaceOutputProcess
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceOutputProcess);
+    /// Pointer definition of WriteFromSwAtInterfaceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(WriteFromSwAtInterfaceProcess);
 
     /// Definition of the node type
     using NodeType = Node<3>;
@@ -83,17 +83,17 @@ public:
      * @brief Default constructor
      * @details Removed
      */
-    InterfaceOutputProcess() = delete;
+    WriteFromSwAtInterfaceProcess() = delete;
 
     /**
      * @brief Constructor with Model and Parameters
      */
-    InterfaceOutputProcess(Model& rModel, Parameters ThisParameters = Parameters());
+    WriteFromSwAtInterfaceProcess(Model& rModel, Parameters ThisParameters = Parameters());
 
     /**
      * @brief Destructor
      */
-    ~InterfaceOutputProcess() override = default;
+    ~WriteFromSwAtInterfaceProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -127,7 +127,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override {
         std::stringstream buffer;
-        buffer << "InterfaceOutputProcess";
+        buffer << "WriteFromSwAtInterfaceProcess";
         return buffer.str();
     }
 
@@ -222,14 +222,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    InterfaceOutputProcess& operator=(InterfaceOutputProcess const& rOther) = delete;
+    WriteFromSwAtInterfaceProcess& operator=(WriteFromSwAtInterfaceProcess const& rOther) = delete;
 
     /// Copy constructor.
-    InterfaceOutputProcess(InterfaceOutputProcess const& rOther) = delete;
+    WriteFromSwAtInterfaceProcess(WriteFromSwAtInterfaceProcess const& rOther) = delete;
 
     ///@}
 
-}; // Class InterfaceOutputProcess
+}; // Class WriteFromSwAtInterfaceProcess
 
 ///@}
 
