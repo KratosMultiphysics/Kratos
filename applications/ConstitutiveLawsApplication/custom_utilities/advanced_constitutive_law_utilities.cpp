@@ -759,6 +759,75 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetValueFromTable(
+    const Variable<double>& rIndependentVariable,
+    const Variable<double>& rDependentVariable,
+    ConstitutiveLaw::Parameters& rParameters
+    )
+{
+    // Get material properties from constitutive law parameters
+    const Properties& r_properties = rParameters.GetMaterialProperties();
+
+    // Get geometry and Gauss points data
+    const auto& r_geometry = rParameters.GetElementGeometry();
+    const auto& r_N        = rParameters.GetShapeFunctionsValues();
+
+    // Compute the independent variable at the Gauss point
+    double independent_at_gauss = 0.0;
+    for (unsigned int i = 0; i < r_N.size(); ++i) {
+        const double val = r_geometry[i].FastGetSolutionStepValue(rIndependentVariable);
+        independent_at_gauss += val * r_N[i];
+    }
+
+    // Retrieve the dependent variable from the table
+    const auto& r_table = r_properties.GetTable(rIndependentVariable, rDependentVariable);
+    return r_table.GetValue(independent_at_gauss);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::SubstractThermalStrain(
+    ConstitutiveLaw::StrainVectorType& rStrainVector,
+    const double ReferenceTemperature,
+    ConstitutiveLaw::Parameters& rParameters
+    )
+{
+    double alpha = rParameters.GetMaterialProperties()[THERMAL_EXPANSION_COEFFICIENT];
+    BoundedVectorType thermal_strain = ZeroVector(VoigtSize);
+    const double current_temperature_gp = CalculateInGaussPoint(TEMPERATURE, rParameters);
+    alpha *= (current_temperature_gp - ReferenceTemperature);
+    for (IndexType i = 0; i < Dimension; ++i)
+        thermal_strain(i) = 1.0;
+    noalias(rStrainVector) -= thermal_strain*alpha;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateInGaussPoint(
+    const Variable<double>& rVariableInput,
+    ConstitutiveLaw::Parameters& rParameters,
+    unsigned int step = 0
+    )
+{
+    const GeometryType& r_geometry = rParameters.GetElementGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const auto& r_shape_function = rParameters.GetShapeFunctionsValues();
+    double result = 0;
+
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        result += r_shape_function[i] * r_geometry[i].FastGetSolutionStepValue(rVariableInput, step);
+    }
+    return result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class AdvancedConstitutiveLawUtilities<3>;
 template class AdvancedConstitutiveLawUtilities<6>;
 
