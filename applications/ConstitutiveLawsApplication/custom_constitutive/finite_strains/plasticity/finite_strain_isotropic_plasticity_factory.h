@@ -12,8 +12,7 @@
 //  Collaborator:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_FINITE_STRAIN_ISOTROPIC_PLASTICITY_FACTORY_H_INCLUDED)
-#define KRATOS_FINITE_STRAIN_ISOTROPIC_PLASTICITY_FACTORY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -171,4 +170,3 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) FiniteStrainIsotropicPlasticityF
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

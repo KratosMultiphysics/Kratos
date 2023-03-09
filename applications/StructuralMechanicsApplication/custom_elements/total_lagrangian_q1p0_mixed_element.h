@@ -10,8 +10,7 @@
 //
 
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -293,4 +292,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED  defined

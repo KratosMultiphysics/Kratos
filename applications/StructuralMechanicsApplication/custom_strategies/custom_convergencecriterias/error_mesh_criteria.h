@@ -10,8 +10,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ERROR_MESH_CRITERIA_H)
-#define  KRATOS_ERROR_MESH_CRITERIA_H
+#pragma once
 
 /* System includes */
 
@@ -285,6 +284,4 @@ private:
 ///@{
 
 }  // namespace Kratos
-
-#endif /* KRATOS_ERROR_MESH_CRITERIA_H  defined */
 
