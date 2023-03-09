@@ -13,8 +13,7 @@
 //  Co-authors:      Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH)
-#define  KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH
+#pragma once
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -524,7 +523,8 @@ public:
             it_sub_model_part->Conditions().Sort();
             it_sub_model_part->Conditions().erase(it_sub_model_part->Conditions().end() - to_be_deleted, it_sub_model_part->Conditions().end());
             if (rNewConditions.size() > 0) {
-                UpdateSubModelPartConditions(rModelPart, rNewConditions);
+                ModelPart &rSubModelPart = *it_sub_model_part;
+                UpdateSubModelPartConditions(rSubModelPart, rNewConditions);
             }
         }
     }
@@ -788,5 +788,3 @@ private:
 };
 
 } // namespace Kratos.
-
-#endif // KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH  defined
