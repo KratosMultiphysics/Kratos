@@ -58,7 +58,7 @@ public:
 
     /// Copy constructor.
     //TODO: Check. It is required by the registry
-    Controller(Controller const& rOther) {}
+    Controller(Controller const& rOther) = default;
 
     /// Move constructor
     Controller(Controller&& rOther) noexcept = default;
@@ -83,11 +83,7 @@ public:
      */
     virtual Controller::Pointer Create(
         Model& rModel,
-        Parameters ThisParameters) const
-    {
-        KRATOS_ERROR << "Calling base class Create. Please override this method in the corresonding Controller" << std::endl;
-        return nullptr;
-    }
+        Parameters ThisParameters) const = 0;
 
     /**
      * @brief Checks that input conditions are correct. 
@@ -100,31 +96,15 @@ public:
     /**
      * @brief Using input data, returns bool.
      */
-    virtual bool Evaluate()
-    {
-        KRATOS_ERROR << "Calling base class Evaluate. Please override this method in the corresonding Controller" << std::endl;
-    }
+    virtual bool Evaluate() = 0;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     virtual Parameters GetDefaultParameters() const
     {
-        KRATOS_ERROR << "Calling the base Controller class GetDefaultParameters. Please implement the GetDefaultParameters in your derived process class." << std::endl;
-        const Parameters default_parameters = Parameters(R"({})" );
-
-        return default_parameters;
+        return Parameters(R"({})" );
     }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -150,11 +130,7 @@ public:
     ///@}
 }; // Class Controller
 
-///@name Type Definitions
-///@{
 
-
-///@}
 ///@name Input and output
 ///@{
 

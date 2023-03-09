@@ -28,7 +28,7 @@ namespace Kratos
 
 void KratosApplication::RegisterControllers()
 {
-    RegistryAuxiliaries::RegisterControllerWithPrototype("KratosMultiphysics", "Controller", Controller());
+
 }
 
 }
