@@ -3,7 +3,8 @@
         "nodal_unknowns": [
             "TEMPERATURE"
         ],
-        "number_of_rom_dofs": 2
+        "number_of_rom_dofs": 2,
+        "petrov_galerkin_number_of_rom_dofs": 0
     },
     "nodal_modes": {
         "1": [

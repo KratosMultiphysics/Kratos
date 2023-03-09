@@ -9,8 +9,7 @@
 //  Main authors:    Quirin Aumann
 //
 
-#if !defined(KRATOS_HARMONIC_ANALYSIS_STRATEGY )
-#define  KRATOS_HARMONIC_ANALYSIS_STRATEGY
+#pragma once
 
 // System includes
 
@@ -646,6 +645,4 @@ private:
 ///@}
 
 } /* namespace Kratos */
-
-#endif /* KRATOS_HARMONIC_ANALYSIS_STRATEGY  defined */
 

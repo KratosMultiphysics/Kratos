@@ -10,8 +10,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -444,5 +443,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined

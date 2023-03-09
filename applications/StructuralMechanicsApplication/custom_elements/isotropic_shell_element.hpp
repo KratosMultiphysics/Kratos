@@ -10,8 +10,7 @@
 //                   Massimo Petracca
 //
 
-#if !defined(KRATOS_ISOTROPIC_SHELL_ELEMENT_H_INCLUDED )
-#define  KRATOS_ISOTROPIC_SHELL_ELEMENT_H_INCLUDED
+#pragma once
 
 
 
@@ -535,6 +534,5 @@ return rOStream;
 ///@}
 
 }  // namespace Kratos.
-#endif // KRATOS_ISOTROPIC_SHELL_ELEMENT_H_INCLUDED  defined
 
 

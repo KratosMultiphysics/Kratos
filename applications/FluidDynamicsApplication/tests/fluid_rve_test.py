@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis_rve import FluidDynamicsAnalysisRVE
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis_rve import FluidDynamicsAnalysisRve
 
 class TestFluidRVETest(KratosUnittest.TestCase):
 
@@ -59,7 +59,7 @@ class TestFluidRVETest(KratosUnittest.TestCase):
 
         # Run RVE simulation
         model = KratosMultiphysics.Model()
-        self.simulation = FluidDynamicsAnalysisRVE(model, self.parameters)
+        self.simulation = FluidDynamicsAnalysisRve(model, self.parameters)
         self.simulation.Run()
 
     def _AddOutput(self):
