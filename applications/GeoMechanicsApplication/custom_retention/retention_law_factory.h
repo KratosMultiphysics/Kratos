@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_RETENTION_LAW_FACTORY_H_INCLUDED)
-#define  KRATOS_RETENTION_LAW_FACTORY_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -40,9 +39,6 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) RetentionLawFactory
 {
 public:
-
-    ///@name Type Definitions
-
     /// Counted pointer of RetentionLawFactory
     KRATOS_CLASS_POINTER_DEFINITION( RetentionLawFactory );
 
@@ -74,4 +70,3 @@ public:
 
 }; // Class RetentionLawFactory
 }  // namespace Kratos.
-#endif // KRATOS_RETENTION_LAW_FACTORY_H_INCLUDED  defined

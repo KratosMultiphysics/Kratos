@@ -13,8 +13,7 @@
 //                   Alfredo Huespe
 //  Collaborator:    Vicente Mataix Ferrandiz
 
-#if !defined(KRATOS_SMALL_STRAIN_J2_PLASTIC_PLANE_STRAIN_2D_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_J2_PLASTIC_PLANE_STRAIN_2D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -239,4 +238,3 @@ private:
 
 }; // Class SmallStrainJ2PlasticityPlaneStrain2D
 } // namespace Kratos.
-#endif

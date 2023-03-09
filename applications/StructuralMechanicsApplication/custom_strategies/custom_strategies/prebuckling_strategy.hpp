@@ -9,8 +9,7 @@
 //  Main author:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PREBUCKLING_STRATEGY)
-#define KRATOS_PREBUCKLING_STRATEGY
+#pragma once
 
 // System includes
 
@@ -849,5 +848,3 @@ private:
 ///@}
 
 } /* namespace Kratos */
-
-#endif /* KRATOS_EIGENSOLVER_STRATEGY  defined */

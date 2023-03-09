@@ -11,8 +11,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined (KRATOS_HYPER_ELASTIC_SIMO_TAYLOR_NEO_HOOKEAN_3D_H_INCLUDED)
-#define  KRATOS_HYPER_ELASTIC_SIMO_TAYLOR_NEO_HOOKEAN_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -255,5 +254,3 @@ private:
 
 }; // Class HyperElasticSimoTaylorNeoHookean3D
 }  // namespace Kratos.
-
-#endif // KRATOS_HYPER_ELASTIC_SIMO_TAYLOR_NEO_HOOKEAN_3D_H_INCLUDED  defined

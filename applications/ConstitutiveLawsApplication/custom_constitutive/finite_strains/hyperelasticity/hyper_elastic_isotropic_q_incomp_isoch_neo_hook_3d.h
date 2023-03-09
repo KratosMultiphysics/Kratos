@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined (KRATOS_HYPER_ELASTIC_ISOTROPIC_QUASI_INCOMPRESSIBLE_ISOCHORIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED)
-#define  KRATOS_HYPER_ELASTIC_ISOTROPIC_QUASI_INCOMPRESSIBLE_ISOCHORIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -339,4 +338,3 @@ private:
 
 }; // Class HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D
 }  // namespace Kratos.
-#endif

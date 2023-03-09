@@ -11,8 +11,7 @@
 //
 
 // System includes
-#if !defined(ADJOINT_SEMI_ANALYTIC_POINT_LOAD_CONDITION )
-#define  ADJOINT_SEMI_ANALYTIC_POINT_LOAD_CONDITION
+#pragma once
 
 // System includes
 
@@ -236,7 +235,5 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // ADJOINT_SEMI_ANALYTIC_POINT_LOAD_CONDITION  defined
 
 

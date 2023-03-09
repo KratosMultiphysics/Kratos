@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED )
-#define  KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -321,5 +320,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED  defined

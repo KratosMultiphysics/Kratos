@@ -278,6 +278,34 @@ public:
     }
 };
 
+template<class MapType>
+class MapReduction
+{
+public:
+    using value_type = typename MapType::value_type;
+    using return_type = MapType;
+
+    return_type mValue;
+
+    /// access to reduced value
+    return_type GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const value_type rValue){
+        mValue.emplace(rValue);
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(MapReduction<MapType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        mValue.merge(rOther.mValue);
+    }
+};
+
 template <class... Reducer>
 struct CombinedReduction {
     typedef std::tuple<typename Reducer::value_type...> value_type;
