@@ -258,10 +258,8 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
         if (AreSensitivityEntitesConsidered) {
             bool is_analysis_mp_entity_ids_ptrs_maps_generted = false;
 
-            using key_type = std::vector<IndexType>;
-
-            std::map<key_type, Condition*> analysis_mp_node_ids_condition_ptr_map;
-            std::map<key_type, Element*> analysis_mp_node_ids_element_ptr_map;
+            std::map<NodeIdsType, Condition*> analysis_mp_node_ids_condition_ptr_map;
+            std::map<NodeIdsType, Element*> analysis_mp_node_ids_element_ptr_map;
 
             for (const auto p_model_part : rSensitivityModelParts) {
                 if (!ForceFindSensitivityEntitiesInAnalysisModelPart && (&(p_model_part->GetRootModelPart()) == &(rAnalysisModelPart.GetRootModelPart()))) {
