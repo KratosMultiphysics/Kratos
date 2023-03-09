@@ -10,7 +10,7 @@
 //                   Alejandro Cornejo
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

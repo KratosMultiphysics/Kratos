@@ -12,7 +12,7 @@
 //                   Riccardo Rossi
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

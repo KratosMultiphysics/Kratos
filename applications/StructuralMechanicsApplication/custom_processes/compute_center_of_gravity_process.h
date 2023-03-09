@@ -10,7 +10,7 @@
 //                   Salman Yousaf
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

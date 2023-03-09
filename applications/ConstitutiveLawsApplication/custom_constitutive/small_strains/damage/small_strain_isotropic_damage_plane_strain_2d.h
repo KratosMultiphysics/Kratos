@@ -10,7 +10,7 @@
 //
 //  Main authors:    Marcelo Raschi
 
-# pragma once
+#pragma once
 
 // System includes
 

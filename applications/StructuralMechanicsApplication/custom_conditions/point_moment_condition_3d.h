@@ -9,7 +9,7 @@
 //  Main authors:    Philipp Bucher
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

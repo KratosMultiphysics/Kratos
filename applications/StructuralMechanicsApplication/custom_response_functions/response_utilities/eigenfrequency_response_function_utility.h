@@ -9,7 +9,7 @@
 //  Main authors:    Fusseder Martin, Armin Geiser, Daniel Baumgaertner
 //
 
-# pragma once
+#pragma once
 
 // ------------------------------------------------------------------------------
 // System includes

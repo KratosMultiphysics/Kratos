@@ -11,7 +11,7 @@
 //  Main authors:    Marcelo Raschi
 //  Collaborator:
 
-# pragma once
+#pragma once
 
 // System includes
 

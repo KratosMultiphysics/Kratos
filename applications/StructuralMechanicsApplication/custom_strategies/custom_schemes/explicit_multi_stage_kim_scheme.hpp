@@ -12,7 +12,7 @@
 //  Based on : "An accurate two‐stage explicit time integration scheme for structural dynamics and various dynamic problems" - Wooram Kim
 //
 
-# pragma once
+#pragma once
 
 /* System includes */
 

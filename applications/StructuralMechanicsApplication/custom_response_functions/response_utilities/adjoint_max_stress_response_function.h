@@ -9,7 +9,7 @@
 //  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 
-# pragma once
+#pragma once
 
 
 // System includes

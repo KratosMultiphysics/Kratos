@@ -12,7 +12,7 @@
 //   Date:                $Date:         September 2016   $
 //   Revision:            $Revision:                0.0   $
 
-# pragma once
+#pragma once
 
 
 // System includes

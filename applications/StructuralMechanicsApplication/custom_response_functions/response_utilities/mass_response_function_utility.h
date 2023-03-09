@@ -10,7 +10,7 @@
 //                   Geiser Armin, https://github.com/armingeiser
 //
 
-# pragma once
+#pragma once
 
 // ------------------------------------------------------------------------------
 // System includes

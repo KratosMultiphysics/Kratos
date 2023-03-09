@@ -11,7 +11,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

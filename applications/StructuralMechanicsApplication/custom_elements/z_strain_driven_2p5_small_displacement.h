@@ -11,7 +11,7 @@
 //
 
 
-# pragma once
+#pragma once
 
 // Project includes
 #include "includes/checks.h"

@@ -10,7 +10,7 @@
 //
 
 
-# pragma once
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>

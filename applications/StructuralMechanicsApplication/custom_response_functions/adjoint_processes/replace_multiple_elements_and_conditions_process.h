@@ -9,7 +9,7 @@
 //  Main authors:    Armin Geiser
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

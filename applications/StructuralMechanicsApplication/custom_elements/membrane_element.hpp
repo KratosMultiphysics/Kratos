@@ -9,7 +9,7 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

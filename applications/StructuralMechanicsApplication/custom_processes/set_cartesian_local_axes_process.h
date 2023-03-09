@@ -9,7 +9,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-# pragma once
+#pragma once
 
 #include "processes/process.h"
 

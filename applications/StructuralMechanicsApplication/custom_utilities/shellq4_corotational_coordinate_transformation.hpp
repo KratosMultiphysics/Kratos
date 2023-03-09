@@ -6,7 +6,7 @@
 //
 //
 
-# pragma once
+#pragma once
 
 #include "EICR.hpp"
 #include "shellq4_coordinate_transformation.hpp"

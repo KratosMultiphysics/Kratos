@@ -9,7 +9,7 @@
 //  Main authors:    Mahmoud Zidan
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

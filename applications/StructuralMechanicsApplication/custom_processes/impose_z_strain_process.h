@@ -9,7 +9,7 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
-# pragma once
+#pragma once
 
 #include "processes/process.h"
 #include "includes/model_part.h"

@@ -11,7 +11,7 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-# pragma once
+#pragma once
 
 // Project includes
 #include "custom_constitutive/truss_constitutive_law.h"

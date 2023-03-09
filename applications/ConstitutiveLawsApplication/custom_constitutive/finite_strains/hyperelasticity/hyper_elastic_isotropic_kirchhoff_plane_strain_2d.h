@@ -12,7 +12,7 @@
 //                   Ruben Zorrilla
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

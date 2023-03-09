@@ -12,7 +12,7 @@
 //       Contact:    A.Winterstein [at] tum.de
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

@@ -10,7 +10,7 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

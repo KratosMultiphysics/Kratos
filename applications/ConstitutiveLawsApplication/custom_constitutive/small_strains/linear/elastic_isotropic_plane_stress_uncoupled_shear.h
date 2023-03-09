@@ -11,7 +11,7 @@
 //  Main authors:    Philippe Bussetta
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

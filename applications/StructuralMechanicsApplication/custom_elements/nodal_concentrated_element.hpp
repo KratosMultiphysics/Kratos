@@ -9,7 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-# pragma once
+#pragma once
 
 // TODO: Add rotational stiffness
 

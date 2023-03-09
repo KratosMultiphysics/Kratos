@@ -10,7 +10,7 @@
 //
 
 
-# pragma once
+#pragma once
 
 #include "adjoint_finite_difference_truss_element_3D2N.h"
 

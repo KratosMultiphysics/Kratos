@@ -11,7 +11,7 @@
 //                   Based on the work of Massimo Petracca and Peter Wilson
 //
 
-# pragma once
+#pragma once
 
 
 // System includes

@@ -9,7 +9,7 @@
 //  Main authors:    Massimo Petracca
 //
 
-# pragma once
+#pragma once
 
 #include "shellt3_local_coordinate_system.hpp"
 

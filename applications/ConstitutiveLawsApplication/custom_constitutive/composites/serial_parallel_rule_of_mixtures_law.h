@@ -14,7 +14,7 @@
 //  Collaborator:    Lucia Barbu
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

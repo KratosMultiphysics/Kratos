@@ -10,7 +10,7 @@
 //
 //
 
-# pragma once
+#pragma once
 
 // Project includes
 #include "utilities/math_utils.h"

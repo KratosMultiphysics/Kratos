@@ -9,7 +9,7 @@
 //  Main authors:    Quirin Aumann
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

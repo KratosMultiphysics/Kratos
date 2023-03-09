@@ -9,7 +9,7 @@
 //  Main author:    Manuel Messmer
 //
 
-# pragma once
+#pragma once
 
 // System includes
 

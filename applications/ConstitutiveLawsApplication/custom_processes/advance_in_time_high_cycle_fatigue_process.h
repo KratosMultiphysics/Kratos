@@ -11,7 +11,7 @@
 //  Main authors:    Sergio Jimenez Reyes
 //
 
-# pragma once
+#pragma once
 
 #include "processes/process.h"
 #include "includes/model_part.h"

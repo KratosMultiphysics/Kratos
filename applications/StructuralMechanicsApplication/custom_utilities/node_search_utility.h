@@ -10,7 +10,7 @@
 //
 // This file is partly copied from "DEMApplication/custom_utilities/omp_dem_search.h" and modified
 
-# pragma once
+#pragma once
 
 // System includes
 #include <string>

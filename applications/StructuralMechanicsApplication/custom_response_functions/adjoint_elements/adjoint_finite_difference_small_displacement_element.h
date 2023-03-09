@@ -11,7 +11,7 @@
 //
 
 
-# pragma once
+#pragma once
 
 #include "adjoint_finite_difference_base_element.h"
 

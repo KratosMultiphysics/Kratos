@@ -9,7 +9,7 @@
 //  Main authors:    Massimo Petracca
 //
 
-# pragma once
+#pragma once
 
 namespace Kratos
 {

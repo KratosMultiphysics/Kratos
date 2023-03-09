@@ -9,7 +9,7 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-# pragma once
+#pragma once
 
 #include "adjoint_finite_difference_base_element.h"
 
