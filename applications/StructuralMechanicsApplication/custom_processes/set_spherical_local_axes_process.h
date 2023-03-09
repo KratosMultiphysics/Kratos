@@ -9,8 +9,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_SET_SPHERICAL_LOCAL_AXES_PROCESS )
-#define  KRATOS_SET_SPHERICAL_LOCAL_AXES_PROCESS
+# pragma once
 
 #include "processes/process.h"
 
@@ -111,5 +110,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 } // namespace Kratos.
-
-#endif /* KRATOS_SET_SPHERICAL_LOCAL_AXES_PROCESS defined */

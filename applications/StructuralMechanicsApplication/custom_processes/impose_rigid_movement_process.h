@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_IMPOSE_RIGID_MOVEMENT_PROCESS)
-#define KRATOS_IMPOSE_RIGID_MOVEMENT_PROCESS
+# pragma once
 
 // System includes
 
@@ -272,4 +271,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }
-#endif /* KRATOS_IMPOSE_RIGID_MOVEMENT_PROCESS defined */

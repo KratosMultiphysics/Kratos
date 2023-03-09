@@ -10,8 +10,7 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED )
-#define  KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -110,5 +109,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED  defined

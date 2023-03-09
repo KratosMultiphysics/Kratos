@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS)
-#define KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS
+# pragma once
 
 // System includes
 
@@ -248,4 +247,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS defined */

@@ -9,8 +9,7 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined(KRATOS_IMPOSE_Z_STRAIN_PROCESS )
-#define  KRATOS_IMPOSE_Z_STRAIN_PROCESS
+# pragma once
 
 #include "processes/process.h"
 #include "includes/model_part.h"
@@ -120,5 +119,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 } // namespace Kratos.
-
-#endif /* KRATOS_IMPOSE_Z_STRAIN_PROCESS defined */

@@ -10,8 +10,7 @@
 //                   Salman Yousaf
 //
 
-#if !defined(KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS)
-#define KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS
+# pragma once
 
 // System includes
 
@@ -247,4 +246,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS defined */
