@@ -14,6 +14,8 @@
 #pragma once
 
 // System includes
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 // Project includes
@@ -21,7 +23,6 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "custom_utilities/optimization_utils.h"
 
 namespace Kratos
 {
@@ -39,9 +40,9 @@ public:
 
     using GeometryType = ModelPart::ElementType::GeometryType;
 
-    using SensitivityFieldVariableTypes = OptimizationUtils::SensitivityFieldVariableTypes;
+    using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
 
-    using SensitivityModelPartVariablesListMap = OptimizationUtils::SensitivityModelPartVariablesListMap;
+    using SensitivityVariableModelPartsListMap = std::unordered_map<SensitivityFieldVariableTypes, std::vector<ModelPart*>>;
 
     ///@}
     ///@name Static operations
@@ -53,7 +54,7 @@ public:
 
     static void CalculateSensitivity(
         const std::vector<ModelPart*>& rEvaluatedModelParts,
-        const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo);
+        const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo);
 
     ///@}
 private:

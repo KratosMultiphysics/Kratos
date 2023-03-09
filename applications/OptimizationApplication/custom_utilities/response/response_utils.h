@@ -15,8 +15,8 @@
 
 // System includes
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 
 // Project includes
 #include "includes/define.h"
@@ -41,19 +41,9 @@ public:
 
     using NodeIdsType = std::vector<IndexType>;
 
-    using SensitivityFieldVariableTypes = OptimizationUtils::SensitivityFieldVariableTypes;
-
-    using SensitivityModelPartVariablesListMap = OptimizationUtils::SensitivityModelPartVariablesListMap;
-
     ///@}
     ///@name Static operations
     ///@{
-
-    static void CheckAndPrepareModelPartsForSensitivityComputation(
-        const std::vector<ModelPart*>& rEvaluatedModelParts,
-        const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
-        const Flags& rFlag,
-        const std::vector<SensitivityFieldVariableTypes>& rUsedNodalSensitivityVariables);
 
     static ModelPart& GetSensitivityModelPartForAdjointSensitivities(
         const std::vector<ModelPart*>& rSensitivityModelParts,

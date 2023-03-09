@@ -124,37 +124,34 @@ double MassResponseUtils::CalculateModelPartValue(const ModelPart& rModelPart)
 
 void MassResponseUtils::CalculateSensitivity(
     const std::vector<ModelPart*>& rEvaluatedModelParts,
-    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo)
+    const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo)
 {
     KRATOS_TRY
 
-    ResponseUtils::CheckAndPrepareModelPartsForSensitivityComputation(rEvaluatedModelParts, rSensitivityModelPartVariableInfo, SELECTED, {&SHAPE_SENSITIVITY});
-
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (const auto& it : rSensitivityModelPartVariableInfo) {
-        auto& r_sensitivity_model_part = *(it.first);
-        for (auto& r_variable : it.second) {
-            std::visit([&](auto&& r_variable) {
-                if (*r_variable == DENSITY_SENSITIVITY) {
-                    CalculateMassDensitySensitivity(r_sensitivity_model_part, DENSITY_SENSITIVITY);
-                } else if (*r_variable == THICKNESS_SENSITIVITY) {
-                    CalculateMassThicknessSensitivity(r_sensitivity_model_part, THICKNESS_SENSITIVITY);
-                } else if (*r_variable == CROSS_AREA_SENSITIVITY) {
-                    CalculateMassCrossAreaSensitivity(r_sensitivity_model_part, CROSS_AREA_SENSITIVITY);
-                } else if (*r_variable == SHAPE_SENSITIVITY) {
-                    CalculateMassShapeSensitivity(r_sensitivity_model_part, SHAPE_SENSITIVITY);
-                } else {
-                    KRATOS_ERROR
-                        << "Unsupported sensitivity w.r.t. " << r_variable->Name()
-                        << " requested for " << r_sensitivity_model_part.FullName()
-                        << ". Followings are supported sensitivity variables:"
-                        << "\n\t" << DENSITY_SENSITIVITY.Name()
-                        << "\n\t" << THICKNESS_SENSITIVITY.Name()
-                        << "\n\t" << CROSS_AREA_SENSITIVITY.Name()
-                        << "\n\t" << SHAPE_SENSITIVITY.Name();
-                }
-            }, r_variable);
-        }
+    for (const auto& it : rSensitivityVariableModelPartInfo) {
+        std::visit([&](auto&& r_variable) {
+            auto& r_sensitivity_model_part = ResponseUtils::GetSensitivityModelPartForDirectSensitivities(it.second, rEvaluatedModelParts, false, false, true);
+
+            if (*r_variable == DENSITY_SENSITIVITY) {
+                CalculateMassDensitySensitivity(r_sensitivity_model_part, DENSITY_SENSITIVITY);
+            } else if (*r_variable == THICKNESS_SENSITIVITY) {
+                CalculateMassThicknessSensitivity(r_sensitivity_model_part, THICKNESS_SENSITIVITY);
+            } else if (*r_variable == CROSS_AREA_SENSITIVITY) {
+                CalculateMassCrossAreaSensitivity(r_sensitivity_model_part, CROSS_AREA_SENSITIVITY);
+            } else if (*r_variable == SHAPE_SENSITIVITY) {
+                VariableUtils().SetNonHistoricalVariablesToZero(r_sensitivity_model_part.Nodes(), SHAPE_SENSITIVITY);
+                CalculateMassShapeSensitivity(r_sensitivity_model_part, SHAPE_SENSITIVITY);
+            } else {
+                KRATOS_ERROR
+                    << "Unsupported sensitivity w.r.t. " << r_variable->Name()
+                    << " requested. Followings are supported sensitivity variables:"
+                    << "\n\t" << DENSITY_SENSITIVITY.Name()
+                    << "\n\t" << THICKNESS_SENSITIVITY.Name()
+                    << "\n\t" << CROSS_AREA_SENSITIVITY.Name()
+                    << "\n\t" << SHAPE_SENSITIVITY.Name();
+            }
+        }, it.first);
     }
 
     KRATOS_CATCH("");
@@ -251,21 +248,19 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
     }
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement){
-        if (rElement.Is(SELECTED)) {
-            auto& r_geometry = rElement.GetGeometry();
-            const IndexType dimension = r_geometry.WorkingSpaceDimension();
+        auto& r_geometry = rElement.GetGeometry();
+        const IndexType dimension = r_geometry.WorkingSpaceDimension();
 
-            const double density = rElement.GetProperties()[DENSITY];
-            const double thickness = get_thickness(rElement);
-            const double cross_area = get_cross_area(rElement);
+        const double density = rElement.GetProperties()[DENSITY];
+        const double thickness = get_thickness(rElement);
+        const double cross_area = get_cross_area(rElement);
 
-            for (IndexType c = 0; c < r_geometry.PointsNumber(); ++c) {
-                auto& r_derivative_value = r_geometry[c].GetValue(rOutputSensitivityVariable);
+        for (IndexType c = 0; c < r_geometry.PointsNumber(); ++c) {
+            auto& r_derivative_value = r_geometry[c].GetValue(rOutputSensitivityVariable);
 
-                for (IndexType k = 0; k < dimension; ++k) {
-                    const double derivative_value = volume_derivative_method(c, k, r_geometry) * thickness * density * cross_area;
-                    AtomicAdd(r_derivative_value[k], derivative_value);
-                }
+            for (IndexType k = 0; k < dimension; ++k) {
+                const double derivative_value = volume_derivative_method(c, k, r_geometry) * thickness * density * cross_area;
+                AtomicAdd(r_derivative_value[k], derivative_value);
             }
         }
     });
@@ -297,11 +292,7 @@ void MassResponseUtils::CalculateMassDensitySensitivity(
                                     : [](const ModelPart::ElementType& rElement) { return 1.0; };
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
-        if (rElement.Is(SELECTED)) {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
-        } else {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
-        }
+        rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
     });
 
     KRATOS_CATCH("")
@@ -343,11 +334,7 @@ void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
         << ". Please separate the model part such that either one of them is present in elemental properties.\n";
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
-        if (rElement.Is(SELECTED)) {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
-        } else {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
-        }
+        rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
     });
 
     KRATOS_CATCH("")

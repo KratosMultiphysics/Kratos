@@ -88,27 +88,27 @@ double LinearStrainEnergyResponseUtils::CalculateModelPartValue(ModelPart& rMode
 }
 
 void LinearStrainEnergyResponseUtils::CalculateSensitivity(
-    const std::vector<ModelPart*>& rEvaluatedModelParts,
-    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
+    ModelPart& rAnalysisModelPart,
+    const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
     const double PerturbationSize)
 {
     KRATOS_TRY
 
-    ResponseUtils::CheckAndPrepareModelPartsForSensitivityComputation(rEvaluatedModelParts, rSensitivityModelPartVariableInfo, SELECTED, {&SHAPE_SENSITIVITY});
-
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (const auto& it : rSensitivityModelPartVariableInfo) {
-        auto& r_sensitivity_model_part = *(it.first);
-        for (auto& r_variable : it.second) {
-            std::visit([&](auto&& r_variable) {
+    for (const auto& it : rSensitivityVariableModelPartInfo) {
+        std::visit([&](auto&& r_variable) {
+            if (*r_variable == SHAPE_SENSITIVITY) {
+                auto& r_sensitivity_model_part = ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(it.second, rAnalysisModelPart, true, false, false);
+                VariableUtils().SetNonHistoricalVariablesToZero(r_sensitivity_model_part.Nodes(), SHAPE_SENSITIVITY);
+                CalculateStrainEnergySemiAnalyticShapeSensitivity(r_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
+            } else {
+                auto& r_sensitivity_model_part = ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(it.second, rAnalysisModelPart, false, true, false);
                 if (*r_variable == YOUNG_MODULUS_SENSITIVITY) {
                     CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
                 } else if (*r_variable == THICKNESS_SENSITIVITY) {
                     CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, THICKNESS, THICKNESS_SENSITIVITY);
                 } else if (*r_variable == POISSON_RATIO_SENSITIVITY) {
                     CalculateStrainEnergySemiAnalyticPropertySensitivity(r_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
-                } else if (*r_variable == SHAPE_SENSITIVITY) {
-                    CalculateStrainEnergySemiAnalyticShapeSensitivity(r_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
                 } else {
                     KRATOS_ERROR
                         << "Unsupported sensitivity w.r.t. " << r_variable->Name()
@@ -119,8 +119,8 @@ void LinearStrainEnergyResponseUtils::CalculateSensitivity(
                         << "\n\t" << POISSON_RATIO_SENSITIVITY.Name()
                         << "\n\t" << SHAPE_SENSITIVITY.Name();
                 }
-            }, r_variable);
-        }
+            }
+        }, it.first);
     }
 
     KRATOS_CATCH("");
@@ -141,7 +141,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
 {
     KRATOS_TRY
 
-    if (rEntity.Is(SELECTED) && rEntity.IsActive()) {
+    if (rEntity.IsActive()) {
         const auto& r_process_info = rModelPart.GetProcessInfo();
         auto& r_geometry = rEntity.GetGeometry();
         const auto domain_size = r_geometry.WorkingSpaceDimension();
@@ -311,7 +311,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyLinearlyDependentProp
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
     block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
-        if (rElement.Is(SELECTED) && rElement.IsActive()) {
+        if (rElement.IsActive()) {
             Vector& r_u = std::get<0>(rTLS);
             Vector& r_sensitivity = std::get<1>(rTLS);
 
@@ -347,7 +347,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticPropertyS
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
     block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
-        if (rElement.Is(SELECTED) && rElement.IsActive()) {
+        if (rElement.IsActive()) {
             Vector& r_u = std::get<0>(rTLS);
             Vector& r_ref_rhs = std::get<1>(rTLS);
             Vector& r_perturbed_rhs = std::get<2>(rTLS);
