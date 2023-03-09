@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_TRUSS_ELEMENT_LINEAR_3D2N_H_INCLUDED )
-#define  KRATOS_TRUSS_ELEMENT_LINEAR_3D2N_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -134,6 +133,3 @@ private:
 
 
 }
-
-
-#endif

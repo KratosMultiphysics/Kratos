@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -335,5 +334,3 @@ private:
 
 
 }
-
-#endif

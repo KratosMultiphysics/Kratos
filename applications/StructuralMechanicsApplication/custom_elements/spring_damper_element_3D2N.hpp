@@ -9,8 +9,7 @@
 //  Main authors:    Quirin Aumann
 //
 
-#if !defined(KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -291,4 +290,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED  defined

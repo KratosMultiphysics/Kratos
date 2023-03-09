@@ -10,8 +10,7 @@
 //
 
 
-#if !defined(SHELL_THICK_ELEMENT_3D4N_H_INCLUDED )
-#define  SHELL_THICK_ELEMENT_3D4N_H_INCLUDED
+# pragma once
 
 
 // System includes
@@ -429,4 +428,3 @@ private:
 };
 
 }
-#endif // SHELL_THICK_ELEMENT_3D4N_H_INCLUDED

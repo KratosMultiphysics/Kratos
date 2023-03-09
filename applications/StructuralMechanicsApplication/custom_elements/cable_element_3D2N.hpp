@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_CABLE_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_CABLE_ELEMENT_3D2N_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -109,5 +108,3 @@ private:
 };
 
 }
-
-#endif

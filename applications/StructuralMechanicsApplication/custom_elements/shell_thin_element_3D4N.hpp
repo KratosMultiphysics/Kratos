@@ -10,8 +10,7 @@
 //       Contact:    A.Winterstein[at]tum.de
 //
 
-#if !defined(SHELL_THIN_ELEMENT_3D4N_H_INCLUDED )
-#define  SHELL_THIN_ELEMENT_3D4N_H_INCLUDED
+# pragma once
 
 // System includes
 #include <type_traits>
@@ -394,4 +393,3 @@ private:
     ///@}
 };
 }
-#endif // SHELL_THIN_ELEMENT_3D4N_H_INCLUDED

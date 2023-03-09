@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED )
-#define  KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -1558,5 +1557,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED  defined

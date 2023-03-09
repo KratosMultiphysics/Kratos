@@ -11,8 +11,7 @@
 //                   Based on the work of Massimo Petracca and Peter Wilson
 //
 
-#if !defined(KRATOS_BASE_SHELL_ELEMENT_H_INCLUDED)
-#define KRATOS_BASE_SHELL_ELEMENT_H_INCLUDED
+# pragma once
 
 
 // System includes
@@ -375,5 +374,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_SHELL_ELEMENT_H_INCLUDED  defined

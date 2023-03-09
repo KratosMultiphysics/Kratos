@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED )
-#define  KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED
+# pragma once
 
 // TODO: Add rotational stiffness
 
@@ -346,4 +345,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED  defined

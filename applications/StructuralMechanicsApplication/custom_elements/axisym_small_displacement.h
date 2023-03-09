@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -255,4 +254,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED  defined
