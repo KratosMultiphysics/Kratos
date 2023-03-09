@@ -37,13 +37,15 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
         py::arg("analysis_model_part"),
         py::arg("are_sensitivity_entity_parents_considered"),
         py::arg("are_sensitivity_entites_considered"),
-        py::arg("force_find_sensitivity_entities_in_analysis_model_part") = false);
+        py::arg("force_find_sensitivity_entities_in_analysis_model_part") = false,
+        py::return_value_policy::reference);
     m.def("GetSensitivityModelPartForDirectSensitivities", &ResponseUtils::GetSensitivityModelPartForDirectSensitivities,
         py::arg("sensitivity_model_parts_list"),
         py::arg("evaluated_model_parts_list"),
         py::arg("are_nodes_considered"),
         py::arg("are_conditions_considered"),
-        py::arg("are_elements_considered"));
+        py::arg("are_elements_considered"),
+        py::return_value_policy::reference);
 
     py::class_<MassResponseUtils >(m, "MassResponseUtils")
         .def_static("Check", &MassResponseUtils::Check)
