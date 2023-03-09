@@ -48,7 +48,9 @@ public:
     /**
      * @brief Get the Sensitivity Model Part For Adjoint Sensitivitiy Computation.
      *
-     * This does not create or destroy nodes, conditions or elements.
+     * This does not create or destroy nodes, conditions or elements. This is compatible with OpenMP. In the case of MPI,
+     * this will not add neighbour entities from other ranks. Hence, it is required to use Assembling methods for nodal
+     * sensitivity computations at the end.
      *
      * This method can be used to obtain combined sensitivity model part as explained below.
      *      1. If AreSensitivityEntityParentsConsidered is made to true, first all nodes of each sensitivity model part
@@ -96,7 +98,9 @@ public:
     /**
      * @brief Get the Sensitivity Model Part For Direct Sensitivity Computation.
      *
-     * This does not create or destroy nodes, conditions or elements.
+     * This does not create or destroy nodes, conditions or elements. This is compatible with OpenMP.In the case of MPI,
+     * this will not add neighbour entities from other ranks. Hence, it is required to use Assembling methods for nodal
+     * sensitivity computations at the end.
      *
      * This method can be used to obtain combined sensitivity model part as explained below.
      *      1. If AreNodesConsidered is made to true, then common nodes between each model part in rSensitivityModelParts and each model part
