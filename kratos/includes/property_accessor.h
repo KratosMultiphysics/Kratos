@@ -13,8 +13,7 @@
 //
 
 
-#if !defined(KRATOS_PROPERTY_ACCESSOR_H_INCLUDED)
-#define KRATOS_PROPERTY_ACCESSOR_H_INCLUDED
+# pragma once
 
 // System includes
 #include "includes/properties.h"
@@ -202,13 +201,13 @@ private:
     void save(Serializer& rSerializer) const
     {
         rSerializer.save("Value", mValue);
-        // rSerializer.save("ListOfAccessors", mListOfAccessors);
+        rSerializer.save("ListOfAccessors", mListOfAccessors);
     }
 
     void load(Serializer& rSerializer)
     {
         rSerializer.load("Value", mValue);
-        // rSerializer.load("ListOfAccessors", mListOfAccessors);
+        rSerializer.load("ListOfAccessors", mListOfAccessors);
     }
 
     ///@}
@@ -244,7 +243,5 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif //   defined
 
 
