@@ -46,6 +46,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             # creating the response function wrapper
             response_function_settings = Kratos.Parameters("""{
                 "evaluated_model_part_names": ["Structure.structure"],
+                "primal_analysis_name"      : "primal",
                 "perturbation_size"         : 1e-8
             }""")
             cls.response_function: LinearStrainEnergyResponseFunction = LinearStrainEnergyResponseFunction(cls.model, response_function_settings, cls.optimization_info)
@@ -66,7 +67,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             DeleteFileIfExisting("Structure.time")
 
     def _CalculateSensitivity(self, sensitivity_variable):
-        self.response_function.CalculateSensitivity({self.model_part: [sensitivity_variable]})
+        self.response_function.CalculateSensitivity({sensitivity_variable: [self.model_part]})
 
     def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, rel_tol, abs_tol):
         for entity in entities:

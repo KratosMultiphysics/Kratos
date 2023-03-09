@@ -19,7 +19,7 @@ class TestMassResponseFunctionBase(kratos_unittest.TestCase):
         cls.ref_value = cls.response_function.CalculateValue()
 
     def _CalculateSensitivity(self, sensitivity_variable):
-        self.response_function.CalculateSensitivity({self.model_part: [sensitivity_variable]})
+        self.response_function.CalculateSensitivity({sensitivity_variable: [self.model_part]})
 
     def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, precision):
         ref_value = response_function.CalculateValue()
