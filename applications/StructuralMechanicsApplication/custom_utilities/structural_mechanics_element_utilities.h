@@ -13,8 +13,7 @@
 //                   Ruben Zorrilla
 //
 
-#if !defined( KRATOS_STRUCTURAL_MECHANICS_ELEMENT_UTILITIES_H_INCLUDED )
-#define  KRATOS_STRUCTURAL_MECHANICS_ELEMENT_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -262,5 +261,3 @@ void BuildRotationMatrix(
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
-
-#endif // KRATOS_STRUCTURAL_MECHANICS_ELEMENT_UTILITIES_H_INCLUDED  defined

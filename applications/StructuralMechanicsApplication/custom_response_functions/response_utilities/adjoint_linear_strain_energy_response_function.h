@@ -9,8 +9,7 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_LINEAR_STRAIN_ENERGY_RESPONSE_FUNCTION_H
-#define ADJOINT_LINEAR_STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#pragma once
 
 // System includes
 
@@ -199,5 +198,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // ADJOINT_LINEAR_STRAIN_ENERGY_RESPONSE_FUNCTION_H_INCLUDED

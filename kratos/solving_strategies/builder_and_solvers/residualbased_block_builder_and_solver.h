@@ -1307,10 +1307,10 @@ protected:
                 }
 
                 // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].lock();
-                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].unlock();
+                for (auto& pair_temp_indices : temp_indices) {
+                    lock_array[pair_temp_indices.first].lock();
+                    indices[pair_temp_indices.first].insert(pair_temp_indices.second.begin(), pair_temp_indices.second.end());
+                    lock_array[pair_temp_indices.first].unlock();
                 }
             }
 
@@ -1389,11 +1389,11 @@ protected:
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+                it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                 // If the constraint is active
                 if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                     for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
                         const IndexType i_global = slave_equation_ids[i];
@@ -1407,7 +1407,6 @@ protected:
                         AtomicAdd(r_value, constant_value);
                     }
                 } else { // Taking into account inactive constraints
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
                     auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 }
             }
