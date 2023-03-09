@@ -10,8 +10,7 @@
 //
 
 
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
+# pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -33,5 +32,3 @@ namespace Python
 }  // namespace Python.
 
 }  // namespace Kratos.
-
-#endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined

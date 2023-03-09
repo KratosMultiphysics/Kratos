@@ -10,8 +10,7 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#if !defined(KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED )
-#define  KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED
+# pragma once
 
 
 // System includes
@@ -120,7 +119,5 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED  defined
 
 

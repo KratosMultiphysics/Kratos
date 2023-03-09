@@ -9,8 +9,7 @@
 //  Main authors:    Armin Geiser
 //
 
-#if !defined(KRATOS_REPLACE_MULTIPLE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED )
-#define  KRATOS_REPLACE_MULTIPLE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -168,5 +167,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REPLACE_MULTIPLE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED  defined

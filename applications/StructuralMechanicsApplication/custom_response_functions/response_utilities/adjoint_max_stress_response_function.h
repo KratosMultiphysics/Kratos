@@ -9,8 +9,7 @@
 //  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 
-#ifndef ADJOINT_MAX_STRESS_RESPONSE_FUNCTION_H
-#define ADJOINT_MAX_STRESS_RESPONSE_FUNCTION_H
+# pragma once
 
 
 // System includes
@@ -219,5 +218,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // ADJOINT_MAX_STRESS_RESPONSE_FUNCTION_H_INCLUDED

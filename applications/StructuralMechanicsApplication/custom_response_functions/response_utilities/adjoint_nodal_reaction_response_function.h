@@ -9,8 +9,7 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_NODAL_REACTION_RESPONSE_FUNCTION_H
-#define ADJOINT_NODAL_REACTION_RESPONSE_FUNCTION_H
+# pragma once
 
 
 // System includes
@@ -286,5 +285,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // ADJOINT_NODAL_REACTION_RESPONSE_FUNCTION_H_INCLUDED

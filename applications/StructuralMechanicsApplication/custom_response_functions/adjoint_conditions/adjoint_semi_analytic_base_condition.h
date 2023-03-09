@@ -10,8 +10,7 @@
 //
 
 // System includes
-#if !defined(ADJOINT_SEMI_ANALYTIC_BASE_CONDITION )
-#define  ADJOINT_SEMI_ANALYTIC_BASE_CONDITION
+# pragma once
 
 // System includes
 
@@ -459,7 +458,5 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // ADJOINT_SEMI_ANALYTIC_BASE_CONDITION  defined
 
 

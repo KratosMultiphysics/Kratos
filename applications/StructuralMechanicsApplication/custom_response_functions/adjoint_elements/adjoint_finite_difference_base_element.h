@@ -9,8 +9,7 @@
 //  Main authors:    Armin Geiser, https://github.com/armingeiser
 //
 
-#if !defined(ADJOINT_FINITE_DIFFERENCE_BASE_ELEMENT_H_INCLUDED )
-#define  ADJOINT_FINITE_DIFFERENCE_BASE_ELEMENT_H_INCLUDED
+# pragma once
 
 
 // System includes
@@ -543,4 +542,3 @@ private:
 };
 
 }
-#endif // ADJOINT_FINITE_DIFFERENCE_BASE_ELEMENT_H_INCLUDED
