@@ -12,8 +12,7 @@
 //  Collaborator:
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -474,4 +473,3 @@ protected:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif
