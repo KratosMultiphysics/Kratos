@@ -35,7 +35,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatr
     // std::vector<int> row_indexes;
     // std::vector<int> column_indexes;
     // std::vector<double> values;
-    // TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(matrix, r_comm, row_indexes, column_indexes, values, true);
+    // TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(matrix, row_indexes, column_indexes, values, true);
 
     // Generate matrix
     std::vector<int> row_indexes = {0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5};
