@@ -9,8 +9,7 @@
 //  Main authors:    Mahmoud Zidan
 //
 
-#if !defined(KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED )
-#define  KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -360,5 +359,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED  defined

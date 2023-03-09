@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -242,4 +241,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined
