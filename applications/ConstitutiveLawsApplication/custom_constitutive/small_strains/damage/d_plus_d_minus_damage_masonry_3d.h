@@ -12,8 +12,7 @@
 //                   Alejandro Cornejo
 //
 //
-#if !defined(KRATOS_D_PLUS_D_MINUS_DAMAGE_MASONRY_3D_H_INCLUDED)
-#define KRATOS_D_PLUS_D_MINUS_DAMAGE_MASONRY_3D_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -728,5 +727,4 @@ private:
 
 }; // Class DamageDPlusDMinusMasonry3DLaw
 }// namespace Kratos
-#endif
 
