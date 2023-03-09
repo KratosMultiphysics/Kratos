@@ -11,8 +11,7 @@
 //                   Alejandro Cornejo Velazquez
 //
 
-#if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
-#define  KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -1093,5 +1092,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED  defined

@@ -10,8 +10,7 @@
 //
 
 // System includes
-#if !defined(KRATOS_POINT_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_LOAD_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -314,7 +313,5 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_POINT_LOAD_CONDITION_H_INCLUDED  defined
 
 

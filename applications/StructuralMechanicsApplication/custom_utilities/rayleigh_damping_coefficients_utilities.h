@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RAYLEIGH_DAMPING_COEFFICIENTS_UTILITIES)
-#define KRATOS_RAYLEIGH_DAMPING_COEFFICIENTS_UTILITIES
+#pragma once
 
 // System includes
 
@@ -54,4 +53,3 @@ namespace RayleighDampingCoefficientsUtilities
 
 } /// namespace RayleighDampingCoefficientsUtilities
 } /// namespace Kratos
-#endif /* KRATOS_RAYLEIGH_DAMPING_COEFFICIENTS_UTILITIES defined */

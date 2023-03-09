@@ -71,7 +71,7 @@ namespace Kratos
  * This unique equation is used later on to modify the equation system.
  * @author Aditya Ghantasala
  */
-class MasterSlaveConstraint
+class KRATOS_API(KRATOS_CORE) MasterSlaveConstraint
     :  public IndexedObject, public Flags
 {
 public:

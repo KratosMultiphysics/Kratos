@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_utilities/response/mass_response_utils.h"
+#include "custom_utilities/response/linear_strain_energy_response_utils.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -35,6 +36,12 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateValue", &MassResponseUtils::CalculateValue)
         .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity)
         ;
+
+    py::class_<LinearStrainEnergyResponseUtils >(m, "LinearStrainEnergyResponseUtils")
+        .def_static("CalculateValue", &LinearStrainEnergyResponseUtils::CalculateValue)
+        .def_static("CalculateSensitivity", &LinearStrainEnergyResponseUtils::CalculateSensitivity)
+        ;
+
 }
 
 }  // namespace Python.
