@@ -811,13 +811,13 @@ template<SizeType TVoigtSize>
 double AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateInGaussPoint(
     const Variable<double>& rVariableInput,
     ConstitutiveLaw::Parameters& rParameters,
-    unsigned int step = 0
+    unsigned int step
     )
 {
     const GeometryType& r_geometry = rParameters.GetElementGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const auto& r_shape_function = rParameters.GetShapeFunctionsValues();
-    double result = 0;
+    double result = 0.0;
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         result += r_shape_function[i] * r_geometry[i].FastGetSolutionStepValue(rVariableInput, step);
