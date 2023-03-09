@@ -131,38 +131,7 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
 }
 
-template<class TContainerType>
-IndexType OptimizationUtils::GetNumberOfContainerItemsWithFlag(
-    const TContainerType& rContainer,
-    const DataCommunicator& rDataCommunicator,
-    const Flags& rFlag,
-    const bool FlagValue)
-{
-    KRATOS_TRY
-
-    return rDataCommunicator.SumAll(block_for_each<SumReduction<IndexType>>(rContainer, [&](const auto& rEntity) {
-        return rEntity.Is(rFlag) == FlagValue;
-    }));
-
-    KRATOS_CATCH("");
-}
-
-void OptimizationUtils::ReverseSensitivityModelPartVariablesListMap(
-    SensitivityVariableModelPartsListMap& rOutput,
-    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo)
-{
-    for (const auto& it_1 : rSensitivityModelPartVariableInfo) {
-        for (const auto& it_2 : it_1.second) {
-            rOutput[it_2].push_back(it_1.first);
-        }
-    }
-}
-
 // template instantiations
-template IndexType OptimizationUtils::GetNumberOfContainerItemsWithFlag(const ModelPart::NodesContainerType&, const DataCommunicator&, const Flags&, const bool);
-template IndexType OptimizationUtils::GetNumberOfContainerItemsWithFlag(const ModelPart::ConditionsContainerType&, const DataCommunicator&, const Flags&, const bool);
-template IndexType OptimizationUtils::GetNumberOfContainerItemsWithFlag(const ModelPart::ElementsContainerType&, const DataCommunicator&, const Flags&, const bool);
-
 template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);
 

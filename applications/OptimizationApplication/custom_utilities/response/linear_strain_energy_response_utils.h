@@ -14,6 +14,8 @@
 #pragma once
 
 // System includes
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 // Project includes
