@@ -295,7 +295,6 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
 
 void TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(
     const TrilinosSparseSpaceType::MatrixType& rA,
-    const DataCommunicator& rDataCommunicator,
     std::vector<int>& rRowIndexes,
     std::vector<int>& rColumnIndexes,
     std::vector<double>& rValues,
@@ -303,8 +302,7 @@ void TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(
     const double ThresholdIncludeHardZeros
     )
 {
-    const int world_size = rDataCommunicator.Size();
-    KRATOS_ERROR_IF_NOT(world_size == 1) << "Debug must be done with one MPI core" << std::endl;
+    KRATOS_ERROR_IF_NOT(rA.Comm().NumProc() == 1) << "Debug must be done with one MPI core" << std::endl;
 
     // If print values
     if (PrintValues) {
