@@ -45,10 +45,10 @@ namespace Kratos
 ///@{
 
 /**
- * PropertyAccessor sets a proper way of returning a value from the properties
+ * PropertyFunctor gathers a set of property accessors to each variable name.
  * It is used to properly interpolate material properties according to temperature, tables, etc...
 */
-class PropertyAccessor
+class PropertyFunctor
 {
 public:
     ///@name Type Definitions
