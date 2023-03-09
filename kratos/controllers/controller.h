@@ -78,7 +78,7 @@ public:
      * @brief This method creates an pointer of the controller
      * @details We consider as input, a Model and a set of Parameters for the sake of generality
      * @warning Must be overrided in controller implementation
-     * @param rModel The model to be consider
+     * @param rModel The model to be considered
      * @param ThisParameters The configuration parameters
      */
     virtual Controller::Pointer Create(
