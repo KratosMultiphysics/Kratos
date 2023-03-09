@@ -471,5 +471,52 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         BoundedMatrix<double, 3, 3>& rRotationOperator
         );
 
+    /**
+     * @brief This computes a material property according to a certain
+     * nodal TEMPERATURE table
+     */
+    static double GetValueFromTable(
+        const Variable<double>& rIndependentVariable,
+        const Variable<double>& rDependentVariable,
+        ConstitutiveLaw::Parameters& rParameters
+        )
+    {
+        // Get material properties from constitutive law parameters
+        const Properties& r_properties = rParameters.GetMaterialProperties();
+
+        // Get geometry and Gauss points data
+        const auto& r_geometry = rParameters.GetElementGeometry();
+        const auto& r_N        = rParameters.GetShapeFunctionsValues();
+
+        // Compute the independent variable at the Gauss point
+        double independent_at_gauss = 0.0;
+        for (unsigned int i = 0; i < r_N.size(); ++i) {
+            const double val = r_geometry[i].FastGetSolutionStepValue(rIndependentVariable);
+            independent_at_gauss += val * r_N[i];
+        }
+
+        // Retrieve the dependent variable from the table
+        const auto& r_table = r_properties.GetTable(rIndependentVariable, rDependentVariable);
+        return r_table.GetValue(independent_at_gauss);
+    }
+
+    /**
+     * @brief This substracts the thermal strain contribution to a vector
+     */
+    static void SubstractThermalStrain(
+        ConstitutiveLaw::StrainVectorType& rStrainVector,
+        const double ReferenceTemperature,
+        ConstitutiveLaw::Parameters& rParameters
+        )
+    {
+        double alpha = rParameters.GetMaterialProperties()[THERMAL_EXPANSION_COEFFICIENT];
+        BoundedVectorType thermal_strain = ZeroVector(VoigtSize);
+        const double current_temperature_gp = CalculateInGaussPoint(TEMPERATURE, rParameters);
+        alpha *= (current_temperature_gp - ReferenceTemperature);
+        for (IndexType i = 0; i < Dimension; ++i)
+            thermal_strain(i) = 1.0;
+        noalias(rStrainVector) -= thermal_strain*alpha;
+    }
+
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos
