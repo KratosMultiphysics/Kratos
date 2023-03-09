@@ -58,12 +58,12 @@ void AddControllersToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<Controller, Controller::Pointer, ControllerTrampoline>(m,"Controller")
-    .def(py::init<>())
-    .def("Create", &Controller::Create)
-    .def("Evaluate", &Controller::Evaluate)
-    .def("GetDefaultParameters", &Controller::GetDefaultParameters)
-    .def("__str__", PrintObject<Controller>)
-    ;
+        .def(py::init<>())
+        .def("Create", &Controller::Create)
+        .def("Evaluate", &Controller::Evaluate)
+        .def("GetDefaultParameters", &Controller::GetDefaultParameters)
+        .def("__str__", PrintObject<Controller>)
+        ;
 }
 
 } // Namespace Kratos::Python
