@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_DUMMY_BEAM_LAW_H_INCLUDED)
-#define  KRATOS_DUMMY_BEAM_LAW_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -157,4 +156,3 @@ private:
 
 }; // Class BeamConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_DUMMY_BEAM_LAW_H_INCLUDED  defined

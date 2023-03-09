@@ -10,8 +10,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED)
-#define  KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -457,4 +456,3 @@ private:
 
 }; // Class ElasticIsotropic3D
 }  // namespace Kratos.
-#endif // KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED  defined
