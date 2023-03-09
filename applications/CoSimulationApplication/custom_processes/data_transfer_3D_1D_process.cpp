@@ -108,8 +108,7 @@ DataTransfer3D1DProcess::DataTransfer3D1DProcess(
         for (IndexType i = 0; i < number_points_found; ++i) {
             auto p_point = points_found[i];
             auto p_geometry = p_point->pGetElement()->pGetGeometry();
-            auto& r_geometry = *p_geometry;
-            if (r_geometry_tetra.HasIntersection(r_geometry)) {
+            if (r_geometry_tetra.HasIntersection(*p_geometry)) {
                 intersected = true;
                 break;
             }
