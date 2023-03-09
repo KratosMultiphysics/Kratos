@@ -1218,41 +1218,16 @@ public:
         const MatrixType& rB
         )
     {
-        // Clear A matrix
-        SetToZero(rA);
-
         // Copy values from rB to intermediate
-        int i_B, i_A, j_B, j_A, aux_index;
-        i_A = 0;
-        int numEntries_B; // Number of non-zero entries (rB matrix)
-        double* vals_B;   // Row non-zero values (rB matrix)
-        int* cols_B;      // Column indices of row non-zero values (rB matrix)
-        int numEntries_A; // Number of non-zero entries (intermediate)
-        double* vals_A;   // Row non-zero values (intermediate)
-        int* cols_A;      // Column indices of row non-zero values (intermediate)
-        for (i_B = 0; i_B < rB.NumMyRows(); i_B++) {
-            rB.ExtractMyRowView(i_B, numEntries_B, vals_B, cols_B);
-            const int row_gid_B = rB.RowMap().GID(i_B);
-            aux_index = i_A;
-            for (i_A = aux_index; i_A < rA.NumMyRows(); i_A++) {
-                const int row_gid_A = rA.RowMap().GID(i_A);
-                if (row_gid_B == row_gid_A) {
-                    break;
-                }
-            }
-            rA.ExtractMyRowView(i_A, numEntries_A, vals_A, cols_A);
-            j_A = 0;
-            for (j_B = 0; j_B < numEntries_B; j_B++) {
-                const int col_gid_B = rB.ColMap().GID(cols_B[j_B]);
-                aux_index = j_A;
-                for (j_A = aux_index; j_A < numEntries_A; j_A++) {
-                    const int col_gid_A = rA.ColMap().GID(cols_A[j_A]);
-                    if (col_gid_B == col_gid_A) {
-                        break;
-                    }
-                }
-                vals_A[j_A] = vals_B[j_B];
-            }
+        int i, ierr;
+        int num_entries; // Number of non-zero entries (rB matrix)
+        double* vals;    // Row non-zero values (rB matrix)
+        int* cols;       // Column indices of row non-zero values (rB matrix)
+        for (i = 0; i < rB.NumMyRows(); i++) {
+            ierr = rB.ExtractMyRowView(i, num_entries, vals, cols);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting values with code ierr = " << ierr << std::endl;
+            ierr = rA.ReplaceMyValues(i, num_entries, vals, cols);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found replacing values with code ierr = " << ierr << std::endl;
         }
     }
 
