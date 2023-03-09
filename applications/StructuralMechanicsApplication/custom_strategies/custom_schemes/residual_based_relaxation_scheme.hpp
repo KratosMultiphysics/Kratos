@@ -7,8 +7,7 @@
 //
 
 
-#if !defined(KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME )
-#define  KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME
+# pragma once
 
 
 /* System includes */
@@ -722,6 +721,4 @@ private:
 /*@} */
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME  defined */
 

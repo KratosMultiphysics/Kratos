@@ -12,8 +12,7 @@
 //   Date:                $Date:         September 2016   $
 //   Revision:            $Revision:                0.0   $
 
-#if !defined(KRATOS_EIGENSOLVER_DYNAMIC_SCHEME )
-#define  KRATOS_EIGENSOLVER_DYNAMIC_SCHEME
+# pragma once
 
 
 // System includes
@@ -237,6 +236,4 @@ public:
 ///@}
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_EIGENSOLVER_DYNAMIC_SCHEME  defined */
 
