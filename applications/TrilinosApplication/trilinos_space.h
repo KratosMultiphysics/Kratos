@@ -425,36 +425,33 @@ public:
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
-        MatrixType aux_1(::Copy, map1, NumNz.data());
-
-        // First multiplication
-        if (EnforceInitialGraph) {
-            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, true);
-        } else {
-            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
-        }
 
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
+            // Define first auxiliary matrix
+            MatrixType aux_1(::Copy, rA.Graph());
+
+            // First multiplication
+            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, true);
+
             // Create a map
             const int size2 = Size1(rA);
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            MatrixType B_copy = MatrixType(::Copy, rA.Graph());
-
-            // We copy values
-            CopyMatrixValues(B_copy, rB);
-
-            // Create an Epetra_Matrix
             MatrixType aux_2(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            Mult(aux_1, B_copy, aux_2, CallFillCompleteOnResult);
+            Mult(aux_1, rB, aux_2, CallFillCompleteOnResult);
 
             // We copy values
             CopyMatrixValues(rA, aux_2);
         } else { // A new matrix
+            // Define first auxiliary matrix
+            MatrixType aux_1(::Copy, map1, NumNz.data());
+
+            // First multiplication
+            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
                 // Create a map
@@ -506,36 +503,33 @@ public:
 
         // Create an Epetra_Matrix
         std::vector<int> NumNz;
-        MatrixType aux_1(::Copy, map1, NumNz.data());
-
-        // First multiplication
-        if (EnforceInitialGraph) {
-            Mult(rB, rD, aux_1, CallFillCompleteOnResult, true);
-        } else {
-            Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
-        }
 
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
+            // Define first auxiliary matrix
+            MatrixType aux_1(::Copy, rA.Graph());
+
+            // First multiplication
+            Mult(rB, rD, aux_1, CallFillCompleteOnResult, true);
+
             // Create a map
             const int size2 = Size1(rA);
             Epetra_Map map2(size2, 0, r_comm);
 
             // Create an Epetra_Matrix
-            MatrixType B_copy = MatrixType(::Copy, rA.Graph());
-
-            // We copy values
-            CopyMatrixValues(B_copy, rB);
-
-            // Create an Epetra_Matrix
             MatrixType aux_2(::Copy, map2, NumNz.data());
 
             // Second multiplication
-            TransposeMult(aux_1, B_copy, aux_2, {false, true}, CallFillCompleteOnResult);
+            TransposeMult(aux_1, rB, aux_2, {false, true}, CallFillCompleteOnResult);
 
             // We copy values
             CopyMatrixValues(rA, aux_2);
         } else { // A new matrix
+            // Define first auxiliary matrix
+            MatrixType aux_1(::Copy, map1, NumNz.data());
+
+            // First multiplication
+            Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
                 // Create a map
