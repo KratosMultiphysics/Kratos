@@ -167,7 +167,6 @@ public:
     /**
     * @brief This method generates a set of row, columns and values from a sparse matrix
     * @param rA The matrix where generate the vectors of rows, indexes and values
-    * @param rDataCommunicator The data communicator considered
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
     * @param rValues The values
@@ -176,7 +175,6 @@ public:
     */
     static void GenerateSparseMatrixIndexAndValuesVectors(
         const TrilinosSparseSpaceType::MatrixType& rA,
-        const DataCommunicator& rDataCommunicator,
         std::vector<int>& rRowIndexes,
         std::vector<int>& rColumnIndexes,
         std::vector<double>& rValues,
