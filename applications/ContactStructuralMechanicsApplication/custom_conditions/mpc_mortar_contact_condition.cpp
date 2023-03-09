@@ -648,7 +648,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
+        const bool node_is_active = r_slave_geometry[i_node].IsActive();
         if (node_is_active) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
@@ -773,7 +773,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
+        const bool node_is_active = r_slave_geometry[i_node].IsActive();
         if (node_is_active) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
@@ -892,7 +892,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
+        const bool node_is_active = r_slave_geometry[i_node].IsActive();
         if (node_is_active) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
