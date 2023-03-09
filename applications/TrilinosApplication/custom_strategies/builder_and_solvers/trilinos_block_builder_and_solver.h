@@ -1280,7 +1280,7 @@ protected:
             } else { // Taking into account inactive constraints
                 // Save the auxiliary ids of the the slave inactive DoFs
                 for (auto slave_id : slave_equation_ids) {
-                    const IndexType index_rank = DeterminePartitionIndex(slave_id);
+                    const int index_rank = DeterminePartitionIndex(slave_id);
                     if (index_rank == current_rank) {
                         mInactiveSlaveDofs.insert(slave_id);
                     } else {
