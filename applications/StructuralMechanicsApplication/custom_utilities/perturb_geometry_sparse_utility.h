@@ -9,8 +9,7 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PERTUB_GEOMETRY_SPARSE_UTILITY)
-#define KRATOS_PERTUB_GEOMETRY_SPARSE_UTILITY
+# pragma once
 
 // System includes
 
@@ -118,4 +117,3 @@ private:
 
 ///@} addtogroup block
 }
-#endif /* KRATOS_PERTUB_GEOMETRY_SPARSE_UTILITY defined */

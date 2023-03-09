@@ -11,8 +11,7 @@
 //					 Philipp Bucher  (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_SHELL_UTILITIES_H_INCLUDED )
-#define  KRATOS_SHELL_UTILITIES_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -135,7 +134,5 @@ double GetOffset(const Properties& rProps);
 }  // namespace Shell Utilities.
 
 }  // namespace Kratos.
-
-#endif // KRATOS_SHELL_UTILITIES_H_INCLUDED  defined
 
 

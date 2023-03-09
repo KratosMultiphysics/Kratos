@@ -10,8 +10,7 @@
 //  Co-authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED )
-#define  KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED
+# pragma once
 
 // System includes
 #include <string>
@@ -541,5 +540,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined

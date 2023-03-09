@@ -8,8 +8,7 @@
 //
 //  Main authors:    Massimo Petracca
 //
-#if !defined(KRATOS_SHELLT3_LOCAL_COORDINATE_SYSTEM_H_INCLUDED )
-#define  KRATOS_SHELLT3_LOCAL_COORDINATE_SYSTEM_H_INCLUDED
+# pragma once
 
 // Project includes
 #include "utilities/math_utils.h"
@@ -277,6 +276,3 @@ public:
 };
 
 }
-
-
-#endif // KRATOS_SHELLT3_LOCAL_COORDINATE_SYSTEM_H_INCLUDED

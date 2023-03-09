@@ -10,8 +10,7 @@
 //                   Philipp Bucher
 //
 
-#if !defined(SHELL_CROSS_SECTION_H_INCLUDED)
-#define SHELL_CROSS_SECTION_H_INCLUDED
+# pragma once
 
 
 // System includes
@@ -1409,6 +1408,3 @@ inline std::ostream& operator << (std::ostream& rOStream, ShellCrossSection& rTh
 ///@}
 
 }
-
-
-#endif // SHELL_CROSS_SECTION_H_INCLUDED

@@ -10,8 +10,7 @@
 //
 // This file is partly copied from "DEMApplication/custom_utilities/omp_dem_search.h" and modified
 
-#if !defined(KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED )
-#define  KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED
+# pragma once
 
 // System includes
 #include <string>
@@ -150,5 +149,3 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED  defined

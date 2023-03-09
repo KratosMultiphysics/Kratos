@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined(KRATOS_PROJECT_VECTOR_ON_SURFACE_UTILITY_H )
-#define  KRATOS_PROJECT_VECTOR_ON_SURFACE_UTILITY_H
+# pragma once
 
 // System includes
 
@@ -104,5 +103,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_ASSIGN_MATERIAL_ORIENTATION_UTILITY_H defined

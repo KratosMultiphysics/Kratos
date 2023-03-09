@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES)
-#define KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES
+# pragma once
 
 // System includes
 
@@ -434,5 +433,4 @@ public:
 private:
 };// class StructuralMechanicsMathUtilities
 }
-#endif /* KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES defined */
 

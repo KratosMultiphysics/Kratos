@@ -10,8 +10,7 @@
 //                   Alejandro Cornejo
 //
 
-#if !defined(KRATOS_CONSTITUTIVE_LAW_UTILITIES)
-#define KRATOS_CONSTITUTIVE_LAW_UTILITIES
+# pragma once
 
 // System includes
 
@@ -257,4 +256,3 @@ private:
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
-#endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */
