@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED)
-#define KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -360,4 +359,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif
