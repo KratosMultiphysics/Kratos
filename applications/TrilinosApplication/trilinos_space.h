@@ -423,31 +423,22 @@ public:
         const int size1 = Size2(rB);
         Epetra_Map map1(size1, 0, r_comm);
 
-        // Create an Epetra_Matrix
-        std::vector<int> NumNz;
-
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
             // Define first auxiliary matrix
-            MatrixType aux_1(::Copy, rA.Graph());
+            MatrixType aux(::Copy, rA.Graph());
 
             // First multiplication
-            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, true);
+            TransposeMult(rB, rD, aux, {true, false}, CallFillCompleteOnResult, true);
 
-            // Create a map
-            const int size2 = Size1(rA);
-            Epetra_Map map2(size2, 0, r_comm);
-
-            // Create an Epetra_Matrix
-            MatrixType aux_2(::Copy, map2, NumNz.data());
+            // Empty the solution Epetra_Matrix
+            SetToZero(rA);
 
             // Second multiplication
-            Mult(aux_1, rB, aux_2, CallFillCompleteOnResult);
-
-            // We copy values
-            CopyMatrixValues(rA, aux_2);
+            Mult(aux, rB, rA, CallFillCompleteOnResult, true);
         } else { // A new matrix
             // Define first auxiliary matrix
+            std::vector<int> NumNz;
             MatrixType aux_1(::Copy, map1, NumNz.data());
 
             // First multiplication
@@ -501,31 +492,22 @@ public:
         const int size1 = Size1(rB);
         Epetra_Map map1(size1, 0, r_comm);
 
-        // Create an Epetra_Matrix
-        std::vector<int> NumNz;
-
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
             // Define first auxiliary matrix
-            MatrixType aux_1(::Copy, rA.Graph());
+            MatrixType aux(::Copy, rA.Graph());
 
             // First multiplication
-            Mult(rB, rD, aux_1, CallFillCompleteOnResult, true);
+            Mult(rB, rD, aux, CallFillCompleteOnResult, true);
 
-            // Create a map
-            const int size2 = Size1(rA);
-            Epetra_Map map2(size2, 0, r_comm);
-
-            // Create an Epetra_Matrix
-            MatrixType aux_2(::Copy, map2, NumNz.data());
+            // Empty the solution Epetra_Matrix
+            SetToZero(rA);
 
             // Second multiplication
-            TransposeMult(aux_1, rB, aux_2, {false, true}, CallFillCompleteOnResult);
-
-            // We copy values
-            CopyMatrixValues(rA, aux_2);
+            TransposeMult(aux, rB, rA, {false, true}, CallFillCompleteOnResult, true);
         } else { // A new matrix
             // Define first auxiliary matrix
+            std::vector<int> NumNz;
             MatrixType aux_1(::Copy, map1, NumNz.data());
 
             // First multiplication
