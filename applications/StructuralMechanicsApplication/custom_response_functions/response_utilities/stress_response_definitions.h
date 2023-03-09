@@ -10,8 +10,7 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#if !defined(KRATOS_STRESS_RESPONSE_DEFINITIONS_H_INCLUDED )
-#define  KRATOS_STRESS_RESPONSE_DEFINITIONS_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -136,7 +135,5 @@ private:
 };  // class StressCalculation.
 
 }  // namespace Kratos.
-
-#endif // KRATOS_STRESS_RESPONSE_DEFINITIONS_H_INCLUDED  defined
 
 

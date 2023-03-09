@@ -9,8 +9,7 @@
 //  Main authors:    Fusseder Martin, Armin Geiser, Daniel Baumgaertner
 //
 
-#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H
-#define EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H
+#pragma once
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -428,5 +427,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H

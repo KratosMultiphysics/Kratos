@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_D_PLUS_D_MINUS_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_D_PLUS_D_MINUS_DAMAGE_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -548,4 +547,3 @@ private:
 }; // Class
 
 } // namespace Kratos
-#endif

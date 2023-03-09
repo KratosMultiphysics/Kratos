@@ -9,8 +9,7 @@
 //  Main authors:    Philipp Bucher
 //
 
-#if !defined(KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -326,5 +325,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED  defined

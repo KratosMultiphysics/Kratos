@@ -10,8 +10,7 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_MIXED_STRAIN_ELEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_MIXED_STRAIN_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -687,4 +686,3 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SMALL_DISPLACEMENT_MIXED_STRAIN_ELEMENT_H_INCLUDED  defined
