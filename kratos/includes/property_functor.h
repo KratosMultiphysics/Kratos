@@ -55,10 +55,11 @@ public:
     ///@{
     typedef Geometry<Node<3>> GeometryType;
 
+    // The type of accessor functions to a property
     typedef std::function<double(const std::string&, const Properties&, const GeometryType&)> AccessorType;
 
     /// Pointer definition of ProcessInfo
-    KRATOS_CLASS_POINTER_DEFINITION(PropertyAccessor);
+    KRATOS_CLASS_POINTER_DEFINITION(PropertyFunctor);
 
     ///@}
     ///@name Life Cycle
@@ -72,13 +73,13 @@ public:
     /**
      * @brief default constructor
      */
-    PropertyAccessor(const double Value)
+    PropertyFunctor(const double Value)
     {
         mValue = Value;
     }
 
     /// Assignment operator.
-    PropertyAccessor& operator=(const PropertyAccessor& rOther)
+    PropertyFunctor& operator=(const PropertyFunctor& rOther)
     {
         mValue = rOther.mValue;
         mListOfAccessors = rOther.mListOfAccessors;

@@ -28,6 +28,7 @@
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
+#include "includes/property_functor.h"
 
 namespace Kratos
 {
