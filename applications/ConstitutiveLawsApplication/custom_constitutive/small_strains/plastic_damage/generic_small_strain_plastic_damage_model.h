@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_PLASTIC_DAMAGE_MODEL_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_PLASTIC_DAMAGE_MODEL_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -633,4 +632,3 @@ protected:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif
