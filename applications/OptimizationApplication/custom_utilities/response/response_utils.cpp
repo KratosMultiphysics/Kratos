@@ -191,6 +191,29 @@ void ResponseUtils::UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(
     rOutput.merge(entity_id_ptr_map);
 }
 
+template<class TEntityType>
+void ResponseUtils::UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
+    std::map<IndexType, ModelPart::NodeType*>& rOutput,
+    const std::map<IndexType, TEntityType*>& rInput)
+{
+    std::vector<TEntityType*> entities;
+    for (const auto& it : rInput) {
+        entities.push_back(it.second);
+    }
+
+    auto node_id_ptr_map = block_for_each<ContainerEntityMapReduction<ModelPart::NodeType>>(entities, [&](auto pEntity) {
+        auto& r_geometry = pEntity->GetGeometry();
+        std::vector<std::pair<IndexType, ModelPart::NodeType*>> items(r_geometry.size());
+        for (IndexType i = 0; i < r_geometry.size(); ++i) {
+            auto& r_node = r_geometry[i];
+            items[i] = std::make_pair(r_node.Id(), &r_node);
+        }
+        return items;
+    });
+
+    rOutput.merge(node_id_ptr_map);
+}
+
 ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
     const std::vector<ModelPart*>& rSensitivityModelParts,
     ModelPart& rAnalysisModelPart,
@@ -293,8 +316,19 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
 
         auto& model_part = r_model.CreateModelPart(unique_mp_name);
 
-        // finally we add all the conditions and elemenets from the maps, we don't need to call Unique in
+        std::map<IndexType, ModelPart::NodeType*> node_id_ptr_map;
+        // get nodes from condition_id_ptr_map
+        UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, condition_id_ptr_map);
+
+        // get nodes from element_id_ptr_map
+        UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, element_id_ptr_map);
+
+        // finally we add all the nodes, conditions and elements from the maps, we don't need to call Unique in
         // here because, we are using a std::map which is sorted with entity ids.
+        for (auto& it : node_id_ptr_map) {
+            model_part.Nodes().push_back(it.second);
+        }
+
         for (auto& it : condition_id_ptr_map) {
             model_part.Conditions().push_back(it.second);
         }
@@ -385,7 +419,13 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForDirectSensitivities(
 
         auto& model_part = r_model.CreateModelPart(unique_mp_name);
 
-        // finally we add all the conditions and elemenets from the maps, we don't need to call Unique in
+        // get nodes from condition_id_ptr_map
+        UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, condition_id_ptr_map);
+
+        // get nodes from element_id_ptr_map
+        UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, element_id_ptr_map);
+
+        // finally we add all the nodes, conditions and elements from the maps, we don't need to call Unique in
         // here because, we are using a std::map which is sorted with entity ids.
         for (auto& it : node_id_ptr_map) {
             model_part.Nodes().push_back(it.second);

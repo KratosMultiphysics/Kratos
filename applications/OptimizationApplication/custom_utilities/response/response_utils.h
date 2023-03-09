@@ -137,6 +137,11 @@ private:
         const Flags& rFlag,
         const bool FlagValue = true);
 
+    template<class TEntityType>
+    static void UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
+        std::map<IndexType, ModelPart::NodeType*>& rOutput,
+        const std::map<IndexType, TEntityType*>& rInput);
+
     ///@}
 };
 
