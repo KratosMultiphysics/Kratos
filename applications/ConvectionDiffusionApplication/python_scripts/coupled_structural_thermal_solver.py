@@ -160,8 +160,6 @@ class CoupledThermoMechanicalSolver(PythonSolver):
 
         self.RemoveConvectiveVelocity()
 
-        KratosMultiphysics.Logger.PrintInfo("+" + 130*"-" + "+")
-
         return (solid_is_converged)
 
     def FinalizeSolutionStep(self):
