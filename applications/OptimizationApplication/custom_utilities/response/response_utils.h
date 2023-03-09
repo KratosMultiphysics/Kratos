@@ -82,6 +82,7 @@ public:
      * @param AreSensitivityEntityParentsConsidered             true if it is required to have parent conditions and elements from rAnalysisModelPart for nodes in rSensitivityModelParts.
      * @param AreSensitivityEntitesConsidered                   true if it is required to have conditions and elements from rAnalysisModelPart for conditions and elements in rSensitivityModelParts.
      * @param ForceFindSensitivityEntitiesInAnalysisModelPart   true if it is required to have conditions and elements from rAnalysisModelPart for conditions and elements in rSensitivityModelParts when the root model parts does not match.
+     * @param EchoLevel                                         Echo level of the operations outputs.
      * @return ModelPart&                                       Resulting model part to carry out sensitivity analysis using the adjoint approach.
      */
     static ModelPart& GetSensitivityModelPartForAdjointSensitivities(
@@ -89,7 +90,8 @@ public:
         ModelPart& rAnalysisModelPart,
         const bool AreSensitivityEntityParentsConsidered,
         const bool AreSensitivityEntitesConsidered,
-        const bool ForceFindSensitivityEntitiesInAnalysisModelPart = false);
+        const bool ForceFindSensitivityEntitiesInAnalysisModelPart = false,
+        const IndexType EchoLevel = 0);
 
     /**
      * @brief Get the Sensitivity Model Part For Direct Sensitivity Computation.
@@ -117,6 +119,7 @@ public:
      * @param AreNodesConsidered            true if it is required to add common nodes to the resulting model part.
      * @param AreConditionsConsidered       true if it is required to add common conditions to the resulting model part.
      * @param AreElementsConsidered         true if it is required to add common elements to the resulting model part.
+     * @param EchoLevel                     Echo level of the operations outputs.
      * @return ModelPart&                   Resulting model part to carry out sensitivity analysis using the direct approach.
      */
     static ModelPart& GetSensitivityModelPartForDirectSensitivities(
@@ -124,7 +127,8 @@ public:
         const std::vector<ModelPart*>& rEvaluatedModelParts,
         const bool AreNodesConsidered,
         const bool AreConditionsConsidered,
-        const bool AreElementsConsidered);
+        const bool AreElementsConsidered,
+        const IndexType EchoLevel = 0);
 
     ///@}
 private:

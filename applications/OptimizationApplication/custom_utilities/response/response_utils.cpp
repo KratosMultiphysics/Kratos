@@ -220,7 +220,8 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
     ModelPart& rAnalysisModelPart,
     const bool AreSensitivityEntityParentsConsidered,
     const bool AreSensitivityEntitesConsidered,
-    const bool ForceFindSensitivityEntitiesInAnalysisModelPart)
+    const bool ForceFindSensitivityEntitiesInAnalysisModelPart,
+    const IndexType EchoLevel)
 {
     KRATOS_TRY
 
@@ -357,8 +358,34 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
             KRATOS_ERROR << msg.str();
         }
 
+        if (EchoLevel > 0) {
+            std::stringstream msg;
+            msg << "Created sensitivity computation model part based on " << rAnalysisModelPart.FullName();
+            msg << " for sensitivity model parts [ ";
+            for (const auto p_model_part : rSensitivityModelParts) {
+                msg << p_model_part->FullName() << " ";
+            }
+            msg << "]";
+            msg << (AreSensitivityEntityParentsConsidered ? " with parents" : "");
+            msg << (AreSensitivityEntitesConsidered ? " with sensitivity entities" : "");
+            msg << ".";
+            KRATOS_INFO("ResponseUtils") << msg.str() << std::endl;
+        }
         return model_part;
     } else {
+        if (EchoLevel > 1) {
+            std::stringstream msg;
+            msg << "Retrieved sensitivity computation model part based on " << rAnalysisModelPart.FullName();
+            msg << " for sensitivity model parts [ ";
+            for (const auto p_model_part : rSensitivityModelParts) {
+                msg << p_model_part->FullName() << " ";
+            }
+            msg << "]";
+            msg << (AreSensitivityEntityParentsConsidered ? " with parents" : "");
+            msg << (AreSensitivityEntitesConsidered ? " with sensitivity entities" : "");
+            msg << ".";
+            KRATOS_INFO("ResponseUtils") << msg.str() << std::endl;
+        }
         return r_model.GetModelPart(unique_mp_name);
     }
 
@@ -370,7 +397,8 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForDirectSensitivities(
     const std::vector<ModelPart*>& rEvaluatedModelParts,
     const bool AreNodesConsidered,
     const bool AreConditionsConsidered,
-    const bool AreElementsConsidered)
+    const bool AreElementsConsidered,
+    const IndexType EchoLevel)
 {
     KRATOS_TRY
 
@@ -463,8 +491,44 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForDirectSensitivities(
             KRATOS_ERROR << msg.str();
         }
 
+        if (EchoLevel > 0) {
+            std::stringstream msg;
+            msg << "Created sensitivity computation model part based on evaluated model parts [ ";
+            for (const auto p_model_part : rEvaluatedModelParts) {
+                msg << p_model_part->FullName() << " ";
+            }
+
+            msg << "] for sensitivity model parts [ ";
+            for (const auto p_model_part : rSensitivityModelParts) {
+                msg << p_model_part->FullName() << " ";
+            }
+            msg << "]";
+            msg << (AreNodesConsidered ? " with nodes" : "");
+            msg << (AreConditionsConsidered ? " with conditions" : "");
+            msg << (AreElementsConsidered ? " with elements" : "");
+            msg << ".";
+            KRATOS_INFO("ResponseUtils") << msg.str() << std::endl;
+        }
         return model_part;
     } else {
+        if (EchoLevel > 1) {
+            std::stringstream msg;
+            msg << "Retrieved sensitivity computation model part based on evaluated model parts [ ";
+            for (const auto p_model_part : rEvaluatedModelParts) {
+                msg << p_model_part->FullName() << " ";
+            }
+
+            msg << "] for sensitivity model parts [ ";
+            for (const auto p_model_part : rSensitivityModelParts) {
+                msg << p_model_part->FullName() << " ";
+            }
+            msg << "]";
+            msg << (AreNodesConsidered ? " with nodes" : "");
+            msg << (AreConditionsConsidered ? " with conditions" : "");
+            msg << (AreElementsConsidered ? " with elements" : "");
+            msg << ".";
+            KRATOS_INFO("ResponseUtils") << msg.str() << std::endl;
+        }
         return r_model.GetModelPart(unique_mp_name);
     }
 
