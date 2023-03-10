@@ -147,12 +147,12 @@ private:
     ///@name Private classes
     ///@{
 
-    template<class EntityType>
+    template<class TEntityType, class TMapValueType>
     class ContainerEntityMapReduction
     {
     public:
-        using return_type = std::map<IndexType, EntityPointerType<EntityType>>;
-        using value_type = std::vector<std::pair<IndexType, EntityPointerType<EntityType>>>;
+        using return_type = std::map<IndexType, TMapValueType>;
+        using value_type = std::vector<std::pair<IndexType, EntityPointerType<TEntityType>>>;
 
         return_type mValue;
 
@@ -163,7 +163,7 @@ private:
         void LocalReduce(const value_type& rValue);
 
         /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
-        void ThreadSafeReduce(ContainerEntityMapReduction<EntityType>& rOther);
+        void ThreadSafeReduce(ContainerEntityMapReduction<TEntityType, TMapValueType>& rOther);
     };
 
     ///@}

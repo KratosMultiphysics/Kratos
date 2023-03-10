@@ -32,24 +32,43 @@
 
 namespace Kratos {
 
-template<class EntityType>
-std::map<IndexType, typename EntityType::Pointer> ResponseUtils::ContainerEntityMapReduction<EntityType>::GetValue() const
+template<class TEntityType, class TMapValueType>
+std::map<IndexType, TMapValueType> ResponseUtils::ContainerEntityMapReduction<TEntityType, TMapValueType>::GetValue() const
 {
     return mValue;
 }
 
-template<class EntityType>
-void ResponseUtils::ContainerEntityMapReduction<EntityType>::LocalReduce(const value_type& rValue){
-    for (const auto& r_item : rValue) {
-        mValue.emplace(r_item);
+template<class TEntityType, class TMapValueType>
+void ResponseUtils::ContainerEntityMapReduction<TEntityType, TMapValueType>::LocalReduce(const value_type& rValue){
+    if constexpr(std::is_same_v<TMapValueType, EntityPointerType<TEntityType>>) {
+        for (const auto& r_item : rValue) {
+            mValue.emplace(r_item);
+        }
+    } else if constexpr(std::is_same_v<TMapValueType, std::vector<EntityPointerType<TEntityType>>>) {
+        for (const auto& r_item : rValue) {
+            mValue[r_item.first].push_back(r_item.second);
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported type for TMapValueType";
     }
 }
 
-template<class EntityType>
-void ResponseUtils::ContainerEntityMapReduction<EntityType>::ThreadSafeReduce(ContainerEntityMapReduction<EntityType>& rOther)
+template<class TEntityType, class TMapValueType>
+void ResponseUtils::ContainerEntityMapReduction<TEntityType, TMapValueType>::ThreadSafeReduce(ContainerEntityMapReduction<TEntityType, TMapValueType>& rOther)
 {
     KRATOS_CRITICAL_SECTION
-    mValue.merge(rOther.mValue);
+    if constexpr(std::is_same_v<TMapValueType, EntityPointerType<TEntityType>>) {
+        mValue.merge(rOther.mValue);
+    } else if constexpr(std::is_same_v<TMapValueType, std::vector<EntityPointerType<TEntityType>>>) {
+        for (const auto& it : rOther.mValue) {
+            auto& r_current_vector = mValue[it.first];
+            for (auto p_item : it.second) {
+                r_current_vector.push_back(p_item);
+            }
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported type for TMapValueType";
+    }
 }
 
 std::string ResponseUtils::GetCombinedModelPartsName(
@@ -81,15 +100,20 @@ void ResponseUtils::AddNeighbourEntitiesToFlaggedNodes(
     const Flags& rFlag,
     const bool FlagValue)
 {
+    using reduction_type = ContainerEntityMapReduction<typename TContainerType::value_type, std::vector<ContainerEntityPointerType<TContainerType>>>;
+
     // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
-    BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).for_each([&](auto& pEntity) {
+    auto node_id_neighbour_ptrs_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto& pEntity) {
+        std::vector<std::pair<IndexType, ContainerEntityPointerType<TContainerType>>> items;
         for (const auto& r_node : pEntity->GetGeometry()) {
             if (r_node.Is(rFlag) == FlagValue) {
-                KRATOS_CRITICAL_SECTION
-                rOutput[r_node.Id()].push_back(pEntity);
+                items.push_back(std::make_pair(r_node.Id(), pEntity));
             }
         }
+        return items;
     });
+
+    rOutput.merge(node_id_neighbour_ptrs_map);
 }
 
 template<class TEntityPointerType>
@@ -98,7 +122,7 @@ void ResponseUtils::UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(
     const std::map<IndexType, std::vector<TEntityPointerType>>& rNodeIdNeighbourEntityPtrsMap,
     const ModelPart::NodesContainerType& rNodes)
 {
-    auto entity_id_ptr_map = block_for_each<ContainerEntityMapReduction<typename TEntityPointerType::element_type>>(rNodes, [&](auto& rNode) {
+    auto entity_id_ptr_map = block_for_each<ContainerEntityMapReduction<typename TEntityPointerType::element_type, TEntityPointerType>>(rNodes, [&](auto& rNode) {
         std::vector<std::pair<IndexType, TEntityPointerType>> items;
         auto itr_item = rNodeIdNeighbourEntityPtrsMap.find(rNode.Id());
         if (itr_item != rNodeIdNeighbourEntityPtrsMap.end()) {
@@ -228,7 +252,7 @@ void ResponseUtils::UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
         entities.push_back(&*(it.second));
     }
 
-    auto node_id_ptr_map = block_for_each<ContainerEntityMapReduction<ModelPart::NodeType>>(entities, [&](auto& pEntity) {
+    auto node_id_ptr_map = block_for_each<ContainerEntityMapReduction<ModelPart::NodeType, ModelPart::NodeType::Pointer>>(entities, [&](auto& pEntity) {
         auto& r_geometry = pEntity->GetGeometry();
         std::vector<std::pair<IndexType, ModelPart::NodeType::Pointer>> items(r_geometry.size());
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
