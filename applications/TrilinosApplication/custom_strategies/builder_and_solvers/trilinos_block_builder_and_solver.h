@@ -24,7 +24,6 @@
 
 // Project includes
 #include "trilinos_space.h"
-#include "custom_utilities/trilinos_assembling_utilities.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
@@ -89,9 +88,6 @@ public:
 
     /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
-    /// Definition of TrilinosAssemblingUtilities
-    using TrilinosAssemblingUtilitiesType = TrilinosAssemblingUtilities<TSparseSpace>;
 
     /// The size_t types
     typedef std::size_t SizeType;
@@ -200,8 +196,8 @@ public:
                 pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 // Assemble the elemental contribution
-                TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
         }
 
@@ -218,8 +214,8 @@ public:
                 pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 // Assemble the condition contribution
-                TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
         }
 
@@ -264,7 +260,7 @@ public:
             pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -275,7 +271,7 @@ public:
             pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
         // finalizing the assembly
@@ -453,8 +449,8 @@ public:
             // Calculate elemental Right Hand Side Contribution
             pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // Assemble the elemental contribution
-            TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            // assemble the elemental contribution
+            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
         }
 
         RHS_Contribution.resize(0, false);
@@ -465,7 +461,7 @@ public:
             pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
         }
 
         // Finalizing the assembly
