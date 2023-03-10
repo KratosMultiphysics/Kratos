@@ -444,7 +444,9 @@ void LocalRefineGeometryMesh::UpdateSubModelPartNodes(ModelPart &rModelPart)
 void LocalRefineGeometryMesh::ResetFatherNodes(ModelPart &rModelPart)
 {
     block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
-        (rNode.GetValue(FATHER_NODES)).clear();
+        if (rNode.Has(FATHER_NODES)) {
+            (rNode.GetValue(FATHER_NODES)).clear();
+        }
     });
 }
 

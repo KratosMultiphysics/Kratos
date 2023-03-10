@@ -648,8 +648,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             const array_1d<double, 3>& r_normal = r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
@@ -773,8 +772,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             const bool is_slip = r_slave_geometry[i_node].IsDefined(SLIP) ? r_slave_geometry[i_node].Is(SLIP) : false;
@@ -892,8 +890,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             for (IndexType j_node = 0; j_node < TNumNodesMaster; ++j_node) {
