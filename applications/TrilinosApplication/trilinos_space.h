@@ -1025,7 +1025,6 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
         Epetra_Vector diagonal(rA.RowMap());
         const int ierr = rA.ExtractDiagonalCopy(diagonal);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
@@ -1058,7 +1057,6 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
         Epetra_Vector diagonal(rA.RowMap());
         const int ierr = rA.ExtractDiagonalCopy(diagonal);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
@@ -1076,7 +1074,6 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
         Epetra_Vector diagonal(rA.RowMap());
         const int ierr = rA.ExtractDiagonalCopy(diagonal);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
