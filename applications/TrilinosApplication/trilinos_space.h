@@ -1025,8 +1025,7 @@ public:
         KRATOS_TRY
 
         const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
+        Epetra_Vector diagonal(rA.RowMap());
         const int ierr = rA.ExtractDiagonalCopy(diagonal);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
 
@@ -1059,8 +1058,7 @@ public:
         KRATOS_TRY
 
         const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
+        Epetra_Vector diagonal(rA.RowMap());
         const int ierr = rA.ExtractDiagonalCopy(diagonal);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Max(diagonal);
@@ -1078,8 +1076,7 @@ public:
         KRATOS_TRY
 
         const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
+        Epetra_Vector diagonal(rA.RowMap());
         const int ierr = rA.ExtractDiagonalCopy(diagonal);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Min(diagonal);
