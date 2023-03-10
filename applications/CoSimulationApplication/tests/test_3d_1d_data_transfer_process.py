@@ -69,8 +69,7 @@ class Test3D1DDataTransferProcessBlock(KratosUnittest.TestCase):
         # Data transfer
         parameters = KM.Parameters("""{
             "origin_variables"         : ["TEMPERATURE"],
-            "destination_variables"    : ["TEMPERATURE"],
-            "debug_mode"               : false
+            "destination_variables"    : ["TEMPERATURE"]
         }""")
         process = CoSimulationApplication.DataTransfer3D1DProcess(self.model_part_block, self.model_part_line, parameters)
         process.Execute()
@@ -90,8 +89,7 @@ class Test3D1DDataTransferProcessBlock(KratosUnittest.TestCase):
         # Data transfer
         parameters = KM.Parameters("""{
             "origin_variables"         : ["TEMPERATURE"],
-            "destination_variables"    : ["TEMPERATURE"],
-            "debug_mode"               : false
+            "destination_variables"    : ["TEMPERATURE"]
         }""")
         process = CoSimulationApplication.DataTransfer3D1DProcess(self.model_part_block, self.model_part_line, parameters)
         process.Set(KratosMultiphysics.Mapper.USE_TRANSPOSE)
@@ -156,8 +154,7 @@ class Test3D1DDataTransferProcessTorus(KratosUnittest.TestCase):
         # Data transfer
         parameters = KM.Parameters("""{
             "origin_variables"         : ["TEMPERATURE"],
-            "destination_variables"    : ["TEMPERATURE"],
-            "debug_mode"               : false
+            "destination_variables"    : ["TEMPERATURE"]
         }""")
         process = CoSimulationApplication.DataTransfer3D1DProcess(self.model_part_torus, self.model_part_circle, parameters)
         process.Execute()
@@ -177,8 +174,7 @@ class Test3D1DDataTransferProcessTorus(KratosUnittest.TestCase):
         # Data transfer
         parameters = KM.Parameters("""{
             "origin_variables"         : ["TEMPERATURE"],
-            "destination_variables"    : ["TEMPERATURE"],
-            "debug_mode"               : false
+            "destination_variables"    : ["TEMPERATURE"]
         }""")
         process = CoSimulationApplication.DataTransfer3D1DProcess(self.model_part_torus, self.model_part_circle, parameters)
         process.Set(KratosMultiphysics.Mapper.USE_TRANSPOSE)

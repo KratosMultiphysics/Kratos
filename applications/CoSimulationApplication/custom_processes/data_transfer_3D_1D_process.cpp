@@ -161,13 +161,6 @@ DataTransfer3D1DProcess::DataTransfer3D1DProcess(
 
 DataTransfer3D1DProcess::~DataTransfer3D1DProcess()
 {
-    // Debug mode
-    const bool debug_mode = mThisParameters["debug_mode"].GetBool();
-
-    // We remove the auxiliary model part
-    if (!debug_mode && mr3DModelPart.HasSubModelPart("IntersectedElements3D")) {
-        mr3DModelPart.RemoveSubModelPart("IntersectedElements3D");
-    }
 }
 
 /***********************************************************************************/
@@ -270,7 +263,6 @@ const Parameters DataTransfer3D1DProcess::GetDefaultParameters() const
     {
         "origin_variables"         : [],
         "destination_variables"    : [],
-        "debug_mode"               : false,
         "swap_sign"                : false,
         "mapping_variables"   : {
             "mapper_type" : "nearest_element",
