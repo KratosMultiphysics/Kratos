@@ -418,9 +418,6 @@ public:
         const bool EnforceInitialGraph = false
         )
     {
-        // Gets the Epetra_Communicator
-        auto& r_comm = rA.Comm();
-
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
             // Define first auxiliary matrix
@@ -479,9 +476,6 @@ public:
         const bool EnforceInitialGraph = false
         )
     {
-        // Gets the Epetra_Communicator
-        auto& r_comm = rA.Comm();
-
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
             // Define first auxiliary matrix
