@@ -185,9 +185,7 @@ private:
     static void UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(
         std::map<IndexType, TEntityPointerType>& rOutput,
         const std::map<IndexType, std::vector<TEntityPointerType>>& rNodeIdNeighbourEntityPtrsMap,
-        const ModelPart::NodesContainerType& rNodes,
-        const Flags& rFlag,
-        const bool FlagValue = true);
+        const ModelPart::NodesContainerType& rNodes);
 
     template<class TContainerType>
     static void UpdateEntityIdEntityPtrMapFromEntityContainer(

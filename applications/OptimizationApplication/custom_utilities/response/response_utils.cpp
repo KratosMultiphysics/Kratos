@@ -96,9 +96,7 @@ template<class TEntityPointerType>
 void ResponseUtils::UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(
     std::map<IndexType, TEntityPointerType>& rOutput,
     const std::map<IndexType, std::vector<TEntityPointerType>>& rNodeIdNeighbourEntityPtrsMap,
-    const ModelPart::NodesContainerType& rNodes,
-    const Flags& rFlag,
-    const bool FlagValue)
+    const ModelPart::NodesContainerType& rNodes)
 {
     auto entity_id_ptr_map = block_for_each<ContainerEntityMapReduction<typename TEntityPointerType::element_type>>(rNodes, [&](auto& rNode) {
         std::vector<std::pair<IndexType, TEntityPointerType>> items;
@@ -302,10 +300,10 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
             // since this covers parent elements of conditions as well.
             for (const auto p_model_part : rSensitivityModelParts) {
                 // we update the map with condition ids and condition pointers in parallel
-                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(condition_id_ptr_map, node_id_neighbour_condition_ptrs_map, p_model_part->Nodes(), SELECTED);
+                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(condition_id_ptr_map, node_id_neighbour_condition_ptrs_map, p_model_part->Nodes());
 
                 // we update the map with element ids and element pointers in parallel
-                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(element_id_ptr_map, node_id_neighbour_element_ptrs_map, p_model_part->Nodes(), SELECTED);
+                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(element_id_ptr_map, node_id_neighbour_element_ptrs_map, p_model_part->Nodes());
             }
         }
 
