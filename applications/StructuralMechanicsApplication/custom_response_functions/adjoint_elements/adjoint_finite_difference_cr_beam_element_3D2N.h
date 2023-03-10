@@ -10,8 +10,7 @@
 //
 
 
-#if !defined(ADJOINT_FINITE_DIFFERENCE_CR_BEAM_ELEMENT_H_INCLUDED )
-#define  ADJOINT_FINITE_DIFFERENCE_CR_BEAM_ELEMENT_H_INCLUDED
+#pragma once
 
 #include "adjoint_finite_difference_base_element.h"
 
@@ -90,5 +89,3 @@ private:
 
 
 }
-
-#endif

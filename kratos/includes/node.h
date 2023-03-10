@@ -4,16 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-
-#if !defined(KRATOS_NODE_H_INCLUDED )
-#define  KRATOS_NODE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -22,9 +20,7 @@
 #include <cstddef>
 #include <atomic>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -37,10 +33,8 @@
 #include "intrusive_ptr/intrusive_ptr.hpp"
 #include "containers/global_pointers_vector.h"
 #include "containers/data_value_container.h"
-
 #include "containers/nodal_data.h"
-
-
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -937,6 +931,14 @@ public:
         return false;
     }
 
+    /**
+     * @brief Checks if the GeometricalObject is active
+     * @return True by default, otherwise depending on the ACTIVE flag
+     */
+    inline bool IsActive() const 
+    {
+        return IsDefined(ACTIVE) ? Is(ACTIVE) : true;
+    }
 
     ///@}
     ///@name Input and output
@@ -966,52 +968,40 @@ public:
             rOStream << "        " << (*i)->Info() << std::endl;
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -1097,16 +1087,13 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 
@@ -1144,14 +1131,9 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 //     namespace Globals
 //     {
 // 	extern Node<3> DefaultNode3;
 //     }
 
-
-
 }  // namespace Kratos.
-
-#endif // KRATOS_NODE_H_INCLUDED  defined

@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
@@ -7,8 +8,6 @@ import os
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
-
-
 class TestMPICommunicator(KratosUnittest.TestCase):
 
     def tearDown(self):
@@ -16,7 +15,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
     def _read_model_part_mpi(self,main_model_part):
 
-        if KratosMultiphysics.DataCommunicator.GetDefault().Size() == 1:
+        if KratosMultiphysics.Testing.GetDefaultDataCommunicator().Size() == 1:
             self.skipTest("Test can be run only using more than one mpi process")
 
         ## Add variables to the model part
@@ -29,8 +28,6 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         ## Check submodelpart of each main_model_part of each processor
         self.assertTrue(main_model_part.HasSubModelPart("Skin"))
-        skin_sub_model_part = main_model_part.GetSubModelPart("Skin")
-
 
     def test_assemble_variable_in_model_part(self):
         current_model = KratosMultiphysics.Model()
@@ -181,7 +178,6 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         self.assertEqual(comm.MaxAll(comm.Rank()), 0)
         self.assertEqual(comm.ScanSum(1), 1)
 
-
     def test_GlobalNumberOf_Methods(self):
         current_model = KratosMultiphysics.Model()
         main_model_part = current_model.CreateModelPart("MainModelPart")
@@ -189,17 +185,39 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         self._read_model_part_mpi(main_model_part)
 
+        # Adding new nodes for the constraint in rank 0 always
+        data_comm = main_model_part.GetCommunicator().GetDataCommunicator()
+        if data_comm.Rank() == 0:
+            node100 = main_model_part.CreateNewNode(100, 0.00000, 1.00000, 0.00000)
+            node100.SetSolutionStepValue(KratosMultiphysics.PARTITION_INDEX, 0)
+            node101 = main_model_part.CreateNewNode(101, 0.00000, 0.50000, 0.00000)
+            node101.SetSolutionStepValue(KratosMultiphysics.PARTITION_INDEX, 0)
+
+        # Adding Dofs
+        dofs_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"]
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_list, main_model_part)
+
+        # Create constraint in rank 0 always
+        if data_comm.Rank() == 0:
+            main_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, node100, KratosMultiphysics.DISPLACEMENT_X, node101, KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+
+        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(main_model_part)
+        ParallelFillCommunicator.Execute()
+
         main_comm = main_model_part.GetCommunicator()
 
-        self.assertEqual(main_comm.GlobalNumberOfNodes(), 9)
+        self.assertEqual(main_comm.GlobalNumberOfNodes(), 11)
         self.assertEqual(main_comm.GlobalNumberOfElements(), 8)
         self.assertEqual(main_comm.GlobalNumberOfConditions(), 8)
+        self.assertEqual(main_comm.GlobalNumberOfMasterSlaveConstraints(), 1)
 
         sub_comm = main_model_part.GetSubModelPart("Skin").GetCommunicator()
 
         self.assertEqual(sub_comm.GlobalNumberOfNodes(), 8)
         self.assertEqual(sub_comm.GlobalNumberOfElements(), 0)
         self.assertEqual(sub_comm.GlobalNumberOfConditions(), 8)
+        self.assertEqual(sub_comm.GlobalNumberOfMasterSlaveConstraints(), 0)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

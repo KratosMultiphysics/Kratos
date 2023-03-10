@@ -152,10 +152,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given element
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on nodal quantities, and elements has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -182,10 +182,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given element
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on condition quantities, and elements has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -208,10 +208,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given element
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on element quantities, and elements has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -238,10 +238,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given condition
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on nodal quantities, and conditions has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -268,10 +268,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given condition
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on condition quantities, and conditions has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -298,10 +298,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given condition
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on element quantities, and conditions has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -324,10 +324,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given element
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on nodal quantities, and elements has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -354,10 +354,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given element
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on condition quantities, and elements has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -380,10 +380,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given element
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on element quantities, and elements has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -410,10 +410,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given condition
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on nodal quantities, and conditions has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -440,10 +440,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given condition
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on condition quantities, and conditions has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *
@@ -470,10 +470,10 @@ public:
     /**
      * @brief Calculates sensitivity from a given condition
      *
-     * This method needs to be implemented in the derrived class if sensitivity calculation is
+     * This method needs to be implemented in the derived class if sensitivity calculation is
      * based on element quantities, and conditions has a contribution towards that.
      *
-     * rSensitivity vector should have sensitivities in the order maching rGPSensitivity vector.
+     * rSensitivity vector should have sensitivities in the order matching rGPSensitivity vector.
      * rGPSensitivityVector holds GlobalPointers indicating where these sensitivities need to
      * be stored accordingly.
      *

@@ -6,8 +6,7 @@
 //
 //
 
-#if !defined(KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED )
-#define  KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED
+#pragma once
 
 #include "EICR.hpp"
 #include "shellq4_coordinate_transformation.hpp"
@@ -582,6 +581,3 @@ private:
 };
 
 }
-
-
-#endif // KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED

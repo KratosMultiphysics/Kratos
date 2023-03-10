@@ -60,5 +60,6 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
         # Assign velocity to MP after solver.Initialize() - only apply once at the beginning!
         model_part = self.model[self.mpm_material_model_part_name]
         # the model part is identified here, AFTER it has been transferred to the MPM_material part!
-        for element in model_part.Elements:
-            element.SetValuesOnIntegrationPoints(KratosParticle.MP_VELOCITY,[self.velocity],model_part.ProcessInfo)
+        if not model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            for element in model_part.Elements:
+                element.SetValuesOnIntegrationPoints(KratosParticle.MP_VELOCITY,[self.velocity],model_part.ProcessInfo)

@@ -11,8 +11,7 @@
 //  Main authors:    Marcelo Raschi
 //  Collaborator:
 
-#if !defined(KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_LAW_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -330,4 +329,3 @@ private:
 
 }; // class SmallStrainIsotropicDamage3D
 } // namespace Kratos
-#endif
