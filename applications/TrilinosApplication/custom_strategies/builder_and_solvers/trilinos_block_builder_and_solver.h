@@ -24,6 +24,7 @@
 
 // Project includes
 #include "trilinos_space.h"
+#include "custom_utilities/trilinos_assembling_utilities.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
@@ -94,6 +95,9 @@ public:
 
     /// Definition of the base class
     using BaseType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
+
+    /// Definition of TrilinosAssemblingUtilities
+    using TrilinosAssemblingUtilitiesType = TrilinosAssemblingUtilities<TSparseSpace>;
 
     /// The size_t types
     using SizeType = std::size_t;
@@ -216,8 +220,8 @@ public:
                 pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 // Assemble the elemental contribution
-                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
         }
 
@@ -232,8 +236,8 @@ public:
                 pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 // Assemble the condition contribution
-                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
         }
 
@@ -278,7 +282,7 @@ public:
             pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -289,7 +293,7 @@ public:
             pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
         // finalizing the assembly
@@ -482,8 +486,8 @@ public:
             // Calculate elemental Right Hand Side Contribution
             pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // assemble the elemental contribution
-            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            // Assemble the elemental contribution
+            TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
         }
 
         RHS_Contribution.resize(0, false);
@@ -494,7 +498,7 @@ public:
             pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
         }
 
         // Finalizing the assembly
@@ -1275,8 +1279,8 @@ protected:
             if (r_const.IsActive()) {
                 r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
 
-                TSparseSpace::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
-                TSparseSpace::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
+                TrilinosAssemblingUtilitiesType::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
+                TrilinosAssemblingUtilitiesType::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
             } else { // Taking into account inactive constraints
                 // Save the auxiliary ids of the the slave inactive DoFs
                 for (auto slave_id : slave_equation_ids) {
