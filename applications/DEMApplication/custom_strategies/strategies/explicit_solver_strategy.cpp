@@ -2490,10 +2490,16 @@ namespace Kratos {
       var_rose_az_inn /= mRVE_RoseDiagramInner.size2();
 
       // Standard deviation
-      mRVE_StdDevRoseXYAll = sqrt(var_rose_xy_all);
-      mRVE_StdDevRoseAzAll = sqrt(var_rose_az_all);
-      mRVE_StdDevRoseXYInn = sqrt(var_rose_xy_inn);
-      mRVE_StdDevRoseAzInn = sqrt(var_rose_az_inn);
+      double std_dev_rose_xy_all = sqrt(var_rose_xy_all);
+      double std_dev_rose_az_all = sqrt(var_rose_az_all);
+      double std_dev_rose_xy_inn = sqrt(var_rose_xy_inn);
+      double std_dev_rose_az_inn = sqrt(var_rose_az_inn);
+
+      // Relative value
+      mRVE_StdDevRoseXYAll = std_dev_rose_xy_all / mRVE_NumParticles;
+      mRVE_StdDevRoseAzAll = std_dev_rose_az_all / mRVE_NumParticles;
+      mRVE_StdDevRoseXYInn = std_dev_rose_xy_inn / mRVE_NumParticlesInner;
+      mRVE_StdDevRoseAzInn = std_dev_rose_az_inn / mRVE_NumParticlesInner;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------

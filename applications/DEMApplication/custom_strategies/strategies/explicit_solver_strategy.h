@@ -327,10 +327,10 @@ namespace Kratos {
         double mRVE_DevStressInner;     // Deviatoric stress (inner particles)
         double mRVE_WallForces;         // Total force applied by walls (normal only)
         double mRVE_WallStress;         // Total stress applied by walls (normal only)
-        double mRVE_StdDevRoseXYAll;    // Std dev of rose values in XY plane for all particles
-        double mRVE_StdDevRoseAzAll;    // Std dev of rose values in Az plane for all particles
-        double mRVE_StdDevRoseXYInn;    // Std dev of rose values in XY plane for inner particles
-        double mRVE_StdDevRoseAzInn;    // Std dev of rose values in Az plane for inner particles
+        double mRVE_StdDevRoseXYAll;    // Std dev of rose values in XY plane for all particles (divided by number of particles)
+        double mRVE_StdDevRoseAzAll;    // Std dev of rose values in Az plane for all particles (divided by number of particles)
+        double mRVE_StdDevRoseXYInn;    // Std dev of rose values in XY plane for inner particles (divided by number of particles)
+        double mRVE_StdDevRoseAzInn;    // Std dev of rose values in Az plane for inner particles (divided by number of particles)
 
         std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE flat walls in negative X direction
         std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE flat walls in positive X direction
