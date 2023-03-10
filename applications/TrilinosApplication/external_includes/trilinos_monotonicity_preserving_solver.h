@@ -1,17 +1,16 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Daniel Diez
 //
 
-#if !defined(KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED )
-#define  KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -22,6 +21,7 @@
 #include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/parallel_utilities.h"
+#include "custom_utilities/trilinos_assembling_utilities.h"
 
 namespace Kratos
 {
@@ -47,10 +47,9 @@ namespace Kratos
 
 /**
  * @class TrilinosMonotonicityPreservingSolver
- * @ingroup KratosCore
- * @brief
- * @details
- * @author Daniel Diex
+ * @ingroup TrilinosApplication
+ * @brief MPI Trilinos version of MonotonicityPreservingSolver
+ * @author Daniel Diez
  * @tparam TSparseSpaceType The sparse space definition
  * @tparam TDenseSpaceType The dense space definition
  * @tparam TReordererType The reorder considered
@@ -66,6 +65,9 @@ public:
 
     /// Pointer definition of TrilinosMonotonicityPreservingSolver
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosMonotonicityPreservingSolver);
+
+    /// Definition of TrilinosAssemblingUtilities
+    using TrilinosAssemblingUtilitiesType = TrilinosAssemblingUtilities<TSparseSpaceType>;
 
     /// Definition of the base type
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
@@ -239,8 +241,8 @@ public:
                         dofs_sol[1] = dofs[cols[j]];
                         Vector RHS = -prod(LHS, dofs_sol);
                         Element::EquationIdVectorType equations_ids = {static_cast<std::size_t>(row_gid), static_cast<std::size_t>(col_gid)};
-                        TSparseSpaceType::AssembleLHS(rA, LHS, equations_ids);
-                        TSparseSpaceType::AssembleRHS(rB, RHS, equations_ids);
+                        TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS, equations_ids);
+                        TrilinosAssemblingUtilitiesType::AssembleRHS(rB, RHS, equations_ids);
 
                     }
                 }
@@ -410,6 +412,3 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED  defined
-
