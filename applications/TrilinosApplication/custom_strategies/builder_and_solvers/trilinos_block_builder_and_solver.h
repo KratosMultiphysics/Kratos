@@ -96,9 +96,6 @@ public:
     /// Definition of the base class
     using BaseType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    /// Definition of TrilinosAssemblingUtilities
-    using TrilinosAssemblingUtilitiesType = TrilinosAssemblingUtilities<TSparseSpace>;
-
     /// The size_t types
     using SizeType = std::size_t;
     using IndexType = std::size_t;
@@ -220,8 +217,8 @@ public:
                 pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 // Assemble the elemental contribution
-                TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
         }
 
@@ -236,8 +233,8 @@ public:
                 pScheme->CalculateSystemContributions(**it, LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 // Assemble the condition contribution
-                TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
         }
 
@@ -282,7 +279,7 @@ public:
             pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -293,7 +290,7 @@ public:
             pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TrilinosAssemblingUtilitiesType::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
         // finalizing the assembly
@@ -487,7 +484,7 @@ public:
             pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
         }
 
         RHS_Contribution.resize(0, false);
@@ -498,7 +495,7 @@ public:
             pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // Assemble the elemental contribution
-            TrilinosAssemblingUtilitiesType::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
         }
 
         // Finalizing the assembly
@@ -1279,8 +1276,8 @@ protected:
             if (r_const.IsActive()) {
                 r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
 
-                TrilinosAssemblingUtilitiesType::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
-                TrilinosAssemblingUtilitiesType::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
+                TrilinosAssemblingUtilities::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
+                TrilinosAssemblingUtilities::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
             } else { // Taking into account inactive constraints
                 // Save the auxiliary ids of the the slave inactive DoFs
                 for (auto slave_id : slave_equation_ids) {
