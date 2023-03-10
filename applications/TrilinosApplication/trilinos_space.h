@@ -419,10 +419,6 @@ public:
         // Gets the Epetra_Communicator
         auto& r_comm = rA.Comm();
 
-        // Create a map
-        const int size1 = Size2(rB);
-        Epetra_Map map1(size1, 0, r_comm);
-
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
             // Define first auxiliary matrix
@@ -439,18 +435,14 @@ public:
         } else { // A new matrix
             // Define first auxiliary matrix
             std::vector<int> NumNz;
-            MatrixType aux_1(::Copy, map1, NumNz.data());
+            MatrixType aux_1(::Copy, rA.RowMap(), NumNz.data());
 
             // First multiplication
             TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
-                // Create a map
-                const int size2 = Size1(rA);
-                Epetra_Map map2(size2, 0, r_comm);
-
                 // Create an Epetra_Matrix
-                MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
+                MatrixType* aux_2 =  new MatrixType(::Copy, rB.RowMap(), NumNz.data());
 
                 // Second multiplication
                 Mult(aux_1, rB, *aux_2, CallFillCompleteOnResult, KeepAllHardZeros);
@@ -488,10 +480,6 @@ public:
         // Gets the Epetra_Communicator
         auto& r_comm = rA.Comm();
 
-        // Create a map
-        const int size1 = Size1(rB);
-        Epetra_Map map1(size1, 0, r_comm);
-
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
             // Define first auxiliary matrix
@@ -508,18 +496,14 @@ public:
         } else { // A new matrix
             // Define first auxiliary matrix
             std::vector<int> NumNz;
-            MatrixType aux_1(::Copy, map1, NumNz.data());
+            MatrixType aux_1(::Copy, rB.RowMap(), NumNz.data());
 
             // First multiplication
             Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
-                // Create a map
-                const int size2 = Size1(rA);
-                Epetra_Map map2(size2, 0, r_comm);
-
                 // Create an Epetra_Matrix
-                MatrixType* aux_2 =  new MatrixType(::Copy, map2, NumNz.data());
+                MatrixType* aux_2 =  new MatrixType(::Copy, rA.RowMap(), NumNz.data());
 
                 // Second multiplication
                 TransposeMult(aux_1, rB, *aux_2, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
