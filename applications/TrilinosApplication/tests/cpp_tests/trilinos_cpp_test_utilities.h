@@ -153,6 +153,22 @@ public:
     * @param rA The matrix to check
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
+    * @param rB The reference matrix
+    * @param Tolerance The tolerance considered
+    */
+    static void CheckSparseMatrixFromLocalMatrix(
+        const TrilinosSparseMatrixType& rA,
+        const std::vector<int>& rRowIndexes,
+        const std::vector<int>& rColumnIndexes,
+        const TrilinosLocalMatrixType& rB,
+        const double Tolerance = 1e-8
+        );
+
+    /**
+    * @brief This method checks the values of a sparse matrix with the given indices and values
+    * @param rA The matrix to check
+    * @param rRowIndexes The row indices
+    * @param rColumnIndexes The column indices
     * @param rValues The values
     * @param Tolerance The tolerance considered
     */
