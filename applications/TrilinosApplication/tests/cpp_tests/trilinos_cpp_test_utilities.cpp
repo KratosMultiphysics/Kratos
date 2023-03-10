@@ -255,39 +255,15 @@ void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
     const double Tolerance
     )
 {
-    int local_validated_values = 0;
+
     int row, column;
-    double value;
+    std::vector<double> values(rRowIndexes.size());
     for (std::size_t counter = 0; counter < rRowIndexes.size(); ++counter) {
         row = rRowIndexes[counter];
         column = rColumnIndexes[counter];
-        value = rB(row, column);
-        for (int i = 0; i < rA.NumMyRows(); i++) {
-            int numEntries; // Number of non-zero entries
-            double* vals;   // Row non-zero values
-            int* cols;      // Column indices of row non-zero values
-            rA.ExtractMyRowView(i, numEntries, vals, cols);
-            const int row_gid = rA.RowMap().GID(i);
-            if (row == row_gid) {
-                int j;
-                for (j = 0; j < numEntries; j++) {
-                    const int col_gid = rA.ColMap().GID(cols[j]);
-                    if (col_gid == column) {
-                        KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], Tolerance)
-                        ++local_validated_values;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
+        values[counter] = rB(row, column);
     }
-
-    // Checking that all the values has been validated
-    const auto& r_comm = rA.Comm();
-    int global_validated_values;
-    r_comm.SumAll(&local_validated_values, &global_validated_values, 1);
-    KRATOS_CHECK_EQUAL(global_validated_values, static_cast<int>(rRowIndexes.size()));
+    CheckSparseMatrix(rA, rRowIndexes, rColumnIndexes, values, Tolerance);
 }
 
 
