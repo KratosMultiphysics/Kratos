@@ -17,11 +17,11 @@
 #include <limits>
 
 // Project includes
-#include "containers/global_pointers_vector.h"
 #include "containers/model.h"
 #include "includes/condition.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
 
@@ -33,7 +33,7 @@
 namespace Kratos {
 
 template<class EntityType>
-std::map<IndexType, EntityType*> ResponseUtils::ContainerEntityMapReduction<EntityType>::GetValue() const
+std::map<IndexType, typename EntityType::Pointer> ResponseUtils::ContainerEntityMapReduction<EntityType>::GetValue() const
 {
     return mValue;
 }
@@ -76,35 +76,41 @@ std::string ResponseUtils::GetCombinedModelPartsName(
 
 template<class TContainerType>
 void ResponseUtils::AddNeighbourEntitiesToFlaggedNodes(
+    std::map<IndexType, std::vector<ContainerEntityPointerType<TContainerType>>>& rOutput,
     TContainerType& rContainer,
-    const Variable<GlobalPointersVector<typename TContainerType::value_type>>& rNeighbourEntitiesOutputVariable,
     const Flags& rFlag,
     const bool FlagValue)
 {
-    block_for_each(rContainer, [&](auto& rEntity) {
-        for (auto& r_node : rEntity.GetGeometry()) {
+    // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
+    BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).for_each([&](auto& pEntity) {
+        for (const auto& r_node : pEntity->GetGeometry()) {
             if (r_node.Is(rFlag) == FlagValue) {
-                r_node.SetLock();
-                auto& r_neighbour_entities_vector = r_node.GetValue(rNeighbourEntitiesOutputVariable);
-                r_neighbour_entities_vector.push_back(&rEntity);
-                r_node.UnSetLock();
+                KRATOS_CRITICAL_SECTION
+                rOutput[r_node.Id()].push_back(pEntity);
             }
         }
     });
 }
 
-template<class TEntityType>
+template<class TEntityPointerType>
 void ResponseUtils::UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(
-    std::map<IndexType, TEntityType*>& rOutput,
+    std::map<IndexType, TEntityPointerType>& rOutput,
+    const std::map<IndexType, std::vector<TEntityPointerType>>& rNodeIdNeighbourEntityPtrsMap,
     const ModelPart::NodesContainerType& rNodes,
-    const Variable<GlobalPointersVector<TEntityType>>& rNeighbourEntitiesVariable)
+    const Flags& rFlag,
+    const bool FlagValue)
 {
-    auto entity_id_ptr_map = block_for_each<ContainerEntityMapReduction<TEntityType>>(rNodes, [&](auto& rNode) {
-        auto& r_neighbour_entities = rNode.GetValue(rNeighbourEntitiesVariable);
-        std::vector<std::pair<IndexType, TEntityType*>> items(r_neighbour_entities.size());
-        for (IndexType i = 0; i < r_neighbour_entities.size(); ++i) {
-            auto& r_entity = r_neighbour_entities[i];
-            items[i] = std::make_pair(r_entity.Id(), &r_entity);
+    auto entity_id_ptr_map = block_for_each<ContainerEntityMapReduction<typename TEntityPointerType::element_type>>(rNodes, [&](auto& rNode) {
+        std::vector<std::pair<IndexType, TEntityPointerType>> items;
+        auto itr_item = rNodeIdNeighbourEntityPtrsMap.find(rNode.Id());
+        if (itr_item != rNodeIdNeighbourEntityPtrsMap.end()) {
+            const auto& r_neighbour_entities = itr_item->second;
+            items.resize(r_neighbour_entities.size());
+            for (IndexType i = 0; i < r_neighbour_entities.size(); ++i) {
+                // the r_neighbour_entities(i) gives the intrusive_ptr which is incrementing the reference counter.
+                auto p_entity = r_neighbour_entities[i];
+                items[i] = std::make_pair(p_entity->Id(), p_entity);
+            }
         }
         return items;
     });
@@ -114,11 +120,16 @@ void ResponseUtils::UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(
 
 template<class TContainerType>
 void ResponseUtils::UpdateEntityIdEntityPtrMapFromEntityContainer(
-    std::map<IndexType, typename TContainerType::value_type*>& rOutput,
+    std::map<IndexType, ContainerEntityPointerType<TContainerType>>& rOutput,
     TContainerType& rContainer)
 {
-    auto entity_id_ptr_map = block_for_each<MapReduction<std::map<IndexType, typename TContainerType::value_type*>>>(rContainer, [](auto& rEntity) {
-        return std::make_pair(rEntity.Id(), &rEntity);
+    using map_type = std::map<IndexType, ContainerEntityPointerType<TContainerType>>;
+
+    using reduction_type = MapReduction<map_type>;
+
+    // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
+    auto entity_id_ptr_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto pEntity) {
+        return std::make_pair(pEntity->Id(), pEntity);
     });
 
     rOutput.merge(entity_id_ptr_map);
@@ -126,17 +137,22 @@ void ResponseUtils::UpdateEntityIdEntityPtrMapFromEntityContainer(
 
 template<class TContainerType>
 void ResponseUtils::UpdateNodeIdsEntityPtrMapFromEntityContainer(
-    std::map<NodeIdsType, typename TContainerType::value_type*>& rOutput,
+    std::map<NodeIdsType, ContainerEntityPointerType<TContainerType>>& rOutput,
     TContainerType& rContainer)
 {
-    auto node_ids_entity_ptr_map = block_for_each<MapReduction<std::map<NodeIdsType, typename TContainerType::value_type*>>>(rContainer, [](auto& rEntity) {
-        const auto& r_geometry = rEntity.GetGeometry();
+    using map_type = std::map<NodeIdsType, ContainerEntityPointerType<TContainerType>>;
+
+    using reduction_type = MapReduction<map_type>;
+
+    // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
+    auto node_ids_entity_ptr_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto pEntity) {
+        const auto& r_geometry = pEntity->GetGeometry();
         NodeIdsType node_ids(r_geometry.size());
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
             node_ids[i] = r_geometry[i].Id();
         }
         std::sort(node_ids.begin(), node_ids.end());
-        return std::make_pair(node_ids, &rEntity);
+        return std::make_pair(node_ids, pEntity);
     });
 
     rOutput.merge(node_ids_entity_ptr_map);
@@ -144,11 +160,15 @@ void ResponseUtils::UpdateNodeIdsEntityPtrMapFromEntityContainer(
 
 template<class TContainerType>
 void ResponseUtils::UpdateEntityIdEntityPtrMapFromNodeIdsEntityPtrMapAndEntityContainer(
-    std::map<IndexType, typename TContainerType::value_type*>& rOutput,
-    const std::map<NodeIdsType, typename TContainerType::value_type*>& rNodeIdsEntityPtrMap,
+    std::map<IndexType, ContainerEntityPointerType<TContainerType>>& rOutput,
+    const std::map<NodeIdsType, ContainerEntityPointerType<TContainerType>>& rNodeIdsEntityPtrMap,
     const TContainerType& rContainer)
 {
-    auto entity_id_ptr_map = block_for_each<MapReduction<std::map<IndexType, typename TContainerType::value_type*>>>(rContainer, [&](auto& rEntity) {
+    using map_type = std::map<IndexType, ContainerEntityPointerType<TContainerType>>;
+
+    using reduction_type = MapReduction<map_type>;
+
+    auto entity_id_ptr_map = block_for_each<reduction_type>(rContainer, [&](auto& rEntity) {
         const auto& r_geometry = rEntity.GetGeometry();
         NodeIdsType node_ids(r_geometry.size());
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
@@ -163,7 +183,8 @@ void ResponseUtils::UpdateEntityIdEntityPtrMapFromNodeIdsEntityPtrMapAndEntityCo
             KRATOS_ERROR << "Sensitivity entity with id " << rEntity.Id() << " not found in node ids entity map.";
         }
 
-        return std::make_pair(rEntity.Id(), &rEntity);
+        // following line will not be executed in runtime.
+        return std::make_pair(rEntity.Id(), p_it->second);
     });
 
     rOutput.merge(entity_id_ptr_map);
@@ -171,20 +192,26 @@ void ResponseUtils::UpdateEntityIdEntityPtrMapFromNodeIdsEntityPtrMapAndEntityCo
 
 template<class TContainerType>
 void ResponseUtils::UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(
-    std::map<IndexType, typename TContainerType::value_type*>& rOutput,
+    std::map<IndexType, ContainerEntityPointerType<TContainerType>>& rOutput,
     TContainerType& rContainer,
     const Flags& rFlag,
     const bool FlagValue)
 {
-    auto entity_id_ptr_map = block_for_each<MapReduction<std::map<IndexType, typename TContainerType::value_type*>>>(rContainer, [&](auto& rEntity) {
-        if (rEntity.Is(rFlag) == FlagValue) {
-            return std::make_pair(rEntity.Id(), &rEntity);
+    using map_type = std::map<IndexType, ContainerEntityPointerType<TContainerType>>;
+
+    using reduction_type = MapReduction<map_type>;
+
+    // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
+    auto entity_id_ptr_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto pEntity) {
+        if (pEntity->Is(rFlag) == FlagValue) {
+            return std::make_pair(pEntity->Id(), pEntity);
         } else {
-            return std::make_pair(std::numeric_limits<IndexType>::max(), &rEntity);
+            // this is a dummy return which will removed eventually.
+            return std::make_pair(std::numeric_limits<IndexType>::max(), pEntity);
         }
     });
 
-    // remove the unwanted entry of max
+    // remove the unwanted dummy entry of max
     if (entity_id_ptr_map.find(std::numeric_limits<IndexType>::max()) != entity_id_ptr_map.end()) {
         entity_id_ptr_map.erase(std::numeric_limits<IndexType>::max());
     }
@@ -192,22 +219,24 @@ void ResponseUtils::UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(
     rOutput.merge(entity_id_ptr_map);
 }
 
-template<class TEntityType>
+template<class TEntityPointerType>
 void ResponseUtils::UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
-    std::map<IndexType, ModelPart::NodeType*>& rOutput,
-    const std::map<IndexType, TEntityType*>& rInput)
+    std::map<IndexType, ModelPart::NodeType::Pointer>& rOutput,
+    const std::map<IndexType, TEntityPointerType>& rInput)
 {
-    std::vector<TEntityType*> entities;
+    // here we use raw ptrs, because there is no need to increment the reference counts.
+    std::vector<typename TEntityPointerType::element_type*> entities;
     for (const auto& it : rInput) {
-        entities.push_back(it.second);
+        entities.push_back(&*(it.second));
     }
 
-    auto node_id_ptr_map = block_for_each<ContainerEntityMapReduction<ModelPart::NodeType>>(entities, [&](auto pEntity) {
+    auto node_id_ptr_map = block_for_each<ContainerEntityMapReduction<ModelPart::NodeType>>(entities, [&](auto& pEntity) {
         auto& r_geometry = pEntity->GetGeometry();
-        std::vector<std::pair<IndexType, ModelPart::NodeType*>> items(r_geometry.size());
+        std::vector<std::pair<IndexType, ModelPart::NodeType::Pointer>> items(r_geometry.size());
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            auto& r_node = r_geometry[i];
-            items[i] = std::make_pair(r_node.Id(), &r_node);
+            // this gives the intrusive_ptr of the node and increment the reference count.
+            auto p_node = r_geometry(i);
+            items[i] = std::make_pair(p_node->Id(), p_node);
         }
         return items;
     });
@@ -246,45 +275,45 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
     auto& r_model = rSensitivityModelParts[0]->GetModel();
 
     if (!r_model.HasModelPart(unique_mp_name)) {
-        std::map<IndexType, Condition*> condition_id_ptr_map;
-        std::map<IndexType, Element*> element_id_ptr_map;
+        std::map<IndexType, Condition::Pointer> condition_id_ptr_map;
+        std::map<IndexType, Element::Pointer> element_id_ptr_map;
 
         if (AreSensitivityEntityParentsConsidered) {
+            // create the maps to hold neighbours
+            std::map<IndexType, std::vector<Condition::Pointer>> node_id_neighbour_condition_ptrs_map;
+            std::map<IndexType, std::vector<Element::Pointer>> node_id_neighbour_element_ptrs_map;
+
             // clear flags in analysis model part
             VariableUtils().SetFlag(SELECTED, false, rAnalysisModelPart.Nodes());
 
-            // clear neighbours on nodes of sensitivity model parts
+            // set flags for sensitivity model parts
             for (const auto p_model_part : rSensitivityModelParts) {
-                block_for_each(p_model_part->Nodes(), [](auto& rNode) {
-                    rNode.SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>());
-                    rNode.SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>());
-                    rNode.Set(SELECTED, true);
-                });
+                VariableUtils().SetFlag(SELECTED, true, p_model_part->Nodes());
             }
 
-            // now populate neighbour elements for on sensitivity model parts' nodes from the analysis model part
-            AddNeighbourEntitiesToFlaggedNodes(rAnalysisModelPart.Elements(), NEIGHBOUR_ELEMENTS, SELECTED);
-
             // now populate neighbour conditions for on sensitivity model parts' nodes from the analysis model part
-            AddNeighbourEntitiesToFlaggedNodes(rAnalysisModelPart.Conditions(), NEIGHBOUR_CONDITIONS, SELECTED);
+            AddNeighbourEntitiesToFlaggedNodes(node_id_neighbour_condition_ptrs_map, rAnalysisModelPart.Conditions(), SELECTED);
+
+            // now populate neighbour elements for on sensitivity model parts' nodes from the analysis model part
+            AddNeighbourEntitiesToFlaggedNodes(node_id_neighbour_element_ptrs_map, rAnalysisModelPart.Elements(), SELECTED);
 
             // now add the parent elements/conditions which are from the analysis model parts
             // we only iterate through nodal parent elements and nodal parent conditions
             // since this covers parent elements of conditions as well.
             for (const auto p_model_part : rSensitivityModelParts) {
                 // we update the map with condition ids and condition pointers in parallel
-                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(condition_id_ptr_map, p_model_part->Nodes(), NEIGHBOUR_CONDITIONS);
+                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(condition_id_ptr_map, node_id_neighbour_condition_ptrs_map, p_model_part->Nodes(), SELECTED);
 
                 // we update the map with element ids and element pointers in parallel
-                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(element_id_ptr_map, p_model_part->Nodes(), NEIGHBOUR_ELEMENTS);
+                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(element_id_ptr_map, node_id_neighbour_element_ptrs_map, p_model_part->Nodes(), SELECTED);
             }
         }
 
         if (AreSensitivityEntitesConsidered) {
             bool is_analysis_mp_entity_ids_ptrs_maps_generted = false;
 
-            std::map<NodeIdsType, Condition*> analysis_mp_node_ids_condition_ptr_map;
-            std::map<NodeIdsType, Element*> analysis_mp_node_ids_element_ptr_map;
+            std::map<NodeIdsType, Condition::Pointer> analysis_mp_node_ids_condition_ptr_map;
+            std::map<NodeIdsType, Element::Pointer> analysis_mp_node_ids_element_ptr_map;
 
             for (const auto p_model_part : rSensitivityModelParts) {
                 if (!ForceFindSensitivityEntitiesInAnalysisModelPart && (&(p_model_part->GetRootModelPart()) == &(rAnalysisModelPart.GetRootModelPart()))) {
@@ -318,7 +347,7 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
 
         auto& model_part = r_model.CreateModelPart(unique_mp_name);
 
-        std::map<IndexType, ModelPart::NodeType*> node_id_ptr_map;
+        std::map<IndexType, ModelPart::NodeType::Pointer> node_id_ptr_map;
         // get nodes from condition_id_ptr_map
         UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, condition_id_ptr_map);
 
@@ -436,9 +465,9 @@ ModelPart& ResponseUtils::GetSensitivityModelPartForDirectSensitivities(
             if (AreElementsConsidered) VariableUtils().SetFlag(SELECTED, true, p_model_part->Elements());
         }
 
-        std::map<IndexType, ModelPart::NodeType*> node_id_ptr_map;
-        std::map<IndexType, ModelPart::ConditionType*> condition_id_ptr_map;
-        std::map<IndexType, ModelPart::ElementType*> element_id_ptr_map;
+        std::map<IndexType, ModelPart::NodeType::Pointer> node_id_ptr_map;
+        std::map<IndexType, ModelPart::ConditionType::Pointer> condition_id_ptr_map;
+        std::map<IndexType, ModelPart::ElementType::Pointer> element_id_ptr_map;
 
         for (const auto p_model_part : rSensitivityModelParts) {
             if (AreNodesConsidered) UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(node_id_ptr_map, p_model_part->Nodes(), SELECTED);

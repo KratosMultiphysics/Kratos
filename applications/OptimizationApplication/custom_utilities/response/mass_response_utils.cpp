@@ -23,7 +23,8 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "response_utils.h"
+#include "custom_utilities/optimization_utils.h"
+#include "custom_utilities/response/response_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h

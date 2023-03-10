@@ -23,7 +23,6 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "custom_utilities/optimization_utils.h"
 
 namespace Kratos
 {
@@ -40,6 +39,15 @@ public:
     using IndexType = std::size_t;
 
     using NodeIdsType = std::vector<IndexType>;
+
+    template<class TEntityType>
+    using EntityPointerType = typename TEntityType::Pointer;
+
+    template<class TContainerType>
+    using ContainerEntityValueType = typename TContainerType::value_type;
+
+    template<class TContainerType>
+    using ContainerEntityPointerType = typename ContainerEntityValueType<TContainerType>::Pointer;
 
     ///@}
     ///@name Static operations
@@ -143,8 +151,8 @@ private:
     class ContainerEntityMapReduction
     {
     public:
-        using return_type = std::map<IndexType, EntityType*>;
-        using value_type = std::vector<std::pair<IndexType, EntityType*>>;
+        using return_type = std::map<IndexType, EntityPointerType<EntityType>>;
+        using value_type = std::vector<std::pair<IndexType, EntityPointerType<EntityType>>>;
 
         return_type mValue;
 
@@ -168,44 +176,46 @@ private:
 
     template<class TContainerType>
     static void AddNeighbourEntitiesToFlaggedNodes(
+        std::map<IndexType, std::vector<ContainerEntityPointerType<TContainerType>>>& rOutput,
         TContainerType& rContainer,
-        const Variable<GlobalPointersVector<typename TContainerType::value_type>>& rNeighbourEntitiesOutputVariable,
         const Flags& rFlag,
         const bool FlagValue = true);
 
-    template<class TEntityType>
+    template<class TEntityPointerType>
     static void UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(
-        std::map<IndexType, TEntityType*>& rOutput,
+        std::map<IndexType, TEntityPointerType>& rOutput,
+        const std::map<IndexType, std::vector<TEntityPointerType>>& rNodeIdNeighbourEntityPtrsMap,
         const ModelPart::NodesContainerType& rNodes,
-        const Variable<GlobalPointersVector<TEntityType>>& rNeighbourEntitiesVariable);
+        const Flags& rFlag,
+        const bool FlagValue = true);
 
     template<class TContainerType>
     static void UpdateEntityIdEntityPtrMapFromEntityContainer(
-        std::map<IndexType, typename TContainerType::value_type*>& rOutput,
+        std::map<IndexType, ContainerEntityPointerType<TContainerType>>& rOutput,
         TContainerType& rContainer);
 
     template<class TContainerType>
     static void UpdateNodeIdsEntityPtrMapFromEntityContainer(
-        std::map<NodeIdsType, typename TContainerType::value_type*>& rOutput,
+        std::map<NodeIdsType, ContainerEntityPointerType<TContainerType>>& rOutput,
         TContainerType& rContainer);
 
     template<class TContainerType>
     static void UpdateEntityIdEntityPtrMapFromNodeIdsEntityPtrMapAndEntityContainer(
-        std::map<IndexType, typename TContainerType::value_type*>& rOutput,
-        const std::map<NodeIdsType, typename TContainerType::value_type*>& rNodeIdsEntityPtrMap,
+        std::map<IndexType, ContainerEntityPointerType<TContainerType>>& rOutput,
+        const std::map<NodeIdsType, ContainerEntityPointerType<TContainerType>>& rNodeIdsEntityPtrMap,
         const TContainerType& rContainer);
 
     template<class TContainerType>
     static void UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(
-        std::map<IndexType, typename TContainerType::value_type*>& rOutput,
+        std::map<IndexType, ContainerEntityPointerType<TContainerType>>& rOutput,
         TContainerType& rContainer,
         const Flags& rFlag,
         const bool FlagValue = true);
 
-    template<class TEntityType>
+    template<class TEntityPointerType>
     static void UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
-        std::map<IndexType, ModelPart::NodeType*>& rOutput,
-        const std::map<IndexType, TEntityType*>& rInput);
+        std::map<IndexType, ModelPart::NodeType::Pointer>& rOutput,
+        const std::map<IndexType, TEntityPointerType>& rInput);
 
     ///@}
 };
