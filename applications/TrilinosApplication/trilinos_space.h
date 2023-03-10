@@ -658,6 +658,100 @@ public:
         rX.PutScalar(0.0);
     }
 
+    /// TODO: creating the the calculating reaction version
+    // 	template<class TOtherMatrixType, class TEquationIdVectorType>
+
+    /**
+     * @brief Assembles the LHS of the system
+     * @param rA The LHS matrix
+     * @param rLHSContribution The contribution to the LHS
+     * @param rEquationId The equation ids
+     */
+    inline static void AssembleLHS(
+        MatrixType& rA,
+        const Matrix& rLHSContribution,
+        const std::vector<std::size_t>& rEquationId
+        )
+    {
+        const unsigned int system_size = Size1(rA);
+
+        // Count active indices
+        unsigned int active_indices = 0;
+        for (unsigned int i = 0; i < rEquationId.size(); i++)
+            if (rEquationId[i] < system_size)
+                ++active_indices;
+
+        if (active_indices > 0) {
+            // Size Epetra vectors
+            Epetra_IntSerialDenseVector indices(active_indices);
+            Epetra_SerialDenseMatrix values(active_indices, active_indices);
+
+            // Fill epetra vectors
+            unsigned int loc_i = 0;
+            for (unsigned int i = 0; i < rEquationId.size(); i++) {
+                if (rEquationId[i] < system_size) {
+                    indices[loc_i] = rEquationId[i];
+
+                    unsigned int loc_j = 0;
+                    for (unsigned int j = 0; j < rEquationId.size(); j++) {
+                        if (rEquationId[j] < system_size) {
+                            values(loc_i, loc_j) = rLHSContribution(i, j);
+                            ++loc_j;
+                        }
+                    }
+                    ++loc_i;
+                }
+            }
+
+            const int ierr = rA.SumIntoGlobalValues(indices, values);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        }
+    }
+
+    //***********************************************************************
+    /// TODO: creating the the calculating reaction version
+    // 	template<class TOtherVectorType, class TEquationIdVectorType>
+
+    /**
+     * @brief Assembles the RHS of the system
+     * @param rb The RHS vector
+     * @param rRHSContribution The RHS contribution
+     * @param rEquationId The equation ids
+     */
+    inline static void AssembleRHS(
+        VectorType& rb,
+        const Vector& rRHSContribution,
+        const std::vector<std::size_t>& rEquationId
+        )
+    {
+        const unsigned int system_size = Size(rb);
+
+        // Count active indices
+        unsigned int active_indices = 0;
+        for (unsigned int i = 0; i < rEquationId.size(); i++)
+            if (rEquationId[i] < system_size)
+                ++active_indices;
+
+        if (active_indices > 0) {
+            // Size Epetra vectors
+            Epetra_IntSerialDenseVector indices(active_indices);
+            Epetra_SerialDenseVector values(active_indices);
+
+            // Fill epetra vectors
+            unsigned int loc_i = 0;
+            for (unsigned int i = 0; i < rEquationId.size(); i++) {
+                if (rEquationId[i] < system_size) {
+                    indices[loc_i] = rEquationId[i];
+                    values[loc_i] = rRHSContribution[i];
+                    ++loc_i;
+                }
+            }
+
+            const int ierr = rb.SumIntoGlobalValues(indices, values);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        }
+    }
+
     /**
      * @brief This function returns if we are in a distributed system
      * @return True if we are in a distributed system, false otherwise (always true in this case)

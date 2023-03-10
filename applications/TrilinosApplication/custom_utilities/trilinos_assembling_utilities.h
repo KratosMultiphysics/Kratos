@@ -1,14 +1,13 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -46,10 +45,8 @@ namespace Kratos
  * @class TrilinosAssemblingUtilities
  * @ingroup TrilinosApplication
  * @brief The Trilinos assembling utilities
- * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-template<class TSparseSpace>
 class TrilinosAssemblingUtilities
 {
 public:
@@ -59,11 +56,14 @@ public:
     /// Pointer definition of TrilinosAssemblingUtilities
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosAssemblingUtilities);
 
+    /// Definition of Trilinos space
+    using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
+
     /// Definition of the matrix type
-    using MatrixType = typename TSparseSpace::MatrixType;
+    using MatrixType = TrilinosSparseSpaceType::MatrixType;
 
     /// Definition of the vector type
-    using VectorType = typename TSparseSpace::VectorType;
+    using VectorType = TrilinosSparseSpaceType::VectorType;
 
     /// Definition of the index type
     using IndexType = std::size_t;
@@ -86,56 +86,6 @@ public:
     ///@name Operations
     ///@{
 
-    /// TODO: creating the the calculating reaction version
-    // 	template<class TOtherMatrixType, class TEquationIdVectorType>
-
-    /**
-     * @brief Assembles the LHS of the system
-     * @param rA The LHS matrix
-     * @param rLHSContribution The contribution to the LHS
-     * @param rEquationId The equation ids
-     */
-    inline static void AssembleLHS(
-        MatrixType& rA,
-        const Matrix& rLHSContribution,
-        const std::vector<std::size_t>& rEquationId
-        )
-    {
-        const unsigned int system_size = TSparseSpace::Size1(rA);
-
-        // Count active indices
-        unsigned int active_indices = 0;
-        for (unsigned int i = 0; i < rEquationId.size(); i++)
-            if (rEquationId[i] < system_size)
-                ++active_indices;
-
-        if (active_indices > 0) {
-            // Size Epetra vectors
-            Epetra_IntSerialDenseVector indices(active_indices);
-            Epetra_SerialDenseMatrix values(active_indices, active_indices);
-
-            // Fill epetra vectors
-            unsigned int loc_i = 0;
-            for (unsigned int i = 0; i < rEquationId.size(); i++) {
-                if (rEquationId[i] < system_size) {
-                    indices[loc_i] = rEquationId[i];
-
-                    unsigned int loc_j = 0;
-                    for (unsigned int j = 0; j < rEquationId.size(); j++) {
-                        if (rEquationId[j] < system_size) {
-                            values(loc_i, loc_j) = rLHSContribution(i, j);
-                            ++loc_j;
-                        }
-                    }
-                    ++loc_i;
-                }
-            }
-
-            const int ierr = rA.SumIntoGlobalValues(indices, values);
-            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
-        }
-    }
-
     /**
      * @brief Assembles the relation matrix T of the system with MPC
      * @param rT The T relation matrix
@@ -150,7 +100,7 @@ public:
         const std::vector<std::size_t>& rMasterEquationId
         )
     {
-        const unsigned int system_size = TSparseSpace::Size1(rT);
+        const unsigned int system_size = TrilinosSparseSpaceType::Size1(rT);
 
         // Count active indices
         int slave_active_indices = 0;
@@ -194,50 +144,6 @@ public:
         }
     }
 
-    //***********************************************************************
-    /// TODO: creating the the calculating reaction version
-    // 	template<class TOtherVectorType, class TEquationIdVectorType>
-
-    /**
-     * @brief Assembles the RHS of the system
-     * @param rb The RHS vector
-     * @param rRHSContribution The RHS contribution
-     * @param rEquationId The equation ids
-     */
-    inline static void AssembleRHS(
-        VectorType& rb,
-        const Vector& rRHSContribution,
-        const std::vector<std::size_t>& rEquationId
-        )
-    {
-        const unsigned int system_size = TSparseSpace::Size(rb);
-
-        // Count active indices
-        unsigned int active_indices = 0;
-        for (unsigned int i = 0; i < rEquationId.size(); i++)
-            if (rEquationId[i] < system_size)
-                ++active_indices;
-
-        if (active_indices > 0) {
-            // Size Epetra vectors
-            Epetra_IntSerialDenseVector indices(active_indices);
-            Epetra_SerialDenseVector values(active_indices);
-
-            // Fill epetra vectors
-            unsigned int loc_i = 0;
-            for (unsigned int i = 0; i < rEquationId.size(); i++) {
-                if (rEquationId[i] < system_size) {
-                    indices[loc_i] = rEquationId[i];
-                    values[loc_i] = rRHSContribution[i];
-                    ++loc_i;
-                }
-            }
-
-            const int ierr = rb.SumIntoGlobalValues(indices, values);
-            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
-        }
-    }
-
     /**
      * @brief Assembles the Constant vector of the system with MPC
      * @param rC The constant vector
@@ -250,7 +156,7 @@ public:
         const std::vector<std::size_t>& rSlaveEquationId
         )
     {
-        const unsigned int system_size = TSparseSpace::Size(rC);
+        const unsigned int system_size = TrilinosSparseSpaceType::Size(rC);
 
         // Count active indices
         unsigned int slave_active_indices = 0;
