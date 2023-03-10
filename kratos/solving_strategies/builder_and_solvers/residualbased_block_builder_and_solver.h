@@ -304,11 +304,7 @@ public:
                 auto it_elem = it_elem_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_elem, lhs_contribution, equation_id, r_current_process_info);
 
@@ -322,11 +318,7 @@ public:
                 auto it_cond = it_cond_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_cond, lhs_contribution, equation_id, r_current_process_info);
 
@@ -1252,14 +1244,8 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i=0; i<nelements; i++) {
                 typename ElementsArrayType::iterator it = pElements.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if( (it)->IsDefined(ACTIVE) ) {
-                    element_is_active = (it)->Is(ACTIVE);
-                }
-
-                if(element_is_active) {
+                // If the element is active
+                if(it->IsActive()) {
                     //calculate elemental Right Hand Side Contribution
                     pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -1276,14 +1262,8 @@ protected:
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++) {
                 auto it = ConditionsArray.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if( (it)->IsDefined(ACTIVE) ) {
-                    condition_is_active = (it)->Is(ACTIVE);
-                }
-
-                if(condition_is_active) {
+                // If the condition is active
+                if(it->IsActive()) {
                     //calculate elemental contribution
                     pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -1327,10 +1307,10 @@ protected:
                 }
 
                 // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].lock();
-                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].unlock();
+                for (auto& pair_temp_indices : temp_indices) {
+                    lock_array[pair_temp_indices.first].lock();
+                    indices[pair_temp_indices.first].insert(pair_temp_indices.second.begin(), pair_temp_indices.second.end());
+                    lock_array[pair_temp_indices.first].unlock();
                 }
             }
 
@@ -1409,16 +1389,11 @@ protected:
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+                it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
+                // If the constraint is active
+                if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                     for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
                         const IndexType i_global = slave_equation_ids[i];
@@ -1432,7 +1407,6 @@ protected:
                         AtomicAdd(r_value, constant_value);
                     }
                 } else { // Taking into account inactive constraints
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
                     auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 }
             }

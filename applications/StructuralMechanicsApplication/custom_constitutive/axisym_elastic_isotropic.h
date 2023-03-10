@@ -9,8 +9,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED)
-#define  KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -203,4 +202,3 @@ private:
 
 }; // Class AxisymElasticIsotropic
 }  // namespace Kratos.
-#endif // KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED  defined

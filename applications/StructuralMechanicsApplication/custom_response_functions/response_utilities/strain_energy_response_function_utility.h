@@ -10,8 +10,7 @@
 //                   Geiser Armin, https://github.com/armingeiser
 //
 
-#ifndef STRAIN_ENERGY_RESPONSE_FUNCTION_UTILITY_H
-#define STRAIN_ENERGY_RESPONSE_FUNCTION_UTILITY_H
+#pragma once
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -480,5 +479,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // STRAIN_ENERGY_RESPONSE_FUNCTION_UTILITY_H

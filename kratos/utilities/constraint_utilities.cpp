@@ -78,16 +78,10 @@ void ResetSlaveDofs(ModelPart& rModelPart)
     // Setting to zero the slave dofs
     block_for_each(
         rModelPart.MasterSlaveConstraints(),
-        [&r_current_process_info](MasterSlaveConstraint& rConstraint)
-        {
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (rConstraint.IsDefined(ACTIVE))
-                constraint_is_active = rConstraint.Is(ACTIVE);
-
-            if (constraint_is_active)
+        [&r_current_process_info](MasterSlaveConstraint& rConstraint) {
+            if (rConstraint.IsActive()) {
                 rConstraint.ResetSlaveDofs(r_current_process_info);
+            }
         }
     );
 
@@ -107,15 +101,8 @@ void ApplyConstraints(ModelPart& rModelPart)
     // Adding MPC contribution
     block_for_each(
         rModelPart.MasterSlaveConstraints(),
-        [&r_current_process_info](MasterSlaveConstraint& rConstraint)
-        {
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (rConstraint.IsDefined(ACTIVE))
-                constraint_is_active = rConstraint.Is(ACTIVE);
-
-            if (constraint_is_active) {
+        [&r_current_process_info](MasterSlaveConstraint& rConstraint) {
+            if (rConstraint.IsActive()) {
                 rConstraint.Apply(r_current_process_info);
             }
         }
