@@ -275,14 +275,14 @@ std::size_t  ModelPartIO::ReadGeometriesConnectivities(ConnectivitiesContainerTy
 
 void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
 {
-    // We are going to procede like the following, we are going to iterate over all the geometries and compare with the components, we will save the type and we will compare until we get that the type of geometry has changed
+    // We are going to proceed like the following, we are going to iterate over all the geometries and compare with the components, we will save the type and we will compare until we get that the type of geometry has changed
     if (rThisGeometries.NumberOfGeometries() > 0) {
         std::string geometry_name;
 
         auto it_geometry = rThisGeometries.GeometriesBegin();
         auto geometries_components = KratosComponents<GeometryType>::GetComponents();
 
-        // Fisrt we do the first geometry
+        // First we do the first geometry
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_geometry, geometry_name);
 
         (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
@@ -375,14 +375,14 @@ std::size_t  ModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType
 
 void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
 {
-    // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
+    // We are going to proceed like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     if (rThisElements.size() > 0) {
         std::string element_name;
 
         auto it_element = rThisElements.begin();
         auto elements_components = KratosComponents<Element>::GetComponents();
 
-        // Fisrt we do the first element
+        // First we do the first element
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_element, element_name);
 
         (*mpStream) << "Begin Elements\t" << element_name << std::endl;
@@ -460,7 +460,7 @@ std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerTy
 
 void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions)
 {
-    // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condition has changed
+    // We are going to proceed like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condition has changed
 
     if (rThisConditions.size() > 0) {
         std::string condition_name;
@@ -468,7 +468,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
         auto it_condition = rThisConditions.begin();
         auto conditions_components = KratosComponents<Condition>::GetComponents();
 
-        // Fisrt we do the first condition
+        // First we do the first condition
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_condition, condition_name);
 
         (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
@@ -5283,28 +5283,28 @@ void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
 ModelPartIO::SizeType ModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
 {
     // The ModelPartIO does not reorder the nodes
-    // This method is the one to be overriden by some reordering IO class
+    // This method is the one to be overridden by some reordering IO class
     return NodeId;
 }
 
 ModelPartIO::SizeType ModelPartIO::ReorderedGeometryId(ModelPartIO::SizeType GeometryId)
 {
     // The ModelPartIO does not reorder the geometries
-    // This method is the one to be overriden by some reordering IO class
+    // This method is the one to be overridden by some reordering IO class
     return GeometryId;
 }
 
 ModelPartIO::SizeType ModelPartIO::ReorderedElementId(ModelPartIO::SizeType ElementId)
 {
     // The ModelPartIO does not reorder the elements
-    // This method is the one to be overriden by some reordering IO class
+    // This method is the one to be overridden by some reordering IO class
     return ElementId;
 }
 
 ModelPartIO::SizeType ModelPartIO::ReorderedConditionId(ModelPartIO::SizeType ConditionId)
 {
     // The ModelPartIO does not reorder the conditions
-    // This method is the one to be overriden by some reordering IO class
+    // This method is the one to be overridden by some reordering IO class
     return ConditionId;
 }
 }  // namespace Kratos.

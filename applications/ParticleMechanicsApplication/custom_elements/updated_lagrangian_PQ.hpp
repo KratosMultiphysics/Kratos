@@ -129,7 +129,7 @@ protected:
             const double& rIntegrationWeight) override;
 
      /// Initialize Material Properties on the Constitutive Law
-    void InitializeMaterial() override;
+    void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
 

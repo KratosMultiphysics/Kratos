@@ -13,8 +13,7 @@
 //                   Alejandro Cornejo Velazquez
 //
 
-#if !defined (KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED)
-#define  KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -681,4 +680,3 @@ private:
 
 }; // Class ParallelRuleOfMixturesLaw
 }  // namespace Kratos.
-#endif // KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED  defined

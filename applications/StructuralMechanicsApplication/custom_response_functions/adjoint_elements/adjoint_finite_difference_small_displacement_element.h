@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(ADJOINT_FINITE_DIFFERENCE_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
-#define  ADJOINT_FINITE_DIFFERENCE_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
+#pragma once
 
 #include "adjoint_finite_difference_base_element.h"
 
@@ -102,5 +101,3 @@ private:
 
 
 }
-
-#endif

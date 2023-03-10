@@ -11,8 +11,7 @@
 //  Main authors:    Marcelo Raschi
 //  Collaborator:
 
-#if !defined(KRATOS_LINEAR_ISOTROPIC_DAMAGE_TRACTION_ONLY_3D_LAW_H_INCLUDED)
-#define KRATOS_LINEAR_ISOTROPIC_DAMAGE_TRACTION_ONLY_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -151,4 +150,3 @@ private:
 
 }; // class LinearIsotropicDamage3DLaw
 } // namespace Kratos
-#endif
