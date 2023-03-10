@@ -76,14 +76,7 @@ public:
     ///@{
 
     /// Default constructor.
-    TrilinosAssemblingUtilities()
-    {
-    }
-
-    /// Destructor.
-    virtual ~TrilinosAssemblingUtilities()
-    {
-    }
+    TrilinosAssemblingUtilities() = delete;
 
     ///@}
     ///@name Operators
