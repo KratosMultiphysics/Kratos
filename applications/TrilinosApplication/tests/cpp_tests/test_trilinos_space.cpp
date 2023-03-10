@@ -326,9 +326,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperationRealCase, Krat
     auto T = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values);
 
     /* Intermediate multiplication */
-    // Create a map
-    const int size1 = TrilinosSparseSpaceType::Size2(T);
-    Epetra_Map map(size1, 0, A.Comm());
 
     // Create an Epetra_Matrix
     TrilinosSparseMatrixType aux(::Copy, A.Graph());
