@@ -32,6 +32,10 @@ class OutputProcessWithController(KratosMultiphysics.OutputProcess):
             "output_settings" : {}
         }''')
 
+    def Check(self):
+        self.controller.Check()
+        self.print_process.Check()
+
     def ExecuteInitialize(self):
         self.print_process.ExecuteInitialize()
 
@@ -54,7 +58,7 @@ class OutputProcessWithController(KratosMultiphysics.OutputProcess):
         self.print_process.ExecuteFinalize()
 
     def IsOutputStep(self):
-        self.controller.IsOutputStep()
+        self.controller.Evaluate()
 
     def PrintOutput(self):
         self.print_process.PrintOutput()
