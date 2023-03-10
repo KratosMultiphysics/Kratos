@@ -10,8 +10,7 @@
 //
 
 // System includes
-#if !defined(KRATOS_SMALL_DISPLACEMENT_LINE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_LINE_LOAD_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -326,7 +325,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_SMALL_DISPLACEMENT_LINE_LOAD_CONDITION_H_INCLUDED  defined
 
 

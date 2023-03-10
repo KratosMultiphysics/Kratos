@@ -12,8 +12,7 @@
 //  Based on : "An accurate two‐stage explicit time integration scheme for structural dynamics and various dynamic problems" - Wooram Kim
 //
 
-#if !defined(KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED)
-#define KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED
+#pragma once
 
 /* System includes */
 
@@ -931,5 +930,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED  defined */
