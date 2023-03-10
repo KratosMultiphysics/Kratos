@@ -474,6 +474,7 @@ public:
             KRATOS_ERROR_IF(ierr != 0) << "Epetra assign failure " << ierr << std::endl;
         } else {
             rX = rY;
+        }
     }
 
     /**
