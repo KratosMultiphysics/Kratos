@@ -4,33 +4,24 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
+#pragma once
 
-#if !defined(KRATOS_TRILINOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER )
-#define  KRATOS_TRILINOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER
-
-
-/* System includes */
+// System includes
 #include <set>
 
-/* External includes */
-//Trilinos includes
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
-#include "Epetra_SerialDenseVector.h"
-#include "Epetra_MpiComm.h"
+// External includes
+#include <Epetra_FECrsGraph.h>
+#include <Epetra_IntVector.h>
 
-/* Project includes */
-#include "includes/define.h"
+// Project includes
+#include "trilinos_space.h"
+#include "custom_utilities/trilinos_assembling_utilities.h"
 #include "utilities/timer.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
@@ -120,8 +111,11 @@ public:
     /*@{ */
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosResidualBasedEliminationBuilderAndSolver );
 
+    /// Definition of the base class
+    using BaseType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver > BaseType;
+    /// Definition of TrilinosAssemblingUtilities
+    using TrilinosAssemblingUtilitiesType = TrilinosAssemblingUtilities<TSparseSpace>;
 
     typedef TSparseSpace SparseSpaceType;
 
@@ -230,8 +224,8 @@ public:
             std::cout << std::endl;
             KRATOS_WATCH(RHS_Contribution);*/
             //assemble the elemental contribution
-            TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
-            TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
+            TrilinosAssemblingUtilitiesType::AssembleLHS(A,LHS_Contribution,EquationId);
+            TrilinosAssemblingUtilitiesType::AssembleRHS(b,RHS_Contribution,EquationId);
         }
 
         LHS_Contribution.resize(0,0,false);
@@ -244,8 +238,8 @@ public:
             pScheme->CalculateSystemContributions(**it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
-            TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
-            TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
+            TrilinosAssemblingUtilitiesType::AssembleLHS(A,LHS_Contribution,EquationId);
+            TrilinosAssemblingUtilitiesType::AssembleRHS(b,RHS_Contribution,EquationId);
         }
 
         //finalizing the assembly
@@ -295,7 +289,7 @@ public:
             pScheme->CalculateLHSContribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
-            TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
+            TrilinosAssemblingUtilitiesType::AssembleLHS(A,LHS_Contribution,EquationId);
         }
 
         LHS_Contribution.resize(0,0,false);
@@ -307,7 +301,7 @@ public:
             pScheme->CalculateLHSContribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
-            TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
+            TrilinosAssemblingUtilitiesType::AssembleLHS(A,LHS_Contribution,EquationId);
         }
 
         //finalizing the assembly
@@ -456,7 +450,7 @@ public:
             pScheme->CalculateRHSContribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
-            TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
+            TrilinosAssemblingUtilitiesType::AssembleRHS(b,RHS_Contribution,EquationId);
         }
 
         RHS_Contribution.resize(0,false);
@@ -468,7 +462,7 @@ public:
             pScheme->CalculateRHSContribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
-            TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
+            TrilinosAssemblingUtilitiesType::AssembleRHS(b,RHS_Contribution,EquationId);
         }
 
         //finalizing the assembly
@@ -1386,5 +1380,3 @@ private:
 /*@} */
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_TRILINOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER  defined */
