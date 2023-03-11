@@ -17,7 +17,7 @@
 #include <limits>
 
 // Project includes
-#include "containers/model.h"
+#include "includes/communicator.h"
 #include "includes/condition.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
@@ -31,6 +31,89 @@
 #include "response_utils.h"
 
 namespace Kratos {
+
+std::vector<ModelPart*> ResponseUtils::GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+    const std::vector<ModelPart*>& rExaminedModelPartsList,
+    const std::vector<ModelPart*>& rReferenceModelParts,
+    const bool AreNodesConsidered,
+    const bool AreConditionsConsidered,
+    const bool AreElementsConsidered,
+    const bool AreParentsConsidered,
+    const IndexType EchoLevel)
+{
+    KRATOS_TRY
+
+    std::stringstream mp_name_prefix;
+    mp_name_prefix << "<OPTIMIZATION_APP_AUTO>"
+                   << (AreNodesConsidered
+                            ? "_Nodes"
+                            : "_NoNodes")
+                   << (AreConditionsConsidered
+                            ? "_Conditions"
+                            : "_NoConditions")
+                   << (AreElementsConsidered
+                            ? "_Elements"
+                            : "_NoElements")
+                   << (AreParentsConsidered
+                            ? "_Parents"
+                            : "_NoParents")
+                   << "_SensitivityMPs_";
+
+    // now generate the unique name for model part
+    const std::string& unique_mp_name = GetCombinedModelPartsName(mp_name_prefix.str(), rExaminedModelPartsList);
+
+    IndexType total_number_of_entities{0};
+
+    std::vector<ModelPart*> output_model_parts(rReferenceModelParts.size());
+
+    for (IndexType i = 0; i < rReferenceModelParts.size(); ++i) {
+        auto& r_reference_model_part = *(rReferenceModelParts[i]);
+
+        // first check whether the required model part exists, if not create it.
+        if (!r_reference_model_part.HasSubModelPart(unique_mp_name)) {
+            CreateModelPartWithCommonReferenceEntitiesBetweenReferenceAndExamined(unique_mp_name, rExaminedModelPartsList,
+                                       r_reference_model_part, AreNodesConsidered,
+                                       AreConditionsConsidered, AreElementsConsidered,
+                                       AreParentsConsidered, EchoLevel);
+        }
+
+        auto p_model_part = &r_reference_model_part.GetSubModelPart(unique_mp_name);
+        output_model_parts[i] = p_model_part;
+
+        KRATOS_INFO_IF("ResponseUtils", EchoLevel > 1)
+            << "Retrieved sensitivity computation model part using "
+            << r_reference_model_part.FullName() << " for "
+            << GetSensitivityComputationModelPartsInfo(
+                   rExaminedModelPartsList, AreNodesConsidered, AreConditionsConsidered,
+                   AreElementsConsidered, AreParentsConsidered);
+
+        total_number_of_entities += (AreNodesConsidered ? p_model_part->GetCommunicator().GlobalNumberOfNodes() : 0);
+        total_number_of_entities += (AreConditionsConsidered ? p_model_part->GetCommunicator().GlobalNumberOfConditions() : 0);
+        total_number_of_entities += (AreElementsConsidered ? p_model_part->GetCommunicator().GlobalNumberOfElements() : 0);
+    }
+
+    if (total_number_of_entities == 0) {
+        std::stringstream msg;
+        msg << "No common entities found between the reference "
+            "model parts and sensitivity model parts for sensitivity computation.";
+
+        msg << "\nFollowings are the reference model parts:";
+        for (const auto p_model_part : rReferenceModelParts) {
+            msg << "\n\t" << p_model_part->FullName();
+        }
+
+        msg << "\nFollowings are the sensitivity model parts:";
+        for (const auto p_model_part : rExaminedModelPartsList) {
+            msg << "\n\t" << p_model_part->FullName();
+        }
+
+        KRATOS_ERROR << msg.str();
+    }
+
+    return output_model_parts;
+
+    KRATOS_CATCH("");
+}
 
 template<class TEntityType, class TMapValueType>
 std::map<IndexType, TMapValueType> ResponseUtils::ContainerEntityMapReduction<TEntityType, TMapValueType>::GetValue() const
@@ -91,6 +174,36 @@ std::string ResponseUtils::GetCombinedModelPartsName(
     std::replace(name.begin(), name.end(), '.', '>');
 
     return name;
+}
+
+std::string ResponseUtils::GetSensitivityComputationModelPartsInfo(
+    const std::vector<ModelPart*>& rExaminedModelPartsList,
+    const bool AreNodesConsidered,
+    const bool AreConditionsConsidered,
+    const bool AreElementsConsidered,
+    const bool AreParentsConsidered)
+{
+    std::stringstream msg;
+    msg << "sensitivity model parts [ ";
+
+    for (const auto p_model_part : rExaminedModelPartsList) {
+        msg << p_model_part->FullName() << ", ";
+    }
+
+    if (*msg.str().rbegin() == ' ') msg.seekp(-1, std::ios_base::end);
+    if (*msg.str().rbegin() == ',') msg.seekp(-1, std::ios_base::end);
+
+    msg << " ] with common [ ";
+    msg << (AreNodesConsidered ? "nodes, " : "");
+    msg << (AreConditionsConsidered ? "conditions, " : "");
+    msg << (AreElementsConsidered ? "elements, "  : "");
+    msg << (AreParentsConsidered ? "parents, " : "");
+
+    if (*msg.str().rbegin() == ' ') msg.seekp(-1, std::ios_base::end);
+    if (*msg.str().rbegin() == ',') msg.seekp(-1, std::ios_base::end);
+
+    msg << " ]" << '\0';
+    return msg.str();
 }
 
 template<class TContainerType>
@@ -266,322 +379,164 @@ void ResponseUtils::UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
     rOutput.merge(node_id_ptr_map);
 }
 
-ModelPart& ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(
-    const std::vector<ModelPart*>& rSensitivityModelParts,
-    ModelPart& rAnalysisModelPart,
-    const bool AreSensitivityEntityParentsConsidered,
-    const bool AreSensitivityEntitesConsidered,
-    const bool ForceFindSensitivityEntitiesInAnalysisModelPart,
-    const IndexType EchoLevel)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF(rSensitivityModelParts.size() == 0) << "No sensitivity model parts were provided.\n";
-
-    std::stringstream mp_name_prefix;
-    mp_name_prefix << "<OPTIMIZATION_APP_AUTO>_AnalysisMP_" << rAnalysisModelPart.FullName()
-                   << (AreSensitivityEntityParentsConsidered
-                            ? "_SensParentEntities_"
-                            : "_NoSensParentEntities_")
-                   << (AreSensitivityEntitesConsidered
-                            ? "_SensEntities_"
-                            : "_NoSensEntities_")
-                   << (ForceFindSensitivityEntitiesInAnalysisModelPart
-                            ? "_ForceFindInAnalysisMP_"
-                            : "_NoForceFindInAnalysisMP_")
-                   << "SensitivityMPs_";
-
-    // now generate the unique name for model part
-    const std::string& unique_mp_name = GetCombinedModelPartsName(mp_name_prefix.str(), rSensitivityModelParts);
-
-    auto& r_model = rSensitivityModelParts[0]->GetModel();
-
-    if (!r_model.HasModelPart(unique_mp_name)) {
-        std::map<IndexType, Condition::Pointer> condition_id_ptr_map;
-        std::map<IndexType, Element::Pointer> element_id_ptr_map;
-
-        if (AreSensitivityEntityParentsConsidered) {
-            // create the maps to hold neighbours
-            std::map<IndexType, std::vector<Condition::Pointer>> node_id_neighbour_condition_ptrs_map;
-            std::map<IndexType, std::vector<Element::Pointer>> node_id_neighbour_element_ptrs_map;
-
-            // clear flags in analysis model part
-            VariableUtils().SetFlag(SELECTED, false, rAnalysisModelPart.Nodes());
-
-            // set flags for sensitivity model parts
-            for (const auto p_model_part : rSensitivityModelParts) {
-                VariableUtils().SetFlag(SELECTED, true, p_model_part->Nodes());
-            }
-
-            // now populate neighbour conditions for on sensitivity model parts' nodes from the analysis model part
-            AddNeighbourEntitiesToFlaggedNodes(node_id_neighbour_condition_ptrs_map, rAnalysisModelPart.Conditions(), SELECTED);
-
-            // now populate neighbour elements for on sensitivity model parts' nodes from the analysis model part
-            AddNeighbourEntitiesToFlaggedNodes(node_id_neighbour_element_ptrs_map, rAnalysisModelPart.Elements(), SELECTED);
-
-            // now add the parent elements/conditions which are from the analysis model parts
-            // we only iterate through nodal parent elements and nodal parent conditions
-            // since this covers parent elements of conditions as well.
-            for (const auto p_model_part : rSensitivityModelParts) {
-                // we update the map with condition ids and condition pointers in parallel
-                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(condition_id_ptr_map, node_id_neighbour_condition_ptrs_map, p_model_part->Nodes());
-
-                // we update the map with element ids and element pointers in parallel
-                UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(element_id_ptr_map, node_id_neighbour_element_ptrs_map, p_model_part->Nodes());
-            }
-        }
-
-        if (AreSensitivityEntitesConsidered) {
-            bool is_analysis_mp_entity_ids_ptrs_maps_generted = false;
-
-            std::map<NodeIdsType, Condition::Pointer> analysis_mp_node_ids_condition_ptr_map;
-            std::map<NodeIdsType, Element::Pointer> analysis_mp_node_ids_element_ptr_map;
-
-            for (const auto p_model_part : rSensitivityModelParts) {
-                if (!ForceFindSensitivityEntitiesInAnalysisModelPart && (&(p_model_part->GetRootModelPart()) == &(rAnalysisModelPart.GetRootModelPart()))) {
-                    // we update the map with condition ids and condition pointers in parallel
-                    UpdateEntityIdEntityPtrMapFromEntityContainer(condition_id_ptr_map, p_model_part->Conditions());
-
-                    // we update the map with element ids and element pointers in parallel
-                    UpdateEntityIdEntityPtrMapFromEntityContainer(element_id_ptr_map, p_model_part->Elements());
-                }  else {
-                    // either ForceFindSensitivityEntitiesInAnalysisModelPart is true or the root model parts does not match.
-                    // then we need to find for each sensitivity entity, the corresponding analysis model part entity.
-
-                    if (!is_analysis_mp_entity_ids_ptrs_maps_generted) {
-                        is_analysis_mp_entity_ids_ptrs_maps_generted = true;
-
-                        // generate the analysis mp node ids and ptrs maps for conditions
-                        UpdateNodeIdsEntityPtrMapFromEntityContainer(analysis_mp_node_ids_condition_ptr_map, rAnalysisModelPart.Conditions());
-
-                        // generate the analysis mp node ids and ptrs maps for elements
-                        UpdateNodeIdsEntityPtrMapFromEntityContainer(analysis_mp_node_ids_element_ptr_map, rAnalysisModelPart.Elements());
-                    }
-
-                    // now we have to match node ids of each sensitivity model part conditions and add them to map
-                    UpdateEntityIdEntityPtrMapFromNodeIdsEntityPtrMapAndEntityContainer(condition_id_ptr_map, analysis_mp_node_ids_condition_ptr_map, p_model_part->Conditions());
-
-                    // now we have to match node ids of each sensitivity model part elements and add them to map
-                    UpdateEntityIdEntityPtrMapFromNodeIdsEntityPtrMapAndEntityContainer(element_id_ptr_map, analysis_mp_node_ids_element_ptr_map, p_model_part->Elements());
-                }
-            }
-        }
-
-        auto& model_part = r_model.CreateModelPart(unique_mp_name);
-
-        std::map<IndexType, ModelPart::NodeType::Pointer> node_id_ptr_map;
-        // get nodes from condition_id_ptr_map
-        UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, condition_id_ptr_map);
-
-        // get nodes from element_id_ptr_map
-        UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, element_id_ptr_map);
-
-        // finally we add all the nodes, conditions and elements from the maps, we don't need to call Unique in
-        // here because, we are using a std::map which is sorted with entity ids.
-        for (auto& it : node_id_ptr_map) {
-            model_part.Nodes().push_back(it.second);
-        }
-
-        for (auto& it : condition_id_ptr_map) {
-            model_part.Conditions().push_back(it.second);
-        }
-
-        for (auto& it : element_id_ptr_map) {
-            model_part.Elements().push_back(it.second);
-        }
-
-        // check whether there is an overlap.
-        // in adjoint based sensitivity analysis, we always require residuals
-        // hence, there should be always at least one element to compute
-        // residuals. Having conditions is optional.
-        if (model_part.GetCommunicator().GlobalNumberOfElements() == 0) {
-
-            std::stringstream msg;
-            msg << "No common elements found between " << rAnalysisModelPart.FullName()
-                << " and sensitivity model parts to be used with adjoint "
-                   "sensitivity computation.";
-
-            msg << "\nFollowings are the sensitivity model parts:";
-            for (const auto p_model_part : rSensitivityModelParts) {
-                msg << "\n\t" << p_model_part->FullName();
-            }
-
-            KRATOS_ERROR << msg.str();
-        }
-
-        if (EchoLevel > 0) {
-            std::stringstream msg;
-            msg << "Created sensitivity computation model part based on " << rAnalysisModelPart.FullName();
-            msg << " for sensitivity model parts [ ";
-            for (const auto p_model_part : rSensitivityModelParts) {
-                msg << p_model_part->FullName() << " ";
-            }
-            msg << "]";
-            msg << (AreSensitivityEntityParentsConsidered ? " with parents" : "");
-            msg << (AreSensitivityEntitesConsidered ? " with sensitivity entities" : "");
-            msg << ".";
-            KRATOS_INFO("ResponseUtils") << msg.str() << std::endl;
-        }
-        return model_part;
-    } else {
-        if (EchoLevel > 1) {
-            std::stringstream msg;
-            msg << "Retrieved sensitivity computation model part based on " << rAnalysisModelPart.FullName();
-            msg << " for sensitivity model parts [ ";
-            for (const auto p_model_part : rSensitivityModelParts) {
-                msg << p_model_part->FullName() << " ";
-            }
-            msg << "]";
-            msg << (AreSensitivityEntityParentsConsidered ? " with parents" : "");
-            msg << (AreSensitivityEntitesConsidered ? " with sensitivity entities" : "");
-            msg << ".";
-            KRATOS_INFO("ResponseUtils") << msg.str() << std::endl;
-        }
-        return r_model.GetModelPart(unique_mp_name);
-    }
-
-    KRATOS_CATCH("");
-}
-
-ModelPart& ResponseUtils::GetSensitivityModelPartForDirectSensitivities(
-    const std::vector<ModelPart*>& rSensitivityModelParts,
-    const std::vector<ModelPart*>& rEvaluatedModelParts,
+void ResponseUtils::CreateModelPartWithCommonReferenceEntitiesBetweenReferenceAndExamined(
+    const std::string& rOutputModelPartName,
+    const std::vector<ModelPart*>& rExaminedModelPartsList,
+    ModelPart& rReferenceModelPart,
     const bool AreNodesConsidered,
     const bool AreConditionsConsidered,
     const bool AreElementsConsidered,
+    const bool AreParentsConsidered,
     const IndexType EchoLevel)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(rSensitivityModelParts.size() == 0) << "No sensitivity model parts were provided.\n";
-    auto& r_model = rSensitivityModelParts[0]->GetModel();
+    std::map<IndexType, ModelPart::NodeType::Pointer> node_id_ptr_map;
+    std::map<IndexType, Condition::Pointer> condition_id_ptr_map;
+    std::map<IndexType, Element::Pointer> element_id_ptr_map;
 
-    // now generate the unique name for model part
-    std::stringstream mp_name_prefix;
-    mp_name_prefix << GetCombinedModelPartsName("<OPTIMIZATION_APP_AUTO>_EvaluatedMPs_", rEvaluatedModelParts)
-                   << (AreNodesConsidered
-                            ? "_Nodes_"
-                            : "_NoNodes_")
-                   << (AreConditionsConsidered
-                           ? "_Conditions_"
-                           : "_NoConditions_")
-                   << (AreElementsConsidered
-                           ? "_Elements_"
-                           : "_NoElements_")
-                   << GetCombinedModelPartsName("SensitivityMPs_", rSensitivityModelParts);
-    const std::string unique_mp_name = mp_name_prefix.str();
+    if (AreNodesConsidered || AreParentsConsidered) {
+        // clear flags in analysis model part
+        VariableUtils().SetFlag(SELECTED, false, rReferenceModelPart.Nodes());
 
-    if (!r_model.HasModelPart(unique_mp_name)) {
-
-        // reset all entities
-        for (const auto p_model_part : rSensitivityModelParts) {
-            if (AreNodesConsidered) VariableUtils().SetFlag(SELECTED, false, p_model_part->Nodes());
-            if (AreConditionsConsidered) VariableUtils().SetFlag(SELECTED, false, p_model_part->Conditions());
-            if (AreElementsConsidered) VariableUtils().SetFlag(SELECTED, false, p_model_part->Elements());
+        // set flags for sensitivity model part nodes
+        for (const auto p_model_part : rExaminedModelPartsList) {
+            VariableUtils().SetFlag(SELECTED, true, p_model_part->Nodes());
         }
-
-        // select evaluated model part quantities
-        for (const auto p_model_part : rEvaluatedModelParts) {
-            if (AreNodesConsidered) VariableUtils().SetFlag(SELECTED, true, p_model_part->Nodes());
-            if (AreConditionsConsidered) VariableUtils().SetFlag(SELECTED, true, p_model_part->Conditions());
-            if (AreElementsConsidered) VariableUtils().SetFlag(SELECTED, true, p_model_part->Elements());
-        }
-
-        std::map<IndexType, ModelPart::NodeType::Pointer> node_id_ptr_map;
-        std::map<IndexType, ModelPart::ConditionType::Pointer> condition_id_ptr_map;
-        std::map<IndexType, ModelPart::ElementType::Pointer> element_id_ptr_map;
-
-        for (const auto p_model_part : rSensitivityModelParts) {
-            if (AreNodesConsidered) UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(node_id_ptr_map, p_model_part->Nodes(), SELECTED);
-            if (AreConditionsConsidered) UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(condition_id_ptr_map, p_model_part->Conditions(), SELECTED);
-            if (AreElementsConsidered) UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(element_id_ptr_map, p_model_part->Elements(), SELECTED);
-        }
-
-        auto& model_part = r_model.CreateModelPart(unique_mp_name);
-
-        // get nodes from condition_id_ptr_map
-        UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, condition_id_ptr_map);
-
-        // get nodes from element_id_ptr_map
-        UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, element_id_ptr_map);
-
-        // finally we add all the nodes, conditions and elements from the maps, we don't need to call Unique in
-        // here because, we are using a std::map which is sorted with entity ids.
-        for (auto& it : node_id_ptr_map) {
-            model_part.Nodes().push_back(it.second);
-        }
-
-        for (auto& it : condition_id_ptr_map) {
-            model_part.Conditions().push_back(it.second);
-        }
-
-        for (auto& it : element_id_ptr_map) {
-            model_part.Elements().push_back(it.second);
-        }
-
-        // check whether there is an overlap.
-        if (model_part.GetCommunicator().GlobalNumberOfNodes() == 0 &&
-            model_part.GetCommunicator().GlobalNumberOfConditions() == 0 &&
-            model_part.GetCommunicator().GlobalNumberOfElements() == 0) {
-
-            std::stringstream msg;
-            msg << "No common entities found between the evaluated "
-                   "model parts and sensitivity model parts for direct "
-                   "sensitivity computation.";
-
-            msg << "\nFollowings are the evaluated model parts:";
-            for (const auto p_model_part : rEvaluatedModelParts) {
-                msg << "\n\t" << p_model_part->FullName();
-            }
-
-            msg << "\nFollowings are the sensitivity model parts:";
-            for (const auto p_model_part : rSensitivityModelParts) {
-                msg << "\n\t" << p_model_part->FullName();
-            }
-
-            KRATOS_ERROR << msg.str();
-        }
-
-        if (EchoLevel > 0) {
-            std::stringstream msg;
-            msg << "Created sensitivity computation model part based on evaluated model parts [ ";
-            for (const auto p_model_part : rEvaluatedModelParts) {
-                msg << p_model_part->FullName() << " ";
-            }
-
-            msg << "] for sensitivity model parts [ ";
-            for (const auto p_model_part : rSensitivityModelParts) {
-                msg << p_model_part->FullName() << " ";
-            }
-            msg << "]";
-            msg << (AreNodesConsidered ? " with nodes" : "");
-            msg << (AreConditionsConsidered ? " with conditions" : "");
-            msg << (AreElementsConsidered ? " with elements" : "");
-            msg << ".";
-            KRATOS_INFO("ResponseUtils") << msg.str() << std::endl;
-        }
-        return model_part;
-    } else {
-        if (EchoLevel > 1) {
-            std::stringstream msg;
-            msg << "Retrieved sensitivity computation model part based on evaluated model parts [ ";
-            for (const auto p_model_part : rEvaluatedModelParts) {
-                msg << p_model_part->FullName() << " ";
-            }
-
-            msg << "] for sensitivity model parts [ ";
-            for (const auto p_model_part : rSensitivityModelParts) {
-                msg << p_model_part->FullName() << " ";
-            }
-            msg << "]";
-            msg << (AreNodesConsidered ? " with nodes" : "");
-            msg << (AreConditionsConsidered ? " with conditions" : "");
-            msg << (AreElementsConsidered ? " with elements" : "");
-            msg << ".";
-            KRATOS_INFO("ResponseUtils") << msg.str() << std::endl;
-        }
-        return r_model.GetModelPart(unique_mp_name);
     }
+
+    // update the common nodes from sensitivity model part and analysis model part
+    if (AreNodesConsidered) UpdateEntityIdEntityPtrMapFromFlaggedEntityContainer(node_id_ptr_map, rReferenceModelPart.Nodes(), SELECTED);
+
+    // first generate the analysis model part node_ids and entity ptr maps for later map sensitivity model part
+    // entities with analysis model part
+    std::map<NodeIdsType, Condition::Pointer> analysis_mp_node_ids_condition_ptr_map;
+    std::map<NodeIdsType, Element::Pointer> analysis_mp_node_ids_element_ptr_map;
+
+    // generate the analysis mp node ids and ptrs maps for conditions
+    if (AreConditionsConsidered) UpdateNodeIdsEntityPtrMapFromEntityContainer(analysis_mp_node_ids_condition_ptr_map, rReferenceModelPart.Conditions());
+
+    // generate the analysis mp node ids and ptrs maps for elements
+    if (AreElementsConsidered) UpdateNodeIdsEntityPtrMapFromEntityContainer(analysis_mp_node_ids_element_ptr_map, rReferenceModelPart.Elements());
+
+    for (const auto p_model_part : rExaminedModelPartsList) {
+        // now we have to match node ids of each sensitivity model part conditions and add them to map
+        if (AreConditionsConsidered) UpdateEntityIdEntityPtrMapFromNodeIdsEntityPtrMapAndEntityContainer(condition_id_ptr_map, analysis_mp_node_ids_condition_ptr_map, p_model_part->Conditions());
+
+        // now we have to match node ids of each sensitivity model part elements and add them to map
+        if (AreElementsConsidered) UpdateEntityIdEntityPtrMapFromNodeIdsEntityPtrMapAndEntityContainer(element_id_ptr_map, analysis_mp_node_ids_element_ptr_map, p_model_part->Elements());
+    }
+
+    if (AreParentsConsidered) {
+        // create the maps to hold neighbours
+        std::map<IndexType, std::vector<Condition::Pointer>> node_id_neighbour_condition_ptrs_map;
+        std::map<IndexType, std::vector<Element::Pointer>> node_id_neighbour_element_ptrs_map;
+
+        // now populate neighbour conditions for on sensitivity model parts' nodes from the analysis model part
+        if (AreConditionsConsidered) AddNeighbourEntitiesToFlaggedNodes(node_id_neighbour_condition_ptrs_map, rReferenceModelPart.Conditions(), SELECTED);
+
+        // now populate neighbour elements for on sensitivity model parts' nodes from the analysis model part
+        if (AreElementsConsidered) AddNeighbourEntitiesToFlaggedNodes(node_id_neighbour_element_ptrs_map, rReferenceModelPart.Elements(), SELECTED);
+
+        // now add the parent elements/conditions which are from the analysis model parts
+        // we only iterate through nodal parent elements and nodal parent conditions
+        // since this covers parent elements of conditions as well.
+        for (const auto p_model_part : rExaminedModelPartsList) {
+            // we update the map with condition ids and condition pointers in parallel
+            if (AreConditionsConsidered) UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(condition_id_ptr_map, node_id_neighbour_condition_ptrs_map, p_model_part->Nodes());
+
+            // we update the map with element ids and element pointers in parallel
+            if (AreElementsConsidered) UpdateEntityIdEntityPtrMapFromNodalNeighbourEntities(element_id_ptr_map, node_id_neighbour_element_ptrs_map, p_model_part->Nodes());
+        }
+    }
+
+    // now we create the submodel part in the reference model part because, this
+    // model part contains nodes, conditions, elements from reference model part
+    // only.
+    auto& model_part = rReferenceModelPart.CreateSubModelPart(rOutputModelPartName);
+
+    // get nodes from condition_id_ptr_map
+    if (AreConditionsConsidered) UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, condition_id_ptr_map);
+
+    // get nodes from element_id_ptr_map
+    if (AreElementsConsidered) UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(node_id_ptr_map, element_id_ptr_map);
+
+    // now we have to create the communicator for MPI communication.
+    Communicator& r_reference_communicator = rReferenceModelPart.GetCommunicator();
+    Communicator::Pointer p_output_communicator = r_reference_communicator.Create();
+    p_output_communicator->SetNumberOfColors(r_reference_communicator.GetNumberOfColors());
+    p_output_communicator->NeighbourIndices() = r_reference_communicator.NeighbourIndices();
+
+    // finally we add all the nodes, conditions and elements from the maps, we don't need to call Unique in
+    // here because, we are using a std::map which is sorted with entity ids. We also populate
+    // communicator local meshes for conditions because conditions and elements are only present in the
+    // local mesh, and not in interface or ghost meshes.
+    for (auto& it : condition_id_ptr_map) {
+        model_part.Conditions().push_back(it.second);
+        p_output_communicator->LocalMesh().Conditions().push_back(it.second);
+    }
+
+    for (auto& it : element_id_ptr_map) {
+        model_part.Elements().push_back(it.second);
+        p_output_communicator->LocalMesh().Elements().push_back(it.second);
+    }
+
+    // now we have to add nodes and create corresponding nodal meshes in the communicator. This has to be done
+    // irrespective of AreNodesConsidered true or false because, the nodes of the conditions and elements which was added
+    // needs to be properly added and assigned to proper meshes in the communicator. Hence no checks for
+    // AreNodesConsidered is done henceforth.
+
+    // now we add all nodes
+    for (auto& it : node_id_ptr_map) {
+        model_part.Nodes().push_back(it.second);
+    }
+
+    // get the local mesh nodes to map from rReferenceModelPart
+    std::map<IndexType, ModelPart::NodeType::Pointer> local_node_id_ptr_map;
+    UpdateEntityIdEntityPtrMapFromEntityContainer(local_node_id_ptr_map, r_reference_communicator.LocalMesh().Nodes());
+
+    // get the interface mesh nodes to map from rReferenceModelPart
+    std::map<IndexType, ModelPart::NodeType::Pointer> interface_node_id_ptr_map;
+    UpdateEntityIdEntityPtrMapFromEntityContainer(interface_node_id_ptr_map, r_reference_communicator.InterfaceMesh().Nodes());
+
+    // get the ghost mesh nodes to map from rReferenceModelPart
+    std::map<IndexType, ModelPart::NodeType::Pointer> ghost_node_id_ptr_map;
+    UpdateEntityIdEntityPtrMapFromEntityContainer(ghost_node_id_ptr_map, r_reference_communicator.GhostMesh().Nodes());
+
+    for (auto& r_node : model_part.Nodes()) {
+        // populate the local mesh correctly in the output model part
+        auto p_local_itr = local_node_id_ptr_map.find(r_node.Id());
+        if (p_local_itr != local_node_id_ptr_map.end()) {
+            p_output_communicator->LocalMesh().Nodes().push_back(p_local_itr->second);
+        }
+
+        // populate the interface mesh correctly in the output model part
+        auto p_interface_itr = interface_node_id_ptr_map.find(r_node.Id());
+        if (p_interface_itr != interface_node_id_ptr_map.end()) {
+            p_output_communicator->InterfaceMesh().Nodes().push_back(p_interface_itr->second);
+        }
+
+        // populate the ghost mesh correctly in the output model part
+        auto p_ghost_itr = ghost_node_id_ptr_map.find(r_node.Id());
+        if (p_ghost_itr != ghost_node_id_ptr_map.end()) {
+            p_output_communicator->GhostMesh().Nodes().push_back(p_ghost_itr->second);
+        }
+    }
+
+    // now set the communicator
+    model_part.SetCommunicator(p_output_communicator);
+
+    // now set common information
+    model_part.SetProcessInfo(rReferenceModelPart.pGetProcessInfo());
+    model_part.PropertiesArray() = rReferenceModelPart.PropertiesArray();
+    model_part.Tables() = rReferenceModelPart.Tables();
+
+    KRATOS_INFO_IF("ResponseUtils", EchoLevel > 0)
+        << "Created sensitivity computation model part using "
+        << rReferenceModelPart.FullName() << " for "
+        << GetSensitivityComputationModelPartsInfo(
+               rExaminedModelPartsList, AreNodesConsidered, AreConditionsConsidered,
+               AreElementsConsidered, AreParentsConsidered);
 
     KRATOS_CATCH("");
 }
