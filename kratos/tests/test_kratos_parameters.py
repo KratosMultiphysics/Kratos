@@ -489,12 +489,6 @@ class TestParameters(KratosUnittest.TestCase):
     def test_iterators(self):
         kp = Parameters(json_string)
 
-        #iteration by range
-        nitems = 0
-        for iterator in kp:
-            nitems = nitems + 1
-        self.assertEqual(nitems, 5)
-
         #iteration by items
         for key,value in kp.items():
             #print(value.PrettyPrintJsonString())
