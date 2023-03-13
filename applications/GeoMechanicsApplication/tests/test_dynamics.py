@@ -40,10 +40,9 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         with open(os.path.join(file_path, "expected_result.json")) as fp:
             expected_result = json.load(fp)
 
-        calc_velocity = calculated_result["NODE_41"]["VELOCITY_Y"]
-        expected_velocity = expected_result["NODE_41"]["VELOCITY_Y"]
-
-        self.assertVectorAlmostEqual(calc_velocity, expected_velocity )
+        where = "NODE_41"
+        what = "VELOCITY_Y"
+        self.assertVectorAlmostEqual(calculated_result[where][what], expected_result[where][what])
 
     @KratosUnittest.skip("unit test skipped as it is not ready")
     def test_wave_through_undrained_linear_elastic_soil(self):
