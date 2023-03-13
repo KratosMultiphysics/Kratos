@@ -305,58 +305,56 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilin
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(second_mult, multiply_reference);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperationRealCase, KratosTrilinosApplicationMPITestSuite)
-{
-    // The data communicator
-    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+// Error related to Trilinos issue: https://github.com/trilinos/Trilinos/issues/9252
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperationRealCase, KratosTrilinosApplicationMPITestSuite)
+// {
+//     // The data communicator
+//     const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
-    // The dummy matrix
-    const int size = 6;
+//     // The dummy matrix
+//     const int size = 6;
 
-    // Generate A matrix
-    std::vector<int> row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
-    std::vector<int> column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
-    std::vector<double> values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 4138000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    auto A = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values);
+//     // Generate A matrix
+//     std::vector<int> row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
+//     std::vector<int> column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
+//     std::vector<double> values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 4138000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+//     auto A = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values);
+//     const Epetra_Map* p_map = &(A.RowMap());
 
-    // Generate T matrix
-    row_indexes = {0,1,2,3,4,4,5};
-    column_indexes = {0,1,2,3,2,4,5};
-    values = {1,1,1,1,1,0,1};
-    auto T = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values);
+//     // Generate T matrix
+//     row_indexes = {0,1,2,3,4,4,5};
+//     column_indexes = {0,1,2,3,2,4,5};
+//     values = {1,1,1,1,1,0,1};
+//     auto T = TrilinosCPPTestUtilities::GenerateSparseMatrix(r_comm, size, row_indexes, column_indexes, values, p_map);
 
-    /* Intermediate multiplication */
-    // Create a map
-    const int size1 = TrilinosSparseSpaceType::Size2(T);
-    Epetra_Map map(size1, 0, A.Comm());
+//     /* Intermediate multiplication */
 
-    // Create an Epetra_Matrix
-    std::vector<int> NumNz;
-    TrilinosSparseMatrixType aux(::Copy, map, NumNz.data());
+//     // Create an Epetra_Matrix
+//     TrilinosSparseMatrixType aux(::Copy, A.Graph());
 
-    // First multiplication
-    TrilinosSparseSpaceType::TransposeMult(T, A, aux, {true, false}, true, true);
+//     // First multiplication
+//     TrilinosSparseSpaceType::TransposeMult(T, A, aux, {true, false}, true, true);
 
-    // Values to check
-    row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
-    column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
-    values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+//     // Values to check
+//     row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
+//     column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
+//     values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-    // Check
-    TrilinosCPPTestUtilities::CheckSparseMatrix(aux, row_indexes, column_indexes, values);
+//     // Check
+//     TrilinosCPPTestUtilities::CheckSparseMatrix(aux, row_indexes, column_indexes, values);
 
-    // Compute T' A T
-    const TrilinosSparseMatrixType copy_A(A);
-    TrilinosSparseSpaceType::BtDBProductOperation(A, copy_A, T, true, false, true);
+//     // Compute T' A T
+//     const TrilinosSparseMatrixType copy_A(A);
+//     TrilinosSparseSpaceType::BtDBProductOperation(A, copy_A, T, true, false, true);
 
-    // Values to check
-    row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
-    column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
-    values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+//     // Values to check
+//     row_indexes = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
+//     column_indexes = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5};
+//     values = {2069000000.0, 0.0, -2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2069000000.0, 0.0, 2069000000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-    // Check
-    TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
-}
+//     // Check
+//     TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
+// }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilinosApplicationMPITestSuite)
 {
@@ -547,6 +545,41 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosAppl
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    const int rank = r_comm.Rank();
+    auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
+    TrilinosLocalVectorType local_vector = ZeroVector(size);
+    for (int i = 0; i < size; ++i) {
+        local_vector[i] = 1.0;
+    }
+
+    // Solution global
+    TrilinosSparseSpaceType::SetToZero(vector);
+    for (int i = 0; i < 2; ++i) {
+        TrilinosSparseSpaceType::SetValueWithoutGlobalAssembly(vector, rank * 2 + i, 1.0);
+    }
+    vector.GlobalAssemble();
+
+    // Check global
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
+
+    // Solution local
+    TrilinosSparseSpaceType::SetToZero(vector);
+    for (int i = 0; i < 2; ++i) {
+        TrilinosSparseSpaceType::SetValueWithoutGlobalAssembly<false>(vector, i, 1.0);
+    }
+    vector.GlobalAssemble();
+
+    // Check local
+    TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
@@ -570,9 +603,44 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosAppl
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
 
     // Solution local
+    TrilinosSparseSpaceType::SetToZero(matrix);
     for (int i = 0; i < 2; ++i) {
         TrilinosSparseSpaceType::SetValue<false>(matrix, i, i, 1.0);
     }
+
+    // Check local
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    const int rank = r_comm.Rank();
+    auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
+    TrilinosLocalMatrixType local_matrix = ZeroMatrix(size, size);
+    for (int i = 0; i < size; ++i) {
+        local_matrix(i, i) = 1.0;
+    }
+
+    // Solution global
+    for (int i = 0; i < 2; ++i) {
+        TrilinosSparseSpaceType::SetValueWithoutGlobalAssembly(matrix, rank * 2 + i, rank * 2 + i, 1.0);
+    }
+    matrix.GlobalAssemble();
+
+    // Check global
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
+
+    // Solution local
+    TrilinosSparseSpaceType::SetToZero(matrix);
+    for (int i = 0; i < 2; ++i) {
+        TrilinosSparseSpaceType::SetValueWithoutGlobalAssembly<false>(matrix, i, i, 1.0);
+    }
+    matrix.GlobalAssemble();
 
     // Check local
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);

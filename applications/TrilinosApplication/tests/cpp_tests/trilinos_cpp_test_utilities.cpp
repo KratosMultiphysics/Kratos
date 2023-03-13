@@ -247,6 +247,29 @@ void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
+    const TrilinosSparseMatrixType& rA,
+    const std::vector<int>& rRowIndexes,
+    const std::vector<int>& rColumnIndexes,
+    const TrilinosLocalMatrixType& rB,
+    const double Tolerance
+    )
+{
+
+    int row, column;
+    std::vector<double> values(rRowIndexes.size());
+    for (std::size_t counter = 0; counter < rRowIndexes.size(); ++counter) {
+        row = rRowIndexes[counter];
+        column = rColumnIndexes[counter];
+        values[counter] = rB(row, column);
+    }
+    CheckSparseMatrix(rA, rRowIndexes, rColumnIndexes, values, Tolerance);
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TrilinosCPPTestUtilities::CheckSparseMatrix(
     const TrilinosSparseMatrixType& rA,
     const std::vector<int>& rRowIndexes,
@@ -295,7 +318,6 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
 
 void TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(
     const TrilinosSparseSpaceType::MatrixType& rA,
-    const DataCommunicator& rDataCommunicator,
     std::vector<int>& rRowIndexes,
     std::vector<int>& rColumnIndexes,
     std::vector<double>& rValues,
@@ -303,8 +325,7 @@ void TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(
     const double ThresholdIncludeHardZeros
     )
 {
-    const int world_size = rDataCommunicator.Size();
-    KRATOS_ERROR_IF_NOT(world_size == 1) << "Debug must be done with one MPI core" << std::endl;
+    KRATOS_ERROR_IF_NOT(rA.Comm().NumProc() == 1) << "Debug must be done with one MPI core" << std::endl;
 
     // If print values
     if (PrintValues) {
@@ -363,7 +384,8 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     const int NumGlobalElements,
     const std::vector<int>& rRowIndexes,
     const std::vector<int>& rColumnIndexes,
-    const std::vector<double>& rValues
+    const std::vector<double>& rValues,
+    const Epetra_Map* pMap
     )
 {
     // Generate Epetra communicator
@@ -372,13 +394,13 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
     // Create a map
-    Epetra_Map Map(NumGlobalElements,0,epetra_comm);
+    Epetra_Map map = (pMap == nullptr) ? Epetra_Map(NumGlobalElements,0,epetra_comm) : *pMap;
 
     // Local number of rows
-    const int NumMyElements = Map.NumMyElements();
+    const int NumMyElements = map.NumMyElements();
 
     // Get update list
-    int* MyGlobalElements = Map.MyGlobalElements();
+    int* MyGlobalElements = map.MyGlobalElements();
 
     // Create an integer vector NumNz that is used to build the EPetra Matrix.
     const int size_global_vector = rRowIndexes.size();
@@ -393,7 +415,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     int nnz = 0;
     int initial_index, end_index;
     std::unordered_map<int, std::pair<int, int>> initial_and_end_index;
-    for (int i=0; i<NumMyElements; i++) {
+    for ( int i=0; i<NumMyElements; i++) {
         if (MyGlobalElements[i] == rRowIndexes[current_row_index]) {
             initial_index = current_row_index;
             const int start_index = current_row_index;
@@ -413,9 +435,10 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     }
 
     // Create an Epetra_Matrix
-    TrilinosSparseMatrixType A(Copy, Map, NumNz.data());
+    TrilinosSparseMatrixType A(Copy, map, NumNz.data());
 
     // Fill matrix
+    int ierr;
     auto it_end = initial_and_end_index.end();
     auto it_index_begin = rColumnIndexes.begin();
     auto it_values_begin = rValues.begin();
@@ -427,13 +450,15 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
             end_index = r_pair.second;
             std::vector<int> indexes(it_index_begin + initial_index, it_index_begin + end_index);
             std::vector<double> values(it_values_begin + initial_index, it_values_begin + end_index);
-            A.InsertGlobalValues(MyGlobalElements[i], end_index - initial_index, values.data(), indexes.data());
+            ierr = A.InsertGlobalValues(MyGlobalElements[i], end_index - initial_index, values.data(), indexes.data());
+            KRATOS_ERROR_IF_NOT(ierr == 0) << "Error in inserting values " << ierr << std::endl;
         }
     }
 
     // Finish up, trasforming the matrix entries into local numbering,
     // to optimize data transfert during matrix-vector products
-    A.FillComplete();
+    ierr = A.FillComplete();
+    KRATOS_ERROR_IF_NOT(ierr == 0) << "Error in global assembling " << ierr << std::endl;
 
     return A;
 }

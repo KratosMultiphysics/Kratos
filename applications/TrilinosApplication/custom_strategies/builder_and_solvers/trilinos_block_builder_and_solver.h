@@ -24,6 +24,7 @@
 
 // Project includes
 #include "trilinos_space.h"
+#include "custom_utilities/trilinos_assembling_utilities.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
@@ -482,7 +483,7 @@ public:
             // Calculate elemental Right Hand Side Contribution
             pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // assemble the elemental contribution
+            // Assemble the elemental contribution
             TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
         }
 
@@ -1076,12 +1077,13 @@ protected:
     ///@{
 
     /* Base variables */
-    EpetraCommunicatorType& mrComm; /// The MPI communicator
-    int mGuessRowSize;              /// The guess row size
-    IndexType mLocalSystemSize;     /// The local system size
-    int mFirstMyId;                 /// Auxiliary Id (the first row of the local system)
-    int mLastMyId;                  /// Auxiliary Id (the last row of the local system) // TODO: This can be removed as can be deduced from mLocalSystemSize
-    std::vector<int> mFirstMyIds;   /// The ids corresponding to each partition (only used with MPC)
+    EpetraCommunicatorType& mrComm;                 /// The MPI communicator
+    int mGuessRowSize;                              /// The guess row size
+    IndexType mLocalSystemSize;                     /// The local system size
+    int mFirstMyId;                                 /// Auxiliary Id (the first row of the local system)
+    int mLastMyId;                                  /// Auxiliary Id (the last row of the local system) // TODO: This can be removed as can be deduced from mLocalSystemSize
+    Kratos::shared_ptr<Epetra_Map> mpMap = nullptr; /// The map considered for the different vectors and matrices
+    std::vector<int> mFirstMyIds;                   /// The ids corresponding to each partition (only used with MPC)
 
     /* MPC variables */
     TSystemMatrixPointerType mpT =  nullptr;              /// This is matrix containing the global relation for the constraints
@@ -1119,11 +1121,11 @@ protected:
             for (IndexType i = 0; i != number_of_local_rows; i++) {
                 temp_primary[i] = mFirstMyId + i;
             }
-            Epetra_Map map(-1, number_of_local_rows, temp_primary.data(), 0, mrComm);
+            Epetra_Map& r_map = GetEpetraMap();
             std::fill(temp_primary.begin(), temp_primary.begin() + number_of_local_rows, 0);
 
             // The T graph
-            Epetra_FECrsGraph Tgraph(Copy, map, mGuessRowSize);
+            Epetra_FECrsGraph Tgraph(Copy, r_map, mGuessRowSize);
 
             // Adding diagonal values
             int ierr;
@@ -1228,7 +1230,7 @@ protected:
             mpT.swap(p_new_T);
 
             // Generate the constant vector equivalent
-            TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(map));
+            TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(r_map));
             mpConstantVector.swap(p_new_constant_vector);
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
@@ -1275,12 +1277,12 @@ protected:
             if (r_const.IsActive()) {
                 r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
 
-                TSparseSpace::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
-                TSparseSpace::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
+                TrilinosAssemblingUtilities::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
+                TrilinosAssemblingUtilities::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
             } else { // Taking into account inactive constraints
                 // Save the auxiliary ids of the the slave inactive DoFs
                 for (auto slave_id : slave_equation_ids) {
-                    const IndexType index_rank = DeterminePartitionIndex(slave_id);
+                    const int index_rank = DeterminePartitionIndex(slave_id);
                     if (index_rank == current_rank) {
                         mInactiveSlaveDofs.insert(slave_id);
                     } else {
@@ -1338,13 +1340,13 @@ protected:
         // Filling with zero the matrix (creating the structure)
         START_TIMER("MatrixStructure", 0)
 
-        // Number of local dofs
-        const IndexType number_of_local_rows = mLocalSystemSize;
-
         // TODO: Check if these should be local elements, conditions and constraints
         auto& r_elements_array = rModelPart.Elements();
         auto& r_conditions_array = rModelPart.Conditions();
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+
+        // Number of local dofs
+        const IndexType number_of_local_rows = mLocalSystemSize;
 
         // Generate map - use the "temp" array here
         const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_rows;
@@ -1353,11 +1355,12 @@ protected:
         for (IndexType i = 0; i != number_of_local_rows; i++) {
             temp_primary[i] = mFirstMyId + i;
         }
-        Epetra_Map map(-1, number_of_local_rows, temp_primary.data(), 0, mrComm);
+        Epetra_Map& r_map = GetEpetraMap();
+        std::fill(temp_primary.begin(), temp_primary.begin() + number_of_local_rows, 0);
 
         // Create and fill the graph of the matrix --> the temp array is
         // reused here with a different meaning
-        Epetra_FECrsGraph Agraph(Copy, map, mGuessRowSize);
+        Epetra_FECrsGraph Agraph(Copy, r_map, mGuessRowSize);
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -1454,16 +1457,16 @@ protected:
 
         // Generate new vector pointers according to the given map
         if (rpb == nullptr || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize) {
-            TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(map));
+            TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(r_map));
             rpb.swap(p_new_b);
         }
         if (rpDx == nullptr || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize) {
-            TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(map));
+            TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(r_map));
             rpDx.swap(p_new_Dx);
         }
         // If the pointer is not initialized initialize it to an empty matrix
         if (BaseType::mpReactionsVector == nullptr) {
-            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(map));
+            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(r_map));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
 
@@ -1534,6 +1537,25 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Generates the EpetraMap used for the vectors and matrices
+     * @return Returns the Epetra_Map considered for the graphs
+     */
+    Epetra_Map& GetEpetraMap()
+    {
+        if (mpMap == nullptr) {
+            // Generate map - use the "temp" array here
+            const int temp_size = (temp_size < 1000) ? 1000 : mLocalSystemSize;
+            std::vector<int> temp_primary(temp_size, 0);
+            for (IndexType i = 0; i != mLocalSystemSize; i++) {
+                temp_primary[i] = mFirstMyId + i;
+            }
+            mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
+        }
+
+        return *mpMap;
+    }
 
     /**
      * @brief Determine in which partition the index belongs

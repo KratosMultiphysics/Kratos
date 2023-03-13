@@ -153,6 +153,22 @@ public:
     * @param rA The matrix to check
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
+    * @param rB The reference matrix
+    * @param Tolerance The tolerance considered
+    */
+    static void CheckSparseMatrixFromLocalMatrix(
+        const TrilinosSparseMatrixType& rA,
+        const std::vector<int>& rRowIndexes,
+        const std::vector<int>& rColumnIndexes,
+        const TrilinosLocalMatrixType& rB,
+        const double Tolerance = 1e-8
+        );
+
+    /**
+    * @brief This method checks the values of a sparse matrix with the given indices and values
+    * @param rA The matrix to check
+    * @param rRowIndexes The row indices
+    * @param rColumnIndexes The column indices
     * @param rValues The values
     * @param Tolerance The tolerance considered
     */
@@ -167,7 +183,6 @@ public:
     /**
     * @brief This method generates a set of row, columns and values from a sparse matrix
     * @param rA The matrix where generate the vectors of rows, indexes and values
-    * @param rDataCommunicator The data communicator considered
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
     * @param rValues The values
@@ -176,7 +191,6 @@ public:
     */
     static void GenerateSparseMatrixIndexAndValuesVectors(
         const TrilinosSparseSpaceType::MatrixType& rA,
-        const DataCommunicator& rDataCommunicator,
         std::vector<int>& rRowIndexes,
         std::vector<int>& rColumnIndexes,
         std::vector<double>& rValues,
@@ -191,6 +205,7 @@ public:
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
     * @param rValues The values
+    * @param pMap Map pointer
     * @return The matrix generated
     */
     static TrilinosSparseMatrixType GenerateSparseMatrix(
@@ -198,7 +213,8 @@ public:
         const int NumGlobalElements,
         const std::vector<int>& rRowIndexes,
         const std::vector<int>& rColumnIndexes,
-        const std::vector<double>& rValues
+        const std::vector<double>& rValues,
+        const Epetra_Map* pMap =  nullptr
         );
     ///@}
 

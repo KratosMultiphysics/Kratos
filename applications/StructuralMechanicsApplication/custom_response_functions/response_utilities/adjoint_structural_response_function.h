@@ -9,8 +9,7 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
-#define ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
+#pragma once
 
 // System includes
 
@@ -123,5 +122,3 @@ private:
 ///@} //Structural Mechanics Application group
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_STRUCTURAL_RESPONSE_FUNCTION defined */

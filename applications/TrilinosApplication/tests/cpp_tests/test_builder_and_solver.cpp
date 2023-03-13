@@ -548,15 +548,12 @@ namespace Kratos::Testing
         return rA;
     }
 
-    // static void DebugLHS(
-    //     const TrilinosSparseSpaceType::MatrixType& rA,
-    //     const DataCommunicator& rDataCommunicator
-    //     )
+    // static void DebugLHS(const TrilinosSparseSpaceType::MatrixType& rA)
     // {
     //     std::vector<int> row_indexes;
     //     std::vector<int> column_indexes;
     //     std::vector<double> values;
-    //     TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(rA, rDataCommunicator, row_indexes, column_indexes, values, true, 0.99);
+    //     TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(rA, row_indexes, column_indexes, values, true, 0.99);
     // }
 
     /**
@@ -587,7 +584,7 @@ namespace Kratos::Testing
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
         // // To create the solution of reference
-        // DebugLHS(rA, r_comm);
+        // DebugLHS(rA);
 
         // The solution check
         KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
@@ -615,7 +612,7 @@ namespace Kratos::Testing
         const auto& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
 
         // // To create the solution of reference
-        // DebugLHS(rA_scale, r_comm);
+        // DebugLHS(rA_scale);
 
         KRATOS_CHECK_EQUAL(rA_scale.NumGlobalRows(), 6);
         KRATOS_CHECK_EQUAL(rA_scale.NumGlobalCols(), 6);
@@ -658,7 +655,7 @@ namespace Kratos::Testing
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
         // // To create the solution of reference
-        // DebugLHS(rA, r_comm);
+        // DebugLHS(rA);
 
         // The solution check
         KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
@@ -686,7 +683,7 @@ namespace Kratos::Testing
         const auto& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
 
         // // To create the solution of reference
-        // DebugLHS(rA_scale, r_comm);
+        // DebugLHS(rA_scale);
 
         KRATOS_CHECK_EQUAL(rA_scale.NumGlobalRows(), 6);
         KRATOS_CHECK_EQUAL(rA_scale.NumGlobalCols(), 6);
@@ -729,7 +726,7 @@ namespace Kratos::Testing
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
         // // To create the solution of reference
-        // DebugLHS(rA, r_comm);
+        // DebugLHS(rA);
 
         // The solution check
         KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
@@ -748,7 +745,7 @@ namespace Kratos::Testing
         const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
 
         // // To create the solution of reference
-        // DebugLHS(r_T, r_comm);
+        // DebugLHS(r_T);
 
         KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 6);
         KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 6);
@@ -792,7 +789,7 @@ namespace Kratos::Testing
     //     const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
     //     // // To create the solution of reference
-    //     // DebugLHS(rA, r_comm);
+    //     // DebugLHS(rA);
 
     //     // The solution check
     //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 2);
@@ -837,7 +834,7 @@ namespace Kratos::Testing
     //     const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
     //     // // To create the solution of reference
-    //     // DebugLHS(rA, r_comm);
+    //     // DebugLHS(rA);
 
     //     // The solution check
     //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 2);
@@ -881,7 +878,7 @@ namespace Kratos::Testing
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
         // // To create the solution of reference
-        // DebugLHS(rA, r_comm);
+        // DebugLHS(rA);
 
         // The solution check
         KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 22);
@@ -925,7 +922,7 @@ namespace Kratos::Testing
     //     const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
     //     // // To create the solution of reference
-    //     // DebugLHS(rA, r_comm);
+    //     // DebugLHS(rA);
 
     //     // The solution check
     //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 19);
