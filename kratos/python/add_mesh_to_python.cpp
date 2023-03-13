@@ -636,6 +636,11 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Calculate", &EntityCalculateInterface<Condition, Matrix >)
 
     .def("Initialize", &EntityInitialize<Condition>)
+    .def("EquationIdVector", [](const Condition& self, const ProcessInfo& rProcessInfo){
+        Condition::EquationIdVectorType ids;
+        self.EquationIdVector(ids,rProcessInfo);
+        return ids;
+    })
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
