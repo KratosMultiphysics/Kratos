@@ -1096,7 +1096,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     noalias( rMassMatrix ) = ZeroMatrix( N_DOF, N_DOF );
 
     const GeometryType& rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->mThisIntegrationMethod);
     const IndexType NumGPoints = IntegrationPoints.size();
 
     //Element variables
@@ -1163,7 +1163,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //Previous definitions
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType& rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->mThisIntegrationMethod);
     const IndexType NumGPoints = IntegrationPoints.size();
 
     //Constitutive Law parameters
@@ -2347,6 +2347,8 @@ template class UPwSmallStrainElement<3,8>;
 template class UPwSmallStrainElement<2,6>;
 template class UPwSmallStrainElement<2,8>;
 template class UPwSmallStrainElement<2,9>;
+template class UPwSmallStrainElement<2,10>;
+template class UPwSmallStrainElement<2,15>;
 template class UPwSmallStrainElement<3,10>;
 template class UPwSmallStrainElement<3,20>;
 template class UPwSmallStrainElement<3,27>;
