@@ -107,6 +107,34 @@ class TestModelPartUtils(kratos_unittest.TestCase):
             for common_entity_id in common_entity_ids:
                 self.assertTrue(common_entity_id in current_entity_ids)
 
+    def __CheckParentEntities(self, model_parts: 'list[Kratos.ModelPart]', examined_model_parts: 'list[Kratos.ModelPart]', entity_container_getter):
+        examined_node_ids = []
+        for model_part in examined_model_parts:
+            examined_node_ids.extend([node.Id for node in model_part.Nodes])
+
+        examined_node_ids = set(examined_node_ids)
+
+        for model_part in model_parts:
+            parent_entities = []
+            reference_model_part = model_part.GetParentModelPart()
+            for entity in entity_container_getter(reference_model_part):
+                for node in entity.GetGeometry():
+                    if node.Id in examined_node_ids:
+                        parent_entities.append(entity)
+                        break
+
+            parent_entity_nodes = []
+            for parent_entity in parent_entities:
+                for node in parent_entity.GetGeometry():
+                    parent_entity_nodes.append(node.Id)
+
+
+            current_node_ids = sorted([node.Id for node in model_part.Nodes])
+            current_entity_ids = sorted([entity.Id for entity in entity_container_getter(model_part)])
+
+            self.assertEqual(current_entity_ids, sorted([entity.Id for entity in parent_entities]))
+            self.assertEqual(current_node_ids, sorted(list(set(parent_entity_nodes))))
+
     def __CheckModelParts(self, model_parts: 'list[Kratos.ModelPart]', ref_node_ids, ref_condition_ids, ref_element_ids):
         data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
 
@@ -166,6 +194,7 @@ class TestModelPartUtils(kratos_unittest.TestCase):
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Nodes)
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Conditions)
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Elements)
+        self.__CheckParentEntities(model_parts, self.examined_model_parts, lambda x: x.Elements)
 
     def test_GetSensitivityModelPartForDirectSensitivitiesNodesElementsWithParents(self):
         model_parts: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
@@ -173,6 +202,7 @@ class TestModelPartUtils(kratos_unittest.TestCase):
         self.__CheckModelParts(model_parts, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25], [], [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Nodes)
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Elements)
+        self.__CheckParentEntities(model_parts, self.examined_model_parts, lambda x: x.Elements)
 
     def test_ClearEntitiesOfModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(self):
         KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
