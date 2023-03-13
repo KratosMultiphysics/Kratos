@@ -60,7 +60,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.constraint_gradient_variables = {}
         self.constraint_buffer_variables = {}
         self.constraint_laplace_multipliers = {}
-        for itr, constraint in enumerate(self.constraints):
+        for itr, constraint in enumerate(self.constraints.values()):
             constraint_id = constraint["identifier"].GetString()
             self.constraint_gradient_variables.update({
                 constraint_id : {
@@ -176,7 +176,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
         self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id =  constraint["identifier"].GetString()
             self.communicator.requestValueOf(con_id)
             self.communicator.requestGradientOf(con_id)
@@ -185,7 +185,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
         # compute normals only if required
         surface_normals_required = self.objectives[0]["project_gradient_on_surface_normals"].GetBool()
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if constraint["project_gradient_on_surface_normals"].GetBool():
                 surface_normals_required = True
 
@@ -202,7 +202,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DX)
 
         # project and damp constraint gradients
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id = constraint["identifier"].GetString()
             conGradientDict = self.communicator.getStandardizedGradient(con_id)
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
@@ -216,7 +216,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeBufferValue(self):
         # compute new buffer size and buffer values
-    	for constraint in self.constraints:
+    	for constraint in self.constraints.values():
             identifier = constraint["identifier"].GetString()
             g_i = self.communicator.getStandardizedValue(identifier)
             g_i_m1 = self.constraint_buffer_variables[identifier]["g_i-1"]
@@ -253,7 +253,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id = constraint["identifier"].GetString()
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
             mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
@@ -292,7 +292,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
     def __checkConstraintValue(self):
         index = -1
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if self.__isConstraintActive(constraint):
                 index += 1
                 identifier = constraint["identifier"].GetString()
@@ -458,7 +458,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         active_relaxation_coefficient = []
         active_correction_coefficient = []
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if self.__isConstraintActive(constraint):
                 identifier = constraint["identifier"].GetString()
                 g_i = self.communicator.getStandardizedValue(identifier)
@@ -502,7 +502,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __updateBufferZone(self):
         # adapt the buffer zones for zig-zagging, too much or too little correction
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
 
             identifier = constraint["identifier"].GetString()
             g_i = self.communicator.getStandardizedValue(identifier)
@@ -542,7 +542,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
         additional_values_to_log["projection_norm"] = self.s_norm
         itr = 0
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             identifier = constraint["identifier"].GetString()
             additional_values_to_log["c"+str(itr+1)+"_buffer_value"] = self.constraint_buffer_variables[identifier]["buffer_value"]
             additional_values_to_log["c"+str(itr+1)+"_buffer_size"] = self.constraint_buffer_variables[identifier]["buffer_size"]
