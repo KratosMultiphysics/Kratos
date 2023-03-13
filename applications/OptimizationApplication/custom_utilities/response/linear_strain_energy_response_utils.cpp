@@ -25,7 +25,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
-#include "response_utils.h"
+#include "custom_utilities/geometrical/model_part_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -97,23 +97,30 @@ void LinearStrainEnergyResponseUtils::CalculateSensitivity(
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
     for (const auto& it : rSensitivityVariableModelPartInfo) {
         std::visit([&](auto&& r_variable) {
-            if (*r_variable == SHAPE_SENSITIVITY) {
-                auto& r_sensitivity_model_part = ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(it.second, rAnalysisModelPart, true, false, false);
-                VariableUtils().SetNonHistoricalVariablesToZero(r_sensitivity_model_part.Nodes(), SHAPE_SENSITIVITY);
-                CalculateStrainEnergySemiAnalyticShapeSensitivity(r_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
-            } else {
-                auto& r_sensitivity_model_part = ResponseUtils::GetSensitivityModelPartForAdjointSensitivities(it.second, rAnalysisModelPart, false, true, false);
+            const auto& r_sensitivity_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+                it.second, {&rAnalysisModelPart}, true, true, true, true, 0);
+
+            // reset nodal common interface values
+            for (auto p_sensitivity_model_part : r_sensitivity_model_parts) {
+                if (*r_variable == SHAPE_SENSITIVITY) {
+                    VariableUtils().SetNonHistoricalVariablesToZero(p_sensitivity_model_part->Nodes(), SHAPE_SENSITIVITY);
+                }
+            }
+
+            // now compute sensitivities on the variables
+            for (auto p_sensitivity_model_part : r_sensitivity_model_parts) {
                 if (*r_variable == YOUNG_MODULUS_SENSITIVITY) {
-                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
+                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(*p_sensitivity_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
                 } else if (*r_variable == THICKNESS_SENSITIVITY) {
-                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, THICKNESS, THICKNESS_SENSITIVITY);
+                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(*p_sensitivity_model_part, THICKNESS, THICKNESS_SENSITIVITY);
                 } else if (*r_variable == POISSON_RATIO_SENSITIVITY) {
-                    CalculateStrainEnergySemiAnalyticPropertySensitivity(r_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+                    CalculateStrainEnergySemiAnalyticPropertySensitivity(*p_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+                } else if (*r_variable == SHAPE_SENSITIVITY) {
+                    CalculateStrainEnergySemiAnalyticShapeSensitivity(*p_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
                 } else {
                     KRATOS_ERROR
                         << "Unsupported sensitivity w.r.t. " << r_variable->Name()
-                        << " requested for " << r_sensitivity_model_part.FullName()
-                        << ". Followings are supported sensitivity variables:"
+                        << " requested. Followings are supported sensitivity variables:"
                         << "\n\t" << YOUNG_MODULUS_SENSITIVITY.Name()
                         << "\n\t" << THICKNESS_SENSITIVITY.Name()
                         << "\n\t" << POISSON_RATIO_SENSITIVITY.Name()
