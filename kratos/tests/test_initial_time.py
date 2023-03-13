@@ -48,13 +48,13 @@ class TestInitialTime(KratosUnittest.TestCase):
         materials_filename = GetFilePath(materials_pattern.format(model_part_name.lower()))
         parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString(materials_filename)
 
-        for processes_list in parameters["processes"]:
-            for process in processes_list:
+        for processes_list in parameters["processes"].values():
+            for process in processes_list.values():
                 process["Parameters"]["model_part_name"].SetString(model_part_name)
 
         if parameters.Has("output_processes"):
-            for processes_list in parameters["output_processes"]:
-                for process in processes_list:
+            for processes_list in parameters["output_processes"].values():
+                for process in processes_list.values():
                     process["Parameters"]["model_part_name"].SetString(model_part_name)
                     process["Parameters"]["output_name"].SetString(model_part_name)
 
@@ -63,7 +63,7 @@ class TestInitialTime(KratosUnittest.TestCase):
         parameters["problem_data"]["start_time"].SetDouble(initial_time)
         parameters["problem_data"]["end_time"].SetDouble(initial_time + 1)
 
-        for process in parameters["processes"]["initial_conditions_process_list"]:
+        for process in parameters["processes"]["initial_conditions_process_list"].values():
             process["Parameters"]["interval"].SetVector([0, initial_time])
 
 
