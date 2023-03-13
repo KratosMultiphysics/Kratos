@@ -129,8 +129,7 @@ class ResidualBasedNewtonRaphsonStrategy
     explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false),
-          mUseInitialStiffness(false)
+          mKeepSystemConstantDuringIterations(false)
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
@@ -181,8 +180,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mCalculateReactionsFlag(CalculateReactions),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false),
-          mUseInitialStiffness(false)
+          mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY;
 
@@ -238,8 +236,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mCalculateReactionsFlag(CalculateReactions),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false),
-          mUseInitialStiffness(false)
+          mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
 
@@ -323,8 +320,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false),
-          mUseInitialStiffness(false)
+          mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY;
 
@@ -372,8 +368,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false),
-          mUseInitialStiffness(false)
+          mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
         // Validate and assign defaults
