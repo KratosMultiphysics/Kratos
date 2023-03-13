@@ -657,6 +657,8 @@ namespace Kratos
                 .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
                 .def("SetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
                 .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+                .def("SetUseInitialStiffnessFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseInitialStiffnessFlag)
+                .def("GetUseInitialStiffnessFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseInitialStiffnessFlag)
                 ;
 
             // ARC-LENGTH
