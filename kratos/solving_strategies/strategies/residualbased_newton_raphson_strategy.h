@@ -129,7 +129,8 @@ class ResidualBasedNewtonRaphsonStrategy
     explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
+          mKeepSystemConstantDuringIterations(false),
+          mUseInitialStiffness(false)
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
@@ -180,7 +181,8 @@ class ResidualBasedNewtonRaphsonStrategy
           mCalculateReactionsFlag(CalculateReactions),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
+          mKeepSystemConstantDuringIterations(false),
+          mUseInitialStiffness(false)
     {
         KRATOS_TRY;
 
@@ -236,7 +238,8 @@ class ResidualBasedNewtonRaphsonStrategy
           mCalculateReactionsFlag(CalculateReactions),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
+          mKeepSystemConstantDuringIterations(false),
+          mUseInitialStiffness(false)
     {
         KRATOS_TRY
 
@@ -320,7 +323,8 @@ class ResidualBasedNewtonRaphsonStrategy
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
+          mKeepSystemConstantDuringIterations(false),
+          mUseInitialStiffness(false)
     {
         KRATOS_TRY;
 
@@ -368,7 +372,8 @@ class ResidualBasedNewtonRaphsonStrategy
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
+          mKeepSystemConstantDuringIterations(false),
+          mUseInitialStiffness(false)
     {
         KRATOS_TRY
         // Validate and assign defaults
@@ -547,6 +552,24 @@ class ResidualBasedNewtonRaphsonStrategy
     bool GetUseOldStiffnessInFirstIterationFlag()
     {
         return mUseOldStiffnessInFirstIteration;
+    }
+
+    /**
+     * @brief This method sets the flag mFullUpdateFlag
+     * @param UseOldStiffnessInFirstIterationFlag The flag that tells if
+     */
+    void SetUseInitialStiffnessFlag(bool mUseInitialStiffnessFlag)
+    {
+        mUseInitialStiffness = mUseInitialStiffnessFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mFullUpdateFlag
+     * @return The flag that tells if
+     */
+    bool GetUseInitialStiffnessFlag()
+    {
+        return mUseInitialStiffness;
     }
 
     /**
@@ -901,12 +924,11 @@ class ResidualBasedNewtonRaphsonStrategy
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
-        const bool initial_stiffness = true;
 
         // Function to perform the building and the solving phase.
-        if ((initial_stiffness && r_model_part.GetProcessInfo()[STEP] == 1)) {
+        if ((GetUseInitialStiffnessFlag() && r_model_part.GetProcessInfo()[STEP] == 1)) {
             p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-        } else if (initial_stiffness) {
+        } else if (GetUseInitialStiffnessFlag()) {
             TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
             TSparseSpace::SetToZero(rb);
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
@@ -966,7 +988,7 @@ class ResidualBasedNewtonRaphsonStrategy
             {
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
                 {
-                    if (GetKeepSystemConstantDuringIterations() == false || initial_stiffness == false)
+                    if (GetKeepSystemConstantDuringIterations() == false || GetUseInitialStiffnessFlag() == false)
                     {
                         //A = 0.00;
                         TSparseSpace::SetToZero(rA);
@@ -1081,6 +1103,7 @@ class ResidualBasedNewtonRaphsonStrategy
         {
             "name"                                : "newton_raphson_strategy",
             "use_old_stiffness_in_first_iteration": false,
+            "use_initial_stiffness"               : false,
             "max_iteration"                       : 10,
             "reform_dofs_at_each_step"            : false,
             "compute_reactions"                   : false,
@@ -1262,10 +1285,16 @@ class ResidualBasedNewtonRaphsonStrategy
     bool mCalculateReactionsFlag;
 
     /**
-     * @brief Flag telling if a full update of the database will be performed at the first iteration
+     * @brief Flag telling if a full update of the database will be performed only at the first iteration
      * @details default = false
      */
     bool mUseOldStiffnessInFirstIteration = false;
+
+    /**
+     * @brief Flag telling if a full update of the LHS will be done only ONCE per simulation
+     * @details default = false
+     */
+    bool mUseInitialStiffness = false;
 
     unsigned int mMaxIterationNumber; /// The maximum number of iterations, 30 by default
 
@@ -1364,6 +1393,7 @@ class ResidualBasedNewtonRaphsonStrategy
         mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
         mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
         mUseOldStiffnessInFirstIteration = ThisParameters["use_old_stiffness_in_first_iteration"].GetBool();
+        mUseInitialStiffness = ThisParameters["use_initial_stiffness"].GetBool();
 
         // Saving the convergence criteria to be used
         if (ThisParameters["convergence_criteria_settings"].Has("name")) {
