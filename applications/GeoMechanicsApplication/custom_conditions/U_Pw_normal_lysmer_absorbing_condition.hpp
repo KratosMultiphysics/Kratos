@@ -142,10 +142,10 @@ protected:
 
     /**
     * @brief Calculates and adds terms to the RHS
-    * @param rRigtHandSideMatrix Global Right hand side
+    * @param rRigtHandSideVector Global Right hand side
     * @param rStiffnessMatrix condition stiffness matrix
     */
-    void CalculateAndAddRHS(VectorType& rRightHandSideMatrix, const MatrixType& rStiffnessMatrix);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, const MatrixType& rStiffnessMatrix);
 
     /**
     * @brief Calculates the rotation matrix of the current condition

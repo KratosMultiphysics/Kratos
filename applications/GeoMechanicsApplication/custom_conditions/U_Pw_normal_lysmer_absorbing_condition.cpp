@@ -51,17 +51,17 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
 
     //Containers of variables at all integration points
     const Matrix& r_n_container = r_geom.ShapeFunctionsValues(integration_method);
-    GeometryType::JacobiansType j_container(num_g_points);
+    GeometryType::JacobiansType jacobians(num_g_points);
     for (unsigned int i = 0; i < num_g_points; ++i)
-        j_container[i].resize(TDim, local_dim, false);
-    r_geom.Jacobian(j_container, integration_method);
+        jacobians[i].resize(TDim, local_dim, false);
+    r_geom.Jacobian(jacobians, integration_method);
 
     //Condition variables
     BoundedMatrix<double, TDim, N_DOF> nu_matrix = ZeroMatrix(TDim, N_DOF);
 
-    NormalLysmerAbsorbingVariables r_variables;
+    NormalLysmerAbsorbingVariables absorbing_variables;
 
-    this->GetVariables(r_variables, rCurrentProcessInfo);
+    this->GetVariables(absorbing_variables, rCurrentProcessInfo);
 
     BoundedMatrix<double, TDim, N_DOF> aux_abs_k_matrix;
     rStiffnessMatrix = ZeroMatrix(N_DOF, N_DOF);
@@ -70,27 +70,27 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
 
         // calculate
-        r_variables.Ec = 0.0;
-        r_variables.G = 0.0;
+        absorbing_variables.Ec = 0.0;
+        absorbing_variables.G = 0.0;
         for (unsigned int node = 0; node < r_geom.size(); ++node)
         {
-            r_variables.Ec += r_n_container(g_point, node) * r_variables.EcNodes[node];
-            r_variables.G += r_n_container(g_point, node) * r_variables.GNodes[node];
+            absorbing_variables.Ec += r_n_container(g_point, node) * absorbing_variables.EcNodes[node];
+            absorbing_variables.G += r_n_container(g_point, node) * absorbing_variables.GNodes[node];
         }
 
-        this->CalculateNodalStiffnessMatrix(r_variables, r_geom);
+        this->CalculateNodalStiffnessMatrix(absorbing_variables, r_geom);
 
         // calculate displacement shape function matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(r_variables.IntegrationCoefficient,
-            j_container[g_point],
+        this->CalculateIntegrationCoefficient(absorbing_variables.IntegrationCoefficient,
+            jacobians[g_point],
             r_integration_points[g_point].Weight());
 
         // set stiffness part of absorbing matrix
-        aux_abs_k_matrix = prod(r_variables.KAbsMatrix, nu_matrix);
-        rStiffnessMatrix += prod(trans(nu_matrix), aux_abs_k_matrix) * r_variables.IntegrationCoefficient;
+        aux_abs_k_matrix = prod(absorbing_variables.KAbsMatrix, nu_matrix);
+        rStiffnessMatrix += prod(trans(nu_matrix), aux_abs_k_matrix) * absorbing_variables.IntegrationCoefficient;
     }
 }
 
@@ -124,16 +124,16 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
 
     //Containers of variables at all integration points
     const Matrix& r_n_container = r_geom.ShapeFunctionsValues(r_integration_method);
-    GeometryType::JacobiansType j_container(num_g_points);
+    GeometryType::JacobiansType jacobians(num_g_points);
     for (unsigned int i = 0; i < num_g_points; ++i)
-        (j_container[i]).resize(TDim, local_dim, false);
-    r_geom.Jacobian(j_container, r_integration_method);
+        (jacobians[i]).resize(TDim, local_dim, false);
+    r_geom.Jacobian(jacobians, r_integration_method);
 
     //Condition variables
     BoundedMatrix<double, TDim, N_DOF> nu_matrix = ZeroMatrix(TDim, N_DOF);
 
-    NormalLysmerAbsorbingVariables r_variables;
-    this->GetVariables(r_variables, rCurrentProcessInfo);
+    NormalLysmerAbsorbingVariables absorbing_variables;
+    this->GetVariables(absorbing_variables, rCurrentProcessInfo);
 
     BoundedMatrix<double, TDim, N_DOF> aux_abs_matrix;
     BoundedMatrix<double, N_DOF, N_DOF> abs_matrix = ZeroMatrix(N_DOF, N_DOF);
@@ -142,31 +142,31 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
 
         // calculate
-        r_variables.rho = 0.0;
-        r_variables.Ec = 0.0;
-        r_variables.G = 0.0;
+        absorbing_variables.rho = 0.0;
+        absorbing_variables.Ec = 0.0;
+        absorbing_variables.G = 0.0;
         for (unsigned int node = 0; node < r_geom.size(); ++node)
         {
-            r_variables.rho += r_n_container(g_point, node) * r_variables.rhoNodes[node];
-            r_variables.Ec += r_n_container(g_point, node) * r_variables.EcNodes[node];
-            r_variables.G += r_n_container(g_point, node) * r_variables.GNodes[node];
+            absorbing_variables.rho += r_n_container(g_point, node) * absorbing_variables.rhoNodes[node];
+            absorbing_variables.Ec += r_n_container(g_point, node) * absorbing_variables.EcNodes[node];
+            absorbing_variables.G += r_n_container(g_point, node) * absorbing_variables.GNodes[node];
         }
-        r_variables.vp = sqrt(r_variables.Ec / r_variables.rho);
-        r_variables.vs = sqrt(r_variables.G / r_variables.rho);
+        absorbing_variables.vp = sqrt(absorbing_variables.Ec / absorbing_variables.rho);
+        absorbing_variables.vs = sqrt(absorbing_variables.G / absorbing_variables.rho);
 
-        this->CalculateNodalDampingMatrix(r_variables, r_geom);
+        this->CalculateNodalDampingMatrix(absorbing_variables, r_geom);
 
         // calculate displacement shape function matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(r_variables.IntegrationCoefficient,
-            j_container[g_point],
+        this->CalculateIntegrationCoefficient(absorbing_variables.IntegrationCoefficient,
+            jacobians[g_point],
             r_integration_points[g_point].Weight());
 
         // set damping part of absorbing matrix
-        aux_abs_matrix = prod(r_variables.CAbsMatrix, nu_matrix);
-        abs_matrix += prod(trans(nu_matrix), aux_abs_matrix) * r_variables.IntegrationCoefficient;
+        aux_abs_matrix = prod(absorbing_variables.CAbsMatrix, nu_matrix);
+        abs_matrix += prod(trans(nu_matrix), aux_abs_matrix) * absorbing_variables.IntegrationCoefficient;
     }
 
     // assemble left hand side vector
@@ -323,20 +323,20 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
 {
     const GeometryData::IntegrationMethod integration_method_neighbour = rNeighbourElement.GetIntegrationMethod();
     const GeometryType& r_neighbour_geom = rNeighbourElement.GetGeometry();
-    const IndexType r_num_nodes_neighbour = r_neighbour_geom.size();
+    const IndexType num_nodes_neighbour = r_neighbour_geom.size();
     const IndexType num_g_points_neighbour = r_neighbour_geom.IntegrationPointsNumber(integration_method_neighbour);
 
-    Matrix extrapolation_matrix = ZeroMatrix(r_num_nodes_neighbour, num_g_points_neighbour);
+    Matrix extrapolation_matrix = ZeroMatrix(num_nodes_neighbour, num_g_points_neighbour);
 
     // Calculate extrapolation matrix for 2d elements
     if constexpr (TDim == 2)
     {
-        if (r_num_nodes_neighbour == 3)
+        if (num_nodes_neighbour == 3)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixTriangle(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
         }
-        if (r_num_nodes_neighbour == 4)
+        if (num_nodes_neighbour == 4)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixQuad(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
@@ -346,12 +346,12 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
     // Calculate extrapolation matrix for 3d elements
     if constexpr (TDim == 3)
     {
-        if (r_num_nodes_neighbour == 4)
+        if (num_nodes_neighbour == 4)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixTetra(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
         }
-        if (r_num_nodes_neighbour == 8)
+        if (num_nodes_neighbour == 8)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixHexa(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
@@ -360,8 +360,8 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
     }
 
     // if no extrapolation matrix is implemented, take average values at gauss points
-    const double averaging_factor = 1 / num_g_points_neighbour;
-    for (unsigned int node = 0; node < r_num_nodes_neighbour; ++node)
+    const double averaging_factor = 1.0 / num_g_points_neighbour;
+    for (unsigned int node = 0; node < num_nodes_neighbour; ++node)
     {
         for (unsigned int g_point = 0; g_point < num_g_points_neighbour; ++g_point)
         {
@@ -467,9 +467,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
 CalculateAndAddRHS(VectorType& rRightHandSideVector, const MatrixType& rStiffnessMatrix)
 {
 
-    if (rRightHandSideVector.size() != CONDITION_SIZE)
-        rRightHandSideVector.resize(CONDITION_SIZE, false);
-    noalias(rRightHandSideVector) = ZeroVector(CONDITION_SIZE);
+    rRightHandSideVector = ZeroVector(CONDITION_SIZE);
 
     Vector displacements_vector = ZeroVector(CONDITION_SIZE);
     this->GetValuesVector(displacements_vector, 0);
@@ -483,10 +481,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
 AddLHS(MatrixType& rLeftHandSideMatrix, const BoundedMatrix<double, N_DOF, N_DOF>& rUMatrix)
 {
 	// assemble left hand side vector
-    if (rLeftHandSideMatrix.size1() != CONDITION_SIZE)
-        rLeftHandSideMatrix.resize(CONDITION_SIZE, CONDITION_SIZE, false);
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+    rLeftHandSideMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
 
     //Adding contribution to left hand side
     GeoElementUtilities::
