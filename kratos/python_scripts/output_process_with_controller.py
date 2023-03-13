@@ -23,7 +23,7 @@ class OutputProcessWithController(KratosMultiphysics.OutputProcess):
         self.params.ValidateAndAssignDefaults(default_settings)
         factory = KratosModelParametersFactory(self.model)
         self.controller = factory.ConstructItem(self.params["controller_settings"])
-        self.print_process = factory.ConstructItem(self.params["output_settings"])
+        self.output_process = factory.ConstructItem(self.params["output_settings"])
 
     @classmethod
     def GetDefaultParameters(self):
@@ -34,31 +34,31 @@ class OutputProcessWithController(KratosMultiphysics.OutputProcess):
 
     def Check(self):
         self.controller.Check()
-        self.print_process.Check()
+        self.output_process.Check()
 
     def ExecuteInitialize(self):
-        self.print_process.ExecuteInitialize()
+        self.output_process.ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
-        self.print_process.ExecuteBeforeSolutionLoop()
+        self.output_process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-        self.print_process.ExecuteInitializeSolutionStep()
+        self.output_process.ExecuteInitializeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
-        self.print_process.ExecuteBeforeOutputStep()
+        self.output_process.ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
-        self.print_process.ExecuteAfterOutputStep()
+        self.output_process.ExecuteAfterOutputStep()
 
     def ExecuteFinalizeSolutionStep(self):
-        self.print_process.ExecuteFinalizeSolutionStep()
+        self.output_process.ExecuteFinalizeSolutionStep()
 
     def ExecuteFinalize(self):
-        self.print_process.ExecuteFinalize()
+        self.output_process.ExecuteFinalize()
 
     def IsOutputStep(self):
         self.controller.Evaluate()
 
     def PrintOutput(self):
-        self.print_process.PrintOutput()
+        self.output_process.PrintOutput()
