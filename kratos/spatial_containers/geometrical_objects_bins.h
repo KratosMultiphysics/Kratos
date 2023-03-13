@@ -87,6 +87,20 @@ public:
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
     }
 
+    template<typename TIteratorType,typename TArrayType>
+    GeometricalObjectsBins(
+        TIteratorType GeometricalObjectsBegin, 
+        TIteratorType GeometricalObjectsEnd, 
+        const TArrayType& rCellSize,
+        const TArrayType& rMinBoundingBox,
+        const TArrayType& rMaxBoundingBox) 
+    {
+        mBoundingBox.SetBoundingBox(rMinBoundingBox,rMaxBoundingBox);
+        AssignCellSize(rCellSize);
+        mCells.resize(GetTotalNumberOfCells());  
+        AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
+    }
+
 
     /// Destructor.
     virtual ~GeometricalObjectsBins(){}
@@ -341,6 +355,21 @@ private:
             mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
         }
 
+    }
+
+    template<typename TCellSizesType>
+    void AssignCellSize(const TCellSizesType& rCellSize) {
+        std::array<double, 3> lengths;
+        for (int i = 0; i < Dimension; i++) {
+            lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
+        }
+
+        for (int i = 0; i < Dimension; i++) {
+            mNumberOfCells[i] = static_cast<std::size_t>(std::round(lengths[i] / rCellSize[i]));
+            mNumberOfCells[i] = (mNumberOfCells[i] >= 1) ? mNumberOfCells[i] : 1;
+            mCellSizes[i] = rCellSize[i];
+            mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
+        }
     }
 
     /// Adding objects to the cells that intersecting with it.
