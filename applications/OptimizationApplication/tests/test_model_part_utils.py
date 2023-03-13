@@ -149,6 +149,27 @@ class TestModelPartUtils(kratos_unittest.TestCase):
             self.examined_model_parts, [self.model["test"]], False, False, True, True)
         self.__CheckModelParts(model_parts, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25], [], [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
+    def test_ClearEntitiesOfModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(self):
+        KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+            self.examined_model_parts, self.reference_model_parts, True, False, False, False)
+
+        self.assertTrue(self.model.HasModelPart("test.evaluated_element_1.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+        self.assertTrue(self.model.HasModelPart("test.evaluated_element_2.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+        self.assertTrue(self.model.HasModelPart("test.evaluated_element_3.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+
+        KratosOA.ModelPartUtils.RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList([self.model["test"]])
+
+        self.assertFalse(self.model.HasModelPart("test.evaluated_element_1.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+        self.assertFalse(self.model.HasModelPart("test.evaluated_element_2.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+        self.assertFalse(self.model.HasModelPart("test.evaluated_element_3.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+
+        KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+            self.examined_model_parts, self.reference_model_parts, True, False, False, False)
+
+        self.assertTrue(self.model.HasModelPart("test.evaluated_element_1.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+        self.assertTrue(self.model.HasModelPart("test.evaluated_element_2.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+        self.assertTrue(self.model.HasModelPart("test.evaluated_element_3.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

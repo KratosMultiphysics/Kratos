@@ -73,6 +73,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             py::arg("are_elements_considered"),
             py::arg("are_parents_considered"),
             py::arg("echo_level") = 0)
+        .def_static("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList)
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")

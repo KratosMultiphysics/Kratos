@@ -103,6 +103,16 @@ public:
         const bool AreParentsConsidered,
         const IndexType EchoLevel = 0);
 
+    /**
+     * @brief Removes automatically generated model parts
+     *
+     * This method removes all the automatically generted sub model parts in the given list of rModelParts
+     *
+     * @param rModelParts       The list of model parts to look for automatically generated sub model parts.
+     */
+    static void RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+        const std::vector<ModelPart*> rModelParts);
+
     ///@}
 private:
     ///@name Private static classes
@@ -198,6 +208,10 @@ private:
         const bool AreConditionsConsidered,
         const bool AreElementsConsidered,
         const bool AreParentsConsidered);
+
+    static void GetModelParts(
+        std::set<ModelPart*>& rOutput,
+        ModelPart& rInput);
 
     static void ExamineModelParts(
         std::set<IndexType>& rExaminedNodeIds,

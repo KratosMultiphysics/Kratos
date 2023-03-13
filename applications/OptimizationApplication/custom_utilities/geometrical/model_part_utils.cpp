@@ -304,6 +304,18 @@ std::string ModelPartUtils::GetExaminedModelPartsInfo(
     return msg.str();
 }
 
+void ModelPartUtils::GetModelParts(
+    std::set<ModelPart*>& rOutput,
+    ModelPart& rInput)
+{
+    // add the current model part
+    rOutput.emplace(&rInput);
+
+    for (auto& r_sub_model_part : rInput.SubModelParts()) {
+        GetModelParts(rOutput, r_sub_model_part);
+    }
+}
+
 void ModelPartUtils::ExamineModelParts(
     std::set<IndexType>& rExaminedNodeIds,
     std::set<NodeIdsType>& rExaminedConditionGeometryNodeIdsSet,
@@ -559,6 +571,21 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
     }
 
     return output_model_parts;
+}
+
+void ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+    const std::vector<ModelPart*> rModelParts)
+{
+    std::set<ModelPart*> all_model_parts;
+    for (auto p_model_part : rModelParts) {
+        GetModelParts(all_model_parts, *p_model_part);
+    }
+
+    for (auto& it : all_model_parts) {
+        if (it->Name().rfind("<OPTIMIZATION_APP_AUTO>", 0) == 0) {
+            it->GetParentModelPart().RemoveSubModelPart(*it);
+        }
+    }
 }
 
 } // namespace Kratos
