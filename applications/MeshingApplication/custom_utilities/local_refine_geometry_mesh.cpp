@@ -430,8 +430,7 @@ void LocalRefineGeometryMesh::UpdateSubModelPartNodes(ModelPart &rModelPart)
                 }
             }
         }
-        bool added_nodes = (new_nodes.size() > 0);
-        if(added_nodes) {
+        if (new_nodes.size() > 0) {
             ModelPart& r_sub_model_part = *iSubModelPart;
             r_sub_model_part.AddNodes(new_nodes.begin(), new_nodes.end());
             new_nodes.clear();
