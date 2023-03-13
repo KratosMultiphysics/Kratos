@@ -325,7 +325,8 @@ public:
         )
     {
         constexpr bool transpose_flag = false;
-        rA.Multiply(transpose_flag, rX, rY);
+        const int ierr = rA.Multiply(transpose_flag, rX, rY);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra multiplication failure " << ierr << std::endl;
     }
 
     /**
@@ -368,7 +369,8 @@ public:
         )
     {
         constexpr bool transpose_flag = true;
-        rA.Multiply(transpose_flag, rX, rY);
+        const int ierr = rA.Multiply(transpose_flag, rX, rY);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra multiplication failure " << ierr << std::endl;
     }
 
     /**
@@ -526,8 +528,10 @@ public:
         const double A
         )
     {
-        if (A != 1.00)
-            rX.Scale(A);
+        if (A != 1.00) {
+            const int ierr = rX.Scale(A);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra scaling failure " << ierr << std::endl;
+        }
     }
 
     /**
@@ -545,10 +549,12 @@ public:
         const VectorType& rY
         )
     {
-        if (A != 1.00)
-            rX.Scale(A, rY); //not sure
-        else
+        if (A != 1.00) {
+            const int ierr = rX.Scale(A, rY); //not sure
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra assign failure " << ierr << std::endl;
+        } else {
             rX = rY;
+        }
     }
 
     /**
@@ -566,7 +572,8 @@ public:
         const VectorType& rY
         )
     {
-        rX.Update(A, rY, 1.0);
+        const int ierr = rX.Update(A, rY, 1.0);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra unaliased add failure " << ierr << std::endl;
     }
 
     /**
@@ -586,7 +593,8 @@ public:
         VectorType& rZ
         )
     {
-        rZ.Update(A, rX, B, rY, 0.0);
+        const int ierr = rZ.Update(A, rX, B, rY, 0.0);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra scale and add failure " << ierr << std::endl;
     }
 
     /**
@@ -604,7 +612,8 @@ public:
         VectorType& rY
         )
     {
-        rY.Update(A, rX, B);
+        const int ierr = rY.Update(A, rX, B);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra scale and add failure " << ierr << std::endl;
     }
 
     /**
@@ -642,7 +651,8 @@ public:
         const DataType A
         )
     {
-        rX.PutScalar(A);
+        const int ierr = rX.PutScalar(A);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra set failure " << ierr << std::endl;
     }
 
     /**
@@ -724,7 +734,8 @@ public:
      */
     inline static void SetToZero(MatrixType& rA)
     {
-        rA.PutScalar(0.0);
+        const int ierr = rA.PutScalar(0.0);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra set to zero failure " << ierr << std::endl;
     }
 
     /**
@@ -733,7 +744,8 @@ public:
      */
     inline static void SetToZero(VectorType& rX)
     {
-        rX.PutScalar(0.0);
+        const int ierr = rX.PutScalar(0.0);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra set to zero failure " << ierr << std::endl;
     }
 
     /// TODO: creating the the calculating reaction version
@@ -781,7 +793,7 @@ public:
                 }
             }
 
-            int ierr = rA.SumIntoGlobalValues(indices, values);
+            const int ierr = rA.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -825,7 +837,7 @@ public:
                 }
             }
 
-            int ierr = rb.SumIntoGlobalValues(indices, values);
+            const int ierr = rb.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -1117,10 +1129,9 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
-        rA.ExtractDiagonalCopy(diagonal);
+        Epetra_Vector diagonal(rA.RowMap());
+        const int ierr = rA.ExtractDiagonalCopy(diagonal);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
 
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::TwoNorm(diagonal);
 
@@ -1150,10 +1161,9 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
-        rA.ExtractDiagonalCopy(diagonal);
+        Epetra_Vector diagonal(rA.RowMap());
+        const int ierr = rA.ExtractDiagonalCopy(diagonal);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Max(diagonal);
 
         KRATOS_CATCH("");
@@ -1168,10 +1178,9 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
-        rA.ExtractDiagonalCopy(diagonal);
+        Epetra_Vector diagonal(rA.RowMap());
+        const int ierr = rA.ExtractDiagonalCopy(diagonal);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Min(diagonal);
 
         KRATOS_CATCH("");
