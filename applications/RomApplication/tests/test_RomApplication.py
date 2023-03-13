@@ -23,7 +23,7 @@ def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -52,6 +52,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralPGRom]))
 
+    # - testNightly
+    nightlySuite = suites['nightly']
+    nightlySuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:

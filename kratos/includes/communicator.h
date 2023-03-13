@@ -212,6 +212,8 @@ public:
 
     SizeType GlobalNumberOfConditions() const;
 
+    SizeType GlobalNumberOfMasterSlaveConstraints() const;
+
     SizeType GetNumberOfColors() const;
 
     void SetNumberOfColors(SizeType NewNumberOfColors);

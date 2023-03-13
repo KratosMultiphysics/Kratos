@@ -10,8 +10,7 @@
 //       contact:    A.Winterstein[at]tum.de
 //
 
-#if !defined(SHELL_THICK_ELEMENT_3D3N_H_INCLUDED )
-#define  SHELL_THICK_ELEMENT_3D3N_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -389,4 +388,3 @@ private:
 };
 
 }
-#endif // SHELL_THICK_ELEMENT_3D3N_H_INCLUDED

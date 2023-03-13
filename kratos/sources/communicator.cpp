@@ -108,6 +108,11 @@ Communicator::SizeType Communicator::GlobalNumberOfConditions() const
     return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfConditions()));
 }
 
+Communicator::SizeType Communicator::GlobalNumberOfMasterSlaveConstraints() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfMasterSlaveConstraints()));
+}
+
 Communicator::SizeType Communicator::GetNumberOfColors() const
 {
     return mNumberOfColors;
