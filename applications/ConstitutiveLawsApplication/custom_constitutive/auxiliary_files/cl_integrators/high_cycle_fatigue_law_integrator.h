@@ -95,17 +95,23 @@ public:
      * @param CurrentStress Equivalent stress in the current step.
      * @param rMaximumStress Maximum stress.
      * @param rMinimumStress Minimum stress.
+     * @param rMaximumStressLocal Maximum stress.
+     * @param rMinimumStressLocal Minimum stress.
      * @param PreviousStresses Equivalent stresses in the two previous steps.
-     * @param rMaxIndicator Indicator of a maximum in the current cycle.
-     * @param rMinIndicator Indicator of a minimum in the current cycle.
+     * @param rPreviousMaxStress Previous maximum stress.
+     * @param rPreviousMinStress Previous minimum stress.
+     * @param rFirstMaxIndicator Indicator of a maximum in the current cycle.
+     * @param rFirstMinIndicator Indicator of a minimum in the current cycle.
+     * @param rCycleIndicator Indicator of a new cycle.
+     * @param rFirstCycleIndicator Indicator of the first cycle.   
      */
     static void CalculateMaximumAndMinimumStresses(
         const double CurrentStress,
+        const Vector& PreviousStresses,
         double& rMaximumStress,
         double& rMinimumStress,
-        const Vector& PreviousStresses,
-        bool& rMaxIndicator,
-        bool& rMinIndicator)
+        bool& rFirstMaxIndicator,
+        bool& rFirstMinIndicator)
     {
         const double stress_1 = PreviousStresses[1];
         const double stress_2 = PreviousStresses[0];
@@ -113,11 +119,19 @@ public:
         const double stress_increment_2 = CurrentStress - stress_1;
         
         if (stress_increment_1 > 1.0e-3 && stress_increment_2 < -1.0e-3) {
-            rMaximumStress = stress_1;
-            rMaxIndicator = true;
-        } else if (stress_increment_1 < -1.0e-3 && stress_increment_2 > 1.0e-3) {
-            rMinimumStress = stress_1;
-            rMinIndicator = true;
+            if (rFirstMaxIndicator){
+                rMaximumStress = stress_1;
+                rFirstMaxIndicator = false;
+            } else if (stress_1 > rMaximumStress){
+                rMaximumStress = stress_1;
+            }
+        } else if (stress_increment_1 < -1.0e-3 && stress_increment_2 > 1.0e-3) {  
+            if (rFirstMinIndicator){
+                rMinimumStress = stress_1;
+                rFirstMinIndicator = false;
+            } else if (stress_1 < rMinimumStress){
+                rMinimumStress = stress_1;
+            }
         }
     }
 

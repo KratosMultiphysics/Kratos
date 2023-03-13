@@ -73,7 +73,7 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                                 reversion_factor = elem.CalculateOnIntegrationPoints(CLA.INFINITY_YIELD_STRESS,self.main_model_part.ProcessInfo)
 
                                 if first_code_line == True:
-                                    plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) +  "\n")
+                                    plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) + "    " + "Gauss Point Id".rjust(20) + "    " + "{0:6d}".format(id_gauss_point).rjust(20) +  "\n")
                                     plot_file.write("    " + "Time".rjust(20) + "    " + "Nc Global".rjust(20) + "    " + "Nc Local".rjust(20) + "    " + "Damage".rjust(20) + "    " + "Fred".rjust(20) + "    " + "Reversion Factor".rjust(20) + "\n")
                                 plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(reversion_factor[id_gauss_point]).rjust(20) + "\n")
                                 plot_file.close()
@@ -93,7 +93,7 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                             reversion_factor = elem.CalculateOnIntegrationPoints(CLA.INFINITY_YIELD_STRESS,self.main_model_part.ProcessInfo)
 
                             if first_code_line == True:
-                                plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) +  "\n")
+                                plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) + "    " + "Gauss Point Id".rjust(20) + "    " + "{0:6d}".format(id_gauss_point).rjust(20) +  "\n")
                                 plot_file.write("    " + "Time".rjust(20) + "    " + "Nc Global".rjust(20) + "    " + "Nc Local".rjust(20) + "    " + "Uniaxial Stresses".rjust(20) + "    " + "Damage".rjust(20) + "    " + "Fred".rjust(20) + "    " + "Reversion Factor".rjust(20) + "\n")
                             plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.14e}".format(uniaxial_stresses[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(reversion_factor[id_gauss_point]).rjust(20) + "\n")
                             plot_file.close()
