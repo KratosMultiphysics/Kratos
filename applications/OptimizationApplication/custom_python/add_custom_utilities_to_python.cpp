@@ -20,6 +20,7 @@
 
 // Application includes
 #include "custom_utilities/geometrical/symmetry_utility.h"
+#include "custom_utilities/geometrical/model_part_utils.h"
 #include "custom_utilities/optimization_utils.h"
 
 // Include base h
@@ -38,6 +39,40 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Update", &SymmetryUtility::Update)
         .def("ApplyOnVectorField", &SymmetryUtility::ApplyOnVectorField)
         .def("ApplyOnScalarField", &SymmetryUtility::ApplyOnScalarField)
+        ;
+
+    py::class_<ModelPartUtils>(m, "ModelPartUtils")
+        .def_static("GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", [](
+            const std::vector<ModelPart*>& rEvaluatedModelPartsList,
+            const std::vector<ModelPart*>& rReferenceModelPartsList,
+            const bool AreNodesConsidered,
+            const bool AreConditionsConsidered,
+            const bool AreElementsConsidered,
+            const bool AreParentsConsidered,
+            const IndexType EchoLevel){
+                const auto& r_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+                    rEvaluatedModelPartsList,
+                    rReferenceModelPartsList,
+                    AreNodesConsidered,
+                    AreConditionsConsidered,
+                    AreElementsConsidered,
+                    AreParentsConsidered,
+                    EchoLevel);
+                auto pylist = py::list();
+                for (auto& ptr : r_model_parts) {
+                auto pyobj = py::cast(*ptr, py::return_value_policy::reference);
+                pylist.append(pyobj);
+                }
+                return pylist;
+
+            },
+            py::arg("examined_model_parts_list"),
+            py::arg("reference_model_parts"),
+            py::arg("are_nodes_considered"),
+            py::arg("are_conditions_considered"),
+            py::arg("are_elements_considered"),
+            py::arg("are_parents_considered"),
+            py::arg("echo_level") = 0)
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
