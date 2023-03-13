@@ -921,8 +921,9 @@ class ResidualBasedNewtonRaphsonStrategy
 
 
         // Function to perform the building and the solving phase.
-        if ((GetUseInitialStiffnessFlag() && r_model_part.GetProcessInfo()[STEP] == 1)) {
+        if ((GetUseInitialStiffnessFlag() && BaseType::mStiffnessMatrixIsBuilt == false)) {
             p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            SetStiffnessMatrixIsBuilt(true);
         } else if (GetUseInitialStiffnessFlag()) {
             TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
             TSparseSpace::SetToZero(rb);
