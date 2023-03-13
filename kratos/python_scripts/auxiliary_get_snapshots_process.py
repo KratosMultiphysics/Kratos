@@ -116,6 +116,7 @@ class AuxiliaryGetSnapshotsProcess(KratosMultiphysics.Process):
                 current_numpy = np.array(self.results[var_counter]).T
                 np.save(file_name, current_numpy)
                 var_counter += 1
+            self.results = [[] for i in range(len(self.list_of_variables))]
             self.output_frequency_counter = 0
         debug = True
 
