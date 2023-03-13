@@ -74,6 +74,14 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
 
+        # thickness variables
+        model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
+        nodal_variable = KM.KratosGlobals.GetVariable("DF1DT")
+        model_part.AddNodalSolutionStepVariable(nodal_variable)
+        for itr in range(1,number_of_constraints+1):
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DT")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+
         # sensitivity heatmap
         if self.optimization_settings["output"].Has("sensitivity_heatmap") and \
             self.optimization_settings["output"]["sensitivity_heatmap"].GetBool():

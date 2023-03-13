@@ -153,8 +153,45 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         if self.has_thickness:
             objThicknessGradientDict = self.communicator.getStandardizedThicknessGradient(self.objectives[0]["identifier"].GetString())
             conThicknessGradientDict = self.communicator.getStandardizedThicknessGradient(self.constraints[0]["identifier"].GetString())
-            print(f"objThicknessGradientDict:\n{objThicknessGradientDict}")
-            print(f"conThicknessGradientDict:\n{conThicknessGradientDict}")
+            print(f"objThicknessGradientDict:\n{list(objThicknessGradientDict.items())[:10]}")
+            print(f"conThicknessGradientDict:\n{list(conThicknessGradientDict.items())[:10]}")
+
+            # reset variables
+            for node in self.optimization_model_part.Nodes:
+                node.SetSolutionStepValue(KSO.DF1DT, 0, 0.0)
+                node.SetSolutionStepValue(KSO.DC1DT, 0, 0.0)
+
+            for condition in self.optimization_model_part.Conditions:
+                condition.SetValue(KSO.DF1DT, objThicknessGradientDict[condition.Id])
+                condition.SetValue(KSO.DC1DT, conThicknessGradientDict[condition.Id])
+
+            total_node_areas = dict()
+            for condition in self.optimization_model_part.Conditions:
+                df1_dt = condition.GetValue(KSO.DF1DT)
+                dc1_dt = condition.GetValue(KSO.DC1DT)
+                for node in condition.GetNodes():
+                    if node.Id in total_node_areas:
+                        total_node_areas[node.Id] += condition.GetGeometry().Area()
+                    else:
+                        total_node_areas[node.Id] = condition.GetGeometry().Area()
+                    df1_dt_node = node.GetSolutionStepValue(KSO.DF1DT)
+                    dc1_dt_node = node.GetSolutionStepValue(KSO.DC1DT)
+                    df1_dt_node += df1_dt * condition.GetGeometry().Area()
+                    dc1_dt_node += dc1_dt * condition.GetGeometry().Area()
+                    node.SetSolutionStepValue(KSO.DF1DT, 0, df1_dt_node)
+                    node.SetSolutionStepValue(KSO.DC1DT, 0, dc1_dt_node)
+
+            for node in self.optimization_model_part.Nodes:
+                total_node_area = total_node_areas[node.Id]
+                df1_dt_node = node.GetSolutionStepValue(KSO.DF1DT)
+                dc1_dt_node = node.GetSolutionStepValue(KSO.DC1DT)
+                df1_dt_node /= total_node_area
+                dc1_dt_node /= total_node_area
+                node.SetSolutionStepValue(KSO.DF1DT, 0, df1_dt_node)
+                node.SetSolutionStepValue(KSO.DC1DT, 0, dc1_dt_node)
+
+                print(f"DF1DT Condition {condition.Id} : {condition.GetValue(KSO.DF1DT)}")
+                print(f"DC1DT Condition {condition.Id} : {condition.GetValue(KSO.DC1DT)}")
 
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
         WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, KSO.DC1DX)
