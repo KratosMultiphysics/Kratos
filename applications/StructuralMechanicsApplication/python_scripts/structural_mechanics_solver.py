@@ -124,6 +124,7 @@ class MechanicalSolver(PythonSolver):
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
             "use_old_stiffness_in_first_iteration": false,
+            "use_initial_stiffness" : false,
             "compute_reactions": true,
             "solving_strategy_settings": {
                 "type" : "newton_raphson",
@@ -498,6 +499,7 @@ class MechanicalSolver(PythonSolver):
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      self.settings["move_mesh_flag"].GetBool())
         strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
+        strategy.SetUseInitialStiffnessFlag(self.settings["use_initial_stiffness"].GetBool())
         return strategy
 
     def _create_line_search_strategy(self):
