@@ -65,6 +65,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
+        self.has_thickness = True
+
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.objectives.size() > 1:
@@ -140,10 +142,19 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.communicator.requestValueOf(self.constraints[0]["identifier"].GetString())
         self.communicator.requestGradientOf(self.constraints[0]["identifier"].GetString())
 
+        if self.has_thickness:
+            self.communicator.requestThicknessGradientOf(self.objectives[0]["identifier"].GetString())
+            self.communicator.requestThicknessGradientOf(self.constraints[0]["identifier"].GetString())
+
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
 
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
         conGradientDict = self.communicator.getStandardizedGradient(self.constraints[0]["identifier"].GetString())
+        if self.has_thickness:
+            objThicknessGradientDict = self.communicator.getStandardizedThicknessGradient(self.objectives[0]["identifier"].GetString())
+            conThicknessGradientDict = self.communicator.getStandardizedThicknessGradient(self.constraints[0]["identifier"].GetString())
+            print(f"objThicknessGradientDict:\n{objThicknessGradientDict}")
+            print(f"conThicknessGradientDict:\n{conThicknessGradientDict}")
 
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
         WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, KSO.DC1DX)
