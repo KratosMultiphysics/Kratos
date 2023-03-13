@@ -21,6 +21,8 @@
 #include "includes/define.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
+#include "geometries/triangle_2d_10.h"
+#include "geometries/triangle_2d_15.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_9.h"
@@ -36,6 +38,8 @@
 #include "geometries/point_3d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
+#include "geometries/line_2d_4.h"
+#include "geometries/line_2d_5.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -43,7 +47,6 @@
 #include "geometries/quadrilateral_3d_9.h"
 #include "geometries/quadrilateral_interface_3d_4.h"
 #include "includes/variables.h"
-
 
 // Application includes
 #include "geo_mechanics_application.h"
@@ -66,6 +69,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mTransientPwElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mTransientPwElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mTransientPwElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mTransientPwElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mTransientPwElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mTransientPwElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
     mTransientPwElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mTransientPwElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
@@ -83,6 +88,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mSteadyStatePwElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mSteadyStatePwElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mSteadyStatePwElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mSteadyStatePwElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mSteadyStatePwElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mSteadyStatePwElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
     mSteadyStatePwElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mSteadyStatePwElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
@@ -105,6 +112,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwSmallStrainElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUPwSmallStrainElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mUPwSmallStrainElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUPwSmallStrainElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mUPwSmallStrainElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mUPwSmallStrainElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
     mUPwSmallStrainElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mUPwSmallStrainElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
@@ -131,6 +140,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mSmallStrainUPwDiffOrderElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mSmallStrainUPwDiffOrderElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mSmallStrainUPwDiffOrderElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mSmallStrainUPwDiffOrderElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mSmallStrainUPwDiffOrderElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mSmallStrainUPwDiffOrderElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
     mSmallStrainUPwDiffOrderElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mSmallStrainUPwDiffOrderElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
@@ -141,11 +152,15 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwSmallStrainAxisymmetricElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUPwSmallStrainAxisymmetricElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mUPwSmallStrainAxisymmetricElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUPwSmallStrainAxisymmetricElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mUPwSmallStrainAxisymmetricElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mUPwSmallStrainAxisymmetricFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
     mUPwSmallStrainAxisymmetricFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
     mSmallStrainUPwDiffOrderAxisymmetricElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mSmallStrainUPwDiffOrderAxisymmetricElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mSmallStrainUPwDiffOrderAxisymmetricElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mSmallStrainUPwDiffOrderAxisymmetricElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mSmallStrainUPwDiffOrderAxisymmetricElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
 
     // small strain interface elements
     mUPwSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
@@ -165,6 +180,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwUpdatedLagrangianElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUPwUpdatedLagrangianElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mUPwUpdatedLagrangianElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUPwUpdatedLagrangianElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mUPwUpdatedLagrangianElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mUPwUpdatedLagrangianElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
     mUPwUpdatedLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mUPwUpdatedLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
@@ -177,6 +194,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUpdatedLagrangianUPwDiffOrderElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUpdatedLagrangianUPwDiffOrderElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mUpdatedLagrangianUPwDiffOrderElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUpdatedLagrangianUPwDiffOrderElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mUpdatedLagrangianUPwDiffOrderElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mUpdatedLagrangianUPwDiffOrderElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
     mUpdatedLagrangianUPwDiffOrderElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mUpdatedLagrangianUPwDiffOrderElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
@@ -187,9 +206,13 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwUpdatedLagrangianAxisymmetricElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUPwUpdatedLagrangianAxisymmetricElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mUPwUpdatedLagrangianAxisymmetricElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUPwUpdatedLagrangianAxisymmetricElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >(Element::GeometryType::PointsArrayType(10)))),
+    mUPwUpdatedLagrangianAxisymmetricElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
     mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N( 0, Element::GeometryType::Pointer( new Triangle2D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N( 0, Element::GeometryType::Pointer( new Triangle2D15 <NodeType >( Element::GeometryType::PointsArrayType(15)))),
     mUPwUpdatedLagrangianAxisymmetricFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
     mUPwUpdatedLagrangianAxisymmetricFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
 
@@ -223,6 +246,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mPwNormalFluxCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4 <NodeType >(Condition::GeometryType::PointsArrayType(4)))),
 
     mUPwFaceLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
+    mUPwFaceLoadCondition2D4N( 0, Condition::GeometryType::Pointer( new Line2D4<NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwFaceLoadCondition2D5N( 0, Condition::GeometryType::Pointer( new Line2D5<NodeType >( Condition::GeometryType::PointsArrayType(5)))),
 
     mUPwFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <NodeType >( Condition::GeometryType::PointsArrayType(4)))),
@@ -234,8 +259,14 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwNormalFluxFICCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <NodeType >( Condition::GeometryType::PointsArrayType(4)))),
 
     mLineLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
+    mLineLoadDiffOrderCondition2D4N( 0, Condition::GeometryType::Pointer( new Line2D4<NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+    mLineLoadDiffOrderCondition2D5N( 0, Condition::GeometryType::Pointer( new Line2D5<NodeType >( Condition::GeometryType::PointsArrayType(5)))),
     mLineNormalLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
+    mLineNormalLoadDiffOrderCondition2D4N( 0, Condition::GeometryType::Pointer( new Line2D4<NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+    mLineNormalLoadDiffOrderCondition2D5N( 0, Condition::GeometryType::Pointer( new Line2D5<NodeType >( Condition::GeometryType::PointsArrayType(5)))),
     mLineNormalFluidFluxDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
+    mLineNormalFluidFluxDiffOrderCondition2D4N( 0, Condition::GeometryType::Pointer( new Line2D4<NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+    mLineNormalFluidFluxDiffOrderCondition2D5N( 0, Condition::GeometryType::Pointer( new Line2D5<NodeType >( Condition::GeometryType::PointsArrayType(5)))),
     mSurfaceLoadDiffOrderCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <NodeType >( Condition::GeometryType::PointsArrayType(6)))),
     mSurfaceLoadDiffOrderCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <NodeType >( Condition::GeometryType::PointsArrayType(8)))),
     mSurfaceLoadDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <NodeType >( Condition::GeometryType::PointsArrayType(9)))),
@@ -278,6 +309,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "TransientPwElement2D6N", mTransientPwElement2D6N )
     KRATOS_REGISTER_ELEMENT( "TransientPwElement2D8N", mTransientPwElement2D8N )
     KRATOS_REGISTER_ELEMENT( "TransientPwElement2D9N", mTransientPwElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D10N", mTransientPwElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D15N", mTransientPwElement2D15N )
     KRATOS_REGISTER_ELEMENT( "TransientPwElement3D10N", mTransientPwElement3D10N )
     KRATOS_REGISTER_ELEMENT( "TransientPwElement3D20N", mTransientPwElement3D20N )
     KRATOS_REGISTER_ELEMENT( "TransientPwElement3D27N", mTransientPwElement3D27N )
@@ -295,6 +328,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D6N", mSteadyStatePwElement2D6N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D8N", mSteadyStatePwElement2D8N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D9N", mSteadyStatePwElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D10N", mSteadyStatePwElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D15N", mSteadyStatePwElement2D15N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D10N", mSteadyStatePwElement3D10N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D20N", mSteadyStatePwElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D27N", mSteadyStatePwElement3D27N )
@@ -316,6 +351,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D6N", mUPwSmallStrainElement2D6N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D8N", mUPwSmallStrainElement2D8N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D9N", mUPwSmallStrainElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D10N", mUPwSmallStrainElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D15N", mUPwSmallStrainElement2D15N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D10N", mUPwSmallStrainElement3D10N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D20N", mUPwSmallStrainElement3D20N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D27N", mUPwSmallStrainElement3D27N )
@@ -342,6 +379,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D6N", mSmallStrainUPwDiffOrderElement2D6N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D8N", mSmallStrainUPwDiffOrderElement2D8N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D9N", mSmallStrainUPwDiffOrderElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D10N", mSmallStrainUPwDiffOrderElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D15N", mSmallStrainUPwDiffOrderElement2D15N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D10N", mSmallStrainUPwDiffOrderElement3D10N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N )
@@ -352,6 +391,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D6N", mUPwSmallStrainAxisymmetricElement2D6N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D8N", mUPwSmallStrainAxisymmetricElement2D8N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D9N", mUPwSmallStrainAxisymmetricElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D10N", mUPwSmallStrainAxisymmetricElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D15N", mUPwSmallStrainAxisymmetricElement2D15N )
 
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricFICElement2D3N", mUPwSmallStrainAxisymmetricFICElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricFICElement2D4N", mUPwSmallStrainAxisymmetricFICElement2D4N )
@@ -359,6 +400,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D6N", mSmallStrainUPwDiffOrderAxisymmetricElement2D6N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D8N", mSmallStrainUPwDiffOrderAxisymmetricElement2D8N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D9N", mSmallStrainUPwDiffOrderAxisymmetricElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D10N", mSmallStrainUPwDiffOrderAxisymmetricElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D15N", mSmallStrainUPwDiffOrderAxisymmetricElement2D15N )
 
     // Small strain interface elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
@@ -378,6 +421,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement2D6N", mUPwUpdatedLagrangianElement2D6N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement2D8N", mUPwUpdatedLagrangianElement2D8N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement2D9N", mUPwUpdatedLagrangianElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement2D10N", mUPwUpdatedLagrangianElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement2D15N", mUPwUpdatedLagrangianElement2D15N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement3D10N", mUPwUpdatedLagrangianElement3D10N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement3D20N", mUPwUpdatedLagrangianElement3D20N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianElement3D27N", mUPwUpdatedLagrangianElement3D27N )
@@ -390,6 +435,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D6N", mUpdatedLagrangianUPwDiffOrderElement2D6N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D8N", mUpdatedLagrangianUPwDiffOrderElement2D8N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D9N", mUpdatedLagrangianUPwDiffOrderElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D10N", mUpdatedLagrangianUPwDiffOrderElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement2D15N", mUpdatedLagrangianUPwDiffOrderElement2D15N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement3D10N", mUpdatedLagrangianUPwDiffOrderElement3D10N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement3D20N", mUpdatedLagrangianUPwDiffOrderElement3D20N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderElement3D27N", mUpdatedLagrangianUPwDiffOrderElement3D27N )
@@ -400,10 +447,14 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianAxisymmetricElement2D6N", mUPwUpdatedLagrangianAxisymmetricElement2D6N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianAxisymmetricElement2D8N", mUPwUpdatedLagrangianAxisymmetricElement2D8N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianAxisymmetricElement2D9N", mUPwUpdatedLagrangianAxisymmetricElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianAxisymmetricElement2D10N", mUPwUpdatedLagrangianAxisymmetricElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianAxisymmetricElement2D15N", mUPwUpdatedLagrangianAxisymmetricElement2D15N )
 
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D6N", mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D6N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N", mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N", mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N", mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N", mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N )
 
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianAxisymmetricFICElement2D3N", mUPwUpdatedLagrangianAxisymmetricFICElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N )
@@ -438,6 +489,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
 
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition2D3N", mUPwFaceLoadCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition2D4N", mUPwFaceLoadCondition2D4N )
+    KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition2D5N", mUPwFaceLoadCondition2D5N )
 
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N )
@@ -449,8 +502,14 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition3D4N", mUPwNormalFluxFICCondition3D4N )
 
     KRATOS_REGISTER_CONDITION( "LineLoadDiffOrderCondition2D3N", mLineLoadDiffOrderCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineLoadDiffOrderCondition2D4N", mLineLoadDiffOrderCondition2D4N )
+    KRATOS_REGISTER_CONDITION( "LineLoadDiffOrderCondition2D5N", mLineLoadDiffOrderCondition2D5N )
     KRATOS_REGISTER_CONDITION( "LineNormalLoadDiffOrderCondition2D3N", mLineNormalLoadDiffOrderCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineNormalLoadDiffOrderCondition2D4N", mLineNormalLoadDiffOrderCondition2D4N )
+    KRATOS_REGISTER_CONDITION( "LineNormalLoadDiffOrderCondition2D5N", mLineNormalLoadDiffOrderCondition2D5N )
     KRATOS_REGISTER_CONDITION( "LineNormalFluidFluxDiffOrderCondition2D3N", mLineNormalFluidFluxDiffOrderCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineNormalFluidFluxDiffOrderCondition2D4N", mLineNormalFluidFluxDiffOrderCondition2D4N )
+    KRATOS_REGISTER_CONDITION( "LineNormalFluidFluxDiffOrderCondition2D5N", mLineNormalFluidFluxDiffOrderCondition2D5N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadDiffOrderCondition3D6N", mSurfaceLoadDiffOrderCondition3D6N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadDiffOrderCondition3D8N", mSurfaceLoadDiffOrderCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadDiffOrderCondition3D9N", mSurfaceLoadDiffOrderCondition3D9N )
@@ -607,7 +666,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( PIPE_ETA )
     KRATOS_REGISTER_VARIABLE( PIPE_THETA )
     KRATOS_REGISTER_VARIABLE( PIPE_D_70 )
-	KRATOS_REGISTER_VARIABLE( PIPE_START_ELEMENT )
+    KRATOS_REGISTER_VARIABLE( PIPE_START_ELEMENT )
     KRATOS_REGISTER_VARIABLE( PIPE_ELEMENT_LENGTH )
     KRATOS_REGISTER_VARIABLE( PIPE_IN_EQUILIBRIUM )
     KRATOS_REGISTER_VARIABLE( PIPE_MODIFIED_D )
