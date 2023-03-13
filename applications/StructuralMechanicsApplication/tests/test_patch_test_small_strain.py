@@ -52,10 +52,12 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
-        if(dim == 2):
+        if dim == 2:
             cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
-        else:
+        elif dim == 3:
             cl = StructuralMechanicsApplication.LinearElastic3DLaw()
+        else:
+            cl = StructuralMechanicsApplication.LinearElasticAxisym2DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _define_movement(self,dim):
@@ -122,6 +124,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         strategy.Initialize()
         strategy.Check()
         strategy.Solve()
+
 
     def _check_results(self,mp,A,b):
 
@@ -291,6 +294,41 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                     self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
 
         #self.__post_process(mp)
+
+    def test_SmallDisplacementElement_2D_triangle_axisymm(self):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,2.5)
+
+        #create nodes
+        mp.CreateNewNode(1,0.5,0.5,0.0)
+        mp.CreateNewNode(2,0.7,0.2,0.0)
+        mp.CreateNewNode(3,0.9,0.8,0.0)
+        mp.CreateNewNode(4,0.3,0.7,0.0)
+        mp.CreateNewNode(5,0.6,0.6,0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4])
+
+        #create Element
+        mp.CreateNewElement("AxisymSmallDisplacementElement2D3N", 1, [1,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("AxisymSmallDisplacementElement2D3N", 2, [2,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("AxisymSmallDisplacementElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
+        mp.CreateNewElement("AxisymSmallDisplacementElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
 
     def test_SmallDisplacementElement_2D_quadrilateral(self):
         dim = 2
