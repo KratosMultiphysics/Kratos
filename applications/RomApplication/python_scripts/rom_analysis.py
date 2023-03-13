@@ -20,8 +20,12 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
             # Get the ROM settings from the RomParameters.json input file
-            with open('RomParameters.json') as rom_parameters:
-                self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
+            if self.project_parameters["analysis_stage"].GetString()=="KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis":
+                with open('RomParameters_fluid.json') as rom_parameters:
+                    self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
+            else:
+                with open('RomParameters_thermal.json') as rom_parameters:
+                    self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
 
             # Set the ROM settings in the "solver_settings" of the solver introducing the physics
             self.project_parameters["solver_settings"].AddValue("rom_settings", self.rom_parameters["rom_settings"])

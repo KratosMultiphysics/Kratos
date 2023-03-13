@@ -94,8 +94,12 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
         # Get the weights and fill the HROM computing model part
-        with open('RomParameters.json','r') as f:
-            rom_parameters = KratosMultiphysics.Parameters(f.read())
+        if self.solver.settings["model_part_name"].GetString()=="FluidModelPart":
+            with open('RomParameters_fluid.json','r') as f:
+                rom_parameters = KratosMultiphysics.Parameters(f.read())
+        else:
+            with open('RomParameters_thermal.json','r') as f:
+                rom_parameters = KratosMultiphysics.Parameters(f.read())
         KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
@@ -209,16 +213,25 @@ class HRomTrainingUtility(object):
 
         # Append weights to RomParameters.json
         # We first parse the current RomParameters.json to then append and edit the data
-        with open('RomParameters.json','r') as f:
-            updated_rom_parameters = json.load(f)
-            #FIXME: I don't really like to automatically change things without the user realizing...
-            #FIXME: However, this leaves the settings ready for the HROM postprocess... something that is cool
-            #FIXME: Decide about this
-            # updated_rom_parameters["train_hrom"] = False
-            # updated_rom_parameters["run_hrom"] = True
-            updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
+        if self.solver.settings["model_part_name"].GetString()=="FluidModelPart":
+            with open('RomParameters_fluid.json','r') as f:
+                updated_rom_parameters = json.load(f)
+                #FIXME: I don't really like to automatically change things without the user realizing...
+                #FIXME: However, this leaves the settings ready for the HROM postprocess... something that is cool
+                #FIXME: Decide about this
+                # updated_rom_parameters["train_hrom"] = False
+                # updated_rom_parameters["run_hrom"] = True
+                updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
+            with open('RomParameters_fluid.json','w') as f:
+                json.dump(updated_rom_parameters, f, indent = 4)
+        else:
+            with open('RomParameters_thermal.json','r') as f:
+                updated_rom_parameters = json.load(f)
+                updated_rom_parameters["elements_and_weights"] = hrom_weights
+            with open('RomParameters_thermal.json','w') as f:
+                json.dump(updated_rom_parameters, f, indent = 4)
+        
 
-        with open('RomParameters.json','w') as f:
-            json.dump(updated_rom_parameters, f, indent = 4)
+        
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")

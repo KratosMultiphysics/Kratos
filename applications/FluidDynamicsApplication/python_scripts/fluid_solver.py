@@ -60,6 +60,8 @@ class FluidSolver(PythonSolver):
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
+        
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE) #For boussinesq
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 

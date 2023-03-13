@@ -119,13 +119,29 @@ class PetrovGalerkinTrainingUtility(object):
             petrov_galerkin_nodal_modes[node.Id] = u[i:i+n_nodal_unknowns].tolist()
             i += n_nodal_unknowns
 
-        with open('RomParameters.json','r') as f:
-            updated_rom_parameters = json.load(f)
-            updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
-            updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
+        if self.project_parameters["analysis_stage"].GetString()=="KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis":
+            with open('RomParameters_fluid.json') as f:
+                updated_rom_parameters = json.load(f)
+                updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
+                updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
+            with open('RomParameters_fluid.json','w') as f:
+                json.dump(updated_rom_parameters, f, indent = 4)
 
-        with open('RomParameters.json','w') as f:
-            json.dump(updated_rom_parameters, f, indent = 4)
+        else:
+            with open('RomParameters_thermal.json') as f:
+                updated_rom_parameters = json.load(f)
+                updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
+                updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
+            with open('RomParameters_thermal.json','w') as f:
+                json.dump(updated_rom_parameters, f, indent = 4)
+                
+        # with open('RomParameters.json','r') as f:
+        #     updated_rom_parameters = json.load(f)
+        #     updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
+        #     updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
+
+        # with open('RomParameters.json','w') as f:
+        #     json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
