@@ -817,7 +817,7 @@ public:
         const unsigned int system_size = Size(rb);
 
         // Count active indices
-        int active_indices = 0;
+        unsigned int active_indices = 0;
         for (unsigned int i = 0; i < rEquationId.size(); i++)
             if (rEquationId[i] < system_size)
                 ++active_indices;
