@@ -9,8 +9,7 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
-#define ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
+#pragma once
 
 
 // System includes
@@ -246,5 +245,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H_INCLUDED

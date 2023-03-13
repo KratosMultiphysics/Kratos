@@ -142,7 +142,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             wrn_msg += 'The solver setting has been set to True'
             Logger.PrintWarning(self._GetLabel(), wrn_msg)
         for subproc_keys, subproc_values in parameters["processes"].items():
-            for process  in subproc_values:
+            for process  in subproc_values.values():
                 if "wake" in process["python_module"].GetString():
                     if not process["Parameters"].Has("compute_wake_at_each_step") or not process["Parameters"]["compute_wake_at_each_step"].GetBool():
                         if not process["Parameters"].Has("compute_wake_at_each_step"):

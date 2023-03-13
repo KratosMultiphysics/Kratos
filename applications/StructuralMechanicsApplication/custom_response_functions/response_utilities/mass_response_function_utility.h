@@ -10,8 +10,7 @@
 //                   Geiser Armin, https://github.com/armingeiser
 //
 
-#ifndef MASS_RESPONSE_FUNCTION_UTILITY_H
-#define MASS_RESPONSE_FUNCTION_UTILITY_H
+#pragma once
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -348,5 +347,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // MASS_RESPONSE_FUNCTION_UTILITY_H

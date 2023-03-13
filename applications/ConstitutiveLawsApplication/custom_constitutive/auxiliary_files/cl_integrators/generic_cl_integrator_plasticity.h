@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_PLASTICITY_H_INCLUDED)
-#define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_PLASTICITY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -1090,4 +1089,3 @@ class GenericConstitutiveLawIntegratorPlasticity
 ///@}
 
 } // namespace Kratos.
-#endif
