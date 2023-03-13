@@ -410,7 +410,7 @@ inline void LocalRefineGeometryMesh::CreatePartition(
 void LocalRefineGeometryMesh::UpdateSubModelPartNodes(ModelPart &rModelPart)
 {
     for (auto iSubModelPart = rModelPart.SubModelPartsBegin(); iSubModelPart != rModelPart.SubModelPartsEnd(); iSubModelPart++) {
-        bool added_nodes = false;
+        ModelPart::NodesContainerType new_nodes;
         for (auto iNode = rModelPart.Nodes().ptr_begin(); iNode != rModelPart.Nodes().ptr_end(); iNode++) {
             auto& r_father_nodes = (*iNode)->GetValue(FATHER_NODES);
             unsigned int ParentCount = r_father_nodes.size();
@@ -426,13 +426,15 @@ void LocalRefineGeometryMesh::UpdateSubModelPartNodes(ModelPart &rModelPart)
                 }
 
                 if ( ParentCount == ParentsInSubModelPart ) {
-                    iSubModelPart->AddNode( *iNode );
-                    added_nodes = true;
+                    new_nodes.push_back(*iNode);
                 }
             }
         }
+        bool added_nodes = (new_nodes.size() > 0);
         if(added_nodes) {
             ModelPart& r_sub_model_part = *iSubModelPart;
+            r_sub_model_part.AddNodes(new_nodes.begin(), new_nodes.end());
+            new_nodes.clear();
             UpdateSubModelPartNodes(r_sub_model_part);
         }
     }
