@@ -901,23 +901,33 @@ class ResidualBasedNewtonRaphsonStrategy
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
-        // Function to perform the building and the solving phase.
-        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
-            TSparseSpace::SetToZero(rA);
-            TSparseSpace::SetToZero(rDx);
-            TSparseSpace::SetToZero(rb);
+        const bool initial_stiffness = true;
 
-            if (mUseOldStiffnessInFirstIteration){
-                p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
-            } else {
-                p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-            }
-        } else {
+        // Function to perform the building and the solving phase.
+        if ((initial_stiffness && r_model_part.GetProcessInfo()[STEP] == 1)) {
+            p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        } else if (initial_stiffness) {
             TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
             TSparseSpace::SetToZero(rb);
-
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        } else {
+            if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
+                TSparseSpace::SetToZero(rA);
+                TSparseSpace::SetToZero(rDx);
+                TSparseSpace::SetToZero(rb);
+
+                if (mUseOldStiffnessInFirstIteration){
+                    p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
+                } else {
+                    p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                }
+            } else {
+                TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
+                TSparseSpace::SetToZero(rb);
+                p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            }
         }
+
 
         // Debugging info
         EchoInfo(iteration_number);
@@ -956,7 +966,7 @@ class ResidualBasedNewtonRaphsonStrategy
             {
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
                 {
-                    if (GetKeepSystemConstantDuringIterations() == false)
+                    if (GetKeepSystemConstantDuringIterations() == false || initial_stiffness == false)
                     {
                         //A = 0.00;
                         TSparseSpace::SetToZero(rA);
@@ -969,7 +979,6 @@ class ResidualBasedNewtonRaphsonStrategy
                     {
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
-
                         p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                 }
