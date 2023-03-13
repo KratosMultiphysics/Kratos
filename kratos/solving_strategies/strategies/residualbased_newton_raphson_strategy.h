@@ -540,7 +540,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @brief This method sets the flag mFullUpdateFlag
      * @param UseOldStiffnessInFirstIterationFlag The flag that tells if
      */
-    void SetUseOldStiffnessInFirstIterationFlag(bool UseOldStiffnessInFirstIterationFlag)
+    void SetUseOldStiffnessInFirstIterationFlag(const bool UseOldStiffnessInFirstIterationFlag)
     {
         mUseOldStiffnessInFirstIteration = UseOldStiffnessInFirstIterationFlag;
     }
@@ -558,9 +558,9 @@ class ResidualBasedNewtonRaphsonStrategy
      * @brief This method sets the flag mFullUpdateFlag
      * @param UseOldStiffnessInFirstIterationFlag The flag that tells if
      */
-    void SetUseInitialStiffnessFlag(bool mUseInitialStiffnessFlag)
+    void SetUseInitialStiffnessFlag(const bool UseInitialStiffnessFlag)
     {
-        mUseInitialStiffness = mUseInitialStiffnessFlag;
+        mUseInitialStiffness = UseInitialStiffnessFlag;
     }
 
     /**
