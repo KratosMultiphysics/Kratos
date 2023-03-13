@@ -5,7 +5,7 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import 
 # Importing other libraries
 import math
 
-class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
+class FluidDynamicsAnalysisRve(FluidDynamicsAnalysis):
     def __init__(self, model, project_parameters):
         # Validate RVE settings
         input_rve_settings = project_parameters["rve_settings"]
@@ -246,3 +246,8 @@ class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
         for node in self.averaging_mp.Nodes:
             v_new = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) - v_avg
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, v_new)
+
+class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysisRve):
+    def __init__(self, model, project_parameters):
+        KratosMultiphysics.Logger.PrintWarning("'FluidDynamicsAnalysisRVE' is deprecated. Use 'FluidDynamicsAnalysisRve' instead.")
+        super().__init__(model, project_parameters)

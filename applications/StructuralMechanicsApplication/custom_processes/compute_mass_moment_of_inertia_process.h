@@ -10,8 +10,7 @@
 //                   Salman Yousaf
 //
 
-#if !defined(KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS)
-#define KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS
+#pragma once
 
 // System includes
 
@@ -246,4 +245,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS defined */

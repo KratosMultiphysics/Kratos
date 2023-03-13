@@ -76,11 +76,7 @@ double SaturatedBelowPhreaticLevelLaw::
 double SaturatedBelowPhreaticLevelLaw::
     CalculateDerivativeOfSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY
-
     return 0.0;
-
-    KRATOS_CATCH("")
 }
 
 //-------------------------------------------------------------------------------------------------

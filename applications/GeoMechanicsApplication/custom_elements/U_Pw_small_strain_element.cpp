@@ -501,6 +501,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const GeometryType& rGeom = this->GetGeometry();
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
+    auto& r_prop = this->GetProperties();
     if ( rOutput.size() != NumGPoints )
         rOutput.resize(NumGPoints);
 
@@ -671,6 +672,12 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
             rOutput[GPoint] = Variables.ConstitutiveMatrix(variable_index, variable_index);
         }
+    }
+    else if (r_prop.Has(rVariable))
+    {
+        // map initial material property to gauss points, as required for the output 
+        rOutput.clear();
+        std::fill_n(std::back_inserter(rOutput), mConstitutiveLawVector.size(), r_prop.GetValue(rVariable));
     }
     else {
         if ( rOutput.size() != mConstitutiveLawVector.size() )
@@ -1089,7 +1096,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     noalias( rMassMatrix ) = ZeroMatrix( N_DOF, N_DOF );
 
     const GeometryType& rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->mThisIntegrationMethod);
     const IndexType NumGPoints = IntegrationPoints.size();
 
     //Element variables
@@ -1156,7 +1163,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //Previous definitions
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType& rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->mThisIntegrationMethod);
     const IndexType NumGPoints = IntegrationPoints.size();
 
     //Constitutive Law parameters
@@ -2340,6 +2347,8 @@ template class UPwSmallStrainElement<3,8>;
 template class UPwSmallStrainElement<2,6>;
 template class UPwSmallStrainElement<2,8>;
 template class UPwSmallStrainElement<2,9>;
+template class UPwSmallStrainElement<2,10>;
+template class UPwSmallStrainElement<2,15>;
 template class UPwSmallStrainElement<3,10>;
 template class UPwSmallStrainElement<3,20>;
 template class UPwSmallStrainElement<3,27>;

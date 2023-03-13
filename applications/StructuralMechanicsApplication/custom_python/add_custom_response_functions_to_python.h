@@ -9,8 +9,7 @@
 //  Main authors:    Armin Geiser
 //
 
-#if !defined(KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -32,5 +31,3 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m);
 }  // namespace Python.
 
 }  // namespace Kratos.
-
-#endif // KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED  defined

@@ -11,8 +11,7 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_MULTI_LINEAR_ISOTROPIC_PLANE_STRESS_2D_LAW_H_INCLUDED)
-#define  KRATOS_MULTI_LINEAR_ISOTROPIC_PLANE_STRESS_2D_LAW_H_INCLUDED
+#pragma once
 
 
 // Project includes
@@ -118,4 +117,3 @@ private:
 
 }; // Class MultiLinearIsotropicPlaneStress2D
 }  // namespace Kratos.
-#endif // KRATOS_MULTI_LINEAR_ISOTROPIC_PLANE_STRESS_2D_LAW_H_INCLUDED  defined
