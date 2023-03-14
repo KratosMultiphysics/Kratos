@@ -58,13 +58,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                     AreElementsConsidered,
                     AreParentsConsidered,
                     EchoLevel);
+
                 auto pylist = py::list();
-                for (auto& ptr : r_model_parts) {
-                auto pyobj = py::cast(*ptr, py::return_value_policy::reference);
-                pylist.append(pyobj);
+                for (auto p_model_part : r_model_parts) {
+                    auto pyobj = py::cast(*p_model_part, py::return_value_policy::reference);
+                    pylist.append(pyobj);
                 }
                 return pylist;
-
             },
             py::arg("examined_model_parts_list"),
             py::arg("reference_model_parts"),
