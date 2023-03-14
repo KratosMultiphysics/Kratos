@@ -1,0 +1,203 @@
+entries:
+- title: sidebar
+  product: CoSimulation Application
+  output: web
+  folders:
+  - title: General
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/CoSimulation_Application/General/Overview.html
+      output: web
+    - title: Set-up Example
+      url: /pages/Applications/CoSimulation_Application/General/JSON_Structure.html
+      output: web
+  - title: Coupling Strategy
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/CoSimulation_Application/Coupling_Strategy/Overview.html
+      output: web
+    - title: Feti Dynamic Coupled Solver
+      url: /pages/Applications/CoSimulation_Application/Coupling_Strategy/Feti_Dynamic_Coupled_Solver.html
+      output: web
+    - title: Gauss Seidel Strong
+      url: /pages/Applications/CoSimulation_Application/Coupling_Strategy/Gauss_Seidel_Strong.html
+      output: web
+    - title: Gauss Seidel Weak
+      url: /pages/Applications/CoSimulation_Application/Coupling_Strategy/Gauss_Seidel_Weak.html
+      output: web
+    - title: Jacobi Strong
+      url: /pages/Applications/CoSimulation_Application/Coupling_Strategy/Jacobi_Strong.html
+      output: web
+    - title: Jacobi Weak
+      url: /pages/Applications/CoSimulation_Application/Coupling_Strategy/Jacobi_Weak.html
+      output: web
+  - title: Solver Wrappers
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/Overview.html
+      output: web
+    - title: Convection-Diffusion
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/Convection-Diffusion.html
+      output: web
+    - title: DEM
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/DEM.html
+      output: web
+    - title: Fluid Dynamics
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/Fluid_Dynamics.html
+      output: web
+    - title: PFEM Fluid Dynamics
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/PFEM_Fluid_Dynamics.html
+      output: web
+    - title: Particle Mechanics (Dirichlet)
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/Particle_Mechanics_(Dirichlet).html
+      output: web
+    - title: Particle Mechanics (Neumann)
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/Particle_Mechanics_(Neumann).html
+      output: web
+    - title: Potential Flow
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/Potential_Flow.html
+      output: web
+    - title: Rigid Body Solver
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/Rigid_Body_Solver.html
+      output: web
+    - title: SDOF Solver
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/SDOF_Solver.html
+      output: web
+    - title: Structural Mechanics
+      url: /pages/Applications/CoSimulation_Application/Solver_Wrappers/Structural_Mechanics.html
+      output: web
+  - title: Convergence Criteria
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/CoSimulation_Application/Convergence_Criteria/Overview.html
+      output: web
+    - title: absolute norm energy conjugate
+      url: /pages/Applications/CoSimulation_Application/Convergence_Criteria/absolute_norm_energy_conjugate.html
+      output: web
+    - title: relative norm initial residual
+      url: /pages/Applications/CoSimulation_Application/Convergence_Criteria/relative_norm_initial_residual.html
+      output: web
+    - title: relative norm previous residual
+      url: /pages/Applications/CoSimulation_Application/Convergence_Criteria/relative_norm_previous_residual.html
+      output: web
+  - title: Convergence Accelerators
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/CoSimulation_Application/Convergence_Accelerators/Overview.html
+      output: web
+    - title: Aitken
+      url: /pages/Applications/CoSimulation_Application/Convergence_Accelerators/Aitken.html
+      output: web
+    - title: Anderson
+      url: /pages/Applications/CoSimulation_Application/Convergence_Accelerators/Anderson.html
+      output: web
+    - title: Constant Relaxation
+      url: /pages/Applications/CoSimulation_Application/Convergence_Accelerators/Constant_Relaxation.html
+      output: web
+    - title: IQNILS
+      url: /pages/Applications/CoSimulation_Application/Convergence_Accelerators/IQNILS.html
+      output: web
+    - title: MVQN
+      url: /pages/Applications/CoSimulation_Application/Convergence_Accelerators/MVQN.html
+      output: web
+  - title: Predictors
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/CoSimulation_Application/Predictors/Overview.html
+      output: web
+    - title: Average Value Based
+      url: /pages/Applications/CoSimulation_Application/Predictors/Average_Value_Based.html
+      output: web
+    - title: Linear
+      url: /pages/Applications/CoSimulation_Application/Predictors/Linear.html
+      output: web
+    - title: Linear Derivative Based
+      url: /pages/Applications/CoSimulation_Application/Predictors/Linear_Derivative_Based.html
+      output: web
+  - title: Data Transfer Operators
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/Overview.html
+      output: web
+    - title: JSON Structure
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/copy_single_to_distributed_vectorial.html
+      output: web
+    - title: copy
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/copy.html
+      output: web
+    - title: copy with empty ranks
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/copy_with_empty_ranks.html
+      output: web
+    - title: kratos mapping
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/kratos_mapping.html
+      output: web
+    - title: sum distributed to single
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/sum_distributed_to_single.html
+      output: web
+    - title: sum distributed to single vectorial
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/sum_distributed_to_single_vectorial.html
+      output: web
+    - title: sum many to many
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/sum_many_to_many.html
+      output: web
+    - title: transfer one to many
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/transfer_one_to_many.html
+      output: web
+  - title: Coupling Operations
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Overview.html
+      output: web
+    - title: Compute Boundary Force
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Compute_Boundary_Force.html
+      output: web
+    - title: Compute Normals
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Compute_Normals.html
+      output: web
+    - title: Compute Resultants
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Compute_Resultants.html
+      output: web
+    - title: Convert Distributed Values to Point
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Convert_Distributed_Values_to_Point.html
+      output: web
+    - title: Coupling Output
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Coupling_Output.html
+      output: web
+    - title: Create Point Load Model Part
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Create_Point_Load_Model_Part.html
+      output: web
+    - title: Distribute Point Values
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Distribute_Point_Values.html
+      output: web
+    - title: Elemental Data to Nodal Data
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Elemental_Data_to_Nodal_Data.html
+      output: web
+    - title: Impose Mesh Displacement
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Impose_Mesh_Displacement.html
+      output: web
+    - title: Print Iteration Number
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Print_Iteration_Number.html
+      output: web
+    - title: Reset PFEM Kinematics
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Reset_PFEM_Kinematics.html
+      output: web
+    - title: Scaling
+      url: /pages/Applications/CoSimulation_Application/Coupling_Operations/Scaling.html
+      output: web
+  - title: Examples
+    output: web
+    folderitems:
+    - title: CoSim Mok FSI
+      url: /pages/Applications/CoSimulation_Application/Examples/remote_CoSim_Mok_FSI.html
+      output: web
+    - title: CoSim Dam Break Flex Wall
+      url: /pages/Applications/CoSimulation_Application/Examples/remote_CoSim_Dam_Break_Flex_Wall.html
+      output: web

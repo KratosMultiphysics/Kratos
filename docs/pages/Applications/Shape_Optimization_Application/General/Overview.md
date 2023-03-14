@@ -1,9 +1,9 @@
 ---
 title: Overview
-keywords:
+keywords: 
 tags: [overview.md]
 sidebar: shape_optimization_application
-summary:
+summary: 
 ---
 
 The shape optimization application consists of algorithms and technologies to make changes to a given design surface to optimize selected objective under given constraints. Figure 1 illustrates overview of algorithms and technologies available in this application.

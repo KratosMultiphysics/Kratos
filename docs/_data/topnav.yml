@@ -37,6 +37,9 @@ topnav_dropdowns:
   - title: Applications
     output: web
     folderitems:
+    - title: CoSimulation Application
+      url: /pages/Applications/CoSimulation_Application/General/Overview.html
+      output: web
     - title: Discrete Element Modelling Application
       url: /pages/Applications/Discrete_Element_Modelling_Application/General/Basic-DEM-Benchmarking.html
       output: web
