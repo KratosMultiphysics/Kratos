@@ -305,6 +305,11 @@ namespace Kratos
     //    * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
     //    */
 
+    void CalculateLocalMomentumEquations(
+        MatrixType &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
     // void ComputeBoundLHSMatrix(MatrixType &BoundLHSMatrix,
     //                            const ShapeFunctionsType &rN,
     //                            const double Weight) override;
@@ -409,6 +414,8 @@ namespace Kratos
     ///@{
 
     bool IsCut() const;
+
+    bool IsPositive() const;
 
     ///@}
     ///@name Private  Access

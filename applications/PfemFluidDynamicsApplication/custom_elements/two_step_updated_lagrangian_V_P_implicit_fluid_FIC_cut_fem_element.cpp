@@ -57,106 +57,8 @@ namespace Kratos
   {
     KRATOS_TRY;
 
-    // Base class checks for positive Jacobian and Id > 0
-    int ierr = Element::Check(rCurrentProcessInfo);
-    if (ierr != 0)
-      return ierr;
-
-    // Check that all required variables have been registered
-    if (VELOCITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "VELOCITY Key is 0. Check that the application was correctly registered.", "");
-    if (ACCELERATION.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "ACCELERATION Key is 0. Check that the application was correctly registered.", "");
-    if (PRESSURE.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "PRESSURE Key is 0. Check that the application was correctly registered.", "");
-    if (BODY_FORCE.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "BODY_FORCE Key is 0. Check that the application was correctly registered.", "");
-    if (DENSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "DENSITY Key is 0. Check that the application was correctly registered.", "");
-    if (DYNAMIC_VISCOSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.", "");
-    if (DELTA_TIME.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
-
-    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
-    {
-      if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument,
-                           "missing DYNAMIC_VISCOSITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ",
-                           this->GetGeometry()[i].Id());
-    }
-
-    // If this is a 2D problem, check that nodes are in XY plane
-    if (this->GetGeometry().WorkingSpaceDimension() == 2)
-    {
-      for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
-      {
-        if (this->GetGeometry()[i].Z() != 0.0)
-          KRATOS_THROW_ERROR(std::invalid_argument,
-                             "Node with non-zero Z coordinate found. Id: ", this->GetGeometry()[i].Id());
-      }
-    }
-
-    // Consitutive law checks
-    const auto &r_properties = this->GetProperties();
-    const auto &r_geometry = this->GetGeometry();
-    const SizeType dimension = r_geometry.WorkingSpaceDimension();
-
-    // WARNING THIS MUST BE REMOVED ASAP
-    const_cast<TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
-    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
-
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << r_properties.Id() << std::endl;
-
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = r_properties.GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-
-    if (dimension == 2)
-    {
-      KRATOS_ERROR_IF(strain_size < 3 || strain_size > 4)
-          << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 "
-             "(el id = ) "
-          << this->Id() << std::endl;
-    }
-    else
-    {
-      KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! "
-                                               "expected strain size is 6 (el id = ) "
-                                            << this->Id() << std::endl;
-    }
-
-    // Check constitutive law
-    return mpConstitutiveLaw->Check(r_properties, r_geometry, rCurrentProcessInfo);
+    unsigned int ierr = BaseType::Check(rCurrentProcessInfo);
+    //TODO: Check distance
 
     return ierr;
 
@@ -1019,9 +921,25 @@ namespace Kratos
   // }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
-                                                             Matrix &NContainer,
-                                                             Vector &rGaussWeights)
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateLocalMomentumEquations(
+      MatrixType &rLeftHandSideMatrix,
+      VectorType &rRightHandSideVector,
+      const ProcessInfo &rCurrentProcessInfo)
+  {
+      // Volume Navier-Stokes contribution
+      BaseType::CalculateLocalMomentumEquations(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+
+      // If intersected, add the boundary contribution
+      if (IsCut()) {
+         KRATOS_ERROR << "No cut support yet!" << std::endl;
+      }
+  }
+
+  template <unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateGeometryData(
+      ShapeFunctionDerivativesArrayType &rDN_DX,
+      Matrix &NContainer,
+      Vector &rGaussWeights)
   {
     if (IsCut()) {
       KRATOS_ERROR << "No cut yet" << std::endl;
@@ -1055,6 +973,20 @@ namespace Kratos
     }
 
     return n_pos != 0 && n_neg != 0 ? true : false;
+  }
+
+  template <unsigned int TDim>
+  bool TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::IsPositive() const 
+  {
+    const auto& r_geom = this->GetGeometry();
+    std::size_t n_pos = 0;
+    for (const auto& r_node : r_geom) {
+      if (r_node.FastGetSolutionStepValue(DISTANCE) > 0.0) {
+        n_pos++;
+      }
+    }
+
+    return n_pos == r_geom.PointsNumber() ? true : false;
   }
 
   template class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<2>;

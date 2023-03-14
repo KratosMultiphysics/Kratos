@@ -283,10 +283,10 @@ private:
   const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3Dquadratic;
 
   /// 2D two step v-p fluid element
-  const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement2D;
+  const TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement2D;
 
   /// 3D two step v-p fluid element
-  const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement3D;
+  const TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement3D;
 
   /// 2D two step v-p fluid element
   const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2D;
