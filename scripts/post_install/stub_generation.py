@@ -5,7 +5,6 @@ from pathlib import Path
 from importlib import import_module
 import shutil
 import subprocess
-import glob
 
 # External imports
 try:
@@ -171,15 +170,15 @@ def __GenerateStubFilesForModule(
 def PostProcessGeneratedStubFiles():
     kratos_installation_path = Path(sys.argv[1]).absolute()
 
-    files = glob.glob(str(kratos_installation_path) + '/**/*.pyi', recursive=True)
+    files = kratos_installation_path.rglob("*.pyi")
     for file in files:
-        with open(file, "r") as file_input:
+        with open(str(file.absolute()), "r") as file_input:
             data = file_input.read()
 
         data = re.sub(R"import +Kratos(\w+)\n", R"import KratosMultiphysics.\1 as Kratos\1\n", data)
         data = data.replace("import Kratos\n", "import KratosMultiphysics as Kratos\n")
 
-        with open(file, "w") as file_output:
+        with open(str(file.absolute()), "w") as file_output:
             file_output.write(data)
 
 def Main():
