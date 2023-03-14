@@ -67,13 +67,8 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DIAMETER)
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY)
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
-
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
@@ -88,6 +83,8 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.EULERIAN_INLET)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.LAGRANGIAN_INLET)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.ACCELERATION_BACKUP)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_BACKUP)
