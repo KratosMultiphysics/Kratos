@@ -49,7 +49,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class ElasticIsotropic3DFEMDEM
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ElasticIsotropic3DFEMDEM
     : public ConstitutiveLaw
 {
 public:
