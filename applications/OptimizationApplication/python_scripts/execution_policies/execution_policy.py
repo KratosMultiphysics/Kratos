@@ -1,27 +1,8 @@
-# ==============================================================================
-#  KratosOptimizationApplication
-#
-#  License:         BSD License
-#                   license: OptimizationApplication/license.txt
-#
-#  Main authors:    Suneth Warnakulasuriya
-#
-# ==============================================================================
-
-from abc import ABC
-from abc import abstractmethod
-
 import KratosMultiphysics as Kratos
 
-class ExecutionPolicy(ABC):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
-        self.model = model
-        self.parameters = parameters
+class ExecutionPolicy(Kratos.Process):
+    def __init__(self):
+        super().__init__()
 
-    @abstractmethod
-    def Initialize(self, optimization_info: dict):
-        pass
-
-    @abstractmethod
-    def Execute(self, optimization_info: dict):
-        pass
+    def Execute(self):
+        raise NotImplementedError("Calling base class ExecutionPolicy::Execute method. This should be implemented in the derived class.")

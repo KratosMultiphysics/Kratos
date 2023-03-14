@@ -196,9 +196,9 @@ namespace Kratos
     void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
                                const ProcessInfo &rCurrentProcessInfo) override

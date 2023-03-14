@@ -13,8 +13,7 @@
 //
 //
 
-#if !defined (KRATOS_ASSOCIATIVE_PLASTIC_MODEL_LAW_H_INCLUDED)
-#define  KRATOS_ASSOCIATIVE_PLASTIC_MODEL_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -685,4 +684,3 @@ private:
 
 }; // Class AssociativePlasticDamageModel
 }  // namespace Kratos.
-#endif // KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED  defined
