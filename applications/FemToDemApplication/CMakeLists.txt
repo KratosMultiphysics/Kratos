@@ -42,15 +42,16 @@ set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosFemToDemApplicationCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
     set_target_properties(KratosFemToDemApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
-# changing the .dll suffix to .pyd (Windows)
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosFemToDemApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so (OS X)
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosFemToDemApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
