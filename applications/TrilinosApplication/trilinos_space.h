@@ -418,26 +418,25 @@ public:
         const bool EnforceInitialGraph = false
         )
     {
+        // Define first auxiliary matrix
+        std::vector<int> NumNz;
+        MatrixType aux_1(::Copy, rA.RowMap(), NumNz.data());
+
+        // First multiplication
+        TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
+
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
-            // Define first auxiliary matrix
-            MatrixType aux(::Copy, rA.Graph());
-
-            // First multiplication
-            TransposeMult(rB, rD, aux, {true, false}, CallFillCompleteOnResult, true);
+            // Second multiplication
+            MatrixType aux_2(::Copy, rA.RowMap(), NumNz.data());
+            Mult(aux_1, rB, aux_2, CallFillCompleteOnResult, KeepAllHardZeros);
 
             // Empty the solution Epetra_Matrix
             SetToZero(rA);
 
-            // Second multiplication
-            Mult(aux, rB, rA, CallFillCompleteOnResult, true);
+            // Copy values
+            CopyMatrixValues(rA, aux_2);
         } else { // A new matrix
-            // Define first auxiliary matrix
-            std::vector<int> NumNz;
-            MatrixType aux_1(::Copy, rA.RowMap(), NumNz.data());
-
-            // First multiplication
-            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
                 // Create an Epetra_Matrix
@@ -476,26 +475,25 @@ public:
         const bool EnforceInitialGraph = false
         )
     {
+        // Define first auxiliary matrix
+        std::vector<int> NumNz;
+        MatrixType aux_1(::Copy, rA.RowMap(), NumNz.data());
+
+        // First multiplication
+        Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
+
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
-            // Define first auxiliary matrix
-            MatrixType aux(::Copy, rA.Graph());
-
-            // First multiplication
-            Mult(rB, rD, aux, CallFillCompleteOnResult, true);
+            // Second multiplication
+            MatrixType aux_2(::Copy, rA.RowMap(), NumNz.data());
+            TransposeMult(aux_1, rB, aux_2, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
 
             // Empty the solution Epetra_Matrix
             SetToZero(rA);
 
-            // Second multiplication
-            TransposeMult(aux, rB, rA, {false, true}, CallFillCompleteOnResult, true);
+            // Copy values
+            CopyMatrixValues(rA, aux_2);
         } else { // A new matrix
-            // Define first auxiliary matrix
-            std::vector<int> NumNz;
-            MatrixType aux_1(::Copy, rB.RowMap(), NumNz.data());
-
-            // First multiplication
-            Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
                 // Create an Epetra_Matrix
