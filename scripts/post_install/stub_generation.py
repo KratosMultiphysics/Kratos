@@ -5,6 +5,7 @@ from pathlib import Path
 from importlib import import_module
 import shutil
 import subprocess
+import glob
 
 # External imports
 try:
@@ -105,8 +106,6 @@ def __GenerateStubFilesForModule(
             with open(str(cpp_module_file_path), "r") as file_input:
                 lines = file_input.read()
 
-            lines = lines.replace("\nimport Kratos\n", "\nimport KratosMultiphysics as Kratos\n")
-
             with open(str(cpp_module_file_path), "w") as file_output:
                 file_output.write(lines)
                 file_output.write("\n\n#   ---- start of includes of python modules --- \n\n")
@@ -169,6 +168,18 @@ def __GenerateStubFilesForModule(
 
     return cpp_module_name
 
+def PostProcessGeneratedStubFiles():
+    kratos_installation_path = (Path(sys.argv[1])).absolute()
+    files = glob.glob(str(kratos_installation_path) + '/**/*.pyi', recursive=True)
+    for file in files:
+        with open(file, "r") as file_input:
+            data = file_input.read()
+
+        data = re.sub(R"import +Kratos(\w+)\n", R"import KratosMultiphysics.\1 as Kratos\1\n", data)
+        data = data.replace("import Kratos\n", "import KratosMultiphysics as Kratos\n")
+
+        with open(file, "w") as file_output:
+            file_output.write(data)
 
 def Main():
     print("--- Generating python stub files from {:s}".format(sys.argv[1]))
@@ -225,3 +236,4 @@ if __name__ == "__main__":
             print("---- ", matched_group[1], matched_group[2])
     else:
         Main()
+        PostProcessGeneratedStubFiles()
