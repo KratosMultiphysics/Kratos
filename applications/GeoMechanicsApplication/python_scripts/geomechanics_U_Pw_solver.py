@@ -185,7 +185,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        self.builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
@@ -195,7 +195,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
         # Solver creation
-        self.solver = self._ConstructSolver(builder_and_solver,
+        self.solver = self._ConstructSolver(self.builder_and_solver,
                                             self.settings["strategy_type"].GetString())
 
         # Set echo_level
