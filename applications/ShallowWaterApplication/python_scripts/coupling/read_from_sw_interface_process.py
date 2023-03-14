@@ -130,17 +130,17 @@ class ReadFromSwInterfaceProcess(KM.Process):
             
     def DistributeVelocityToPfem(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            self.vel_pfem = self.avg_vel_x*self.avg_h/self.h_pfem
-            for node in self.interface_model_part.Nodes:
-                node.SetSolutionStepValue(KM.VELOCITY_X, self.vel_pfem) 
-                node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0) 
+            # self.vel_pfem = self.avg_vel_x*self.avg_h/self.h_pfem
             # for node in self.interface_model_part.Nodes:
-            #    node.Y = node.Y0*self.avg_h/self.h_pfem
-            #    displacement = node.Y - node.Y0
-            #    node.SetSolutionStepValue(KM.DISPLACEMENT_Y, displacement)
-            #    print(node.Y)
-            #    node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
-            #    node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0) 
+            #     node.SetSolutionStepValue(KM.VELOCITY_X, self.vel_pfem) 
+            #     node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0) 
+            for node in self.interface_model_part.Nodes:
+               node.Y = node.Y0*self.avg_h/self.h_pfem
+               displacement = node.Y - node.Y0
+               node.SetSolutionStepValue(KM.DISPLACEMENT_Y, displacement)
+               print(node.Y)
+               node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
+               node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0) 
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
