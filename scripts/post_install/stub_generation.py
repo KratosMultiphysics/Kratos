@@ -169,7 +169,8 @@ def __GenerateStubFilesForModule(
     return cpp_module_name
 
 def PostProcessGeneratedStubFiles():
-    kratos_installation_path = (Path(sys.argv[1])).absolute()
+    kratos_installation_path = Path(sys.argv[1]).absolute()
+
     files = glob.glob(str(kratos_installation_path) + '/**/*.pyi', recursive=True)
     for file in files:
         with open(file, "r") as file_input:
