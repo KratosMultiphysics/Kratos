@@ -421,7 +421,8 @@ public:
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
             // Define first auxiliary matrix
-            MatrixType aux(::Copy, rA.Graph());
+            std::vector<int> NumNz;
+            MatrixType aux(::Copy, rA.RowMap(), NumNz.data());
 
             // First multiplication
             TransposeMult(rB, rD, aux, {true, false}, CallFillCompleteOnResult, true);
@@ -479,7 +480,8 @@ public:
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
             // Define first auxiliary matrix
-            MatrixType aux(::Copy, rA.Graph());
+            std::vector<int> NumNz;
+            MatrixType aux(::Copy, rA.RowMap(), NumNz.data());
 
             // First multiplication
             Mult(rB, rD, aux, CallFillCompleteOnResult, true);

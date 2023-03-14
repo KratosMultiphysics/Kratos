@@ -293,7 +293,7 @@ public:
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
         }
 
-        // finalizing the assembly
+        // Finalizing the assembly
         rA.GlobalAssemble();
 
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time LHS: " << build_timer.ElapsedSeconds() << std::endl;
@@ -1222,6 +1222,8 @@ protected:
             // Finalizing graph construction
             ierr = Tgraph.GlobalAssemble();
             KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
+            ierr = Tgraph.FillComplete();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
 
             // Generate a new matrix pointer according to this non-zero values
             TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
@@ -1449,7 +1451,9 @@ protected:
 
         // Finalizing graph construction
         ierr = Agraph.GlobalAssemble();
-        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in GlobalAssemble. Error code: " << ierr << std::endl;
+        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
+        ierr = Agraph.FillComplete();
+        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
 
         // Generate a new matrix pointer according to this graph
         TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
