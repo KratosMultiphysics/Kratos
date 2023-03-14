@@ -140,6 +140,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string Compiler();
 
+    static void SetPythonVersion(std::string);
+
     void PrintParallelismSupportInfo() const;
 
     ///@}
@@ -150,7 +152,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     KratosApplication::Pointer mpKratosCoreApplication;
 
-    static bool mIsDistributedRun;
+    static bool         mIsDistributedRun;
+    static std::string  mPyVersion;
 
     ///@}
     ///@name Member Variables
