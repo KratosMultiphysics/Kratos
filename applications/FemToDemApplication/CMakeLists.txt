@@ -32,19 +32,13 @@ file(GLOB_RECURSE KRATOS_FEM_TO_DEM_APPLICATION_CORE
 file(GLOB_RECURSE KRATOS_FEM_TO_DEM_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosFemToDemApplicationCore SHARED ${KRATOS_FEM_TO_DEM_APPLICATION_CORE})
-target_link_libraries(KratosFemToDemApplicationCore PUBLIC KratosDEMCore KratosCore KratosPfemFluidDynamicsCore KratosConstitutiveLawsCore)
+target_link_libraries(KratosFemToDemApplicationCore PUBLIC KratosDEMCore KratosCore KratosPfemFluidDynamicsCore KratosConstitutiveLawsCore KratosStructuralMechanicsCore)
 set_target_properties(KratosFemToDemApplicationCore PROPERTIES COMPILE_DEFINITIONS "FEM_TO_DEM_APPLICATION=EXPORT,API")
 
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFemToDemApplication MODULE THIN_LTO ${KRATOS_FEM_TO_DEM_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosFemToDemApplication PRIVATE KratosFemToDemApplicationCore)
 set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
-
-# define library Kratos which defines the basic python interface
-# pybind11_add_module(KratosFemToDemApplication MODULE ${KRATOS_FEM_TO_DEM_APPLICATION_SOURCES})
-
-# target_link_libraries(KratosFemToDemApplication PRIVATE KratosStructuralMechanicsCore KratosDEMCore KratosCore KratosPfemFluidDynamicsCore KratosConstitutiveLawsCore)
-# set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
@@ -81,7 +75,10 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install(TARGETS KratosFemToDemApplicationCore DESTINATION libs )
 install(TARGETS KratosFemToDemApplication DESTINATION libs )
 
+
 # Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFemToDemApplicationCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFemToDemApplication" PARENT_SCOPE)
