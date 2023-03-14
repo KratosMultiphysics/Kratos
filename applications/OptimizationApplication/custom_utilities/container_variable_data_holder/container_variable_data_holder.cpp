@@ -49,7 +49,7 @@ void AssignValueToVector(
     Vector& rOutput,
     const IndexType StartIndex,
     const IndexType ComponentIndex,
-    const double& rValue)
+    double rValue)
 {
     rOutput[StartIndex] = rValue;
 }
