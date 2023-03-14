@@ -42,15 +42,19 @@ class ReadFromSwInterfaceProcess(KM.Process):
 
         KM.Process.__init__(self)
         self.settings = settings
+        print(self.settings)
+        print("HO SCRITTO I SETTINGS")
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.interface_model_part = model[self.settings["interface_model_part_name"].GetString()]
         self.input_model_part = model.CreateModelPart(self.settings["input_model_part_name"].GetString())
+        #self.volume_model_part = model[self.settings["volume_model_part_name"].GetString()]
         self.interval = KM.IntervalUtility(self.settings)
         self.variables = GenerateVariableListFromInput(self.settings["list_of_variables"])
         self.variables_to_fix = GenerateVariableListFromInput(self.settings["list_of_variables_to_fix"])
-
+        
         self.hdf5_import = import_model_part_from_hdf5_process.Factory(self._CreateHDF5Parameters(), model)
+        
         self.hdf5_process = single_mesh_temporal_input_process.Factory(self._CreateHDF5Parameters(), model)
         self._GetInputTimes(self.settings['file_settings'])
 
@@ -74,6 +78,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
         '''Read the input_model_part and set the variables.'''
         self.hdf5_import.ExecuteInitialize()
         self._CheckInputCoordinates()
+        self.FindPfemHeight()
         self._CheckInputVariables()
         self._CreateMapper()
         self._MapToBoundaryCondition()
@@ -85,20 +90,63 @@ class ReadFromSwInterfaceProcess(KM.Process):
         if self.interval.IsInInterval(current_time):
             self._SetCurrentTime()
             self.hdf5_process.ExecuteInitializeSolutionStep()
+            self.ComputeAverageValues()
             self._CheckInputVariables()
-            self._MapToBoundaryCondition()
+            self.DistributeVelocityToPfem()
+            # self._MapToBoundaryCondition()
         else:
             if self.settings["default_time_after_interval"] is not None:
                 self._SetDefaultTime()
                 self.hdf5_process.ExecuteInitializeSolutionStep()
+                self.ComputeAverageValues()
                 self._CheckInputVariables()
-                self._MapToBoundaryCondition()
+                self.DistributeVelocityToPfem()
+                # self._MapToBoundaryCondition()
                 self._SmoothDefaultValue()
 
+    def ComputeAverageValues(self):
+        if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+                avg_vel_x = 0
+                avg_h = 0
+                n = 0
+                for node in self.input_model_part.Nodes:
+                    n = n+1
+                    avg_h         = avg_h + node.GetValue(SW.HEIGHT) 
+                    avg_vel_x     = avg_vel_x  + node.GetValue(KM.VELOCITY_X) 
+                self.avg_h = avg_h/n
+                self.avg_vel_x = avg_vel_x/n
+                print(avg_h, avg_vel_x)
+
+    def FindPfemHeight(self):
+        if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+            ymin =  1e32
+            ymax = -1e32
+            for node in self.interface_model_part.Nodes:
+                if node.Y < ymin:
+                    ymin = node.Y 
+                if node.Y > ymax:
+                    ymax = node.Y
+            self.h_pfem = ymax - ymin
+            
+    def DistributeVelocityToPfem(self):
+        if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+            self.vel_pfem = self.avg_vel_x*self.avg_h/self.h_pfem
+            for node in self.interface_model_part.Nodes:
+                node.SetSolutionStepValue(KM.VELOCITY_X, self.vel_pfem) 
+                node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0) 
+            # for node in self.interface_model_part.Nodes:
+            #    node.Y = node.Y0*self.avg_h/self.h_pfem
+            #    displacement = node.Y - node.Y0
+            #    node.SetSolutionStepValue(KM.DISPLACEMENT_Y, displacement)
+            #    print(node.Y)
+            #    node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
+            #    node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0) 
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
         file = Path(file_settings["file_name"].GetString())
+        print(file)
+        print("QUESTO E' IL FILE")
         directory = file.parent
         file_names = [str(f) for f in directory.glob("*.h5")]
         if len(file_names) == 0:
@@ -192,6 +240,8 @@ class ReadFromSwInterfaceProcess(KM.Process):
 
     def _CreateMapper(self):
         domain_size = self.input_model_part.ProcessInfo[KM.DOMAIN_SIZE]
+        print(self.input_model_part)
+        print("QUESTO E' IL MODEL PART")
         if domain_size == 2:
             mapper_settings = KM.Parameters("""{
                 "mapper_type": "nearest_neighbor",
