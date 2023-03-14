@@ -179,6 +179,6 @@ void Kernel::PrintParallelismSupportInfo() const
 }
 
 bool Kernel::mIsDistributedRun = false;
-std::string Kernel::mPyVersion = std::string("");
+std::string Kernel::mPyVersion = std::string("Undefined");
 
 }
