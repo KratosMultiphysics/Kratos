@@ -682,6 +682,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)
     .def("HasCondition", &MeshType::HasCondition)
+    .def("HasMasterSlaveConstraint ", &MeshType::HasMasterSlaveConstraint )
     .def("__str__", PrintObject<MeshType>)
     ;
 }
