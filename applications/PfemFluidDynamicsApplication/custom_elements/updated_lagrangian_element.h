@@ -411,11 +411,11 @@ namespace Kratos
                                   const double TimeStep);
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
-    void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
+    virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
                                Matrix &rNContainer,
                                Vector &rGaussWeights);
 
-    void CalculateGeometryData(Vector &rGaussWeights);
+    virtual void CalculateGeometryData(Vector &rGaussWeights);
     double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
     /**

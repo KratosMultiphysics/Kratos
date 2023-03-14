@@ -407,6 +407,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
 
 if __name__ == "__main__":
