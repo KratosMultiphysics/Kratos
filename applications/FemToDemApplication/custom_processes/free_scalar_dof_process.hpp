@@ -34,7 +34,7 @@ namespace Kratos
 /// The base class for freeing scalar variable Dof or array_1d component Dof processes in Kratos.
 /** This function free the variable dof belonging to all of the nodes in a given mesh
 */
-class KRATOS_API(FEM_TO_DEM_APPLICATION) FreeScalarDofProcess : public Process
+class FreeScalarDofProcess : public Process
 {
 public:
     ///@name Type Definitions

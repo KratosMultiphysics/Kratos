@@ -44,7 +44,7 @@ namespace Kratos
 
 /** @brief Aitken relaxation technique for FSI PFEM-FEM-DEM coupling
  */
-class KRATOS_API(FEM_TO_DEM_APPLICATION) AitkenRelaxationFEMDEMUtility
+class AitkenRelaxationFEMDEMUtility
 {
 public:
 

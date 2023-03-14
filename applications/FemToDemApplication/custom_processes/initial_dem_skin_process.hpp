@@ -25,7 +25,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(FEM_TO_DEM_APPLICATION) InitialDemSkinProcess : public Process
+class InitialDemSkinProcess : public Process
 {
   public:
     KRATOS_CLASS_POINTER_DEFINITION(InitialDemSkinProcess);

@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(FEM_TO_DEM_APPLICATION) StressToNodesProcess : public Process
+class StressToNodesProcess : public Process
 {
   protected:
     struct NodeStresses

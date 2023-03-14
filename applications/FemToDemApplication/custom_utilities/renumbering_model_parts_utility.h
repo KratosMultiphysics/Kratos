@@ -16,7 +16,7 @@
 
 namespace Kratos
 {
-class KRATOS_API(FEM_TO_DEM_APPLICATION) RenumberingNodesUtility
+class RenumberingNodesUtility
 {
 
 public:

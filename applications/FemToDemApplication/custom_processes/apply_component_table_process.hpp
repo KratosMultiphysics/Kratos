@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(FEM_TO_DEM_APPLICATION) ApplyComponentTableProcess : public Process
+class ApplyComponentTableProcess : public Process
 {
     
 public:
