@@ -98,11 +98,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double s_th = mThresholdStress;
     double cycles_to_failure = mCyclesToFailure;
     bool advance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
-    bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+    // bool damage_activation = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
     const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
     int time = rValues.GetProcessInfo()[TIME];
     const int time_offset = 2;
-    const int length_of_load_increments = 12;
+    const int length_of_load_increments = 20;
 
     int number_of_load_increments = mNumberOfLoadIncrements;
 
@@ -157,6 +157,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         new_cycle = true;
         max_indicator = true;
         min_indicator = true;
+
+        mPreviousCycleDamage = this->GetThreshold();
 
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rValues.GetMaterialProperties(),
                                                                                         max_stress,
@@ -432,7 +434,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         mMinStress = min_stress;
         mMaxDetected = max_indicator;
         mMinDetected = min_indicator;
-
+        
         // if((mMinStress/mMaxStress) > -2.52885e-01 && (mMinStress/mMaxStress) < -2.52875e-01){
         //     KRATOS_WATCH(rValues.GetElementGeometry().Id())
         //     KRATOS_WATCH(mMaxStressLocal)
@@ -525,6 +527,8 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
         return true;
     } else if (rThisVariable == THRESHOLD_STRESS) {
         return true;
+    } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
+        return true;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
         return true;
     } else if (rThisVariable == CYCLE_PERIOD) {
@@ -593,6 +597,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
         mMaxStress = rValue;
     } else if (rThisVariable == THRESHOLD_STRESS) {
         mThresholdStress = rValue;
+    } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
+        mThresholdStress = rValue;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
         mPreviousCycleTime = rValue;
     } else if (rThisVariable == CYCLE_PERIOD) {
@@ -657,6 +663,8 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     } else if (rThisVariable == MAX_STRESS) {
         rValue = mMaxStress;
     } else if (rThisVariable == THRESHOLD_STRESS) {
+        rValue = mThresholdStress;
+    } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
         rValue = mThresholdStress;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
         rValue = mPreviousCycleTime;

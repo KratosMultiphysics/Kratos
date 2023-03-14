@@ -433,7 +433,8 @@ private:
     double mThresholdStress = 0.0; // Endurance limit of the fatigue model.
     double mReversionFactorRelativeError = 0.0; // Relative error of the R = Smin / Smax between cycles inducing recalculation of Nlocal and advanciing process.
     double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advanciing process.
-    double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
+    double mCyclesToFailure = 1.0e15; // Nf. Required for the advanciing process.
+    double mPreviousCycleDamage = 0.0; // Damage variable computed in the previous cycle
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
 

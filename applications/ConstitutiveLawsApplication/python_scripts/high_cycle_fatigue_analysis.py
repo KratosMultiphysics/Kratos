@@ -81,7 +81,6 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                             break
 
                 else:
-                    i=0
                     plot_file = open("PlotElement.txt","a")
                     for elem in self.main_model_part.Elements:
                         if elem.Id == id_for_print:  
