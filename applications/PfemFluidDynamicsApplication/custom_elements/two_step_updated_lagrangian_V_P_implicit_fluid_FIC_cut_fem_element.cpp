@@ -13,6 +13,8 @@
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_cut_fem_element.h"
 #include "includes/cfd_variables.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include <cmath>
 
 namespace Kratos
@@ -927,11 +929,20 @@ namespace Kratos
       const ProcessInfo &rCurrentProcessInfo)
   {
       // Volume Navier-Stokes contribution
+      // Note that this uses the CalculateGeometryData below, meaning that if it is cut, it already does the subintegration
       BaseType::CalculateLocalMomentumEquations(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
       // If intersected, add the boundary contribution
       if (IsCut()) {
-         KRATOS_ERROR << "No cut support yet!" << std::endl;
+          // Calculate intersection Gauss points geometry data
+          Matrix interface_N;
+          ShapeFunctionDerivativesArrayType interface_DN_DX;
+          Vector interface_gauss_weights;
+          ModifiedShapeFunctions::AreaNormalsContainerType interface_unit_normals;
+          CalculateIntersectionGeometryData(interface_DN_DX, interface_N, interface_gauss_weights, interface_unit_normals);
+
+          // Add the boundary terms
+          //TODO
       }
   }
 
@@ -942,9 +953,11 @@ namespace Kratos
       Vector &rGaussWeights)
   {
     if (IsCut()) {
-      KRATOS_ERROR << "No cut yet" << std::endl;
+        // Calculate cut element Gauss point values
+        CalculateCutGeometryData(rDN_DX, NContainer, rGaussWeights);
     } else {
-      BaseType::CalculateGeometryData(rDN_DX, NContainer, rGaussWeights);
+        // If not cut, we use the standard shape functions data calculator from the parent
+        BaseType::CalculateGeometryData(rDN_DX, NContainer, rGaussWeights);
     }
   }
 
@@ -952,18 +965,117 @@ namespace Kratos
   void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateGeometryData(Vector &rGaussWeights)
   {
     if (IsCut()) {
-      KRATOS_ERROR << "No cut yet" << std::endl;
+      CalculateCutGeometryData(rGaussWeights);
     } else {
       BaseType::CalculateGeometryData(rGaussWeights);
     }
   }
 
   template <unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateIntersectionGeometryData(
+      ShapeFunctionDerivativesArrayType &rInterfaceDNDX,
+      Matrix &rInterfaceN,
+      Vector &rInterfaceGaussWeights,
+      ModifiedShapeFunctions::AreaNormalsContainerType& rInterfaceUnitNormals)
+  {
+      const auto& r_geom = this->GetGeometry();
+
+      // Auxiliary distance vector for the element subdivision utility
+      Vector distances_vector(NumNodes);
+      for (std::size_t i = 0; i < NumNodes; ++i) {
+         distances_vector[i] = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+      }
+
+      // Get the subintegration utility
+      ModifiedShapeFunctions::Pointer p_mod_sh_func = nullptr;
+      if constexpr (TDim == 2 ) {
+          p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(),distances_vector);
+      } else {
+          p_mod_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(this->pGetGeometry(),distances_vector);
+      }
+
+      // Fluid side interface
+      p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+          rInterfaceN,
+          rInterfaceDNDX,
+          rInterfaceGaussWeights,
+          GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+      // Fluid side interface normals
+      p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(
+          rInterfaceUnitNormals,
+          GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+      for (unsigned int i = 0; i < rInterfaceUnitNormals.size(); ++i) {
+          const double norm = norm_2(rInterfaceUnitNormals[i]);
+          KRATOS_ERROR_IF(norm < 1.0e-12) << "Normal is close to zero in element " << this->Id() << " cut interface." << std::endl;
+          rInterfaceUnitNormals[i] /= norm;
+      }
+  }
+
+  template <unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateCutGeometryData(
+      ShapeFunctionDerivativesArrayType &rDNDX,
+      Matrix &rN,
+      Vector &rGaussWeights)
+  {
+      const auto& r_geom = this->GetGeometry();
+
+      // Auxiliary distance vector for the element subdivision utility
+      Vector distances_vector(NumNodes);
+      for (std::size_t i = 0; i < NumNodes; ++i) {
+         distances_vector[i] = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+      }
+
+      // Get the subintegration utility
+      ModifiedShapeFunctions::Pointer p_mod_sh_func = nullptr;
+      if constexpr (TDim == 2 ) {
+          p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(),distances_vector);
+      } else {
+          p_mod_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(this->pGetGeometry(),distances_vector);
+      }
+
+      // Fluid side
+      p_mod_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
+          rN,
+          rDNDX,
+          rGaussWeights,
+          GeometryData::IntegrationMethod::GI_GAUSS_1);
+  }
+
+  template <unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateCutGeometryData(Vector &rGaussWeights)
+  {
+      const auto& r_geom = this->GetGeometry();
+
+      // Auxiliary distance vector for the element subdivision utility
+      Vector distances_vector(NumNodes);
+      for (std::size_t i = 0; i < NumNodes; ++i) {
+         distances_vector[i] = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+      }
+
+      // Get the subintegration utility
+      ModifiedShapeFunctions::Pointer p_mod_sh_func = nullptr;
+      if constexpr (TDim == 2 ) {
+          p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(),distances_vector);
+      } else {
+          p_mod_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(this->pGetGeometry(),distances_vector);
+      }
+
+      // Fluid side
+      Matrix aux_N_container;
+      p_mod_sh_func->ComputePositiveSideShapeFunctionsAndWeights(
+          aux_N_container,
+          rGaussWeights,
+          GeometryData::IntegrationMethod::GI_GAUSS_1);
+  }
+
+  template <unsigned int TDim>
   bool TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::IsCut() const 
   {
     const auto& r_geom = this->GetGeometry();
-    std::size_t n_pos = 0;
-    std::size_t n_neg = 0;
+    SizeType n_pos = 0;
+    SizeType n_neg = 0;
     for (const auto& r_node : r_geom) {
       if (r_node.FastGetSolutionStepValue(DISTANCE) > 0.0) {
         n_pos++;
@@ -979,14 +1091,14 @@ namespace Kratos
   bool TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::IsPositive() const 
   {
     const auto& r_geom = this->GetGeometry();
-    std::size_t n_pos = 0;
+    SizeType n_pos = 0;
     for (const auto& r_node : r_geom) {
       if (r_node.FastGetSolutionStepValue(DISTANCE) > 0.0) {
         n_pos++;
       }
     }
 
-    return n_pos == r_geom.PointsNumber() ? true : false;
+    return n_pos == NumNodes ? true : false;
   }
 
   template class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<2>;

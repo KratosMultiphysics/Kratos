@@ -22,6 +22,7 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
+#include "modified_shape_functions/modified_shape_functions.h"
 
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_element.h"
 
@@ -114,6 +115,9 @@ namespace Kratos
 
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    /// Number of nodes
+    static constexpr SizeType NumNodes = TDim + 1;
 
     ///@}
     ///@name Life Cycle
@@ -416,6 +420,19 @@ namespace Kratos
     bool IsCut() const;
 
     bool IsPositive() const;
+
+    void CalculateCutGeometryData(
+        ShapeFunctionDerivativesArrayType &rDNDX,
+        Matrix &rN,
+        Vector &rGaussWeights);
+
+    void CalculateIntersectionGeometryData(
+        ShapeFunctionDerivativesArrayType &rInterfaceDNDX,
+        Matrix &rInterfaceN,
+        Vector &rInterfaceGaussWeights,
+        ModifiedShapeFunctions::AreaNormalsContainerType& rInterfaceUnitNormals);
+
+    void CalculateCutGeometryData(Vector &rGaussWeights);
 
     ///@}
     ///@name Private  Access
