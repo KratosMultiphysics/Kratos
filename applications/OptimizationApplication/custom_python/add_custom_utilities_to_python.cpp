@@ -33,6 +33,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
+    using namespace pybind11::literals;
+
     py::class_<SymmetryUtility >(m, "SymmetryUtility")
         .def(py::init<std::string, ModelPart&, Parameters>())
         .def("Initialize", &SymmetryUtility::Initialize)
@@ -41,8 +43,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ApplyOnScalarField", &SymmetryUtility::ApplyOnScalarField)
         ;
 
-    py::class_<ModelPartUtils>(m, "ModelPartUtils")
-        .def_static("GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", [](
+    m.def_submodule("ModelPartUtils")
+        .def("GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", [](
             const std::vector<ModelPart*>& rEvaluatedModelPartsList,
             const std::vector<ModelPart*>& rReferenceModelPartsList,
             const bool AreNodesConsidered,
@@ -66,14 +68,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                 }
                 return pylist;
             },
-            py::arg("examined_model_parts_list"),
-            py::arg("reference_model_parts"),
-            py::arg("are_nodes_considered"),
-            py::arg("are_conditions_considered"),
-            py::arg("are_elements_considered"),
-            py::arg("are_parents_considered"),
-            py::arg("echo_level") = 0)
-        .def_static("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList)
+            "examined_model_parts_list"_a,
+            "reference_model_parts"_a,
+            "are_nodes_considered"_a,
+            "are_conditions_considered"_a,
+            "are_elements_considered"_a,
+            "are_parents_considered"_a,
+            "echo_level"_a = 0)
+        .def("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList,
+            "model_parts_list"_a)
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
