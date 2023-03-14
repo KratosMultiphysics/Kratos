@@ -71,7 +71,8 @@ namespace Kratos::Testing
         ModelPart& rModelPart,
         const DataCommunicator& rDataCommunicator,
         const bool WithConstraint = false,
-        const bool AdditionalNode = false
+        const bool AdditionalNode = false,
+        const bool InvertRoleAdditionalNode = false
         )
     {
         // Set MPI coomunicator
@@ -192,8 +193,14 @@ namespace Kratos::Testing
                     pnode5->AddDof(DISPLACEMENT_X, REACTION_X);
                     pnode5->AddDof(DISPLACEMENT_Y, REACTION_Y);
                     pnode5->AddDof(DISPLACEMENT_Z, REACTION_Z);
-                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode3, DISPLACEMENT_X, *pnode4, DISPLACEMENT_X, 1.0, 0.0);
-                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode3, DISPLACEMENT_X, *pnode5, DISPLACEMENT_X, 1.0, 0.0);
+                    // Existing node is the master
+                    if (!InvertRoleAdditionalNode) {
+                        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode3, DISPLACEMENT_X, *pnode4, DISPLACEMENT_X, 1.0, 0.0);
+                        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode3, DISPLACEMENT_X, *pnode5, DISPLACEMENT_X, 1.0, 0.0);
+                    } else { // Free nodes are the master
+                        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode4, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
+                        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode5, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
+                    }
                 }
             }
         }
