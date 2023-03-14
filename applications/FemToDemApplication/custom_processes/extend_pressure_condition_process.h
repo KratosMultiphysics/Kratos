@@ -34,7 +34,7 @@ typedef std::size_t SizeType;
  * @author Alejandro Cornejo
  */
 template <SizeType TDim = 2>
-class ExtendPressureConditionProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ExtendPressureConditionProcess : public Process
 {
 
 public:

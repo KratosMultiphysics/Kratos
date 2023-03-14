@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class DamageToNodesProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) DamageToNodesProcess : public Process
 {
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

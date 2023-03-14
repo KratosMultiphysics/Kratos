@@ -25,7 +25,7 @@
 namespace Kratos
 {
 
-class DemAfterRemeshIdentificatorProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) DemAfterRemeshIdentificatorProcess : public Process
 {
   public:
     KRATOS_CLASS_POINTER_DEFINITION(DemAfterRemeshIdentificatorProcess);
