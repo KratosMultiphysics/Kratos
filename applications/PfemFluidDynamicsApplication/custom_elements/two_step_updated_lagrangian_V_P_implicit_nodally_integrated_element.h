@@ -211,7 +211,7 @@ namespace Kratos
 
     void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
                                Matrix &rNContainer,
-                               Vector &rGaussWeights);
+                               Vector &rGaussWeights) override;
 
     void InitializeElementalVariables(ElementalVariables &rElementalVariables) override
     {
