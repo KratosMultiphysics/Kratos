@@ -62,6 +62,7 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
     const auto it_element_begin = mrModelPart.ElementsBegin();
 
     // Current domain size
+    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "'DOMAIN_SIZE' is not found in '" << mrModelPart.FullName() << "' ProcessInfo container." << std::endl;
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
     // Initial resize

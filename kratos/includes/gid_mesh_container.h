@@ -180,11 +180,7 @@ public:
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
 
-                        bool element_is_active = true;
-                        if ((it)->IsDefined(ACTIVE))
-                            element_is_active = (it)->Is(ACTIVE);
-
-                        if (element_is_active)
+                        if (it->IsActive())
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
 
@@ -286,11 +282,7 @@ public:
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
 
-                        bool element_is_active = true;
-                        if ((it)->IsDefined(ACTIVE))
-                            element_is_active = (it)->Is(ACTIVE);
-
-                        if (element_is_active)
+                        if (it->IsActive())
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                     }

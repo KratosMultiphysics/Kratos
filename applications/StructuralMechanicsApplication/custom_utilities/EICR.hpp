@@ -9,8 +9,7 @@
 //  Main authors:    Massimo Petracca
 //
 
-#if !defined(EICR_H_INCLUDED )
-#define  EICR_H_INCLUDED
+#pragma once
 
 namespace Kratos
 {
@@ -406,5 +405,3 @@ public:
 };
 
 }
-
-#endif // EICR_H_INCLUDED

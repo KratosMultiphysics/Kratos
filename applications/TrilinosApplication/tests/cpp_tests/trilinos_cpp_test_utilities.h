@@ -163,6 +163,41 @@ public:
         const std::vector<double>& rValues,
         const double Tolerance = 1e-8
         );
+
+    /**
+    * @brief This method generates a set of row, columns and values from a sparse matrix
+    * @param rA The matrix where generate the vectors of rows, indexes and values
+    * @param rRowIndexes The row indices
+    * @param rColumnIndexes The column indices
+    * @param rValues The values
+    * @param PrintValues If printing the vectors, for debugging pourposes
+    * @param IncludeHardZeros If including the hard zeros (giving  a cerain threshold)
+    */
+    static void GenerateSparseMatrixIndexAndValuesVectors(
+        const TrilinosSparseSpaceType::MatrixType& rA,
+        std::vector<int>& rRowIndexes,
+        std::vector<int>& rColumnIndexes,
+        std::vector<double>& rValues,
+        const bool PrintValues = false,
+        const double ThresholdIncludeHardZeros = -1
+        );
+        
+    /**
+    * @brief This method generates a sparse matrix from a set of row, columns and values
+    * @param rDataCommunicator The data communicator considered
+    * @param NumGlobalElements The global dimension of the matrix
+    * @param rRowIndexes The row indices
+    * @param rColumnIndexes The column indices
+    * @param rValues The values
+    * @return The matrix generated
+    */
+    static TrilinosSparseMatrixType GenerateSparseMatrix(
+        const DataCommunicator& rDataCommunicator,
+        const int NumGlobalElements,
+        const std::vector<int>& rRowIndexes,
+        const std::vector<int>& rColumnIndexes,
+        const std::vector<double>& rValues
+        );
     ///@}
 
 }; /// class TrilinosCPPTestUtilities
