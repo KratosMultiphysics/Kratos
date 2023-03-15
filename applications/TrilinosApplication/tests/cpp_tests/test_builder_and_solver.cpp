@@ -900,6 +900,68 @@ namespace Kratos::Testing
         TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
     }
 
+    /**
+    * Checks if the block builder and solver with constraints performs correctly the assemble of the system with auxiliary node (inverted)
+    */
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNodeInverted, KratosTrilinosApplicationMPITestSuite)
+    {
+        // The base model part
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        // The data communicator
+        const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+
+        // Generate Epetra communicator
+        KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+        // Basic build
+        BasicTestBuilderAndSolverDisplacement(r_model_part, r_comm, true, true, true);
+
+        // Create the solvers and things required
+        auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+        auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+
+        const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+
+        // The solution check
+        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 8);
+        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 8);
+        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 38);
+
+        // Values to check
+        std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 6, 7, 7};
+        std::vector<int> column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 6, 7};
+        std::vector<double> values = {2069000000.0, 1.0, 2069000000.0, 1.0, 2069000000.0, 1.0, 2069000000.0, 2069000000.0, 2069000000.0, 2069000000.0};
+
+        // Check assembly
+        TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+
+        // Now checking relation T matrix
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+
+        // // To create the solution of reference
+        // DebugLHS(r_T);
+
+        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 8);
+        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 8);
+        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 11);
+
+        // Values to check
+        row_indexes = {0, 1, 2, 3, 4, 4, 4, 5, 6, 7};
+        column_indexes = {0, 1, 2, 3, 2, 6, 7, 5, 6, 7};
+        values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+
+        // Check assembly T matrix
+        TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
+    }
+
     // NOTE: Fails with more than one partition
     // /**
     // * Checks if the elimination builder and solver performs correctly the assemble of the system
