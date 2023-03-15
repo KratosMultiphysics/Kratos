@@ -89,15 +89,23 @@ double LinearStrainEnergyResponseUtils::CalculateModelPartValue(ModelPart& rMode
 
 void LinearStrainEnergyResponseUtils::CalculateSensitivity(
     ModelPart& rAnalysisModelPart,
+    const std::vector<ModelPart*>& rEvaluatedModelParts,
     const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
     const double PerturbationSize)
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF(rEvaluatedModelParts.size() != 1)
+        << "Currently, there can be only one evaluated model part as same as "
+           "the analysis model part.\n";
+    KRATOS_ERROR_IF(rEvaluatedModelParts[0] != &rAnalysisModelPart)
+        << "Currently, there can be only one evaluated model part as same as "
+           "the analysis model part.\n";
+
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
     for (const auto& it : rSensitivityVariableModelPartInfo) {
         std::visit([&](auto&& r_variable) {
-            const auto& r_sensitivity_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+            const auto& r_sensitivity_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
                 it.second, {&rAnalysisModelPart}, true, true, true, true, 0);
 
             // reset nodal common interface values

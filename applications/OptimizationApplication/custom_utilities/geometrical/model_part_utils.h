@@ -7,8 +7,7 @@
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main author:     Reza Najian Asl,
-//                   Suneth Warnakulasuriya
+//  Main author:     Suneth Warnakulasuriya
 //
 
 #pragma once
@@ -66,7 +65,7 @@ public:
      *         sub-model part. All the nodes belonging to added conditions are also added to the sub-model part.
      *      3. If AreElementsConsidered is made to true, then common elements are found and added to the resulting
      *         sub-model part. All the nodes belonging to added elements are also added to the sub-model part.
-     *      4. If AreParentsConsidered is made to true, then first common nodes are found. Then neighbour conditions (if AreConditionsConsidered is
+     *      4. If AreNeighboursConsidered is made to true, then first common nodes are found. Then neighbour conditions (if AreConditionsConsidered is
      *         set to true) and elements (if AreElementsConsidered is set to true) for those common nodes are found and
      *         added to the sub-model part. All nodes belonging to added conditions and elements are also added to the sub-model part.
      *
@@ -90,17 +89,17 @@ public:
      * @param AreNodesConsidered            If true, common nodes from reference model parts are added to output model parts.
      * @param AreConditionsConsidered       If true, common conditions from reference model parts are added to output model parts.
      * @param AreElementsConsidered         If true, common elements from reference model parts are added to output model parts.
-     * @param AreParentsConsidered          If true, neighbour conditions and elements from reference model parts for common nodes are added to output model parts.
+     * @param AreNeighboursConsidered       If true, neighbour conditions and elements from reference model parts for common nodes are added to output model parts.
      * @param EchoLevel                     Echo level for printing info.
      * @return std::vector<ModelPart*>      List of output model parts.
      */
-    static std::vector<ModelPart*> GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+    static std::vector<ModelPart*> GetModelPartsWithCommonReferenceEntities(
         const std::vector<ModelPart*>& rExaminedModelPartsList,
         const std::vector<ModelPart*>& rReferenceModelParts,
         const bool AreNodesConsidered,
         const bool AreConditionsConsidered,
         const bool AreElementsConsidered,
-        const bool AreParentsConsidered,
+        const bool AreNeighboursConsidered,
         const IndexType EchoLevel = 0);
 
     /**
@@ -207,7 +206,7 @@ private:
         const bool AreNodesConsidered,
         const bool AreConditionsConsidered,
         const bool AreElementsConsidered,
-        const bool AreParentsConsidered);
+        const bool AreNeighboursConsidered);
 
     static void GetModelParts(
         std::set<ModelPart*>& rOutput,
@@ -221,7 +220,7 @@ private:
         const bool AreNodesConsidered,
         const bool AreConditionsConsidered,
         const bool AreElementsConsidered,
-        const bool AreParentsConsidered);
+        const bool AreNeighboursConsidered);
 
     static void PopulateModelPart(
         ModelPart& rOutputModelPart,
@@ -229,7 +228,7 @@ private:
         const bool AreNodesConsidered,
         const bool AreConditionsConsidered,
         const bool AreElementsConsidered,
-        const bool AreParentsConsidered,
+        const bool AreNeighboursConsidered,
         const std::set<IndexType>& rExaminedNodeIds,
         const std::set<NodeIdsType>& rExaminedConditionGeometryNodeIdsSet,
         const std::set<NodeIdsType>& rExaminedElementGeometryNodeIdsSet);

@@ -44,7 +44,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     m.def_submodule("ModelPartUtils")
-        .def("GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", [](
+        .def("GetModelPartsWithCommonReferenceEntities", [](
             const std::vector<ModelPart*>& rEvaluatedModelPartsList,
             const std::vector<ModelPart*>& rReferenceModelPartsList,
             const bool AreNodesConsidered,
@@ -52,7 +52,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             const bool AreElementsConsidered,
             const bool AreParentsConsidered,
             const IndexType EchoLevel){
-                const auto& r_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+                const auto& r_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
                     rEvaluatedModelPartsList,
                     rReferenceModelPartsList,
                     AreNodesConsidered,

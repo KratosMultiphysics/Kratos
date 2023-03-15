@@ -52,6 +52,7 @@ public:
 
     static void CalculateSensitivity(
         ModelPart& rAnalysisModelPart,
+        const std::vector<ModelPart*>& rEvaluatedModelParts,
         const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
         const double PerturbationSize);
 

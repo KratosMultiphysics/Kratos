@@ -7,8 +7,7 @@
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main author:     Reza Najian Asl,
-//                   Suneth Warnakulasuriya
+//  Main author:     Suneth Warnakulasuriya
 //
 
 // System includes
@@ -279,7 +278,7 @@ std::string ModelPartUtils::GetExaminedModelPartsInfo(
     const bool AreNodesConsidered,
     const bool AreConditionsConsidered,
     const bool AreElementsConsidered,
-    const bool AreParentsConsidered)
+    const bool AreNeighboursConsidered)
 {
     std::stringstream msg;
     msg << "sensitivity model parts [ ";
@@ -295,7 +294,7 @@ std::string ModelPartUtils::GetExaminedModelPartsInfo(
     msg << (AreNodesConsidered ? "nodes, " : "");
     msg << (AreConditionsConsidered ? "conditions, " : "");
     msg << (AreElementsConsidered ? "elements, "  : "");
-    msg << (AreParentsConsidered ? "parents, " : "");
+    msg << (AreNeighboursConsidered ? "parents, " : "");
 
     if (*msg.str().rbegin() == ' ') msg.seekp(-1, std::ios_base::end);
     if (*msg.str().rbegin() == ',') msg.seekp(-1, std::ios_base::end);
@@ -324,13 +323,13 @@ void ModelPartUtils::ExamineModelParts(
     const bool AreNodesConsidered,
     const bool AreConditionsConsidered,
     const bool AreElementsConsidered,
-    const bool AreParentsConsidered)
+    const bool AreNeighboursConsidered)
 {
     for (auto p_model_part : rExaminedModelPartsList) {
         // first generate examined model part node ids set. Same node can be shared
         // between rExamined model parts and rReferenceModelParts. If they are the
         // same node, then they should have the same id. Hence, only ids are stored.
-        if (AreNodesConsidered || AreParentsConsidered) UpdateEntityIdsSetFromContainer(rExaminedNodeIds, p_model_part->Nodes());
+        if (AreNodesConsidered || AreNeighboursConsidered) UpdateEntityIdsSetFromContainer(rExaminedNodeIds, p_model_part->Nodes());
 
         // now generate examined model part condition geometry sorted node ids set
         // to identify corresponding entities in reference model parts.
@@ -348,7 +347,7 @@ void ModelPartUtils::PopulateModelPart(
     const bool AreNodesConsidered,
     const bool AreConditionsConsidered,
     const bool AreElementsConsidered,
-    const bool AreParentsConsidered,
+    const bool AreNeighboursConsidered,
     const std::set<IndexType>& rExaminedNodeIds,
     const std::set<NodeIdsType>& rExaminedConditionGeometryNodeIdsSet,
     const std::set<NodeIdsType>& rExaminedElementGeometryNodeIdsSet)
@@ -381,16 +380,16 @@ void ModelPartUtils::PopulateModelPart(
     // now get the common elements between rExaminedModelParts and rReferenceModelParts by checking geometry node ids
     if (AreElementsConsidered) UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAndEntityGeometryNodeIdsSet(element_id_ptr_map, rExaminedElementGeometryNodeIdsSet, rReferenceModelPart.Elements());
 
-    // now get the parent entities for common nodes
-    if (AreParentsConsidered) {
-        // find and update parent conditions
+    // now get the neighbour entities for common nodes
+    if (AreNeighboursConsidered) {
+        // find and update neighbour conditions
         if (AreConditionsConsidered) {
             std::map<IndexType, std::vector<ModelPart::ConditionType::Pointer>> node_id_neighbour_condition_ptrs_map;
             UpdateNeighbourMaps(node_id_neighbour_condition_ptrs_map, rExaminedNodeIds, rReferenceModelPart.Conditions());
             UpdateEntityIdEntityPtrMapFromNeighbourMap(condition_id_ptr_map, node_id_neighbour_condition_ptrs_map);
         }
 
-        // find and update parent elements
+        // find and update neighbour elements
         if (AreElementsConsidered) {
             std::map<IndexType, std::vector<ModelPart::ElementType::Pointer>> node_id_neighbour_element_ptrs_map;
             UpdateNeighbourMaps(node_id_neighbour_element_ptrs_map, rExaminedNodeIds, rReferenceModelPart.Elements());
@@ -475,13 +474,13 @@ void ModelPartUtils::PopulateModelPart(
     rOutputModelPart.Tables() = rReferenceModelPart.Tables();
 }
 
-std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
     const std::vector<ModelPart*>& rExaminedModelPartsList,
     const std::vector<ModelPart*>& rReferenceModelParts,
     const bool AreNodesConsidered,
     const bool AreConditionsConsidered,
     const bool AreElementsConsidered,
-    const bool AreParentsConsidered,
+    const bool AreNeighboursConsidered,
     const IndexType EchoLevel)
 {
     std::stringstream mp_name_prefix;
@@ -489,7 +488,7 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
                    << (AreNodesConsidered ? "_Nodes" : "_NoNodes")
                    << (AreConditionsConsidered ? "_Conditions" : "_NoConditions")
                    << (AreElementsConsidered ? "_Elements" : "_NoElements")
-                   << (AreParentsConsidered ? "_Parents" : "_NoParents")
+                   << (AreNeighboursConsidered ? "_Parents" : "_NoParents")
                    << "_ExaminedMPs_";
 
     AppendModelPartNames(mp_name_prefix, rExaminedModelPartsList);
@@ -518,14 +517,14 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
                 ExamineModelParts(examined_node_ids, examined_condition_geometry_node_ids,
                                   examined_element_geometry_node_ids, rExaminedModelPartsList,
                                   AreNodesConsidered, AreConditionsConsidered,
-                                  AreElementsConsidered, AreParentsConsidered);
+                                  AreElementsConsidered, AreNeighboursConsidered);
             }
 
             // now we create the output sub model part with the unique model part name.
             auto& r_output_model_part = r_reference_model_part.CreateSubModelPart(unique_mp_name);
             PopulateModelPart(r_output_model_part, r_reference_model_part,
                               AreNodesConsidered, AreConditionsConsidered,
-                              AreElementsConsidered, AreParentsConsidered,
+                              AreElementsConsidered, AreNeighboursConsidered,
                               examined_node_ids, examined_condition_geometry_node_ids,
                               examined_element_geometry_node_ids);
 
@@ -534,7 +533,7 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
                 << r_reference_model_part.FullName() << " for "
                 << GetExaminedModelPartsInfo(
                     rExaminedModelPartsList, AreNodesConsidered, AreConditionsConsidered,
-                    AreElementsConsidered, AreParentsConsidered);
+                    AreElementsConsidered, AreNeighboursConsidered);
         }
 
         auto p_model_part = &r_reference_model_part.GetSubModelPart(unique_mp_name);
@@ -545,7 +544,7 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
             << r_reference_model_part.FullName() << " for "
             << GetExaminedModelPartsInfo(
                    rExaminedModelPartsList, AreNodesConsidered, AreConditionsConsidered,
-                   AreElementsConsidered, AreParentsConsidered);
+                   AreElementsConsidered, AreNeighboursConsidered);
 
         total_number_of_entities += (AreNodesConsidered ? p_model_part->GetCommunicator().GlobalNumberOfNodes() : 0);
         total_number_of_entities += (AreConditionsConsidered ? p_model_part->GetCommunicator().GlobalNumberOfConditions() : 0);
