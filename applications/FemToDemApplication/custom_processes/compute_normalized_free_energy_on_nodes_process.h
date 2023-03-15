@@ -44,7 +44,7 @@ namespace Kratos
  * @brief This class calculates the Free Energy indicator at all the nodes of the mesh. This indicator will be used to compute the metric and the remesh
  * @author Alejandro Cornejo
  */
-class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ComputeNormalizedFreeEnergyOnNodesProcess : public Process
 {
     ///@name Type Definitions
     ///@{

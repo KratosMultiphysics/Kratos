@@ -7,7 +7,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
 import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
 import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
-import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 import KratosMultiphysics.DEMApplication as KratosDEM
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
@@ -32,12 +31,6 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         self.DEM_Solution.Initialize()
         self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path, self.DEM_Solution._GetSolver())
 
-        # Initialize Remeshing files
-        self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
-        if self.DoRemeshing:
-            self.mmg_parameter_file = open("MMGParameters.json",'r')
-            self.mmg_parameters = KratosMultiphysics.Parameters(self.mmg_parameter_file.read())
-            self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.InitializePlotsFiles()
         self.echo_level = 0
@@ -73,13 +66,8 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         self.ParticleCreatorDestructor = PCD.FemDemParticleCreatorDestructor(self.SpheresModelPart,
                                                                            self.DEMProperties,
                                                                            self.DEMParameters)
-
         if self.domain_size == 3:
             self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
-
-        if self.DoRemeshing:
-            self.InitializeMMGvariables()
-            self.RemeshingProcessMMG.ExecuteInitialize()
 
         if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
             self.TransferDEMContactForcesToFEM = True
@@ -176,9 +164,6 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         self.FEM_Solution.step = self.FEM_Solution.step + 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
-        # self.FindNeighboursIfNecessary()
-        self.PerformRemeshingIfNecessary()
-
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
 
@@ -227,9 +212,6 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
 
         # processes to be executed after writting the output
         self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
-
-        if self.DoRemeshing:
-             self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
 
         if not self.is_slave:
             self.PrintResults()
