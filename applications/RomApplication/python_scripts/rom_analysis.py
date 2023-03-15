@@ -16,11 +16,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
             # Get the ROM settings from the RomParameters.json input file
-            with open('RomParameters.json') as rom_parameters:
+            rom_parameters_file_name = self.project_parameters["output_processes"]["rom_output"][0]["Parameters"]["rom_basis_output_name"].GetString()
+            with open(rom_parameters_file_name + '.json') as rom_parameters:
                 self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
 
             # Set the ROM settings in the "solver_settings" of the solver introducing the physics
             self.project_parameters["solver_settings"].AddValue("rom_settings", self.rom_parameters["rom_settings"])
+            self.project_parameters["solver_settings"]["rom_settings"].AddEmptyValue("rom_parameters_file_name")
+            self.project_parameters["solver_settings"]["rom_settings"]["rom_parameters_file_name"].SetString(rom_parameters_file_name)
+
 
             # HROM operations flags
             self.rom_basis_process_list_check = False
@@ -152,7 +156,6 @@ if __name__ == "__main__":
     analysis_stage_module_name = parameters["analysis_stage"].GetString()
     analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
     analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
-
     analysis_stage_module = importlib.import_module(analysis_stage_module_name)
     analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
 

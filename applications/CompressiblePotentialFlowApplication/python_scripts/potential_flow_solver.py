@@ -247,7 +247,8 @@ class PotentialFlowSolver(FluidSolver):
         return scheme
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(
+        #convergence_criterion = KratosMultiphysics.ResidualCriteria(
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(
             self.settings["relative_tolerance"].GetDouble(),
             self.settings["absolute_tolerance"].GetDouble())
         return convergence_criterion

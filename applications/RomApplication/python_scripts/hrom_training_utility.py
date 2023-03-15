@@ -21,7 +21,6 @@ class HRomTrainingUtility(object):
         # Validate and assign the HROM training settings
         settings = custom_settings["hrom_settings"]
         settings.ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
-
         # Create the HROM element selector
         element_selection_type = settings["element_selection_type"].GetString()
         if element_selection_type == "empirical_cubature":
@@ -37,7 +36,7 @@ class HRomTrainingUtility(object):
         self.echo_level = settings["echo_level"].GetInt()
         self.rom_settings = custom_settings["rom_settings"]
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
-
+        self.rom_parameters_file_name = self.solver.settings["rom_settings"]["rom_parameters_file_name"].GetString()
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
         computing_model_part = self.solver.GetComputingModelPart()
@@ -95,7 +94,7 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model_2.CreateModelPart(model_part_name)
 
         # Get the weights and fill the HROM computing model part
-        with open('RomParameters.json','r') as f:
+        with open(self.rom_parameters_file_name + '.json','r') as f:
             rom_parameters = KratosMultiphysics.Parameters(f.read())
         KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_main_model_part)
         if self.echo_level > 0:
@@ -214,7 +213,7 @@ class HRomTrainingUtility(object):
 
         # Append weights to RomParameters.json
         # We first parse the current RomParameters.json to then append and edit the data
-        with open('RomParameters.json','r') as f:
+        with open(self.rom_parameters_file_name + '.json','r') as f:
             updated_rom_parameters = json.load(f)
             #FIXME: I don't really like to automatically change things without the user realizing...
             #FIXME: However, this leaves the settings ready for the HROM postprocess... something that is cool
@@ -223,7 +222,7 @@ class HRomTrainingUtility(object):
             # updated_rom_parameters["run_hrom"] = True
             updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
 
-        with open('RomParameters.json','w') as f:
+        with open(self.rom_parameters_file_name + '.json','w') as f:
             json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")

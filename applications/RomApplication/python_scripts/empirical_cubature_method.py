@@ -38,7 +38,8 @@ class EmpiricalCubatureMethod():
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
         if constrain_sum_of_weights:
-            self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
+            pass
+            #self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
         self.b = self.G @ self.W
 
 
@@ -50,10 +51,10 @@ class EmpiricalCubatureMethod():
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
         self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
-        GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
+        #GnormNOONE = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         if self.Filter_tolerance > 0:
             TOL_REMOVE = self.Filter_tolerance * normB
-            rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
+            rmvpin = np.where(self.Gnorm[self.y] < TOL_REMOVE)
             self.y = np.delete(self.y,rmvpin)
         self.z = {}  # Set of intergration points
         self.mPOS = 0 # Number of nonzero weights
