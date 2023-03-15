@@ -887,6 +887,16 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             //==========================================================================================================================================
             // HIERARCHICAL MULTISCALE RVE
             //==========================================================================================================================================
+            // Overlap volume
+            const double r1  = GetRadius();
+            const double r2  = data_buffer.mpOtherParticle->GetRadius();
+            const double d   = r1 + r2 - data_buffer.mIndentation;
+            const double r12 = r1 * r1;
+            const double r22 = r2 * r2;
+            const double d2  = d * d;
+            if (mWall == 0 && data_buffer.mIndentation > 0.0 && (GetId() < data_buffer.mpOtherParticle->GetId() || data_buffer.mpOtherParticle->mWall > 0))
+              mVolOverlap += r12 * std::acos((d2 + r12 - r22) / (2.0 * d * r1)) + r22 * std::acos((d2 + r22 - r12) / (2.0 * d * r2)) - 0.5 * sqrt((d + r1 + r2) * (-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2));
+
             if (mRVESolve && mWall == 0 && data_buffer.mIndentation > 0.0) {
               mCoordNum++;
               bool is_neighbour_inner = (data_buffer.mpOtherParticle->mNeighbourRigidFaces.size() == 0);
@@ -897,9 +907,6 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 mSkin = (!mInner > 0 && is_neighbour_inner);
 
               // Branch vector
-              const double r1 = GetRadius();
-              const double r2 = data_buffer.mpOtherParticle->GetRadius();
-              const double d  = r1 + r2 - data_buffer.mIndentation;
               const double normal[3] = { -data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2] };
               const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
 
@@ -927,18 +934,8 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 if (has_inner_particle)
                   mNumContactsInner++;
 
-                // Overlap volume
-                const int dim = r_process_info[DOMAIN_SIZE];
-                const double r12 = r1 * r1;
-                const double r22 = r2 * r2;
-                const double d2  = d * d;
-
-                if (dim == 2)
-                  mVolOverlap += r12 * std::acos((d2+r12-r22) / (2.0*d*r1)) + r22 * std::acos((d2+r22-r12) / (2.0*d*r2)) - 0.5 * sqrt((d+r1+r2) * (-d+r1+r2) * (d+r1-r2) * (d-r1+r2));
-                else if (dim == 3)
-                  mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2.0*d*r1+2.0*d*r2+6.0*r1*r2-3.0*r12-3.0*r22)) / (12.0*d);
-
                 // Tangent direction
+                const int dim = r_process_info[DOMAIN_SIZE];
                 double tangent[3];
                 if (dim == 2) {
                   tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
@@ -1214,6 +1211,12 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             //==========================================================================================================================================
             // HIERARCHICAL MULTISCALE RVE
             //==========================================================================================================================================
+            // Overlap volume
+            const double r = GetRadius();
+            const double d = r - indentation;
+            if (mWall == 0 && indentation > 0.0)
+              mVolOverlap += r * r * acos((r - indentation) / r) - (r - indentation) * sqrt(2.0 * r * indentation - indentation * indentation);
+
             if (mRVESolve && mWall == 0 && indentation > 0.0) {
               mInner = false;
               mCoordNum++;
@@ -1221,8 +1224,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               const int dim = r_process_info[DOMAIN_SIZE];
 
               // Branch vector
-              const double r = GetRadius();
-              const double d = r - indentation;
               const double normal[3] = { -data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2] };
               const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
 
@@ -1243,12 +1244,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               const int idx_az = std::abs(azimuth  / bin_length);
               mRoseDiagram(0,idx_xy)++;
               mRoseDiagram(1,idx_az)++;
-
-              // Overlap volume
-              if (dim == 2)
-                mVolOverlap += r*r * acos((r-indentation)/r) - (r-indentation) * sqrt(2.0*r*indentation-indentation*indentation);
-              else if (dim == 3)
-                mVolOverlap += Globals::Pi * indentation*indentation * (3.0*r-indentation) / 3.0;
 
               // Tangent direction
               double tangent[3];
