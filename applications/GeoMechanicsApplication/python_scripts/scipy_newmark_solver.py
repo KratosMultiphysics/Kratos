@@ -222,9 +222,9 @@ class ScipyNewmarkSolver(UPwSolver):
         self.lhs = self.A_scipy + mass_contribution + damping_contribution
 
     def calculate_inverse_lhs(self):
-        identity = sparse.identity(self.lhs.shape[0])
 
-        self.inverse_lhs = la.splu(self.lhs, identity)
+        self.inverse_lhs = la.splu(self.lhs)
+
 
     def ApplyDirichlet(self):
         KratosMultiphysics.Timer.Start("Apply Dirchlet")
