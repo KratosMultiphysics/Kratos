@@ -109,7 +109,7 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.load",
             "variable_name":   "LINE_LOAD",
-            "active":          [true,true,true],
+            "active":          [false,true,false],
             "value":           [0.0,-1000,0.0],
             "table":           [0,1,0]
         }
