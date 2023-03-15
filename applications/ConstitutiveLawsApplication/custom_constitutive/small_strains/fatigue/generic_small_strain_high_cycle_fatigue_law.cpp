@@ -123,12 +123,14 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         // KRATOS_WATCH(max_stress)
         // KRATOS_WATCH(min_stress)
 
+        const double threshold = this->GetThreshold();
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
         
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
+            threshold,
             reversion_factor,
             rValues.GetMaterialProperties(),
             B0,
@@ -175,10 +177,12 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         max_stress = (1 - reference_damage) * mMaxStress;
         min_stress = (1 - reference_damage) * mMinStress;
 
+        const double threshold = this->GetThreshold();
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
+            threshold,
             reversion_factor,
             rValues.GetMaterialProperties(),
             B0,

@@ -179,6 +179,7 @@ public:
      * @param rAlphat Internal variable of the fatigue model.
      */
     static void CalculateFatigueParameters(const double MaxStress,
+                                            double Threshold,
                                             double ReversionFactor,
                                             const Properties& rMaterialParameters,
                                             double& rB0,
@@ -188,7 +189,7 @@ public:
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
-        const double yield_stress = ultimate_stress;
+        // const double yield_stress = ultimate_stress;
 
         // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
         // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
@@ -233,7 +234,7 @@ public:
                 rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
 
                 if (softening_type == curve_by_points) {
-                    rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));                   
+                    rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / ultimate_stress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));           
                 }      
             } 
             //  else {
