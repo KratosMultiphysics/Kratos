@@ -607,6 +607,7 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
 {
     if (rThisVariable == HCF_UNIAXIAL_STRESS_FIBER) {
         return BaseType::CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+        
     } else {
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }

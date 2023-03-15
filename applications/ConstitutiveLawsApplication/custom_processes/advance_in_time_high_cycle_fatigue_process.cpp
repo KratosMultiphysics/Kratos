@@ -228,7 +228,8 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
             }
         }
     }
-	rIncrement = min_time_increment;
+	rIncrement = min_time_increment * 2.0;
+    
 }
 
 /***********************************************************************************/
@@ -267,7 +268,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
                 if (period[i] == 0.0) {
                     local_cycles_increment = 0;
                 } else {
-                    local_cycles_increment = std::trunc(Increment / period[i]);
+                    local_cycles_increment = std::trunc(Increment / period[i] );
                     time_increment = std::trunc(Increment / period[i]) * period[i];
                     previous_cycle_time[i] += time_increment;
                 }

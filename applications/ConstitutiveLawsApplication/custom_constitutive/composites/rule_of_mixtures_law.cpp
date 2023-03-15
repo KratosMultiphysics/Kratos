@@ -351,6 +351,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 
         // we average over the layers
         if (p_law->Has(rThisVariable)) {
+            aux_value=0;
             p_law->GetValue(rThisVariable, aux_value);
             rValue += aux_value * factor;
         }
@@ -588,8 +589,9 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         Properties& r_prop = *(it_prop_begin + i_layer);
 
         rParameterValues.SetMaterialProperties(r_prop);
-        double aux_value;
+        double aux_value = 0;
         p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+
         rValue += factor * aux_value;
     }
 
