@@ -102,7 +102,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
     int time = rValues.GetProcessInfo()[TIME];
     const int time_offset = 2;
-    const int length_of_load_increments = 20;
+    const int length_of_load_increments = 16;
 
     int number_of_load_increments = mNumberOfLoadIncrements;
 
