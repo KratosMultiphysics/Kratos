@@ -32,6 +32,8 @@ class KratosPaths(object):
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
 
+Kernel.RegisterPythonVersion()
+
 def __getattr__(name):
     if name == "CppRegistry":
         err_msg = "c++ registry must be accessed through 'KratosMultiphysics.Registry'."

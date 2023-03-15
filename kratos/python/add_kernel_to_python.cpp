@@ -17,9 +17,27 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
 #include "includes/kernel.h"
+#include "includes/define_python.h"
 #include "python/add_kernel_to_python.h"
+
+// String macros
+#ifndef KRATOS_TO_STRING_
+    #define KRATOS_TO_STRING_(X) #X
+#endif
+#ifndef KRATOS_TO_STRING
+    #define KRATOS_TO_STRING(X) KRATOS_TO_STRING_(X)
+#endif
+
+// Define Python version
+#if defined(PYTHON_VERSION_MAJOR) && defined(PYTHON_VERSION_MINOR)
+    #define KRATOS_PYTHON_VERSION "Python" \
+    KRATOS_TO_STRING(PYTHON_VERSION_MAJOR) \
+    "." \
+    KRATOS_TO_STRING(PYTHON_VERSION_MINOR)
+#else
+    #define KRATOS_PYTHON_VERSION "Unknown Python Version"
+#endif
 
 namespace Kratos::Python {
 
@@ -145,6 +163,7 @@ void AddKernelToPython(pybind11::module& m)
         .def("GetConstitutiveLaw", GetConstitutiveLaw, py::return_value_policy::reference_internal)
         .def_static("Version", &Kernel::Version)
         .def_static("BuildType", &Kernel::BuildType)
+        .def_static("RegisterPythonVersion", [](){Kernel::SetPythonVersion(KRATOS_PYTHON_VERSION);})
         .def_static("OSName", &Kernel::OSName)
         .def_static("PythonVersion", &Kernel::PythonVersion)
         .def_static("Compiler", &Kernel::Compiler)
