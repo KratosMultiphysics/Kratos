@@ -52,7 +52,7 @@ typedef std::size_t SizeType;
  * @tparam TDim The dimension of the problem
  * @author Alejandro Cornejo
  */
-class FEMDEMCouplingUtilities
+class KRATOS_API(FEM_TO_DEM_APPLICATION) FEMDEMCouplingUtilities
 {
   public:
     ///@name Type definitions

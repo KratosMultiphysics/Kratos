@@ -62,7 +62,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class BaseSolidElement
+class KRATOS_API(FEM_TO_DEM_APPLICATION) BaseSolidElement
     : public Element
 {
 protected:
