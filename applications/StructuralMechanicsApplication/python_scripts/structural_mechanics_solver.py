@@ -183,6 +183,10 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         if self.settings["volumetric_strain_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_MOMENTUM)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YIELD_STRESS)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
         if self.settings["displacement_control"].GetBool():
@@ -208,6 +212,10 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
         if self.settings["volumetric_strain_dofs"].GetBool():
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN", "REACTION_STRAIN"])
+            dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_X", "ANGULAR_MOMENTUM_X"])
+            dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Y", "ANGULAR_MOMENTUM_Y"])
+            dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Z", "ANGULAR_MOMENTUM_Z"])
+            dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN_PROJECTION", "YIELD_STRESS"])
         if self.settings["displacement_control"].GetBool():
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
@@ -248,6 +256,10 @@ class MechanicalSolver(PythonSolver):
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         mechanical_solution_strategy.Initialize()
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
+
+        # Initialize non-historical variables to zero
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT_PROJECTION, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION, self.main_model_part.Nodes)
 
     def InitializeSolutionStep(self):
         if self.settings["clear_storage"].GetBool():
