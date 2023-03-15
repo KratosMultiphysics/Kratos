@@ -130,7 +130,7 @@ public:
             {
                 if (elements_per_layer[current_layer] > 0)
                 {
-                    //create an appropiate name
+                    //create an appropriate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
                     current_layer_name << mMeshTitle << "_" << current_layer ;
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
