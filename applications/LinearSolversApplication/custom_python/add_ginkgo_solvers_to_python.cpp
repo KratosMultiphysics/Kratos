@@ -36,6 +36,7 @@ void AddGinkgoSolversToPython(pybind11::module& m)
     py::class_<GinkgoSolverType, GinkgoSolverType::Pointer, LinearSolverType>(m,"GinkgoSolver")
         .def(py::init<Parameters>())
         .def("__str__", PrintObject<LinearSolverType>)
+        .def("CleanSolve", &GinkgoSolverType::CleanSolve)
         ;
 
 }

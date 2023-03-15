@@ -231,15 +231,6 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
                 .with_sparsity_power(rSettings["isai_power"].GetDouble())
                 .on(exec);
         }}
-    // {"overhead", 
-    //     [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-    //         return gko::Overhead<TValueType>::build()
-    //             .with_criteria(gko::stop::ResidualNorm<TValueType>::build()
-    //                 .with_reduction_factor(rc_etype{})
-    //                 .on(exec))
-    //             .on(exec);
-    //     }
-    // }
 };
 
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
@@ -281,7 +272,7 @@ public:
             "preconditioner"        : "none",
             "max_block_size"        : 0,
             "accuracy"              : 0.0,
-            "parilu_iterations"     : 1,
+            "parilu_iterations"     : 10,
             "parilut_approx_select" : 0,
             "parilut_limit"         : 1,
             "isai_power"            : 0
@@ -315,7 +306,7 @@ public:
 
         mPrecond = GinkoSolverPreconditioners<double, std::int64_t>::mFactory.at(settings["preconditioner"].GetString())(mExec, settings);
 
-        auto FLAGS_nrhs = 1; // TODO: No clue what is this.
+        auto FLAGS_nrhs = 1;
 
         // Extracted from ginkgo's "benchmark/solver/solver.cpp"
         if (settings["solver"].GetString() == "bicgstab") {
@@ -407,11 +398,11 @@ public:
     bool Solve(MatrixType &rA, VectorType &rX, VectorType &rB) override
     {
 
-#ifdef KRATOS_DEBUG
+        #ifdef KRATOS_DEBUG
         std::cout << "Using Ginkgo solver..." << std::endl;
         std::cout << "\tSizeof(std::size_t)  (Kratos IndexType): " << sizeof(std::size_t)  << std::endl;
         std::cout << "\tSizeof(std::int64_t) (Ginkgo IndexType): " << sizeof(std::int64_t) << std::endl;
-#endif
+        #endif
 
         // Initialize ginkgo data interfaces
         // NOTE: Ginkgo does not have std::size_t (unsigned long int) IndexType CSR matrices, so we have to make an 
@@ -439,7 +430,7 @@ public:
             1                                                                                                               // Stride
         ));
 
-#ifdef KRATOS_DEBUG
+        #ifdef KRATOS_DEBUG
         std::cout << "Checking A vals..." << std::endl;
         for(std::size_t i = 0; i < rA.value_data().size(); i++) {
             if (rA.value_data()[i] != gko_rA->get_values()[i]) {
@@ -474,11 +465,80 @@ public:
                 std::cout << "val       incorrect at i=" << i << "(" << rX[i] << "," << gko_rX->get_values()[i] << ")" << std::endl;
             } 
         }
-#endif
+        #endif
 
         mSolver->generate(gko_rA)->apply(gko::lend(gko_rB), gko::lend(gko_rX));
 
         return true;
+    }
+
+    /**
+     * Solves the linear system Ax=b creating, initializing and destroying all components during the call.
+     * No info is stores or saved between calls.
+     * @param rA System matrix
+     * @param rX Solution vector
+     * @param rB Right hand side vector
+     * @return true if solution found, otherwise false
+     */
+    void CleanSolve(MatrixType &rA, VectorType &rX, VectorType &rB)
+    {
+        auto exec = gko::OmpExecutor::create();
+
+        auto fact = gko::share(gko::factorization::ParIlu<double, std::int64_t>::build()
+                .with_iterations(3)
+                .with_skip_sorting(true)
+                .on(exec));
+
+        auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, std::int64_t>,gko::solver::UpperTrs<double, std::int64_t>, false, std::int64_t>::build()
+                .with_factorization_factory(fact)
+                .on(exec);
+
+        auto residual_stop_mode = gko::stop::mode::rhs_norm;
+
+        auto iteration_stop = gko::share(
+            gko::stop::Iteration::build().with_max_iters(100).on(exec)
+        );
+
+        auto rel_residual_stop = gko::share(
+            gko::stop::RelativeResidualNorm<double>::build()
+                .with_tolerance(10e-6)
+            .on(exec)
+        );
+
+        std::vector<std::shared_ptr<const gko::stop::CriterionFactory>> criterion_vector{rel_residual_stop, iteration_stop};
+
+        auto stop_criteria = gko::stop::combine(criterion_vector);
+
+        auto solver = gko::solver::CbGmres<double>::build()
+            .with_krylov_dim(100u)
+            .with_preconditioner(give(precond))
+            .with_criteria(stop_criteria)
+            .on(exec);
+
+        auto gko_rA = gko::share(mtx::create(
+            exec,
+            gko::dim<2>{rA.size1(), rA.size2()},
+            gko::make_array_view(exec, rA.value_data().size(),  &(rA.value_data()[0])),
+            gko::make_array_view(exec, rA.index2_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index2_data()[0]))),
+            gko::make_array_view(exec, rA.index1_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index1_data()[0]))),
+            std::make_shared<typename mtx::load_balance>(2)
+        ));
+
+        auto gko_rB = gko::share(vec::create(
+            exec,
+            gko::dim<2>(rB.size(), 1),
+            gko::make_array_view(exec, rB.size(),  &(rB[0])),
+            1
+        ));
+
+        auto gko_rX = gko::share(vec::create(
+            exec,
+            gko::dim<2>(rX.size(), 1),
+            gko::make_array_view(exec, rX.size(),  &(rX[0])),
+            1
+        ));
+
+        solver->generate(gko_rA)->apply(gko::lend(gko_rB), gko::lend(gko_rX));
     }
 
     /**
