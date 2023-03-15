@@ -59,7 +59,7 @@ typedef std::size_t SizeType;
  * @author Vicente Mataix Ferrandiz
  */
 template <SizeType TVoigtSize = 6>
-class ConstitutiveLawUtilities
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ConstitutiveLawUtilities
 {
   public:
     ///@name Type definitions
