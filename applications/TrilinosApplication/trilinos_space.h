@@ -67,6 +67,9 @@ namespace Kratos
  * @ingroup TrilinosApplication
  * @brief The space adapted for Trilinos vectors and matrices
  * @author Riccardo Rossi
+ * @tparam TMatrixType The matrix type considered
+ * @tparam TVectorType the vector type considered
+ * @tparam TGraph The graph considered
  */
 template<class TMatrixType, class TVectorType>
 class TrilinosSpace
@@ -431,11 +434,17 @@ public:
             MatrixType aux_2(::Copy, rA.RowMap(), NumNz.data());
             Mult(aux_1, rB, aux_2, CallFillCompleteOnResult, KeepAllHardZeros);
 
-            // Empty the solution Epetra_Matrix
-            SetToZero(rA);
+            // Create an Epetra_Matrix
+            MatrixType* aux_3 =  new MatrixType(::Copy, CombineMatricesGraphs(rA, aux_2));
 
             // Copy values
-            CopyMatrixValues(rA, aux_2);
+            CopyMatrixValues(*aux_3, aux_2);
+
+            // Doing a swap
+            std::swap(rA, *aux_3);
+
+            // Delete the new matrix
+            delete aux_3;
         } else { // A new matrix
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
@@ -488,11 +497,17 @@ public:
             MatrixType aux_2(::Copy, rA.RowMap(), NumNz.data());
             TransposeMult(aux_1, rB, aux_2, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
 
-            // Empty the solution Epetra_Matrix
-            SetToZero(rA);
+            // Create an Epetra_Matrix
+            MatrixType* aux_3 =  new MatrixType(::Copy, CombineMatricesGraphs(rA, aux_2));
 
             // Copy values
-            CopyMatrixValues(rA, aux_2);
+            CopyMatrixValues(*aux_3, aux_2);
+
+            // Doing a swap
+            std::swap(rA, *aux_3);
+
+            // Delete the new matrix
+            delete aux_3;
         } else { // A new matrix
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
@@ -1000,6 +1015,59 @@ public:
         delete pv;
         return final_vector;
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Generates a graph combining the graphs of two matrices
+     * @param rA The first matrix
+     * @param rB The second matrix
+     */
+    static Epetra_CrsGraph CombineMatricesGraphs(
+        const MatrixType& rA,
+        const MatrixType& rB
+        )
+    {
+        KRATOS_ERROR_IF_NOT(rA.RowMap().SameAs(rB.RowMap())) << "Row maps are not compatible" << std::endl;
+        KRATOS_ERROR_IF_NOT(rA.ColMap().SameAs(rB.ColMap())) << "Column maps are not compatible" << std::endl;
+        Epetra_CrsGraph graph(::Copy, rA.RowMap(), rA.ColMap(), 1000);
+
+        // Gettings the graphs
+        const auto& r_graph_a = rA.Graph();
+        const auto& r_graph_b = rB.Graph();
+
+        // Some definitions
+        int i, j, ierr;
+        int num_entries; // Number of non-zero entries
+        int* cols;       // Column indices of row non-zero values
+        std::unordered_set<int> combined_indexes;
+        for (i = 0; i < r_graph_a.NumMyRows(); i++) {
+            // First graph
+            ierr = r_graph_a.ExtractMyRowView(i, num_entries, cols);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (I) with code ierr = " << ierr << std::endl;
+            for (j = 0; j < num_entries; j++) {
+                combined_indexes.insert(cols[j]);
+            }
+            // Second graph
+            ierr = r_graph_b.ExtractMyRowView(i, num_entries, cols);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (II) with code ierr = " << ierr << std::endl;
+            for (j = 0; j < num_entries; j++) {
+                combined_indexes.insert(cols[j]);
+            }
+            // Vector equivalent
+            std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
+            num_entries = combined_indexes_vector.size();
+            // Adding to graph
+            ierr = graph.InsertMyIndices(i, num_entries, combined_indexes_vector.data());
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
+            // Clear set
+            combined_indexes.clear();
+        }
+
+        // Finalizing graph construction
+        ierr = graph.FillComplete();
+        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_CrsGraph.FillComplete. Error code: " << ierr << std::endl;
+
+        return graph;
     }
 
     /**
