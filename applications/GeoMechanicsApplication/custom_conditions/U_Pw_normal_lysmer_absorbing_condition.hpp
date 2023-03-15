@@ -107,6 +107,9 @@ protected:
     static constexpr SizeType N_DOF = TNumNodes * TDim;
     static constexpr SizeType CONDITION_SIZE = TNumNodes * TDim + TNumNodes;
 
+    using ElementMatrixType = BoundedMatrix<double, N_DOF, N_DOF>;
+    using DimensionMatrixType = BoundedMatrix<double, TDim, TDim>;
+
     struct NormalLysmerAbsorbingVariables
     {
         double IntegrationCoefficient;
@@ -124,8 +127,8 @@ protected:
         Vector SaturationNodes;
         Vector rhoNodes;
 
-        BoundedMatrix<double, TDim, TDim> CAbsMatrix; // damping part of absorbing matrix;
-        BoundedMatrix<double, TDim, TDim> KAbsMatrix; // stiffness part of absorbing matrix;
+        DimensionMatrixType CAbsMatrix; // damping part of absorbing matrix;
+        DimensionMatrixType KAbsMatrix; // stiffness part of absorbing matrix;
     };
 
     // Member Variables
@@ -138,7 +141,7 @@ protected:
     * @param rLeftHandSideMatrix Global Left hand side
     * @param rUMatrix LHS displacement matrix of the current condition
     */
-    void AddLHS(MatrixType& rLeftHandSideMatrix, const BoundedMatrix<double, N_DOF, N_DOF>& rUMatrix);
+    void AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUMatrix);
 
     /**
     * @brief Calculates and adds terms to the RHS
@@ -152,7 +155,7 @@ protected:
     * @param rRotationMatrix rotation matrix of the current condition
     * @param rGeom geometry of the current condition
     */
-    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& rGeom);
+    void CalculateRotationMatrix(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
 
     /**
     * @brief This method gets the average of the variables of all the neighbour elements of the condition. 
@@ -201,7 +204,7 @@ private:
      * @param rStiffnessMatrix The stiffness matrix to be calculated
      * @param rCurrentProcessInfo Current process information
      */
-    void CalculateConditionStiffnessMatrix(BoundedMatrix<double, N_DOF, N_DOF>& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateConditionStiffnessMatrix(ElementMatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     // Serialization
     

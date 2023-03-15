@@ -29,7 +29,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 
-    BoundedMatrix<double, N_DOF, N_DOF> stiffness_matrix;
+    ElementMatrixType stiffness_matrix;
 
     this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
@@ -39,7 +39,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
 }
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMatrix(BoundedMatrix<double, N_DOF, N_DOF>& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo)
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMatrix(ElementMatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     //Previous definitions
     GeometryType& r_geom = this->GetGeometry();
@@ -99,7 +99,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    BoundedMatrix<double, N_DOF, N_DOF> stiffness_matrix;
+    ElementMatrixType stiffness_matrix;
 
     this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
@@ -136,7 +136,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     this->GetVariables(absorbing_variables, rCurrentProcessInfo);
 
     BoundedMatrix<double, TDim, N_DOF> aux_abs_matrix;
-    BoundedMatrix<double, N_DOF, N_DOF> abs_matrix = ZeroMatrix(N_DOF, N_DOF);
+    ElementMatrixType abs_matrix = ZeroMatrix(N_DOF, N_DOF);
 
     //Loop over integration points
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
@@ -255,7 +255,7 @@ CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const El
     array_1d<double, 2> damping_constants;
 
     // calculate rotation matrix
-    BoundedMatrix<double, TDim, TDim> rotation_matrix;
+    DimensionMatrixType rotation_matrix;
     CalculateRotationMatrix(rotation_matrix, rGeom);
 
     const int local_perpendicular_direction = TDim - 1;
@@ -264,8 +264,8 @@ CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const El
     damping_constants[0] = rVariables.vs * rVariables.rho * rVariables.s_factor;
     damping_constants[1] = rVariables.vp * rVariables.rho * rVariables.p_factor;
 
-    BoundedMatrix<double, TDim, TDim> local_c_matrix = ZeroMatrix(TDim, TDim);
-    BoundedMatrix<double, TDim, TDim> aux_local_c_matrix = ZeroMatrix(TDim, TDim);
+    DimensionMatrixType local_c_matrix = ZeroMatrix(TDim, TDim);
+    DimensionMatrixType aux_local_c_matrix = ZeroMatrix(TDim, TDim);
 
     rVariables.CAbsMatrix = ZeroMatrix(TDim, TDim);
 
@@ -290,7 +290,7 @@ CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const 
     array_1d<double, 2> stiffness_constants;
 
     // calculate rotation matrix
-    BoundedMatrix<double, TDim, TDim> rotation_matrix;
+    DimensionMatrixType rotation_matrix;
     CalculateRotationMatrix(rotation_matrix, rGeom);
 
     const int local_perpendicular_direction = TDim - 1;
@@ -299,8 +299,8 @@ CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const 
     stiffness_constants[0] = rVariables.G / rVariables.virtual_thickness;
     stiffness_constants[1] = rVariables.Ec / rVariables.virtual_thickness;
 
-    BoundedMatrix<double, TDim, TDim> local_k_matrix = ZeroMatrix(TDim, TDim);
-    BoundedMatrix<double, TDim, TDim> aux_local_k_matrix = ZeroMatrix(TDim, TDim);
+    DimensionMatrixType local_k_matrix = ZeroMatrix(TDim, TDim);
+    DimensionMatrixType aux_local_k_matrix = ZeroMatrix(TDim, TDim);
 
     rVariables.KAbsMatrix = ZeroMatrix(TDim, TDim);
 
@@ -478,7 +478,7 @@ CalculateAndAddRHS(VectorType& rRightHandSideVector, const MatrixType& rStiffnes
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-AddLHS(MatrixType& rLeftHandSideMatrix, const BoundedMatrix<double, N_DOF, N_DOF>& rUMatrix)
+AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUMatrix)
 {
 	// assemble left hand side vector
     rLeftHandSideMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
