@@ -1081,6 +1081,9 @@ public:
         const MatrixType& rB
         )
     {
+        // Cleaning destination matrix
+        SetToZero(rA);
+
         // Copy values from rB to intermediate
         int i, ierr;
         int num_entries; // Number of non-zero entries (rB matrix)
