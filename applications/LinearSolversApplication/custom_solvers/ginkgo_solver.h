@@ -300,7 +300,7 @@ public:
             KRATOS_ERROR << "Invalid executor. Values are: (reference, omp, cuda(NYI)])" << std::endl;
         }
         
-        mTolerance = static_cast<unsigned long int>(settings["tolerance"].GetDouble());
+        mTolerance = static_cast<double>(settings["tolerance"].GetDouble());
         mMaxIterationsNumber = settings["max_iteration"].GetDouble();
         mResidualMode = settings["residual_mode"].GetString();
 
@@ -309,6 +309,10 @@ public:
         auto FLAGS_nrhs = 1;
 
         // Extracted from ginkgo's "benchmark/solver/solver.cpp"
+        std::cout << "Using: " << settings["solver"].GetString() << std::endl;
+        
+        create_stop_criterion();
+
         if (settings["solver"].GetString() == "bicgstab") {
             mSolver = add_criteria_precond_finalize(gko::solver::Bicgstab<double>::build(), mPrecond);
         } else if (settings["solver"].GetString() == "bicg") {
@@ -345,31 +349,21 @@ public:
     /**
      * @brief Create stop criterion
      */
-    auto create_stop_criterion() 
+    void create_stop_criterion() 
     {
-        auto residual_stop_mode = (mResidualMode == "rhs_norm")
-            ? gko::stop::mode::initial_resnorm 
-            : gko::stop::mode::rhs_norm;
-
         auto iteration_stop = gko::share(
             gko::stop::Iteration::build().with_max_iters(mMaxIterationsNumber).on(mExec)
         );
 
-        auto residual_stop = gko::share(
-            gko::stop::ResidualNorm<double>::build()
-                .with_reduction_factor(mTolerance)
-            .on(mExec)
-        );
+        mRelResidualStop = gko::stop::RelativeResidualNorm<double>::build()
+            .with_tolerance(1e-3)
+            .on(mExec);
 
-        auto rel_residual_stop = gko::share(
-            gko::stop::RelativeResidualNorm<double>::build()
-                .with_tolerance(mTolerance)
-            .on(mExec)
-        );
-
-        std::vector<std::shared_ptr<const gko::stop::CriterionFactory>> criterion_vector{rel_residual_stop, iteration_stop};
-
-        return gko::stop::combine(criterion_vector);
+        mStopCriteria = gko::stop::Combined::build()
+            .with_criteria(
+                mRelResidualStop,
+                iteration_stop)
+            .on(mExec);
     }
 
     /**
@@ -383,8 +377,8 @@ public:
     std::unique_ptr<gko::LinOpFactory> add_criteria_precond_finalize(SolverIntermediate inter, std::shared_ptr<const gko::LinOpFactory> precond)
     {
         return inter
-            .with_criteria(create_stop_criterion())
-            .with_preconditioner(give(precond))
+            .with_criteria(mStopCriteria)
+            .with_preconditioner(mPrecond)
             .on(mExec);
     }
 
@@ -466,7 +460,7 @@ public:
             } 
         }
         #endif
-
+        
         mSolver->generate(gko_rA)->apply(gko::lend(gko_rB), gko::lend(gko_rX));
 
         return true;
@@ -482,7 +476,7 @@ public:
      */
     void CleanSolve(MatrixType &rA, VectorType &rX, VectorType &rB)
     {
-        auto exec = gko::OmpExecutor::create();
+        auto exec = gko::CudaExecutor::create(0, gko::OmpExecutor::create());
 
         auto fact = gko::share(gko::factorization::ParIlu<double, std::int64_t>::build()
                 .with_iterations(3)
@@ -492,8 +486,6 @@ public:
         auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, std::int64_t>,gko::solver::UpperTrs<double, std::int64_t>, false, std::int64_t>::build()
                 .with_factorization_factory(fact)
                 .on(exec);
-
-        auto residual_stop_mode = gko::stop::mode::rhs_norm;
 
         auto iteration_stop = gko::share(
             gko::stop::Iteration::build().with_max_iters(100).on(exec)
@@ -511,8 +503,8 @@ public:
 
         auto solver = gko::solver::CbGmres<double>::build()
             .with_krylov_dim(100u)
-            .with_preconditioner(give(precond))
             .with_criteria(stop_criteria)
+            .with_preconditioner(give(precond))
             .on(exec);
 
         auto gko_rA = gko::share(mtx::create(
@@ -558,9 +550,14 @@ public:
 
 protected:
 
-    std::shared_ptr<gko::Executor>      mExec;
-    std::shared_ptr<gko::LinOpFactory>  mSolver;
-    std::shared_ptr<gko::LinOpFactory>  mPrecond;
+    std::shared_ptr<gko::Executor>                  mExec;
+    std::shared_ptr<gko::LinOpFactory>              mSolver;
+    std::shared_ptr<gko::LinOpFactory>              mPrecond;
+    std::shared_ptr<gko::stop::Combined::Factory>   mStopCriteria;
+
+    // For some reason, this needs to be hold by the class :?
+    std::shared_ptr<gko::stop::RelativeResidualNorm<double>::Factory> mRelResidualStop;
+
 
     std::string mResidualMode;
     double mTolerance;
