@@ -511,9 +511,27 @@ protected:
         const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
         const IndexType PointNumber) const;
 
+    void CalculateOrthogonalSubScalesOperator(
+        MatrixType& rOrthogonalSubScalesOperator,
+        const ProcessInfo& rProcessInfo) const;
+
+    void CalculateOrthogonalSubScalesLumpedProjectionOperator(
+        MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
+        const ProcessInfo& rProcessInfo) const;
+
     ///@}
     ///@name Protected  Access
     ///@{
+
+    virtual array_1d<double,3>& GetNodeDisplacementProjectionValue(IndexType NodeIndex)
+    {
+        return GetGeometry()[NodeIndex].GetValue(DISPLACEMENT_PROJECTION);
+    }
+
+    virtual double& GetNodeVolumetricStrainProjectionValue(IndexType NodeIndex)
+    {
+        return GetGeometry()[NodeIndex].GetValue(VOLUMETRIC_STRAIN_PROJECTION);
+    }
 
     ///@}
     ///@name Protected Inquiry
