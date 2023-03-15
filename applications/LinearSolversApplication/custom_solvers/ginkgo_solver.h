@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-template<class TValueType = double, class TIndexType = std::int64_t>
+template<class TValueType = double, class TIndexType = std::int32_t>
 class GinkoSolverPreconditioners {
 public:
     using rc_etype = gko::remove_complex<TValueType>;
@@ -40,7 +40,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"jacobi",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             return gko::preconditioner::Jacobi<TValueType, TIndexType>::build()
-                .with_max_block_size(rSettings["max_block_size"].GetDouble())
+                .with_max_block_size(rSettings["max_block_size"].GetInt())
                 // .with_storage_optimization(parse_storage_optimization(rSettings["jacobi_storage"].GetDouble()))
                 .with_accuracy(static_cast<rc_etype>(rSettings["accuracy"].GetDouble()))
                 .with_skip_sorting(true)
@@ -49,7 +49,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"paric",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact =gko::share(gko::factorization::ParIc<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetDouble())
+                .with_iterations(rSettings["parilu_iterations"].GetInt())
                 .with_skip_sorting(true)
                 .on(exec));
                 
@@ -60,7 +60,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"parict",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact = gko::share(gko::factorization::ParIct<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetDouble())
+                .with_iterations(rSettings["parilu_iterations"].GetInt())
                 .with_approximate_select(rSettings["parilut_approx_select"].GetDouble())
                 .with_fill_in_limit(rSettings["parilut_limit"].GetDouble())
                 .with_skip_sorting(true)
@@ -73,7 +73,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"parilu",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact = gko::share(gko::factorization::ParIlu<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetDouble())
+                .with_iterations(rSettings["parilu_iterations"].GetInt())
                 .with_skip_sorting(true)
                 .on(exec));
 
@@ -84,7 +84,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"parilut",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact = gko::share(gko::factorization::ParIlut<TValueType, TIndexType>::build()
-                    .with_iterations(rSettings["parilu_iterations"].GetDouble())
+                    .with_iterations(rSettings["parilu_iterations"].GetInt())
                     .with_approximate_select(rSettings["parilut_approx_select"].GetDouble())
                     .with_fill_in_limit(rSettings["parilut_limit"].GetDouble())
                     .with_skip_sorting(true)
@@ -113,7 +113,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"paric-isai",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact = gko::share(gko::factorization::ParIc<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetDouble())
+                .with_iterations(rSettings["parilu_iterations"].GetInt())
                 .with_skip_sorting(true)
                 .on(exec));
             
@@ -129,7 +129,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"parict-isai",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact = gko::share(gko::factorization::ParIct<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetDouble())
+                .with_iterations(rSettings["parilu_iterations"].GetInt())
                 .with_approximate_select(rSettings["parilut_approx_select"].GetDouble())
                 .with_fill_in_limit(rSettings["parilut_limit"].GetDouble())
                 .with_skip_sorting(true)
@@ -147,7 +147,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"parilu-isai",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact = gko::share(gko::factorization::ParIlu<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetDouble())
+                .with_iterations(rSettings["parilu_iterations"].GetInt())
                 .with_skip_sorting(true)
                 .on(exec));
 
@@ -168,7 +168,7 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
     {"parilut-isai",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact = gko::share(gko::factorization::ParIlut<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetDouble())
+                .with_iterations(rSettings["parilu_iterations"].GetInt())
                 .with_approximate_select(rSettings["parilut_approx_select"].GetDouble())
                 .with_fill_in_limit(rSettings["parilut_limit"].GetDouble())
                 .with_skip_sorting(true)
@@ -255,7 +255,7 @@ public:
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
     using vec = gko::matrix::Dense<double>;
-    using mtx = gko::matrix::Csr<double, std::int64_t>;
+    using mtx = gko::matrix::Csr<double, std::int32_t>;
     
     GinkgoSolver() = delete;
 
@@ -304,7 +304,7 @@ public:
         mMaxIterationsNumber = settings["max_iteration"].GetDouble();
         mResidualMode = settings["residual_mode"].GetString();
 
-        mPrecond = GinkoSolverPreconditioners<double, std::int64_t>::mFactory.at(settings["preconditioner"].GetString())(mExec, settings);
+        mPrecond = GinkoSolverPreconditioners<double, std::int32_t>::mFactory.at(settings["preconditioner"].GetString())(mExec, settings);
 
         auto FLAGS_nrhs = 1;
 
@@ -395,7 +395,7 @@ public:
         #ifdef KRATOS_DEBUG
         std::cout << "Using Ginkgo solver..." << std::endl;
         std::cout << "\tSizeof(std::size_t)  (Kratos IndexType): " << sizeof(std::size_t)  << std::endl;
-        std::cout << "\tSizeof(std::int64_t) (Ginkgo IndexType): " << sizeof(std::int64_t) << std::endl;
+        std::cout << "\tSizeof(std::int32_t) (Ginkgo IndexType): " << sizeof(std::int32_t) << std::endl;
         #endif
 
         // Initialize ginkgo data interfaces
@@ -405,8 +405,8 @@ public:
             mExec, 
             gko::dim<2>{rA.size1(), rA.size2()},
             gko::make_array_view(mExec, rA.value_data().size(),  &(rA.value_data()[0])),                                    // Values
-            gko::make_array_view(mExec, rA.index2_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index2_data()[0]))), // Col
-            gko::make_array_view(mExec, rA.index1_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index1_data()[0]))), // Row
+            gko::make_array_view(mExec, rA.index2_data().size(), reinterpret_cast<std::int32_t *>(&(rA.index2_data()[0]))), // Col
+            gko::make_array_view(mExec, rA.index1_data().size(), reinterpret_cast<std::int32_t *>(&(rA.index1_data()[0]))), // Row
             std::make_shared<typename mtx::load_balance>(2)
         ));
 
@@ -434,14 +434,14 @@ public:
 
         std::cout << "Checking A rows..." << std::endl;
         for(std::size_t i = 0; i < rA.index1_data().size(); i++) {
-            if (static_cast<std::int64_t>(rA.index1_data()[i]) != gko_rA->get_row_ptrs()[i]) {
+            if (static_cast<std::int32_t>(rA.index1_data()[i]) != gko_rA->get_row_ptrs()[i]) {
                 std::cout << "row index incorrect at i=" << i << "(" << rA.index1_data()[i] << "," << gko_rA->get_row_ptrs()[i] << ")" << std::endl;
             } 
         }
 
         std::cout << "Checking A cols..." << std::endl;
         for(std::size_t i = 0; i < rA.index2_data().size(); i++) {
-            if (static_cast<std::int64_t>(rA.index2_data()[i]) != gko_rA->get_col_idxs()[i]) {
+            if (static_cast<std::int32_t>(rA.index2_data()[i]) != gko_rA->get_col_idxs()[i]) {
                 std::cout << "col index incorrect at i=" << i << "(" << rA.index2_data()[i] << "," << gko_rA->get_col_idxs()[i] << ")" << std::endl;
             } 
         }
@@ -478,12 +478,12 @@ public:
     {
         auto exec = gko::CudaExecutor::create(0, gko::OmpExecutor::create());
 
-        auto fact = gko::share(gko::factorization::ParIlu<double, std::int64_t>::build()
+        auto fact = gko::share(gko::factorization::ParIlu<double, std::int32_t>::build()
                 .with_iterations(3)
                 .with_skip_sorting(true)
                 .on(exec));
 
-        auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, std::int64_t>,gko::solver::UpperTrs<double, std::int64_t>, false, std::int64_t>::build()
+        auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, std::int32_t>,gko::solver::UpperTrs<double, std::int32_t>, false, std::int32_t>::build()
                 .with_factorization_factory(fact)
                 .on(exec);
 
@@ -510,27 +510,43 @@ public:
         auto gko_rA = gko::share(mtx::create(
             exec,
             gko::dim<2>{rA.size1(), rA.size2()},
-            gko::make_array_view(exec, rA.value_data().size(),  &(rA.value_data()[0])),
-            gko::make_array_view(exec, rA.index2_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index2_data()[0]))),
-            gko::make_array_view(exec, rA.index1_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index1_data()[0]))),
-            std::make_shared<typename mtx::load_balance>(2)
+            rA.value_data().size()
         ));
 
         auto gko_rB = gko::share(vec::create(
             exec,
-            gko::dim<2>(rB.size(), 1),
-            gko::make_array_view(exec, rB.size(),  &(rB[0])),
-            1
+            gko::dim<2>(rB.size(), 1)
         ));
 
         auto gko_rX = gko::share(vec::create(
             exec,
-            gko::dim<2>(rX.size(), 1),
-            gko::make_array_view(exec, rX.size(),  &(rX[0])),
-            1
+            gko::dim<2>(rX.size(), 1)
         ));
 
+        // A
+        for(int i = 0; i < rA.value_data().size(); i++) {
+            gko_rA->get_values()[i] = rA.value_data()[i];
+        }
+
+        for(int i = 0; i < rA.index2_data().size(); i++) {
+            gko_rA->get_col_idxs()[i] = rA.index2_data()[i];
+        }
+
+        for(int i = 0; i < rA.index1_data().size(); i++) {
+            gko_rA->get_row_ptrs()[i] = rA.index1_data()[i];
+        }
+
+        // B
+        for(int i = 0; i < rB.size(); i++) {
+            gko_rB->get_values()[i] = rB[i];
+        }
+
         solver->generate(gko_rA)->apply(gko::lend(gko_rB), gko::lend(gko_rX));
+
+        // X
+        for(int i = 0; i < rX.size(); i++) {
+            rX[i] = gko_rX->get_values()[i];
+        }
     }
 
     /**
