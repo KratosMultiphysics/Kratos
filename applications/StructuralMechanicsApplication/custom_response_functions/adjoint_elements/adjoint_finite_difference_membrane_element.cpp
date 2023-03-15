@@ -19,6 +19,7 @@
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/checks.h"
 #include "custom_elements/membrane_element.hpp"
+#include "custom_response_functions/response_utilities/finite_difference_utility.h"
 
 
 namespace Kratos
@@ -102,6 +103,108 @@ void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateSensitiv
     KRATOS_CATCH("")
 }
 
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == YOUNG_MODULUS_VAR_SENSITIVITY || rVariable == ISOTROPIC_PRESTRESS_VAR_SENSITIVITY || rVariable == POISSON_RATIO_VAR_SENSITIVITY) {
+        std::vector<Vector> adjoint_gl_strain_vector;
+        std::vector<Vector> pseudo_normal_force;
+        double part_sensitivity = 0.0;
+        this->CalculateOnIntegrationPoints(ADJOINT_GREEN_LAGRANGE_STRAIN_VECTOR, adjoint_gl_strain_vector, rCurrentProcessInfo);
+        if (rVariable == YOUNG_MODULUS_VAR_SENSITIVITY ) {
+            this->CalculateOnIntegrationPoints(YOUNG_MODULUS_PSEUDO_NORMAL_FORCE_VECTOR, pseudo_normal_force, rCurrentProcessInfo);
+            if (this->Has(YOUNG_MODULUS_PARTIAL_SENSITIVITY)) {
+                part_sensitivity = this->GetValue(YOUNG_MODULUS_PARTIAL_SENSITIVITY);
+            } 
+        } else if (rVariable == ISOTROPIC_PRESTRESS_VAR_SENSITIVITY) {
+            this->CalculateOnIntegrationPoints(ISOTROPIC_PRESTRESS_PSEUDO_NORMAL_FORCE_VECTOR, pseudo_normal_force, rCurrentProcessInfo);
+            if (this->Has(ISOTROPIC_PRESTRESS_PARTIAL_SENSITIVITY)) {
+                part_sensitivity = this->GetValue(ISOTROPIC_PRESTRESS_PARTIAL_SENSITIVITY);
+            } 
+        } else if (rVariable == POISSON_RATIO_VAR_SENSITIVITY) {
+            this->CalculateOnIntegrationPoints(POISSON_RATIO_PSEUDO_NORMAL_FORCE_VECTOR, pseudo_normal_force, rCurrentProcessInfo);
+            if (this->Has(POISSON_RATIO_PARTIAL_SENSITIVITY)) {
+                part_sensitivity = this->GetValue(POISSON_RATIO_PARTIAL_SENSITIVITY);
+            }
+        }
+
+        const SizeType& write_points_number = adjoint_gl_strain_vector.size();
+        if (rOutput.size() != write_points_number) {
+            rOutput.resize(write_points_number);
+        }
+
+        double area;
+        this->pGetPrimalElement()->Calculate(AREA, area, rCurrentProcessInfo);
+
+        for(IndexType gp_id = 0; gp_id < write_points_number; ++gp_id) {
+            rOutput[gp_id] = -1.0 * area * inner_prod(adjoint_gl_strain_vector[gp_id], pseudo_normal_force[gp_id]) + part_sensitivity;
+        }
+    } else if (rVariable == AREA) {
+        const SizeType  gauss_points_number = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rOutput.size() != gauss_points_number)
+            rOutput.resize(gauss_points_number);
+        double area;
+        this->pGetPrimalElement()->Calculate(AREA, area, rCurrentProcessInfo);
+
+        // Write scalar result value on all Gauss-Points
+        for(IndexType i = 0; i < gauss_points_number; ++i)
+            rOutput[i] = area;
+    }
+    else {
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                          std::vector<Vector>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == ADJOINT_GREEN_LAGRANGE_STRAIN_VECTOR) {
+        // get derivative of green lagrange strains on GPs with respect to state variables
+        std::vector<Matrix> gl_strain_derivative_matrix;
+        this->pGetPrimalElement()->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_DERIVATIVE_MATRIX,
+                          gl_strain_derivative_matrix, rCurrentProcessInfo);
+        
+        const SizeType& write_points_number = gl_strain_derivative_matrix.size();
+        if (rOutput.size() != write_points_number) {
+            rOutput.resize(write_points_number);
+        }
+
+        Vector adjoint_displacement;
+        this->GetValuesVector(adjoint_displacement, 0);
+
+        // multiply with adjoint displacement to get the variation
+        for (SizeType point_number = 0; point_number < write_points_number; ++point_number){
+            rOutput[point_number] = prod(gl_strain_derivative_matrix[point_number], adjoint_displacement);
+        }
+    }
+    else if (rVariable == YOUNG_MODULUS_PSEUDO_NORMAL_FORCE_VECTOR || rVariable == POISSON_RATIO_PSEUDO_NORMAL_FORCE_VECTOR){
+        double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+        if (rVariable == YOUNG_MODULUS_PSEUDO_NORMAL_FORCE_VECTOR ) {
+            delta *= this->mpPrimalElement->GetProperties()[YOUNG_MODULUS];
+            FiniteDifferenceUtility::CalculateIntegrationPointsResultsDerivative(*this->mpPrimalElement, PK2_STRESS_VECTOR,
+            YOUNG_MODULUS, delta, rOutput, rCurrentProcessInfo);
+        } else if (rVariable == POISSON_RATIO_PSEUDO_NORMAL_FORCE_VECTOR) {
+            delta *= this->mpPrimalElement->GetProperties()[POISSON_RATIO];
+            FiniteDifferenceUtility::CalculateIntegrationPointsResultsDerivative(*this->mpPrimalElement, PK2_STRESS_VECTOR,
+            POISSON_RATIO, delta, rOutput, rCurrentProcessInfo);
+        }
+
+        const double thickness = this->mpPrimalElement->GetProperties()[THICKNESS];
+        for(IndexType i = 0; i < rOutput.size(); ++i) {
+            rOutput[i] *= thickness;
+        }
+    }
+    else if (rVariable == ISOTROPIC_PRESTRESS_PSEUDO_NORMAL_FORCE_VECTOR) {
+        this->pGetPrimalElement()->CalculateOnIntegrationPoints(ISOTROPIC_PRESTRESS_PSEUDO_NORMAL_FORCE_VECTOR,
+                          rOutput, rCurrentProcessInfo);
+    }
+}
+
 template <class TPrimalElement>
 void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
                                                 const Variable<Vector>& rStressVariable, Matrix& rOutput,
@@ -157,9 +260,10 @@ void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateStressDe
             prestress_component_disturbance[2] *= pre_stress[2];
         }
         delta = 1.0 / num_components * (prestress_component_disturbance[0] + prestress_component_disturbance[1] + prestress_component_disturbance[2]);
-
+        //KRATOS_WATCH(delta)
         // perturb the prestress vector
         pre_stress += prestress_component_disturbance;
+        //KRATOS_WATCH(pre_stress)
         p_local_property->SetValue(PRESTRESS_VECTOR, pre_stress);
 
         // Compute stress on GP after perturbation
@@ -174,10 +278,15 @@ void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateStressDe
             rOutput.resize(1, stress_vector_undist.size(), false);
         }
         // Compute derivative of stress w.r.t. design variable with finite differences
+        //const SizeType stress_vector_size = stress_vector_undist.size();
+        //for(size_t j = 0; j < stress_vector_size; ++j)
+        //    rOutput(0, j) = (stress_vector_undist[j] + 0.04 -stress_vector_undist[j])/delta;
         row(rOutput, 0) = (stress_vector_dist - stress_vector_undist) / delta;
-
+        //std::cout << "undist " <<std::setprecision(10) << stress_vector_undist[0] << std::endl;
+        //std::cout << "dist " <<std::setprecision(10) << stress_vector_dist[0] << std::endl;
         // Give element original properties back
         this->pGetPrimalElement()->SetProperties(p_global_properties);
+        //KRATOS_WATCH(rOutput)
     }
     else {
         BaseType::CalculateStressDesignVariableDerivative(rDesignVariable, rStressVariable, rOutput, rCurrentProcessInfo);

@@ -123,6 +123,14 @@ public:
 
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
+    
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                          std::vector<Vector>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
                                         Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;

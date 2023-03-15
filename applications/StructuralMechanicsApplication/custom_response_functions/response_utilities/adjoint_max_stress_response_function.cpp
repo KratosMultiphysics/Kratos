@@ -134,6 +134,15 @@ namespace Kratos
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
+        if (rVariable == YOUNG_MODULUS) {
+            rAdjointElement.SetValue(YOUNG_MODULUS_PARTIAL_SENSITIVITY, rSensitivityGradient[0]);
+        } else if (rVariable == PRESTRESS_VECTOR_ISOTROPIC_XY_SENSITIVITY) {
+            rAdjointElement.SetValue(ISOTROPIC_PRESTRESS_PARTIAL_SENSITIVITY, rSensitivityGradient[0]);
+        } else if (rVariable == POISSON_RATIO) {
+            rAdjointElement.SetValue(POISSON_RATIO_PARTIAL_SENSITIVITY, rSensitivityGradient[0]);
+        }
+        
+
         KRATOS_CATCH("")
     }
 

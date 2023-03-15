@@ -122,6 +122,9 @@ namespace Kratos
       std::vector<array_1d<double, 3>>& rOutput,
       const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                          std::vector<Matrix>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;

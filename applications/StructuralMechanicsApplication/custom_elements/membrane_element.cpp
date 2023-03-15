@@ -919,6 +919,156 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             }
         }
     }
+    else if (rVariable == ISOTROPIC_PRESTRESS_PSEUDO_NORMAL_FORCE_VECTOR) {
+        const auto& r_geom = GetGeometry();
+        const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
+
+        array_1d<Vector,2> current_covariant_base_vectors;
+        array_1d<Vector,2> reference_covariant_base_vectors;
+        array_1d<Vector,2> reference_contravariant_base_vectors;
+
+        array_1d<Vector,2> transformed_base_vectors;
+
+        Matrix covariant_metric_current = ZeroMatrix(3);
+        Matrix covariant_metric_reference = ZeroMatrix(3);
+        Matrix contravariant_metric_reference = ZeroMatrix(3);
+        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        Vector stress = ZeroVector(3);
+        Vector derivative_strain = ZeroVector(3);
+
+        if (rOutput.size() != r_integration_points.size()) {
+            rOutput.resize(r_integration_points.size());
+        }
+
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+           if (rOutput[point_number].size() != 3) {
+                rOutput[point_number].resize(3);
+            }
+
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+            CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
+            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+
+            CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
+            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
+            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
+
+            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
+
+            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
+
+            Vector derived_pre_stress = ZeroVector(3);
+            if (this->GetProperties().Has(PRESTRESS_VECTOR)){
+                derived_pre_stress = this->GetProperties()(PRESTRESS_VECTOR);
+                if (derived_pre_stress[0] == derived_pre_stress[1] ) {
+                    derived_pre_stress[0] = 1.0;
+                    derived_pre_stress[1] = 1.0;
+                    derived_pre_stress[2] = 0.0;
+                } else {
+                    KRATOS_ERROR << "Pre-stress not isotropic!" << std::endl;
+                }
+
+                if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)){
+                
+                    array_1d<array_1d<double,3>,2> local_prestress_axis;
+                    local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+                    local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
+
+                    Matrix transformation_matrix = ZeroMatrix(3);
+                    InPlaneTransformationMatrix(transformation_matrix,transformed_base_vectors,local_prestress_axis);
+                    rOutput[point_number] = prod(transformation_matrix,derived_pre_stress);
+
+                } else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
+                
+                    Vector base_3 = ZeroVector(3);
+                    MathUtils<double>::UnitCrossProduct(base_3, transformed_base_vectors[0], transformed_base_vectors[1]);
+
+                    array_1d<array_1d<double,3>,2> local_prestress_axis;
+                    local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+
+                    MathUtils<double>::UnitCrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
+
+                    Matrix transformation_matrix = ZeroMatrix(3);
+                    InPlaneTransformationMatrix(transformation_matrix,transformed_base_vectors,local_prestress_axis);
+                    rOutput[point_number] = prod(transformation_matrix,derived_pre_stress);
+                    
+                }
+                // pre-integrate pseudo-stress over thickness
+                const double thickness = this->GetProperties()(THICKNESS);
+                rOutput[point_number][0] *= thickness;
+                rOutput[point_number][1] *= thickness;
+                rOutput[point_number][2] *= thickness;
+            } else {
+                KRATOS_ERROR << "Membrane element has no PRESTRESS_VECTOR!" << std::endl;
+            }
+        }
+    }
+}
+
+void MembraneElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                          std::vector<Matrix>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+{
+    if( rVariable == GREEN_LAGRANGE_STRAIN_DERIVATIVE_MATRIX ) {
+        const auto& r_geom = GetGeometry();
+        const SizeType dimension = r_geom.WorkingSpaceDimension();
+        const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+        const SizeType number_of_nodes = r_geom.size();
+        const SizeType number_dofs = dimension*number_of_nodes;
+
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
+
+        array_1d<Vector,2> current_covariant_base_vectors;
+        array_1d<Vector,2> reference_covariant_base_vectors;
+        array_1d<Vector,2> reference_contravariant_base_vectors;
+
+        array_1d<Vector,2> transformed_base_vectors;
+
+        Matrix covariant_metric_current = ZeroMatrix(3);
+        Matrix covariant_metric_reference = ZeroMatrix(3);
+        Matrix contravariant_metric_reference = ZeroMatrix(3);
+        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        Vector stress = ZeroVector(3);
+        Vector derivative_strain = ZeroVector(3);
+
+        if (rOutput.size() != r_integration_points.size()) {
+            rOutput.resize(r_integration_points.size());
+        }
+
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            if (rOutput[point_number].size1() != 3 || rOutput[point_number].size2() != number_dofs) {
+                rOutput[point_number].resize( 3, number_dofs, false );
+            }   
+            rOutput[point_number] = ZeroMatrix(3, number_dofs);
+
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+            CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
+            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+
+            CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
+            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
+            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
+
+            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
+
+            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
+
+            InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
+
+            for (SizeType dof_r=0;dof_r<number_dofs;++dof_r) {
+                DerivativeStrainGreenLagrange(derivative_strain,shape_functions_gradients_i,
+                    dof_r,current_covariant_base_vectors,inplane_transformation_matrix_material);
+                for (unsigned int j = 0; j<3; ++j) {
+                    rOutput[point_number](j,dof_r) = derivative_strain(j);
+                }
+            }
+        }
+    }
 }
 
 
@@ -1154,6 +1304,9 @@ void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutp
         Vector current_nodal_displacements = ZeroVector(number_dofs);
         GetValuesVector(current_nodal_displacements, 0);
         rOutput = inner_prod(dead_load_rhs,current_nodal_displacements);
+    }
+    else if (rVariable ==AREA) { 
+        rOutput = CalculateReferenceArea();
     }
 }
 
