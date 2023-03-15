@@ -18,12 +18,6 @@ def Factory(settings, Model):
 
     process_settings.AddMissingParameters(folder_settings)
 
-    if process_settings["save_output_files_in_folder"].GetBool():
-        folder_name = process_settings["folder_name"].GetString()
-        # make sure to remove old results
-        kratos_utils.DeleteDirectoryIfExisting(folder_name)
-        # gets recreated in C++
-
     if process_settings.Has("computing_model_part_name"):
         computing_model_part = Model[process_settings["computing_model_part_name"].GetString()]
     else: # using default name
