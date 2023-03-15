@@ -79,12 +79,14 @@ public:
     * @param NumGlobalElements The global dimension of the matrix
     * @param Offset The offset considered
     * @param AddNoDiagonalValues If adding non diagonal values
+    * @param pProvidedMap A pointer to a provided map
     */
     static TrilinosSparseMatrixType GenerateDummySparseMatrix(
         const DataCommunicator& rDataCommunicator,
         const int NumGlobalElements = 12,
         const double Offset = 0.0,
-        const bool AddNoDiagonalValues = false
+        const bool AddNoDiagonalValues = false,
+        const Epetra_Map* pProvidedMap =  nullptr
         );
 
     /**
@@ -103,11 +105,13 @@ public:
     * @param rDataCommunicator The data communicator considered
     * @param NumGlobalElements The global dimension of the matrix
     * @param Offset The offset considered
+    * @param pProvidedMap A pointer to a provided map
     */
     static TrilinosVectorType GenerateDummySparseVector(
         const DataCommunicator& rDataCommunicator,
         const int NumGlobalElements = 12,
-        const double Offset = 0.0
+        const double Offset = 0.0,
+        const Epetra_Map* pProvidedMap =  nullptr
         );
 
     /**
