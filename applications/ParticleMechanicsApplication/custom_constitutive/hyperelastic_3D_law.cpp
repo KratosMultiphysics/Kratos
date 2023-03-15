@@ -153,10 +153,9 @@ void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialPropertie
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues )
 {
-  mDeterminantF0                = 1;
-  mInverseDeformationGradientF0 = IdentityMatrix(3);
-  mStrainEnergy                 = 0;
-
+    mDeterminantF0                = 1;
+    mInverseDeformationGradientF0 = IdentityMatrix(3);
+    mStrainEnergy                 = 0;
 }
 
 

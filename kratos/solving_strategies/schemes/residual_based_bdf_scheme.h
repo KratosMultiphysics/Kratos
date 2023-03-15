@@ -398,7 +398,7 @@ protected:
 
     /**
      * @brief Updating first time derivative (velocity)
-     * @param itNode the node interator
+     * @param itNode the node iterator
      */
     virtual inline void UpdateFirstDerivative(NodesArrayType::iterator itNode)
     {
@@ -407,7 +407,7 @@ protected:
 
     /**
      * @brief Updating second time derivative (acceleration)
-     * @param itNode the node interator
+     * @param itNode the node iterator
      */
     virtual inline void UpdateSecondDerivative(NodesArrayType::iterator itNode)
     {

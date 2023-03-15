@@ -332,9 +332,16 @@ namespace MPMSearchElementUtility
                     }
                     else
                     {
+                        if (rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
+                            (*element_itr).GetGeometry().SetGeometryParent((pelem->pGetGeometry().get()));
+                        }
                         auto p_quadrature_point_geometry = element_itr->pGetGeometry();
                         array_1d<double, 3> local_coordinates;
-                        p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                        if (!rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
+                            p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                        } else {
+                            pelem->pGetGeometry()->PointLocalCoordinates(local_coordinates, xg[0]);
+                        }
                         CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                             p_quadrature_point_geometry, local_coordinates,
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
@@ -373,7 +380,11 @@ namespace MPMSearchElementUtility
                     if (is_found == true) {
                         auto p_quadrature_point_geometry = condition_itr->pGetGeometry();
                         array_1d<double, 3> local_coordinates;
-                        p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                        if (!rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
+                            p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                        } else {
+                            pelem->pGetGeometry()->PointLocalCoordinates(local_coordinates, xg[0]);
+                        }
                         CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                             p_quadrature_point_geometry, local_coordinates,
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
@@ -429,8 +440,20 @@ namespace MPMSearchElementUtility
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
 
-        NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance);
-        NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance);
+        if (!rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
+            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance);
+            NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance);
+        } else {
+            missing_elements.resize(rMPMModelPart.Elements().size());
+            IndexPartition(rMPMModelPart.Elements().size()).for_each([&](std::size_t i){
+                missing_elements[i] = &*(rMPMModelPart.ElementsBegin() + i); // maybe add/remove *&?
+            });
+
+            missing_conditions.resize(rMPMModelPart.Conditions().size());
+            IndexPartition(rMPMModelPart.Conditions().size()).for_each([&](std::size_t i){
+                missing_conditions[i] = &*(rMPMModelPart.Conditions().begin() + i); // maybe add/remove *&?
+            });
+        }
 
         if (missing_conditions.size() > 0 || missing_elements.size() > 0)
             BinBasedSearchElementsAndConditions<TDimension>(rMPMModelPart,

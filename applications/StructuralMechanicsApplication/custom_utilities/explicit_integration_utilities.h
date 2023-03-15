@@ -10,8 +10,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_EXPLICIT_LAW_UTILITIES)
-#define KRATOS_EXPLICIT_LAW_UTILITIES
+#pragma once
 
 // System includes
 
@@ -89,4 +88,3 @@ namespace ExplicitIntegrationUtilities
 
 }; // namespace ExplicitIntegrationUtilities
 }  // namespace Kratos
-#endif /* KRATOS_EXPLICIT_LAW_UTILITIES defined */

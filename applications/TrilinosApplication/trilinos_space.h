@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Vicente Mataix Ferrandiz
@@ -325,7 +325,8 @@ public:
         )
     {
         constexpr bool transpose_flag = false;
-        rA.Multiply(transpose_flag, rX, rY);
+        const int ierr = rA.Multiply(transpose_flag, rX, rY);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra multiplication failure " << ierr << std::endl;
     }
 
     /**
@@ -334,15 +335,24 @@ public:
      * @param rA The first matrix considered
      * @param rB The second matrix considered
      * @param rC The result of the multiplication
+     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
+     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
      */
     static void Mult(
         const MatrixType& rA,
         const MatrixType& rB,
-        MatrixType& rC
+        MatrixType& rC,
+        const bool CallFillCompleteOnResult = true,
+        const bool KeepAllHardZeros = false
         )
     {
+        KRATOS_TRY
+
         constexpr bool transpose_flag = false;
-        EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC);
+        const int ierr = EpetraExt::MatrixMatrix::Multiply(rA, transpose_flag, rB, transpose_flag, rC, CallFillCompleteOnResult, KeepAllHardZeros);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra multiplication failure. This may result if A or B are not already Filled, or if errors occur in putting values into C, etc. " << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -359,7 +369,8 @@ public:
         )
     {
         constexpr bool transpose_flag = true;
-        rA.Multiply(transpose_flag, rX, rY);
+        const int ierr = rA.Multiply(transpose_flag, rX, rY);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra multiplication failure " << ierr << std::endl;
     }
 
     /**
@@ -369,15 +380,24 @@ public:
      * @param rB The second matrix considered
      * @param rC The result of the multiplication
      * @param TransposeFlag Flags to transpose the matrices
+     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
+     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
      */
     static void TransposeMult(
         const MatrixType& rA,
         const MatrixType& rB,
         MatrixType& rC,
-        const std::pair<bool, bool> TransposeFlag = {false, false}
+        const std::pair<bool, bool> TransposeFlag = {false, false},
+        const bool CallFillCompleteOnResult = true,
+        const bool KeepAllHardZeros = false
         )
     {
-        EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag.first, rB, TransposeFlag.second, rC);
+        KRATOS_TRY
+
+        const int ierr = EpetraExt::MatrixMatrix::Multiply(rA, TransposeFlag.first, rB, TransposeFlag.second, rC, CallFillCompleteOnResult, KeepAllHardZeros);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra multiplication failure. This may result if A or B are not already Filled, or if errors occur in putting values into C, etc. " << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -385,26 +405,57 @@ public:
      * @param rA The resulting matrix
      * @param rD The "center" matrix
      * @param rB The matrices to be transposed
+     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
+     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
+     * @tparam TEnforceInitialGraph If the initial graph is enforced, or a new one is generated
      */
     static void BtDBProductOperation(
         MatrixType& rA,
         const MatrixType& rD,
-        const MatrixType& rB
+        const MatrixType& rB,
+        const bool CallFillCompleteOnResult = true,
+        const bool KeepAllHardZeros = false,
+        const bool EnforceInitialGraph = false
         )
     {
-        // Gets the Epetra_Communicator
-        auto& r_comm = rA.Comm();
+        // If we enforce the initial connectivity
+        if (EnforceInitialGraph) {
+            // Define first auxiliary matrix
+            MatrixType aux(::Copy, rA.Graph());
 
-        // Create a map
-        const int size = Size2(rB);
-        Epetra_Map Map(size, 0, r_comm);
+            // First multiplication
+            TransposeMult(rB, rD, aux, {true, false}, CallFillCompleteOnResult, true);
 
-        // Create an Epetra_Matrix
-        std::vector<int> NumNz;
-        MatrixType aux(::View, Map, NumNz.data());
+            // Empty the solution Epetra_Matrix
+            SetToZero(rA);
 
-        TransposeMult(rB, rD, aux, {true, false});
-        Mult(aux, rB, rA);
+            // Second multiplication
+            Mult(aux, rB, rA, CallFillCompleteOnResult, true);
+        } else { // A new matrix
+            // Define first auxiliary matrix
+            std::vector<int> NumNz;
+            MatrixType aux_1(::Copy, rA.RowMap(), NumNz.data());
+
+            // First multiplication
+            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
+            // Already existing matrix
+            if (rA.NumGlobalNonzeros() > 0) {
+                // Create an Epetra_Matrix
+                MatrixType* aux_2 =  new MatrixType(::Copy, rB.RowMap(), NumNz.data());
+
+                // Second multiplication
+                Mult(aux_1, rB, *aux_2, CallFillCompleteOnResult, KeepAllHardZeros);
+
+                // Doing a swap
+                std::swap(rA, *aux_2);
+
+                // Delete the new matrix
+                delete aux_2;
+            } else { // Empty matrix
+                // Second multiplication
+                Mult(aux_1, rB, rA, CallFillCompleteOnResult, KeepAllHardZeros);
+            }
+        }
     }
 
     /**
@@ -412,26 +463,57 @@ public:
      * @param rA The resulting matrix
      * @param rD The "center" matrix
      * @param rB The matrices to be transposed
+     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
+     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
+     * @tparam TEnforceInitialGraph If the initial graph is enforced, or a new one is generated
      */
     static void BDBtProductOperation(
         MatrixType& rA,
         const MatrixType& rD,
-        const MatrixType& rB
+        const MatrixType& rB,
+        const bool CallFillCompleteOnResult = true,
+        const bool KeepAllHardZeros = false,
+        const bool EnforceInitialGraph = false
         )
     {
-        // Gets the Epetra_Communicator
-        auto& r_comm = rA.Comm();
+        // If we enforce the initial connectivity
+        if (EnforceInitialGraph) {
+            // Define first auxiliary matrix
+            MatrixType aux(::Copy, rA.Graph());
 
-        // Create a map
-        const int size = Size1(rB);
-        Epetra_Map Map(size, 0, r_comm);
+            // First multiplication
+            Mult(rB, rD, aux, CallFillCompleteOnResult, true);
 
-        // Create an Epetra_Matrix
-        std::vector<int> NumNz;
-        MatrixType aux(::View, Map, NumNz.data());
+            // Empty the solution Epetra_Matrix
+            SetToZero(rA);
 
-        Mult(rB, rD, aux);
-        TransposeMult(aux, rB, rA, {false, true});
+            // Second multiplication
+            TransposeMult(aux, rB, rA, {false, true}, CallFillCompleteOnResult, true);
+        } else { // A new matrix
+            // Define first auxiliary matrix
+            std::vector<int> NumNz;
+            MatrixType aux_1(::Copy, rB.RowMap(), NumNz.data());
+
+            // First multiplication
+            Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
+            // Already existing matrix
+            if (rA.NumGlobalNonzeros() > 0) {
+                // Create an Epetra_Matrix
+                MatrixType* aux_2 =  new MatrixType(::Copy, rA.RowMap(), NumNz.data());
+
+                // Second multiplication
+                TransposeMult(aux_1, rB, *aux_2, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
+
+                // Doing a swap
+                std::swap(rA, *aux_2);
+
+                // Delete the new matrix
+                delete aux_2;
+            } else { // Empty matrix
+                // Second multiplication
+                TransposeMult(aux_1, rB, rA, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
+            }
+        }
     }
 
     /**
@@ -446,8 +528,10 @@ public:
         const double A
         )
     {
-        if (A != 1.00)
-            rX.Scale(A);
+        if (A != 1.00) {
+            const int ierr = rX.Scale(A);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra scaling failure " << ierr << std::endl;
+        }
     }
 
     /**
@@ -465,10 +549,12 @@ public:
         const VectorType& rY
         )
     {
-        if (A != 1.00)
-            rX.Scale(A, rY); //not sure
-        else
+        if (A != 1.00) {
+            const int ierr = rX.Scale(A, rY); //not sure
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra assign failure " << ierr << std::endl;
+        } else {
             rX = rY;
+        }
     }
 
     /**
@@ -486,7 +572,8 @@ public:
         const VectorType& rY
         )
     {
-        rX.Update(A, rY, 1.0);
+        const int ierr = rX.Update(A, rY, 1.0);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra unaliased add failure " << ierr << std::endl;
     }
 
     /**
@@ -506,7 +593,8 @@ public:
         VectorType& rZ
         )
     {
-        rZ.Update(A, rX, B, rY, 0.0);
+        const int ierr = rZ.Update(A, rX, B, rY, 0.0);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra scale and add failure " << ierr << std::endl;
     }
 
     /**
@@ -524,7 +612,8 @@ public:
         VectorType& rY
         )
     {
-        rY.Update(A, rX, B);
+        const int ierr = rY.Update(A, rX, B);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra scale and add failure " << ierr << std::endl;
     }
 
     /**
@@ -562,7 +651,8 @@ public:
         const DataType A
         )
     {
-        rX.PutScalar(A);
+        const int ierr = rX.PutScalar(A);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra set failure " << ierr << std::endl;
     }
 
     /**
@@ -644,7 +734,8 @@ public:
      */
     inline static void SetToZero(MatrixType& rA)
     {
-        rA.PutScalar(0.0);
+        const int ierr = rA.PutScalar(0.0);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra set to zero failure " << ierr << std::endl;
     }
 
     /**
@@ -653,7 +744,8 @@ public:
      */
     inline static void SetToZero(VectorType& rX)
     {
-        rX.PutScalar(0.0);
+        const int ierr = rX.PutScalar(0.0);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra set to zero failure " << ierr << std::endl;
     }
 
     /// TODO: creating the the calculating reaction version
@@ -673,11 +765,11 @@ public:
     {
         const unsigned int system_size = Size1(rA);
 
-        // Ccount active indices
+        // Count active indices
         unsigned int active_indices = 0;
         for (unsigned int i = 0; i < rEquationId.size(); i++)
             if (rEquationId[i] < system_size)
-                active_indices += 1;
+                ++active_indices;
 
         if (active_indices > 0) {
             // Size Epetra vectors
@@ -685,23 +777,23 @@ public:
             Epetra_SerialDenseMatrix values(active_indices, active_indices);
 
             // Fill epetra vectors
-            int loc_i = 0;
+            unsigned int loc_i = 0;
             for (unsigned int i = 0; i < rEquationId.size(); i++) {
                 if (rEquationId[i] < system_size) {
                     indices[loc_i] = rEquationId[i];
 
-                    int loc_j = 0;
+                    unsigned int loc_j = 0;
                     for (unsigned int j = 0; j < rEquationId.size(); j++) {
                         if (rEquationId[j] < system_size) {
                             values(loc_i, loc_j) = rLHSContribution(i, j);
-                            loc_j += 1;
+                            ++loc_j;
                         }
                     }
-                    loc_i += 1;
+                    ++loc_i;
                 }
             }
 
-            int ierr = rA.SumIntoGlobalValues(indices, values);
+            const int ierr = rA.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -725,10 +817,10 @@ public:
         const unsigned int system_size = Size(rb);
 
         // Count active indices
-        int active_indices = 0;
+        unsigned int active_indices = 0;
         for (unsigned int i = 0; i < rEquationId.size(); i++)
             if (rEquationId[i] < system_size)
-                active_indices += 1;
+                ++active_indices;
 
         if (active_indices > 0) {
             // Size Epetra vectors
@@ -736,16 +828,16 @@ public:
             Epetra_SerialDenseVector values(active_indices);
 
             // Fill epetra vectors
-            int loc_i = 0;
+            unsigned int loc_i = 0;
             for (unsigned int i = 0; i < rEquationId.size(); i++) {
                 if (rEquationId[i] < system_size) {
                     indices[loc_i] = rEquationId[i];
                     values[loc_i] = rRHSContribution[i];
-                    loc_i += 1;
+                    ++loc_i;
                 }
             }
 
-            int ierr = rb.SumIntoGlobalValues(indices, values);
+            const int ierr = rb.SumIntoGlobalValues(indices, values);
             KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
@@ -913,6 +1005,30 @@ public:
     }
 
     /**
+     * @brief Copy values from one matrix to another
+     * @details It is assumed that the sparcity of both matrices is compatible
+     * @param rA The matrix where assigning values
+     * @param rB The matrix to be copied
+     */
+    static void CopyMatrixValues(
+        MatrixType& rA,
+        const MatrixType& rB
+        )
+    {
+        // Copy values from rB to intermediate
+        int i, ierr;
+        int num_entries; // Number of non-zero entries (rB matrix)
+        double* vals;    // Row non-zero values (rB matrix)
+        int* cols;       // Column indices of row non-zero values (rB matrix)
+        for (i = 0; i < rB.NumMyRows(); i++) {
+            ierr = rB.ExtractMyRowView(i, num_entries, vals, cols);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting values with code ierr = " << ierr << std::endl;
+            ierr = rA.ReplaceMyValues(i, num_entries, vals, cols);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found replacing values with code ierr = " << ierr << std::endl;
+        }
+    }
+
+    /**
      * @brief This method checks and corrects the zero diagonal values
      * @details This method returns the scale norm considering for scaling the diagonal
      * @param rProcessInfo The problem process info
@@ -1013,10 +1129,9 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
-        rA.ExtractDiagonalCopy(diagonal);
+        Epetra_Vector diagonal(rA.RowMap());
+        const int ierr = rA.ExtractDiagonalCopy(diagonal);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
 
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::TwoNorm(diagonal);
 
@@ -1046,10 +1161,9 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
-        rA.ExtractDiagonalCopy(diagonal);
+        Epetra_Vector diagonal(rA.RowMap());
+        const int ierr = rA.ExtractDiagonalCopy(diagonal);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Max(diagonal);
 
         KRATOS_CATCH("");
@@ -1064,10 +1178,9 @@ public:
     {
         KRATOS_TRY
 
-        const int global_elems = Size1(rA);
-        Epetra_Map map(global_elems, 0, rA.Comm());
-        Epetra_Vector diagonal(map);
-        rA.ExtractDiagonalCopy(diagonal);
+        Epetra_Vector diagonal(rA.RowMap());
+        const int ierr = rA.ExtractDiagonalCopy(diagonal);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Min(diagonal);
 
         KRATOS_CATCH("");

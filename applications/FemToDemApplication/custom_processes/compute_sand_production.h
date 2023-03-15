@@ -23,7 +23,7 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 
-class ComputeSandProduction : public Process 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ComputeSandProduction : public Process 
 {
  public:
 

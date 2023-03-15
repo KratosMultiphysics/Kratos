@@ -249,6 +249,15 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
 }
 
 template<class TEntityType>
+void EntityCalculateRightHandSide(
+    TEntityType& dummy,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+template<class TEntityType>
 void EntityCalculateLocalSystem(
     TEntityType& dummy,
     Matrix& rLeftHandSideMatrix,
@@ -496,6 +505,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Element>)
     .def("CalculateLeftHandSide", &EntityCalculateLeftHandSide<Element>)
+    .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Element>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Element>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Element>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Element>)
@@ -656,6 +666,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
     .def("CalculateLeftHandSide", &EntityCalculateLeftHandSide<Condition>)
+    .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Condition>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Condition>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Condition>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Condition>)

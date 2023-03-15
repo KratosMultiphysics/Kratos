@@ -190,22 +190,26 @@ void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bo
                                                             const double& MinimumJointWidth, const Element::GeometryType& Geom)
 {
     //Quadrilateral_interface_3d_4
-    const auto& rP2 = Geom.GetPoint( 2 );
-    const auto pmid0 = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
-    const auto pmid1 = 0.5 * (Geom.GetPoint( 1 ) + rP2);
+    array_1d<double, 3> pmid0;
+    array_1d<double, 3> pmid1;
+    array_1d<double,3> P2 = Geom.GetPoint( 2 );
+    noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
+    noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + P2);
     
     //Unitary vector in local x direction
-    array_1d<double,3> Vx = pmid1 - pmid0;
-    const double inv_norm_x = 1.0/norm_2(Vx);
+    array_1d<double,3> Vx;
+    noalias(Vx) = pmid1 - pmid0;
+    double inv_norm_x = 1.0/norm_2(Vx);
     Vx[0] *= inv_norm_x;
     Vx[1] *= inv_norm_x;
     Vx[2] *= inv_norm_x;
     
     //Unitary vector in local z direction
-    array_1d<double, 3> Vy = rP2 - pmid0;
+    array_1d<double,3> Vy;
+    noalias(Vy) = P2 - pmid0;
     array_1d<double,3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
-    const double norm_z = norm_2(Vz);
+    MathUtils<double>::CrossProduct(Vz,Vx,Vy);
+    double norm_z = norm_2(Vz);
     if(norm_z > 1.0e-8)
     {
         Vz[0] *= 1.0/norm_z;

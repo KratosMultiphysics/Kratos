@@ -129,6 +129,9 @@ void KratosApplication::RegisterKratosCore() {
     // Registering all the standard (model - parameters constructible) processes
     KratosApplication::RegisterProcesses();
 
+    // Registering all the standard (model - parameters constructible) controllers
+    KratosApplication::RegisterControllers();
+
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();
@@ -179,7 +182,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("PeriodicConditionEdge", mPeriodicConditionEdge)
     KRATOS_REGISTER_CONDITION("PeriodicConditionCorner", mPeriodicConditionCorner)
 
-    //Register specific elements ( must be completed : elements defined in kratos_appliction.h)
+    //Register specific elements ( must be completed : elements defined in kratos_application.h)
     KRATOS_REGISTER_ELEMENT("GenericElement", mGenericElement)
 
     KRATOS_REGISTER_ELEMENT("Element2D1N", mElement2D1N)
