@@ -108,7 +108,6 @@ namespace Kratos
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
-      unsigned int numberOfEulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
       unsigned int numberOfLagrangianInletNodes = mrRemesh.Info->NumberOfLagrangianInletNodes;
 
       if (currentTime < 2 * timeInterval)
@@ -296,11 +295,29 @@ namespace Kratos
 
       unsigned int eulerianInletNodes = 0;
       unsigned int lagrangianInletNodes = 0;
+      const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+      const double tolerance = -1e-12;
+
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         if (i_node->GetValue(EULERIAN_INLET) == true)
         {
-          eulerianInletNodes += 1;
+          const array_1d<double, 3> &inletVelocity = i_node->FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3> &inletNormal = i_node->FastGetSolutionStepValue(NORMAL);
+          const double inwardX = inletVelocity[0] * inletNormal[0];
+          const double inwardY = inletVelocity[1] * inletNormal[1];
+          if (inwardX < tolerance || inwardY < tolerance)
+          {
+            eulerianInletNodes += 1;
+          }
+          else if (dimension == 3)
+          {
+            const double inwardZ = inletVelocity[2] * inletNormal[2];
+            if (inwardZ < tolerance)
+            {
+              eulerianInletNodes += 1;
+            }
+          }
         }
         if (i_node->GetValue(LAGRANGIAN_INLET) == true)
         {
