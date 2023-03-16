@@ -25,7 +25,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
-#include "response_utils.h"
+#include "custom_utilities/geometrical/model_part_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -88,39 +88,54 @@ double LinearStrainEnergyResponseUtils::CalculateModelPartValue(ModelPart& rMode
 }
 
 void LinearStrainEnergyResponseUtils::CalculateSensitivity(
+    ModelPart& rAnalysisModelPart,
     const std::vector<ModelPart*>& rEvaluatedModelParts,
-    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
+    const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
     const double PerturbationSize)
 {
     KRATOS_TRY
 
-    ResponseUtils::CheckAndPrepareModelPartsForSensitivityComputation(rEvaluatedModelParts, rSensitivityModelPartVariableInfo, SELECTED, {&SHAPE_SENSITIVITY});
+    KRATOS_ERROR_IF(rEvaluatedModelParts.size() != 1)
+        << "Currently, there can be only one evaluated model part as same as "
+           "the analysis model part.\n";
+    KRATOS_ERROR_IF(rEvaluatedModelParts[0] != &rAnalysisModelPart)
+        << "Currently, there can be only one evaluated model part as same as "
+           "the analysis model part.\n";
 
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (const auto& it : rSensitivityModelPartVariableInfo) {
-        auto& r_sensitivity_model_part = *(it.first);
-        for (auto& r_variable : it.second) {
-            std::visit([&](auto&& r_variable) {
+    for (const auto& it : rSensitivityVariableModelPartInfo) {
+        std::visit([&](auto&& r_variable) {
+            const auto& r_sensitivity_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
+                it.second, {&rAnalysisModelPart}, true, true, true, true, 0);
+
+            // reset nodal common interface values
+            for (auto p_sensitivity_model_part : r_sensitivity_model_parts) {
+                if (*r_variable == SHAPE_SENSITIVITY) {
+                    VariableUtils().SetNonHistoricalVariablesToZero(p_sensitivity_model_part->Nodes(), SHAPE_SENSITIVITY);
+                }
+            }
+
+            // now compute sensitivities on the variables
+            for (auto p_sensitivity_model_part : r_sensitivity_model_parts) {
                 if (*r_variable == YOUNG_MODULUS_SENSITIVITY) {
-                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
+                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(*p_sensitivity_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
                 } else if (*r_variable == THICKNESS_SENSITIVITY) {
-                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(r_sensitivity_model_part, THICKNESS, THICKNESS_SENSITIVITY);
+                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(*p_sensitivity_model_part, THICKNESS, THICKNESS_SENSITIVITY);
                 } else if (*r_variable == POISSON_RATIO_SENSITIVITY) {
-                    CalculateStrainEnergySemiAnalyticPropertySensitivity(r_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+                    CalculateStrainEnergySemiAnalyticPropertySensitivity(*p_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
                 } else if (*r_variable == SHAPE_SENSITIVITY) {
-                    CalculateStrainEnergySemiAnalyticShapeSensitivity(r_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
+                    CalculateStrainEnergySemiAnalyticShapeSensitivity(*p_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
                 } else {
                     KRATOS_ERROR
                         << "Unsupported sensitivity w.r.t. " << r_variable->Name()
-                        << " requested for " << r_sensitivity_model_part.FullName()
-                        << ". Followings are supported sensitivity variables:"
+                        << " requested. Followings are supported sensitivity variables:"
                         << "\n\t" << YOUNG_MODULUS_SENSITIVITY.Name()
                         << "\n\t" << THICKNESS_SENSITIVITY.Name()
                         << "\n\t" << POISSON_RATIO_SENSITIVITY.Name()
                         << "\n\t" << SHAPE_SENSITIVITY.Name();
                 }
-            }, r_variable);
-        }
+            }
+        }, it.first);
     }
 
     KRATOS_CATCH("");
@@ -141,7 +156,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
 {
     KRATOS_TRY
 
-    if (rEntity.Is(SELECTED) && rEntity.IsActive()) {
+    if (rEntity.IsActive()) {
         const auto& r_process_info = rModelPart.GetProcessInfo();
         auto& r_geometry = rEntity.GetGeometry();
         const auto domain_size = r_geometry.WorkingSpaceDimension();
@@ -311,7 +326,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyLinearlyDependentProp
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
     block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
-        if (rElement.Is(SELECTED) && rElement.IsActive()) {
+        if (rElement.IsActive()) {
             Vector& r_u = std::get<0>(rTLS);
             Vector& r_sensitivity = std::get<1>(rTLS);
 
@@ -347,7 +362,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticPropertyS
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
     block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
-        if (rElement.Is(SELECTED) && rElement.IsActive()) {
+        if (rElement.IsActive()) {
             Vector& r_u = std::get<0>(rTLS);
             Vector& r_ref_rhs = std::get<1>(rTLS);
             Vector& r_perturbed_rhs = std::get<2>(rTLS);
