@@ -81,7 +81,9 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
 
     pybind11::class_<HDF5::Detail::VertexContainerType, HDF5::Detail::VertexContainerType::Pointer>(rModule, "VertexContainer")
         .def(pybind11::init<>())
-        .def("push_back", &HDF5::Detail::VertexContainerType::push_back)
+        .def("push_back", static_cast<void (HDF5::Detail::VertexContainerType::*)
+            (HDF5::Detail::VertexContainerType::const_pointer&)>
+            (&HDF5::Detail::VertexContainerType::push_back))
         ;
 
     #undef KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING
