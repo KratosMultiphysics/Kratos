@@ -269,7 +269,7 @@ public:
 
     void push_back(const TPointerType& x)
     {
-        mData.push_back(std::move(x));
+        mData.push_back(x);
     }
 
     void push_back(TPointerType&& rX)
