@@ -1095,6 +1095,69 @@ namespace Kratos::Testing
         TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
     }
 
+
+    /**
+    * Checks if the block builder and solver performs correctly the assemble of the extended system with constraints
+    */
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosExtendedDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
+    {
+        // The base model part
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        // The data communicator
+        const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+
+        // Generate Epetra communicator
+        KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+        // Extended build
+        ExtendedTestBuilderAndSolverDisplacement(r_model_part, r_comm, true);
+
+        // Create the solvers and things required
+        auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+        auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+
+        const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+
+        // // The solution check
+        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 22);
+        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 22);
+        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 204);
+
+        // Values to check
+        std::vector<int> row_indexes = {0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 19, 19, 20, 20, 20, 20, 20, 21, 21, 21, 21};
+        std::vector<int> column_indexes = {0, 1, 2, 4, 5, 9, 1, 2, 4, 5, 3, 1, 2, 4, 5, 8, 9, 12, 13, 1, 2, 4, 5, 8, 9, 11, 12, 13, 6, 7, 4, 5, 8, 9, 10, 1, 4, 5, 8, 9, 8, 10, 11, 12, 13, 14, 5, 10, 11, 12, 13, 4, 5, 10, 11, 12, 13, 16, 17, 4, 5, 10, 11, 12, 13, 15, 16, 17, 10, 14, 15, 16, 17, 18, 13, 14, 15, 16, 17, 12, 13, 14, 15, 16, 17, 20, 21, 12, 13, 14, 15, 16, 17, 19, 20, 21, 14, 18, 20, 17, 19, 16, 17, 18, 20, 21, 16, 17, 20, 21};
+        std::vector<double> values = {740227943.2715302705764771, 1486220957.4536478519439697, -185056985.8178826570510864, 370113971.6357653141021729, -185056985.8178827166557312, -517250000.0, -185056985.8178827762603760, 1572984379.4520018100738525, -740227943.2715302705764771, 370113971.6357653141021729, 2809227943.2715301513671875, 370113971.6357653141021729, -740227943.2715302705764771, 1657021225.9261374473571777, -475379934.1969153881072998, -176565339.3830768167972565, -264848009.0746152102947235, -740227943.2715302705764771, 370113971.6357653141021729, -185056985.8178827166557312, 370113971.6357652544975281, -475379934.1969153881072998, 1457052651.9143548011779785, -264848009.0746152102947235, -397272013.6119228005409241, -689666666.6666666269302368, 370113971.6357653141021729, -185056985.8178827166557312, 1127028492.9089412689208984, 783913971.6357650756835938, -176565339.3830768167972565, -264848009.0746152102947235, 2245565339.3830766677856445, 264848009.0746151804924011, -1034500000.0, -517250000.0, -264848009.0746152102947235, -397272013.6119228005409241, 264848009.0746151804924011, 914522013.6119227409362793, -1034500000.0, 2434750982.5687417984008789, 365750982.5687416195869446, -365750982.5687417387962341, -365750982.5687416791915894, -1034500000.0, -689666666.6666666269302368, 365750982.5687416195869446, 1055417649.2354083061218262, -365750982.5687416791915894, -365750982.5687416195869446, -740227943.2715302705764771, 370113971.6357653141021729, -365750982.5687417387962341, -365750982.5687416791915894, 1846206869.1118023395538330, -374476960.7027890682220459, -740227943.2715302705764771, 370113971.6357653141021729, 370113971.6357652544975281, -185056985.8178827166557312, -365750982.5687416791915894, -365750982.5687416195869446, -374476960.7027890682220459, 1770364954.2045071125030518, -1034500000.0, 370113971.6357653141021729, -185056985.8178827166557312, -1034500000.0, 2809227943.2715301513671875, 370113971.6357650756835938, -740227943.2715302705764771, -370113971.6357651352882385, -1034500000.0, -1034500000.0, 370113971.6357650756835938, 1219556985.8178825378417969, -370113971.6357651352882385, -185056985.8178825676441193, -740227943.2715302705764771, 370113971.6357653141021729, -740227943.2715302705764771, -370113971.6357651352882385, 2220683829.8145909309387207, -370113971.6357656121253967, -740227943.2715302705764771, 370113971.6357653141021729, 370113971.6357652544975281, -185056985.8178827166557312, -370113971.6357651352882385, -185056985.8178825676441193, -370113971.6357656121253967, 2624170957.4536480903625488, -2069000000.0, 370113971.6357653141021729, -185056985.8178827166557312, -1034500000.0, 2069000000.0, -1034500000.0, -2069000000.0, 2069000000.0, -740227943.2715302705764771, 370113971.6357653141021729, -1034500000.0, 1774727943.2715301513671875, -370113971.6357653141021729, 370113971.6357652544975281, -185056985.8178827166557312, -370113971.6357653141021729, 185056985.8178827166557312};
+
+        // Check assembly
+        TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+
+        // Now checking relation T matrix
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+
+        // // To create the solution of reference
+        // DebugLHS(r_T);
+
+        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 22);
+        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 22);
+        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 23);
+
+        // Values to check
+        row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
+        column_indexes = {0, 1, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
+        values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+
+        // Check assembly T matrix
+        TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
+    }
+
     // NOTE: Fails with more than one partition
     // /**
     // * Checks if the elimination builder and solver performs correctly the assemble of the extended system
