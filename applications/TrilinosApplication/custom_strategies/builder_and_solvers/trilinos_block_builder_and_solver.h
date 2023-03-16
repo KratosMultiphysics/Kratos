@@ -915,12 +915,14 @@ protected:
     ///@{
 
     /* Base variables */
-stMyId;                                 /// Auxiliary Id (the first row of the local system)
-    int mLastMyId;                                  /// Auxiliary Id (the last row of the local system) // TODO: This can be removed as can be deduced from mLocalSystemSize
-    Kratos::shared_ptr<Epetra_Map> mpMap = nullptr; /// The map c    EpetraCommunicatorType& mrComm;                 /// The MPI communicator
+    EpetraCommunicatorType& mrComm;                 /// The MPI communicator
     int mGuessRowSize;                              /// The guess row size
     IndexType mLocalSystemSize;                     /// The local system size
-    int mFironsidered for the different vectors and matrices
+    int mFirstMyId;                                 /// Auxiliary Id (the first row of the local system)
+    int mLastMyId;                                  /// Auxiliary Id (the last row of the local system) // TODO: This can be removed as can be deduced from mLocalSystemSize
+    Kratos::shared_ptr<Epetra_Map> mpMap = nullptr; /// The map considered for the different vectors and matrices
+
+    double mScaleFactor = 1.0; /// The manually set scale factor
 
     /* Flags */
     SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;; /// We identify the scaling considered for the dirichlet dofs
@@ -948,7 +950,6 @@ stMyId;                                 /// Auxiliary Id (the first row of the l
         // TODO: Check if these should be local elements, conditions and constraints
         auto& r_elements_array = rModelPart.Elements();
         auto& r_conditions_array = rModelPart.Conditions();
-        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
 
         // Number of local dofs
         const IndexType number_of_local_rows = mLocalSystemSize;
@@ -1118,22 +1119,6 @@ private:
         }
 
         return *mpMap;
-    }
-
-    /**
-     * @brief Determine in which partition the index belongs
-     * @param Index The index where determine the partition
-     * @return The partition where the index belongs
-     */
-    IndexType DeterminePartitionIndex(const IndexType Index)
-    {
-        IndexType index;
-        for (index = 0; index < mFirstMyIds.size() - 1; ++index) {
-            if (Index < mFirstMyIds[index + 1]) {
-                break;
-            }
-        }
-        return index;
     }
 
     void AssembleLHS_CompleteOnFreeRows(TSystemMatrixType& rA,
