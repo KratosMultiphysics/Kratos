@@ -269,9 +269,14 @@ public:
 
     void push_back(TPointerType x)
     {
-        mData.push_back(x);
+        mData.push_back(std::move(x));
     }
 
+    template<class... Args>
+    void emplace_back(Args&&... args) 
+    {
+        mData.emplace_back(std::forward<Args>(args)...);
+    }
 
     iterator insert(iterator Position, const TPointerType pData)
     {
