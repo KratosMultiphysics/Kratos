@@ -134,11 +134,11 @@ protected:
     {
         double Dt;
         double Rho;
-        double Tau1; 
+        double Tau1;
         double Tau2;
-        double Weight; 
-        double BulkModulus; 
-        
+        double Weight;
+        double BulkModulus;
+
         Vector m; // Voigt identity
         Vector m_T; // Voigt identity x anisotropy tensor
         Vector invT_m; // Anisotropy tensor inverse x Voigt identity
@@ -458,6 +458,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    std::vector<Vector> mDisplacementSubscale1; /// Gauss points displacement subscale at previous time step
+
+    std::vector<Vector> mDisplacementSubscale2; /// Gauss points displacement subscale at two previous time step
+
     IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
@@ -497,6 +501,18 @@ protected:
      * @brief This method returns if the element provides the strain
      */
     virtual bool UseElementProvidedStrain() const;
+
+    /**
+     * @brief Calculate the kinematics
+     * @details This method calculates the kinematics of the element for a given integration point
+     * @param rThisKinematicVariables Integration point kinematics container
+     * @param PointNumber Integration point index
+     * @param rIntegrationMethod Integration rule
+     */
+    void CalculateKinematicVariables(
+        KinematicVariables &rThisKinematicVariables,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod &rIntegrationMethod) const;
 
     /**
      * @brief This functions updates the data structure passed to the CL
@@ -542,6 +558,37 @@ protected:
         const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
         const IndexType PointNumber) const;
 
+    /**
+     * @brief Calculate the isotropic bulk modulus
+     * Calculates the bulk modulus for the transformation to the closest isotropic tensor
+     * @param rC Input constitutive matrx
+     * @return double Isotropic bulk modulus
+     */
+    double CalculateBulkModulus(const Matrix &rC) const;
+
+    /**
+     * @brief Calculates the displacement subscale stabilization parameter
+     * Calculates the first stabilization parameter corresponding to the displacement subscale
+     * @param rVoigtIdAnysotropyMatrixProd Matrix containing the Voigt identity and the anisotropy tensor product
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rCurrentProcessInfo Reference to the current ProcessInfo container
+     * @return double The displacement subscale stabilization constant
+     */
+    double CalculateTau1(
+        const Vector& rVoigtIdAnysotropyMatrixProd,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * @brief Calculates the volumetric strain subscale stabilization parameter
+     * Calculates the second stabilization parameter corresponding to the volumetric strain subscale
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @return double The volumetric strain subscale stabilization constant
+     */
+    double CalculateTau2(const ConstitutiveVariables& rThisConstitutiveVariables) const;
+
     void CalculateOrthogonalSubScalesOperator(
         MatrixType& rOrthogonalSubScalesOperator,
         const ProcessInfo& rProcessInfo) const;
@@ -569,23 +616,29 @@ protected:
         const ConstitutiveVariables& rThisConstitutiveVariables,
         const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
 
+    virtual void UpdateGaussPointDisplacementSubscaleHistory(
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const ProcessInfo& rProcessInfo,
+        const IndexType PointIndex);
+
     ///@}
     ///@name Protected  Access
     ///@{
 
-    virtual array_1d<double,3>& GetNodeDisplacementProjectionValue(IndexType NodeIndex)
+    const Matrix& GetAnisotropyTensor() const
     {
-        return GetGeometry()[NodeIndex].GetValue(DISPLACEMENT_PROJECTION);
-    }
-
-    virtual double& GetNodeVolumetricStrainProjectionValue(IndexType NodeIndex)
-    {
-        return GetGeometry()[NodeIndex].GetValue(VOLUMETRIC_STRAIN_PROJECTION);
+        return mAnisotropyTensor;
     }
 
     ///@}
     ///@name Protected Inquiry
     ///@{
+
+    const bool IsDynamic() const
+    {
+        return mIsDynamic;
+    }
 
     ///@}
     ///@name Protected LifeCycle
@@ -602,8 +655,6 @@ private:
     bool mIsDynamic;
     Matrix mAnisotropyTensor;
     Matrix mInverseAnisotropyTensor;
-    std::vector<Vector> mDisplacementSubscale1;
-    std::vector<Vector> mDisplacementSubscale2;
 
     ///@}
     ///@name Private Operators
@@ -612,19 +663,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Calculate the kinematics
-     * @details This method calculates the kinematics of the element for a given integration point
-     * @param rThisKinematicVariables Integration point kinematics container
-     * @param PointNumber Integration point index
-     * @param rIntegrationMethod Integration rule
-     */
-    void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) const;
 
     void CalculateGaussPointAuxiliaryVariables(
         GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables,
@@ -669,27 +707,12 @@ private:
     void CalculateInverseAnisotropyTensor();
 
     /**
-     * @brief Calculate the isotropic bulk modulus
-     * Calculates the bulk modulus for the transformation to the closest isotropic tensor
-     * @param rC Input constitutive matrx
-     * @return double Isotropic bulk modulus
-     */
-    double CalculateBulkModulus(const Matrix &rC) const;
-
-    /**
      * @brief Calculate the isotropic shear modulus
      * Calculates the shear modulus for the transformation to the closest isotropic tensor
      * @param rC Input constitutive matrx
      * @return double Isotropic shear modulus
      */
     double CalculateShearModulus(const Matrix &rC) const;
-
-    double CalculateTau1(
-        const Vector& rVoigtIdAnysotropyMatrixProd,
-        const KinematicVariables& rThisKinematicVariables,
-        const ConstitutiveVariables& rThisConstitutiveVariables,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const;
 
     /**
      * @brief Calculation of the deformation gradient F

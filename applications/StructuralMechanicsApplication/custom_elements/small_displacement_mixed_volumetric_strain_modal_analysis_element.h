@@ -311,16 +311,6 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    array_1d<double,3>& GetNodeDisplacementProjectionValue(IndexType NodeIndex) override
-    {
-        return GetGeometry()[NodeIndex].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
-    }
-
-    double& GetNodeVolumetricStrainProjectionValue(IndexType NodeIndex) override
-    {
-        return GetGeometry()[NodeIndex].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
-    }
-
     ///@}
     ///@name Protected Inquiry
     ///@{

@@ -117,11 +117,11 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSmallDisplacementMixedVolumetricStrainElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementMixedVolumetricStrainElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementMixedVolumetricStrainElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
-      
-    //   mSmallDisplacementMixedVolumetricStrainOssElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-    //   mSmallDisplacementMixedVolumetricStrainOssElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-    //   mSmallDisplacementMixedVolumetricStrainOssElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-    //   mSmallDisplacementMixedVolumetricStrainOssElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
+      mSmallDisplacementMixedVolumetricStrainOssElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
     //   mSmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
     //   mSmallDisplacementMixedVolumetricStrainModalAnalysisElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -562,10 +562,10 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement3D4N", mSmallDisplacementMixedVolumetricStrainElement3D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement3D8N", mSmallDisplacementMixedVolumetricStrainElement3D8N)
 
-    // KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement2D3N", mSmallDisplacementMixedVolumetricStrainOssElement2D3N)
-    // KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement2D4N", mSmallDisplacementMixedVolumetricStrainOssElement2D4N)
-    // KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement3D4N", mSmallDisplacementMixedVolumetricStrainOssElement3D4N)
-    // KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement3D8N", mSmallDisplacementMixedVolumetricStrainOssElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement2D3N", mSmallDisplacementMixedVolumetricStrainOssElement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement2D4N", mSmallDisplacementMixedVolumetricStrainOssElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement3D4N", mSmallDisplacementMixedVolumetricStrainOssElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement3D8N", mSmallDisplacementMixedVolumetricStrainOssElement3D8N)
 
     // KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N", mSmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N)
     // KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainModalAnalysisElement2D4N", mSmallDisplacementMixedVolumetricStrainModalAnalysisElement2D4N)

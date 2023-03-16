@@ -64,21 +64,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // ///Reference type definition for constitutive laws
-    // using ConstitutiveLawType = BaseType::ConstitutiveLawType;
-
-    // ///Pointer type for constitutive laws
-    // using ConstitutiveLawPointerType = BaseType::ConstitutiveLawPointerType;
-
-    // ///StressMeasure from constitutive laws
-    // typedef ConstitutiveLawType::StressMeasure StressMeasureType;
-
-    // ///Type definition for integration methods
-    // typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    // /// This is the definition of the node.
-    // typedef Node<3> NodeType;
-
     /// The base element type
     using BaseType = SmallDisplacementMixedVolumetricStrainElement;
 
@@ -103,7 +88,7 @@ public:
     SmallDisplacementMixedVolumetricStrainOssElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
-        : SmallDisplacementMixedVolumetricStrainElement(
+        : BaseType(
             NewId,
             pGeometry)
     {};
@@ -113,7 +98,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
-        : SmallDisplacementMixedVolumetricStrainElement(
+        : BaseType(
             NewId,
             pGeometry,
             pProperties)
@@ -121,7 +106,7 @@ public:
 
     // Copy constructor
     SmallDisplacementMixedVolumetricStrainOssElement(SmallDisplacementMixedVolumetricStrainOssElement const &rOther)
-        : SmallDisplacementMixedVolumetricStrainElement(rOther)
+        : BaseType(rOther)
     {};
 
     // Destructor
@@ -136,8 +121,6 @@ public:
     ///@name Operations
     ///@{
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
@@ -151,15 +134,6 @@ public:
     Element::Pointer Clone(
         IndexType NewId,
         NodesArrayType const& rThisNodes) const override;
-
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -247,6 +221,25 @@ protected:
     // void CalculateOrthogonalSubScalesLumpedProjectionOperator(
     //     MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
     //     const ProcessInfo& rProcessInfo) const;
+
+    void CalculateLocalSystemGaussPointContribution(
+        VectorType& rRightHandSideVector,
+        MatrixType& rLeftHandSideMatrix,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const override;
+
+    void CalculateRightHandSideGaussPointContribution(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const override;
+
+    void UpdateGaussPointDisplacementSubscaleHistory(
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const ProcessInfo& rProcessInfo,
+        const IndexType PointIndex) override;
 
     ///@}
     ///@name Protected  Access
