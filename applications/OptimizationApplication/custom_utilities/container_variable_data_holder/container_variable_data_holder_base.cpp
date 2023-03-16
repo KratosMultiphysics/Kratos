@@ -25,81 +25,263 @@
 
 namespace Kratos {
 
+LiteralDoubleExpression::LiteralDoubleExpression(const double Value)
+    : mValue(Value)
+{
+}
+double LiteralDoubleExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType ComponentIndex) const
+{
+    return mValue;
+}
+
+IndexType LiteralDoubleExpression::GetDimension() const
+{
+    return 1;
+}
+
+LiteralArray3Expression::LiteralArray3Expression(
+    const array_1d<double, 3>& Value,
+    const IndexType Dimension)
+    : mValue(Value),
+      mDimension(Dimension)
+{
+}
+
+double LiteralArray3Expression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType ComponentIndex) const
+{
+    return mValue[ComponentIndex];
+}
+
+IndexType LiteralArray3Expression::GetDimension() const
+{
+    return mDimension;
+}
+
+LiteralVectorExpression::LiteralVectorExpression(
+    std::shared_ptr<Vector> pValue,
+    const IndexType Dimension)
+    : mpValue(pValue),
+      mDimension(Dimension)
+{
+}
+
+double LiteralVectorExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType ComponentIndex) const
+{
+    return (*mpValue)[EntityIndex * mDimension + ComponentIndex];
+}
+
+IndexType LiteralVectorExpression::GetDimension() const
+{
+    return mDimension;
+}
+
+BinaryAddExpression::BinaryAddExpression(
+    std::shared_ptr<Expression> pLeft,
+    std::shared_ptr<Expression> pRight)
+    : mpLeft(pLeft),
+      mpRight(pRight)
+{
+    KRATOS_ERROR_IF_NOT(mpLeft->GetDimension() == mpRight->GetDimension() || mpRight->GetDimension() == 1)
+        << "Addition should have equal dimensions in left and right side expressions or right hand side should be with dimension = 1. [ Left expresion dimension = "
+        << mpLeft->GetDimension() << ", Right expresion dimensions = " << mpRight->GetDimension() << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(mpLeft.get())
+        << "Addition is provided with uninitialized left hand side "
+           "expression.\n";
+
+    KRATOS_ERROR_IF_NOT(mpRight.get())
+        << "Addition is provided with uninitialized right hand side "
+           "expression.\n";
+}
+
+double BinaryAddExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType ComponentIndex) const
+{
+    return mpLeft->Evaluate(EntityIndex, ComponentIndex) + mpRight->Evaluate(EntityIndex, ComponentIndex);
+}
+
+IndexType BinaryAddExpression::GetDimension() const
+{
+    return this->mpLeft->GetDimension();
+}
+
+BinarySubstractExpression::BinarySubstractExpression(
+    std::shared_ptr<Expression> pLeft,
+    std::shared_ptr<Expression> pRight)
+    : mpLeft(pLeft),
+      mpRight(pRight)
+{
+    KRATOS_ERROR_IF_NOT(mpLeft->GetDimension() == mpRight->GetDimension() || mpRight->GetDimension() == 1)
+        << "Substraction should have equal dimensions in left and right side expressions or right hand side should be with dimension = 1. [ Left expresion dimension = "
+        << mpLeft->GetDimension() << ", Right expresion dimensions = " << mpRight->GetDimension() << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(mpLeft.get())
+        << "Substraction is provided with uninitialized left hand side "
+           "expression.\n";
+
+    KRATOS_ERROR_IF_NOT(mpRight.get())
+        << "Substraction is provided with uninitialized right hand side "
+           "expression.\n";
+}
+
+double BinarySubstractExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType ComponentIndex) const
+{
+    return mpLeft->Evaluate(EntityIndex, ComponentIndex) - mpRight->Evaluate(EntityIndex, ComponentIndex);
+}
+
+IndexType BinarySubstractExpression::GetDimension() const
+{
+    return this->mpLeft->GetDimension();
+}
+
+BinaryMultiplyExpression::BinaryMultiplyExpression(
+    std::shared_ptr<Expression> pLeft,
+    std::shared_ptr<Expression> pRight)
+    : mpLeft(pLeft),
+      mpRight(pRight)
+{
+    KRATOS_ERROR_IF_NOT(mpLeft->GetDimension() == mpRight->GetDimension() || mpRight->GetDimension() == 1)
+        << "Multiplication should have equal dimensions in left and right side expressions or right hand side should be with dimension = 1. [ Left expresion dimension = "
+        << mpLeft->GetDimension() << ", Right expresion dimensions = " << mpRight->GetDimension() << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(mpLeft.get())
+        << "Multiplication is provided with uninitialized left hand side "
+           "expression.\n";
+
+    KRATOS_ERROR_IF_NOT(mpRight.get())
+        << "Multiplication is provided with uninitialized right hand side "
+           "expression.\n";
+}
+
+double BinaryMultiplyExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType ComponentIndex) const
+{
+    return mpLeft->Evaluate(EntityIndex, ComponentIndex % this->mpLeft->GetDimension()) * mpRight->Evaluate(EntityIndex, ComponentIndex % this->mpRight->GetDimension());
+}
+
+IndexType BinaryMultiplyExpression::GetDimension() const
+{
+    return this->mpLeft->GetDimension();
+}
+
+BinaryDivideExpression::BinaryDivideExpression(
+    std::shared_ptr<Expression> pLeft,
+    std::shared_ptr<Expression> pRight)
+    : mpLeft(pLeft),
+      mpRight(pRight)
+{
+    KRATOS_ERROR_IF_NOT(mpLeft->GetDimension() == mpRight->GetDimension() || mpRight->GetDimension() == 1)
+        << "Division should have equal dimensions in left and right side expressions or right hand side should be with dimension = 1. [ Left expresion dimension = "
+        << mpLeft->GetDimension() << ", Right expresion dimensions = " << mpRight->GetDimension() << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(mpLeft.get())
+        << "Division is provided with uninitialized left hand side "
+           "expression.\n";
+
+    KRATOS_ERROR_IF_NOT(mpRight.get())
+        << "Division is provided with uninitialized right hand side "
+           "expression.\n";
+}
+
+double BinaryDivideExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType ComponentIndex) const
+{
+    return mpLeft->Evaluate(EntityIndex, ComponentIndex % this->mpLeft->GetDimension()) / mpRight->Evaluate(EntityIndex, ComponentIndex % this->mpRight->GetDimension());
+}
+
+IndexType BinaryDivideExpression::GetDimension() const
+{
+    return this->mpLeft->GetDimension();
+}
+
+BinaryPowerExpression::BinaryPowerExpression(
+    std::shared_ptr<Expression> pLeft,
+    std::shared_ptr<Expression> pRight)
+    : mpLeft(pLeft),
+      mpRight(pRight)
+{
+    KRATOS_ERROR_IF_NOT(mpLeft->GetDimension() == mpRight->GetDimension() || mpRight->GetDimension() == 1)
+        << "Power should have equal dimensions in left and right side expressions or right hand side should be with dimension = 1. [ Left expresion dimension = "
+        << mpLeft->GetDimension() << ", Right expresion dimensions = " << mpRight->GetDimension() << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(mpLeft.get())
+        << "Power is provided with uninitialized left hand side "
+           "expression.\n";
+
+    KRATOS_ERROR_IF_NOT(mpRight.get())
+        << "Power is provided with uninitialized right hand side "
+           "expression.\n";
+}
+
+double BinaryPowerExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType ComponentIndex) const
+{
+    return std::pow(mpLeft->Evaluate(EntityIndex, ComponentIndex), mpRight->Evaluate(EntityIndex, ComponentIndex));
+}
+
+IndexType BinaryPowerExpression::GetDimension() const
+{
+    return this->mpLeft->GetDimension();
+}
+
 template <class TContainerType>
 ContainerVariableDataHolderBase<TContainerType>::ContainerVariableDataHolderBase(ModelPart& rModelPart)
-    : mDataDimension(0),
-      mpModelPart(&rModelPart)
+    : mpModelPart(&rModelPart)
 {
 }
 
 template <class TContainerType>
 ContainerVariableDataHolderBase<TContainerType>::ContainerVariableDataHolderBase(
     const ContainerVariableDataHolderBase& rOther)
-    : mDataDimension(rOther.mDataDimension),
+    : mpExpression(rOther.mpExpression),
       mpModelPart(rOther.mpModelPart)
 {
-    this->CopyDataFrom(rOther);
 }
 template <class TContainerType>
 void ContainerVariableDataHolderBase<TContainerType>::CopyDataFrom(
     const ContainerVariableDataHolderBase<TContainerType>& rOther)
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Modelpart mismatch between origin and destination for copy.\n"
-        << "   Destination = " << this->GetModelPart().FullName() << "\n"
-        << "   Origin = " << rOther.GetModelPart().FullName() << "\n.";
-
-    if (this->mData.size() != rOther.mData.size()) {
-        this->mData.resize(rOther.mData.size(), false);
-    }
-
-    this->mDataDimension = rOther.mDataDimension;
-
-    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
-        this->mData[Index] = rOther.mData[Index];
-    });
+    mpExpression = rOther.mpExpression;
 }
 
 template <class TContainerType>
-void ContainerVariableDataHolderBase<TContainerType>::SetDataToZero(const IndexType DataDimension)
+void ContainerVariableDataHolderBase<TContainerType>::SetDataToZero()
 {
-    this->mDataDimension = DataDimension;
+    mpExpression = std::make_shared<LiteralDoubleExpression>(0.0);
+}
 
-    auto& r_data = this->mData;
-    const IndexType number_of_entities = this->GetContainer().size();
+template <class TContainerType>
+void ContainerVariableDataHolderBase<TContainerType>::SetExpression(std::shared_ptr<Expression> pExpression)
+{
+    this->mpExpression = pExpression;
+}
 
-    r_data.resize(number_of_entities * this->mDataDimension);
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
-        r_data[Index] = 0.0;
-    });
+template <class TContainerType>
+const Expression& ContainerVariableDataHolderBase<TContainerType>::GetExpression() const
+{
+    if (mpExpression) {
+        return *mpExpression;
+    } else {
+        KRATOS_ERROR << "Uninitialized expression.\n";
+    }
 }
 
 template <class TContainerType>
 IndexType ContainerVariableDataHolderBase<TContainerType>::GetDataDimension() const
 {
-    return mDataDimension;
-}
-
-template <class TContainerType>
-void ContainerVariableDataHolderBase<TContainerType>::ResizeDataTo(const ContainerVariableDataHolderBase<TContainerType>& rOther)
-{
-    mDataDimension = rOther.mDataDimension;
-    if (mData.size() != rOther.mData.size()) {
-        mData.resize(rOther.mData.size(), false);
-    }
-}
-
-template <class TContainerType>
-Vector& ContainerVariableDataHolderBase<TContainerType>::GetData()
-{
-    return mData;
-}
-
-template <class TContainerType>
-const Vector& ContainerVariableDataHolderBase<TContainerType>::GetData() const
-{
-    return mData;
+    return this->GetExpression().GetDimension();
 }
 
 template <class TContainerType>
@@ -158,8 +340,7 @@ std::string ContainerVariableDataHolderBase<TContainerType>::Info() const
     msg << "ContainerVariableDataHolderInfo: [ ModelPartName: "
         << this->GetModelPart().FullName()
         << ", Number of entities: " << this->GetContainer().size()
-        << ", Data size: " << mData.size()
-        << ", Data dimension: " << mDataDimension << " ].\n";
+        << ", Data dimension: " << this->GetDataDimension() << " ].\n";
 
     return msg.str();
 }
@@ -168,7 +349,7 @@ template <class TContainerType>
 std::string ContainerVariableDataHolderBase<TContainerType>::PrintData() const
 {
     std::stringstream msg;
-    msg << this->Info() << "Data: " << this->mData << "\n";
+    msg << this->Info();
     return msg.str();
 }
 

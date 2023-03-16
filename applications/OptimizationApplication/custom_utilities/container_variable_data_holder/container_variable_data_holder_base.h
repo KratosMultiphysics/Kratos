@@ -13,7 +13,10 @@
 #pragma once
 
 // System includes
+#include <cmath>
 #include <string>
+#include <variant>
+#include <vector>
 
 // Project includes
 #include "includes/define.h"
@@ -104,6 +107,125 @@ public:
     ///@}
 };
 
+
+class Expression
+{
+public:
+    virtual double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const = 0;
+
+    virtual IndexType GetDimension() const = 0;
+};
+
+class LiteralDoubleExpression : public Expression
+{
+public:
+    LiteralDoubleExpression(const double Value);
+
+    double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
+
+    IndexType GetDimension() const override;
+private:
+    const double mValue;
+};
+
+class LiteralArray3Expression : public Expression
+{
+public:
+    LiteralArray3Expression(const array_1d<double, 3>& Value, const IndexType Dimension);
+
+    double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
+
+    IndexType GetDimension() const override;
+private:
+    const array_1d<double, 3> mValue;
+
+    const IndexType mDimension;
+};
+
+class LiteralVectorExpression : public Expression
+{
+public:
+    LiteralVectorExpression(std::shared_ptr<Vector> pValue, const IndexType Dimension);
+
+    double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
+
+    IndexType GetDimension() const override;
+private:
+    const std::shared_ptr<Vector> mpValue;
+
+    const IndexType mDimension;
+};
+
+class BinaryAddExpression : public Expression
+{
+public:
+    BinaryAddExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+
+    double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
+
+    IndexType GetDimension() const override;
+private:
+    const std::shared_ptr<Expression> mpLeft;
+
+    const std::shared_ptr<Expression> mpRight;
+};
+
+class BinarySubstractExpression : public Expression
+{
+public:
+    BinarySubstractExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+
+    double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
+
+    IndexType GetDimension() const override;
+private:
+    const std::shared_ptr<Expression> mpLeft;
+
+    const std::shared_ptr<Expression> mpRight;
+};
+
+class BinaryMultiplyExpression : public Expression
+{
+public:
+    BinaryMultiplyExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+
+    double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
+
+    IndexType GetDimension() const override;
+private:
+    const std::shared_ptr<Expression> mpLeft;
+
+    const std::shared_ptr<Expression> mpRight;
+};
+
+class BinaryDivideExpression : public Expression
+{
+public:
+    BinaryDivideExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+
+    double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
+
+    IndexType GetDimension() const override;
+private:
+    const std::shared_ptr<Expression> mpLeft;
+
+    const std::shared_ptr<Expression> mpRight;
+};
+
+class BinaryPowerExpression : public Expression
+{
+public:
+    BinaryPowerExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+
+    double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
+
+    IndexType GetDimension() const override;
+private:
+    const std::shared_ptr<Expression> mpLeft;
+
+    const std::shared_ptr<Expression> mpRight;
+};
+
 template <class TContainerType>
 class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerVariableDataHolderBase {
 public:
@@ -126,19 +248,17 @@ public:
 
     void CopyDataFrom(const ContainerVariableDataHolderBase<TContainerType>& rOther);
 
-    void SetDataToZero(const IndexType DataDimension);
+    void SetDataToZero();
 
     ///@}
     ///@name Input and output
     ///@{
 
+    void SetExpression(std::shared_ptr<Expression> pExpression);
+
+    const Expression& GetExpression() const;
+
     IndexType GetDataDimension() const;
-
-    void ResizeDataTo(const ContainerVariableDataHolderBase<TContainerType>& rOther);
-
-    Vector& GetData();
-
-    const Vector& GetData() const;
 
     ModelPart& GetModelPart();
 
@@ -167,9 +287,7 @@ protected:
     ///@name Protected member variables
     ///@{
 
-    Vector mData;
-
-    IndexType mDataDimension;
+    std::shared_ptr<Expression> mpExpression = nullptr;
 
     ModelPart* const mpModelPart;
 
