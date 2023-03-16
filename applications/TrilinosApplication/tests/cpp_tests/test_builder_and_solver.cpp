@@ -714,7 +714,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system
     */
-    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -776,7 +776,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system
     */
-    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithInactiveConstraints, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithInactiveConstraints, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -841,7 +841,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system with auxiliary node
     */
-    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNode, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNode, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -903,7 +903,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system with auxiliary node (inverted)
     */
-    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNodeInverted, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNodeInverted, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
