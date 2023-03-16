@@ -267,7 +267,7 @@ public:
         mData.swap(rOther.mData);
     }
 
-    void push_back(TPointerType x)
+    void push_back(const TPointerType& x)
     {
         mData.push_back(std::move(x));
     }
