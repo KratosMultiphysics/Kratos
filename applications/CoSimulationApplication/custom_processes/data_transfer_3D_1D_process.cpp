@@ -58,8 +58,12 @@ DataTransfer3D1DProcess::DataTransfer3D1DProcess(
     const bool has_intersected_model_part = mr3DModelPart.HasSubModelPart("IntersectedElements3D");
     auto& r_aux_model_part_3D = has_intersected_model_part ? mr3DModelPart.GetSubModelPart("IntersectedElements3D") : mr3DModelPart.CreateSubModelPart("IntersectedElements3D");
     if (has_intersected_model_part) {
-        r_aux_model_part_3D.Clear();
+        VariableUtils().SetFlag(TO_ERASE, true, r_aux_model_part_3D.Nodes());
+        VariableUtils().SetFlag(TO_ERASE, true, r_aux_model_part_3D.Elements());
+        r_aux_model_part_3D.RemoveNodes(TO_ERASE);
+        r_aux_model_part_3D.RemoveElements(TO_ERASE);
     }
+
 
     // Max length of the elements considered
     const double max_length_1d = GetMaxLength(mr1DModelPart);
