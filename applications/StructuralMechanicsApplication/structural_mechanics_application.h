@@ -76,7 +76,8 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
-#include "custom_elements/small_displacement_mixed_volumetric_strain_modal_analysis_element.h"
+// #include "custom_elements/small_displacement_mixed_volumetric_strain_oss_element.h"
+// #include "custom_elements/small_displacement_mixed_volumetric_strain_modal_analysis_element.h"
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
@@ -330,11 +331,16 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    // const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement2D3N;
+    // const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement2D4N;
+    // const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement3D4N;
+    // const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement3D8N;
     
-    const SmallDisplacementMixedVolumetricStrainModalAnalysisElement mSmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N;
-    const SmallDisplacementMixedVolumetricStrainModalAnalysisElement mSmallDisplacementMixedVolumetricStrainModalAnalysisElement2D4N;
-    const SmallDisplacementMixedVolumetricStrainModalAnalysisElement mSmallDisplacementMixedVolumetricStrainModalAnalysisElement3D4N;
-    const SmallDisplacementMixedVolumetricStrainModalAnalysisElement mSmallDisplacementMixedVolumetricStrainModalAnalysisElement3D8N;
+    // const SmallDisplacementMixedVolumetricStrainModalAnalysisElement mSmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N;
+    // const SmallDisplacementMixedVolumetricStrainModalAnalysisElement mSmallDisplacementMixedVolumetricStrainModalAnalysisElement2D4N;
+    // const SmallDisplacementMixedVolumetricStrainModalAnalysisElement mSmallDisplacementMixedVolumetricStrainModalAnalysisElement3D4N;
+    // const SmallDisplacementMixedVolumetricStrainModalAnalysisElement mSmallDisplacementMixedVolumetricStrainModalAnalysisElement3D8N;
 
     const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
     const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;

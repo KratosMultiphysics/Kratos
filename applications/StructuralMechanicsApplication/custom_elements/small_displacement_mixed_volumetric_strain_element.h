@@ -34,12 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -65,6 +59,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedVolumet
 {
 
 protected:
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /**
      * Internal variables used in the kinematic calculations
@@ -127,6 +127,47 @@ protected:
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
             D = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+    struct GaussPointAuxiliaryVariables
+    {
+        double Dt;
+        double Rho;
+        double Tau1; 
+        double Tau2;
+        double Weight; 
+        double BulkModulus; 
+        
+        Vector m; // Voigt identity
+        Vector m_T; // Voigt identity x anisotropy tensor
+        Vector invT_m; // Anisotropy tensor inverse x Voigt identity
+        Vector BodyForce; // Body force value at current Gauss point
+        Vector VolumetricStrainGradient; // Volumetric strain gradient at current Gauss point
+        Vector DisplacementSubscaleAcceleration; // Displacement subscale acceleration term for dynamic subscale calculation
+
+        GaussPointAuxiliaryVariables(
+            const SmallDisplacementMixedVolumetricStrainElement* pElement,
+            const SizeType Dimension,
+            const SizeType StrainSize)
+        {
+            // Array allocation
+            BodyForce.resize(Dimension);
+            VolumetricStrainGradient.resize(Dimension);
+
+            // Initialize the subscale acceleration to zero for the static case
+            // Note that the zero value is only overwritten in the dynamic case
+            DisplacementSubscaleAcceleration = ZeroVector(Dimension);
+
+            // Define the identity tensor in Voigt notation
+            m =  ZeroVector(StrainSize);
+            for (IndexType d = 0; d < Dimension; ++d) {
+                m[d] = 1.0;
+            }
+
+            // Calculate the anisotropy tensor products
+            m_T = prod(m, pElement->mAnisotropyTensor);
+            invT_m = prod(pElement->mInverseAnisotropyTensor, m);
         }
     };
 
@@ -326,16 +367,6 @@ public:
         Vector& rValues,
         int Step = 0) const override;
 
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -519,6 +550,25 @@ protected:
         MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
         const ProcessInfo& rProcessInfo) const;
 
+    virtual void CalculateLocalSystemGaussPointContribution(
+        VectorType& rRightHandSideVector,
+        MatrixType& rLeftHandSideMatrix,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
+
+    virtual void CalculateRightHandSideGaussPointContribution(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
+
+    virtual void CalculateLeftHandSideGaussPointContribution(
+        MatrixType& rLeftHandSideMatrix,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -575,6 +625,13 @@ private:
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) const;
+
+    void CalculateGaussPointAuxiliaryVariables(
+        GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const ProcessInfo& rProcessInfo,
+        const IndexType PointNumber) const;
 
     /**
      * @brief Calculation of the Deformation Matrix B
