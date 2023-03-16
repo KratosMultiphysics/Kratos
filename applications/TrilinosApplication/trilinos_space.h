@@ -69,7 +69,6 @@ namespace Kratos
  * @author Riccardo Rossi
  * @tparam TMatrixType The matrix type considered
  * @tparam TVectorType the vector type considered
- * @tparam TGraph The graph considered
  */
 template<class TMatrixType, class TVectorType>
 class TrilinosSpace
