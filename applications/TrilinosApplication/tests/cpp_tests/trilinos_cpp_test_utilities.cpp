@@ -50,9 +50,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     const DataCommunicator& rDataCommunicator,
     const int NumGlobalElements,
     const double Offset,
-    const bool AddNoDiagonalValues,
-    const Epetra_Map* pProvidedRowMap,
-    const Epetra_Map* pProvidedColumnMap
+    const bool AddNoDiagonalValues
     )
 {
     // Generate Epetra communicator
@@ -61,14 +59,14 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
     // Create a map
-    const Epetra_Map row_map = pProvidedRowMap == nullptr ? Epetra_Map(NumGlobalElements,0,epetra_comm) : *pProvidedRowMap;
-    const Epetra_Map column_map = pProvidedColumnMap == nullptr ? Epetra_Map(NumGlobalElements,0,epetra_comm) : *pProvidedColumnMap;
+    const Epetra_Map map(NumGlobalElements,0,epetra_comm);
+    KRATOS_ERROR_IF_NOT(map.NumGlobalElements() == NumGlobalElements) << "Inconsistent number of rows" << std::endl;
 
     // Local number of rows
-    const int NumMyElements = row_map.NumMyElements();
+    const int NumMyElements = map.NumMyElements();
 
     // Get update list
-    int* MyGlobalElements = row_map.MyGlobalElements( );
+    int* MyGlobalElements = map.MyGlobalElements( );
 
     // Create an integer vector NumNz that is used to build the EPetra Matrix.
     // NumNz[i] is the Number of OFF-DIAGONAL term for the ith global equation
@@ -86,7 +84,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     }
 
     // Create an Epetra_Matrix
-    TrilinosSparseMatrixType A = pProvidedRowMap == nullptr ? TrilinosSparseMatrixType(Copy, row_map, NumNz.data()) : pProvidedRowMap == nullptr ? TrilinosSparseMatrixType(Copy, row_map, NumNz.data()): TrilinosSparseMatrixType(Copy, row_map, column_map, NumNz.data());
+    TrilinosSparseMatrixType A(Copy, map, NumNz.data());
 
     std::vector<double> non_diagonal_values(2);
     non_diagonal_values[0] = -1.0; non_diagonal_values[1] = -1.0;
@@ -143,8 +141,7 @@ TrilinosCPPTestUtilities::TrilinosLocalVectorType TrilinosCPPTestUtilities::Gene
 TrilinosCPPTestUtilities::TrilinosVectorType TrilinosCPPTestUtilities::GenerateDummySparseVector(
     const DataCommunicator& rDataCommunicator,
     const int NumGlobalElements,
-    const double Offset,
-    const Epetra_Map* pProvidedMap
+    const double Offset
     )
 {
     // Generate Epetra communicator
@@ -153,7 +150,7 @@ TrilinosCPPTestUtilities::TrilinosVectorType TrilinosCPPTestUtilities::GenerateD
     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
     // Create a map
-    const Epetra_Map map = pProvidedMap == nullptr ? Epetra_Map(NumGlobalElements,0,epetra_comm) : *pProvidedMap;
+    const Epetra_Map map(NumGlobalElements,0,epetra_comm);
 
     // Local number of rows
     const int NumMyElements = map.NumMyElements();
