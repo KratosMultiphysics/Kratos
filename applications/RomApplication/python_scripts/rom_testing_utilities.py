@@ -15,7 +15,7 @@ def SetUpSimulationInstance(model, parameters):
     analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
 
     # Set up simulation
-    model = KratosMultiphysics.Model()
+    # model = KratosMultiphysics.Model()
     instance_factory = KratosMultiphysics.RomApplication.rom_analysis.CreateRomAnalysisInstance
     simulation = instance_factory(
         analysis_stage_class,

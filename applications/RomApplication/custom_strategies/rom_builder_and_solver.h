@@ -658,6 +658,7 @@ protected:
         // Define a dense matrix to hold the reduced problem
         rA = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
         rb = ZeroVector(mNumberOfRomModes);
+        KRATOS_WATCH(mNumberOfRomModes)
 
         // Build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
