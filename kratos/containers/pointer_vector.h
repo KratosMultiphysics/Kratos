@@ -272,6 +272,11 @@ public:
         mData.push_back(std::move(x));
     }
 
+    void push_back(TPointerType&& rX)
+    {
+        mData.push_back(std::move(rX));
+    }
+
     template<class... Args>
     void emplace_back(Args&&... args) 
     {
