@@ -1570,7 +1570,7 @@ private:
     {
         IndexType index;
         for (index = 0; index < mFirstMyIds.size() - 1; ++index) {
-            if (Index < mFirstMyIds[index + 1]) {
+            if (Index < static_cast<unsigned int>(mFirstMyIds[index + 1])) {
                 break;
             }
         }
