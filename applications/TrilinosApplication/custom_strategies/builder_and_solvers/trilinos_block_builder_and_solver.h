@@ -1115,7 +1115,7 @@ protected:
             const IndexType number_of_local_rows = mLocalSystemSize;
 
             // Generate map - use the "temp" array here
-            const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_rows;
+            const int temp_size = (number_of_local_rows < 1000) ? 1000 : number_of_local_rows;
             std::vector<int> temp_primary(temp_size, 0);
             std::vector<int> temp_secondary(temp_size, 0);
             for (IndexType i = 0; i != number_of_local_rows; i++) {
@@ -1351,7 +1351,7 @@ protected:
         const IndexType number_of_local_rows = mLocalSystemSize;
 
         // Generate map - use the "temp" array here
-        const int temp_size = (temp_size < 1000) ? 1000 : number_of_local_rows;
+        const int temp_size = (number_of_local_rows < 1000) ? 1000 : number_of_local_rows;
         std::vector<int> temp_primary(temp_size, 0);
         std::vector<int> temp_secondary(temp_size, 0);
         for (IndexType i = 0; i != number_of_local_rows; i++) {
@@ -1550,7 +1550,7 @@ private:
     {
         if (mpMap == nullptr) {
             // Generate map - use the "temp" array here
-            const int temp_size = (temp_size < 1000) ? 1000 : mLocalSystemSize;
+            const int temp_size = (mLocalSystemSize < 1000) ? 1000 : mLocalSystemSize;
             std::vector<int> temp_primary(temp_size, 0);
             for (IndexType i = 0; i != mLocalSystemSize; i++) {
                 temp_primary[i] = mFirstMyId + i;
