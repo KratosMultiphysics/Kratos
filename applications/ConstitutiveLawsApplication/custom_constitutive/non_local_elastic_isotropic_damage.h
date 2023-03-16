@@ -8,7 +8,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Marcelo Raschi
+//  Main authors:    Athira Vadakkekkara
 //  Collaborator:
 
 #if !defined(KRATOS_NON_LOCAL_ELASTIC_ISOTROPIC_DAMAGE_H_INCLUDED)

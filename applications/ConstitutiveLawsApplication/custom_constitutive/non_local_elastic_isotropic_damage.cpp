@@ -8,7 +8,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Marcelo Raschi
+//  Main authors:    Athira Vadakkekkara
 //  Collaborators:
 //
 
@@ -64,12 +64,14 @@ int NonLocalElasticIsotropicDamage::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    // const double tolerance = std::numeric_limits<double>::epsilon();
-
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS_TENSION));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION));
+    KRATOS_CHECK(rMaterialProperties.Has(DAMAGE_MODEL_PARAMETER_BETA1_TENSION));
+    KRATOS_CHECK(rMaterialProperties.Has(DAMAGE_MODEL_PARAMETER_BETA2_TENSION));
+    KRATOS_CHECK(rMaterialProperties.Has(DAMAGE_MODEL_PARAMETER_BETA1_COMPRESSION));
+    KRATOS_CHECK(rMaterialProperties.Has(DAMAGE_MODEL_PARAMETER_BETA2_COMPRESSION));
     return 0;
 }
 
@@ -188,7 +190,6 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
     Flags& r_constitutive_law_options = rParametersValues.GetOptions();
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
-    KRATOS_WATCH(r_strain_vector);
     CalculateValue(rParametersValues, STRAIN, r_strain_vector);
 
     // If we compute the tangent moduli or the stress
@@ -221,8 +222,6 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         Vector dSmaxdSig = ZeroVector(6);;
         double SprMax;
         GetEigenValues(r_stress_vector, Spr, SprMax);
-        KRATOS_WATCH(Spr);
-        KRATOS_WATCH(SprMax);
         
         //manipulation of zero entries in stress
         if( (fabs(Spr(0)-Spr(1)) < 2.0*eps ) && ( fabs(Spr(0)-Spr(2)) < 2.0*eps ) && ( fabs(Spr(1)-Spr(2)) < 2.0*eps ) )
@@ -250,23 +249,22 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
                 dSmaxdSig[i]= dSprdS(0,i); 
             }
         }
-        KRATOS_WATCH(H);
         //local damage equivalent strain
         Eps_eq = (std::sqrt( 3. * J2 ) + alphaL * I1 + betaL * H * SprMax) /(E * ( 1. - alphaL)) ;
         const double beta1t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_TENSION];
         const double beta2t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA2_TENSION];
         const double beta1c = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_COMPRESSION];
         const double beta2c = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA2_COMPRESSION];
-        double k0t,k0c;
-
-        const double k0t0 = r_material_properties[DAMAGE_THRESHOLD_TENSION];
-        const double k0c0 = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
-        if (k0t0==0 || k0c0==0){
-            k0t = fck/E;
-            k0c = (10./3.) * ft/E;
+        double k0t, k0c;
+        if(r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true){
+            k0t = r_material_properties[DAMAGE_THRESHOLD_TENSION];
         }else{
-            k0t = std::min(k0t0,fck/E);
-            k0c = std::min(k0c0,(10./3.) * ft/E);
+            k0t = fck/E;
+        }
+        if(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true){
+            k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
+        }else{
+            k0c = (10./3.) * ft/E;
         }
         double k0 = k0t  * H  + (1.-H) * k0c;
         double beta1 = beta1t  * H  + (1.-H) * beta1c;
@@ -297,7 +295,6 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         }else{       
             DN                  = std::pow((1.0 - NL_Damage_GP),2);
             r_stress_vector    *= DN;
-            KRATOS_WATCH(NL_Damage_GP);
             //Huu = dSigmadEps; HuDNL = dSigmadDNL; HDNLu = dDlocaldEps; HDNLDNL = dDlocal/dDNL;        
             double dKappadSmax  = betaL * H;
             Vector dKappadSig   = 1./(E * (1.-alphaL)) * (alphaL * dI1dS + 1.5/std::sqrt(3.*J2) * dJ2dS);
@@ -312,11 +309,6 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         }
         if(D < 0.0) D = 0.0;
         rDamageVariable = D;
-        KRATOS_WATCH(D);
-        KRATOS_WATCH(r_stress_vector);
-        KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
-        KRATOS_WATCH("-------------------------------------------");
-        //std::exit(-1);
     }
     KRATOS_CATCH("")
 }

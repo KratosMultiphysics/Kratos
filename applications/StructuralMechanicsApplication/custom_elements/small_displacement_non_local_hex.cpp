@@ -6,8 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Athira Vadakkekkara
 //
 
 // System includes
@@ -483,7 +482,6 @@ void SmallDisplacementNonLocalHex::CalculateAllConstitutiveVariables(
     KRATOS_TRY;
     // Set the constitutive variables
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rThisNonLocalConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
-    KRATOS_WATCH(PointNumber);
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
     //NOTE: setting NonLocalConstitutiveVariables from the constitutivematrix(7,7)
@@ -804,7 +802,6 @@ void SmallDisplacementNonLocalHex::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_WATCH("////////////////////calculate_On_Integration_Points/////////////////////");
     auto& r_geometry = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints( this->GetIntegrationMethod() );
 

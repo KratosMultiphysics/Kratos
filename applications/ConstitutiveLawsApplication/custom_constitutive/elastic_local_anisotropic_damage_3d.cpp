@@ -64,12 +64,14 @@ int ElasticAnisotropicDamage::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    // const double tolerance = std::numeric_limits<double>::epsilon();
-
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS_TENSION));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION));
+    KRATOS_CHECK(rMaterialProperties.Has(DAMAGE_MODEL_PARAMETER_BETA1_TENSION));
+    KRATOS_CHECK(rMaterialProperties.Has(DAMAGE_MODEL_PARAMETER_BETA2_TENSION));
+    KRATOS_CHECK(rMaterialProperties.Has(DAMAGE_MODEL_PARAMETER_BETA1_COMPRESSION));
+    KRATOS_CHECK(rMaterialProperties.Has(DAMAGE_MODEL_PARAMETER_BETA2_COMPRESSION));
     return 0;
 }
 
@@ -211,9 +213,6 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         const double E   = r_material_properties[YOUNG_MODULUS];
         const double fck = r_material_properties[YIELD_STRESS_COMPRESSION];
         const double ft  = r_material_properties[YIELD_STRESS_TENSION];
-        const double k0t0 = r_material_properties[DAMAGE_THRESHOLD_TENSION];
-        const double k0c0 = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
-        double k0t, k0c ;
         double SprMax = 0.0;
         double Max_principal_strain = 0.0;
         BoundedVectorType damage_vector= ZeroVector(3);
@@ -226,17 +225,21 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         BoundedMatrix6x3Type dHdk   = ZeroMatrix(6,3);
 
         GetEigenValues(Spr, SprMax, STRESSES, r_stress_vector);
-        ManipulationOfZeroEntries(Spr, eps);         //manipulation of zero entries in stress
+        ManipulationOfZeroEntries(Spr, eps);         
         const double H = (SprMax < eps) ? 0.0 : 1.0;
         double r=0.0; 
         GetStressWeightFactor(r,Spr);
         const double del_r = (r > 0 && r < 0.1) ? 1.0 : 0.0;
-        if (k0t0==0 || k0c0==0){
-            k0t = fck/(E*7.93103);//to be modified later
-            k0c = (10./3.) * ft/E;
+        double k0t, k0c;
+        if(r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true){
+            k0t = r_material_properties[DAMAGE_THRESHOLD_TENSION];
         }else{
-            k0t = std::min(k0t0,fck/E);
-            k0c = std::min(k0c0,(10./3.) * ft/E);
+            k0t = fck/E;
+        }
+        if(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true){
+            k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
+        }else{
+            k0c = (10./3.) * ft/E;
         }
         const double k0 = k0t  * H * (1-del_r) + (1.0- H + del_r) * k0c;
         const double beta1 = beta1t  * H * (1-del_r) + (1.-H + del_r) * beta1c;
