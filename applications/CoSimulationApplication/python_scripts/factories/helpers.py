@@ -22,7 +22,7 @@ def AddEchoLevelToSettings(settings, echo_level):
 
 def CreatePredictors(predictor_settings_list, solvers, parent_echo_level):
     predictors = []
-    for predictor_settings in predictor_settings_list:
+    for predictor_settings in predictor_settings_list.values():
         solver = solvers[predictor_settings["solver"].GetString()]
         AddEchoLevelToSettings(predictor_settings, parent_echo_level)
         predictors.append(CreatePredictor(predictor_settings, solver))
@@ -33,7 +33,7 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list: KM.Para
                                   parent_data_communicator: KM.DataCommunicator,
                                   parent_echo_level: int):
     convergence_accelerators = []
-    for conv_acc_settings in convergence_accelerator_settings_list:
+    for conv_acc_settings in convergence_accelerator_settings_list.values():
         solver = solvers[conv_acc_settings["solver"].GetString()]
         interface_data_dict = solver.data_dict
         AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
@@ -48,7 +48,7 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list: KM.Parameters
                               parent_data_communicator: KM.DataCommunicator,
                               parent_echo_level: int):
     convergence_criteria = []
-    for conv_crit_settings in convergence_criterion_settings_list:
+    for conv_crit_settings in convergence_criterion_settings_list.values():
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
         if conv_crit_settings.Has("use_wrapper") and not conv_crit_settings["use_wrapper"].GetBool():
             convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solvers))
