@@ -1027,40 +1027,72 @@ public:
         const MatrixType& rB
         )
     {
+        // Row maps must be the same
         KRATOS_ERROR_IF_NOT(rA.RowMap().SameAs(rB.RowMap())) << "Row maps are not compatible" << std::endl;
-        KRATOS_ERROR_IF_NOT(rA.ColMap().SameAs(rB.ColMap())) << "Column maps are not compatible" << std::endl;
-        Epetra_CrsGraph graph(::Copy, rA.RowMap(), rA.ColMap(), 1000);
 
         // Gettings the graphs
         const auto& r_graph_a = rA.Graph();
         const auto& r_graph_b = rB.Graph();
+
+        // Assuming local indexes
+        KRATOS_ERROR_IF_NOT(r_graph_a.IndicesAreLocal() && r_graph_b.IndicesAreLocal()) << "Graphs indexes must be local" << std::endl;
 
         // Some definitions
         int i, j, ierr;
         int num_entries; // Number of non-zero entries
         int* cols;       // Column indices of row non-zero values
         std::unordered_set<int> combined_indexes;
-        for (i = 0; i < r_graph_a.NumMyRows(); i++) {
-            // First graph
-            ierr = r_graph_a.ExtractMyRowView(i, num_entries, cols);
-            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (I) with code ierr = " << ierr << std::endl;
-            for (j = 0; j < num_entries; j++) {
-                combined_indexes.insert(cols[j]);
+        const bool same_col_map = rA.ColMap().SameAs(rB.ColMap());
+        Epetra_CrsGraph graph = same_col_map ? Epetra_CrsGraph(::Copy, rA.RowMap(), rA.ColMap(), 1000) : Epetra_CrsGraph(::Copy, rA.RowMap(), 1000);
+
+        // Same column map. Local indices, simpler and faster
+        if (same_col_map) {
+            for (i = 0; i < r_graph_a.NumMyRows(); i++) {
+                // First graph
+                ierr = r_graph_a.ExtractMyRowView(i, num_entries, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (I) with code ierr = " << ierr << std::endl;
+                for (j = 0; j < num_entries; j++) {
+                    combined_indexes.insert(cols[j]);
+                }
+                // Second graph
+                ierr = r_graph_b.ExtractMyRowView(i, num_entries, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (II) with code ierr = " << ierr << std::endl;
+                for (j = 0; j < num_entries; j++) {
+                    combined_indexes.insert(cols[j]);
+                }
+                // Vector equivalent
+                std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
+                num_entries = combined_indexes_vector.size();
+                // Adding to graph
+                ierr = graph.InsertMyIndices(i, num_entries, combined_indexes_vector.data());
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
+                // Clear set
+                combined_indexes.clear();
             }
-            // Second graph
-            ierr = r_graph_b.ExtractMyRowView(i, num_entries, cols);
-            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (II) with code ierr = " << ierr << std::endl;
-            for (j = 0; j < num_entries; j++) {
-                combined_indexes.insert(cols[j]);
+        } else { // Different column map, global indices
+            for (i = 0; i < r_graph_a.NumMyRows(); i++) {
+                const int global_row_index = r_graph_a.GRID(i);
+                // First graph
+                ierr = r_graph_a.ExtractMyRowView(i, num_entries, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (I) with code ierr = " << ierr << std::endl;
+                for (j = 0; j < num_entries; j++) {
+                    combined_indexes.insert(r_graph_a.GCID(cols[j]));
+                }
+                // Second graph
+                ierr = r_graph_b.ExtractMyRowView(i, num_entries, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (II) with code ierr = " << ierr << std::endl;
+                for (j = 0; j < num_entries; j++) {
+                    combined_indexes.insert(r_graph_b.GCID(cols[j]));
+                }
+                // Vector equivalent
+                std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
+                num_entries = combined_indexes_vector.size();
+                // Adding to graph
+                ierr = graph.InsertGlobalIndices(global_row_index, num_entries, combined_indexes_vector.data());
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
+                // Clear set
+                combined_indexes.clear();
             }
-            // Vector equivalent
-            std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
-            num_entries = combined_indexes_vector.size();
-            // Adding to graph
-            ierr = graph.InsertMyIndices(i, num_entries, combined_indexes_vector.data());
-            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
-            // Clear set
-            combined_indexes.clear();
         }
 
         // Finalizing graph construction
