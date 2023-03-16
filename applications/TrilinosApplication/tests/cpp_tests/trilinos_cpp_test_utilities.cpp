@@ -51,7 +51,8 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     const int NumGlobalElements,
     const double Offset,
     const bool AddNoDiagonalValues,
-    const Epetra_Map* pProvidedMap
+    const Epetra_Map* pProvidedRowMap,
+    const Epetra_Map* pProvidedColumnMap
     )
 {
     // Generate Epetra communicator
@@ -60,13 +61,14 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
     // Create a map
-    const Epetra_Map map = pProvidedMap == nullptr ? Epetra_Map(NumGlobalElements,0,epetra_comm) : *pProvidedMap;
+    const Epetra_Map row_map = pProvidedRowMap == nullptr ? Epetra_Map(NumGlobalElements,0,epetra_comm) : *pProvidedRowMap;
+    const Epetra_Map column_map = pProvidedColumnMap == nullptr ? Epetra_Map(NumGlobalElements,0,epetra_comm) : *pProvidedColumnMap;
 
     // Local number of rows
-    const int NumMyElements = map.NumMyElements();
+    const int NumMyElements = row_map.NumMyElements();
 
     // Get update list
-    int* MyGlobalElements = map.MyGlobalElements( );
+    int* MyGlobalElements = row_map.MyGlobalElements( );
 
     // Create an integer vector NumNz that is used to build the EPetra Matrix.
     // NumNz[i] is the Number of OFF-DIAGONAL term for the ith global equation
@@ -84,7 +86,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     }
 
     // Create an Epetra_Matrix
-    TrilinosSparseMatrixType A = pProvidedMap == nullptr ? TrilinosSparseMatrixType(Copy, map, NumNz.data()) : TrilinosSparseMatrixType(Copy, map, map, NumNz.data());
+    TrilinosSparseMatrixType A = pProvidedRowMap == nullptr ? TrilinosSparseMatrixType(Copy, row_map, NumNz.data()) : pProvidedRowMap == nullptr ? TrilinosSparseMatrixType(Copy, row_map, NumNz.data()): TrilinosSparseMatrixType(Copy, row_map, column_map, NumNz.data());
 
     std::vector<double> non_diagonal_values(2);
     non_diagonal_values[0] = -1.0; non_diagonal_values[1] = -1.0;
