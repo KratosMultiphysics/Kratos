@@ -146,19 +146,10 @@ public:
     // TODO: We should place the OSS projections somewhere else
     void Initialize(ModelPart& rModelPart) override
     {
-        // Allocate the OSS projection variables
-        const auto &r_process_info = rModelPart.GetProcessInfo();
-        const bool oss_switch = r_process_info.Has(OSS_SWITCH) ? r_process_info[OSS_SWITCH] : false;
-        if (oss_switch) {
-            const array_1d<double,3> aux_zero = ZeroVector(3);
-            block_for_each(rModelPart.Nodes(), aux_zero, [](Node<3>& rNode, array_1d<double,3>& rAuxZero){
-                rNode.SetValue(VOLUMETRIC_STRAIN_PROJECTION, 0.0);
-                rNode.SetValue(DISPLACEMENT_PROJECTION, rAuxZero);
-            });
-        }
-
         // Update the NODAL_AREA
         // TODO: This is only required in the updated Lagrangian case, we should find a smart way to avoid it at each step
+        const auto &r_process_info = rModelPart.GetProcessInfo();
+        const bool oss_switch = r_process_info.Has(OSS_SWITCH) ? r_process_info[OSS_SWITCH] : false;
         if (oss_switch) {
             CalculateNodalAreaProcess<false>(rModelPart).Execute();
         }
@@ -186,8 +177,8 @@ public:
         if (oss_switch) {
             // Initialize the projection values
             block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
-                rNode.GetValue(DISPLACEMENT_PROJECTION) = ZeroVector(3);
-                rNode.GetValue(VOLUMETRIC_STRAIN_PROJECTION) = 0.0;
+                rNode.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0.0;
             });
 
             // Calculate the element residuals projection
@@ -203,8 +194,8 @@ public:
             //TODO: We need to do the weighted L2 projection with the density for the multimaterial case
             block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
                 const double nodal_area = rNode.GetValue(NODAL_AREA);
-                rNode.GetValue(DISPLACEMENT_PROJECTION) /= nodal_area;
-                rNode.GetValue(VOLUMETRIC_STRAIN_PROJECTION) /= nodal_area;
+                rNode.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) /= nodal_area;
+                rNode.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) /= nodal_area;
             });
         }
 

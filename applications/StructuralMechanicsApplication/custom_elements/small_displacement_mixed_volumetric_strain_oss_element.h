@@ -135,6 +135,15 @@ public:
         IndexType NewId,
         NodesArrayType const& rThisNodes) const override;
 
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+    
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void Calculate(
         const Variable<double>& rVariable,
         double& rOutput,
@@ -214,26 +223,29 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // void CalculateOrthogonalSubScalesOperator(
-    //     MatrixType& rOrthogonalSubScalesOperator,
-    //     const ProcessInfo& rProcessInfo) const;
+    void CalculateOssOperatorGaussPointContribution(
+        MatrixType &rOrthogonalSubScalesOperator,
+        const KinematicVariables &rThisKinematicVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
 
-    // void CalculateOrthogonalSubScalesLumpedProjectionOperator(
+    // void CalculateOssLumpedProjectionGaussPointContribution(
     //     MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
+    //     const KinematicVariables &rThisKinematicVariables,
+    //     const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables,
     //     const ProcessInfo& rProcessInfo) const;
 
-    void CalculateLocalSystemGaussPointContribution(
-        VectorType& rRightHandSideVector,
-        MatrixType& rLeftHandSideMatrix,
-        const KinematicVariables& rThisKinematicVariables,
-        const ConstitutiveVariables& rThisConstitutiveVariables,
-        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const override;
+    // void CalculateLocalSystemGaussPointContribution(
+    //     VectorType& rRightHandSideVector,
+    //     MatrixType& rLeftHandSideMatrix,
+    //     const KinematicVariables& rThisKinematicVariables,
+    //     const ConstitutiveVariables& rThisConstitutiveVariables,
+    //     const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const override;
 
-    void CalculateRightHandSideGaussPointContribution(
-        VectorType& rRightHandSideVector,
-        const KinematicVariables& rThisKinematicVariables,
-        const ConstitutiveVariables& rThisConstitutiveVariables,
-        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const override;
+    // void CalculateRightHandSideGaussPointContribution(
+    //     VectorType& rRightHandSideVector,
+    //     const KinematicVariables& rThisKinematicVariables,
+    //     const ConstitutiveVariables& rThisConstitutiveVariables,
+    //     const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const override;
 
     void UpdateGaussPointDisplacementSubscaleHistory(
         const KinematicVariables& rThisKinematicVariables,

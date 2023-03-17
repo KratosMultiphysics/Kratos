@@ -548,6 +548,13 @@ protected:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
         ) const;
 
+    void CalculateGaussPointAuxiliaryVariables(
+        GaussPointAuxiliaryVariables &rThisGaussPointAuxiliaryVariables,
+        const KinematicVariables &rThisKinematicVariables,
+        const ConstitutiveVariables &rThisConstitutiveVariables,
+        const ProcessInfo &rProcessInfo,
+        const IndexType PointNumber) const;
+
     /**
      * @brief This function computes the body force
      * @param IntegrationPoints The array containing the integration points
@@ -663,13 +670,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void CalculateGaussPointAuxiliaryVariables(
-        GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables,
-        const KinematicVariables& rThisKinematicVariables,
-        const ConstitutiveVariables& rThisConstitutiveVariables,
-        const ProcessInfo& rProcessInfo,
-        const IndexType PointNumber) const;
 
     /**
      * @brief Calculation of the Deformation Matrix B

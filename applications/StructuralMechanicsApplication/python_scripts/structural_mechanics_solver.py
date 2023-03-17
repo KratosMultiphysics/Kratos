@@ -183,12 +183,15 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         if self.settings["volumetric_strain_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_MOMENTUM)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YIELD_STRESS)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
+            # if self.settings["use_orthogonal_subscales"]:
+            #     self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
+            #     self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
         if self.settings["displacement_control"].GetBool():
             # Add displacement-control variables
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
