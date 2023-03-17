@@ -180,7 +180,7 @@ private:
 class LiteralVectorExpression : public Expression
 {
 public:
-    LiteralVectorExpression(Kratos::shared_ptr<Vector> pValue, const IndexType Dimension);
+    LiteralVectorExpression(Kratos::shared_ptr<const Vector> pValue, const IndexType Dimension);
 
     LiteralVectorExpression(const LiteralVectorExpression& rOther) = delete;
 
@@ -192,7 +192,7 @@ public:
 
     IndexType GetDimension() const override;
 private:
-    const Kratos::shared_ptr<Vector> mpValue;
+    const Kratos::shared_ptr<const Vector> mpValue;
 
     const IndexType mDimension;
 };

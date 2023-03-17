@@ -75,7 +75,7 @@ IndexType LiteralArray3Expression::GetDimension() const
 }
 
 LiteralVectorExpression::LiteralVectorExpression(
-    Kratos::shared_ptr<Vector> pValue,
+    Kratos::shared_ptr<const Vector> pValue,
     const IndexType Dimension)
     : mpValue(pValue),
       mDimension(Dimension)
@@ -207,7 +207,7 @@ double BinaryMultiplyExpression::Evaluate(
     const IndexType EntityIndex,
     const IndexType ComponentIndex) const
 {
-    return mpLeft->Evaluate(EntityIndex, ComponentIndex % this->mpLeft->GetDimension()) * mpRight->Evaluate(EntityIndex, ComponentIndex % this->mpRight->GetDimension());
+    return mpLeft->Evaluate(EntityIndex, ComponentIndex) * mpRight->Evaluate(EntityIndex, ComponentIndex % this->mpRight->GetDimension());
 }
 
 IndexType BinaryMultiplyExpression::GetDimension() const
@@ -245,7 +245,7 @@ double BinaryDivideExpression::Evaluate(
     const IndexType EntityIndex,
     const IndexType ComponentIndex) const
 {
-    return mpLeft->Evaluate(EntityIndex, ComponentIndex % this->mpLeft->GetDimension()) / mpRight->Evaluate(EntityIndex, ComponentIndex % this->mpRight->GetDimension());
+    return mpLeft->Evaluate(EntityIndex, ComponentIndex) / mpRight->Evaluate(EntityIndex, ComponentIndex % this->mpRight->GetDimension());
 }
 
 IndexType BinaryDivideExpression::GetDimension() const
