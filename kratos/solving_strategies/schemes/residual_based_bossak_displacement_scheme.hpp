@@ -1,17 +1,18 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:          BSD License
-//  Main authors:  Josep Maria Carbonell
-//                 Vicente Mataix Ferrandiz
-//                 Andreas Winterstein (refactoring)
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
+//                   Vicente Mataix Ferrandiz
+//                   Andreas Winterstein (refactoring)
 //
 
-#if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME
+#pragma once
 
 // Project includes
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
@@ -688,4 +689,3 @@ private:
 
 } // namespace Kratos
 
-#endif // KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME defined
