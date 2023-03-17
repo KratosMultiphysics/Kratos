@@ -648,8 +648,6 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const int nnodes = mrThermalModelPart.Nodes().size();
-
         // Getting Noorzai Values
         const double density = NoorzaiParameters["density"].GetDouble();
         const double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
@@ -658,21 +656,15 @@ class ConstructionUtility
         const double time = mrThermalModelPart.GetProcessInfo()[TIME];
         const double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
-        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < nnodes; ++i)
-        {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
-            if (current_activation_time >= 0.0 && (it->Is(SOLID) == false))
+        block_for_each(mrThermalModelPart.Nodes(), [&](auto& rNode){
+            double current_activation_time = time - (rNode.FastGetSolutionStepValue(TIME_ACTIVATION));
+            if (current_activation_time >= 0.0 && (rNode.Is(SOLID) == false))
             {
                 // Computing the value of heat flux according the time
                 double value = density * specific_heat * alpha * t_max * (exp(-alpha * (current_activation_time + 0.5 * delta_time)));
-                it->FastGetSolutionStepValue(HEAT_FLUX) = value;
+                rNode.FastGetSolutionStepValue(HEAT_FLUX) = value;
             }
-        }
-
+        });
         KRATOS_CATCH("");
     }
 
@@ -684,8 +676,6 @@ class ConstructionUtility
 
         if (mAging == false)
         {
-            const int nnodes = mrThermalModelPart.Nodes().size();
-
             // Getting Azenha Values
             const double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
             const double gas_constant = AzenhaParameters["gas_constant"].GetDouble();
@@ -700,16 +690,12 @@ class ConstructionUtility
             const double time = mrThermalModelPart.GetProcessInfo()[TIME];
             const double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
-            ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-            #pragma omp parallel for
-            for (int i = 0; i < nnodes; ++i)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
-                if (current_activation_time >= 0.0 && (it->Is(SOLID) == false))
+            block_for_each(mrThermalModelPart.Nodes(), [&](auto& rNode){
+                double current_activation_time = time - (rNode.FastGetSolutionStepValue(TIME_ACTIVATION));
+                if (current_activation_time >= 0.0 && (rNode.Is(SOLID) == false))
                 {
                     // Computing the current alpha according las step.
-                    double current_alpha = ((it->FastGetSolutionStepValue(HEAT_FLUX, 1)) / q_total) * delta_time + (it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE));
+                    double current_alpha = ((rNode.FastGetSolutionStepValue(HEAT_FLUX, 1)) / q_total) * delta_time + (rNode.FastGetSolutionStepValue(ALPHA_HEAT_SOURCE));
                     double f_alpha = a_coef * (pow(current_alpha, 2)) * exp(-b_coef * pow(current_alpha, 3)) + c_coef * current_alpha * exp(-d_coef * current_alpha);
 
                     // This is neccesary for stopping the addition to the system once the process finish.
@@ -720,14 +706,14 @@ class ConstructionUtility
                     }
 
                     // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
-                    const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE) + 273.0;
+                    const double temp_current = rNode.FastGetSolutionStepValue(TEMPERATURE) + 273.0;
                     const double heat_flux = constant_rate * f_alpha * exp((-activation_energy) / (gas_constant * temp_current));
 
                     // Updating values according the computations
-                    it->FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
-                    it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;
+                    rNode.FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
+                    rNode.FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;
                 }
-            }
+            });
         }
         else
         {
@@ -771,8 +757,6 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const int nnodes = mrThermalModelPart.Nodes().size();
-
         // Getting Azenha Values
         double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
         double gas_constant = AzenhaParameters["gas_constant"].GetDouble();
@@ -787,16 +771,12 @@ class ConstructionUtility
         double time = mrThermalModelPart.GetProcessInfo()[TIME];
         double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
-        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-        #pragma omp parallel for
-        for (int i = 0; i < nnodes; ++i)
-        {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
-            if (current_activation_time >= 0.0 && (it->Is(SOLID) == false))
+        block_for_each(mrThermalModelPart.Nodes(), [&](auto& rNode){
+            double current_activation_time = time - (rNode.FastGetSolutionStepValue(TIME_ACTIVATION));
+            if (current_activation_time >= 0.0 && (rNode.Is(SOLID) == false))
             {
                 // Computing the current alpha according las step.
-                double current_alpha = ((it->FastGetSolutionStepValue(HEAT_FLUX, 1)) / q_total) * delta_time + (it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE));
+                double current_alpha = ((rNode.FastGetSolutionStepValue(HEAT_FLUX, 1)) / q_total) * delta_time + (rNode.FastGetSolutionStepValue(ALPHA_HEAT_SOURCE));
                 double f_alpha = a_coef * (pow(current_alpha, 2)) * exp(-b_coef * pow(current_alpha, 3)) + c_coef * current_alpha * exp(-d_coef * current_alpha);
 
                 // This is neccesary for stopping the addition to the system once the process finish.
@@ -807,15 +787,15 @@ class ConstructionUtility
                 }
 
                 // Transformation degress to Kelvins, it is necessary since gas constant is in Kelvins.
-                const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE) + 273.0;
+                const double temp_current = rNode.FastGetSolutionStepValue(TEMPERATURE) + 273.0;
                 const double heat_flux = constant_rate * f_alpha * exp((-activation_energy) / (gas_constant * temp_current));
 
                 // Updating values according the computations
-                it->FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
-                it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;
-                it->FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(current_alpha) * mYoungInf;
+                rNode.FastGetSolutionStepValue(HEAT_FLUX) = heat_flux;
+                rNode.FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = current_alpha;
+                rNode.FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(current_alpha) * mYoungInf;
             }
-        }
+        });
 
         KRATOS_CATCH("");
     }
