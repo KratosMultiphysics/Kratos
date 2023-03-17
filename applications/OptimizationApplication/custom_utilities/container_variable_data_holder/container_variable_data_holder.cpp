@@ -177,9 +177,9 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::AssignDataTo
         // synchronize nodal values
         auto& r_communicator = this->GetModelPart().GetCommunicator();
 
-        if constexpr(std::is_same_v<TContainerDataIO, HistoricalContainerDataIO>) {
+        if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>) {
             r_communicator.SynchronizeNodalSolutionStepsData();
-        } else if constexpr(std::is_same_v<TContainerDataIO, NonHistoricalContainerDataIO>) {
+        } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
             r_communicator.SynchronizeNonHistoricalVariable(rVariable);
         }
     }
@@ -455,11 +455,11 @@ std::string ContainerVariableDataHolder<TContainerType, TContainerDataIO>::Info(
         msg << "Element";
     }
 
-    if constexpr(std::is_same_v<TContainerDataIO, HistoricalContainerDataIO>) {
+    if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>) {
         msg << "Historical";
-    } else if constexpr(std::is_same_v<TContainerDataIO, NonHistoricalContainerDataIO>) {
+    } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
         msg << "NonHistorical";
-    } else if constexpr(std::is_same_v<TContainerDataIO, PropertiesContainerDataIO>) {
+    } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Properties>>) {
         msg << "Properties";
     }
 
@@ -475,17 +475,17 @@ std::string ContainerVariableDataHolder<TContainerType, TContainerDataIO>::Info(
     template void ContainerVariableDataHolder<ContainerType, ContainerDataIOType>::SetDataForContainerVariableToZero(const Variable<DataType>&);            \
     template void ContainerVariableDataHolder<ContainerType, ContainerDataIOType>::AssignDataToContainerVariable(const Variable<DataType>&);
 
-#define INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOType)                                          \
-    template class ContainerVariableDataHolder<ContainerType, ContainerDataIOType>;                                             \
-    INSTANTIATIE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, double)                                             \
-    INSTANTIATIE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, ContainerVariableDataHolderHelperUtilities::Array3D)
+#define INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOTag)                                                           \
+    template class ContainerVariableDataHolder<ContainerType, ContainerDataIO<ContainerDataIOTag>>;                                             \
+    INSTANTIATIE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, double)                                             \
+    INSTANTIATIE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, ContainerVariableDataHolderHelperUtilities::Array3D)
 
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, HistoricalContainerDataIO)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, NonHistoricalContainerDataIO)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ConditionsContainerType, NonHistoricalContainerDataIO)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ElementsContainerType, NonHistoricalContainerDataIO)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ConditionsContainerType, PropertiesContainerDataIO)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ElementsContainerType, PropertiesContainerDataIO)
+INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::Historical)
+INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical)
+INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical)
+INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical)
+INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties)
+INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ElementsContainerType, ContainerDataIOTags::Properties)
 
 #undef INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER
 #undef INSTANTIATIE_CONTAINER_DATA_METHODS

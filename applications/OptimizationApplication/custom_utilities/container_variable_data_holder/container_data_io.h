@@ -13,13 +13,10 @@
 #pragma once
 
 // System includes
-#include <atomic>
-#include <cmath>
-#include <vector>
 
 // Project includes
-#include "containers/array_1d.h"
-#include "includes/define.h"
+#include "containers/variable.h"
+#include "includes/model_part.h"
 
 // Application includes
 
@@ -28,11 +25,19 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class HistoricalContainerDataIO {
-public:
-    ///@name Public operations
-    ///@{
+namespace ContainerDataIOTags {
+    struct Historical    {};
+    struct NonHistorical {};
+    struct Properties    {};
+} // namespace Tags
 
+// Dummy generic class to be specialized later
+template <class TContainerDataIOTags>
+struct ContainerDataIO {};
+
+template <>
+struct ContainerDataIO<ContainerDataIOTags::Historical>
+{
     template <class TDataType>
     static TDataType& GetValue(
         ModelPart::NodeType& rNode,
@@ -49,16 +54,12 @@ public:
     {
         rNode.FastGetSolutionStepValue(rVariable) = rValue;
     }
-
-    ///@}
 };
 
-class NonHistoricalContainerDataIO {
-public:
-    ///@name Public operations
-    ///@{
-
-    template <class TEntityType, class TDataType>
+template <>
+struct ContainerDataIO<ContainerDataIOTags::NonHistorical>
+{
+    template<class TDataType, class TEntityType>
     static TDataType& GetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable)
@@ -66,7 +67,7 @@ public:
         return rEntity.GetValue(rVariable);
     }
 
-    template <class TEntityType, class TDataType>
+    template<class TDataType, class TEntityType>
     static void SetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
@@ -74,33 +75,29 @@ public:
     {
         rEntity.SetValue(rVariable, rValue);
     }
-
-    ///@}
 };
 
-class PropertiesContainerDataIO {
-public:
-    ///@name Public operations
-    ///@{
-
-    template <class TEntityType, class TDataType>
+template <>
+struct ContainerDataIO<ContainerDataIOTags::Properties>
+{
+    template<class TDataType, class TEntityType>
     static TDataType& GetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable)
     {
+        static_assert(!(std::is_same_v<TEntityType, ModelPart::NodeType>), "Properties retrieval is only supported for element and conditions.");
         return rEntity.GetProperties().GetValue(rVariable);
     }
 
-    template <class TEntityType, class TDataType>
+    template<class TDataType, class TEntityType>
     static void SetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue)
     {
+        static_assert(!(std::is_same_v<TEntityType, ModelPart::NodeType>), "Properties setter is only supported for element and conditions.");
         rEntity.GetProperties().SetValue(rVariable, rValue);
     }
-
-    ///@}
 };
 
 } // namespace Kratos

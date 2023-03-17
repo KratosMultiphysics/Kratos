@@ -46,12 +46,12 @@ void AddContainerVariableDataHolderBaseTypeToPython(pybind11::module& m, const s
         ;
 }
 
-template<class TContainerType, class TContainerIO>
+template<class TContainerType, class TContainerDataIOTag>
 void AddContainerVariableDataHolderTypeToPython(pybind11::module& m, const std::string& rName)
 {
     namespace py = pybind11;
 
-    using container_type = ContainerVariableDataHolder<TContainerType, TContainerIO>;
+    using container_type = ContainerVariableDataHolder<TContainerType, ContainerDataIO<TContainerDataIOTag>>;
     py::class_<container_type, typename container_type::Pointer, ContainerVariableDataHolderBase<TContainerType>>(m, rName.c_str())
         .def(py::init<ModelPart&>(), py::arg("model_part"), py::doc("Creates a new container data object with model_part."))
         .def(py::init<const container_type&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new same type container data object by copying data from other_container_data_to_copy_from."))
@@ -120,12 +120,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     AddContainerVariableDataHolderBaseTypeToPython<ModelPart::ConditionsContainerType>(m, "ConditionContainerVariableDataHolderBase");
     AddContainerVariableDataHolderBaseTypeToPython<ModelPart::ElementsContainerType>(m, "ElementContainerVariableDataHolderBase");
 
-    AddContainerVariableDataHolderTypeToPython<ModelPart::NodesContainerType, HistoricalContainerDataIO>(m, "HistoricalContainerVariableDataHolder");
-    AddContainerVariableDataHolderTypeToPython<ModelPart::NodesContainerType, NonHistoricalContainerDataIO>(m, "NodalContainerVariableDataHolder");
-    AddContainerVariableDataHolderTypeToPython<ModelPart::ConditionsContainerType, NonHistoricalContainerDataIO>(m, "ConditionContainerVariableDataHolder");
-    AddContainerVariableDataHolderTypeToPython<ModelPart::ElementsContainerType, NonHistoricalContainerDataIO>(m, "ElementContainerVariableDataHolder");
-    AddContainerVariableDataHolderTypeToPython<ModelPart::ConditionsContainerType, PropertiesContainerDataIO>(m, "ConditionPropertiesContainerVariableDataHolder");
-    AddContainerVariableDataHolderTypeToPython<ModelPart::ElementsContainerType, PropertiesContainerDataIO>(m, "ElementPropertiesContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(m, "HistoricalContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(m, "NodalContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(m, "ConditionContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(m, "ElementContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties>(m, "ConditionPropertiesContainerVariableDataHolder");
+    AddContainerVariableDataHolderTypeToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::Properties>(m, "ElementPropertiesContainerVariableDataHolder");
 
     py::class_<ContainerVariableDataHolderUtils>(m, "ContainerVariableDataHolderUtils")
         .def_static("NormInf", &ContainerVariableDataHolderUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_data"))
