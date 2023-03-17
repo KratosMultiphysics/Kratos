@@ -29,6 +29,12 @@ LiteralDoubleExpression::LiteralDoubleExpression(const double Value)
     : mValue(Value)
 {
 }
+
+Expression::Pointer LiteralDoubleExpression::Create(const double Value)
+{
+    return Kratos::make_intrusive<LiteralDoubleExpression>(Value);
+}
+
 double LiteralDoubleExpression::Evaluate(
     const IndexType EntityIndex,
     const IndexType ComponentIndex) const
@@ -49,6 +55,13 @@ LiteralArray3Expression::LiteralArray3Expression(
 {
 }
 
+Expression::Pointer LiteralArray3Expression::Create(
+    const array_1d<double, 3>& Value,
+    const IndexType Dimension)
+{
+    return Kratos::make_intrusive<LiteralArray3Expression>(Value, Dimension);
+}
+
 double LiteralArray3Expression::Evaluate(
     const IndexType EntityIndex,
     const IndexType ComponentIndex) const
@@ -62,11 +75,18 @@ IndexType LiteralArray3Expression::GetDimension() const
 }
 
 LiteralVectorExpression::LiteralVectorExpression(
-    std::shared_ptr<Vector> pValue,
+    Kratos::shared_ptr<Vector> pValue,
     const IndexType Dimension)
     : mpValue(pValue),
       mDimension(Dimension)
 {
+}
+
+Expression::Pointer LiteralVectorExpression::Create(
+    Kratos::shared_ptr<Vector> pValue,
+    const IndexType Dimension)
+{
+    return Kratos::make_intrusive<LiteralVectorExpression>(pValue, Dimension);
 }
 
 double LiteralVectorExpression::Evaluate(
@@ -82,8 +102,8 @@ IndexType LiteralVectorExpression::GetDimension() const
 }
 
 BinaryAddExpression::BinaryAddExpression(
-    std::shared_ptr<Expression> pLeft,
-    std::shared_ptr<Expression> pRight)
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
     : mpLeft(pLeft),
       mpRight(pRight)
 {
@@ -100,6 +120,13 @@ BinaryAddExpression::BinaryAddExpression(
            "expression.\n";
 }
 
+Expression::Pointer BinaryAddExpression::Create(
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
+{
+    return Kratos::make_intrusive<BinaryAddExpression>(pLeft, pRight);
+}
+
 double BinaryAddExpression::Evaluate(
     const IndexType EntityIndex,
     const IndexType ComponentIndex) const
@@ -113,8 +140,8 @@ IndexType BinaryAddExpression::GetDimension() const
 }
 
 BinarySubstractExpression::BinarySubstractExpression(
-    std::shared_ptr<Expression> pLeft,
-    std::shared_ptr<Expression> pRight)
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
     : mpLeft(pLeft),
       mpRight(pRight)
 {
@@ -131,6 +158,13 @@ BinarySubstractExpression::BinarySubstractExpression(
            "expression.\n";
 }
 
+Expression::Pointer BinarySubstractExpression::Create(
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
+{
+    return Kratos::make_intrusive<BinarySubstractExpression>(pLeft, pRight);
+}
+
 double BinarySubstractExpression::Evaluate(
     const IndexType EntityIndex,
     const IndexType ComponentIndex) const
@@ -144,8 +178,8 @@ IndexType BinarySubstractExpression::GetDimension() const
 }
 
 BinaryMultiplyExpression::BinaryMultiplyExpression(
-    std::shared_ptr<Expression> pLeft,
-    std::shared_ptr<Expression> pRight)
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
     : mpLeft(pLeft),
       mpRight(pRight)
 {
@@ -162,6 +196,13 @@ BinaryMultiplyExpression::BinaryMultiplyExpression(
            "expression.\n";
 }
 
+Expression::Pointer BinaryMultiplyExpression::Create(
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
+{
+    return Kratos::make_intrusive<BinaryMultiplyExpression>(pLeft, pRight);
+}
+
 double BinaryMultiplyExpression::Evaluate(
     const IndexType EntityIndex,
     const IndexType ComponentIndex) const
@@ -175,8 +216,8 @@ IndexType BinaryMultiplyExpression::GetDimension() const
 }
 
 BinaryDivideExpression::BinaryDivideExpression(
-    std::shared_ptr<Expression> pLeft,
-    std::shared_ptr<Expression> pRight)
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
     : mpLeft(pLeft),
       mpRight(pRight)
 {
@@ -193,6 +234,13 @@ BinaryDivideExpression::BinaryDivideExpression(
            "expression.\n";
 }
 
+Expression::Pointer BinaryDivideExpression::Create(
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
+{
+    return Kratos::make_intrusive<BinaryDivideExpression>(pLeft, pRight);
+}
+
 double BinaryDivideExpression::Evaluate(
     const IndexType EntityIndex,
     const IndexType ComponentIndex) const
@@ -206,8 +254,8 @@ IndexType BinaryDivideExpression::GetDimension() const
 }
 
 BinaryPowerExpression::BinaryPowerExpression(
-    std::shared_ptr<Expression> pLeft,
-    std::shared_ptr<Expression> pRight)
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
     : mpLeft(pLeft),
       mpRight(pRight)
 {
@@ -223,6 +271,14 @@ BinaryPowerExpression::BinaryPowerExpression(
         << "Power is provided with uninitialized right hand side "
            "expression.\n";
 }
+
+Expression::Pointer BinaryPowerExpression::Create(
+    Expression::Pointer pLeft,
+    Expression::Pointer pRight)
+{
+    return Kratos::make_intrusive<BinaryPowerExpression>(pLeft, pRight);
+}
+
 
 double BinaryPowerExpression::Evaluate(
     const IndexType EntityIndex,
@@ -259,11 +315,11 @@ void ContainerVariableDataHolderBase<TContainerType>::CopyDataFrom(
 template <class TContainerType>
 void ContainerVariableDataHolderBase<TContainerType>::SetDataToZero()
 {
-    mpExpression = std::make_shared<LiteralDoubleExpression>(0.0);
+    mpExpression = Kratos::make_intrusive<LiteralDoubleExpression>(0.0);
 }
 
 template <class TContainerType>
-void ContainerVariableDataHolderBase<TContainerType>::SetExpression(std::shared_ptr<Expression> pExpression)
+void ContainerVariableDataHolderBase<TContainerType>::SetExpression(Expression::Pointer pExpression)
 {
     this->mpExpression = pExpression;
 }

@@ -111,15 +111,44 @@ public:
 class Expression
 {
 public:
+    using Pointer = Kratos::intrusive_ptr<Expression>;
+
+    virtual ~Expression() = default;
+
     virtual double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const = 0;
 
     virtual IndexType GetDimension() const = 0;
+
+private:
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> mReferenceCounter{0};
+
+    friend void intrusive_ptr_add_ref(const Expression* x)
+    {
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const Expression* x)
+    {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+            std::atomic_thread_fence(std::memory_order_acquire);
+            delete x;
+        }
+    }
+    //*********************************************
 };
 
 class LiteralDoubleExpression : public Expression
 {
 public:
     LiteralDoubleExpression(const double Value);
+
+    LiteralDoubleExpression(const LiteralDoubleExpression& rOther) = delete;
+
+    ~LiteralDoubleExpression() override = default;
+
+    static Expression::Pointer Create(const double Value);
 
     double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
 
@@ -133,6 +162,12 @@ class LiteralArray3Expression : public Expression
 public:
     LiteralArray3Expression(const array_1d<double, 3>& Value, const IndexType Dimension);
 
+    LiteralArray3Expression(const LiteralArray3Expression& rOther) = delete;
+
+    ~LiteralArray3Expression() override = default;
+
+    static Expression::Pointer Create(const array_1d<double, 3>& Value, const IndexType Dimension);
+
     double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
 
     IndexType GetDimension() const override;
@@ -145,13 +180,19 @@ private:
 class LiteralVectorExpression : public Expression
 {
 public:
-    LiteralVectorExpression(std::shared_ptr<Vector> pValue, const IndexType Dimension);
+    LiteralVectorExpression(Kratos::shared_ptr<Vector> pValue, const IndexType Dimension);
+
+    LiteralVectorExpression(const LiteralVectorExpression& rOther) = delete;
+
+    ~LiteralVectorExpression() override = default;
+
+    static Expression::Pointer Create(Kratos::shared_ptr<Vector> pValue, const IndexType Dimension);
 
     double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
 
     IndexType GetDimension() const override;
 private:
-    const std::shared_ptr<Vector> mpValue;
+    const Kratos::shared_ptr<Vector> mpValue;
 
     const IndexType mDimension;
 };
@@ -159,71 +200,101 @@ private:
 class BinaryAddExpression : public Expression
 {
 public:
-    BinaryAddExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+    BinaryAddExpression(Expression::Pointer pLeft, Expression::Pointer pRight);
+
+    BinaryAddExpression(const BinaryAddExpression& rOther) = delete;
+
+    ~BinaryAddExpression() override = default;
+
+    static Expression::Pointer Create(Expression::Pointer pLeft, Expression::Pointer pRight);
 
     double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
 
     IndexType GetDimension() const override;
 private:
-    const std::shared_ptr<Expression> mpLeft;
+    const Expression::Pointer mpLeft;
 
-    const std::shared_ptr<Expression> mpRight;
+    const Expression::Pointer mpRight;
 };
 
 class BinarySubstractExpression : public Expression
 {
 public:
-    BinarySubstractExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+    BinarySubstractExpression(Expression::Pointer pLeft, Expression::Pointer pRight);
+
+    BinarySubstractExpression(const BinarySubstractExpression& rOther) = delete;
+
+    ~BinarySubstractExpression() override = default;
+
+    static Expression::Pointer Create(Expression::Pointer pLeft, Expression::Pointer pRight);
 
     double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
 
     IndexType GetDimension() const override;
 private:
-    const std::shared_ptr<Expression> mpLeft;
+    const Expression::Pointer mpLeft;
 
-    const std::shared_ptr<Expression> mpRight;
+    const Expression::Pointer mpRight;
 };
 
 class BinaryMultiplyExpression : public Expression
 {
 public:
-    BinaryMultiplyExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+    BinaryMultiplyExpression(Expression::Pointer pLeft, Expression::Pointer pRight);
+
+    BinaryMultiplyExpression(const BinaryMultiplyExpression& rOther) = delete;
+
+    ~BinaryMultiplyExpression() override = default;
+
+    static Expression::Pointer Create(Expression::Pointer pLeft, Expression::Pointer pRight);
 
     double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
 
     IndexType GetDimension() const override;
 private:
-    const std::shared_ptr<Expression> mpLeft;
+    const Expression::Pointer mpLeft;
 
-    const std::shared_ptr<Expression> mpRight;
+    const Expression::Pointer mpRight;
 };
 
 class BinaryDivideExpression : public Expression
 {
 public:
-    BinaryDivideExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+    BinaryDivideExpression(Expression::Pointer pLeft, Expression::Pointer pRight);
+
+    BinaryDivideExpression(const BinaryDivideExpression& rOther) = delete;
+
+    ~BinaryDivideExpression() override = default;
+
+    static Expression::Pointer Create(Expression::Pointer pLeft, Expression::Pointer pRight);
 
     double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
 
     IndexType GetDimension() const override;
 private:
-    const std::shared_ptr<Expression> mpLeft;
+    const Expression::Pointer mpLeft;
 
-    const std::shared_ptr<Expression> mpRight;
+    const Expression::Pointer mpRight;
 };
 
 class BinaryPowerExpression : public Expression
 {
 public:
-    BinaryPowerExpression(std::shared_ptr<Expression> pLeft, std::shared_ptr<Expression> pRight);
+    BinaryPowerExpression(Expression::Pointer pLeft, Expression::Pointer pRight);
+
+    BinaryPowerExpression(const BinaryPowerExpression& rOther) = delete;
+
+    ~BinaryPowerExpression() override = default;
+
+    static Expression::Pointer Create(Expression::Pointer pLeft, Expression::Pointer pRight);
 
     double Evaluate(const IndexType EntityIndex, const IndexType ComponentIndex) const override;
 
     IndexType GetDimension() const override;
 private:
-    const std::shared_ptr<Expression> mpLeft;
+    const Expression::Pointer mpLeft;
 
-    const std::shared_ptr<Expression> mpRight;
+    const Expression::Pointer mpRight;
 };
 
 template <class TContainerType>
@@ -254,7 +325,7 @@ public:
     ///@name Input and output
     ///@{
 
-    void SetExpression(std::shared_ptr<Expression> pExpression);
+    void SetExpression(Expression::Pointer pExpression);
 
     const Expression& GetExpression() const;
 
@@ -287,7 +358,7 @@ protected:
     ///@name Protected member variables
     ///@{
 
-    std::shared_ptr<Expression> mpExpression = nullptr;
+    Expression::Pointer mpExpression = nullptr;
 
     ModelPart* const mpModelPart;
 

@@ -84,7 +84,7 @@ void AssignValueFromVector(
 template <class TContainerType, class TContainerDataIO>
 typename ContainerVariableDataHolder<TContainerType, TContainerDataIO>::Pointer ContainerVariableDataHolder<TContainerType, TContainerDataIO>::Clone() const
 {
-    return std::make_shared<ContainerVariableDataHolder<TContainerType, TContainerDataIO>>(*this);
+    return Kratos::make_shared<ContainerVariableDataHolder<TContainerType, TContainerDataIO>>(*this);
 }
 
 template <class TContainerType, class TContainerDataIO>
@@ -109,8 +109,8 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::ReadDataFrom
     const IndexType number_of_entities = this->GetContainer().size();
     const auto dimension = ContainerVariableDataHolderHelperUtilities::GetLocalSize<TDataType>(this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
 
-    auto p_data = std::make_shared<Vector>();
-    this->mpExpression = std::make_shared<LiteralVectorExpression>(p_data, dimension);
+    auto p_data = Kratos::make_shared<Vector>();
+    this->mpExpression = LiteralVectorExpression::Create(p_data, dimension);
 
     auto& r_data = *p_data;
     auto& r_container = this->GetContainer();
@@ -204,9 +204,9 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::SetDataForCo
 
     const auto dimension = ContainerVariableDataHolderHelperUtilities::GetLocalSize<TDataType>(this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
     if constexpr(std::is_same_v<TDataType, double> || std::is_same_v<TDataType, int> || std::is_same_v<TDataType, std::size_t>) {
-        this->mpExpression = std::make_shared<LiteralDoubleExpression>(rValue);
+        this->mpExpression = LiteralDoubleExpression::Create(rValue);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-        this->mpExpression = std::make_shared<LiteralArray3Expression>(rValue, dimension);
+        this->mpExpression = LiteralArray3Expression::Create(rValue, dimension);
     }
 
 }
@@ -227,7 +227,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableD
         << "      Right operand data: " << rOther << "\n";
 
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinaryAddExpression>(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryAddExpression::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -239,7 +239,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariable
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = std::make_shared<BinaryAddExpression>(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryAddExpression::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -248,14 +248,14 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableD
 {
 
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinaryAddExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(Value));
+    result.mpExpression = BinaryAddExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator+=(const double Value)
 {
-    this->mpExpression = std::make_shared<BinaryAddExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(Value));
+    this->mpExpression = BinaryAddExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
     return *this;
 }
 
@@ -268,7 +268,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableD
         << "      Right operand data: " << rOther << "\n";
 
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinarySubstractExpression>(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinarySubstractExpression::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -280,7 +280,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariable
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = std::make_shared<BinarySubstractExpression>(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinarySubstractExpression::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -288,14 +288,14 @@ template <class TContainerType, class TContainerDataIO>
 ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator-(const double Value) const
 {
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinarySubstractExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(Value));
+    result.mpExpression = BinarySubstractExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator-=(const double Value)
 {
-    this->mpExpression = std::make_shared<BinarySubstractExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(Value));
+    this->mpExpression = BinarySubstractExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
     return *this;
 }
 
@@ -308,7 +308,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableD
         << "      Right operand data: " << rOther << "\n";
 
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinaryMultiplyExpression>(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -320,7 +320,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariable
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = std::make_shared<BinaryMultiplyExpression>(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -328,14 +328,14 @@ template <class TContainerType, class TContainerDataIO>
 ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator*(const double Value) const
 {
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinaryMultiplyExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(Value));
+    result.mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator*=(const double Value)
 {
-    this->mpExpression = std::make_shared<BinaryMultiplyExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(Value));
+    this->mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
     return *this;
 }
 
@@ -348,7 +348,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableD
         << "      Right operand data: " << rOther << "\n";
 
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinaryDivideExpression>(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryDivideExpression::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -360,7 +360,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariable
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = std::make_shared<BinaryDivideExpression>(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryDivideExpression::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -373,7 +373,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableD
         << "      Divisor           : " << Value << "\n";
 
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinaryMultiplyExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(1.0 / Value));
+    result.mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(1.0 / Value));
     return result;
 }
 
@@ -385,7 +385,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariable
         << "      Left operand data : " << *this << "\n"
         << "      Divisor           : " << Value << "\n";
 
-    this->mpExpression = std::make_shared<BinaryMultiplyExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(1.0 / Value));
+    this->mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(1.0 / Value));
     return *this;
 }
 
@@ -398,7 +398,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableD
         << "      Right operand data: " << rOther << "\n";
 
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinaryPowerExpression>(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryPowerExpression::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -410,7 +410,7 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariable
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = std::make_shared<BinaryPowerExpression>(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryPowerExpression::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -418,14 +418,14 @@ template <class TContainerType, class TContainerDataIO>
 ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator^(const double Value) const
 {
     ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = std::make_shared<BinaryPowerExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(Value));
+    result.mpExpression = BinaryPowerExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator^=(const double Value)
 {
-    this->mpExpression = std::make_shared<BinaryPowerExpression>(this->mpExpression, std::make_shared<LiteralDoubleExpression>(Value));
+    this->mpExpression = BinaryPowerExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
     return *this;
 }
 
