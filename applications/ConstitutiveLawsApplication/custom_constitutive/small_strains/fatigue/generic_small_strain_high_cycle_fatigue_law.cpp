@@ -23,6 +23,7 @@
 #include "generic_small_strain_high_cycle_fatigue_law.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/high_cycle_fatigue_law_integrator.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 // Yield surfaces
 #include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
@@ -98,7 +99,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double s_th = mThresholdStress;
     double cycles_to_failure = mCyclesToFailure;
     bool advance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
-    // bool damage_activation = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
     const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
     int time = rValues.GetProcessInfo()[TIME];
     const int time_offset = 2;
@@ -106,22 +106,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
     int number_of_load_increments = mNumberOfLoadIncrements;
 
-    // if((mMinStress/mMaxStress) > -3.38365e-01 && (mMinStress/mMaxStress) < -3.38355e-01){ 
-    //     KRATOS_WATCH(rValues.GetElementGeometry().Id())
-    //     KRATOS_WATCH(time)
-    //     KRATOS_WATCH(start_time)
-    //     KRATOS_WATCH(length_of_load_increments)
-    //     KRATOS_WATCH((time - start_time) % length_of_load_increments)
-    // }
-
     if (((time - time_offset) % length_of_load_increments) == 0 && (time - time_offset) > 0){
 
         max_stress = (1 - reference_damage) * mMaxStress;
         min_stress = (1 - reference_damage) * mMinStress;
-
-        // KRATOS_WATCH(rValues.GetElementGeometry().Id())
-        // KRATOS_WATCH(max_stress)
-        // KRATOS_WATCH(min_stress)
 
         const double threshold = (1 - reference_damage) * this->GetThreshold();
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
@@ -377,9 +365,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
-    array_1d<double, VoigtSize> aux_strain_vector;
-    noalias(aux_strain_vector) = r_strain_vector;
-
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
@@ -390,7 +375,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
     array_1d<double, VoigtSize> predictive_stress_vector;
-    array_1d<double, VoigtSize> aux_stress_vector;
+    array_1d<double, VoigtSize> no_compression_predictive_stress;
     // We compute the stress
     if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
 
@@ -407,52 +392,51 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
         this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
 
-        // S0 = C:(E-E0)
-        noalias(aux_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
+        array_1d<double, 3> principal_stress_vector = ZeroVector(3);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, predictive_stress_vector);
+
+        if (principal_stress_vector[0] <= 0 && principal_stress_vector[1] <= 0 && principal_stress_vector[2] <= 0) {
+        } else {
+            no_compression_predictive_stress = predictive_stress_vector;
+
+            double no_compression_uniaxial_stress;
+            TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(no_compression_predictive_stress, r_strain_vector, no_compression_uniaxial_stress, rValues);
+
+            double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(no_compression_predictive_stress);
+            // uniaxial_stress *= sign_factor;
+            no_compression_uniaxial_stress *= sign_factor;
+            double max_stress = mMaxStress;
+            double min_stress = mMinStress;
+            bool max_indicator = mMaxDetected;
+            bool min_indicator = mMinDetected;
+
+            HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
+                no_compression_uniaxial_stress,
+                mPreviousStresses,
+                max_stress,
+                min_stress,
+                max_indicator,
+                min_indicator);    
+        
+            mMaxStress = max_stress;
+            mMinStress = min_stress;
+            mMaxDetected = max_indicator;
+            mMinDetected = min_indicator;
+
+            Vector previous_stresses = ZeroVector(2);
+            const Vector& r_aux_stresses = mPreviousStresses;
+            // previous_stresses[1] = this->CalculateValue(rValues, UNIAXIAL_STRESS, previous_stresses[1]) * sign_factor / (1.0 - this->GetDamage());
+            previous_stresses[1] = no_compression_uniaxial_stress;
+            previous_stresses[0] = r_aux_stresses[1];
+
+            mPreviousStresses = previous_stresses;
+        }
 
         // Initialize Plastic Parameters
+        double fatigue_reduction_factor = mFatigueReductionFactor;
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-
-        double nominal_uniaxial_stress;
-        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(aux_stress_vector, aux_strain_vector, nominal_uniaxial_stress, rValues);
-
-        double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(aux_stress_vector);
-        // uniaxial_stress *= sign_factor;
-        nominal_uniaxial_stress *= sign_factor;
-        double max_stress = mMaxStress;
-        double min_stress = mMinStress;
-        bool max_indicator = mMaxDetected;
-        bool min_indicator = mMinDetected;
-        double fatigue_reduction_factor = mFatigueReductionFactor;
-
-        HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
-            nominal_uniaxial_stress,
-            mPreviousStresses,
-            max_stress,
-            min_stress,
-            max_indicator,
-            min_indicator);    
-      
-        mMaxStress = max_stress;
-        mMinStress = min_stress;
-        mMaxDetected = max_indicator;
-        mMinDetected = min_indicator;
-        
-        // if((mMinStress/mMaxStress) > -2.52885e-01 && (mMinStress/mMaxStress) < -2.52875e-01){
-        //     KRATOS_WATCH(rValues.GetElementGeometry().Id())
-        //     KRATOS_WATCH(mMaxStressLocal)
-        //     KRATOS_WATCH(mMaxStress)
-        //     KRATOS_WATCH(mPreviousMaxStress)
-        //     KRATOS_WATCH(mMinStressLocal)
-        //     KRATOS_WATCH(mMinStress)
-        //     KRATOS_WATCH(mPreviousMinStress)
-        //     KRATOS_WATCH(mMaxDetected)
-        //     KRATOS_WATCH(mMinDetected) 
-        //     KRATOS_WATCH(mNewCycleIndicator)
-        //     KRATOS_WATCH(mFirstPeaKDetected)
-        // }
-
+                
         // uniaxial_stress *= sign_factor;
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
 
@@ -474,14 +458,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
             predictive_stress_vector *= (1.0 - this->GetDamage());
             TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
         }
-
-        Vector previous_stresses = ZeroVector(2);
-        const Vector& r_aux_stresses = mPreviousStresses;
-        // previous_stresses[1] = this->CalculateValue(rValues, UNIAXIAL_STRESS, previous_stresses[1]) * sign_factor / (1.0 - this->GetDamage());
-        previous_stresses[1] = nominal_uniaxial_stress;
-        previous_stresses[0] = r_aux_stresses[1];
-
-        mPreviousStresses = previous_stresses;
     }
 }
 /***********************************************************************************/
