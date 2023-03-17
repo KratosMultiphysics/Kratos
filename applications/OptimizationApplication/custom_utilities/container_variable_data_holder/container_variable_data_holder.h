@@ -50,19 +50,11 @@ public:
     {
     }
 
-    /// Copy constructor
-    ContainerVariableDataHolder(const ContainerVariableDataHolder& rOther)
-        : BaseType(rOther)
-    {
-    }
-
     /// Copy constructor with base class used to transfer data between compatible data containers
     ContainerVariableDataHolder(const BaseType& rOther)
         : BaseType(rOther)
     {
     }
-
-    ~ContainerVariableDataHolder() override = default;
 
     ///@}
     ///@name Public operations

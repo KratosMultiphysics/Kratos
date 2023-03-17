@@ -19,6 +19,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "container_data_io.h"
 
 // Include base h
 #include "container_variable_data_holder.h"

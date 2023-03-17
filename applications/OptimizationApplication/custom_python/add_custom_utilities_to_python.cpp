@@ -20,6 +20,7 @@
 
 // Application includes
 #include "custom_utilities/optimization_utils.h"
+#include "custom_utilities/container_variable_data_holder/container_data_io.h"
 #include "custom_utilities/container_variable_data_holder/container_variable_data_holder.h"
 #include "custom_utilities/container_variable_data_holder_utils.h"
 
