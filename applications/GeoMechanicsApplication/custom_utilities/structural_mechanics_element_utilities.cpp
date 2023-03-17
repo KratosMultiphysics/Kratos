@@ -117,7 +117,7 @@ void GeoStructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
     const ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // Rayleigh Damping Matrix: alpha*M + beta*K
 
     // 1.-Resizing if needed
@@ -150,7 +150,7 @@ void GeoStructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
 
 double GeoStructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(const Element& rElement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const array_1d<double, 3> delta_pos =
         rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
@@ -167,7 +167,7 @@ double GeoStructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(cons
 
 double GeoStructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(const Element& rElement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const array_1d<double, 3> delta_pos =
         rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
@@ -191,7 +191,7 @@ double GeoStructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(const 
 
 double GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(const Element& rElement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const array_1d<double, 3> delta_pos =
         rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
@@ -207,7 +207,7 @@ double GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(cons
 
 double GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(const Element& rElement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const array_1d<double, 3> delta_pos =
         rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -

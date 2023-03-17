@@ -12,8 +12,7 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_CONSTITUTIVE_LAWS_APPLICATION_H_INCLUDED )
-#define  KRATOS_CONSTITUTIVE_LAWS_APPLICATION_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -613,5 +612,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CONSTITUTIVE_LAWS_APPLICATION_H_INCLUDED  defined

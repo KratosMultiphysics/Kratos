@@ -10,13 +10,11 @@
 //  Main authors:    Riccardo Rossi
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-
-// Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define_python.h"

@@ -259,7 +259,28 @@ void UPwBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwBaseElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    GeometryData::IntegrationMethod GI_GAUSS;
+    //
+    switch (TNumNodes) {
+    case 3:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        break;
+    case 6:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        break;
+    case 10:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
+        break;
+    case 15:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        break;
+    default:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        break;
+    }
+
+    //return GeometryData::IntegrationMethod::GI_GAUSS;
+    return GI_GAUSS;
 }
 
 //----------------------------------------------------------------------------------------
@@ -808,6 +829,8 @@ template class UPwBaseElement<3,8>;
 template class UPwBaseElement<2,6>;
 template class UPwBaseElement<2,8>;
 template class UPwBaseElement<2,9>;
+template class UPwBaseElement<2,10>;
+template class UPwBaseElement<2,15>;
 template class UPwBaseElement<3,10>;
 template class UPwBaseElement<3,20>;
 template class UPwBaseElement<3,27>;

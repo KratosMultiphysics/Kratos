@@ -13,8 +13,6 @@
 // System includes
 
 // External includes
-#include "Epetra_MpiComm.h"
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "linear_solvers/linear_solver.h"

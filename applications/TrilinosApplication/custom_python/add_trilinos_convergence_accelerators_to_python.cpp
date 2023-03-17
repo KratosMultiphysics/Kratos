@@ -15,7 +15,6 @@
 // System includes
 
 // External includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"

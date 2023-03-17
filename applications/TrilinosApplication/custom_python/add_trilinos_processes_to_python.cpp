@@ -11,13 +11,10 @@
 //
 
 #if defined(KRATOS_PYTHON)
+
 // System includes
 
 // External includes
-#include "custom_python/add_trilinos_processes_to_python.h"
-
-/* Trilinos includes */
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define.h"
@@ -27,7 +24,7 @@
 #include "processes/variational_distance_calculation_process.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
-
+#include "custom_python/add_trilinos_processes_to_python.h"
 #include "custom_processes/trilinos_levelset_convection_process.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 

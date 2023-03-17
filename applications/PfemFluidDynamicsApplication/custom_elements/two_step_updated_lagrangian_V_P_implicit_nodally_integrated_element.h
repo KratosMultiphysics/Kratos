@@ -208,10 +208,10 @@ namespace Kratos
     void GetNodesPosition(Vector &rValues,
                           const ProcessInfo &rCurrentProcessInfo,
                           double theta);
-
+ 
     void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
                                Matrix &rNContainer,
-                               Vector &rGaussWeights);
+                               Vector &rGaussWeights) override; 
 
     void InitializeElementalVariables(ElementalVariables &rElementalVariables) override
     {

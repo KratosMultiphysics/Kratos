@@ -75,7 +75,7 @@ public:
 
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------

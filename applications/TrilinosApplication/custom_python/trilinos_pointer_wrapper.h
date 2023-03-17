@@ -16,8 +16,6 @@
 
 // External includes
 
-//Trilinos includes
-
 // Project includes
 #include "trilinos_space.h"
 

@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
-#define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
+#pragma once
 
 /* System includes */
 
@@ -641,5 +640,3 @@ protected:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_STRATEGY  defined */
