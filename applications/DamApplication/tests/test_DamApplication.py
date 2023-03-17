@@ -28,7 +28,7 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosDamGeneralTests('testSmallExample'))
+    smallSuite.addTest(KratosDamGeneralTests('test_construction'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:

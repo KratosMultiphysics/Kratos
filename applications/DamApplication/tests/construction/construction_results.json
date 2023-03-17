@@ -1,0 +1,8293 @@
+{
+  "TIME": [
+    1800.0
+  ],
+  "NODE_1": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      11.923059079629487
+    ]
+  },
+  "NODE_2": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      11.573541749315813
+    ]
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.682318868391449
+    ]
+  },
+  "NODE_4": {
+    "DISPLACEMENT_X": [
+      6.13984721033992e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.164999064158173e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -3.955660951461501e-05
+    ],
+    "TEMPERATURE": [
+      11.219431627707225
+    ]
+  },
+  "NODE_5": {
+    "DISPLACEMENT_X": [
+      1.4085379954523719e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.80798241334152e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -7.502241355332566e-06
+    ],
+    "TEMPERATURE": [
+      6.905437071242746
+    ]
+  },
+  "NODE_6": {
+    "DISPLACEMENT_X": [
+      3.4551549427305506e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.714761638558463e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.0989649433888849e-05
+    ],
+    "TEMPERATURE": [
+      11.072815970907438
+    ]
+  },
+  "NODE_7": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.2146014434753045
+    ]
+  },
+  "NODE_8": {
+    "DISPLACEMENT_X": [
+      3.4803170104086414e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.048113876492626e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.5441462983960366e-05
+    ],
+    "TEMPERATURE": [
+      8.01569045911807
+    ]
+  },
+  "NODE_9": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      11.601401896269227
+    ]
+  },
+  "NODE_10": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.678905511544665
+    ]
+  },
+  "NODE_11": {
+    "DISPLACEMENT_X": [
+      5.7989066636000025e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.8918295748663164e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.547465579682294e-05
+    ],
+    "TEMPERATURE": [
+      7.224204935018829
+    ]
+  },
+  "NODE_12": {
+    "DISPLACEMENT_X": [
+      2.545836860579864e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.5330880772089512e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.74775919704499e-06
+    ],
+    "TEMPERATURE": [
+      7.735454946451343
+    ]
+  },
+  "NODE_13": {
+    "DISPLACEMENT_X": [
+      1.668330254487484e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.6611724898343044e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -4.400781372262102e-06
+    ],
+    "TEMPERATURE": [
+      10.818754148768038
+    ]
+  },
+  "NODE_14": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.287943138655606
+    ]
+  },
+  "NODE_15": {
+    "DISPLACEMENT_X": [
+      0.00011651317751734273
+    ],
+    "DISPLACEMENT_Y": [
+      -9.634553547744792e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -3.584228061492715e-05
+    ],
+    "TEMPERATURE": [
+      12.164843867675309
+    ]
+  },
+  "NODE_16": {
+    "DISPLACEMENT_X": [
+      7.403449620356133e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010011717832864542
+    ],
+    "DISPLACEMENT_Z": [
+      -3.0767127252452758e-06
+    ],
+    "TEMPERATURE": [
+      12.688525274127434
+    ]
+  },
+  "NODE_17": {
+    "DISPLACEMENT_X": [
+      2.5137078473194265e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.4861826235719428e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.6120715829413293e-06
+    ],
+    "TEMPERATURE": [
+      8.539277536281492
+    ]
+  },
+  "NODE_18": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      6.785249209792194
+    ]
+  },
+  "NODE_19": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.714517004569839
+    ]
+  },
+  "NODE_20": {
+    "DISPLACEMENT_X": [
+      4.7666057231008595e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -4.77848561631019e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.107160750611629e-06
+    ],
+    "TEMPERATURE": [
+      8.237834048077644
+    ]
+  },
+  "NODE_21": {
+    "DISPLACEMENT_X": [
+      3.294746465431465e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.7936950766423293e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.4006175176786658e-05
+    ],
+    "TEMPERATURE": [
+      8.303620399577733
+    ]
+  },
+  "NODE_22": {
+    "DISPLACEMENT_X": [
+      9.314789754370882e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.765045546447531e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.7724313076139522e-05
+    ],
+    "TEMPERATURE": [
+      9.875828506464089
+    ]
+  },
+  "NODE_23": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.376422875755155
+    ]
+  },
+  "NODE_24": {
+    "DISPLACEMENT_X": [
+      1.4510589831434969e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.3609365868217098e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -4.523018607229904e-07
+    ],
+    "TEMPERATURE": [
+      7.82967385553421
+    ]
+  },
+  "NODE_25": {
+    "DISPLACEMENT_X": [
+      3.864933376581253e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010100563810368897
+    ],
+    "DISPLACEMENT_Z": [
+      9.98243791130145e-06
+    ],
+    "TEMPERATURE": [
+      12.353542798788146
+    ]
+  },
+  "NODE_26": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.169740273581938
+    ]
+  },
+  "NODE_27": {
+    "DISPLACEMENT_X": [
+      5.6697443606205964e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.382163717060339e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.718351049455581e-05
+    ],
+    "TEMPERATURE": [
+      9.358847532365523
+    ]
+  },
+  "NODE_28": {
+    "DISPLACEMENT_X": [
+      1.6718079815365304e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.4202895116669215e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.671201563774237e-06
+    ],
+    "TEMPERATURE": [
+      8.421417327807395
+    ]
+  },
+  "NODE_29": {
+    "DISPLACEMENT_X": [
+      7.443613049375697e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -4.516429257766136e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -3.5972592124981643e-06
+    ],
+    "TEMPERATURE": [
+      10.992370332087434
+    ]
+  },
+  "NODE_30": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.558427102793036
+    ]
+  },
+  "NODE_31": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.32682584774434
+    ]
+  },
+  "NODE_32": {
+    "DISPLACEMENT_X": [
+      6.624057710617466e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.1029139800478426e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.5233567494428858e-05
+    ],
+    "TEMPERATURE": [
+      10.055105369187249
+    ]
+  },
+  "NODE_33": {
+    "DISPLACEMENT_X": [
+      0.00015845653021955125
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00012545035943186214
+    ],
+    "DISPLACEMENT_Z": [
+      2.824133270739364e-05
+    ],
+    "TEMPERATURE": [
+      12.794737395070216
+    ]
+  },
+  "NODE_34": {
+    "DISPLACEMENT_X": [
+      2.1002027076159687e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.7719084807309546e-05
+    ],
+    "DISPLACEMENT_Z": [
+      4.3154712962987685e-06
+    ],
+    "TEMPERATURE": [
+      8.307281777478211
+    ]
+  },
+  "NODE_35": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      6.9556255037126755
+    ]
+  },
+  "NODE_36": {
+    "DISPLACEMENT_X": [
+      9.903555437958425e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -7.48221671072962e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.8231224592846024e-05
+    ],
+    "TEMPERATURE": [
+      8.563175180721576
+    ]
+  },
+  "NODE_37": {
+    "DISPLACEMENT_X": [
+      0.00010381098717391851
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00013007817830220573
+    ],
+    "DISPLACEMENT_Z": [
+      5.44175680423375e-05
+    ],
+    "TEMPERATURE": [
+      12.915647242851955
+    ]
+  },
+  "NODE_38": {
+    "DISPLACEMENT_X": [
+      8.82967062773952e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.08085374496402e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.2534212747377136e-05
+    ],
+    "TEMPERATURE": [
+      10.007584548045878
+    ]
+  },
+  "NODE_39": {
+    "DISPLACEMENT_X": [
+      3.0140923988730678e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.428559419214077e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.5842120153174364e-05
+    ],
+    "TEMPERATURE": [
+      9.362735882385953
+    ]
+  },
+  "NODE_40": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.207253094882502
+    ]
+  },
+  "NODE_41": {
+    "DISPLACEMENT_X": [
+      4.412986387296343e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -3.662729161580919e-06
+    ],
+    "DISPLACEMENT_Z": [
+      7.145955905761695e-08
+    ],
+    "TEMPERATURE": [
+      8.306011942049226
+    ]
+  },
+  "NODE_42": {
+    "DISPLACEMENT_X": [
+      1.6013980510679987e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -9.92709345323287e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.6769918349995243e-05
+    ],
+    "TEMPERATURE": [
+      12.443507390230499
+    ]
+  },
+  "NODE_43": {
+    "DISPLACEMENT_X": [
+      4.855765543523531e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -2.2425860102798333e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.297165485264385e-06
+    ],
+    "TEMPERATURE": [
+      7.8632949246093276
+    ]
+  },
+  "NODE_44": {
+    "DISPLACEMENT_X": [
+      8.899121024899714e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -2.373894030673534e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.059054249310759e-05
+    ],
+    "TEMPERATURE": [
+      8.52556874070074
+    ]
+  },
+  "NODE_45": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.380900105290557
+    ]
+  },
+  "NODE_46": {
+    "DISPLACEMENT_X": [
+      3.2610588150612e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.1624193067370978e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.414808723604714e-05
+    ],
+    "TEMPERATURE": [
+      8.343646470053521
+    ]
+  },
+  "NODE_47": {
+    "DISPLACEMENT_X": [
+      3.986890895050581e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.039781058980578e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.9491608989241325e-05
+    ],
+    "TEMPERATURE": [
+      9.908052266073893
+    ]
+  },
+  "NODE_48": {
+    "DISPLACEMENT_X": [
+      0.0001344899210561268
+    ],
+    "DISPLACEMENT_Y": [
+      -7.645052526869523e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.2616351128765116e-05
+    ],
+    "TEMPERATURE": [
+      10.911958104317806
+    ]
+  },
+  "NODE_49": {
+    "DISPLACEMENT_X": [
+      5.901891061439562e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00013282837551919398
+    ],
+    "DISPLACEMENT_Z": [
+      6.904430058361164e-05
+    ],
+    "TEMPERATURE": [
+      12.338016705470533
+    ]
+  },
+  "NODE_50": {
+    "DISPLACEMENT_X": [
+      3.91405550894497e-08
+    ],
+    "DISPLACEMENT_Y": [
+      -4.001485113449546e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -4.663267612083058e-06
+    ],
+    "TEMPERATURE": [
+      10.974116898864986
+    ]
+  },
+  "NODE_51": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.290067267781433
+    ]
+  },
+  "NODE_52": {
+    "DISPLACEMENT_X": [
+      7.810224783663082e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -9.045209050689146e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.607907962616397e-05
+    ],
+    "TEMPERATURE": [
+      10.623641343522813
+    ]
+  },
+  "NODE_53": {
+    "DISPLACEMENT_X": [
+      1.2044542531948605e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.726596602835933e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.927366361253346e-06
+    ],
+    "TEMPERATURE": [
+      8.363370744729341
+    ]
+  },
+  "NODE_54": {
+    "DISPLACEMENT_X": [
+      8.245064272143122e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.224950210020261e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.7912950700279596e-05
+    ],
+    "TEMPERATURE": [
+      9.482127798696244
+    ]
+  },
+  "NODE_55": {
+    "DISPLACEMENT_X": [
+      2.307514891957211e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.0410784698490073e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.0365700938313196e-06
+    ],
+    "TEMPERATURE": [
+      8.360585174922932
+    ]
+  },
+  "NODE_56": {
+    "DISPLACEMENT_X": [
+      5.7528179254763765e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.3832240774114206e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.2134802255537774e-05
+    ],
+    "TEMPERATURE": [
+      9.913256459682623
+    ]
+  },
+  "NODE_57": {
+    "DISPLACEMENT_X": [
+      1.0582582045371864e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.926898620245474e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.0220585075557262e-05
+    ],
+    "TEMPERATURE": [
+      9.242430764479012
+    ]
+  },
+  "NODE_58": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.619827706309165
+    ]
+  },
+  "NODE_59": {
+    "DISPLACEMENT_X": [
+      9.705713310082717e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.802488785021038e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.850626580860229e-05
+    ],
+    "TEMPERATURE": [
+      10.91103703501636
+    ]
+  },
+  "NODE_60": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.17992403014268
+    ]
+  },
+  "NODE_61": {
+    "DISPLACEMENT_X": [
+      2.0810825066359325e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.866829447824715e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.573850644018336e-05
+    ],
+    "TEMPERATURE": [
+      9.874727619756586
+    ]
+  },
+  "NODE_62": {
+    "DISPLACEMENT_X": [
+      2.6898765804850698e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0001258492226682437
+    ],
+    "DISPLACEMENT_Z": [
+      7.929304222626666e-05
+    ],
+    "TEMPERATURE": [
+      12.521817092658623
+    ]
+  },
+  "NODE_63": {
+    "DISPLACEMENT_X": [
+      -4.1839688218250093e-07
+    ],
+    "DISPLACEMENT_Y": [
+      -9.362136700196603e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.0074348278664732e-05
+    ],
+    "TEMPERATURE": [
+      12.293673714057483
+    ]
+  },
+  "NODE_64": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.197854272571558
+    ]
+  },
+  "NODE_65": {
+    "DISPLACEMENT_X": [
+      4.5481624131789796e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -8.730919679141533e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.836607068005282e-05
+    ],
+    "TEMPERATURE": [
+      10.427231997527423
+    ]
+  },
+  "NODE_66": {
+    "DISPLACEMENT_X": [
+      0.00011512165507723871
+    ],
+    "DISPLACEMENT_Y": [
+      -7.799226668772089e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.590144331112815e-05
+    ],
+    "TEMPERATURE": [
+      9.094034641523795
+    ]
+  },
+  "NODE_67": {
+    "DISPLACEMENT_X": [
+      8.873465479849129e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.603167839930631e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.1051133317849724e-05
+    ],
+    "TEMPERATURE": [
+      9.825330784835606
+    ]
+  },
+  "NODE_68": {
+    "DISPLACEMENT_X": [
+      7.332388324880773e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -2.2129244197893807e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -2.5538994532931905e-06
+    ],
+    "TEMPERATURE": [
+      8.277489033661723
+    ]
+  },
+  "NODE_69": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.268864750005024
+    ]
+  },
+  "NODE_70": {
+    "DISPLACEMENT_X": [
+      0.0001328916325013573
+    ],
+    "DISPLACEMENT_Y": [
+      -5.42854186058735e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.8393952885875094e-05
+    ],
+    "TEMPERATURE": [
+      11.07013630755412
+    ]
+  },
+  "NODE_71": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.286369118107356
+    ]
+  },
+  "NODE_72": {
+    "DISPLACEMENT_X": [
+      1.5298557219008065e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.0139007050499496e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.724245899268151e-06
+    ],
+    "TEMPERATURE": [
+      8.362196897259675
+    ]
+  },
+  "NODE_73": {
+    "DISPLACEMENT_X": [
+      0.00016098901452853845
+    ],
+    "DISPLACEMENT_Y": [
+      -9.749305240277786e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.620199279358184e-05
+    ],
+    "TEMPERATURE": [
+      10.339920156832246
+    ]
+  },
+  "NODE_74": {
+    "DISPLACEMENT_X": [
+      1.8665137203557072e-07
+    ],
+    "DISPLACEMENT_Y": [
+      -2.2746335947303815e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.2494892634880723e-05
+    ],
+    "TEMPERATURE": [
+      8.476043221092038
+    ]
+  },
+  "NODE_75": {
+    "DISPLACEMENT_X": [
+      0.00011801841307336697
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010809679031835978
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010593193748485171
+    ],
+    "TEMPERATURE": [
+      9.91708108711706
+    ]
+  },
+  "NODE_76": {
+    "DISPLACEMENT_X": [
+      -5.511822234015566e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -2.1149135622645713e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.8902667288545262e-06
+    ],
+    "TEMPERATURE": [
+      7.64348098374085
+    ]
+  },
+  "NODE_77": {
+    "DISPLACEMENT_X": [
+      3.076789752472663e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.250662535149582e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.3829275130232566e-05
+    ],
+    "TEMPERATURE": [
+      9.801633009462906
+    ]
+  },
+  "NODE_78": {
+    "DISPLACEMENT_X": [
+      3.537271977905039e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -1.6198252057351993e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.3040471008331693e-05
+    ],
+    "TEMPERATURE": [
+      8.309926383191275
+    ]
+  },
+  "NODE_79": {
+    "DISPLACEMENT_X": [
+      5.962096427118578e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.310694148058384e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.690846624570172e-05
+    ],
+    "TEMPERATURE": [
+      10.814195257138914
+    ]
+  },
+  "NODE_80": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.350379480089924
+    ]
+  },
+  "NODE_81": {
+    "DISPLACEMENT_X": [
+      2.858341955137433e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.061617716795521e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.734560828911878e-05
+    ],
+    "TEMPERATURE": [
+      8.380071168051925
+    ]
+  },
+  "NODE_82": {
+    "DISPLACEMENT_X": [
+      6.464318033491364e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.0154351978766063e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.4439636694189094e-05
+    ],
+    "TEMPERATURE": [
+      9.748984614166726
+    ]
+  },
+  "NODE_83": {
+    "DISPLACEMENT_X": [
+      -7.472935535169437e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -4.4915362683619024e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -3.0412197494798964e-06
+    ],
+    "TEMPERATURE": [
+      10.980171529612045
+    ]
+  },
+  "NODE_84": {
+    "DISPLACEMENT_X": [
+      6.112223234738062e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.5884834096543025e-05
+    ],
+    "DISPLACEMENT_Z": [
+      4.9907763978309375e-05
+    ],
+    "TEMPERATURE": [
+      9.508118295046206
+    ]
+  },
+  "NODE_85": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.283897022160202
+    ]
+  },
+  "NODE_86": {
+    "DISPLACEMENT_X": [
+      7.4334406522935e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010879123825692035
+    ],
+    "DISPLACEMENT_Z": [
+      0.000124825185502652
+    ],
+    "TEMPERATURE": [
+      10.390062000300642
+    ]
+  },
+  "NODE_87": {
+    "DISPLACEMENT_X": [
+      0.00014123038701146495
+    ],
+    "DISPLACEMENT_Y": [
+      -7.149340112566624e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.404061508970625e-05
+    ],
+    "TEMPERATURE": [
+      9.084406670142606
+    ]
+  },
+  "NODE_88": {
+    "DISPLACEMENT_X": [
+      9.488242648728661e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.3384677487255996e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.157155410545694e-05
+    ],
+    "TEMPERATURE": [
+      11.031696192744645
+    ]
+  },
+  "NODE_89": {
+    "DISPLACEMENT_X": [
+      8.335669977449454e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -9.641739652783055e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.2009189130892528e-05
+    ],
+    "TEMPERATURE": [
+      8.364882161575878
+    ]
+  },
+  "NODE_90": {
+    "DISPLACEMENT_X": [
+      1.5727033164322133e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -8.217865354548834e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.365741027694027e-05
+    ],
+    "TEMPERATURE": [
+      10.480902632138072
+    ]
+  },
+  "NODE_91": {
+    "DISPLACEMENT_X": [
+      2.0977063071340318e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.108160316284857e-06
+    ],
+    "DISPLACEMENT_Z": [
+      3.6181555558424824e-06
+    ],
+    "TEMPERATURE": [
+      8.34343646274281
+    ]
+  },
+  "NODE_92": {
+    "DISPLACEMENT_X": [
+      9.235149557049309e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -8.213924223304694e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010348845315314914
+    ],
+    "TEMPERATURE": [
+      9.104168849829971
+    ]
+  },
+  "NODE_93": {
+    "DISPLACEMENT_X": [
+      9.68971075146944e-07
+    ],
+    "DISPLACEMENT_Y": [
+      -4.652374288233109e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.670019506868992e-05
+    ],
+    "TEMPERATURE": [
+      9.949852450574161
+    ]
+  },
+  "NODE_94": {
+    "DISPLACEMENT_X": [
+      4.2730313251833625e-08
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00011880122082424702
+    ],
+    "DISPLACEMENT_Z": [
+      8.417155523305455e-05
+    ],
+    "TEMPERATURE": [
+      12.427927778083802
+    ]
+  },
+  "NODE_95": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.30133644986208
+    ]
+  },
+  "NODE_96": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.28752299621426
+    ]
+  },
+  "NODE_97": {
+    "DISPLACEMENT_X": [
+      -1.0851886788066452e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.12030720103288e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.011051959105429e-05
+    ],
+    "TEMPERATURE": [
+      9.320734776876034
+    ]
+  },
+  "NODE_98": {
+    "DISPLACEMENT_X": [
+      3.9927780018895624e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.769459458345832e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.9719729270725264e-05
+    ],
+    "TEMPERATURE": [
+      9.93304348949952
+    ]
+  },
+  "NODE_99": {
+    "DISPLACEMENT_X": [
+      3.030510332666308e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.013937019138033e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.566858765307153e-05
+    ],
+    "TEMPERATURE": [
+      10.974968318582436
+    ]
+  },
+  "NODE_100": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.614086248862092
+    ]
+  },
+  "NODE_101": {
+    "DISPLACEMENT_X": [
+      -1.663899463794947e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -9.957921969884914e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.6426616168789346e-05
+    ],
+    "TEMPERATURE": [
+      12.479842058704286
+    ]
+  },
+  "NODE_102": {
+    "DISPLACEMENT_X": [
+      0.00013262485504860562
+    ],
+    "DISPLACEMENT_Y": [
+      -3.321049389560606e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.991853840194075e-05
+    ],
+    "TEMPERATURE": [
+      10.697248425234134
+    ]
+  },
+  "NODE_103": {
+    "DISPLACEMENT_X": [
+      1.034639886401031e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.0941880263436504e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.6581634962265805e-05
+    ],
+    "TEMPERATURE": [
+      9.792076034976578
+    ]
+  },
+  "NODE_104": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.18938304190334
+    ]
+  },
+  "NODE_105": {
+    "DISPLACEMENT_X": [
+      1.0108179394599562e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -7.59196400098778e-08
+    ],
+    "DISPLACEMENT_Z": [
+      -3.002952567108436e-06
+    ],
+    "TEMPERATURE": [
+      8.292843481364164
+    ]
+  },
+  "NODE_106": {
+    "DISPLACEMENT_X": [
+      1.3563203036984771e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.579801027462667e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.1997259785360306e-05
+    ],
+    "TEMPERATURE": [
+      8.270940334035215
+    ]
+  },
+  "NODE_107": {
+    "DISPLACEMENT_X": [
+      0.00011106931589161326
+    ],
+    "DISPLACEMENT_Y": [
+      -6.328662609185641e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.579666527807224e-05
+    ],
+    "TEMPERATURE": [
+      9.201232882409313
+    ]
+  },
+  "NODE_108": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      6.748807116129926
+    ]
+  },
+  "NODE_109": {
+    "DISPLACEMENT_X": [
+      3.532661884912302e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0001024332029691992
+    ],
+    "DISPLACEMENT_Z": [
+      0.00013025691790994676
+    ],
+    "TEMPERATURE": [
+      10.166668871473561
+    ]
+  },
+  "NODE_110": {
+    "DISPLACEMENT_X": [
+      5.5737254054973583e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -7.945717341011871e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011635013187449981
+    ],
+    "TEMPERATURE": [
+      9.108037942407808
+    ]
+  },
+  "NODE_111": {
+    "DISPLACEMENT_X": [
+      8.621016366341365e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.0203972841073418e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.0862863122269912e-05
+    ],
+    "TEMPERATURE": [
+      9.80054594661315
+    ]
+  },
+  "NODE_112": {
+    "DISPLACEMENT_X": [
+      0.00013970120206588168
+    ],
+    "DISPLACEMENT_Y": [
+      -5.1961575223184676e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.993215607158046e-05
+    ],
+    "TEMPERATURE": [
+      9.206551210267536
+    ]
+  },
+  "NODE_113": {
+    "DISPLACEMENT_X": [
+      -8.68712302617477e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -2.314572823326478e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.1029199544531232e-05
+    ],
+    "TEMPERATURE": [
+      8.481520193123798
+    ]
+  },
+  "NODE_114": {
+    "DISPLACEMENT_X": [
+      4.5303703707985936e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.8173746139549426e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.352855801793716e-05
+    ],
+    "TEMPERATURE": [
+      11.12463505256973
+    ]
+  },
+  "NODE_115": {
+    "DISPLACEMENT_X": [
+      -1.4172085211935384e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.3283951910568582e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.7931351413347952e-08
+    ],
+    "TEMPERATURE": [
+      7.8274874742554115
+    ]
+  },
+  "NODE_116": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.283519606763395
+    ]
+  },
+  "NODE_117": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.305326396234198
+    ]
+  },
+  "NODE_118": {
+    "DISPLACEMENT_X": [
+      -3.877865869683319e-07
+    ],
+    "DISPLACEMENT_Y": [
+      -2.011793701145167e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.1107491895625025e-05
+    ],
+    "TEMPERATURE": [
+      8.454161129841918
+    ]
+  },
+  "NODE_119": {
+    "DISPLACEMENT_X": [
+      5.448130960118711e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.4718068101350845e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.6198018415553495e-06
+    ],
+    "TEMPERATURE": [
+      8.422900500534586
+    ]
+  },
+  "NODE_120": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      11.59378599732015
+    ]
+  },
+  "NODE_121": {
+    "DISPLACEMENT_X": [
+      1.9087774592763366e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.739570310691137e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.5444224083596576e-05
+    ],
+    "TEMPERATURE": [
+      9.739852765809871
+    ]
+  },
+  "NODE_122": {
+    "DISPLACEMENT_X": [
+      7.216134886886494e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.8563120130912896e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011532550542275913
+    ],
+    "TEMPERATURE": [
+      9.20787710433615
+    ]
+  },
+  "NODE_123": {
+    "DISPLACEMENT_X": [
+      3.486518190958524e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.013944411764677e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.981862175458141e-05
+    ],
+    "TEMPERATURE": [
+      8.439770438586402
+    ]
+  },
+  "NODE_124": {
+    "DISPLACEMENT_X": [
+      9.747391013591528e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.0666285349206376e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.14145096101418e-05
+    ],
+    "TEMPERATURE": [
+      11.053948993354945
+    ]
+  },
+  "NODE_125": {
+    "DISPLACEMENT_X": [
+      -1.6353183326514377e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.639023803831127e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -4.261939172684511e-06
+    ],
+    "TEMPERATURE": [
+      10.787082356348519
+    ]
+  },
+  "NODE_126": {
+    "DISPLACEMENT_X": [
+      -1.750288268878136e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -8.118330126468885e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.438366663095077e-05
+    ],
+    "TEMPERATURE": [
+      10.604491405827014
+    ]
+  },
+  "NODE_127": {
+    "DISPLACEMENT_X": [
+      3.749495980242114e-07
+    ],
+    "DISPLACEMENT_Y": [
+      -5.759791470386574e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.814180574707734e-05
+    ],
+    "TEMPERATURE": [
+      10.82062615531941
+    ]
+  },
+  "NODE_128": {
+    "DISPLACEMENT_X": [
+      -4.8388211146677435e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -1.398549751004123e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.2872859492697454e-05
+    ],
+    "TEMPERATURE": [
+      8.309046424334731
+    ]
+  },
+  "NODE_129": {
+    "DISPLACEMENT_X": [
+      5.79819857280941e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.1305532027665125e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.9145029597991525e-05
+    ],
+    "TEMPERATURE": [
+      9.886330194977095
+    ]
+  },
+  "NODE_130": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.298958618773659
+    ]
+  },
+  "NODE_131": {
+    "DISPLACEMENT_X": [
+      -2.753432547525671e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00012649216925260476
+    ],
+    "DISPLACEMENT_Z": [
+      7.999311560356901e-05
+    ],
+    "TEMPERATURE": [
+      12.500953113180351
+    ]
+  },
+  "NODE_132": {
+    "DISPLACEMENT_X": [
+      0.00011155276799673269
+    ],
+    "DISPLACEMENT_Y": [
+      -4.040148934167251e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.50283395184203e-05
+    ],
+    "TEMPERATURE": [
+      9.210229778342134
+    ]
+  },
+  "NODE_133": {
+    "DISPLACEMENT_X": [
+      1.9358046892751716e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.568172298955998e-06
+    ],
+    "DISPLACEMENT_Z": [
+      2.057324408325423e-05
+    ],
+    "TEMPERATURE": [
+      8.43673545021619
+    ]
+  },
+  "NODE_134": {
+    "DISPLACEMENT_X": [
+      1.9363399128641918e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -7.550428500226068e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012198888956398646
+    ],
+    "TEMPERATURE": [
+      9.156430496104912
+    ]
+  },
+  "NODE_135": {
+    "DISPLACEMENT_X": [
+      2.8188840563233623e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.6342730375446315e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.3103032076547813e-05
+    ],
+    "TEMPERATURE": [
+      8.277640618798474
+    ]
+  },
+  "NODE_136": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.309052401033428
+    ]
+  },
+  "NODE_137": {
+    "DISPLACEMENT_X": [
+      3.965692422157756e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -9.761054492812679e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012887613492021665
+    ],
+    "TEMPERATURE": [
+      9.91131579656946
+    ]
+  },
+  "NODE_138": {
+    "DISPLACEMENT_X": [
+      7.644401093992948e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -4.1761211148609275e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.3076947548878712e-05
+    ],
+    "TEMPERATURE": [
+      8.35971103956196
+    ]
+  },
+  "NODE_139": {
+    "DISPLACEMENT_X": [
+      -3.06083476077713e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.426186570792651e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.593941932712955e-05
+    ],
+    "TEMPERATURE": [
+      9.39704697394579
+    ]
+  },
+  "NODE_140": {
+    "DISPLACEMENT_X": [
+      -2.039521012829739e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.82914088064914e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.5450899090523496e-05
+    ],
+    "TEMPERATURE": [
+      9.944844031223898
+    ]
+  },
+  "NODE_141": {
+    "DISPLACEMENT_X": [
+      1.4107519648995518e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.630534086899715e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.8846039649118e-05
+    ],
+    "TEMPERATURE": [
+      10.697295188132212
+    ]
+  },
+  "NODE_142": {
+    "DISPLACEMENT_X": [
+      -1.5261321275475159e-07
+    ],
+    "DISPLACEMENT_Y": [
+      -7.837040748957094e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.3585498279233878e-05
+    ],
+    "TEMPERATURE": [
+      8.310315405609614
+    ]
+  },
+  "NODE_143": {
+    "DISPLACEMENT_X": [
+      -1.0371181538043303e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.0113606516409576e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.6761779178739504e-05
+    ],
+    "TEMPERATURE": [
+      9.824318122466124
+    ]
+  },
+  "NODE_144": {
+    "DISPLACEMENT_X": [
+      1.732716063264306e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.3948745950857804e-07
+    ],
+    "DISPLACEMENT_Z": [
+      9.041874895528034e-06
+    ],
+    "TEMPERATURE": [
+      8.313893661820961
+    ]
+  },
+  "NODE_145": {
+    "DISPLACEMENT_X": [
+      6.093853399834137e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.6596232345791317e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.900593316848753e-05
+    ],
+    "TEMPERATURE": [
+      10.642569924651363
+    ]
+  },
+  "NODE_146": {
+    "DISPLACEMENT_X": [
+      3.656378190858375e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.477778677266845e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012319822752497104
+    ],
+    "TEMPERATURE": [
+      9.187122117927055
+    ]
+  },
+  "NODE_147": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.742481845925322
+    ]
+  },
+  "NODE_148": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.208284385434586
+    ]
+  },
+  "NODE_149": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.277765141119982
+    ]
+  },
+  "NODE_150": {
+    "DISPLACEMENT_X": [
+      0.000133654042682339
+    ],
+    "DISPLACEMENT_Y": [
+      -1.4321772766291397e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.957349035098202e-05
+    ],
+    "TEMPERATURE": [
+      10.60733708165992
+    ]
+  },
+  "NODE_151": {
+    "DISPLACEMENT_X": [
+      -3.981384657846217e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010091892179416762
+    ],
+    "DISPLACEMENT_Z": [
+      1.0149600119124825e-05
+    ],
+    "TEMPERATURE": [
+      12.354949329989667
+    ]
+  },
+  "NODE_152": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.301076476725626
+    ]
+  },
+  "NODE_153": {
+    "DISPLACEMENT_X": [
+      0.00014000976160396768
+    ],
+    "DISPLACEMENT_Y": [
+      -3.082959202112824e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.99803240462758e-05
+    ],
+    "TEMPERATURE": [
+      9.186660167253157
+    ]
+  },
+  "NODE_154": {
+    "DISPLACEMENT_X": [
+      2.794361869050652e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -9.322606098752869e-06
+    ],
+    "DISPLACEMENT_Z": [
+      5.2420496829746956e-05
+    ],
+    "TEMPERATURE": [
+      9.725427960919356
+    ]
+  },
+  "NODE_155": {
+    "DISPLACEMENT_X": [
+      -1.588026183774179e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.3725129654143088e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.728979180015792e-06
+    ],
+    "TEMPERATURE": [
+      8.450802814188132
+    ]
+  },
+  "NODE_156": {
+    "DISPLACEMENT_X": [
+      1.0843992445860776e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.6756747464536997e-07
+    ],
+    "DISPLACEMENT_Z": [
+      1.3148591749012684e-05
+    ],
+    "TEMPERATURE": [
+      8.31972017413473
+    ]
+  },
+  "NODE_157": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.288828708804768
+    ]
+  },
+  "NODE_158": {
+    "DISPLACEMENT_X": [
+      -1.3156382382736658e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.7021682067088507e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.010731987325559e-05
+    ],
+    "TEMPERATURE": [
+      8.316604804812515
+    ]
+  },
+  "NODE_159": {
+    "DISPLACEMENT_X": [
+      6.816987089882932e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.2375514597303033e-06
+    ],
+    "DISPLACEMENT_Z": [
+      4.854718631303288e-05
+    ],
+    "TEMPERATURE": [
+      9.575774743271298
+    ]
+  },
+  "NODE_160": {
+    "DISPLACEMENT_X": [
+      -1.0980311110842937e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.776434813788927e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.030773671195573e-05
+    ],
+    "TEMPERATURE": [
+      8.39763957962354
+    ]
+  },
+  "NODE_161": {
+    "DISPLACEMENT_X": [
+      4.910998009793727e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.63237563125737e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012449118929872504
+    ],
+    "TEMPERATURE": [
+      9.208207082763073
+    ]
+  },
+  "NODE_162": {
+    "DISPLACEMENT_X": [
+      8.720181436796847e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.7807766386139857e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.2360437416634542e-05
+    ],
+    "TEMPERATURE": [
+      9.834948887443812
+    ]
+  },
+  "NODE_163": {
+    "DISPLACEMENT_X": [
+      3.002049174255513e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.6623683640503734e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.717838452378366e-05
+    ],
+    "TEMPERATURE": [
+      11.130531845164715
+    ]
+  },
+  "NODE_164": {
+    "DISPLACEMENT_X": [
+      7.948191145441523e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.5936665494413324e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011391014883310723
+    ],
+    "TEMPERATURE": [
+      9.203986228054553
+    ]
+  },
+  "NODE_165": {
+    "DISPLACEMENT_X": [
+      4.990600960274867e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.685763373865798e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -5.821526833754991e-06
+    ],
+    "TEMPERATURE": [
+      8.396824688506493
+    ]
+  },
+  "NODE_166": {
+    "DISPLACEMENT_X": [
+      -4.973080098674322e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -7.069290172392317e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.03942292489461e-05
+    ],
+    "TEMPERATURE": [
+      8.29930860482289
+    ]
+  },
+  "NODE_167": {
+    "DISPLACEMENT_X": [
+      -4.5495701288840676e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -8.800690112368818e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.84968204252459e-05
+    ],
+    "TEMPERATURE": [
+      10.321553187957097
+    ]
+  },
+  "NODE_168": {
+    "DISPLACEMENT_X": [
+      -2.4607106430022032e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.4809870401374608e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.435015566436358e-06
+    ],
+    "TEMPERATURE": [
+      7.685235838760706
+    ]
+  },
+  "NODE_169": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.280035848798372
+    ]
+  },
+  "NODE_170": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.310988006301836
+    ]
+  },
+  "NODE_171": {
+    "DISPLACEMENT_X": [
+      -2.0582948623679433e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -7.455907180248493e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011835254995012145
+    ],
+    "TEMPERATURE": [
+      9.12491178201485
+    ]
+  },
+  "NODE_172": {
+    "DISPLACEMENT_X": [
+      -3.168135161354167e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.84686181337351e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.406072266253504e-05
+    ],
+    "TEMPERATURE": [
+      10.75975052135486
+    ]
+  },
+  "NODE_173": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      11.665897593741393
+    ]
+  },
+  "NODE_174": {
+    "DISPLACEMENT_X": [
+      -3.6367658490279054e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010207097128224435
+    ],
+    "DISPLACEMENT_Z": [
+      0.00013090873054027145
+    ],
+    "TEMPERATURE": [
+      10.180256421987231
+    ]
+  },
+  "NODE_175": {
+    "DISPLACEMENT_X": [
+      0.00011260595103625983
+    ],
+    "DISPLACEMENT_Y": [
+      -1.7637976683409378e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.776668859156095e-05
+    ],
+    "TEMPERATURE": [
+      9.199273922266467
+    ]
+  },
+  "NODE_176": {
+    "DISPLACEMENT_X": [
+      6.008968229974851e-08
+    ],
+    "DISPLACEMENT_Y": [
+      -5.3198199798871297e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.0001204017380332931
+    ],
+    "TEMPERATURE": [
+      9.207063357120695
+    ]
+  },
+  "NODE_177": {
+    "DISPLACEMENT_X": [
+      0.0001067351704026952
+    ],
+    "DISPLACEMENT_Y": [
+      -1.3611728018730808e-06
+    ],
+    "DISPLACEMENT_Z": [
+      5.571432239377953e-05
+    ],
+    "TEMPERATURE": [
+      10.804588330658476
+    ]
+  },
+  "NODE_178": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.30093985616173
+    ]
+  },
+  "NODE_179": {
+    "DISPLACEMENT_X": [
+      -1.310612721688786e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -1.1131598334468672e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.53134243246236e-05
+    ],
+    "TEMPERATURE": [
+      9.885516459642787
+    ]
+  },
+  "NODE_180": {
+    "DISPLACEMENT_X": [
+      -5.987746399893175e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00013257617496382858
+    ],
+    "DISPLACEMENT_Z": [
+      6.900913450258702e-05
+    ],
+    "TEMPERATURE": [
+      12.356837937646517
+    ]
+  },
+  "NODE_181": {
+    "DISPLACEMENT_X": [
+      -1.526577024005212e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.5403187463892094e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.4912607789475e-05
+    ],
+    "TEMPERATURE": [
+      9.742891011528087
+    ]
+  },
+  "NODE_182": {
+    "DISPLACEMENT_X": [
+      -3.586386077452075e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.6697878658901995e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.2388690255973802e-05
+    ],
+    "TEMPERATURE": [
+      11.292969194936724
+    ]
+  },
+  "NODE_183": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.304165292263392
+    ]
+  },
+  "NODE_184": {
+    "DISPLACEMENT_X": [
+      8.981439855133098e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.22659978217549e-06
+    ],
+    "DISPLACEMENT_Z": [
+      2.1498790424757625e-05
+    ],
+    "TEMPERATURE": [
+      9.563418654749032
+    ]
+  },
+  "NODE_185": {
+    "DISPLACEMENT_X": [
+      -1.7046695939869615e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.519243373309872e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.725394857372619e-05
+    ],
+    "TEMPERATURE": [
+      10.829043981317886
+    ]
+  },
+  "NODE_186": {
+    "DISPLACEMENT_X": [
+      2.789020802483312e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.5061237883827218e-06
+    ],
+    "DISPLACEMENT_Z": [
+      3.4624918045557285e-05
+    ],
+    "TEMPERATURE": [
+      9.874470700251234
+    ]
+  },
+  "NODE_187": {
+    "DISPLACEMENT_X": [
+      -3.85354812806379e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.989441317272864e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.8915640173202067e-05
+    ],
+    "TEMPERATURE": [
+      9.832076412111384
+    ]
+  },
+  "NODE_188": {
+    "DISPLACEMENT_X": [
+      3.659960048208628e-06
+    ],
+    "DISPLACEMENT_Y": [
+      1.745901165405636e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.3660903325607388e-05
+    ],
+    "TEMPERATURE": [
+      8.350384728770763
+    ]
+  },
+  "NODE_189": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.283145164107882
+    ]
+  },
+  "NODE_190": {
+    "DISPLACEMENT_X": [
+      1.6236815088138804e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.29397361187959e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012364422725374768
+    ],
+    "TEMPERATURE": [
+      9.1959036102844
+    ]
+  },
+  "NODE_191": {
+    "DISPLACEMENT_X": [
+      2.0921021643573484e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.040346572150788e-06
+    ],
+    "DISPLACEMENT_Z": [
+      4.937115470561864e-06
+    ],
+    "TEMPERATURE": [
+      8.290899581138099
+    ]
+  },
+  "NODE_192": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.29252028475643
+    ]
+  },
+  "NODE_193": {
+    "DISPLACEMENT_X": [
+      -1.1904340664430038e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.0494917720696252e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.1796613785894047e-05
+    ],
+    "TEMPERATURE": [
+      8.291697263228253
+    ]
+  },
+  "NODE_194": {
+    "DISPLACEMENT_X": [
+      -2.5822612129920883e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.692315717584695e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.5326045772458224e-05
+    ],
+    "TEMPERATURE": [
+      8.406654763712547
+    ]
+  },
+  "NODE_195": {
+    "DISPLACEMENT_X": [
+      -5.757348912951058e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.304425352256588e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.705678892270026e-05
+    ],
+    "TEMPERATURE": [
+      9.328651861967343
+    ]
+  },
+  "NODE_196": {
+    "DISPLACEMENT_X": [
+      -3.0285451718645262e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.0240538974469163e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.1755578920136754e-05
+    ],
+    "TEMPERATURE": [
+      9.897627888977441
+    ]
+  },
+  "NODE_197": {
+    "DISPLACEMENT_X": [
+      0.00014153525394953206
+    ],
+    "DISPLACEMENT_Y": [
+      -1.1579310892645751e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.031424805323697e-05
+    ],
+    "TEMPERATURE": [
+      9.194269485961126
+    ]
+  },
+  "NODE_198": {
+    "DISPLACEMENT_X": [
+      6.91125746774715e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.776635968006805e-06
+    ],
+    "DISPLACEMENT_Z": [
+      7.457214199267226e-05
+    ],
+    "TEMPERATURE": [
+      11.236504030886358
+    ]
+  },
+  "NODE_199": {
+    "DISPLACEMENT_X": [
+      -9.061143118980114e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -6.611857017172821e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.3137488973410549e-05
+    ],
+    "TEMPERATURE": [
+      8.302926029019801
+    ]
+  },
+  "NODE_200": {
+    "DISPLACEMENT_X": [
+      5.780407210030755e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.2491316736572894e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.9407357562844793e-05
+    ],
+    "TEMPERATURE": [
+      9.916197593727695
+    ]
+  },
+  "NODE_201": {
+    "DISPLACEMENT_X": [
+      2.7523869752003228e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.823858580674342e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.5684786972530857e-05
+    ],
+    "TEMPERATURE": [
+      8.297209536500736
+    ]
+  },
+  "NODE_202": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.195369027766295
+    ]
+  },
+  "NODE_203": {
+    "DISPLACEMENT_X": [
+      5.3185460020104664e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.0093552389538455e-05
+    ],
+    "DISPLACEMENT_Z": [
+      4.735343268651655e-05
+    ],
+    "TEMPERATURE": [
+      9.946691538851859
+    ]
+  },
+  "NODE_204": {
+    "DISPLACEMENT_X": [
+      -7.530339789434315e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -9.987783359955887e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.8581896036299783e-06
+    ],
+    "TEMPERATURE": [
+      12.583459539118177
+    ]
+  },
+  "NODE_205": {
+    "DISPLACEMENT_X": [
+      0.00013835801385804827
+    ],
+    "DISPLACEMENT_Y": [
+      5.111612304079518e-06
+    ],
+    "DISPLACEMENT_Z": [
+      3.839549075397819e-05
+    ],
+    "TEMPERATURE": [
+      11.350372063106288
+    ]
+  },
+  "NODE_206": {
+    "DISPLACEMENT_X": [
+      9.995242352927982e-06
+    ],
+    "DISPLACEMENT_Y": [
+      3.01268845534348e-06
+    ],
+    "DISPLACEMENT_Z": [
+      3.733952060140217e-05
+    ],
+    "TEMPERATURE": [
+      9.810636592744489
+    ]
+  },
+  "NODE_207": {
+    "DISPLACEMENT_X": [
+      1.572651003737906e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.797828276028683e-06
+    ],
+    "DISPLACEMENT_Z": [
+      9.724427419927936e-06
+    ],
+    "TEMPERATURE": [
+      8.336336509398832
+    ]
+  },
+  "NODE_208": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.369096069799404
+    ]
+  },
+  "NODE_209": {
+    "DISPLACEMENT_X": [
+      -1.8867568579452184e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -8.883459893129419e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -8.986605155055578e-06
+    ],
+    "TEMPERATURE": [
+      6.907361216965688
+    ]
+  },
+  "NODE_210": {
+    "DISPLACEMENT_X": [
+      3.4313722147149406e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.3008191264793884e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.1615269875280558e-05
+    ],
+    "TEMPERATURE": [
+      8.410721699503993
+    ]
+  },
+  "NODE_211": {
+    "DISPLACEMENT_X": [
+      -2.305785236691266e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -1.3277713891258866e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.783051862019245e-05
+    ],
+    "TEMPERATURE": [
+      10.76384259391164
+    ]
+  },
+  "NODE_212": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.290248278329628
+    ]
+  },
+  "NODE_213": {
+    "DISPLACEMENT_X": [
+      4.130482387941758e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.1896253828008069e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012637144597347637
+    ],
+    "TEMPERATURE": [
+      9.199580012461643
+    ]
+  },
+  "NODE_214": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.280521125426388
+    ]
+  },
+  "NODE_215": {
+    "DISPLACEMENT_X": [
+      3.897969650609516e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.645188555049598e-06
+    ],
+    "DISPLACEMENT_Z": [
+      8.669657020859396e-05
+    ],
+    "TEMPERATURE": [
+      10.82196850199871
+    ]
+  },
+  "NODE_216": {
+    "DISPLACEMENT_X": [
+      7.792857153188934e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.8194178505705968e-06
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011820550133914207
+    ],
+    "TEMPERATURE": [
+      9.19622088242567
+    ]
+  },
+  "NODE_217": {
+    "DISPLACEMENT_X": [
+      -1.4408711475094065e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.4226280107004622e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -6.3164490854944126e-06
+    ],
+    "TEMPERATURE": [
+      8.894043165897553
+    ]
+  },
+  "NODE_218": {
+    "DISPLACEMENT_X": [
+      -5.551469008457591e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -7.774489086608566e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011648486476605735
+    ],
+    "TEMPERATURE": [
+      9.113177698453367
+    ]
+  },
+  "NODE_219": {
+    "DISPLACEMENT_X": [
+      -2.4374224047528665e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.4987659950014474e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -6.874864126817019e-07
+    ],
+    "TEMPERATURE": [
+      8.556102763210854
+    ]
+  },
+  "NODE_220": {
+    "DISPLACEMENT_X": [
+      -1.879830298117113e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.1613522139795773e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.441400857725322e-05
+    ],
+    "TEMPERATURE": [
+      9.933277326944104
+    ]
+  },
+  "NODE_221": {
+    "DISPLACEMENT_X": [
+      -5.82937280467174e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.135978223282384e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.585626760466607e-05
+    ],
+    "TEMPERATURE": [
+      11.661917753764682
+    ]
+  },
+  "NODE_222": {
+    "DISPLACEMENT_X": [
+      -1.2580370676494766e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.0901697053042503e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010918509291443537
+    ],
+    "TEMPERATURE": [
+      9.234345873112005
+    ]
+  },
+  "NODE_223": {
+    "DISPLACEMENT_X": [
+      -7.503610576153708e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010806116537632488
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012470281170227094
+    ],
+    "TEMPERATURE": [
+      10.384245283205647
+    ]
+  },
+  "NODE_224": {
+    "DISPLACEMENT_X": [
+      -5.1467956999850365e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.486746825973684e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.378068337450386e-05
+    ],
+    "TEMPERATURE": [
+      9.571042244819374
+    ]
+  },
+  "NODE_225": {
+    "DISPLACEMENT_X": [
+      -7.8676585047774e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -9.042237502821734e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.558785934201544e-05
+    ],
+    "TEMPERATURE": [
+      10.582558383397194
+    ]
+  },
+  "NODE_226": {
+    "DISPLACEMENT_X": [
+      -3.741782773148409e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.3614894110638276e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011812778614258437
+    ],
+    "TEMPERATURE": [
+      9.178290450999489
+    ]
+  },
+  "NODE_227": {
+    "DISPLACEMENT_X": [
+      -5.581911828940322e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.59443462265327e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.3348907596599035e-05
+    ],
+    "TEMPERATURE": [
+      7.247273109911223
+    ]
+  },
+  "NODE_228": {
+    "DISPLACEMENT_X": [
+      -4.464366162131345e-06
+    ],
+    "DISPLACEMENT_Y": [
+      9.101779105549157e-07
+    ],
+    "DISPLACEMENT_Z": [
+      1.3808950071481411e-05
+    ],
+    "TEMPERATURE": [
+      8.338204867235493
+    ]
+  },
+  "NODE_229": {
+    "DISPLACEMENT_X": [
+      -2.3487028824442376e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.3918100577392765e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.333913228670122e-05
+    ],
+    "TEMPERATURE": [
+      8.4214070085538
+    ]
+  },
+  "NODE_230": {
+    "DISPLACEMENT_X": [
+      6.110182629515338e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.4484363393048899e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.4868806971728934e-06
+    ],
+    "TEMPERATURE": [
+      8.486295600598833
+    ]
+  },
+  "NODE_231": {
+    "DISPLACEMENT_X": [
+      7.925091964477504e-06
+    ],
+    "DISPLACEMENT_Y": [
+      8.401431621650674e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.2736181756378094e-05
+    ],
+    "TEMPERATURE": [
+      8.363648673003391
+    ]
+  },
+  "NODE_232": {
+    "DISPLACEMENT_X": [
+      -4.707297091262297e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.7847619649376716e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.968231811877656e-05
+    ],
+    "TEMPERATURE": [
+      9.26036648096484
+    ]
+  },
+  "NODE_233": {
+    "DISPLACEMENT_X": [
+      0.00011489889936125817
+    ],
+    "DISPLACEMENT_Y": [
+      3.812523370329972e-06
+    ],
+    "DISPLACEMENT_Z": [
+      9.789680163046521e-05
+    ],
+    "TEMPERATURE": [
+      9.21249572369013
+    ]
+  },
+  "NODE_234": {
+    "DISPLACEMENT_X": [
+      -1.984747279212871e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.8165965405116603e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.967908926107913e-06
+    ],
+    "TEMPERATURE": [
+      8.283542485160373
+    ]
+  },
+  "NODE_235": {
+    "DISPLACEMENT_X": [
+      8.921691525553195e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.335727909668078e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.2603231768122883e-05
+    ],
+    "TEMPERATURE": [
+      9.838555888384322
+    ]
+  },
+  "NODE_236": {
+    "DISPLACEMENT_X": [
+      -2.798530330429294e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.8054835868745905e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010135532770771739
+    ],
+    "TEMPERATURE": [
+      9.253537061142357
+    ]
+  },
+  "NODE_237": {
+    "DISPLACEMENT_X": [
+      -2.0149731895163466e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.1652059333800576e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011912196022252786
+    ],
+    "TEMPERATURE": [
+      9.165650125264857
+    ]
+  },
+  "NODE_238": {
+    "DISPLACEMENT_X": [
+      -0.0001047682192502822
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0001297608263848029
+    ],
+    "DISPLACEMENT_Z": [
+      5.380592613927021e-05
+    ],
+    "TEMPERATURE": [
+      12.934971883639719
+    ]
+  },
+  "NODE_239": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.5989327597336
+    ]
+  },
+  "NODE_240": {
+    "DISPLACEMENT_X": [
+      5.977661096876863e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.0749368246286029e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010581780416137549
+    ],
+    "TEMPERATURE": [
+      9.29258355219237
+    ]
+  },
+  "NODE_241": {
+    "DISPLACEMENT_X": [
+      0.0001006967141951929
+    ],
+    "DISPLACEMENT_Y": [
+      2.076836421240525e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.906942983841407e-05
+    ],
+    "TEMPERATURE": [
+      11.303759020181435
+    ]
+  },
+  "NODE_242": {
+    "DISPLACEMENT_X": [
+      -3.640050494238573e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -4.440157183710752e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.9552061741928005e-07
+    ],
+    "TEMPERATURE": [
+      8.260504895640905
+    ]
+  },
+  "NODE_243": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.317000411508442
+    ]
+  },
+  "NODE_244": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.295897853161772
+    ]
+  },
+  "NODE_245": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.271572245204112
+    ]
+  },
+  "NODE_246": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.31265615560912
+    ]
+  },
+  "NODE_247": {
+    "DISPLACEMENT_X": [
+      -1.7388525050511854e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.2571393997039062e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.213625622660998e-06
+    ],
+    "TEMPERATURE": [
+      8.324436279637098
+    ]
+  },
+  "NODE_248": {
+    "DISPLACEMENT_X": [
+      -6.490739879303842e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.155116620992925e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.4866331063706946e-05
+    ],
+    "TEMPERATURE": [
+      10.121441538788805
+    ]
+  },
+  "NODE_249": {
+    "DISPLACEMENT_X": [
+      -6.19882762084944e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.0344392661735e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -4.1294942484224794e-05
+    ],
+    "TEMPERATURE": [
+      11.061939950982246
+    ]
+  },
+  "NODE_250": {
+    "DISPLACEMENT_X": [
+      -1.0676598369146886e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.2475023250016967e-06
+    ],
+    "DISPLACEMENT_Z": [
+      3.733885908552442e-05
+    ],
+    "TEMPERATURE": [
+      9.857511793021223
+    ]
+  },
+  "NODE_251": {
+    "DISPLACEMENT_X": [
+      7.125250542359698e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.464374447234693e-05
+    ],
+    "DISPLACEMENT_Z": [
+      4.7766903037162845e-05
+    ],
+    "TEMPERATURE": [
+      9.436680649355033
+    ]
+  },
+  "NODE_252": {
+    "DISPLACEMENT_X": [
+      1.0021730025652106e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.81057419615127e-06
+    ],
+    "DISPLACEMENT_Z": [
+      9.067393674225315e-05
+    ],
+    "TEMPERATURE": [
+      10.723256625152697
+    ]
+  },
+  "NODE_253": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.307965537316813
+    ]
+  },
+  "NODE_254": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.658594740148029
+    ]
+  },
+  "NODE_255": {
+    "DISPLACEMENT_X": [
+      -5.027985348119663e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.441449904332659e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.131672398105407e-05
+    ],
+    "TEMPERATURE": [
+      11.06915556829573
+    ]
+  },
+  "NODE_256": {
+    "DISPLACEMENT_X": [
+      -2.71944395377023e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.4536440476177e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.625833166784244e-05
+    ],
+    "TEMPERATURE": [
+      10.637304917751909
+    ]
+  },
+  "NODE_257": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.292628762257442
+    ]
+  },
+  "NODE_258": {
+    "DISPLACEMENT_X": [
+      -2.769391327873576e-07
+    ],
+    "DISPLACEMENT_Y": [
+      8.141786918486808e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.343226213527376e-05
+    ],
+    "TEMPERATURE": [
+      8.351998184705053
+    ]
+  },
+  "NODE_259": {
+    "DISPLACEMENT_X": [
+      0.00014640710342126315
+    ],
+    "DISPLACEMENT_Y": [
+      1.229191997298517e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.132485633733642e-05
+    ],
+    "TEMPERATURE": [
+      9.222124191648307
+    ]
+  },
+  "NODE_260": {
+    "DISPLACEMENT_X": [
+      2.3855979124563895e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.2089982503307765e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.7010009700926675e-06
+    ],
+    "TEMPERATURE": [
+      8.290299593945525
+    ]
+  },
+  "NODE_261": {
+    "DISPLACEMENT_X": [
+      -1.533450440856588e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -1.170586272544909e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00013014976856456787
+    ],
+    "TEMPERATURE": [
+      9.18858227784857
+    ]
+  },
+  "NODE_262": {
+    "DISPLACEMENT_X": [
+      1.8331984510326935e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.033258880503558e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.746663220763902e-05
+    ],
+    "TEMPERATURE": [
+      9.931145886409567
+    ]
+  },
+  "NODE_263": {
+    "DISPLACEMENT_X": [
+      -1.4528457071958546e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.3025143662713905e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.1160145419813742e-05
+    ],
+    "TEMPERATURE": [
+      8.30144407051018
+    ]
+  },
+  "NODE_264": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.30659921970261
+    ]
+  },
+  "NODE_265": {
+    "DISPLACEMENT_X": [
+      4.7759197885277576e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.49456610593814e-06
+    ],
+    "DISPLACEMENT_Z": [
+      0.0001225224497047881
+    ],
+    "TEMPERATURE": [
+      9.190817087458994
+    ]
+  },
+  "NODE_266": {
+    "DISPLACEMENT_X": [
+      1.8903964563297698e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.405309685457718e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.0034515992693437e-05
+    ],
+    "TEMPERATURE": [
+      8.254931858332416
+    ]
+  },
+  "NODE_267": {
+    "DISPLACEMENT_X": [
+      5.463907596901784e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.636377492989213e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.277260232499625e-05
+    ],
+    "TEMPERATURE": [
+      11.170836682751254
+    ]
+  },
+  "NODE_268": {
+    "DISPLACEMENT_X": [
+      -3.5932213788075724e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.8909568847705825e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.698812991995992e-05
+    ],
+    "TEMPERATURE": [
+      7.962499073750091
+    ]
+  },
+  "NODE_269": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.27847332871943
+    ]
+  },
+  "NODE_270": {
+    "DISPLACEMENT_X": [
+      3.6102439694754165e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.124593547250825e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.2082100852691108e-05
+    ],
+    "TEMPERATURE": [
+      8.351228914298707
+    ]
+  },
+  "NODE_271": {
+    "DISPLACEMENT_X": [
+      -5.621710416297895e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.0472733431977944e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.2840875901025695e-05
+    ],
+    "TEMPERATURE": [
+      10.046346230647371
+    ]
+  },
+  "NODE_272": {
+    "DISPLACEMENT_X": [
+      -9.923595620883776e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -7.439797484088269e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.7376795518524552e-05
+    ],
+    "TEMPERATURE": [
+      8.600249230954033
+    ]
+  },
+  "NODE_273": {
+    "DISPLACEMENT_X": [
+      3.481819327344236e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.6193199441921614e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.928380426071683e-05
+    ],
+    "TEMPERATURE": [
+      9.627254337282976
+    ]
+  },
+  "NODE_274": {
+    "DISPLACEMENT_X": [
+      3.9390645112676414e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.68515440960223e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.223444180159867e-05
+    ],
+    "TEMPERATURE": [
+      9.984470748595456
+    ]
+  },
+  "NODE_275": {
+    "DISPLACEMENT_X": [
+      -1.1864736300558429e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.018366670819082e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.1570087021386407e-05
+    ],
+    "TEMPERATURE": [
+      8.324206853763616
+    ]
+  },
+  "NODE_276": {
+    "DISPLACEMENT_X": [
+      -0.00011760824927546669
+    ],
+    "DISPLACEMENT_Y": [
+      -9.421140974081042e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -3.644939828868216e-05
+    ],
+    "TEMPERATURE": [
+      12.060446901247635
+    ]
+  },
+  "NODE_277": {
+    "DISPLACEMENT_X": [
+      -3.8601335366944595e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.3105464560228352e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.8531460688003504e-05
+    ],
+    "TEMPERATURE": [
+      9.881773434047972
+    ]
+  },
+  "NODE_278": {
+    "DISPLACEMENT_X": [
+      -9.346127659333807e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -8.269413493191905e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010424696814600598
+    ],
+    "TEMPERATURE": [
+      9.115058580209435
+    ]
+  },
+  "NODE_279": {
+    "DISPLACEMENT_X": [
+      0.00013778322987071802
+    ],
+    "DISPLACEMENT_Y": [
+      2.498094803533698e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.666874873956152e-05
+    ],
+    "TEMPERATURE": [
+      10.60562666654035
+    ]
+  },
+  "NODE_280": {
+    "DISPLACEMENT_X": [
+      -7.140063421264627e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.519050932649602e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011281086555524624
+    ],
+    "TEMPERATURE": [
+      9.19861636500008
+    ]
+  },
+  "NODE_281": {
+    "DISPLACEMENT_X": [
+      -5.250024440117177e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -4.407518052843705e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.2236375092541715e-06
+    ],
+    "TEMPERATURE": [
+      8.313085523863405
+    ]
+  },
+  "NODE_282": {
+    "DISPLACEMENT_X": [
+      -4.812153401652655e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.784247011949631e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011331565152000562
+    ],
+    "TEMPERATURE": [
+      9.181429869708257
+    ]
+  },
+  "NODE_283": {
+    "DISPLACEMENT_X": [
+      6.769321027435509e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.706958880688479e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.4797732799484483e-05
+    ],
+    "TEMPERATURE": [
+      9.718824307504997
+    ]
+  },
+  "NODE_284": {
+    "DISPLACEMENT_X": [
+      -4.951193310965515e-07
+    ],
+    "DISPLACEMENT_Y": [
+      1.75068618056142e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.85353390833457e-05
+    ],
+    "TEMPERATURE": [
+      9.849008117961882
+    ]
+  },
+  "NODE_285": {
+    "DISPLACEMENT_X": [
+      1.2396504296235507e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.510550640916708e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.1565171971953583e-05
+    ],
+    "TEMPERATURE": [
+      8.3040996131653
+    ]
+  },
+  "NODE_286": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.3227005302448
+    ]
+  },
+  "NODE_287": {
+    "DISPLACEMENT_X": [
+      3.5720998115467274e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.092780791852002e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.2106670339357727e-05
+    ],
+    "TEMPERATURE": [
+      8.408552814264821
+    ]
+  },
+  "NODE_288": {
+    "DISPLACEMENT_X": [
+      -0.00011917003775060556
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010771091658481957
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010505024822327178
+    ],
+    "TEMPERATURE": [
+      9.914032545846192
+    ]
+  },
+  "NODE_289": {
+    "DISPLACEMENT_X": [
+      -1.5477747713330055e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.61516075668345e-06
+    ],
+    "DISPLACEMENT_Z": [
+      9.054800982444944e-05
+    ],
+    "TEMPERATURE": [
+      10.82088755575957
+    ]
+  },
+  "NODE_290": {
+    "DISPLACEMENT_X": [
+      8.682915636539125e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.15108822968429e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.677471229477859e-05
+    ],
+    "TEMPERATURE": [
+      9.247099320508061
+    ]
+  },
+  "NODE_291": {
+    "DISPLACEMENT_X": [
+      -9.807905701580837e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -6.718153879062622e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.684835633799042e-05
+    ],
+    "TEMPERATURE": [
+      10.860517102948151
+    ]
+  },
+  "NODE_292": {
+    "DISPLACEMENT_X": [
+      2.5982957476338245e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.7529020023097523e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.730029192487234e-05
+    ],
+    "TEMPERATURE": [
+      10.953565532128994
+    ]
+  },
+  "NODE_293": {
+    "DISPLACEMENT_X": [
+      1.732178960845735e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.804711143393347e-06
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012765590954614913
+    ],
+    "TEMPERATURE": [
+      9.198557237381552
+    ]
+  },
+  "NODE_294": {
+    "DISPLACEMENT_X": [
+      -6.0362081961175384e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.591462221046953e-05
+    ],
+    "DISPLACEMENT_Z": [
+      4.3876929455521084e-05
+    ],
+    "TEMPERATURE": [
+      9.643617016261175
+    ]
+  },
+  "NODE_295": {
+    "DISPLACEMENT_X": [
+      -9.257011728527176e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.5569002341880165e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.9817212966186305e-05
+    ],
+    "TEMPERATURE": [
+      9.792945990873285
+    ]
+  },
+  "NODE_296": {
+    "DISPLACEMENT_X": [
+      7.548762571917563e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.5361287593210754e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011125806745215427
+    ],
+    "TEMPERATURE": [
+      9.169703606818564
+    ]
+  },
+  "NODE_297": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.2818382834959
+    ]
+  },
+  "NODE_298": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.274664955211827
+    ]
+  },
+  "NODE_299": {
+    "DISPLACEMENT_X": [
+      -2.59921034850502e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.02380992670741e-06
+    ],
+    "DISPLACEMENT_Z": [
+      3.489769684824318e-05
+    ],
+    "TEMPERATURE": [
+      9.779689407055242
+    ]
+  },
+  "NODE_300": {
+    "DISPLACEMENT_X": [
+      0.00011848520050297806
+    ],
+    "DISPLACEMENT_Y": [
+      2.807500061823538e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.482580623597645e-05
+    ],
+    "TEMPERATURE": [
+      9.186584104458749
+    ]
+  },
+  "NODE_301": {
+    "DISPLACEMENT_X": [
+      -3.23392480867517e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.6431519195156136e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.6860506676107897e-05
+    ],
+    "TEMPERATURE": [
+      8.337078571091508
+    ]
+  },
+  "NODE_302": {
+    "DISPLACEMENT_X": [
+      -8.397831106749734e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -3.73374543927085e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.8640657787014653e-06
+    ],
+    "TEMPERATURE": [
+      8.290035690558412
+    ]
+  },
+  "NODE_303": {
+    "DISPLACEMENT_X": [
+      2.663956041579979e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.3904853869988174e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.7050680559153572e-05
+    ],
+    "TEMPERATURE": [
+      8.252352364481771
+    ]
+  },
+  "NODE_304": {
+    "DISPLACEMENT_X": [
+      -8.212226216271153e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.148298041486278e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.6225460010366992e-05
+    ],
+    "TEMPERATURE": [
+      9.430969948748091
+    ]
+  },
+  "NODE_305": {
+    "DISPLACEMENT_X": [
+      -7.327178029252991e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.4942702237738085e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.99313522062845e-05
+    ],
+    "TEMPERATURE": [
+      9.309181673964467
+    ]
+  },
+  "NODE_306": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.246275320144552
+    ]
+  },
+  "NODE_307": {
+    "DISPLACEMENT_X": [
+      -0.000159716550333271
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0001242126580177802
+    ],
+    "DISPLACEMENT_Z": [
+      2.723296627662262e-05
+    ],
+    "TEMPERATURE": [
+      12.810474287437422
+    ]
+  },
+  "NODE_308": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.29052821089854
+    ]
+  },
+  "NODE_309": {
+    "DISPLACEMENT_X": [
+      -2.7968845956325932e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.815403379216269e-07
+    ],
+    "DISPLACEMENT_Z": [
+      2.034894897611529e-05
+    ],
+    "TEMPERATURE": [
+      8.478869255209334
+    ]
+  },
+  "NODE_310": {
+    "DISPLACEMENT_X": [
+      -8.616249585760506e-06
+    ],
+    "DISPLACEMENT_Y": [
+      8.490888829139973e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.2261981703868284e-05
+    ],
+    "TEMPERATURE": [
+      8.369196972499282
+    ]
+  },
+  "NODE_311": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.299279261952037
+    ]
+  },
+  "NODE_312": {
+    "DISPLACEMENT_X": [
+      3.396164623423556e-06
+    ],
+    "DISPLACEMENT_Y": [
+      1.4992657567388667e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.4015354083248953e-05
+    ],
+    "TEMPERATURE": [
+      8.328038686286028
+    ]
+  },
+  "NODE_313": {
+    "DISPLACEMENT_X": [
+      -0.00011582490976936264
+    ],
+    "DISPLACEMENT_Y": [
+      -7.730171860994646e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.488051928976584e-05
+    ],
+    "TEMPERATURE": [
+      9.086747729977318
+    ]
+  },
+  "NODE_314": {
+    "DISPLACEMENT_X": [
+      -3.937389599830777e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.4413957603903182e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012486201379461703
+    ],
+    "TEMPERATURE": [
+      9.191685811816786
+    ]
+  },
+  "NODE_315": {
+    "DISPLACEMENT_X": [
+      9.793783557966611e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.9096336047566602e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.3185857729411007e-05
+    ],
+    "TEMPERATURE": [
+      9.925663810029354
+    ]
+  },
+  "NODE_316": {
+    "DISPLACEMENT_X": [
+      4.551395174734011e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.030849604949443e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.2291818443462747e-05
+    ],
+    "TEMPERATURE": [
+      9.505590240871966
+    ]
+  },
+  "NODE_317": {
+    "DISPLACEMENT_X": [
+      -4.1159131851297516e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.5742853110488688e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -5.202323679905824e-06
+    ],
+    "TEMPERATURE": [
+      8.401216486330732
+    ]
+  },
+  "NODE_318": {
+    "DISPLACEMENT_X": [
+      -5.616438435941677e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.1955192778146636e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.993819219493523e-05
+    ],
+    "TEMPERATURE": [
+      11.00907016869853
+    ]
+  },
+  "NODE_319": {
+    "DISPLACEMENT_X": [
+      -9.942830386082493e-07
+    ],
+    "DISPLACEMENT_Y": [
+      2.6012479545780253e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.135339284618602e-05
+    ],
+    "TEMPERATURE": [
+      10.805683343799865
+    ]
+  },
+  "NODE_320": {
+    "DISPLACEMENT_X": [
+      2.414793311043445e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.5483226663611775e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.756204227859394e-05
+    ],
+    "TEMPERATURE": [
+      10.001824755431768
+    ]
+  },
+  "NODE_321": {
+    "DISPLACEMENT_X": [
+      2.363966944606842e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.8581399966132263e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.804367699545896e-06
+    ],
+    "TEMPERATURE": [
+      8.49915821483838
+    ]
+  },
+  "NODE_322": {
+    "DISPLACEMENT_X": [
+      -9.477112929681377e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.271658388973665e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.923152053906864e-05
+    ],
+    "TEMPERATURE": [
+      10.966958838216696
+    ]
+  },
+  "NODE_323": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.312125655384811
+    ]
+  },
+  "NODE_324": {
+    "DISPLACEMENT_X": [
+      3.166509094425593e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.6704133625499983e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.2739175933457344e-06
+    ],
+    "TEMPERATURE": [
+      8.635532321276722
+    ]
+  },
+  "NODE_325": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.278372548418506
+    ]
+  },
+  "NODE_326": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.281859063983703
+    ]
+  },
+  "NODE_327": {
+    "DISPLACEMENT_X": [
+      -8.729021732814867e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.0301362790358064e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.358141974928625e-05
+    ],
+    "TEMPERATURE": [
+      9.95551695686048
+    ]
+  },
+  "NODE_328": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.295383042369611
+    ]
+  },
+  "NODE_329": {
+    "DISPLACEMENT_X": [
+      0.0001476882734736139
+    ],
+    "DISPLACEMENT_Y": [
+      3.228353350941759e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.554953292162915e-05
+    ],
+    "TEMPERATURE": [
+      9.184570063359294
+    ]
+  },
+  "NODE_330": {
+    "DISPLACEMENT_X": [
+      7.060678338794999e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.624207010485332e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.489521545285359e-05
+    ],
+    "TEMPERATURE": [
+      11.031328247412489
+    ]
+  },
+  "NODE_331": {
+    "DISPLACEMENT_X": [
+      -3.8000056964135546e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.0234159595644346e-06
+    ],
+    "DISPLACEMENT_Z": [
+      8.560392281256547e-05
+    ],
+    "TEMPERATURE": [
+      10.694094730968635
+    ]
+  },
+  "NODE_332": {
+    "DISPLACEMENT_X": [
+      0.0001042617982875337
+    ],
+    "DISPLACEMENT_Y": [
+      4.552472053749311e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.890949991309224e-05
+    ],
+    "TEMPERATURE": [
+      10.738152824536382
+    ]
+  },
+  "NODE_333": {
+    "DISPLACEMENT_X": [
+      -0.00013487384125514447
+    ],
+    "DISPLACEMENT_Y": [
+      -7.558757819263856e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.180465374002663e-05
+    ],
+    "TEMPERATURE": [
+      10.86225832926487
+    ]
+  },
+  "NODE_334": {
+    "DISPLACEMENT_X": [
+      -1.4309535740976841e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.139372853356854e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012854045266519017
+    ],
+    "TEMPERATURE": [
+      9.200972294876953
+    ]
+  },
+  "NODE_335": {
+    "DISPLACEMENT_X": [
+      -2.255486791944676e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.425864081374281e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.29452178216302e-07
+    ],
+    "TEMPERATURE": [
+      8.320752991339333
+    ]
+  },
+  "NODE_336": {
+    "DISPLACEMENT_X": [
+      6.77224221843389e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.2257320483633405e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010892913650455514
+    ],
+    "TEMPERATURE": [
+      9.2464923335358
+    ]
+  },
+  "NODE_337": {
+    "DISPLACEMENT_X": [
+      -1.8987649255660386e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.8666985426957577e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.723288891739344e-05
+    ],
+    "TEMPERATURE": [
+      9.854239432989642
+    ]
+  },
+  "NODE_338": {
+    "DISPLACEMENT_X": [
+      -1.770962136942364e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.6640652052494122e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.0068091499807704e-05
+    ],
+    "TEMPERATURE": [
+      8.316701914518967
+    ]
+  },
+  "NODE_339": {
+    "DISPLACEMENT_X": [
+      6.981382076001518e-06
+    ],
+    "DISPLACEMENT_Y": [
+      3.330841981912863e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.825924724353924e-05
+    ],
+    "TEMPERATURE": [
+      9.721004645518766
+    ]
+  },
+  "NODE_340": {
+    "DISPLACEMENT_X": [
+      3.233219057682677e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.305644473932981e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012842615113223667
+    ],
+    "TEMPERATURE": [
+      9.216560512401772
+    ]
+  },
+  "NODE_341": {
+    "DISPLACEMENT_X": [
+      -3.445282630200379e-06
+    ],
+    "DISPLACEMENT_Y": [
+      1.5056280409815247e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.3266174270192942e-05
+    ],
+    "TEMPERATURE": [
+      8.34766842465838
+    ]
+  },
+  "NODE_342": {
+    "DISPLACEMENT_X": [
+      -6.115225408811139e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -9.724995697499806e-06
+    ],
+    "DISPLACEMENT_Z": [
+      4.871578147030445e-05
+    ],
+    "TEMPERATURE": [
+      9.5752069817227
+    ]
+  },
+  "NODE_343": {
+    "DISPLACEMENT_X": [
+      -0.00011233235275605286
+    ],
+    "DISPLACEMENT_Y": [
+      -6.269855144378696e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.522506176230723e-05
+    ],
+    "TEMPERATURE": [
+      9.206679104810595
+    ]
+  },
+  "NODE_344": {
+    "DISPLACEMENT_X": [
+      -2.844528870532979e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.2400945939255087e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.8452443879582083e-05
+    ],
+    "TEMPERATURE": [
+      8.304826814805704
+    ]
+  },
+  "NODE_345": {
+    "DISPLACEMENT_X": [
+      1.5950393669167145e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.043770188690041e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.2667741887187816e-05
+    ],
+    "TEMPERATURE": [
+      8.534072695008224
+    ]
+  },
+  "NODE_346": {
+    "DISPLACEMENT_X": [
+      1.6447187300184968e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.545819464532893e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.7468993559437454e-05
+    ],
+    "TEMPERATURE": [
+      8.50225997292154
+    ]
+  },
+  "NODE_347": {
+    "DISPLACEMENT_X": [
+      8.190656573160364e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.325666710697946e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.72553009273505e-06
+    ],
+    "TEMPERATURE": [
+      10.033954454227604
+    ]
+  },
+  "NODE_348": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.283529134899833
+    ]
+  },
+  "NODE_349": {
+    "DISPLACEMENT_X": [
+      -7.979131421734726e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.908829163931983e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011049201207254278
+    ],
+    "TEMPERATURE": [
+      9.184154984015285
+    ]
+  },
+  "NODE_350": {
+    "DISPLACEMENT_X": [
+      3.9691742319149356e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.929219279179465e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.401632796987573e-05
+    ],
+    "TEMPERATURE": [
+      11.427199168092605
+    ]
+  },
+  "NODE_351": {
+    "DISPLACEMENT_X": [
+      -8.163903406962185e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.4690503746618806e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.6069324330639695e-05
+    ],
+    "TEMPERATURE": [
+      9.61410443184596
+    ]
+  },
+  "NODE_352": {
+    "DISPLACEMENT_X": [
+      5.565958988812845e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.7075453815323115e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.5292959651384834e-05
+    ],
+    "TEMPERATURE": [
+      10.08120228164151
+    ]
+  },
+  "NODE_353": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.306683663396324
+    ]
+  },
+  "NODE_354": {
+    "DISPLACEMENT_X": [
+      -6.27259830706121e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.248779574873083e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.3524001729475568e-05
+    ],
+    "TEMPERATURE": [
+      9.897543709184749
+    ]
+  },
+  "NODE_355": {
+    "DISPLACEMENT_X": [
+      -0.00016206203564847038
+    ],
+    "DISPLACEMENT_Y": [
+      -9.66076332833518e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.501323002882172e-05
+    ],
+    "TEMPERATURE": [
+      10.335099098202242
+    ]
+  },
+  "NODE_356": {
+    "DISPLACEMENT_X": [
+      0.00014525432754718684
+    ],
+    "DISPLACEMENT_Y": [
+      4.3668208010766736e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.535879885031984e-05
+    ],
+    "TEMPERATURE": [
+      10.871385465277454
+    ]
+  },
+  "NODE_357": {
+    "DISPLACEMENT_X": [
+      -1.612548180335637e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.676893741843268e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.050322864109355e-05
+    ],
+    "TEMPERATURE": [
+      8.352647310936785
+    ]
+  },
+  "NODE_358": {
+    "DISPLACEMENT_X": [
+      -4.677992828272024e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.822106881395634e-06
+    ],
+    "DISPLACEMENT_Z": [
+      2.9232044181368346e-05
+    ],
+    "TEMPERATURE": [
+      9.891138494780995
+    ]
+  },
+  "NODE_359": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.01892390241388
+    ]
+  },
+  "NODE_360": {
+    "DISPLACEMENT_X": [
+      -6.718188741186515e-06
+    ],
+    "DISPLACEMENT_Y": [
+      -1.384949884949501e-06
+    ],
+    "DISPLACEMENT_Z": [
+      2.7102323230182117e-08
+    ],
+    "TEMPERATURE": [
+      8.30107703941633
+    ]
+  },
+  "NODE_361": {
+    "DISPLACEMENT_X": [
+      -7.748777356803068e-06
+    ],
+    "DISPLACEMENT_Y": [
+      3.306726748581118e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.865784735083083e-05
+    ],
+    "TEMPERATURE": [
+      9.788474038750286
+    ]
+  },
+  "NODE_362": {
+    "DISPLACEMENT_X": [
+      -6.882452218244512e-07
+    ],
+    "DISPLACEMENT_Y": [
+      3.2166642381579337e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012525061551857148
+    ],
+    "TEMPERATURE": [
+      9.18901282728437
+    ]
+  },
+  "NODE_363": {
+    "DISPLACEMENT_X": [
+      -0.0001329269571368471
+    ],
+    "DISPLACEMENT_Y": [
+      -5.376239159115378e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.625884037597817e-05
+    ],
+    "TEMPERATURE": [
+      11.122904459052442
+    ]
+  },
+  "NODE_364": {
+    "DISPLACEMENT_X": [
+      3.518626354077204e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.929923283579712e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.3645734233307326e-05
+    ],
+    "TEMPERATURE": [
+      10.38720047917837
+    ]
+  },
+  "NODE_365": {
+    "DISPLACEMENT_X": [
+      8.934715224326072e-06
+    ],
+    "DISPLACEMENT_Y": [
+      2.186573101013413e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.3812435321353854e-05
+    ],
+    "TEMPERATURE": [
+      8.514547119395942
+    ]
+  },
+  "NODE_366": {
+    "DISPLACEMENT_X": [
+      -2.7411189546213688e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.7759200843903662e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.812755616041472e-05
+    ],
+    "TEMPERATURE": [
+      10.777521286969003
+    ]
+  },
+  "NODE_367": {
+    "DISPLACEMENT_X": [
+      -8.809355503150425e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.6270241696904716e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.3619681943159903e-05
+    ],
+    "TEMPERATURE": [
+      9.798984168965179
+    ]
+  },
+  "NODE_368": {
+    "DISPLACEMENT_X": [
+      -9.117022868365175e-06
+    ],
+    "DISPLACEMENT_Y": [
+      8.927926667146768e-07
+    ],
+    "DISPLACEMENT_Z": [
+      3.6336265362787534e-06
+    ],
+    "TEMPERATURE": [
+      8.30007726045743
+    ]
+  },
+  "NODE_369": {
+    "DISPLACEMENT_X": [
+      9.844015127045442e-06
+    ],
+    "DISPLACEMENT_Y": [
+      4.767080345882101e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.899787031663456e-05
+    ],
+    "TEMPERATURE": [
+      10.679247631491414
+    ]
+  },
+  "NODE_370": {
+    "DISPLACEMENT_X": [
+      -9.590312116994718e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -2.2599946590715478e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.0160339625924016e-05
+    ],
+    "TEMPERATURE": [
+      11.46041804758181
+    ]
+  },
+  "NODE_371": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.286643658741678
+    ]
+  },
+  "NODE_372": {
+    "DISPLACEMENT_X": [
+      -0.00011033745136268235
+    ],
+    "DISPLACEMENT_Y": [
+      -4.2180405006410285e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.477344894544165e-05
+    ],
+    "TEMPERATURE": [
+      9.197137473599714
+    ]
+  },
+  "NODE_373": {
+    "DISPLACEMENT_X": [
+      4.716435859980608e-05
+    ],
+    "DISPLACEMENT_Y": [
+      8.172686171548787e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -2.1863616095230626e-05
+    ],
+    "TEMPERATURE": [
+      7.8469223748019585
+    ]
+  },
+  "NODE_374": {
+    "DISPLACEMENT_X": [
+      -4.7145893663343166e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.80820834720943e-06
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012668440431729756
+    ],
+    "TEMPERATURE": [
+      9.20585179439079
+    ]
+  },
+  "NODE_375": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.264452538010215
+    ]
+  },
+  "NODE_376": {
+    "DISPLACEMENT_X": [
+      8.491021121509308e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.5197091620210896e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011059181394552075
+    ],
+    "TEMPERATURE": [
+      9.163737557325733
+    ]
+  },
+  "NODE_377": {
+    "DISPLACEMENT_X": [
+      3.302381328205131e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.80926816337225e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.686362362368175e-05
+    ],
+    "TEMPERATURE": [
+      9.736133007451427
+    ]
+  },
+  "NODE_378": {
+    "DISPLACEMENT_X": [
+      -3.67337147801231e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.7135880475057156e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.3337595941367654e-05
+    ],
+    "TEMPERATURE": [
+      9.781240992331453
+    ]
+  },
+  "NODE_379": {
+    "DISPLACEMENT_X": [
+      -0.00014191117236293194
+    ],
+    "DISPLACEMENT_Y": [
+      -7.09542337607978e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.257370209397412e-05
+    ],
+    "TEMPERATURE": [
+      9.08059910417998
+    ]
+  },
+  "NODE_380": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.082829653305287
+    ]
+  },
+  "NODE_381": {
+    "DISPLACEMENT_X": [
+      0.00012149069876194582
+    ],
+    "DISPLACEMENT_Y": [
+      5.522312238515671e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.178485285919677e-05
+    ],
+    "TEMPERATURE": [
+      9.199779361384868
+    ]
+  },
+  "NODE_382": {
+    "DISPLACEMENT_X": [
+      -3.950612120341727e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.791669860477661e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.0936662689013783e-05
+    ],
+    "TEMPERATURE": [
+      8.339235394779134
+    ]
+  },
+  "NODE_383": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.242697408589862
+    ]
+  },
+  "NODE_384": {
+    "DISPLACEMENT_X": [
+      6.456364447923112e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.5999452014441793e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -5.716136960951207e-06
+    ],
+    "TEMPERATURE": [
+      7.526508076643127
+    ]
+  },
+  "NODE_385": {
+    "DISPLACEMENT_X": [
+      8.197280490821355e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.785197033347076e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.95506966580005e-05
+    ],
+    "TEMPERATURE": [
+      10.807053188623911
+    ]
+  },
+  "NODE_386": {
+    "DISPLACEMENT_X": [
+      -3.075622607614795e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.0060743083246731e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.5672316721875243e-05
+    ],
+    "TEMPERATURE": [
+      8.409899855911082
+    ]
+  },
+  "NODE_387": {
+    "DISPLACEMENT_X": [
+      -1.1929501986719801e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.5058506384888864e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.193794341999783e-05
+    ],
+    "TEMPERATURE": [
+      8.356524992973151
+    ]
+  },
+  "NODE_388": {
+    "DISPLACEMENT_X": [
+      -7.0511423137885e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.773402499478331e-06
+    ],
+    "DISPLACEMENT_Z": [
+      7.700246003121275e-05
+    ],
+    "TEMPERATURE": [
+      11.046853572133816
+    ]
+  },
+  "NODE_389": {
+    "DISPLACEMENT_X": [
+      5.002890972193192e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.60088945423944e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.0001249467897826566
+    ],
+    "TEMPERATURE": [
+      9.19695794343772
+    ]
+  },
+  "NODE_390": {
+    "DISPLACEMENT_X": [
+      -2.9241442170447057e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -5.659356011470092e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -2.2778483900238037e-05
+    ],
+    "TEMPERATURE": [
+      8.346180519372785
+    ]
+  },
+  "NODE_391": {
+    "DISPLACEMENT_X": [
+      1.8121412583031716e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.204611100932699e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.6970376977446573e-05
+    ],
+    "TEMPERATURE": [
+      10.330173389500061
+    ]
+  },
+  "NODE_392": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.990740963839488
+    ]
+  },
+  "NODE_393": {
+    "DISPLACEMENT_X": [
+      3.3042172231482365e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.5699777511353033e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.254648002714755e-06
+    ],
+    "TEMPERATURE": [
+      7.302661221288979
+    ]
+  },
+  "NODE_394": {
+    "DISPLACEMENT_X": [
+      5.301037895578725e-07
+    ],
+    "DISPLACEMENT_Y": [
+      2.2319871359012553e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.2852451606619903e-05
+    ],
+    "TEMPERATURE": [
+      8.528570433117673
+    ]
+  },
+  "NODE_395": {
+    "DISPLACEMENT_X": [
+      -7.875819360787328e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -4.408006789116788e-06
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011423551290743937
+    ],
+    "TEMPERATURE": [
+      9.201216495862699
+    ]
+  },
+  "NODE_396": {
+    "DISPLACEMENT_X": [
+      2.14202760128737e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.1285432760219219e-07
+    ],
+    "DISPLACEMENT_Z": [
+      -1.3291183264513045e-06
+    ],
+    "TEMPERATURE": [
+      6.627037491780492
+    ]
+  },
+  "NODE_397": {
+    "DISPLACEMENT_X": [
+      -1.2431036620130693e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.761457578360044e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.885139037110455e-05
+    ],
+    "TEMPERATURE": [
+      10.688633381732298
+    ]
+  },
+  "NODE_398": {
+    "DISPLACEMENT_X": [
+      5.2621377127503376e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.144595099923671e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.927886820865106e-05
+    ],
+    "TEMPERATURE": [
+      10.940633044990378
+    ]
+  },
+  "NODE_399": {
+    "DISPLACEMENT_X": [
+      0.00010897701075746978
+    ],
+    "DISPLACEMENT_Y": [
+      4.027434930413073e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.4389211304666124e-05
+    ],
+    "TEMPERATURE": [
+      8.727217683096645
+    ]
+  },
+  "NODE_400": {
+    "DISPLACEMENT_X": [
+      0.00015547361399969887
+    ],
+    "DISPLACEMENT_Y": [
+      5.402049746746526e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.325693525902412e-05
+    ],
+    "TEMPERATURE": [
+      9.25997219840931
+    ]
+  },
+  "NODE_401": {
+    "DISPLACEMENT_X": [
+      -0.00013375388285652605
+    ],
+    "DISPLACEMENT_Y": [
+      -3.445960949035365e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.7470795507006526e-05
+    ],
+    "TEMPERATURE": [
+      10.72274176306231
+    ]
+  },
+  "NODE_402": {
+    "DISPLACEMENT_X": [
+      2.268243954868973e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.7291622604794297e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.4137509100152231e-05
+    ],
+    "TEMPERATURE": [
+      7.330252140906804
+    ]
+  },
+  "NODE_403": {
+    "DISPLACEMENT_X": [
+      -3.286792050564523e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.378320437341508e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012792389997935452
+    ],
+    "TEMPERATURE": [
+      9.204839435178483
+    ]
+  },
+  "NODE_404": {
+    "DISPLACEMENT_X": [
+      -5.507643114047294e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.7358981055111123e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.417325173033267e-05
+    ],
+    "TEMPERATURE": [
+      11.400141962723241
+    ]
+  },
+  "NODE_405": {
+    "DISPLACEMENT_X": [
+      -2.7407316529629605e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.294419062341844e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.6153912030327993e-05
+    ],
+    "TEMPERATURE": [
+      9.748643575965048
+    ]
+  },
+  "NODE_406": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.29410185551849
+    ]
+  },
+  "NODE_407": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.997391985924185
+    ]
+  },
+  "NODE_408": {
+    "DISPLACEMENT_X": [
+      -0.00014022496564648047
+    ],
+    "DISPLACEMENT_Y": [
+      -5.2067405553371486e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.86142258094468e-05
+    ],
+    "TEMPERATURE": [
+      9.210474165005868
+    ]
+  },
+  "NODE_409": {
+    "DISPLACEMENT_X": [
+      -7.359817904321868e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.093646686812979e-06
+    ],
+    "DISPLACEMENT_Z": [
+      3.3203445862334554e-05
+    ],
+    "TEMPERATURE": [
+      9.675543144506111
+    ]
+  },
+  "NODE_410": {
+    "DISPLACEMENT_X": [
+      1.2952426856408353e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.457531021822913e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012729818861573355
+    ],
+    "TEMPERATURE": [
+      9.189442871310725
+    ]
+  },
+  "NODE_411": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.307650486203453
+    ]
+  },
+  "NODE_412": {
+    "DISPLACEMENT_X": [
+      -5.015309780621537e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.736760700469438e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -8.455517442899336e-06
+    ],
+    "TEMPERATURE": [
+      8.391175750043416
+    ]
+  },
+  "NODE_413": {
+    "DISPLACEMENT_X": [
+      -8.783367254377018e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -1.1683181396290712e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.5926888888321008e-05
+    ],
+    "TEMPERATURE": [
+      9.977874157357721
+    ]
+  },
+  "NODE_414": {
+    "DISPLACEMENT_X": [
+      1.4489524317828178e-07
+    ],
+    "DISPLACEMENT_Y": [
+      5.372895745765043e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.8448883906433664e-05
+    ],
+    "TEMPERATURE": [
+      10.025062854624412
+    ]
+  },
+  "NODE_415": {
+    "DISPLACEMENT_X": [
+      7.490401226513762e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.038598555828864e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.6912192854479653e-05
+    ],
+    "TEMPERATURE": [
+      9.104575091408854
+    ]
+  },
+  "NODE_416": {
+    "DISPLACEMENT_X": [
+      -6.610277088793561e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.7949186318988457e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.896429938814557e-05
+    ],
+    "TEMPERATURE": [
+      9.695705984796444
+    ]
+  },
+  "NODE_417": {
+    "DISPLACEMENT_X": [
+      -9.804487662655712e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -3.8457918998815614e-06
+    ],
+    "DISPLACEMENT_Z": [
+      6.070479939933987e-05
+    ],
+    "TEMPERATURE": [
+      10.859298512796467
+    ]
+  },
+  "NODE_418": {
+    "DISPLACEMENT_X": [
+      -0.00011259235191014331
+    ],
+    "DISPLACEMENT_Y": [
+      -1.8718786857891404e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.889167400989401e-05
+    ],
+    "TEMPERATURE": [
+      9.215481124013284
+    ]
+  },
+  "NODE_419": {
+    "DISPLACEMENT_X": [
+      -7.0176906966723e-06
+    ],
+    "DISPLACEMENT_Y": [
+      1.1774696925360138e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.245837911452088e-07
+    ],
+    "TEMPERATURE": [
+      8.30575026502329
+    ]
+  },
+  "NODE_420": {
+    "DISPLACEMENT_X": [
+      2.4516570726416644e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.378560871319298e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.440699479317594e-05
+    ],
+    "TEMPERATURE": [
+      11.046604951695842
+    ]
+  },
+  "NODE_421": {
+    "DISPLACEMENT_X": [
+      -7.469943403651511e-06
+    ],
+    "DISPLACEMENT_Y": [
+      2.2911669941154772e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.3228999333331567e-05
+    ],
+    "TEMPERATURE": [
+      8.505061887331058
+    ]
+  },
+  "NODE_422": {
+    "DISPLACEMENT_X": [
+      0.0001119974695360544
+    ],
+    "DISPLACEMENT_Y": [
+      8.070146301651243e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.415075234322396e-05
+    ],
+    "TEMPERATURE": [
+      11.160345707447613
+    ]
+  },
+  "NODE_423": {
+    "DISPLACEMENT_X": [
+      1.289585429029786e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.8016034124064822e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.6240245292882747e-05
+    ],
+    "TEMPERATURE": [
+      7.309080991518838
+    ]
+  },
+  "NODE_424": {
+    "DISPLACEMENT_X": [
+      -2.2168118408433024e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.433292768604216e-06
+    ],
+    "DISPLACEMENT_Z": [
+      6.232829355275469e-06
+    ],
+    "TEMPERATURE": [
+      8.280609729426455
+    ]
+  },
+  "NODE_425": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.294586769715961
+    ]
+  },
+  "NODE_426": {
+    "DISPLACEMENT_X": [
+      5.0353829436481355e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.201409258929041e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.9063629991597155e-05
+    ],
+    "TEMPERATURE": [
+      8.981778077193457
+    ]
+  },
+  "NODE_427": {
+    "DISPLACEMENT_X": [
+      -4.821089101877303e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.4105159492522806e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.146057156091838e-05
+    ],
+    "TEMPERATURE": [
+      9.787307621340384
+    ]
+  },
+  "NODE_428": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.29226945358761
+    ]
+  },
+  "NODE_429": {
+    "DISPLACEMENT_X": [
+      9.752257698789443e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.794263109100463e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010219824448727488
+    ],
+    "TEMPERATURE": [
+      9.300644850075269
+    ]
+  },
+  "NODE_430": {
+    "DISPLACEMENT_X": [
+      0.00015772699425737192
+    ],
+    "DISPLACEMENT_Y": [
+      7.188843619478027e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.7853908281665014e-05
+    ],
+    "TEMPERATURE": [
+      11.096783427552868
+    ]
+  },
+  "NODE_431": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.990034299525795
+    ]
+  },
+  "NODE_432": {
+    "DISPLACEMENT_X": [
+      -1.522440981097586e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.4816071123224265e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.0001279652256380746
+    ],
+    "TEMPERATURE": [
+      9.171102255911455
+    ]
+  },
+  "NODE_433": {
+    "DISPLACEMENT_X": [
+      -1.9588209541890176e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.4140068761550307e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.370802850357611e-06
+    ],
+    "TEMPERATURE": [
+      8.313398072008354
+    ]
+  },
+  "NODE_434": {
+    "DISPLACEMENT_X": [
+      6.534273984726781e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.914222033092548e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011423346283636541
+    ],
+    "TEMPERATURE": [
+      9.285824981904753
+    ]
+  },
+  "NODE_435": {
+    "DISPLACEMENT_X": [
+      -4.040089037225819e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.865552590900013e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.563878244932908e-05
+    ],
+    "TEMPERATURE": [
+      10.702253017333362
+    ]
+  },
+  "NODE_436": {
+    "DISPLACEMENT_X": [
+      0.0001247222384634274
+    ],
+    "DISPLACEMENT_Y": [
+      7.871473639351532e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.0454555620174772e-05
+    ],
+    "TEMPERATURE": [
+      9.297207558382766
+    ]
+  },
+  "NODE_437": {
+    "DISPLACEMENT_X": [
+      -2.8808341479270082e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.5945145509954086e-07
+    ],
+    "DISPLACEMENT_Z": [
+      -1.61392715954392e-05
+    ],
+    "TEMPERATURE": [
+      8.288032143717118
+    ]
+  },
+  "NODE_438": {
+    "DISPLACEMENT_X": [
+      -1.661695270698937e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.213768229515666e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.7445600958313235e-05
+    ],
+    "TEMPERATURE": [
+      10.220154542900506
+    ]
+  },
+  "NODE_439": {
+    "DISPLACEMENT_X": [
+      2.8190830067797005e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.422126994952331e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.3724246087954875e-05
+    ],
+    "TEMPERATURE": [
+      9.033254655546017
+    ]
+  },
+  "NODE_440": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.269115958632867
+    ]
+  },
+  "NODE_441": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_442": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_443": {
+    "DISPLACEMENT_X": [
+      -1.019801018802561e-06
+    ],
+    "DISPLACEMENT_Y": [
+      7.472063984442056e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.831666133880625e-05
+    ],
+    "TEMPERATURE": [
+      11.183038748698053
+    ]
+  },
+  "NODE_444": {
+    "DISPLACEMENT_X": [
+      -6.0624078844262446e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.4321474675342483e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.0558804533738003e-05
+    ],
+    "TEMPERATURE": [
+      10.074474213622917
+    ]
+  },
+  "NODE_445": {
+    "DISPLACEMENT_X": [
+      -4.1961354410942366e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.03456911451559e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -3.849720208588952e-06
+    ],
+    "TEMPERATURE": [
+      8.36953714398547
+    ]
+  },
+  "NODE_446": {
+    "DISPLACEMENT_X": [
+      -0.00014071376912932725
+    ],
+    "DISPLACEMENT_Y": [
+      -3.2285382922575735e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.978257878348532e-05
+    ],
+    "TEMPERATURE": [
+      9.19557718961045
+    ]
+  },
+  "NODE_447": {
+    "DISPLACEMENT_X": [
+      -7.62323357150267e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.560930716681151e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011346445738107921
+    ],
+    "TEMPERATURE": [
+      9.183937851776761
+    ]
+  },
+  "NODE_448": {
+    "DISPLACEMENT_X": [
+      3.777454480627869e-06
+    ],
+    "DISPLACEMENT_Y": [
+      1.8903982025657368e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.7100095895414624e-05
+    ],
+    "TEMPERATURE": [
+      7.3033933536769355
+    ]
+  },
+  "NODE_449": {
+    "DISPLACEMENT_X": [
+      -0.00013500067791808379
+    ],
+    "DISPLACEMENT_Y": [
+      -1.58280220242318e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.908619261851221e-05
+    ],
+    "TEMPERATURE": [
+      10.530461394793328
+    ]
+  },
+  "NODE_450": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_451": {
+    "DISPLACEMENT_X": [
+      -1.5919151906330333e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.1803470554190703e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.1208644742732507e-05
+    ],
+    "TEMPERATURE": [
+      8.525594140911513
+    ]
+  },
+  "NODE_452": {
+    "DISPLACEMENT_X": [
+      7.153728546316434e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.65749875010376e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.066511017676333e-05
+    ],
+    "TEMPERATURE": [
+      10.575310376173865
+    ]
+  },
+  "NODE_453": {
+    "DISPLACEMENT_X": [
+      -4.721977458538309e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.1059221387305225e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.081744907457053e-05
+    ],
+    "TEMPERATURE": [
+      9.941565703498155
+    ]
+  },
+  "NODE_454": {
+    "DISPLACEMENT_X": [
+      5.422876349236805e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.809837850759374e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.956748735243914e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_455": {
+    "DISPLACEMENT_X": [
+      8.615290865849637e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.140832444708155e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -4.7109615254709436e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_456": {
+    "DISPLACEMENT_X": [
+      3.138957713945044e-05
+    ],
+    "DISPLACEMENT_Y": [
+      8.050234541888431e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012373103662121872
+    ],
+    "TEMPERATURE": [
+      9.257675269656236
+    ]
+  },
+  "NODE_457": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.038158017222626
+    ]
+  },
+  "NODE_458": {
+    "DISPLACEMENT_X": [
+      0.00012902731766582754
+    ],
+    "DISPLACEMENT_Y": [
+      8.862311981648985e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.956711858454751e-05
+    ],
+    "TEMPERATURE": [
+      8.888996769242274
+    ]
+  },
+  "NODE_459": {
+    "DISPLACEMENT_X": [
+      -9.416060123088536e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.49333997328013e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.6484537448376436e-05
+    ],
+    "TEMPERATURE": [
+      9.51114713091076
+    ]
+  },
+  "NODE_460": {
+    "DISPLACEMENT_X": [
+      3.536944030342871e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.351376992815822e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.1123621104870545e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_461": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_462": {
+    "DISPLACEMENT_X": [
+      -0.00011522525358197921
+    ],
+    "DISPLACEMENT_Y": [
+      1.7825938228620819e-06
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010018487363532759
+    ],
+    "TEMPERATURE": [
+      9.209431322388113
+    ]
+  },
+  "NODE_463": {
+    "DISPLACEMENT_X": [
+      -4.476458625084537e-06
+    ],
+    "DISPLACEMENT_Y": [
+      1.6880047524943192e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -7.211205961114357e-07
+    ],
+    "TEMPERATURE": [
+      8.304467765729328
+    ]
+  },
+  "NODE_464": {
+    "DISPLACEMENT_X": [
+      -8.809496486211309e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.139368993883675e-08
+    ],
+    "DISPLACEMENT_Z": [
+      -8.668490150006975e-06
+    ],
+    "TEMPERATURE": [
+      9.84758181626877
+    ]
+  },
+  "NODE_465": {
+    "DISPLACEMENT_X": [
+      -6.799203983172449e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.2966915386599814e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010949658177208147
+    ],
+    "TEMPERATURE": [
+      9.245441027582112
+    ]
+  },
+  "NODE_466": {
+    "DISPLACEMENT_X": [
+      7.96861940837475e-06
+    ],
+    "DISPLACEMENT_Y": [
+      6.753611366612827e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.508097952585715e-05
+    ],
+    "TEMPERATURE": [
+      8.90919617309668
+    ]
+  },
+  "NODE_467": {
+    "DISPLACEMENT_X": [
+      0.00010830664934466456
+    ],
+    "DISPLACEMENT_Y": [
+      9.768815628093191e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.1188070725002e-05
+    ],
+    "TEMPERATURE": [
+      9.217799518622384
+    ]
+  },
+  "NODE_468": {
+    "DISPLACEMENT_X": [
+      0.00014138398589047716
+    ],
+    "DISPLACEMENT_Y": [
+      9.566615639378638e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.425698766419953e-05
+    ],
+    "TEMPERATURE": [
+      9.485474075620685
+    ]
+  },
+  "NODE_469": {
+    "DISPLACEMENT_X": [
+      -2.5663318319220143e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.355533739360148e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.544274592178251e-05
+    ],
+    "TEMPERATURE": [
+      10.829857817287257
+    ]
+  },
+  "NODE_470": {
+    "DISPLACEMENT_X": [
+      -3.659747129959316e-06
+    ],
+    "DISPLACEMENT_Y": [
+      2.0304705645047877e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.6052869987753287e-05
+    ],
+    "TEMPERATURE": [
+      7.4045283433683355
+    ]
+  },
+  "NODE_471": {
+    "DISPLACEMENT_X": [
+      -8.72490164967758e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.17120379134101e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.925487171943333e-05
+    ],
+    "TEMPERATURE": [
+      9.2522243507302
+    ]
+  },
+  "NODE_472": {
+    "DISPLACEMENT_X": [
+      0.00017007614348446974
+    ],
+    "DISPLACEMENT_Y": [
+      7.08474852396496e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.981956605989369e-05
+    ],
+    "TEMPERATURE": [
+      8.860770623680311
+    ]
+  },
+  "NODE_473": {
+    "DISPLACEMENT_X": [
+      4.1269162562345266e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.852185572316877e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.965806615887723e-05
+    ],
+    "TEMPERATURE": [
+      10.63555215035901
+    ]
+  },
+  "NODE_474": {
+    "DISPLACEMENT_X": [
+      -5.0006548114510995e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.5750648738103595e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012323785578720334
+    ],
+    "TEMPERATURE": [
+      9.161205391547737
+    ]
+  },
+  "NODE_475": {
+    "DISPLACEMENT_X": [
+      -3.6245751008154776e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.0978499379882056e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.440670397082337e-05
+    ],
+    "TEMPERATURE": [
+      10.1271797703053
+    ]
+  },
+  "NODE_476": {
+    "DISPLACEMENT_X": [
+      2.2050978606682225e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.360614688421306e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -7.124810050513112e-06
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_477": {
+    "DISPLACEMENT_X": [
+      -0.00010111840347823092
+    ],
+    "DISPLACEMENT_Y": [
+      1.991244595899535e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.913784010659409e-05
+    ],
+    "TEMPERATURE": [
+      11.828818699966524
+    ]
+  },
+  "NODE_478": {
+    "DISPLACEMENT_X": [
+      0.00010185635119900672
+    ],
+    "DISPLACEMENT_Y": [
+      9.689272590577202e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.241108704754128e-06
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_479": {
+    "DISPLACEMENT_X": [
+      0.00014579267849961942
+    ],
+    "DISPLACEMENT_Y": [
+      8.765892490998174e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -3.3610303328479825e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_480": {
+    "DISPLACEMENT_X": [
+      -2.048102601159738e-07
+    ],
+    "DISPLACEMENT_Y": [
+      8.034121975236439e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012142073547943204
+    ],
+    "TEMPERATURE": [
+      9.280972772016742
+    ]
+  },
+  "NODE_481": {
+    "DISPLACEMENT_X": [
+      -8.097044592187109e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.292336792422456e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.331429994876551e-05
+    ],
+    "TEMPERATURE": [
+      9.697742095588566
+    ]
+  },
+  "NODE_482": {
+    "DISPLACEMENT_X": [
+      -7.070757058681277e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.622154499959047e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.669915130086227e-05
+    ],
+    "TEMPERATURE": [
+      10.856358710687948
+    ]
+  },
+  "NODE_483": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.281868188538377
+    ]
+  },
+  "NODE_484": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_485": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.297137613107353
+    ]
+  },
+  "NODE_486": {
+    "DISPLACEMENT_X": [
+      7.190199975796951e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00010644286467390834
+    ],
+    "DISPLACEMENT_Z": [
+      1.1394444043634636e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_487": {
+    "DISPLACEMENT_X": [
+      -2.6021656072678878e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.235831973146278e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.7967519849981256e-06
+    ],
+    "TEMPERATURE": [
+      8.283047777056344
+    ]
+  },
+  "NODE_488": {
+    "DISPLACEMENT_X": [
+      -0.0001419226228736099
+    ],
+    "DISPLACEMENT_Y": [
+      -1.3588414079627477e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.115498395067784e-05
+    ],
+    "TEMPERATURE": [
+      9.181200472604967
+    ]
+  },
+  "NODE_489": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.990974408589501
+    ]
+  },
+  "NODE_490": {
+    "DISPLACEMENT_X": [
+      -8.669333203276929e-06
+    ],
+    "DISPLACEMENT_Y": [
+      6.608744396506068e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.6842310824983316e-05
+    ],
+    "TEMPERATURE": [
+      8.82694301557669
+    ]
+  },
+  "NODE_491": {
+    "DISPLACEMENT_X": [
+      8.621089026349348e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001000209065551493
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010653768920320246
+    ],
+    "TEMPERATURE": [
+      9.038376675085978
+    ]
+  },
+  "NODE_492": {
+    "DISPLACEMENT_X": [
+      -2.3552221010938897e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.0461888864761186e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.6245314271110335e-06
+    ],
+    "TEMPERATURE": [
+      8.53927882620921
+    ]
+  },
+  "NODE_493": {
+    "DISPLACEMENT_X": [
+      1.296637092246189e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.979725008109692e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.431020031685158e-05
+    ],
+    "TEMPERATURE": [
+      10.557010656749245
+    ]
+  },
+  "NODE_494": {
+    "DISPLACEMENT_X": [
+      1.0693058540638527e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.420813896666074e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -5.594065655335153e-06
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_495": {
+    "DISPLACEMENT_X": [
+      -0.0001388709238875822
+    ],
+    "DISPLACEMENT_Y": [
+      1.642656841780134e-06
+    ],
+    "DISPLACEMENT_Z": [
+      3.894724740523742e-05
+    ],
+    "TEMPERATURE": [
+      11.050994262129143
+    ]
+  },
+  "NODE_496": {
+    "DISPLACEMENT_X": [
+      4.4054898579854976e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00011108834618895866
+    ],
+    "DISPLACEMENT_Z": [
+      1.5568947886228964e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_497": {
+    "DISPLACEMENT_X": [
+      -3.094873488427623e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.246530121450981e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -1.984832447970615e-05
+    ],
+    "TEMPERATURE": [
+      8.299531139363005
+    ]
+  },
+  "NODE_498": {
+    "DISPLACEMENT_X": [
+      -1.2796012192501951e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.8820779492080206e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.6641501444018407e-05
+    ],
+    "TEMPERATURE": [
+      7.33640696128688
+    ]
+  },
+  "NODE_499": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.301314824674455
+    ]
+  },
+  "NODE_500": {
+    "DISPLACEMENT_X": [
+      -5.316205853036361e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.125115973334355e-05
+    ],
+    "DISPLACEMENT_Z": [
+      8.114548978020674e-05
+    ],
+    "TEMPERATURE": [
+      10.890154155652674
+    ]
+  },
+  "NODE_501": {
+    "DISPLACEMENT_X": [
+      -3.205363559083637e-05
+    ],
+    "DISPLACEMENT_Y": [
+      8.027544393104656e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012331541564552324
+    ],
+    "TEMPERATURE": [
+      9.279918203959884
+    ]
+  },
+  "NODE_502": {
+    "DISPLACEMENT_X": [
+      -6.9727443363932e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.86301747355743e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.950376318580751e-05
+    ],
+    "TEMPERATURE": [
+      9.926802445079954
+    ]
+  },
+  "NODE_503": {
+    "DISPLACEMENT_X": [
+      0.00013765703282551765
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001301349448949041
+    ],
+    "DISPLACEMENT_Z": [
+      3.9463792987987346e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_504": {
+    "DISPLACEMENT_X": [
+      0.00018615178535501733
+    ],
+    "DISPLACEMENT_Y": [
+      0.00012027680743850482
+    ],
+    "DISPLACEMENT_Z": [
+      1.7917793480215156e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_505": {
+    "DISPLACEMENT_X": [
+      5.071298841314544e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00010007686398660819
+    ],
+    "DISPLACEMENT_Z": [
+      0.0001170851991562547
+    ],
+    "TEMPERATURE": [
+      9.05136180409644
+    ]
+  },
+  "NODE_506": {
+    "DISPLACEMENT_X": [
+      -0.00010141916217434309
+    ],
+    "DISPLACEMENT_Y": [
+      2.2187005983772278e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.5674905298043502e-05
+    ],
+    "TEMPERATURE": [
+      9.55599649483644
+    ]
+  },
+  "NODE_507": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_508": {
+    "DISPLACEMENT_X": [
+      -1.4562331238401813e-05
+    ],
+    "DISPLACEMENT_Y": [
+      8.887306814677542e-06
+    ],
+    "DISPLACEMENT_Z": [
+      1.4585400643491622e-06
+    ],
+    "TEMPERATURE": [
+      8.276685299653318
+    ]
+  },
+  "NODE_509": {
+    "DISPLACEMENT_X": [
+      9.837450812431933e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001389069343632368
+    ],
+    "DISPLACEMENT_Z": [
+      6.001985252363244e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_510": {
+    "DISPLACEMENT_X": [
+      -5.6367291768950415e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.775807055354271e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.700204090070668e-05
+    ],
+    "TEMPERATURE": [
+      10.02321488993249
+    ]
+  },
+  "NODE_511": {
+    "DISPLACEMENT_X": [
+      2.089984261469523e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00011317112034443776
+    ],
+    "DISPLACEMENT_Z": [
+      1.9447731647041667e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_512": {
+    "DISPLACEMENT_X": [
+      -0.00011944298545343127
+    ],
+    "DISPLACEMENT_Y": [
+      2.8106796825110094e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.843754803599265e-05
+    ],
+    "TEMPERATURE": [
+      9.202291818411394
+    ]
+  },
+  "NODE_513": {
+    "DISPLACEMENT_X": [
+      -8.518557554384983e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.5416790629748756e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011127965351253042
+    ],
+    "TEMPERATURE": [
+      9.1756593105809
+    ]
+  },
+  "NODE_514": {
+    "DISPLACEMENT_X": [
+      -1.3174317044483424e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00010152045082788489
+    ],
+    "DISPLACEMENT_Z": [
+      8.420885600648337e-05
+    ],
+    "TEMPERATURE": [
+      10.632601835583737
+    ]
+  },
+  "NODE_515": {
+    "DISPLACEMENT_X": [
+      -2.7488887238632056e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.487830492709368e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.4100017827672676e-05
+    ],
+    "TEMPERATURE": [
+      8.940327272391164
+    ]
+  },
+  "NODE_516": {
+    "DISPLACEMENT_X": [
+      -9.070400005428715e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.3470431226129478e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.0795904581921696e-05
+    ],
+    "TEMPERATURE": [
+      10.046858865501608
+    ]
+  },
+  "NODE_517": {
+    "DISPLACEMENT_X": [
+      2.2403091686036081e-07
+    ],
+    "DISPLACEMENT_Y": [
+      5.702613892567606e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -5.765327653261768e-06
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_518": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      7.986350518535486
+    ]
+  },
+  "NODE_519": {
+    "DISPLACEMENT_X": [
+      6.202995680151959e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00014630051786641347
+    ],
+    "DISPLACEMENT_Z": [
+      7.320753111289766e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_520": {
+    "DISPLACEMENT_X": [
+      1.5750765418056492e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.911091376424562e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.0001212906864141293
+    ],
+    "TEMPERATURE": [
+      9.053592760100955
+    ]
+  },
+  "NODE_521": {
+    "DISPLACEMENT_X": [
+      -2.2526984174068627e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.798561252729177e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.4658788010021221e-05
+    ],
+    "TEMPERATURE": [
+      7.338440747045024
+    ]
+  },
+  "NODE_522": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_523": {
+    "DISPLACEMENT_X": [
+      -0.00014853246686898463
+    ],
+    "DISPLACEMENT_Y": [
+      8.047705011283795e-06
+    ],
+    "DISPLACEMENT_Z": [
+      8.439580389282313e-05
+    ],
+    "TEMPERATURE": [
+      9.227561233054278
+    ]
+  },
+  "NODE_524": {
+    "DISPLACEMENT_X": [
+      -6.506858484576655e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.872507116960972e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011622436876589018
+    ],
+    "TEMPERATURE": [
+      9.254781210766318
+    ]
+  },
+  "NODE_525": {
+    "DISPLACEMENT_X": [
+      -8.363890673245677e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.710649159728412e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.106199045601026e-05
+    ],
+    "TEMPERATURE": [
+      10.79294624699878
+    ]
+  },
+  "NODE_526": {
+    "DISPLACEMENT_X": [
+      -6.024496017978254e-07
+    ],
+    "DISPLACEMENT_Y": [
+      0.00011625156988959596
+    ],
+    "DISPLACEMENT_Z": [
+      2.0963200660370494e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_527": {
+    "DISPLACEMENT_X": [
+      -0.00010634061888837477
+    ],
+    "DISPLACEMENT_Y": [
+      4.5785435711789175e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.9527661533129926e-05
+    ],
+    "TEMPERATURE": [
+      10.78996416397629
+    ]
+  },
+  "NODE_528": {
+    "DISPLACEMENT_X": [
+      0.00015738047750517536
+    ],
+    "DISPLACEMENT_Y": [
+      0.00012988986666054994
+    ],
+    "DISPLACEMENT_Z": [
+      9.119216040456148e-05
+    ],
+    "TEMPERATURE": [
+      10.54162295152785
+    ]
+  },
+  "NODE_529": {
+    "DISPLACEMENT_X": [
+      0.00019891219019096772
+    ],
+    "DISPLACEMENT_Y": [
+      0.00012196612496904434
+    ],
+    "DISPLACEMENT_Z": [
+      7.77494980008657e-05
+    ],
+    "TEMPERATURE": [
+      12.608468142476125
+    ]
+  },
+  "NODE_530": {
+    "DISPLACEMENT_X": [
+      2.9849813860310974e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00014814822428488566
+    ],
+    "DISPLACEMENT_Z": [
+      8.054539838459624e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_531": {
+    "DISPLACEMENT_X": [
+      -4.040793713177085e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.910244682218516e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.977574073465889e-05
+    ],
+    "TEMPERATURE": [
+      10.582120955899745
+    ]
+  },
+  "NODE_532": {
+    "DISPLACEMENT_X": [
+      -1.061662136041395e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.53724888391602e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -5.292628759165001e-06
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_533": {
+    "DISPLACEMENT_X": [
+      -3.2033603075602027e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.6679942562612122e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -2.3036824220753055e-06
+    ],
+    "TEMPERATURE": [
+      8.636313733404332
+    ]
+  },
+  "NODE_534": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.32586336105673
+    ]
+  },
+  "NODE_535": {
+    "DISPLACEMENT_X": [
+      0.0001139241167454025
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001387839564575148
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010704355465785803
+    ],
+    "TEMPERATURE": [
+      11.191547262180432
+    ]
+  },
+  "NODE_536": {
+    "DISPLACEMENT_X": [
+      -0.0001439633346202064
+    ],
+    "DISPLACEMENT_Y": [
+      2.441036236317689e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.823433707373479e-05
+    ],
+    "TEMPERATURE": [
+      11.261138302234224
+    ]
+  },
+  "NODE_537": {
+    "DISPLACEMENT_X": [
+      -5.029298384272208e-05
+    ],
+    "DISPLACEMENT_Y": [
+      6.420664611494322e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.9321360872689363e-05
+    ],
+    "TEMPERATURE": [
+      9.018172129072392
+    ]
+  },
+  "NODE_538": {
+    "DISPLACEMENT_X": [
+      -1.5415463670504105e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.6631073260496e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011924240742752814
+    ],
+    "TEMPERATURE": [
+      8.960673441739644
+    ]
+  },
+  "NODE_539": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.038520382587555
+    ]
+  },
+  "NODE_540": {
+    "DISPLACEMENT_X": [
+      -3.594950802192501e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.803047588455216e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -2.3920433001514026e-05
+    ],
+    "TEMPERATURE": [
+      8.341614647054804
+    ]
+  },
+  "NODE_541": {
+    "DISPLACEMENT_X": [
+      7.353593733094225e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00014405681001505573
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012481832819076058
+    ],
+    "TEMPERATURE": [
+      11.707282525132152
+    ]
+  },
+  "NODE_542": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_543": {
+    "DISPLACEMENT_X": [
+      -2.1863516363770685e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00011243339471735689
+    ],
+    "DISPLACEMENT_Z": [
+      1.9845519341131715e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_544": {
+    "DISPLACEMENT_X": [
+      -8.244514540418193e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.6182572593116726e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.217526365519774e-06
+    ],
+    "TEMPERATURE": [
+      10.008429050826102
+    ]
+  },
+  "NODE_545": {
+    "DISPLACEMENT_X": [
+      2.2029217178900363e-07
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001498604345396395
+    ],
+    "DISPLACEMENT_Z": [
+      8.453003426915062e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_546": {
+    "DISPLACEMENT_X": [
+      -3.3496701918954274e-05
+    ],
+    "DISPLACEMENT_Y": [
+      1.57670325398858e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.0946321775504863e-05
+    ],
+    "TEMPERATURE": [
+      7.33163368065826
+    ]
+  },
+  "NODE_547": {
+    "DISPLACEMENT_X": [
+      -9.894382121030666e-05
+    ],
+    "DISPLACEMENT_Y": [
+      7.683444379144309e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010510303270055273
+    ],
+    "TEMPERATURE": [
+      9.174382698779215
+    ]
+  },
+  "NODE_548": {
+    "DISPLACEMENT_X": [
+      -2.2157398216240186e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.433481763790238e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -6.920606812988284e-06
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_549": {
+    "DISPLACEMENT_X": [
+      -0.00012347406090812204
+    ],
+    "DISPLACEMENT_Y": [
+      5.597490191275392e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.269277703996526e-05
+    ],
+    "TEMPERATURE": [
+      9.186348065134613
+    ]
+  },
+  "NODE_550": {
+    "DISPLACEMENT_X": [
+      3.429326676649531e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00014325145836745218
+    ],
+    "DISPLACEMENT_Z": [
+      0.00013402996878061468
+    ],
+    "TEMPERATURE": [
+      11.645445505000216
+    ]
+  },
+  "NODE_551": {
+    "DISPLACEMENT_X": [
+      -7.312635055133445e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.855551894209198e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.03547983542389e-05
+    ],
+    "TEMPERATURE": [
+      11.345452857471319
+    ]
+  },
+  "NODE_552": {
+    "DISPLACEMENT_X": [
+      -5.021145102935413e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00010054220319986701
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011706250248806931
+    ],
+    "TEMPERATURE": [
+      9.014092941634175
+    ]
+  },
+  "NODE_553": {
+    "DISPLACEMENT_X": [
+      -9.997405674775785e-05
+    ],
+    "DISPLACEMENT_Y": [
+      2.879260265109195e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.3156319759639862e-05
+    ],
+    "TEMPERATURE": [
+      9.811992581333898
+    ]
+  },
+  "NODE_554": {
+    "DISPLACEMENT_X": [
+      -0.0001510284858652867
+    ],
+    "DISPLACEMENT_Y": [
+      3.4230029809001786e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.924379208412938e-05
+    ],
+    "TEMPERATURE": [
+      9.19886526227821
+    ]
+  },
+  "NODE_555": {
+    "DISPLACEMENT_X": [
+      -3.028354558809389e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00014934241763464636
+    ],
+    "DISPLACEMENT_Z": [
+      8.075787154875442e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_556": {
+    "DISPLACEMENT_X": [
+      -7.510499727489011e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.9834160377792376e-05
+    ],
+    "DISPLACEMENT_Z": [
+      1.9106705832204136e-05
+    ],
+    "TEMPERATURE": [
+      9.24317595500392
+    ]
+  },
+  "NODE_557": {
+    "DISPLACEMENT_X": [
+      -4.6504369898777604e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00011020542707711302
+    ],
+    "DISPLACEMENT_Z": [
+      1.7195464697284068e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_558": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_559": {
+    "DISPLACEMENT_X": [
+      -4.354297638314606e-07
+    ],
+    "DISPLACEMENT_Y": [
+      0.00013858460946103635
+    ],
+    "DISPLACEMENT_Z": [
+      0.00013666653338721647
+    ],
+    "TEMPERATURE": [
+      11.14642621405259
+    ]
+  },
+  "NODE_560": {
+    "DISPLACEMENT_X": [
+      -7.934887235152946e-05
+    ],
+    "DISPLACEMENT_Y": [
+      9.436670338867059e-05
+    ],
+    "DISPLACEMENT_Z": [
+      4.118878675397566e-05
+    ],
+    "TEMPERATURE": [
+      9.000697382244862
+    ]
+  },
+  "NODE_561": {
+    "DISPLACEMENT_X": [
+      -0.00011340758210722946
+    ],
+    "DISPLACEMENT_Y": [
+      8.242730051100356e-05
+    ],
+    "DISPLACEMENT_Z": [
+      5.424407414439778e-05
+    ],
+    "TEMPERATURE": [
+      11.299656959229301
+    ]
+  },
+  "NODE_562": {
+    "DISPLACEMENT_X": [
+      -0.00014752030313684556
+    ],
+    "DISPLACEMENT_Y": [
+      4.513032345692464e-05
+    ],
+    "DISPLACEMENT_Z": [
+      3.620936946855845e-05
+    ],
+    "TEMPERATURE": [
+      10.688131825991315
+    ]
+  },
+  "NODE_563": {
+    "DISPLACEMENT_X": [
+      -3.5682724463563285e-05
+    ],
+    "DISPLACEMENT_Y": [
+      5.3920862456677146e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.0094408263556319e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_564": {
+    "DISPLACEMENT_X": [
+      -8.540921400123773e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001024183705808447
+    ],
+    "DISPLACEMENT_Z": [
+      0.00011054100835217724
+    ],
+    "TEMPERATURE": [
+      9.13938817217367
+    ]
+  },
+  "NODE_565": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      8.031635539295676
+    ]
+  },
+  "NODE_566": {
+    "DISPLACEMENT_X": [
+      -2.0266961305458096e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -7.550306766373916e-07
+    ],
+    "DISPLACEMENT_Z": [
+      -8.529593594155985e-07
+    ],
+    "TEMPERATURE": [
+      6.558962426436562
+    ]
+  },
+  "NODE_567": {
+    "DISPLACEMENT_X": [
+      -6.205493396376323e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00014787530512250206
+    ],
+    "DISPLACEMENT_Z": [
+      7.223847702902252e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_568": {
+    "DISPLACEMENT_X": [
+      -3.3428931511799044e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001420753950279457
+    ],
+    "DISPLACEMENT_Z": [
+      0.00013376823390540932
+    ],
+    "TEMPERATURE": [
+      11.721187190109031
+    ]
+  },
+  "NODE_569": {
+    "DISPLACEMENT_X": [
+      -6.703960676995577e-05
+    ],
+    "DISPLACEMENT_Y": [
+      3.580451680404111e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -7.5565451626586474e-06
+    ],
+    "TEMPERATURE": [
+      7.275656517690277
+    ]
+  },
+  "NODE_570": {
+    "DISPLACEMENT_X": [
+      -4.640592738256139e-05
+    ],
+    "DISPLACEMENT_Y": [
+      8.9471260707351e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -2.18009011573755e-05
+    ],
+    "TEMPERATURE": [
+      7.937052576395521
+    ]
+  },
+  "NODE_571": {
+    "DISPLACEMENT_X": [
+      -7.055472793664494e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00010834782664077899
+    ],
+    "DISPLACEMENT_Z": [
+      1.272373962521373e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_572": {
+    "DISPLACEMENT_X": [
+      -0.00010086899982854576
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001009811080685156
+    ],
+    "DISPLACEMENT_Z": [
+      3.882455468375038e-05
+    ],
+    "TEMPERATURE": [
+      9.440706189727337
+    ]
+  },
+  "NODE_573": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_574": {
+    "DISPLACEMENT_X": [
+      -0.0001325105669301929
+    ],
+    "DISPLACEMENT_Y": [
+      9.069612419379811e-05
+    ],
+    "DISPLACEMENT_Z": [
+      9.2638385039011e-05
+    ],
+    "TEMPERATURE": [
+      9.164661203167393
+    ]
+  },
+  "NODE_575": {
+    "DISPLACEMENT_X": [
+      -0.00015783841579458606
+    ],
+    "DISPLACEMENT_Y": [
+      5.556528095675124e-05
+    ],
+    "DISPLACEMENT_Z": [
+      7.318641954963383e-05
+    ],
+    "TEMPERATURE": [
+      9.188632151502548
+    ]
+  },
+  "NODE_576": {
+    "DISPLACEMENT_X": [
+      -0.00011108856576142677
+    ],
+    "DISPLACEMENT_Y": [
+      4.313382660789022e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.7769656851227976e-05
+    ],
+    "TEMPERATURE": [
+      9.619880666186534
+    ]
+  },
+  "NODE_577": {
+    "DISPLACEMENT_X": [
+      -0.00012572142425815763
+    ],
+    "DISPLACEMENT_Y": [
+      8.05409698894098e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.0946830884425216e-05
+    ],
+    "TEMPERATURE": [
+      9.169721208530873
+    ]
+  },
+  "NODE_578": {
+    "DISPLACEMENT_X": [
+      -5.5982508119187344e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.591945320751028e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -1.6199046863856612e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_579": {
+    "DISPLACEMENT_X": [
+      -7.135354656227686e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.00014503906274080113
+    ],
+    "DISPLACEMENT_Z": [
+      0.00012456122430679512
+    ],
+    "TEMPERATURE": [
+      11.457874200554855
+    ]
+  },
+  "NODE_580": {
+    "DISPLACEMENT_X": [
+      -9.681413104651652e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001386496322440611
+    ],
+    "DISPLACEMENT_Z": [
+      5.792556251857714e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_581": {
+    "DISPLACEMENT_X": [
+      -0.00014397238142759694
+    ],
+    "DISPLACEMENT_Y": [
+      9.811322842375153e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.381022869262944e-05
+    ],
+    "TEMPERATURE": [
+      9.293386489684007
+    ]
+  },
+  "NODE_582": {
+    "DISPLACEMENT_X": [
+      -0.00010296148558534883
+    ],
+    "DISPLACEMENT_Y": [
+      9.666335487034077e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -4.994948746858625e-06
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_583": {
+    "DISPLACEMENT_X": [
+      -0.00015915303519818905
+    ],
+    "DISPLACEMENT_Y": [
+      7.444474421700717e-05
+    ],
+    "DISPLACEMENT_Z": [
+      2.8116320425844075e-05
+    ],
+    "TEMPERATURE": [
+      10.977704565533053
+    ]
+  },
+  "NODE_584": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_585": {
+    "DISPLACEMENT_X": [
+      -0.00011348666595645432
+    ],
+    "DISPLACEMENT_Y": [
+      0.00014327925200466291
+    ],
+    "DISPLACEMENT_Z": [
+      0.00010874620534089109
+    ],
+    "TEMPERATURE": [
+      11.627031405345573
+    ]
+  },
+  "NODE_586": {
+    "DISPLACEMENT_X": [
+      -0.00013895912133272977
+    ],
+    "DISPLACEMENT_Y": [
+      0.00013203352183464967
+    ],
+    "DISPLACEMENT_Z": [
+      3.680987276812194e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_587": {
+    "DISPLACEMENT_X": [
+      -8.23050961382702e-05
+    ],
+    "DISPLACEMENT_Y": [
+      4.00205503187655e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -4.413951460042872e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_588": {
+    "DISPLACEMENT_X": [
+      -0.00017299174651403432
+    ],
+    "DISPLACEMENT_Y": [
+      7.414174654463521e-05
+    ],
+    "DISPLACEMENT_Z": [
+      6.875606078917035e-05
+    ],
+    "TEMPERATURE": [
+      8.712401963782455
+    ]
+  },
+  "NODE_589": {
+    "DISPLACEMENT_X": [
+      -0.00014278824933107025
+    ],
+    "DISPLACEMENT_Y": [
+      8.334576474740202e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -3.738584615945939e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_590": {
+    "DISPLACEMENT_X": [
+      -0.0001611866739954648
+    ],
+    "DISPLACEMENT_Y": [
+      0.00013454405708107636
+    ],
+    "DISPLACEMENT_Z": [
+      9.017158020813296e-05
+    ],
+    "TEMPERATURE": [
+      10.849928441561035
+    ]
+  },
+  "NODE_591": {
+    "DISPLACEMENT_X": [
+      -0.00018673689202231908
+    ],
+    "DISPLACEMENT_Y": [
+      0.00012130696667405892
+    ],
+    "DISPLACEMENT_Z": [
+      1.453079346332406e-05
+    ],
+    "TEMPERATURE": [
+      12.0
+    ]
+  },
+  "NODE_592": {
+    "DISPLACEMENT_X": [
+      -0.00020234845858388493
+    ],
+    "DISPLACEMENT_Y": [
+      0.00012446968155865466
+    ],
+    "DISPLACEMENT_Z": [
+      7.354522140301737e-05
+    ],
+    "TEMPERATURE": [
+      12.4353859701609
+    ]
+  }
+}
