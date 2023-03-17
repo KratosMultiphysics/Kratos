@@ -165,7 +165,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
         }
         proj_vect(i_node*block_size + dim) = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
     }
-    rRightHandSideVector += prod(oss_proj_op, proj_vect);
+    rRightHandSideVector -= prod(oss_proj_op, proj_vect);
 }
 
 /***********************************************************************************/
@@ -261,7 +261,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
         }
         proj_vect(i_node*block_size + dim) = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
     }
-    rRightHandSideVector += prod(oss_proj_op, proj_vect);
+    rRightHandSideVector -= prod(oss_proj_op, proj_vect);
 }
 
 /***********************************************************************************/
@@ -324,12 +324,11 @@ void SmallDisplacementMixedVolumetricStrainOssElement::Calculate(
                     }
                     noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(GetAnisotropyTensor(), B_j)));
 
-                    aux_res = 0.0;
+                    aux_res = N_j * kinematic_variables.VolumetricNodalStrains[j_node];
                     const double N_j = kinematic_variables.N[j_node];
                     for (IndexType d = 0; d < dim; ++d) {
-                        aux_res += psi_j[d] * kinematic_variables.Displacements[j_node*dim + d];
+                        aux_res -= psi_j[d] * kinematic_variables.Displacements[j_node*dim + d];
                     }
-                    aux_res -= N_j * kinematic_variables.VolumetricNodalStrains[j_node];
                 }
                 aux_proj[i_node] += w_gauss * N_i * aux_res;
             }
@@ -527,7 +526,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateOssOperatorGauss
 
         for (IndexType j = 0; j < n_nodes; ++j) {
             const double N_j = rThisKinematicVariables.N[j];
-            rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j;
+            rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) -= aux_w_kappa_tau_2 * N_i * N_j;
             for (IndexType d = 0; d < dim; ++d) {
                 rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) += aux_w_kappa_tau_1 * G_i[d] * N_j;
                 rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) += aux_w_kappa_tau_2 * psi_i[d] * N_j;
