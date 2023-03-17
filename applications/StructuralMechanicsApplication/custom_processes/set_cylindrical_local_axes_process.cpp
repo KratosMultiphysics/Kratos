@@ -52,7 +52,7 @@ void SetCylindricalLocalAxesProcess::ExecuteInitialize()
 
         if (mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
             array_1d<double, 3> local_axis_2;
-            noalias(local_axis_2) = r_generatrix_axis;
+            noalias(local_axis_2) = MathUtils<double>::CrossProduct(r_generatrix_axis, local_axis_1);
             ConstitutiveLawUtilities<3>::CheckAndNormalizeVector<array_1d<double,3>>(local_axis_2);
             rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
         }

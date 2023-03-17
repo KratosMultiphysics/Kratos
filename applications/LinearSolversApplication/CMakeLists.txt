@@ -28,9 +28,11 @@ if( USE_EIGEN_MKL MATCHES ON )
     if( DEFINED ENV{MKLROOT} )
         message( "-- MKLROOT = $ENV{MKLROOT}" )
 
-        include_directories( SYSTEM $ENV{MKLROOT}/include )
+        string(REGEX REPLACE "\"" "" MKLROOT_STRIPPED $ENV{MKLROOT})
 
-        link_directories("$ENV{MKLROOT}/lib")
+        include_directories( SYSTEM ${MKLROOT_STRIPPED}/include )
+
+        link_directories("${MKLROOT_STRIPPED}/lib")
 
         if( NOT MSVC )
             set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )

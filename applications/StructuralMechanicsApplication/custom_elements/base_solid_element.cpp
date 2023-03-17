@@ -1553,6 +1553,9 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     // Setting the variables for the CL
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
+    // array_1d<double, 6> core_get_strain = rValues.GetStrainVector();
+    // KRATOS_WATCH(core_get_strain)
+
     // rotate to local axes strain/F
     if (IsElementRotated)
         RotateToLocalAxes(rValues, rThisKinematicVariables);
