@@ -461,6 +461,10 @@ void ContainerVariableDataHolderUtils::MapContainerVariableDataHolderToNodalVari
                 r_node.UnSetLock();
             }
         });
+
+        // now assemble data at nodes
+        rOutput.GetModelPart().GetCommunicator().AssembleNonHistoricalData(*p_variable);
+
     }, ContainerVariableDataHolderUtilsHelper::GetTemporaryVariable(rInput.GetDataDimension()));
 
     // now read in the nodal data
