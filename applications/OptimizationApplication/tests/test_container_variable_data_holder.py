@@ -18,7 +18,7 @@ class TestContainerVariableDataHolderBase(ABC):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
-        ReadModelPart("model_part_utils_test/hexas", cls.model_part)
+        ReadModelPart("model_part_utils_test/quads", cls.model_part)
 
         for node in cls.model_part.Nodes:
             id = node.Id

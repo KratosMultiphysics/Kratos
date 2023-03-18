@@ -11,11 +11,12 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.AddNodalSolutionStepVariable(KratosOA.HELMHOLTZ_VAR_DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
-        ReadModelPart("model_part_utils_test/hexas", cls.model_part)
+        ReadModelPart("model_part_utils_test/quads", cls.model_part)
 
         for node in cls.model_part.Nodes:
             id = node.Id
@@ -27,28 +28,28 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
         a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormInf(a), 128)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormInf(a), 28)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormInf(a), 130)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormInf(a), 30)
 
     def test_ContainerVariableDataHolderNormL2(self):
         a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormL2(a), 840.9815693580924)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormL2(a), 87.74964387392122)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormL2(a), 1473.7282653189495)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormL2(a), 160.0781059358212)
 
     def test_ContainerVariableDataHolderEntityMaxNormL2(self):
         a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.EntityMaxNormL2(a), 128)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.EntityMaxNormL2(a), 28)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.EntityMaxNormL2(a), math.sqrt(130**2 + 129**2 + 128**2))
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.EntityMaxNormL2(a), math.sqrt(28**2 + 29**2 + 30**2))
 
     def test_ContainerVariableDataHolderInnerProduct(self):
         a = KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
@@ -57,7 +58,7 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.ReadDataFromContainerVariable(Kratos.DENSITY)
 
-        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.InnerProduct(a, b), 715500.0)
+        self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.InnerProduct(a, b), 8100.0)
 
     def test_ComputeNumberOfNeighbourConditions(self):
         dummy_condition_container = KratosOA.ConditionContainerVariableDataHolder(self.model_part)
@@ -66,9 +67,8 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
         neighbour_elements.AssignDataToContainerVariable(Kratos.DENSITY)
 
         neighbour_map = {
-            3: [1, 52, 53, 54, 110, 111, 112, 125],
-            4: [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 27, 28, 29, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 44, 45, 56, 57, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 104, 105, 106, 107, 108, 109, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124],
-            0: [8, 18, 19, 20, 24, 25, 26, 36, 37, 38, 39, 46, 47, 48, 49, 50, 51, 55, 58, 59, 70, 71, 72, 85, 86, 87, 103]
+            2.0: [1, 2, 4, 5, 7, 9, 10, 12, 15, 17, 20, 21, 22, 23, 24, 25],
+            0.0: [3, 6, 8, 11, 13, 14, 16, 18, 19]
         }
 
         for node in self.model_part.Nodes:
@@ -80,11 +80,10 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
         KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourEntities(neighbour_elements, dummy_condition_container)
         neighbour_elements.AssignDataToContainerVariable(Kratos.DENSITY)
 
-        neighbour_map  = {
-            1: [1, 52, 53, 54, 110, 111, 112, 125],
-            2: [2, 3, 4, 9, 10, 11, 27, 28, 29, 56, 57, 60, 61, 62, 63, 73, 74, 75, 76, 77, 78, 91, 92, 93, 94, 95, 96, 113, 114, 115, 119, 120, 121, 122, 123, 124],
-            4: [5, 6, 7, 12, 13, 14, 15, 16, 17, 21, 22, 23, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 44, 45, 64, 65, 66, 67, 68, 69, 79, 80, 81, 82, 83, 84, 88, 89, 90, 97, 98, 99, 100, 101, 102, 104, 105, 106, 107, 108, 109, 116, 117, 118],
-            8: [8, 18, 19, 20, 24, 25, 26, 36, 37, 38, 39, 46, 47, 48, 49, 50, 51, 55, 58, 59, 70, 71, 72, 85, 86, 87, 103]
+        neighbour_map = {
+            1.0: [1, 9, 22, 25],
+            2.0: [2, 4, 5, 7, 10, 12, 15, 17, 20, 21, 23, 24],
+            4.0: [3, 6, 8, 11, 13, 14, 16, 18, 19]
         }
 
         for node in self.model_part.Nodes:
@@ -190,7 +189,7 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
             v = Kratos.Array3([0, 0, 0])
             for node in condition.GetGeometry():
                 v += node.GetValue(Kratos.VELOCITY)
-            self.assertVectorAlmostEqual(v / 4.0, condition.GetValue(Kratos.ACCELERATION))
+            self.assertVectorAlmostEqual(v / 2.0, condition.GetValue(Kratos.ACCELERATION))
 
         nodal_container.ReadDataFromContainerVariable(Kratos.PRESSURE)
         KratosOA.ContainerVariableDataHolderUtils.MapNodalVariableDataHolderToContainerVariableDataHolder(mapped_value, nodal_container)
@@ -200,7 +199,7 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
             v = 0.0
             for node in condition.GetGeometry():
                 v += node.GetValue(Kratos.PRESSURE)
-            self.assertEqual(v / 4.0, condition.GetValue(Kratos.DENSITY))
+            self.assertEqual(v / 2.0, condition.GetValue(Kratos.DENSITY))
 
     def test_ProductWithEntityMatrix(self):
         if (IsDistributedRun()):
@@ -293,49 +292,33 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
                 self.assertEqual(transpose_sparse_m[j, i], dense_m[i, j])
 
     def test_ComputeVariableDataHolderProductWithEntityMatrix(self):
-        if (IsDistributedRun()):
-            self.skipTest("Skipping since there is no HelmholtzBulkTopology3D8N element yet.")
-
-        model = Kratos.Model()
-        model_part = model.CreateModelPart("test1")
-        model_part.AddNodalSolutionStepVariable(KratosOA.HELMHOLTZ_VAR_DENSITY)
-
-        model_part.CreateNewNode(1, 0, 0, 0)
-        model_part.CreateNewNode(2, 0, 1, 0)
-        model_part.CreateNewNode(3, 1, 0, 0)
-        model_part.CreateNewNode(4, 0, 0, 1)
-        model_part.CreateNewNode(5, 1, 1, 0.5)
-
-        properties = model_part.CreateNewProperties(1)
-        model_part.CreateNewElement("HelmholtzBulkTopology3D4N", 1, [1, 2, 3, 4], properties)
-        model_part.CreateNewElement("HelmholtzBulkTopology3D4N", 2, [2, 3, 4,5], properties)
-        model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
-
-        for node in model_part.Nodes:
+        for node in self.model_part.Nodes:
             node.SetValue(Kratos.PRESSURE, node.Id + 1)
             node.SetSolutionStepValue(KratosOA.HELMHOLTZ_VAR_DENSITY, node.Id + 1)
 
-        nodal_values = KratosOA.NodalContainerVariableDataHolder(model_part)
+        nodal_values = KratosOA.NodalContainerVariableDataHolder(self.model_part)
         nodal_values.ReadDataFromContainerVariable(Kratos.PRESSURE)
 
-        output_values = KratosOA.NodalContainerVariableDataHolder(model_part)
-        KratosOA.ContainerVariableDataHolderUtils.ComputeVariableDataHolderProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, model_part.Elements)
+        output_values = KratosOA.NodalContainerVariableDataHolder(self.model_part)
+        KratosOA.ContainerVariableDataHolderUtils.ComputeVariableDataHolderProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.Elements)
 
         # analytical calculation
-        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, model_part.Nodes)
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
         element: Kratos.Element
-        for element in model_part.Elements:
+        for element in self.model_part.Elements:
             v_in = Kratos.Vector(4)
             for i, node in enumerate(element.GetGeometry()):
                 v_in[i] = node.GetSolutionStepValue(KratosOA.HELMHOLTZ_VAR_DENSITY)
 
-            m = element.Calculate(KratosOA.HELMHOLTZ_MASS_MATRIX, model_part.ProcessInfo)
+            m = element.Calculate(KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.ProcessInfo)
             v_out = m * v_in
 
             for i, node in enumerate(element.GetGeometry()):
                 node.SetValue(Kratos.DENSITY, node.GetValue(Kratos.DENSITY) + v_out[i])
 
-        analytical_values = KratosOA.NodalContainerVariableDataHolder(model_part)
+        self.model_part.GetCommunicator().AssembleNonHistoricalData(Kratos.DENSITY)
+
+        analytical_values = KratosOA.NodalContainerVariableDataHolder(self.model_part)
         analytical_values.ReadDataFromContainerVariable(Kratos.DENSITY)
 
         self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.NormL2(analytical_values - output_values), 0.0)
