@@ -129,7 +129,7 @@ std::string ContainerVariableDataHolderBase<TContainerType>::Info() const
     msg << "ContainerVariableDataHolderInfo: [ ModelPartName: "
         << this->GetModelPart().FullName()
         << ", Number of entities: " << this->GetContainer().size()
-        << ", Data dimension: " << this->GetDataDimension() << " ].\n";
+        << ", Data dimension: " << (mpExpression.get() ? this->GetDataDimension() : 0) << " ].\n";
 
     return msg.str();
 }
