@@ -70,7 +70,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
         self.constraint_gradient_variables = {}
-        for itr, constraint in enumerate(self.constraints):
+        for itr, constraint in enumerate(self.constraints.values()):
             self.constraint_gradient_variables.update({
                 constraint["identifier"].GetString() : {
                     "gradient": Kratos.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
@@ -173,7 +173,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
         self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id =  constraint["identifier"].GetString()
             self.communicator.requestValueOf(con_id)
             self.communicator.requestGradientOf(con_id)
@@ -182,7 +182,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
         # compute normals only if required
         surface_normals_required = self.objectives[0]["project_gradient_on_surface_normals"].GetBool()
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if constraint["project_gradient_on_surface_normals"].GetBool():
                 surface_normals_required = True
 
@@ -244,7 +244,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DPF1DX)
 
         # project and damp constraint gradients
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id = constraint["identifier"].GetString()
             conGradientDict = self.communicator.getStandardizedGradient(con_id)
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
@@ -488,7 +488,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DPF1DX, KSO.DF1DX_MAPPED)
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id = constraint["identifier"].GetString()
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
             mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
@@ -557,7 +557,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         active_constraint_values = []
         active_constraint_variables = []
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if self.__isConstraintActive(constraint):
                 identifier = constraint["identifier"].GetString()
                 constraint_value = self.communicator.getStandardizedValue(identifier)

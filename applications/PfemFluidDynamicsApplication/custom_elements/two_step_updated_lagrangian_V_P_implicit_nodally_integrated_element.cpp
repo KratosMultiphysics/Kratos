@@ -33,7 +33,6 @@ namespace Kratos
   {
     KRATOS_TRY;
 
-    // std::cout<<"InitializeNonLinearIteration "<<std::endl;
     GeometryType &rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     // Shape functions and integration points

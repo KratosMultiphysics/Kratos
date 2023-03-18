@@ -9,8 +9,7 @@
 //  Main authors:
 //
 
-#if !defined(KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED )
-#define  KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -160,4 +159,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED  defined

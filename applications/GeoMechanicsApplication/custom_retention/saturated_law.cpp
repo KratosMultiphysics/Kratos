@@ -48,7 +48,7 @@ SaturatedLaw::~SaturatedLaw()
 double SaturatedLaw::
     CalculateSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
 
@@ -68,40 +68,28 @@ double SaturatedLaw::
 double SaturatedLaw::
     CalculateEffectiveSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
-
     return 1.0;
-
-    KRATOS_CATCH("")
 }
 
 //-------------------------------------------------------------------------------------------------
 double SaturatedLaw::
     CalculateDerivativeOfSaturation(Parameters &rParameters)
 {
-    KRATOS_TRY;
-
     return 0.0;
-
-    KRATOS_CATCH("")
 }
 
 //-------------------------------------------------------------------------------------------------
 double SaturatedLaw::
     CalculateRelativePermeability(Parameters &rParameters)
 {
-    KRATOS_TRY;
-
     return 1.0;
-
-    KRATOS_CATCH("")
 }
 
 //-------------------------------------------------------------------------------------------------
 double SaturatedLaw::
     CalculateBishopCoefficient(Parameters &rParameters)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     return CalculateEffectiveSaturation(rParameters);
 

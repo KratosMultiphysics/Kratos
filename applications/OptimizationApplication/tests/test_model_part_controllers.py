@@ -2,7 +2,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.StructuralMechanicsApplication
-from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.mdpa_model_part_controller import MdpaModelPartController
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")

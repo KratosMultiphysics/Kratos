@@ -16,6 +16,7 @@ from optimization_test_factory import top_opt_test
 from optimization_test_factory import mat_opt_test
 from optimization_test_factory import shell_shape_opt_test
 from optimization_test_factory import shell_thick_opt_test
+from symmetry_utilities_tests.symmetry_tests import SymmetryUtilitiesTest
 from test_execution_policies import TestExecutionPolicies
 from test_optimization_info import TestOptimizationInfo
 from test_optimization_utils import TestOptimizationUtils
@@ -23,6 +24,7 @@ from test_mass_response_function import TestMassResponseFunctionBeams
 from test_mass_response_function import TestMassResponseFunctionShells
 from test_mass_response_function import TestMassResponseFunctionSolids
 from test_linear_strain_energy_response_function import TestLinearStrainEnergyResponseFunction
+from test_model_part_utils import TestModelPartUtils
 from test_container_variable_data_holder import TestHistoricalContainerVariableDataHolder
 from test_container_variable_data_holder import TestNodalContainerVariableDataHolder
 from test_container_variable_data_holder import TestConditionContainerVariableDataHolder
@@ -56,8 +58,10 @@ def AssembleTestSuites():
     # Adding small tests (tests that take < 1s)
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExecutionPolicies]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SymmetryUtilitiesTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationInfo]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerVariableDataHolderUtils]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionBeams]))

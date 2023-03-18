@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main author:     Suneth Warnakulasuriya
+//  Main author:     Reza Najian Asl,
+//                   Suneth Warnakulasuriya
 //
 
 // System includes
@@ -19,6 +20,8 @@
 // Project includes
 
 // Application includes
+#include "custom_utilities/geometrical/symmetry_utility.h"
+#include "custom_utilities/geometrical/model_part_utils.h"
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/container_variable_data_holder/container_data_io.h"
 #include "custom_utilities/container_variable_data_holder/container_variable_data_holder.h"
@@ -97,6 +100,56 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 
     using SparseMatrixType = SparseSpaceType::MatrixType;
+
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+    using SparseMatrixType = SparseSpaceType::MatrixType;
+
+    using namespace pybind11::literals;
+
+    py::class_<SymmetryUtility >(m, "SymmetryUtility")
+        .def(py::init<std::string, ModelPart&, Parameters>())
+        .def("Initialize", &SymmetryUtility::Initialize)
+        .def("Update", &SymmetryUtility::Update)
+        .def("ApplyOnVectorField", &SymmetryUtility::ApplyOnVectorField)
+        .def("ApplyOnScalarField", &SymmetryUtility::ApplyOnScalarField)
+        ;
+
+    m.def_submodule("ModelPartUtils")
+        .def("GetModelPartsWithCommonReferenceEntities", [](
+            const std::vector<ModelPart*>& rEvaluatedModelPartsList,
+            const std::vector<ModelPart*>& rReferenceModelPartsList,
+            const bool AreNodesConsidered,
+            const bool AreConditionsConsidered,
+            const bool AreElementsConsidered,
+            const bool AreParentsConsidered,
+            const IndexType EchoLevel){
+                const auto& r_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
+                    rEvaluatedModelPartsList,
+                    rReferenceModelPartsList,
+                    AreNodesConsidered,
+                    AreConditionsConsidered,
+                    AreElementsConsidered,
+                    AreParentsConsidered,
+                    EchoLevel);
+
+                auto pylist = py::list();
+                for (auto p_model_part : r_model_parts) {
+                    auto pyobj = py::cast(*p_model_part, py::return_value_policy::reference);
+                    pylist.append(pyobj);
+                }
+                return pylist;
+            },
+            "examined_model_parts_list"_a,
+            "reference_model_parts"_a,
+            "are_nodes_considered"_a,
+            "are_conditions_considered"_a,
+            "are_elements_considered"_a,
+            "are_parents_considered"_a,
+            "echo_level"_a = 0)
+        .def("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList,
+            "model_parts_list"_a)
+        ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, double>)

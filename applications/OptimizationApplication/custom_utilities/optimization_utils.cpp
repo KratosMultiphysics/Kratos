@@ -25,6 +25,7 @@
 
 namespace Kratos
 {
+
 template<class TContainerType>
 GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(
     const TContainerType& rContainer,

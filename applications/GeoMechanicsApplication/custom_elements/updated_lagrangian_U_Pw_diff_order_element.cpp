@@ -45,7 +45,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
                   const bool CalculateStiffnessMatrixFlag,
                   const bool CalculateResidualVectorFlag )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << CalculateStiffnessMatrixFlag << " " << CalculateStiffnessMatrixFlag << std::endl;
 
@@ -253,13 +253,13 @@ void UpdatedLagrangianUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrainUPwDiffOrderElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrainUPwDiffOrderElement )
 }
 
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrainUPwDiffOrderElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrainUPwDiffOrderElement )
 }
 
 } // Namespace Kratos
