@@ -152,7 +152,7 @@ double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariable
     const IndexType data_dimension = rContainer.GetDataDimension();
     const IndexType number_of_entities = rContainer.GetContainer().size();
 
-    return std::sqrt(rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&](const IndexType EntityIndex) {
+    return std::sqrt(rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&r_expression, data_dimension](const IndexType EntityIndex) {
         double value = 0.0;
         for (IndexType i = 0; i < data_dimension; ++i) {
             value += std::pow(r_expression.Evaluate(EntityIndex, i), 2);
@@ -168,7 +168,7 @@ double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHold
     const IndexType data_dimension = rContainer.GetDataDimension();
     const IndexType number_of_entities = rContainer.GetContainer().size();
 
-    return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&](const IndexType EntityIndex) {
+    return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&r_expression, data_dimension](const IndexType EntityIndex) {
         double value = 0.0;
         for (IndexType i = 0; i < data_dimension; ++i) {
             value = std::max(value, r_expression.Evaluate(EntityIndex, i));
@@ -185,7 +185,7 @@ double ContainerVariableDataHolderUtils::NormL2(
     const IndexType data_dimension = rContainer.GetDataDimension();
     const IndexType number_of_entities = rContainer.GetContainer().size();
 
-    const double local_l2_norm_square = IndexPartition<IndexType>(number_of_entities).for_each<SumReduction<double>>([&](const IndexType EntityIndex) {
+    const double local_l2_norm_square = IndexPartition<IndexType>(number_of_entities).for_each<SumReduction<double>>([&r_expression, data_dimension](const IndexType EntityIndex) {
         double value = 0.0;
         for (IndexType i = 0; i < data_dimension; ++i) {
             value += std::pow(r_expression.Evaluate(EntityIndex, i), 2);
@@ -227,7 +227,7 @@ double ContainerVariableDataHolderUtils::InnerProduct(
         << "   Container 1: " << rContainer1 << "\n"
         << "   Container 2: " << rContainer2 << "\n";
 
-    return rContainer1.GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(IndexPartition<IndexType>(number_of_entities_1).for_each<SumReduction<double>>([&](const IndexType EntityIndex) {
+    return rContainer1.GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(IndexPartition<IndexType>(number_of_entities_1).for_each<SumReduction<double>>([&r_expression_1, &r_expression_2, data_dimension_1](const IndexType EntityIndex) {
         double value = 0.0;
         for (IndexType i = 0; i < data_dimension_1; ++i) {
             value += r_expression_1.Evaluate(EntityIndex, i) * r_expression_2.Evaluate(EntityIndex, i);
@@ -274,7 +274,7 @@ void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(
     const IndexType* a_row_indices = rMatrix.index1_data().begin();
     const IndexType* a_col_indices = rMatrix.index2_data().begin();
 
-    IndexPartition<IndexType>(rMatrix.size1()).for_each([&](const IndexType i) {
+    IndexPartition<IndexType>(rMatrix.size1()).for_each([a_values, &r_data, &r_expression, data_dimension, a_row_indices, a_col_indices](const IndexType i) {
         const IndexType col_begin = a_row_indices[i];
         const IndexType col_end = a_row_indices[i + 1];
 
@@ -321,7 +321,7 @@ void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(
 
     const auto& r_expression = rInput.GetExpression();
 
-    IndexPartition<IndexType>(rMatrix.size1()).for_each([&](const IndexType i) {
+    IndexPartition<IndexType>(rMatrix.size1()).for_each([&rMatrix, &r_expression, data_dimension, &r_data](const IndexType i) {
         for (IndexType d = 0; d < data_dimension; ++d) {
             auto& r_value = r_data[i * data_dimension + d];
             for (IndexType j = 0; j < rMatrix.size2(); ++j) {
@@ -342,7 +342,7 @@ void ContainerVariableDataHolderUtils::Transpose(
         rOutput.resize(rInput.size2(), rInput.size1(), false);
     }
 
-    IndexPartition<IndexType>(rInput.size1()).for_each([&](const IndexType i){
+    IndexPartition<IndexType>(rInput.size1()).for_each([&rInput, &rOutput](const IndexType i){
         for (IndexType j = 0; j < rInput.size2(); ++j) {
             rOutput(j, i) = rInput(i, j);
         }
@@ -388,7 +388,7 @@ void ContainerVariableDataHolderUtils::ComputeNumberOfNeighbourEntities(
     // create a dummy copy input data container to access its nodes and modify data
     ContainerVariableDataHolder<TContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>> dummy_input_container(rOutput.GetModelPart());
 
-    block_for_each(dummy_input_container.GetContainer(), [&](auto& rEntity) {
+    block_for_each(dummy_input_container.GetContainer(), [](auto& rEntity) {
         auto& r_geometry = rEntity.GetGeometry();
         for (auto& r_node : r_geometry) {
             AtomicAdd(r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_1), 1.0);
@@ -430,7 +430,7 @@ void ContainerVariableDataHolderUtils::MapContainerVariableDataHolderToNodalVari
         << "\n\tNeighbour entities container:" << rNeighbourEntities << "\n";
 
     // reset temporary variables
-    std::visit([&](auto&& p_variable) {
+    std::visit([&rOutput](auto&& p_variable) {
         VariableUtils().SetNonHistoricalVariableToZero(*p_variable, rOutput.GetModelPart().Nodes());
     }, ContainerVariableDataHolderUtilsHelper::GetTemporaryVariable(rInput.GetDataDimension()));
 
@@ -444,13 +444,14 @@ void ContainerVariableDataHolderUtils::MapContainerVariableDataHolderToNodalVari
     ContainerVariableDataHolder<TContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>> dummy_input_container(rOutput.GetModelPart());
 
     auto& r_container = dummy_input_container.GetContainer();
+    auto& r_communicator = rOutput.GetModelPart().GetCommunicator();
     const IndexType number_of_entities = r_container.size();
     const IndexType dimension = rInput.GetDataDimension();
     const auto& r_expression = rInput.GetExpression();
 
     // now distribute the entity values to nodes
-    std::visit([&](auto&& p_variable) {
-        IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType EntityIndex) {
+    std::visit([&r_communicator, &r_container, &r_expression, dimension, number_of_entities](auto&& p_variable) {
+        IndexPartition<IndexType>(number_of_entities).for_each([&p_variable, &r_container, &r_expression, dimension](const IndexType EntityIndex) {
             auto p_entity = (r_container.begin() + EntityIndex);
             auto& r_geometry = p_entity->GetGeometry();
             const auto& entity_value = ContainerVariableDataHolderUtilsHelper::GetEntityData(r_expression, EntityIndex, dimension, *p_variable);
@@ -463,13 +464,13 @@ void ContainerVariableDataHolderUtils::MapContainerVariableDataHolderToNodalVari
         });
 
         // now assemble data at nodes
-        rOutput.GetModelPart().GetCommunicator().AssembleNonHistoricalData(*p_variable);
+        r_communicator.AssembleNonHistoricalData(*p_variable);
 
     }, ContainerVariableDataHolderUtilsHelper::GetTemporaryVariable(rInput.GetDataDimension()));
 
     // now read in the nodal data
     ContainerVariableDataHolder<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>> dummy_read(rOutput.GetModelPart());
-    std::visit([&](auto&& p_variable) {
+    std::visit([&dummy_read](auto&& p_variable) {
         dummy_read.ReadDataFromContainerVariable(*p_variable);
     }, ContainerVariableDataHolderUtilsHelper::GetTemporaryVariable(rInput.GetDataDimension()));
 
@@ -492,30 +493,31 @@ void ContainerVariableDataHolderUtils::MapNodalVariableDataHolderToContainerVari
         << "\n\tOutput container: " << rOutput
         << "\n\tInput container : " << rInput << "\n";
 
-    // create a dummy with the model part and nodes
-    ContainerVariableDataHolder<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>> dummy(rOutput.GetModelPart());
-    dummy.CopyDataFrom(rInput);
+    std::visit([&rOutput, &rInput](auto&& p_variable) {
+        // create a dummy with the model part and nodes
+        ContainerVariableDataHolder<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>> dummy(rOutput.GetModelPart());
+        dummy.CopyDataFrom(rInput);
 
-    const IndexType number_of_entities = rOutput.GetContainer().size();
-    const IndexType dimension = rInput.GetDataDimension();
+        const auto& r_output_container = rOutput.GetContainer();
+        const IndexType number_of_entities = r_output_container.size();
+        const IndexType dimension = rInput.GetDataDimension();
 
-    auto p_data = Kratos::make_shared<Vector>(number_of_entities * dimension, 0.0);
-    Vector& r_data = *p_data;
-    auto p_expression = LiteralVectorExpression::Create(p_data, dimension);
-    rOutput.SetExpression(p_expression);
+        auto p_data = Kratos::make_shared<Vector>(number_of_entities * dimension, 0.0);
+        Vector& r_data = *p_data;
+        auto p_expression = LiteralVectorExpression::Create(p_data, dimension);
+        rOutput.SetExpression(p_expression);
 
-    std::visit([&](auto&& p_variable) {
         // first assign input data to nodes
         dummy.AssignDataToContainerVariable(*p_variable);
 
         // compute the entity valeus.
-        IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType EntityIndex) {
-            const auto p_entity = (rOutput.GetContainer().begin() + EntityIndex);
+        IndexPartition<IndexType>(number_of_entities).for_each([&r_output_container, &r_data, &p_variable, dimension](const IndexType EntityIndex) {
+            const auto p_entity = (r_output_container.begin() + EntityIndex);
             const auto& r_geometry = p_entity->GetGeometry();
             const IndexType number_of_nodes = r_geometry.size();
 
             for (const auto& r_node : r_geometry) {
-                ContainerVariableDataHolderUtilsHelper::AddToEntityData(r_data, EntityIndex, rInput.GetDataDimension(), r_node.GetValue(*p_variable) / number_of_nodes);
+                ContainerVariableDataHolderUtilsHelper::AddToEntityData(r_data, EntityIndex, dimension, r_node.GetValue(*p_variable) / number_of_nodes);
             }
         });
     }, ContainerVariableDataHolderUtilsHelper::GetTemporaryVariable(rInput.GetDataDimension()));
@@ -549,7 +551,7 @@ void ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntit
 
     const IndexType data_dimension = rNodalValues.GetDataDimension();
 
-    std::visit([&](auto&& p_variable_pair) {
+    std::visit([&rOutput, &rNodalValues, &rMatrixVariable, &rEntities, &dummy_container, data_dimension](auto&& p_variable_pair) {
         const auto& r_input_variable = *std::get<0>(p_variable_pair);
         const auto& r_output_variable = *std::get<1>(p_variable_pair);
 
@@ -560,7 +562,9 @@ void ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntit
         // clear the output variable
         VariableUtils().SetNonHistoricalVariableToZero(r_output_variable, rOutput.GetModelPart().Nodes());
 
-        block_for_each(rEntities, tls_type(), [&](auto& rEntity, tls_type& rTLS) {
+        const auto& process_info = rOutput.GetModelPart().GetProcessInfo();
+
+        block_for_each(rEntities, tls_type(), [&process_info, &rMatrixVariable, &r_input_variable, &r_output_variable, data_dimension](auto& rEntity, tls_type& rTLS) {
             Vector& r_input_values = std::get<0>(rTLS);
             Vector& r_output_values = std::get<1>(rTLS);
             Matrix& r_entity_matrix = std::get<2>(rTLS);
@@ -581,7 +585,7 @@ void ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntit
                 ContainerVariableDataHolderUtilsHelper::AddToEntityData(r_input_values, i, data_dimension, r_geometry[i].GetValue(r_input_variable));
             }
 
-            rEntity.Calculate(rMatrixVariable, r_entity_matrix, rOutput.GetModelPart().GetProcessInfo());
+            rEntity.Calculate(rMatrixVariable, r_entity_matrix, process_info);
             KRATOS_ERROR_IF(r_entity_matrix.size1() != local_size ||
                             r_entity_matrix.size2() != local_size)
                 << "Entity matrix with entity id " << rEntity.Id() << " for "

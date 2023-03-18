@@ -118,7 +118,7 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::ReadDataFrom
 
     r_data.resize(number_of_entities * dimension);
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
+    IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &r_data, dimension](const IndexType Index){
         const auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
         for (IndexType i = 0; i < dimension; ++i) {
             ContainerVariableDataHolderHelperUtilities::AssignValueToVector(r_data, Index * dimension, i, values);
@@ -155,20 +155,22 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::AssignDataTo
         // initializes ghost nodes as well for the later synchronization
         // only, the nodal non historical values needs to be set unless
         // they are properly initialized.
-        block_for_each(this->GetModelPart().Nodes(), [&](auto& rEntity) {
+        block_for_each(this->GetModelPart().Nodes(), [&rVariable](auto& rEntity) {
             TContainerDataIO::SetValue(rEntity, rVariable, rVariable.Zero());
         });
     } else {
         // no ghost settings required for elements or conditions nor historical values, hence no special treatment required.
-        block_for_each(r_container, [&](auto& rEntity) {
+        block_for_each(r_container, [&rVariable](auto& rEntity) {
             TContainerDataIO::SetValue(rEntity, rVariable, rVariable.Zero());
         });
     }
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
+    auto& r_expression = *this->mpExpression;
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &local_size, &r_expression](const IndexType Index){
         auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
         for (IndexType i = 0; i < local_size; ++i) {
-            const double evaluated_value = this->mpExpression->Evaluate(Index, i);
+            const double evaluated_value = r_expression.Evaluate(Index, i);
             ContainerVariableDataHolderHelperUtilities::AssignValueFromVector(values, i, evaluated_value);
         }
     });
@@ -469,25 +471,25 @@ std::string ContainerVariableDataHolder<TContainerType, TContainerDataIO>::Info(
 }
 
 //template instantiations
-#define INSTANTIATIE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, DataType)                                                                   \
+#define KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, DataType)                                                                   \
     template void ContainerVariableDataHolder<ContainerType, ContainerDataIOType>::ReadDataFromContainerVariable(const Variable<DataType>&);                \
     template void ContainerVariableDataHolder<ContainerType, ContainerDataIOType>::SetDataForContainerVariable(const Variable<DataType>&, const DataType&); \
     template void ContainerVariableDataHolder<ContainerType, ContainerDataIOType>::SetDataForContainerVariableToZero(const Variable<DataType>&);            \
     template void ContainerVariableDataHolder<ContainerType, ContainerDataIOType>::AssignDataToContainerVariable(const Variable<DataType>&);
 
-#define INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOTag)                                                           \
+#define KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOTag)                                                           \
     template class ContainerVariableDataHolder<ContainerType, ContainerDataIO<ContainerDataIOTag>>;                                             \
-    INSTANTIATIE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, double)                                             \
-    INSTANTIATIE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, ContainerVariableDataHolderHelperUtilities::Array3D)
+    KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, double)                                             \
+    KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, ContainerVariableDataHolderHelperUtilities::Array3D)
 
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::Historical)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties)
-INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ElementsContainerType, ContainerDataIOTags::Properties)
+KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::Historical)
+KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical)
+KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical)
+KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical)
+KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties)
+KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::ElementsContainerType, ContainerDataIOTags::Properties)
 
-#undef INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER
-#undef INSTANTIATIE_CONTAINER_DATA_METHODS
+#undef KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER
+#undef KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS
 
 }
