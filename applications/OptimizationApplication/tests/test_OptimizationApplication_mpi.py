@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
 from test_model_part_utils import TestModelPartUtils
+from test_container_variable_data_holder_utils import TestContainerVariableDataHolderUtils
 from test_container_variable_data_holder import TestHistoricalContainerVariableDataHolder
 from test_container_variable_data_holder import TestNodalContainerVariableDataHolder
 from test_container_variable_data_holder import TestConditionContainerVariableDataHolder
@@ -35,6 +36,7 @@ def AssembleTestSuites():
 
     # adding custom process tests
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtils]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerVariableDataHolderUtils]))
 
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHistoricalContainerVariableDataHolder]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNodalContainerVariableDataHolder]))
