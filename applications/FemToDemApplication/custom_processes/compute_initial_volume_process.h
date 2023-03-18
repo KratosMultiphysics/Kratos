@@ -28,7 +28,7 @@ typedef std::size_t SizeType;
  * assigns it to the nodes
  * @author Alejandro Cornejo
  */
-class ComputeInitialVolumeProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ComputeInitialVolumeProcess : public Process
 {
  public:
 

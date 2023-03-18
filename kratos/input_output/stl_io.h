@@ -85,6 +85,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef ModelPart::GeometriesMapType GeometriesMapType;
+
     /// Pointer definition of StlIO
     KRATOS_CLASS_POINTER_DEFINITION(StlIO);
 
@@ -92,16 +94,14 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with filename.
-    StlIO(std::filesystem::path const& Filename);
+    /// Constructor with filename, and open option with default being read mode
+    StlIO(std::filesystem::path const& Filename, const Flags Options = IO::READ);
 
     /// Constructor with stream.
-    StlIO(std::iostream* pInputStream);
+    StlIO(Kratos::shared_ptr<std::iostream> pInputStream);
 
     /// Destructor.
-    virtual ~StlIO(){
-        delete mpInputStream;
-    }
+    virtual ~StlIO(){}
 
     ///@}
     ///@name Operators
@@ -112,6 +112,8 @@ public:
     ///@{
 
     void ReadModelPart(ModelPart & rThisModelPart) override;
+
+    void WriteModelPart(const ModelPart & rThisModelPart) override;
 
     ///@}
     ///@name Access
@@ -176,7 +178,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::iostream* mpInputStream;
+    Kratos::shared_ptr<std::iostream> mpInputStream;
+    Flags mOptions;
 
     ///@}
     ///@name Private Operators
@@ -195,6 +198,17 @@ private:
     Point ReadPoint();
 
     void ReadKeyword(std::string const& Keyword);
+
+    template<class TContainerType>
+    void WriteEntityBlock(const TContainerType& rThisEntities);
+
+    void WriteGeometryBlock(const GeometriesMapType& rThisGeometries);
+
+    void WriteFacet(const GeometryType & rGeom);
+
+    bool IsValidGeometry(
+        const Geometry<Node<3>>& rGeometry,
+        std::size_t& rNumDegenerateGeos) const;
 
     ///@}
     ///@name Private  Access

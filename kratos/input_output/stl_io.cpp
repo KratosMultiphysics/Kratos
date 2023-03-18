@@ -21,12 +21,24 @@
 namespace Kratos
 {
 
-/// Constructor with  filenames.
-StlIO::StlIO(std::filesystem::path const& Filename)
-    : IO()
+StlIO::StlIO(std::filesystem::path const& Filename, const Flags Options)
+    : mOptions(Options)
 {
-    std::fstream* pFile = new std::fstream();
-    std::fstream::openmode OpenMode = std::fstream::in;
+    Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
+
+    // set default mode to read
+    std::fstream::openmode OpenMode;
+
+    // handle other mode options
+    if (mOptions.Is(IO::READ)) {
+        OpenMode = std::fstream::in;
+    } else if (mOptions.Is(IO::APPEND)) {
+        OpenMode = std::fstream::in | std::fstream::app;
+    } else if (mOptions.Is(IO::WRITE)) {
+        OpenMode = std::fstream::out;
+    } else {
+        KRATOS_ERROR << "Unsupported IO options: " << Options << std::endl;
+    }
 
     pFile->open(Filename.c_str(), OpenMode);
 
@@ -36,7 +48,7 @@ StlIO::StlIO(std::filesystem::path const& Filename)
     mpInputStream = pFile;
 }
 
-StlIO::StlIO(std::iostream* pInputStream) 
+StlIO::StlIO(Kratos::shared_ptr<std::iostream> pInputStream) 
     : IO(), 
       mpInputStream(pInputStream)
 {
@@ -50,6 +62,61 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
         
     while(!mpInputStream->eof())
         ReadSolid(rThisModelPart);
+}
+
+
+void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
+{
+    // write the solid block
+    (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
+    WriteEntityBlock(rThisModelPart.Elements());
+    WriteEntityBlock(rThisModelPart.Conditions());
+    WriteGeometryBlock(rThisModelPart.Geometries());
+    (*mpInputStream) << "endsolid\n";
+}
+
+template<class TContainerType>
+void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
+{
+    std::size_t num_degenerate_geometries = 0;
+    for (auto & r_entity : rThisEntities) {
+        const auto & r_geometry = r_entity.GetGeometry();
+        if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
+            WriteFacet(r_geometry);
+        }
+    }
+    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
+        << "Model part contained " << num_degenerate_geometries
+        << " geometries with area = 0.0, skipping these geometries." << std::endl;
+}
+
+void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
+{
+    std::size_t num_degenerate_geometries = 0;
+    for (auto & r_geometry : rThisGeometries) {
+        if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
+            WriteFacet(r_geometry);
+        }
+    }
+    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
+        << "Model part contained " << num_degenerate_geometries
+        << " geometries with area = 0.0, skipping these geometries." << std::endl;
+}
+
+
+void StlIO::WriteFacet(const GeometryType& rGeom) {
+    
+    const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
+    (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
+    (*mpInputStream) << "        outer loop\n";
+
+    for (int i = 0; i < 3; i++) {
+        const auto& r_node = rGeom[i];
+        (*mpInputStream) << "           vertex " << r_node.X() << " " << r_node.Y() << " " << r_node.Z() << "\n";
+    }
+
+    (*mpInputStream) << "        endloop\n";
+    (*mpInputStream) << "    endfacet\n";
 }
 
 /// Turn back information as a string.
@@ -66,6 +133,22 @@ void StlIO::PrintInfo(std::ostream& rOStream) const{
 /// Print object's data.
 void StlIO::PrintData(std::ostream& rOStream) const{
 
+}
+
+
+bool StlIO::IsValidGeometry(
+    const Geometry<Node<3>>& rGeometry,
+    std::size_t& rNumDegenerateGeos) const 
+{
+    // restrict to triangles only for now
+    const bool is_triangle = (
+        rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
+        rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
+    const bool area_greater_than_zero = rGeometry.Area() > std::numeric_limits<double>::epsilon();
+    if (!area_greater_than_zero && is_triangle) {
+        rNumDegenerateGeos++;
+    }
+    return (is_triangle && area_greater_than_zero);
 }
 
 void StlIO::ReadSolid(ModelPart & rThisModelPart)

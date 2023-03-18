@@ -76,12 +76,8 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     for(IndexType i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_begin + i;
 
-        // Detect if the element is active or not. If the user did not make any choice the element is active by default
-        bool element_is_active = true;
-        if (it_elem->IsDefined(ACTIVE))
-            element_is_active = it_elem->Is(ACTIVE);
-
-        if (element_is_active) {
+        // If the element is active
+        if (it_elem->IsActive()) {
             GeometryType& r_geometry = it_elem->GetGeometry();
 
             const auto r_boundary_geometries = r_geometry.GenerateBoundariesEntities();
@@ -120,12 +116,8 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     for(IndexType i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_begin + i;
 
-        // Detect if the element is active or not. If the user did not make any choice the element is active by default
-        bool element_is_active = true;
-        if (it_elem->IsDefined(ACTIVE))
-            element_is_active = it_elem->Is(ACTIVE);
-
-        if (element_is_active) {
+        // If the element is active
+        if (it_elem->IsActive()) {
             GeometryType& r_geometry = it_elem->GetGeometry();
 
             const auto r_boundary_geometries = r_geometry.GenerateBoundariesEntities();

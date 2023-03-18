@@ -9,8 +9,7 @@
 //  Main authors:    Massimo Petracca
 //
 
-#if !defined(KRATOS_SHELLT3_COORDINATE_TRANSFORMATION_H_INCLUDED )
-#define  KRATOS_SHELLT3_COORDINATE_TRANSFORMATION_H_INCLUDED
+#pragma once
 
 #include "shellt3_local_coordinate_system.hpp"
 
@@ -174,6 +173,3 @@ private:
 };
 
 }
-
-
-#endif // KRATOS_SHELLT3_COORDINATE_TRANSFORMATION_H_INCLUDED

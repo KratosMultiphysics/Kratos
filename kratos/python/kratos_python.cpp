@@ -36,6 +36,7 @@
 #include "add_geometries_to_python.h"
 #include "add_bounding_box_to_python.h"
 #include "add_containers_to_python.h"
+#include "add_controllers_to_python.h"
 #include "add_operations_to_python.h"
 #include "add_processes_to_python.h"
 #include "add_model_to_python.h"
@@ -111,6 +112,7 @@ PYBIND11_MODULE(Kratos, m)
     AddGlobalPointersToPython(m);
 
     AddOperationsToPython(m);
+    AddControllersToPython(m);
     AddProcessesToPython(m);
     AddIOToPython(m);
     AddModelToPython(m);

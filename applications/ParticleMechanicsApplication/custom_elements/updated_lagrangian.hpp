@@ -595,7 +595,7 @@ protected:
     /**
      * Initialize Material Properties on the Constitutive Law
      */
-    virtual void InitializeMaterial ();
+    virtual void InitializeMaterial (const ProcessInfo& rCurrentProcessInfo);
 
 
     /**

@@ -129,11 +129,6 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
-  {
-  }
-
-  template <unsigned int TDim>
   int TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
@@ -211,7 +206,7 @@ namespace Kratos
     const auto &r_geometry = this->GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
-    //WARNING THIS MUST BE REMOVED ASAP
+    // WARNING THIS MUST BE REMOVED ASAP
     const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
     // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
@@ -333,6 +328,52 @@ namespace Kratos
   }
 
   template <>
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>::UpdateStressTensor(ElementalVariables &rElementalVariables)
+  {
+    KRATOS_TRY;
+
+    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
+
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
+    KRATOS_CATCH("");
+  }
+
+  template <>
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<3>::UpdateStressTensor(ElementalVariables &rElementalVariables)
+  {
+    KRATOS_TRY;
+
+    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
+
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[2] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
+    rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
+    rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
+    KRATOS_CATCH("");
+  }
+  template <>
   void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted(
       ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
       double &Density, double &DeviatoricCoeff, double &VolumetricCoeff)
@@ -356,21 +397,7 @@ namespace Kratos
 
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
-
-    rElementalVariables.UpdatedTotalCauchyStress[0] =
-        rElementalVariables.CurrentDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
-    rElementalVariables.UpdatedTotalCauchyStress[1] =
-        rElementalVariables.CurrentDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
-    rElementalVariables.UpdatedTotalCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
-
-    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
-
-    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+    this->UpdateStressTensor(rElementalVariables);
 
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
@@ -388,6 +415,8 @@ namespace Kratos
     this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
     this->mMaterialVolumetricCoefficient = VolumetricCoeff;
     this->mMaterialDensity = Density;
+
+    this->ComputeMechanicalDissipation(rElementalVariables);
   }
 
   template <>
@@ -414,31 +443,7 @@ namespace Kratos
 
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
-
-    rElementalVariables.UpdatedTotalCauchyStress[0] =
-        rElementalVariables.CurrentDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
-    rElementalVariables.UpdatedTotalCauchyStress[1] =
-        rElementalVariables.CurrentDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
-    rElementalVariables.UpdatedTotalCauchyStress[2] =
-        rElementalVariables.CurrentDeviatoricCauchyStress[2] + rElementalVariables.MeanPressure;
-    rElementalVariables.UpdatedTotalCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
-    rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
-    rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
-
-    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
-
-    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
-    rElementalVariables.UpdatedDeviatoricCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
+    this->UpdateStressTensor(rElementalVariables);
 
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
@@ -456,6 +461,8 @@ namespace Kratos
     this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
     this->mMaterialVolumetricCoefficient = VolumetricCoeff;
     this->mMaterialDensity = Density;
+
+    this->ComputeMechanicalDissipation(rElementalVariables);
   }
 
   template <unsigned int TDim>

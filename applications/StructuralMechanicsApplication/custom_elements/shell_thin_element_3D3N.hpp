@@ -9,8 +9,7 @@
 //  Main authors:    Massimo Petracca
 //
 
-#if !defined(SHELL_THIN_ELEMENT_3D3N_H_INCLUDED )
-#define  SHELL_THIN_ELEMENT_3D3N_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -373,4 +372,3 @@ private:
 };
 
 }
-#endif // SHELL_THIN_ELEMENT_3D3N_H_INCLUDED
