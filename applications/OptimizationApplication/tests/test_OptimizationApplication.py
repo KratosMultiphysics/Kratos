@@ -102,6 +102,7 @@ def AssembleTestSuites():
 # Main
 # ==============================================================================
 if __name__ == '__main__':
+    km.Tester.SetVerbosity(km.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     KratosUnittest.runTests(AssembleTestSuites())
 
 # ==============================================================================

@@ -57,4 +57,5 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    KM.Tester.SetVerbosity(KM.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     KratosUnittest.runTests(AssembleTestSuites())
