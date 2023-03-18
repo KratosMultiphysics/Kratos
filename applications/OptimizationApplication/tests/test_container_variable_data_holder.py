@@ -3,6 +3,7 @@ from abc import ABC
 from abc import abstractmethod
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
@@ -17,30 +18,28 @@ class TestContainerVariableDataHolderBase(ABC):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
+        ReadModelPart("model_part_utils_test/hexas", cls.model_part)
 
-        number_of_nodes = 10
-        for id in range(1, number_of_nodes + 1):
-            node = cls.model_part.CreateNewNode(id, id, id+1, id+2)
+        for node in cls.model_part.Nodes:
+            id = node.Id
             node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
             node.SetSolutionStepValue(Kratos.PRESSURE, id+3)
             node.SetValue(Kratos.PRESSURE, id+3)
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
 
-        number_of_conditions = 11
-        for id in range(1, number_of_conditions + 1):
-            properties = cls.model_part.CreateNewProperties(id)
-            properties.SetValue(Kratos.PRESSURE, id+400)
-            properties.SetValue(Kratos.VELOCITY, Kratos.Array3([id+500, id+600, id+700]))
-            condition = cls.model_part.CreateNewCondition("LineCondition2D2N", id + 1, [(id % number_of_nodes) + 1, ((id + 1) % number_of_nodes) + 1 ], properties)
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model_part, cls.model_part.Conditions)
+        for condition in cls.model_part.Conditions:
+            id = condition.Id
+            condition.Properties[Kratos.PRESSURE] = id+400
+            condition.Properties[Kratos.VELOCITY] = Kratos.Array3([id+500, id+600, id+700])
             condition.SetValue(Kratos.PRESSURE, id+4)
             condition.SetValue(Kratos.VELOCITY, Kratos.Array3([id+5, id+6, id+7]))
 
-        number_of_elements = 12
-        for id in range(1, number_of_elements + 1):
-            properties = cls.model_part.CreateNewProperties(id + number_of_conditions)
-            properties.SetValue(Kratos.PRESSURE, id+500)
-            properties.SetValue(Kratos.VELOCITY, Kratos.Array3([id+600, id+700, id+800]))
-            element = cls.model_part.CreateNewElement("Element2D3N", id + 2, [(id % number_of_nodes) + 1, ((id + 1) % number_of_nodes) + 1, ((id + 2) % number_of_nodes) + 1 ], properties)
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model_part, cls.model_part.Elements)
+        for element in cls.model_part.Elements:
+            id = element.Id
+            element.Properties[Kratos.PRESSURE] =  id+500
+            element.Properties[Kratos.VELOCITY] =  Kratos.Array3([id+600, id+700, id+800])
             element.SetValue(Kratos.PRESSURE, id+5)
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
 
@@ -327,7 +326,7 @@ class TestHistoricalContainerVariableDataHolder(kratos_unittest.TestCase, TestCo
         return KratosOA.HistoricalContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
-        return self.model_part.Nodes
+        return self.model_part.GetCommunicator().LocalMesh().Nodes
 
     def _GetValue(self, entity, variable):
         return entity.GetSolutionStepValue(variable)
@@ -367,7 +366,7 @@ class TestNodalContainerVariableDataHolder(kratos_unittest.TestCase, TestContain
         return KratosOA.NodalContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
-        return self.model_part.Nodes
+        return self.model_part.GetCommunicator().LocalMesh().Nodes
 
     def _GetValue(self, entity, variable):
         return entity.GetValue(variable)
@@ -407,7 +406,7 @@ class TestConditionContainerVariableDataHolder(kratos_unittest.TestCase, TestCon
         return KratosOA.ConditionContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
-        return self.model_part.Conditions
+        return self.model_part.GetCommunicator().LocalMesh().Conditions
 
     def _GetValue(self, entity, variable):
         return entity.GetValue(variable)
@@ -447,7 +446,7 @@ class TestElementContainerVariableDataHolder(kratos_unittest.TestCase, TestConta
         return KratosOA.ElementContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
-        return self.model_part.Elements
+        return self.model_part.GetCommunicator().LocalMesh().Elements
 
     def _GetValue(self, entity, variable):
         return entity.GetValue(variable)
@@ -487,7 +486,7 @@ class TestConditionPropertiesContainerVariableDataHolder(kratos_unittest.TestCas
         return KratosOA.ConditionPropertiesContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
-        return self.model_part.Conditions
+        return self.model_part.GetCommunicator().LocalMesh().Conditions
 
     def _GetValue(self, entity, variable):
         return entity.Properties[variable]
@@ -527,7 +526,7 @@ class TestElementPropertiesContainerVariableDataHolder(kratos_unittest.TestCase,
         return KratosOA.ElementPropertiesContainerVariableDataHolder(self.model_part)
 
     def _GetContainer(self):
-        return self.model_part.Elements
+        return self.model_part.GetCommunicator().LocalMesh().Elements
 
     def _GetValue(self, entity, variable):
         return entity.Properties[variable]
