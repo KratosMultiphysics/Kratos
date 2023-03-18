@@ -252,14 +252,14 @@ void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(
     KRATOS_ERROR_IF_NOT(number_of_input_entities == rMatrix.size2())
         << "Input container size and matrix size2 mismatch. [ Container size = "
         << number_of_input_entities << ", Matrix.size1() = " << rMatrix.size2()
-        << "Followings are the given containers:"
+        << " ]. Followings are the given containers:"
         << "\n\tInput data container : " << rInput
         << "\n\tOutput data container: " << rOutput << "\n\t";
 
     KRATOS_ERROR_IF_NOT(number_of_output_entities == rMatrix.size1())
         << "Output container size and matrix size1 mismatch. [ Container size = "
         << number_of_output_entities << ", Matrix.size1() = " << rMatrix.size1()
-        << "Followings are the given containers:"
+        << " ]. Followings are the given containers:"
         << "\n\tInput data container : " << rInput
         << "\n\tOutput data container: " << rOutput << "\n\t";
 
@@ -303,14 +303,14 @@ void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(
     KRATOS_ERROR_IF_NOT(number_of_input_entities == rMatrix.size2())
         << "Input container size and matrix size2 mismatch. [ Container size = "
         << number_of_input_entities << ", Matrix.size1() = " << rMatrix.size2()
-        << "Followings are the given containers:"
+        << " ]. Followings are the given containers:"
         << "\n\tInput data container : " << rInput
         << "\n\tOutput data container: " << rOutput << "\n\t";
 
     KRATOS_ERROR_IF_NOT(number_of_output_entities == rMatrix.size1())
         << "Output container size and matrix size1 mismatch. [ Container size = "
         << number_of_output_entities << ", Matrix.size1() = " << rMatrix.size1()
-        << "Followings are the given containers:"
+        << " ]. Followings are the given containers:"
         << "\n\tInput data container : " << rInput
         << "\n\tOutput data container: " << rOutput << "\n\t";
 
