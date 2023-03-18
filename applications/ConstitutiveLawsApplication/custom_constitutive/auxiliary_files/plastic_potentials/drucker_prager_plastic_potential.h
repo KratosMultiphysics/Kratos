@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_DRUCKER_PRAGER_PLASTIC_POTENTIAL_H_INCLUDED)
-#define KRATOS_DRUCKER_PRAGER_PLASTIC_POTENTIAL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -239,4 +238,3 @@ class DruckerPragerPlasticPotential
 ///@}
 
 } // namespace Kratos.
-#endif

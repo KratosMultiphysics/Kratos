@@ -36,6 +36,13 @@ class PetrovGalerkinTrainingUtility(object):
         self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
 
+        self.rom_format =  custom_settings["rom_format"].GetString()
+        available_rom_format = ["json", "numpy"]
+        if self.rom_format not in available_rom_format:
+            err_msg = "Provided \'rom format\' is {}. Available options are {}.".format(self.rom_format, available_rom_format)
+            raise Exception(err_msg)
+
+
     def AppendCurrentStepProjectedSystem(self):
         # Get the computing model part from the solver implementing the problem physics
         computing_model_part = self.solver.GetComputingModelPart()
@@ -71,9 +78,9 @@ class PetrovGalerkinTrainingUtility(object):
         np_snapshots_matrix = np.array(snapshots_matrix, copy=False)
         self.time_step_snapshots_matrix_container.append(np_snapshots_matrix)
 
-    def CalculateAndSaveBasis(self):
+    def CalculateAndSaveBasis(self, snapshots_matrix = None):
         # Calculate the new basis and save
-        snapshots_basis = self.__CalculateResidualBasis()
+        snapshots_basis = self.__CalculateResidualBasis(snapshots_matrix)
         self.__AppendNewBasisToRomParameters(snapshots_basis)
 
 
@@ -88,13 +95,9 @@ class PetrovGalerkinTrainingUtility(object):
         }""")
         return default_settings
 
-    def __CalculateResidualBasis(self):
-        # Set up the snapshots matrix for new basis
-        n_steps = len(self.time_step_snapshots_matrix_container)
-        snapshots_matrix = self.time_step_snapshots_matrix_container[0]
-        for i in range(1,n_steps):
-            del self.time_step_snapshots_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
-            snapshots_matrix = np.c_[snapshots_matrix,self.time_step_snapshots_matrix_container[0]]
+    def __CalculateResidualBasis(self, snapshots_matrix):
+        if snapshots_matrix is None:
+            snapshots_matrix = self._GetSnapshotsMatrix()
         u_left,s_left,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
             snapshots_matrix,
             self.svd_truncation_tolerance)
@@ -114,10 +117,16 @@ class PetrovGalerkinTrainingUtility(object):
         n_nodal_unknowns = len(self.rom_settings["nodal_unknowns"].GetStringArray())
         petrov_galerkin_nodal_modes = {}
         computing_model_part = self.solver.GetComputingModelPart()
-        i = 0
-        for node in computing_model_part.Nodes:
-            petrov_galerkin_nodal_modes[node.Id] = u[i:i+n_nodal_unknowns].tolist()
-            i += n_nodal_unknowns
+
+        if self.rom_format == "json":
+            i = 0
+            for node in computing_model_part.Nodes:
+                petrov_galerkin_nodal_modes[node.Id] = u[i:i+n_nodal_unknowns].tolist()
+                i += n_nodal_unknowns
+
+        elif self.rom_format == "numpy":
+            # Storing Petrov-Galerkin modes in Numpy format
+            np.save('LeftBasisMatrix.npy', u)
 
         with open('RomParameters.json','r') as f:
             updated_rom_parameters = json.load(f)
@@ -149,6 +158,17 @@ class PetrovGalerkinTrainingUtility(object):
                 counter_in = counter_fin
 
         return u
+
+
+    def _GetSnapshotsMatrix(self):
+        # Set up the snapshots matrix for new basis
+        n_steps = len(self.time_step_snapshots_matrix_container)
+        snapshots_matrix = self.time_step_snapshots_matrix_container[0]
+        for i in range(1,n_steps):
+            del self.time_step_snapshots_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
+            snapshots_matrix = np.c_[snapshots_matrix,self.time_step_snapshots_matrix_container[0]]
+        return snapshots_matrix
+
 
     @classmethod
     def __OrthogonalProjector(self, A, B):

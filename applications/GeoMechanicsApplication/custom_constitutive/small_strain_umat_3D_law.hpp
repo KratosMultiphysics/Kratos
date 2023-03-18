@@ -406,8 +406,8 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       ///@{
       pF_UMATMod          pUserMod;
 
-      bool mIsModelInitialized;
-      bool mIsUMATLoaded;
+      bool mIsModelInitialized = false;
+      bool mIsUMATLoaded = false;
 
       std::vector<int> mProjectDirectory;
 

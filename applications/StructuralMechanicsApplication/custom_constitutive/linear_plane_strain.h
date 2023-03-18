@@ -9,8 +9,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -257,4 +256,3 @@ private:
 
 }; // Class LinearPlaneStrain
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED  defined

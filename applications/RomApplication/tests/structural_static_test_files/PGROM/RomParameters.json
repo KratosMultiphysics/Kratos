@@ -1,6 +1,8 @@
 {
+    "rom_manager": false,
     "train_hrom": false,
     "run_hrom": false,
+    "rom_format":"numpy",
     "projection_strategy": "petrov_galerkin",
     "train_petrov_galerkin": {
         "train": false,

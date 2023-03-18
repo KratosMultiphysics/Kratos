@@ -9,8 +9,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu & Vicente Mataix
 //
 
-#if !defined(KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED)
-#define KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -291,4 +290,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif

@@ -51,7 +51,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template<unsigned int TDim, unsigned int TyieldSurf>
-class GenericSmallStrainFemDemElement 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) GenericSmallStrainFemDemElement 
     : public GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> // Derived Element from SolidMechanics
 {
 public:

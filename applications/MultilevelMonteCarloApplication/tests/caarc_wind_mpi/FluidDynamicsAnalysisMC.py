@@ -24,7 +24,7 @@ class FluidDynamicsAnalysisMC(FluidDynamicsAnalysis):
         input:  self: an instance of the class
         """
         super().ModifyInitialProperties()
-        for aux_process in self.project_parameters["processes"]["auxiliar_process_list"]:
+        for aux_process in self.project_parameters["processes"]["auxiliar_process_list"].values():
             if aux_process["python_module"].GetString() == "temporal_statistics_process":
                 aux_process["Parameters"]["statistics_start_point_control_value"].SetDouble(self.project_parameters["problem_data"]["burnin_time"].GetDouble())
 

@@ -19,7 +19,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 
        # create the primal analysis execution policy wrapper
-        with kratos_unittest.WorkFolderScope("linear_element_test", __file__):
+        with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             # creating the execution policy wrapper
             execution_policy_wrapper_settings = Kratos.Parameters("""{
                 "name"    : "primal",
@@ -45,7 +45,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
 
             # creating the response function wrapper
             response_function_settings = Kratos.Parameters("""{
-                "evaluated_model_part_names": ["Structure.structure"],
+                "evaluated_model_part_names": ["Structure"],
                 "primal_analysis_name"      : "primal",
                 "perturbation_size"         : 1e-8
             }""")
@@ -58,20 +58,22 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model["Structure.structure"], cls.model_part.Elements)
 
             cls.execution_policy_wrapper.ExecuteInitializeSolutionStep()
+            cls.execution_policy_wrapper.Execute()
             cls.ref_value = cls.response_function.CalculateValue()
 
     @classmethod
     def tearDownClass(cls):
-        with kratos_unittest.WorkFolderScope("linear_element_test", __file__):
+        with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             DeleteFileIfExisting("Structure.time")
 
     def _CalculateSensitivity(self, sensitivity_variable):
-        self.response_function.CalculateSensitivity({self.model_part: [sensitivity_variable]})
+        self.response_function.CalculateSensitivity({sensitivity_variable: [self.model_part]})
 
     def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, rel_tol, abs_tol):
         for entity in entities:
             adjoint_sensitivity = sensitivity_method(entity)
             update_method(entity, delta)
+            self.execution_policy_wrapper.Execute()
             value = response_function.CalculateValue()
             fd_sensitivity = (value - self.ref_value)/delta
             update_method(entity, -delta)

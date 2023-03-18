@@ -19,7 +19,7 @@ def AddEchoLevelToSettings(settings, echo_level):
 
 def CreatePredictors(predictor_settings_list, solvers, parent_echo_level):
     predictors = []
-    for predictor_settings in predictor_settings_list:
+    for predictor_settings in predictor_settings_list.values():
         solver = solvers[predictor_settings["solver"].GetString()]
         AddEchoLevelToSettings(predictor_settings, parent_echo_level)
         predictors.append(CreatePredictor(predictor_settings, solver))
@@ -27,7 +27,7 @@ def CreatePredictors(predictor_settings_list, solvers, parent_echo_level):
 
 def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_data_communicator, parent_echo_level):
     convergence_accelerators = []
-    for conv_acc_settings in convergence_accelerator_settings_list:
+    for conv_acc_settings in convergence_accelerator_settings_list.values():
         solver = solvers[conv_acc_settings["solver"].GetString()]
         AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
         convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings, solver, parent_data_communicator))
@@ -36,7 +36,7 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
 
 def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, parent_data_communicator, parent_echo_level):
     convergence_criteria = []
-    for conv_crit_settings in convergence_criterion_settings_list:
+    for conv_crit_settings in convergence_criterion_settings_list.values():
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
         if conv_crit_settings.Has("use_wrapper") and not conv_crit_settings["use_wrapper"].GetBool():
             convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solvers))

@@ -9,7 +9,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 class LinearStrainEnergyResponseFunction(ResponseFunction):
     @classmethod
     def GetSensitivityFieldVariables(cls) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return [Kratos.SHAPE_SENSITIVITY, KratosOA.YOUNG_MODULUS_SENSITIVITY, KratosOA.POISSON_RATIO_SENSITIVITY]
+        return [Kratos.SHAPE_SENSITIVITY, KratosOA.YOUNG_MODULUS_SENSITIVITY, KratosOA.THICKNESS_SENSITIVITY, KratosOA.POISSON_RATIO_SENSITIVITY]
 
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_settings = Kratos.Parameters("""{
@@ -21,8 +21,8 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.primal_analysis_execution_policy_wrapper: ExecutionPolicyDecorator = optimization_info.GetOptimizationProcess(ExecutionPolicyDecorator, parameters["primal_analysis_name"].GetString())
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
+        self.primal_analysis_execution_policy_wrapper: ExecutionPolicyDecorator = optimization_info.GetOptimizationProcess(ExecutionPolicyDecorator, parameters["primal_analysis_name"].GetString())
 
         self.model_parts: 'list[Kratos.ModelPart]' = []
         for model_part_name in parameters["evaluated_model_part_names"].GetStringArray():
@@ -35,13 +35,11 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         pass
 
     def CalculateValue(self) -> float:
-        # execute the primal analysis
-        self.primal_analysis_execution_policy_wrapper.Execute()
-
-        # computes the strain energy
         return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_parts)
 
-    def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[Kratos.ModelPart, list[SupportedSensitivityFieldVariableTypes]]') -> None:
-        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateSensitivity(self.model_parts, sensitivity_model_part_variable_info, self.perturbation_size)
+    def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[SupportedSensitivityFieldVariableTypes, list[Kratos.ModelPart]]') -> None:
+        # get the evaluated model part
+        analysis_model_part = self.primal_analysis_execution_policy_wrapper.GetExecutionPolicy().GetAnalysisModelPart()
+        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateSensitivity(analysis_model_part, self.model_parts, sensitivity_model_part_variable_info, self.perturbation_size)
 
 
