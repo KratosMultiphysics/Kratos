@@ -77,7 +77,7 @@ public:
     typedef typename TConfigure::ResultIteratorType     ResultIteratorType;
 
     typedef TreeNode<Dimension, PointType, PointerType, IteratorType,  typename TConfigure::DistanceIteratorType> TreeNodeType;
-    
+
     typedef typename TreeNodeType::CoordinateType       CoordinateType;  // double
     typedef typename TreeNodeType::SizeType             SizeType;        // std::size_t
     typedef typename TreeNodeType::IndexType            IndexType;       // std::size_t
@@ -238,7 +238,7 @@ public:
 
     /**
      * @brief Get the Divisions object
-     * 
+     *
      * @return SizeArray& Array containing the number of Cells in each dimension
      */
     SizeArray& GetDivisions() {
@@ -247,7 +247,7 @@ public:
 
     /**
      * @brief Get the Cell Size object
-     * 
+     *
      * @return CoordinateArray& Array containing the size of the Cell in each dimension
      */
     CoordinateArray& GetCellSize() {
@@ -256,7 +256,7 @@ public:
 
     /**
      * @brief Get the Min Point object
-     * 
+     *
      * @return PointType& Min point of the bins
      */
     PointType& GetMinPoint() {
@@ -265,7 +265,7 @@ public:
 
     /**
      * @brief Get the Max Point object
-     * 
+     *
      * @return PointType& Max point of the bins
      */
     PointType& GetMaxPoint() {
@@ -299,7 +299,6 @@ public:
     void CalculateBoundingBox()
     {
 
-        PointType Low, High;
         TConfigure::CalculateBoundingBox(*mObjectsBegin,mMinPoint,mMaxPoint);
 
         std::size_t size = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);  // std::distance(mObjectsBegin, mObjectsEnd);
@@ -326,23 +325,27 @@ public:
 //      double start_prod = omp_get_wtime();
 //      #endif
 
-        #pragma omp parallel for  private(High, Low)
-        for(int k=0; k<number_of_threads; k++)
-        {
-            IteratorType i_begin = mObjectsBegin + node_partition[k];
-            IteratorType i_end   = mObjectsBegin + node_partition[k+1];
+        struct TLS {
+            PointType Low;
+            PointType High;
+        };
+        TLS tls;
+
+        IndexPartition<std::size_t>(number_of_threads).for_each(tls, [&](std::size_t Index, TLS& rTls){
+            IteratorType i_begin = mObjectsBegin + node_partition[Index];
+            IteratorType i_end   = mObjectsBegin + node_partition[Index+1];
 
             for ( IteratorType i_object  = i_begin ; i_object != i_end ; i_object++ )
             {
-                TConfigure::CalculateBoundingBox(*i_object, Low, High);
+                TConfigure::CalculateBoundingBox(*i_object, rTls.Low, rTls.High);
                 for(std::size_t i = 0 ; i < Dimension ; i++)
                 {
 
-                    Max[k][i]      =   (Max[k][i]  < High[i]) ? High[i] : Max[k][i];
-                    Min[k][i]      =   (Min[k][i]  > Low[i])  ? Low[i]  : Min[k][i];
+                    Max[Index][i]      =   (Max[Index][i]  < rTls.High[i]) ? rTls.High[i] : Max[Index][i];
+                    Min[Index][i]      =   (Min[Index][i]  > rTls.Low[i])  ? rTls.Low[i]  : Min[Index][i];
                 }
             }
-        }
+        });
 
         for(int k=0; k<number_of_threads; k++)
         {
@@ -364,20 +367,20 @@ public:
 //************************************************************************
 //************************************************************************
 
-    /** 
+    /**
      * @brief Calculates the cell size of the bins.
-     * 
+     *
      * Calculates the cell size of the bins using an average aproximation of the objects in the bins.
-     * 
+     *
      * @param ApproximatedSize Aproximate number of objects that will be stored in the bins
      */
-    void CalculateCellSize(std::size_t ApproximatedSize) 
+    void CalculateCellSize(std::size_t ApproximatedSize)
     {
         std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(ApproximatedSize), 1.00 / Dimension));
-        
+
         std::array<double, 3> lengths;
         double average_length = 0.00;
-        
+
         for (int i = 0; i < Dimension; i++) {
             lengths[i] = mMaxPoint[i] - mMinPoint[i];
             average_length += lengths[i];
@@ -393,7 +396,7 @@ public:
 
         for (int i = 0; i < Dimension; i++) {
              mN[i] = static_cast<std::size_t>(lengths[i] / average_length * (double)average_number_of_cells) + 1;
-            
+
             if (mN[i] > 1) {
                 mCellSize[i] = lengths[i] / mN[i];
             } else {
@@ -950,6 +953,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
 
 
