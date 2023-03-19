@@ -2,15 +2,15 @@
  
  |             **Application**             |                                                                                    **Description**                                                                                    |                              **Status**                              | **Authors** |
 |:---------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------:|:-----------:|
-| `ContactStructuralMechanicsApplication` | The *Contact Structural Mechanics Application* contains the contact mechanics implementations that can be used by the *Structural Mechanics Application* within *Kratos Multiphysics* | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | Vicente Mataix Ferrándiz *(vmataix@altair.com)* <br /> Alejandro Cornejo Velázquez *(acornejo@cimne.upc.edu )*  |
+| `ContactStructuralMechanicsApplication` | The *Contact Structural Mechanics Application* contains the contact mechanics implementations that can be used by the *Structural Mechanics Application* and *Constitutive Laws Application* within *Kratos Multiphysics* | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | Vicente Mataix Ferrándiz *(vmataix@altair.com)* <br /> Alejandro Cornejo Velázquez *(acornejo@cimne.upc.edu )*  |
  
 <p align="center">
-  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/double_arch/data/result.gif" alt="Solution" style="width: 300px;"/>
+ <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/double_arch/data/result.gif" alt="Solution" style="width: 300px;"/>
  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/double_arch/data/result_frictional.gif" alt="Solution" style="width: 300px;"/>
  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/in_ring/data/animation.gif" alt="Solution" style="width: 300px;"/>
-  <img src="https://github.com/KratosMultiphysics/Examples/raw/master/contact_structural_mechanics/use_cases/hyperelastic_tubes/data/half_cylinders.gif" alt="Solution" style="width: 300px;"/>
+ <img src="https://github.com/KratosMultiphysics/Examples/raw/master/contact_structural_mechanics/use_cases/hyperelastic_tubes/data/half_cylinders.gif" alt="Solution" style="width: 300px;"/>
  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/mmg_remeshing_examples/use_cases/contacting_cylinders/data/nodal_h.gif" alt="Solution" style="width: 300px;"/>
-  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/self_contact/data/animation.gif" alt="Solution" style="width: 300px;"/>
+ <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/self_contact/data/animation.gif" alt="Solution" style="width: 300px;"/>
 </p>
 
 The application includes tests to check the proper functioning of the application.
