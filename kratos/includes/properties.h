@@ -87,8 +87,10 @@ public:
 
     typedef Table<double> TableType;
 
+    typedef IndexType KeyType;
+
     // Accessor type: std::function (rVariableKey, Properties, Geometry, ShapeFunctions, ProcessInfo)
-    typedef std::function<double(const IndexType VariableKey, const Properties *, const Geometry<Node<3>>&, const Vector&, const ProcessInfo&)> AccessorType;
+    typedef std::function<double(const KeyType VariableKey, const Properties *, const Geometry<Node<3>>&, const Vector&, const ProcessInfo&)> AccessorType;
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implementation and should be changed to hash. Pooyan.
 
@@ -570,6 +572,8 @@ private:
     TablesContainerType mTables;                /// The tables contained on the properties
 
     SubPropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
+
+    std::unordered_map<KeyType, AccessorType> mAccessors  = {};
 
     ///@}
     ///@name Private Operators
