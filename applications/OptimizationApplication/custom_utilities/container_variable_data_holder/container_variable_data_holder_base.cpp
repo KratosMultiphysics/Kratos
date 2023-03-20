@@ -53,7 +53,7 @@ void ContainerVariableDataHolderBase<TContainerType>::CopyDataFrom(
 template <class TContainerType>
 void ContainerVariableDataHolderBase<TContainerType>::SetDataToZero()
 {
-    mpExpression = Kratos::make_intrusive<LiteralDoubleExpression>(0.0);
+    mpExpression = LiteralDoubleExpression::Create(0.0);
 }
 
 template <class TContainerType>
