@@ -10,7 +10,7 @@ The application includes tests to check the proper functioning of the applicatio
 
 ## 😎 Features:
 
-- **Constitutive laws**:
+- **Constitutive laws**
     * *Orthotropic law (Plane stress)*
     * *Hyperelastic laws*
         * Neo-Hookean
@@ -83,6 +83,14 @@ The application includes tests to check the proper functioning of the applicatio
             * SmallStrainIsotropicDamage3DSimoJuModifiedMohrCoulomb
             * SmallStrainIsotropicDamage3DSimoJuDruckerPrager
             * SmallStrainIsotropicDamage3DSimoJuTresca
+
+- **Utilities**
+    * *Generic constitutive laws utilities*
+    * *Tangent operator AD* 
+
+- **Processes**
+    * *Automatic initial damage*
+    * *Advance in time HCF*
 
 - **Several python unittest, including Validation tests, and several cpp tests**
 
