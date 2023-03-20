@@ -1,9 +1,8 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class MdpaModelPartController(ModelPartController):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _):
         default_settings = Kratos.Parameters("""{
             "model_part_name": "",
             "input_filename" : "",
@@ -23,13 +22,12 @@ class MdpaModelPartController(ModelPartController):
 
         self.domain_size = parameters["domain_size"].GetInt()
         if self.domain_size not in [1, 2, 3]:
-            raise RuntimeError("\"domain_size\"  should be in either 1, 2 or 3." + str(parameters))
+            raise RuntimeError("\"domain_size\"  should be either 1, 2 or 3." + str(parameters))
 
         self.model_part = model.CreateModelPart(model_part_name)
         self.read_data = parameters["read_data"].GetBool()
-        self.optimization_info = optimization_info
 
-    def ImportModelPart(self):
+    def ImportModelPart(self) -> None:
         if self.read_data:
             Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ).ReadModelPart(self.model_part)
         else:

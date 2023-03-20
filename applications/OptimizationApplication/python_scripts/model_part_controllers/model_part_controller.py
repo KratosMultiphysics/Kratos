@@ -9,7 +9,7 @@ class ModelPartController(ABC):
         pass
 
     @abstractmethod
-    def ImportModelPart(self):
+    def ImportModelPart(self) -> None:
         pass
 
     @abstractmethod
