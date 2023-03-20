@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "custom_utilities/container_variable_data_holder/expressions.h"
+#include "custom_utilities/container_variable_data/expressions.h"
 
 namespace Kratos {
 
@@ -31,26 +31,26 @@ namespace Kratos {
 ///@{
 
 template <class TContainerType>
-class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerVariableDataHolderBase {
+class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerVariableData {
 public:
     ///@name Type definitions
     ///@{
 
     using IndexType = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION(ContainerVariableDataHolderBase);
+    KRATOS_CLASS_POINTER_DEFINITION(ContainerVariableData);
 
     ///@}
     ///@name Life cycle
     ///#{
 
-    virtual ~ContainerVariableDataHolderBase() = default;
+    virtual ~ContainerVariableData() = default;
 
     ///@}
     ///@name Public operations
     ///@{
 
-    void CopyDataFrom(const ContainerVariableDataHolderBase<TContainerType>& rOther);
+    void CopyDataFrom(const ContainerVariableData<TContainerType>& rOther);
 
     void SetDataToZero();
 
@@ -84,10 +84,10 @@ protected:
     ///@{
 
     /// Constructor with the model part
-    ContainerVariableDataHolderBase(ModelPart& rModelPart);
+    ContainerVariableData(ModelPart& rModelPart);
 
     /// Copy constructor
-    ContainerVariableDataHolderBase(const ContainerVariableDataHolderBase& rOther);
+    ContainerVariableData(const ContainerVariableData& rOther);
 
     ///@}
     ///@name Protected member variables
@@ -108,7 +108,7 @@ protected:
 template<class TContainerType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ContainerVariableDataHolderBase<TContainerType>& rThis)
+    const ContainerVariableData<TContainerType>& rThis)
 {
     return rOStream << rThis.Info();
 }

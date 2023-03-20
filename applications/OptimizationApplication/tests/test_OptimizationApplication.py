@@ -32,7 +32,7 @@ from test_container_variable_data_holder import TestElementContainerVariableData
 from test_container_variable_data_holder import TestConditionPropertiesContainerVariableDataHolder
 from test_container_variable_data_holder import TestElementPropertiesContainerVariableDataHolder
 from test_model_part_controllers import TestMdpaModelPartController
-from test_container_variable_data_holder_utils import TestContainerVariableDataHolderUtils
+from test_container_variable_data_holder_utils import TestContainerVariableDataUtils
 
 # Nightly tests
 
@@ -62,7 +62,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationInfo]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtils]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerVariableDataHolderUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerVariableDataUtils]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionBeams]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionShells]))
