@@ -134,6 +134,7 @@ namespace Kratos
 				{
 					ElementsToRefine += addedNodesForEulerianInlet;
 				}
+				std::cout << "eulerianInletNodes " << eulerianInletNodes << "addedNodesForEulerianInlet " << addedNodesForEulerianInlet << std::endl;
 			}
 
 			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
@@ -741,7 +742,7 @@ namespace Kratos
 				{
 					freesurfaceNodes++;
 				}
-				if (Element[pn].GetValue(LAGRANGIAN_INLET) == true)
+				if (Element[pn].Is(PFEMFlags::LAGRANGIAN_INLET))
 				{
 					lagrangianInletNodes++;
 				}
@@ -987,7 +988,7 @@ namespace Kratos
 				{
 					freesurfaceNodes++;
 				}
-				if (Element[pn].GetValue(LAGRANGIAN_INLET) == true)
+				if (Element[pn].Is(PFEMFlags::LAGRANGIAN_INLET))
 				{
 					lagrangianInletNodes++;
 				}
@@ -1973,12 +1974,12 @@ namespace Kratos
 
 			for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
 			{
-				if (i_node->GetValue(EULERIAN_INLET) == true)
+				if (i_node->Is(PFEMFlags::EULERIAN_INLET))
 				{
 					NodeWeakPtrVectorType &rN = i_node->GetValue(NEIGHBOUR_NODES);
 					for (unsigned int i = 0; i < rN.size(); i++)
 					{
-						if (rN[i].IsNot(RIGID) && rN[i].GetValue(EULERIAN_INLET) == false)
+						if (rN[i].IsNot(RIGID) && rN[i].IsNot(PFEMFlags::EULERIAN_INLET))
 						{
 							array_1d<double, 3> CoorDifference = rN[i].Coordinates() - i_node->Coordinates();
 							if (dimension == 2)
@@ -1993,7 +1994,7 @@ namespace Kratos
 							}
 							else
 							{
-								maxSeparation *= 1.05;
+								maxSeparation = mrRemesh.Refine->CriticalRadius * 2.3;
 								double squaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 								double distanceToNode = std::sqrt(squaredLength);
 								if (distanceToNode > maxSeparation)

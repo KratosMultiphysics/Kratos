@@ -205,6 +205,14 @@ namespace Kratos
                         {
                             numisolated++;
                         }
+                        if (vertices.back().Is(PFEMFlags::PREVIOUS_FREESURFACE))
+                        {
+                            previouslyFreeSurfaceNodes++;
+                        }
+                        if (vertices.back().Is(PFEMFlags::PREVIOUS_ISOLATED))
+                        {
+                            previouslyIsolatedNodes++;
+                        }
                         if (vertices.back().Is(BOUNDARY))
                         {
                             numboundary++;
@@ -213,9 +221,6 @@ namespace Kratos
                         {
                             noremesh = true;
                         }
-
-                        previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       // it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
-                        previouslyIsolatedNodes += vertices.back().FastGetSolutionStepValue(PREVIOUS_FREESURFACE); // it is 1 if it was isolated (set in build_mesh_boundary_for_fluids)
 
                         if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
@@ -257,7 +262,7 @@ namespace Kratos
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
-                        if (vertices.back().GetValue(LAGRANGIAN_INLET) == true)
+                        if (vertices.back().Is(PFEMFlags::LAGRANGIAN_INLET))
                         {
                             numLagrangianInlet++;
                         }

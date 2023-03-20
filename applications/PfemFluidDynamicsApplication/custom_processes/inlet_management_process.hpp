@@ -209,9 +209,8 @@ namespace Kratos
 
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        if (i_node->GetValue(LAGRANGIAN_INLET) == true)
+        if (i_node->Is(PFEMFlags::LAGRANGIAN_INLET))
         {
-
           ElementWeakPtrVectorType &neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
           NodeWeakPtrVectorType &rN = i_node->GetValue(NEIGHBOUR_NODES);
 
@@ -277,7 +276,7 @@ namespace Kratos
         {
           pnode->Free(VELOCITY_Z);
         }
-        pnode->GetValue(LAGRANGIAN_INLET) = false;
+        pnode->Reset(PFEMFlags::LAGRANGIAN_INLET);
         pnode->Reset(INLET);
         pnode->Reset(RIGID);
         pnode->Reset(BOUNDARY);
@@ -300,7 +299,7 @@ namespace Kratos
 
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        if (i_node->GetValue(EULERIAN_INLET) == true)
+        if (i_node->Is(PFEMFlags::EULERIAN_INLET))
         {
           const array_1d<double, 3> &inletVelocity = i_node->FastGetSolutionStepValue(VELOCITY);
           const array_1d<double, 3> &inletNormal = i_node->FastGetSolutionStepValue(NORMAL);
@@ -321,7 +320,8 @@ namespace Kratos
               eulerianInletNodes += 1;
             }
           }
-        }else if (i_node->GetValue(LAGRANGIAN_INLET) == true)
+        }
+        else if (i_node->Is(PFEMFlags::LAGRANGIAN_INLET))
         {
           lagrangianInletNodes += 1;
         }
