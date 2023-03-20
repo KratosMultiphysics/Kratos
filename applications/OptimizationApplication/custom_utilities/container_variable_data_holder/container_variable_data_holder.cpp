@@ -130,8 +130,9 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::ReadDataFrom
 
     IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &r_data, dimension](const IndexType Index){
         const auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
+        const IndexType local_index = Index * dimension;
         for (IndexType i = 0; i < dimension; ++i) {
-            ContainerVariableDataHolderHelperUtilities::AssignValueToVector(r_data, Index * dimension, i, values);
+            ContainerVariableDataHolderHelperUtilities::AssignValueToVector(r_data, local_index, i, values);
         }
     });
 
@@ -180,8 +181,7 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::AssignDataTo
     IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &local_size, &r_expression](const IndexType Index){
         auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
         for (IndexType i = 0; i < local_size; ++i) {
-            const double evaluated_value = r_expression.Evaluate(Index, i);
-            ContainerVariableDataHolderHelperUtilities::AssignValueFromVector(values, i, evaluated_value);
+            ContainerVariableDataHolderHelperUtilities::AssignValueFromVector(values, i, r_expression.Evaluate(Index, i));
         }
     });
 
