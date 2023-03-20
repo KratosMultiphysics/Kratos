@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_INITIAL_STATE_H_INCLUDED)
-#define  KRATOS_INITIAL_STATE_H_INCLUDED
+# pragma once
 
 // System includes
 #include <atomic>
@@ -206,5 +205,3 @@ class KRATOS_API(KRATOS_CORE) InitialState
 ///@} addtogroup block
 
 } // namespace Kratos
-
-#endif // KRATOS_INITIAL_STATE_H_INCLUDED  defined
