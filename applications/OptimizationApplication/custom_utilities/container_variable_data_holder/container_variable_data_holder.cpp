@@ -122,13 +122,11 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::ReadDataFrom
     const IndexType number_of_entities = this->GetContainer().size();
     const auto dimension = ContainerVariableDataHolderHelperUtilities::GetLocalSize<TDataType>(this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
 
-    auto p_data = Kratos::make_shared<Vector>();
+    auto p_data = Kratos::make_shared<Vector>(number_of_entities * dimension);
     this->mpExpression = LiteralVectorExpression::Create(p_data, dimension);
 
     auto& r_data = *p_data;
     auto& r_container = this->GetContainer();
-
-    r_data.resize(number_of_entities * dimension);
 
     IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &r_data, dimension](const IndexType Index){
         const auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
