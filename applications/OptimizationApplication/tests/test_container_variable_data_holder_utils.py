@@ -61,10 +61,9 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
         self.assertEqual(KratosOA.ContainerVariableDataHolderUtils.InnerProduct(a, b), 8100.0)
 
     def test_ComputeNumberOfNeighbourConditions(self):
-        dummy_condition_container = KratosOA.ConditionContainerVariableDataHolder(self.model_part)
-        neighbour_elements = KratosOA.NodalContainerVariableDataHolder(self.model_part)
-        KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourEntities(neighbour_elements, dummy_condition_container)
-        neighbour_elements.AssignDataToContainerVariable(Kratos.DENSITY)
+        neighbour_conditions = KratosOA.NodalContainerVariableDataHolder(self.model_part)
+        KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourConditions(neighbour_conditions)
+        neighbour_conditions.AssignDataToContainerVariable(Kratos.DENSITY)
 
         neighbour_map = {
             2.0: [1, 2, 4, 5, 7, 9, 10, 12, 15, 17, 20, 21, 22, 23, 24, 25],
@@ -75,9 +74,8 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
             self.assertTrue(node.Id in neighbour_map[int(node.GetValue(Kratos.DENSITY))])
 
     def test_ComputeNumberOfNeighbourElements(self):
-        dummy_condition_container = KratosOA.ElementContainerVariableDataHolder(self.model_part)
         neighbour_elements = KratosOA.NodalContainerVariableDataHolder(self.model_part)
-        KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourEntities(neighbour_elements, dummy_condition_container)
+        KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourElements(neighbour_elements)
         neighbour_elements.AssignDataToContainerVariable(Kratos.DENSITY)
 
         neighbour_map = {
@@ -100,7 +98,7 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
         neighbour_conditions = KratosOA.NodalContainerVariableDataHolder(self.model_part)
         mapped_values = KratosOA.NodalContainerVariableDataHolder(self.model_part)
 
-        KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourEntities(neighbour_conditions, condition_container)
+        KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourConditions(neighbour_conditions)
         neighbour_conditions.AssignDataToContainerVariable(Kratos.YOUNG_MODULUS)
 
         condition_container.ReadDataFromContainerVariable(Kratos.VELOCITY)
@@ -142,7 +140,7 @@ class TestContainerVariableDataHolderUtils(kratos_unittest.TestCase):
         neighbour_conditions = KratosOA.NodalContainerVariableDataHolder(self.model_part)
         mapped_values = KratosOA.NodalContainerVariableDataHolder(self.model_part)
 
-        KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourEntities(neighbour_conditions, element_container)
+        KratosOA.ContainerVariableDataHolderUtils.ComputeNumberOfNeighbourElements(neighbour_conditions)
         neighbour_conditions.AssignDataToContainerVariable(Kratos.YOUNG_MODULUS)
 
         element_container.ReadDataFromContainerVariable(Kratos.VELOCITY)

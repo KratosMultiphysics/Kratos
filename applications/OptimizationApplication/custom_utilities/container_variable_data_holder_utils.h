@@ -92,8 +92,7 @@ public:
 
     template<class TContainerType>
     static void ComputeNumberOfNeighbourEntities(
-        ContainerVariableDataHolderBase<ModelPart::NodesContainerType>& rOutput,
-        const ContainerVariableDataHolderBase<TContainerType>& rInput);
+        ContainerVariableDataHolderBase<ModelPart::NodesContainerType>& rOutput);
 
     template<class TContainerType>
     static void MapContainerVariableDataHolderToNodalVariableDataHolder(

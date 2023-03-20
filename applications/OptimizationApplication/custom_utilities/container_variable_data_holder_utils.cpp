@@ -406,15 +406,8 @@ void ContainerVariableDataHolderUtils::Transpose(
 
 template<class TContainerType>
 void ContainerVariableDataHolderUtils::ComputeNumberOfNeighbourEntities(
-    ContainerVariableDataHolderBase<ModelPart::NodesContainerType>& rOutput,
-    const ContainerVariableDataHolderBase<TContainerType>& rInput)
+    ContainerVariableDataHolderBase<ModelPart::NodesContainerType>& rOutput)
 {
-    KRATOS_ERROR_IF(&rOutput.GetModelPart() != &rInput.GetModelPart())
-        << "Output container and input container model parts mismatch. "
-           "Followings are the container details:"
-        << "\n\tOutput container: " << rOutput
-        << "\n\tInput container : " << rInput << "\n";
-
     // clear the neighbour count storing variable
     VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_1, rOutput.GetModelPart().Nodes());
 
@@ -660,10 +653,8 @@ void ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntit
     template void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(ContainerVariableDataHolderBase<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerVariableDataHolderBase<ContainerType>&); \
     template void ContainerVariableDataHolderUtils::ProductWithEntityMatrix(ContainerVariableDataHolderBase<ContainerType>&, const Matrix&, const ContainerVariableDataHolderBase<ContainerType>&);
 
-// template void ContainerVariableDataHolderUtils::ComputeNumberOfNeighbourEntities(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ModelPart::ConditionsContainerType>&);
-
 #define KRATOS_INSTANTIATE_NON_NODAL_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                                                      \
-    template void ContainerVariableDataHolderUtils::ComputeNumberOfNeighbourEntities(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&);                                                                                              \
+    template void ContainerVariableDataHolderUtils::ComputeNumberOfNeighbourEntities<ContainerType>(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&);                                                                                              \
     template void ContainerVariableDataHolderUtils::MapContainerVariableDataHolderToNodalVariableDataHolder(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&);\
     template void ContainerVariableDataHolderUtils::MapNodalVariableDataHolderToContainerVariableDataHolder(ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&);                                                                       \
     template void ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntityMatrix(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const Variable<Matrix>& rMatrixVariable, ContainerType&);
