@@ -39,8 +39,8 @@ template <>
 struct ContainerDataIO<ContainerDataIOTags::Historical>
 {
     template <class TDataType>
-    static TDataType& GetValue(
-        ModelPart::NodeType& rNode,
+    static const TDataType& GetValue(
+        const ModelPart::NodeType& rNode,
         const Variable<TDataType>& rVariable)
     {
         return rNode.FastGetSolutionStepValue(rVariable);
@@ -60,8 +60,8 @@ template <>
 struct ContainerDataIO<ContainerDataIOTags::NonHistorical>
 {
     template<class TDataType, class TEntityType>
-    static TDataType& GetValue(
-        TEntityType& rEntity,
+    static const TDataType& GetValue(
+        const TEntityType& rEntity,
         const Variable<TDataType>& rVariable)
     {
         return rEntity.GetValue(rVariable);
@@ -81,8 +81,8 @@ template <>
 struct ContainerDataIO<ContainerDataIOTags::Properties>
 {
     template<class TDataType, class TEntityType>
-    static TDataType& GetValue(
-        TEntityType& rEntity,
+    static const TDataType& GetValue(
+        const TEntityType& rEntity,
         const Variable<TDataType>& rVariable)
     {
         static_assert(!(std::is_same_v<TEntityType, ModelPart::NodeType>), "Properties retrieval is only supported for element and conditions.");

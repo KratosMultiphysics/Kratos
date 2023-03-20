@@ -17,6 +17,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "container_data_io.h"
@@ -162,27 +163,21 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::AssignDataTo
     const IndexType number_of_entities = r_container.size();
 
     // initialize the container variables first
-    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        // initializes ghost nodes as well for the later synchronization
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType> && std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
+        // initializes ghost nodes as for the later synchronization
         // only, the nodal non historical values needs to be set unless
-        // they are properly initialized.
-        block_for_each(this->GetModelPart().Nodes(), [&rVariable](auto& rEntity) {
-            TContainerDataIO::SetValue(rEntity, rVariable, rVariable.Zero());
-        });
-    } else {
-        // no ghost settings required for elements or conditions nor historical values, hence no special treatment required.
-        block_for_each(r_container, [&rVariable](auto& rEntity) {
-            TContainerDataIO::SetValue(rEntity, rVariable, rVariable.Zero());
-        });
+        // they are properly initialized. Otherwise, in synchronization, the variables will
+        // not be there in the ghost nodes hence seg faults.
+        VariableUtils().SetNonHistoricalVariablesToZero(this->GetModelPart().GetCommunicator().GhostMesh().Nodes(), rVariable);
     }
 
     auto& r_expression = *this->mpExpression;
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &local_size, &r_expression](const IndexType Index){
-        auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
+    IndexPartition<IndexType>(number_of_entities).for_each(TDataType(), [&r_container, &rVariable, &local_size, &r_expression](const IndexType Index, TDataType& rValue){
         for (IndexType i = 0; i < local_size; ++i) {
-            ContainerVariableDataHolderHelperUtilities::AssignValueFromVector(values, i, r_expression.Evaluate(Index, i));
+            ContainerVariableDataHolderHelperUtilities::AssignValueFromVector(rValue, i, r_expression.Evaluate(Index, i));
         }
+        TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
     });
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
