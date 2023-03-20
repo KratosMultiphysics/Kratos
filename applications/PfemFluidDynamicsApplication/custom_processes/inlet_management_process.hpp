@@ -306,20 +306,22 @@ namespace Kratos
           const array_1d<double, 3> &inletNormal = i_node->FastGetSolutionStepValue(NORMAL);
           const double inwardX = inletVelocity[0] * inletNormal[0];
           const double inwardY = inletVelocity[1] * inletNormal[1];
-          if (inwardX < tolerance || inwardY < tolerance)
+          if (dimension == 2)
           {
-            eulerianInletNodes += 1;
-          }
-          else if (dimension == 3)
-          {
-            const double inwardZ = inletVelocity[2] * inletNormal[2];
-            if (inwardZ < tolerance)
+            if (inwardX < tolerance || inwardY < tolerance)
             {
               eulerianInletNodes += 1;
             }
           }
-        }
-        if (i_node->GetValue(LAGRANGIAN_INLET) == true)
+          else if (dimension == 3)
+          {
+            const double inwardZ = inletVelocity[2] * inletNormal[2];
+            if (inwardX < tolerance || inwardY < tolerance || inwardZ < tolerance)
+            {
+              eulerianInletNodes += 1;
+            }
+          }
+        }else if (i_node->GetValue(LAGRANGIAN_INLET) == true)
         {
           lagrangianInletNodes += 1;
         }
@@ -343,7 +345,8 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    InletManagementProcess &operator=(InletManagementProcess const &rOther);
+    InletManagementProcess &
+    operator=(InletManagementProcess const &rOther);
 
     /// this function is a private function
 

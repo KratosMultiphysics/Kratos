@@ -1993,7 +1993,7 @@ namespace Kratos
 							}
 							else
 							{
-								maxSeparation *= 1.5;
+								maxSeparation *= 1.05;
 								double squaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 								double distanceToNode = std::sqrt(squaredLength);
 								if (distanceToNode > maxSeparation)
