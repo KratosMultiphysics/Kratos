@@ -31,7 +31,7 @@ namespace Kratos
 
 /**
  * @class Accessor
- * @ingroup StructuralMechanicsApplication
+ * @ingroup Kratos Core
  * @brief This class defines the way a certain property is accessed to
  * @author Alejandro Cornejo, Riccardo Rossi and Carlos Roig
  */
@@ -43,7 +43,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
 
 
         /// Pointer definition of NodeSearchUtility
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Accessor);
+        KRATOS_CLASS_POINTER_DEFINITION(Accessor);
 
         ///@}
         ///@name Life Cycle
