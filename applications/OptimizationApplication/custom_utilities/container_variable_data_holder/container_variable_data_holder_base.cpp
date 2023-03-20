@@ -42,6 +42,11 @@ template <class TContainerType>
 void ContainerVariableDataHolderBase<TContainerType>::CopyDataFrom(
     const ContainerVariableDataHolderBase<TContainerType>& rOther)
 {
+    KRATOS_ERROR_IF(this->mpModelPart != &rOther.GetModelPart())
+        << "Model part mismatch. [ Destination model part name: "
+        << this->mpModelPart->FullName()
+        << ", origin model part name: " << rOther.GetModelPart().FullName() << " ].\n";
+
     mpExpression = rOther.mpExpression;
 }
 
