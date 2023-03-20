@@ -24,6 +24,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
+#include "geometries/geometry.h"
+#include "includes/variables.h"
 #include "includes/indexed_object.h"
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
@@ -84,6 +86,9 @@ public:
     typedef NodeType::IndexType IndexType;
 
     typedef Table<double> TableType;
+
+    // Accessor type: std::function (rVariableKey, Properties, Geometry, ShapeFunctions, ProcessInfo)
+    typedef std::function<double(const IndexType VariableKey, const Properties *, const Geometry<Node<3>>&, const Vector&, const ProcessInfo&)> AccessorType;
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implementation and should be changed to hash. Pooyan.
 
