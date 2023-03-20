@@ -258,6 +258,27 @@ public:
         return rThisNode.GetValue(rV, SolutionStepIndex);
     }
 
+    /*
+    Custom GetValue in which we check the Accessor
+    */
+    template<class TVariableType, typename ...TArgs>
+    double GetValue(const TVariableType& rVariable, TArgs... Args) {
+        const KeyType variable_id = rVariable.Key();
+        auto value = mAccessors.find(variable_id);
+        if (value != mAccessors.end()) {
+            return value->second(variable_id, this, Args...);
+        } else {
+            return GetValue(TVariableType);
+        }
+    }
+
+    /* 
+    Method to add Accessors to properties
+    */
+    void AddAccessor(KeyType VariableKey, AccessorType && Accessor) {
+        mAccessors[VariableKey] = Accessor;
+    }
+
     template<class TVariableType>
     void SetValue(TVariableType const& rV, typename TVariableType::Type const& rValue)
     {
