@@ -90,7 +90,7 @@ public:
     typedef IndexType KeyType;
 
     // Accessor type: std::function (rVariableKey, Properties, Geometry, ShapeFunctions, ProcessInfo)
-    typedef std::function<double(const KeyType VariableKey, const Properties *, const Geometry<Node<3>>&, const Vector&, const ProcessInfo&)> AccessorType;
+    typedef std::function<double(const KeyType, const Properties *, const Geometry<Node<3>>&, const Vector&, const ProcessInfo&)> AccessorType;
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implementation and should be changed to hash. Pooyan.
 
