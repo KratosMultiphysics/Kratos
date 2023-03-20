@@ -185,7 +185,7 @@ void ContainerVariableDataHolder<TContainerType, TContainerDataIO>::AssignDataTo
         auto& r_communicator = this->GetModelPart().GetCommunicator();
 
         if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>) {
-            r_communicator.SynchronizeNodalSolutionStepsData();
+            r_communicator.SynchronizeVariable(rVariable);
         } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
             r_communicator.SynchronizeNonHistoricalVariable(rVariable);
         }
