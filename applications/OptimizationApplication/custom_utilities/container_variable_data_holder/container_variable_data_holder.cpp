@@ -83,6 +83,18 @@ void AssignValueFromVector(
 } // namespace ContainerVariableDataHolderHelperUtilities
 
 template <class TContainerType, class TContainerDataIO>
+ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator=(const ContainerVariableDataHolder& rOther)
+{
+    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
+        << "Mismatching model parts found in assignment.\n"
+        << "      Assignee data: " << *this << "\n"
+        << "      Assignor data: " << rOther << "\n";
+
+    this->mpExpression = rOther.mpExpression;
+    return *this;
+}
+
+template <class TContainerType, class TContainerDataIO>
 typename ContainerVariableDataHolder<TContainerType, TContainerDataIO>::Pointer ContainerVariableDataHolder<TContainerType, TContainerDataIO>::Clone() const
 {
     return Kratos::make_shared<ContainerVariableDataHolder<TContainerType, TContainerDataIO>>(*this);
@@ -389,58 +401,6 @@ ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariable
         << "      Divisor           : " << Value << "\n";
 
     this->mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(1.0 / Value));
-    return *this;
-}
-
-template <class TContainerType, class TContainerDataIO>
-ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator^(const ContainerVariableDataHolder<TContainerType, TContainerDataIO>& rOther) const
-{
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryPowerExpression::Create(this->mpExpression, rOther.mpExpression);
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO>
-ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator^=(const ContainerVariableDataHolder<TContainerType, TContainerDataIO>& rOther)
-{
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    this->mpExpression = BinaryPowerExpression::Create(this->mpExpression, rOther.mpExpression);
-    return *this;
-}
-
-template <class TContainerType, class TContainerDataIO>
-ContainerVariableDataHolder<TContainerType, TContainerDataIO> ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator^(const double Value) const
-{
-    ContainerVariableDataHolder<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryPowerExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO>
-ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator^=(const double Value)
-{
-    this->mpExpression = BinaryPowerExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
-    return *this;
-}
-
-template <class TContainerType, class TContainerDataIO>
-ContainerVariableDataHolder<TContainerType, TContainerDataIO>& ContainerVariableDataHolder<TContainerType, TContainerDataIO>::operator=(const ContainerVariableDataHolder<TContainerType, TContainerDataIO>& rOther)
-{
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in assignment.\n"
-        << "      Assignee data: " << *this << "\n"
-        << "      Assignor data: " << rOther << "\n";
-
-    this->mpExpression = rOther.mpExpression;
     return *this;
 }
 

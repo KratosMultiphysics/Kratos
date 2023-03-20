@@ -142,6 +142,39 @@ void AddToEntityData(
 }
 
 template<class TContainerType>
+void ContainerVariableDataHolderUtils::Pow(
+    ContainerVariableDataHolderBase<TContainerType>& rOutputContainer,
+    const ContainerVariableDataHolderBase<TContainerType>& rInputContainer1,
+    const ContainerVariableDataHolderBase<TContainerType>& rInputContainer2)
+{
+    KRATOS_ERROR_IF(&rOutputContainer.GetModelPart() != &rInputContainer1.GetModelPart())
+        << "Output container " << rOutputContainer.GetModelPart().FullName()
+        << " mismatch with input container 1 "
+        << rInputContainer1.GetModelPart().FullName() << ".\n";
+
+    KRATOS_ERROR_IF(&rOutputContainer.GetModelPart() != &rInputContainer2.GetModelPart())
+        << "Output container " << rOutputContainer.GetModelPart().FullName()
+        << " mismatch with input container 2 "
+        << rInputContainer2.GetModelPart().FullName() << ".\n";
+
+    rOutputContainer.SetExpression(BinaryPowerExpression::Create(rInputContainer1.pGetExpression(), rInputContainer2.pGetExpression()));
+}
+
+template<class TContainerType>
+void ContainerVariableDataHolderUtils::Pow(
+    ContainerVariableDataHolderBase<TContainerType>& rOutputContainer,
+    const ContainerVariableDataHolderBase<TContainerType>& rInputContainer1,
+    const double Value)
+{
+    KRATOS_ERROR_IF(&rOutputContainer.GetModelPart() != &rInputContainer1.GetModelPart())
+        << "Output container " << rOutputContainer.GetModelPart().FullName()
+        << " mismatch with input container 1 "
+        << rInputContainer1.GetModelPart().FullName() << ".\n";
+
+    rOutputContainer.SetExpression(BinaryPowerExpression::Create(rInputContainer1.pGetExpression(), LiteralDoubleExpression::Create(Value)));
+}
+
+template<class TContainerType>
 double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase<TContainerType>& rContainer)
 {
     if (rContainer.GetDataDimension() == 0) {
@@ -617,7 +650,9 @@ void ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntit
 }
 
 // template instantiations
-#define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                           \
+#define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                    \
+    template void ContainerVariableDataHolderUtils::Pow(ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&);                                        \
+    template void ContainerVariableDataHolderUtils::Pow(ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&, const double);                                                                                 \
     template double ContainerVariableDataHolderUtils::EntityMaxNormL2(const ContainerVariableDataHolderBase<ContainerType>&);                                                                                                                                  \
     template double ContainerVariableDataHolderUtils::NormInf(const ContainerVariableDataHolderBase<ContainerType>&);                                                                                                                                          \
     template double ContainerVariableDataHolderUtils::NormL2(const ContainerVariableDataHolderBase<ContainerType>&);                                                                                                                                           \
@@ -627,10 +662,10 @@ void ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntit
 
 // template void ContainerVariableDataHolderUtils::ComputeNumberOfNeighbourEntities(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ModelPart::ConditionsContainerType>&);
 
-#define KRATOS_INSTANTIATE_NON_NODAL_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                                                              \
-    template void ContainerVariableDataHolderUtils::ComputeNumberOfNeighbourEntities(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&);                                                                                                 \
-    template void ContainerVariableDataHolderUtils::MapContainerVariableDataHolderToNodalVariableDataHolder(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&);   \
-    template void ContainerVariableDataHolderUtils::MapNodalVariableDataHolderToContainerVariableDataHolder(ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&);                                                                          \
+#define KRATOS_INSTANTIATE_NON_NODAL_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                                                      \
+    template void ContainerVariableDataHolderUtils::ComputeNumberOfNeighbourEntities(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&);                                                                                              \
+    template void ContainerVariableDataHolderUtils::MapContainerVariableDataHolderToNodalVariableDataHolder(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&);\
+    template void ContainerVariableDataHolderUtils::MapNodalVariableDataHolderToContainerVariableDataHolder(ContainerVariableDataHolderBase<ContainerType>&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&);                                                                       \
     template void ContainerVariableDataHolderUtils::ComputeVariableDataHolderProductWithEntityMatrix(ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const ContainerVariableDataHolderBase<ModelPart::NodesContainerType>&, const Variable<Matrix>& rMatrixVariable, ContainerType&);
 
 

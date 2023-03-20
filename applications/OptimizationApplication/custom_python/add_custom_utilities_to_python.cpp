@@ -85,10 +85,10 @@ void AddContainerVariableDataHolderTypeToPython(pybind11::module& m, const std::
         .def(py::self /= py::self)
         .def(py::self /  float())
         .def(py::self /= float())
-        .def("__pow__", py::overload_cast<const container_type&>(&container_type::operator^, py::const_))
-        .def("__ipow__", py::overload_cast<const container_type&>(&container_type::operator^=))
-        .def("__pow__", py::overload_cast<const double>(&container_type::operator^, py::const_))
-        .def("__ipow__", py::overload_cast<const double>(&container_type::operator^=))
+        .def("__pow__", [](container_type& self, const container_type& rInput) { container_type result(self.GetModelPart()); ContainerVariableDataHolderUtils::Pow(result, self, rInput); return result; })
+        .def("__ipow__", [](container_type& self, const container_type& rInput) { ContainerVariableDataHolderUtils::Pow(self, self, rInput); return self; })
+        .def("__pow__", [](container_type& self, const double Value) { container_type result(self.GetModelPart()); ContainerVariableDataHolderUtils::Pow(result, self, Value); return result; })
+        .def("__ipow__", [](container_type& self, const double Value) { ContainerVariableDataHolderUtils::Pow(self, self, Value); return self; })
         .def("__neg__", [](container_type& rSelf) { return rSelf.operator*(-1.0); })
         ;
 }

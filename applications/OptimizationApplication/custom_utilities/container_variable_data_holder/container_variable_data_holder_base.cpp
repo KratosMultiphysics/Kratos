@@ -67,6 +67,17 @@ const Expression& ContainerVariableDataHolderBase<TContainerType>::GetExpression
     }
 }
 
+
+template <class TContainerType>
+const Expression::Pointer ContainerVariableDataHolderBase<TContainerType>::pGetExpression() const
+{
+    if (mpExpression) {
+        return mpExpression;
+    } else {
+        KRATOS_ERROR << "Uninitialized expression.\n";
+    }
+}
+
 template <class TContainerType>
 IndexType ContainerVariableDataHolderBase<TContainerType>::GetDataDimension() const
 {

@@ -45,6 +45,18 @@ public:
     ///@{
 
     template<class TContainerType>
+    static void Pow(
+        ContainerVariableDataHolderBase<TContainerType>& rOutputContainer,
+        const ContainerVariableDataHolderBase<TContainerType>& rInputContainer1,
+        const ContainerVariableDataHolderBase<TContainerType>& rInputContainer2);
+
+    template<class TContainerType>
+    static void Pow(
+        ContainerVariableDataHolderBase<TContainerType>& rOutputContainer,
+        const ContainerVariableDataHolderBase<TContainerType>& rInputContainer1,
+        const double Value);
+
+    template<class TContainerType>
     static double NormInf(const ContainerVariableDataHolderBase<TContainerType>& rContainer);
 
     template<class TContainerType>

@@ -62,6 +62,8 @@ public:
 
     const Expression& GetExpression() const;
 
+    const Expression::Pointer pGetExpression() const;
+
     IndexType GetDataDimension() const;
 
     ModelPart& GetModelPart();
