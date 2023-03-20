@@ -1,4 +1,3 @@
-
 # Structural Mechanics Application
 
  |             **Application**             |                                                                                    **Description**                                                                                    |                              **Status**                              | **Authors** |
