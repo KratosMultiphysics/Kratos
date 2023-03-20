@@ -102,14 +102,6 @@ typename SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Poi
 }
 
 template <class TContainerType, class TContainerDataIO>
-typename SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Pointer SpecializedContainerVariableData<TContainerType, TContainerDataIO>::CloneWithDataInitializedToZero() const
-{
-    std::shared_ptr<SpecializedContainerVariableData<TContainerType, TContainerDataIO>> result(new SpecializedContainerVariableData<TContainerType, TContainerDataIO>(*(this->mpModelPart)));
-    result->SetDataToZero();
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
 void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::ReadDataFromContainerVariable(const Variable<TDataType>& rVariable)
 {
@@ -196,7 +188,7 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::AssignD
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetDataForContainerVariable(const Variable<TDataType>& rVariable, const TDataType& rValue)
+void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetDataToValue(const TDataType& rValue)
 {
     static_assert(
         std::is_same_v<TDataType, double>               ||
@@ -221,9 +213,9 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetData
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetDataForContainerVariableToZero(const Variable<TDataType>& rVariable)
+void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetDataToVariableZeroValue(const Variable<TDataType>& rVariable)
 {
-    this->SetDataForContainerVariable(rVariable, rVariable.Zero());
+    this->SetDataToValue(rVariable.Zero());
 }
 
 template <class TContainerType, class TContainerDataIO>
@@ -426,8 +418,8 @@ std::string SpecializedContainerVariableData<TContainerType, TContainerDataIO>::
 //template instantiations
 #define KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, DataType)                                                                   \
     template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::ReadDataFromContainerVariable(const Variable<DataType>&);                \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetDataForContainerVariable(const Variable<DataType>&, const DataType&); \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetDataForContainerVariableToZero(const Variable<DataType>&);            \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetDataToValue(const DataType&); \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetDataToVariableZeroValue(const Variable<DataType>&);            \
     template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::AssignDataToContainerVariable(const Variable<DataType>&);
 
 #define KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOTag)                                                           \
