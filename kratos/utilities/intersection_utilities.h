@@ -38,19 +38,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-enum class IntersectionUtilitiesLineIntersection
-{
-    NO_INTERSECTION = 0,                     // (disjoint - no intersection)
-    TWO_POINTS_INTERSECTION = 1,             // (intersect in two points)
-    ONE_POINTS_INTERSECTION = 2,             // (intersect in one point)
-    TWO_POINTS_INTERSECTION_BOTH_INSIDE = 3, // (intersect in two points inside the tetrahedra)
-    TWO_POINTS_INTERSECTION_ONE_INSIDE = 4,  // (intersect in two points, one inside the tetrahedra)
-    FIRST_CORNER = 5,                        // (intersect in the first corner of the tetrahedra)
-    SECOND_CORNER = 6,                       // (intersect in the second corner of the tetrahedra)
-    THIRD_CORNER = 7,                        // (intersect in the thid corner of the tetrahedra)
-    FOURTH_CORNER = 8                        // (intersect in the fourth corner of the tetrahedra)
-};
-
 ///@}
 ///@name  Functions
 ///@{
