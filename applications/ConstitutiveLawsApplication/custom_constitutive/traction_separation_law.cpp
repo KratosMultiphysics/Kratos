@@ -986,7 +986,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
@@ -1196,7 +1196,7 @@ void TractionSeparationLaw3D<TDim>::CalculateMaterialResponseKirchhoff(Constitut
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
@@ -1275,7 +1275,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK1(ConstitutiveLa
     Flags& r_flags = rValues.GetOptions();
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
@@ -1306,7 +1306,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK2(ConstitutiveLa
     Flags& r_flags = rValues.GetOptions();
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
@@ -1337,7 +1337,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseKirchhoff(Constitu
     Flags& r_flags = rValues.GetOptions();
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
@@ -1368,7 +1368,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseCauchy(Constitutiv
     Flags& r_flags = rValues.GetOptions();
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
@@ -1403,7 +1403,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK1(ConstitutiveLaw:
     const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
@@ -1454,7 +1454,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
@@ -1654,7 +1654,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseKirchhoff(Constituti
     const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
@@ -1693,7 +1693,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseCauchy(ConstitutiveL
     const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateGreenLagrangeStrain(rValues);
+        this->CalculateGreenLagrangeStrain(rValues);
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
@@ -1721,7 +1721,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseCauchy(ConstitutiveL
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues, const BaseType::StressMeasure& rStressMeasure)
+void TractionSeparationLaw3D<TDim>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
