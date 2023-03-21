@@ -64,7 +64,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-        typedef typename ParallelRuleOfMixturesLaw<TDim> BaseType;
+        typedef ParallelRuleOfMixturesLaw<TDim> BaseType;
 
     /// Pointer definition of TractionSeparationLaw3D
     KRATOS_CLASS_POINTER_DEFINITION( TractionSeparationLaw3D );
@@ -428,13 +428,13 @@ public:
      * @brief Returns the expected strain measure of this constitutive law (by default linear strains)
      * @return the expected strain measure
      */
-    StrainMeasure GetStrainMeasure() override;
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override;
 
     /**
      * @brief Returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
-    StressMeasure GetStressMeasure() override;
+    ConstitutiveLaw::StressMeasure GetStressMeasure() override;
 
     /**
      * @brief Returns whether this constitutive model is formulated in incremental strains/stresses
@@ -460,73 +460,73 @@ public:
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK1 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseCauchy (Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy (Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief This can be used in order to reset all internal variables of the
@@ -545,7 +545,7 @@ public:
      * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures) override;
+    void GetLawFeatures(ConstitutiveLaw::Features& rFeatures) override;
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
