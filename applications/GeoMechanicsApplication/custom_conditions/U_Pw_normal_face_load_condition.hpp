@@ -35,13 +35,13 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwNormalFaceLoadCondition );
 
-    typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node<3>;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
