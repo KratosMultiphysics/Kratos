@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_RESIDUAL_CRITERIA )
-#define  KRATOS_RESIDUAL_CRITERIA
+#pragma once
 
 // System includes
 
@@ -432,17 +431,17 @@ private:
     ///@name Member Variables
     ///@{
 
-    TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
+    TDataType mRatioTolerance = 0.0;      /// The ratio threshold for the norm of the residual
 
-    TDataType mInitialResidualNorm; /// The reference norm of the residual
+    TDataType mInitialResidualNorm = 0.0; /// The reference norm of the residual
 
-    TDataType mCurrentResidualNorm; /// The current norm of the residual
+    TDataType mCurrentResidualNorm = 0.0; /// The current norm of the residual
 
-    TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
+    TDataType mAlwaysConvergedNorm = 0.0; /// The absolute value threshold for the norm of the residual
 
-    TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
+    TDataType mReferenceDispNorm = 0.0;   /// The norm at the beginning of the iterations
 
-    std::vector<int> mActiveDofs;   /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;         /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
@@ -473,9 +472,6 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NEW_DISPLACEMENT_CRITERIA  defined
