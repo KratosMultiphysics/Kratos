@@ -66,71 +66,80 @@ public:
     ///@{
         typedef ParallelRuleOfMixturesLaw<TDim> BaseType;
 
-    /// Pointer definition of TractionSeparationLaw3D
-    KRATOS_CLASS_POINTER_DEFINITION( TractionSeparationLaw3D );
+        /// The define the working dimension size, already defined in the integrator
+        static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
 
-    ///@name Lyfe Cycle
-    ///@{
+        /// The define the Voigt size, already defined in the  integrator
+        static constexpr SizeType Dimension = TDim;
 
-    /**
-     * @brief Default constructor.
-     */
-    TractionSeparationLaw3D();
+        /// Definition of the machine precision tolerance
+        static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    /**
-     * @brief Constructor with values
-     * @param rCombinationFactors The list of subproperties combination factors
-     */
-    TractionSeparationLaw3D(const std::vector<double>& rCombinationFactors);
+        /// Pointer definition of TractionSeparationLaw3D
+        KRATOS_CLASS_POINTER_DEFINITION(TractionSeparationLaw3D);
 
-    /**
-     * @brief Copy constructor.
-     */
-    TractionSeparationLaw3D (const TractionSeparationLaw3D& rOther);
+        ///@name Lyfe Cycle
+        ///@{
 
-    /**
-     * @brief Destructor.
-     */
-    ~TractionSeparationLaw3D() override;
+        /**
+         * @brief Default constructor.
+         */
+        TractionSeparationLaw3D();
 
-    ///@}
-    ///@name Operators
-    ///@{
+        /**
+         * @brief Constructor with values
+         * @param rCombinationFactors The list of subproperties combination factors
+         */
+        TractionSeparationLaw3D(const std::vector<double> &rCombinationFactors);
 
-    ///@}
-    ///@name Operations
-    ///@{
+        /**
+         * @brief Copy constructor.
+         */
+        TractionSeparationLaw3D(const TractionSeparationLaw3D &rOther);
 
-    /**
-     * @brief Clone operation
-     */
-    ConstitutiveLaw::Pointer Clone() const override;
+        /**
+         * @brief Destructor.
+         */
+        ~TractionSeparationLaw3D() override;
 
-    /**
-     * @brief Creates a new constitutive law pointer
-     * @param NewParameters The configuration parameters of the new constitutive law
-     * @return a Pointer to the new constitutive law
-     */
-    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
+        ///@}
+        ///@name Operators
+        ///@{
 
-    /**
-     * @brief Dimension of the law
-     * @details This is not used, so 0 is returned
-     */
-    SizeType WorkingSpaceDimension() override;
+        ///@}
+        ///@name Operations
+        ///@{
 
-    /**
-     * @brief Voigt tensor size
-     * @details This is not used, so 0 is returned
-     */
-    SizeType GetStrainSize() const override;
+        /**
+         * @brief Clone operation
+         */
+        ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
-     */
-    bool RequiresInitializeMaterialResponse() override
-    {
-        return true;
+        /**
+         * @brief Creates a new constitutive law pointer
+         * @param NewParameters The configuration parameters of the new constitutive law
+         * @return a Pointer to the new constitutive law
+         */
+        ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
+
+        /**
+         * @brief Dimension of the law
+         * @details This is not used, so 0 is returned
+         */
+        SizeType WorkingSpaceDimension() override;
+
+        /**
+         * @brief Voigt tensor size
+         * @details This is not used, so 0 is returned
+         */
+        SizeType GetStrainSize() const override;
+
+        /**
+         * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+         */
+        bool RequiresInitializeMaterialResponse() override
+        {
+            return true;
     }
 
     /**
@@ -452,7 +461,7 @@ public:
      */
     void InitializeMaterial(
         const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
+        const ConstitutiveLaw::GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
         ) override;
 
@@ -537,7 +546,7 @@ public:
      */
     void ResetMaterial(
         const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
+        const ConstitutiveLaw::GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
         ) override;
 
@@ -557,7 +566,7 @@ public:
      */
     int Check(
         const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
+        const ConstitutiveLaw::GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
