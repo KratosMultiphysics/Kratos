@@ -151,7 +151,7 @@ class MechanicalSolver(PythonSolver):
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NON_LOCAL_DAMAGE)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NON_LOCAL_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEWMARK_BETA)
         
         # Add specific variables for the problem conditions.
@@ -196,7 +196,7 @@ class MechanicalSolver(PythonSolver):
         if self.settings["displacement_control"].GetBool():
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
-        dofs_and_reactions_to_add.append(["NON_LOCAL_DAMAGE", "NEWMARK_BETA"])
+        dofs_and_reactions_to_add.append(["NON_LOCAL_VARIABLE", "NEWMARK_BETA"])
 
         # Append user-defined DOFs and reactions in the ProjectParameters
         auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
@@ -211,7 +211,7 @@ class MechanicalSolver(PythonSolver):
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
 
         # for node in self.main_model_part.Nodes:
-        #     print(node.Fix(StructuralMechanicsApplication.NON_LOCAL_DAMAGE))
+        #     print(node.Fix(StructuralMechanicsApplication.NON_LOCAL_VARIABLE))
 
         # raise Exception(1)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")

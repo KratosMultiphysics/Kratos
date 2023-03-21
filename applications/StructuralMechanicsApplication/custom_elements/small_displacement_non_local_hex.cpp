@@ -123,7 +123,7 @@ void SmallDisplacementNonLocalHex::EquationIdVector(
             const SizeType index = i * 3;
             rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X,pos).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
-            rResult[index + 2] = r_geometry[i].GetDof(NON_LOCAL_DAMAGE).EquationId();
+            rResult[index + 2] = r_geometry[i].GetDof(NON_LOCAL_VARIABLE).EquationId();
         }
     } else {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
@@ -131,7 +131,7 @@ void SmallDisplacementNonLocalHex::EquationIdVector(
             rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X,pos).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
             rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z,pos+2).EquationId();
-            rResult[index + 3] = r_geometry[i].GetDof(NON_LOCAL_DAMAGE).EquationId();
+            rResult[index + 3] = r_geometry[i].GetDof(NON_LOCAL_VARIABLE).EquationId();
         }
     }
 
@@ -159,14 +159,14 @@ void SmallDisplacementNonLocalHex::GetDofList(
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             rElementalDofList.push_back(r_geometry[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(NON_LOCAL_DAMAGE));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(NON_LOCAL_VARIABLE));
         }
     } else {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             rElementalDofList.push_back(r_geometry[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(NON_LOCAL_DAMAGE));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(NON_LOCAL_VARIABLE));
         }
     }
 
@@ -197,7 +197,7 @@ void SmallDisplacementNonLocalHex::GetValuesVector(
         {
             rValues[index + k] = displacement[k];
         }
-        rValues[index + dimension] = r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, Step);
+        rValues[index + dimension] = r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, Step);
     }
     KRATOS_CATCH( "" )
 }
@@ -544,7 +544,7 @@ void SmallDisplacementNonLocalHex::CalculateNonLocalConstitutiveVariables(
     rThisNonLocalConstitutiveVariables.NL_D_GP = 0;
 
     for (unsigned int i = 0; i < N.size(); ++i) {
-        rThisNonLocalConstitutiveVariables.NL_D_GP += N[i] * r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, 0);
+        rThisNonLocalConstitutiveVariables.NL_D_GP += N[i] * r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
     }
     mConstitutiveLawVector[PointNumber]->CalculateValue(rValues, rThisVariable, local_damage_gp); 
     rThisNonLocalConstitutiveVariables.Local_D_GP = local_damage_gp;
@@ -709,7 +709,7 @@ void SmallDisplacementNonLocalHex::CalculateAndAddResidualNonLocalVector(
     Vector NL_Damage = ZeroVector(rN.size());
 
     for (unsigned int i = 0; i < rN.size(); ++i) {
-        NL_Damage[i] = r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, 0);
+        NL_Damage[i] = r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
     }
     rResidualNonLocalVector -= IntegrationWeight * rN * (rNL_D_GP-rLocal_D_GP);
     rResidualNonLocalVector -= IntegrationWeight * pow(Lc, 2) * prod(prod(rdNdX, trans(rdNdX)),NL_Damage );
@@ -863,11 +863,11 @@ const Parameters SmallDisplacementNonLocalHex::GetSpecifications() const
         "positive_definite_lhs"      : true,
         "output"                     : {
             "gauss_point"            : ["INTEGRATION_WEIGHT","STRAIN_ENERGY","ERROR_INTEGRATION_POINT","VON_MISES_STRESS","INSITU_STRESS","CAUCHY_STRESS_VECTOR","PK2_STRESS_VECTOR","GREEN_LAGRANGE_STRAIN_VECTOR","ALMANSI_STRAIN_VECTOR","CAUCHY_STRESS_TENSOR","PK2_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR","ALMANSI_STRAIN_TENSOR","CONSTITUTIVE_MATRIX","DEFORMATION_GRADIENT","CONSTITUTIVE_LAW"],
-            "nodal_historical"       : ["DISPLACEMENT","VELOCITY","ACCELERATION", "NON_LOCAL_DAMAGE"],
+            "nodal_historical"       : ["DISPLACEMENT","VELOCITY","ACCELERATION", "NON_LOCAL_VARIABLE"],
             "nodal_non_historical"   : [],
             "entity"                 : []
         },
-        "required_variables"         : ["DISPLACEMENT", "NON_LOCAL_DAMAGE"],
+        "required_variables"         : ["DISPLACEMENT", "NON_LOCAL_VARIABLE"],
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Triangle2D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9","Tetrahedra3D4", "Prism3D6", "Prism3D15", "Hexahedra3D8", "Hexahedra3D20", "Hexahedra3D27", "Tetrahedra3D10"],
@@ -883,10 +883,10 @@ const Parameters SmallDisplacementNonLocalHex::GetSpecifications() const
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     if (dimension == 2) {
-        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y", "NON_LOCAL_DAMAGE"});
+        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y", "NON_LOCAL_VARIABLE"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
-        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z", "NON_LOCAL_DAMAGE"});
+        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z", "NON_LOCAL_VARIABLE"});
         specifications["required_dofs"].SetStringArray(dofs_3d);
     }
 

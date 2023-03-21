@@ -451,8 +451,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_VALUE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_OPTION)
 
-    // non_local damage variable
-    KRATOS_REGISTER_VARIABLE( NON_LOCAL_DAMAGE );     
+    // non_local variable
+    KRATOS_REGISTER_VARIABLE( NON_LOCAL_VARIABLE );     
     
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)

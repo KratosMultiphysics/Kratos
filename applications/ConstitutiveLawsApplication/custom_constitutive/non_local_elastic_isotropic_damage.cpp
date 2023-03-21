@@ -286,7 +286,7 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         const auto& N    = rParametersValues.GetShapeFunctionsValues();
         double NL_Damage_GP = 0.0;
         for (size_t i = 0; i < N.size(); ++i) {
-            NL_Damage_GP += N[i] * rParametersValues.GetElementGeometry()[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, 0);
+            NL_Damage_GP += N[i] * rParametersValues.GetElementGeometry()[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
         }
         if (NL_Damage_GP == 0){
 
