@@ -468,12 +468,6 @@ public:
         ) override;
 
     /**
-     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
@@ -484,12 +478,6 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
@@ -540,50 +528,6 @@ public:
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * @brief This can be used in order to reset all internal variables of the
-     * constitutive law (e.g. if a model should be reset to its reference state)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    void ResetMaterial(
-        const Properties& rMaterialProperties,
-        const ConstitutiveLaw::GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues
-        ) override;
-
-    /**
-     * @brief This function is designed to be called once to check compatibility with element
-     * @param rFeatures
-     */
-    void GetLawFeatures(ConstitutiveLaw::Features& rFeatures) override;
-
-    /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
-     * @param rMaterialProperties
-     * @param rElementGeometry
-     * @param rCurrentProcessInfo
-     * @return 0 if OK, 1 otherwise
-     */
-    int Check(
-        const Properties& rMaterialProperties,
-        const ConstitutiveLaw::GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
-
-    /**
-     * @brief This function computes the rotation matrix T-> E_loc = T*E_glob in order to rotate the strain
-     * or S_glob = trans(T)S_loc for the stresses
-     */
-    void CalculateRotationMatrix(
-        const Properties& rMaterialProperties,
-        BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
-        const IndexType Layer
-    );
-
-
-    /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
@@ -591,18 +535,6 @@ public:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure& rStressMeasure
     );
-
-    /**
-     * This method computes the Green-Lagrange strain
-     * @see Parameters
-     */
-    void CalculateGreenLagrangeStrain(Parameters &rValues);
-
-    /**
-     * This method computes the Almansi strain
-     * @see Parameters
-     */
-    void CalculateAlmansiStrain(Parameters &rValues);
 
 protected:
 

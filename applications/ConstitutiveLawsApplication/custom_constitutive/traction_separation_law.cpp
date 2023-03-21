@@ -964,23 +964,6 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
-{
-    CalculateMaterialResponsePK2(rValues);
-
-    if (rValues.IsSetDeterminantF()) {
-        Vector& r_stress_vector                = rValues.GetStressVector();
-        const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
-        const double determinant_f             = rValues.GetDeterminantF();
-
-        TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
 void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
@@ -1261,7 +1244,7 @@ void TractionSeparationLaw3D<TDim>::CalculateMaterialResponseKirchhoff(Constitut
             // we push forward the stress
             Matrix stress_matrix(Dimension, Dimension);
             noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
-            ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
+            this->ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
             noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_stress_vector.size() );
         }
 
@@ -1269,7 +1252,7 @@ void TractionSeparationLaw3D<TDim>::CalculateMaterialResponseKirchhoff(Constitut
             this->CalculateTangentTensor(rValues, BaseType::StressMeasure_PK2);
             // push forward Constitutive tangent tensor
             if (rValues.IsSetDeterminantF())
-                PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
+                this->PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
         }
 
         // Previous flags restored
@@ -1285,26 +1268,7 @@ void TractionSeparationLaw3D<TDim>::CalculateMaterialResponseKirchhoff(Constitut
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
-{
-    CalculateMaterialResponseKirchhoff(rValues);
-
-    // Set to Cauchy Stress:
-    if (rValues.IsSetDeterminantF()) {
-        Vector& r_stress_vector       = rValues.GetStressVector();
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        const double determinant_f    = rValues.GetDeterminantF();
-
-        r_stress_vector       /= determinant_f;
-        r_constitutive_matrix /= determinant_f;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK1(Parameters& rValues)
+void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     // Get Values to compute the constitutive law:
@@ -1335,7 +1299,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK1(Parameters& rV
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK2(Parameters& rValues)
+void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     // Get Values to compute the constitutive law:
@@ -1366,7 +1330,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK2(Parameters& rV
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseKirchhoff(Parameters& rValues)
+void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     // Get Values to compute the constitutive law:
@@ -1397,7 +1361,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseKirchhoff(Paramete
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseCauchy(Parameters& rValues)
+void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     // Get Values to compute the constitutive law:
@@ -1428,7 +1392,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseCauchy(Parameters&
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK1(Parameters& rValues)
+void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     // Get Values to compute the constitutive law:
@@ -1468,45 +1432,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK1(Parameters& rVal
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rValues)
+void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // Previous flags saved
-    // const bool flag_const_tensor = r_flags.Is(BaseType::COMPUTE_CONSTITUTIVE_TENSOR);
-    // const bool flag_stress       = r_flags.Is(BaseType::COMPUTE_STRESS);
-    // const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->FinalizeMaterialResponsePK2(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
-    // // Previous flags restored
-    // r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    // r_flags.Set(BaseType::COMPUTE_STRESS, flag_stress);
-    // r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-
-
-    //
-    
-    // Finalizing delamination damage
-
     KRATOS_TRY;
 
     // Get Values to compute the constitutive law:
@@ -1563,7 +1490,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
         for (int i=0; i < mConstitutiveLaws.size()+1; ++i) {
             negative_interfacial_stress_indicator[i] = false;
         }
-
 
         for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
 
@@ -1662,7 +1588,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
 
                 mdelamination_damage_mode_two[i+1] = delamination_damage_mode_two[i+1];
                 mthreshold_mode_two[i] = equivalent_stress_mode_two;
-              
             }
 
             // End damage calculation
@@ -1691,11 +1616,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
             layer_stress[i][0] *= 1.0;
             layer_stress[i][1] *= 1.0;
             layer_stress[i][3] *= 1.0;
-
-
-            // if (negative_interfacial_stress_indicator[i] == false && negative_interfacial_stress_indicator[i+1] == false) {
-            //     layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
-            // }
         }
         
 
@@ -1723,7 +1643,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     // Get Values to compute the constitutive law:
@@ -1762,7 +1682,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseKirchhoff(Parameters
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     // Get Values to compute the constitutive law:
@@ -1795,101 +1715,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseCauchy(Parameters& r
     r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
     r_flags.Set(BaseType::COMPUTE_STRESS, flag_stress);
     r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::ResetMaterial(
-    const Properties& rMaterialProperties,
-    const ConstitutiveLaw::GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues
-    )
-{
-    // We perform the reset in each layer
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->ResetMaterial(r_prop, rElementGeometry, rShapeFunctionsValues);
-    }
-}
-
-/**************************CONSTITUTIVE LAW GENERAL FEATURES ***********************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::GetLawFeatures(Features& rFeatures)
-{
-    //Set the strain size
-    rFeatures.mStrainSize = GetStrainSize();
-
-    //Set the spacedimension
-    rFeatures.mSpaceDimension = WorkingSpaceDimension();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-int TractionSeparationLaw3D<TDim>::Check(
-    const Properties& rMaterialProperties,
-    const ConstitutiveLaw::GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo
-    ) const
-{
-    // The auxiliar output
-    int aux_out = 0;
-
-    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "TractionSeparationLaw3D: No constitutive laws defined" << std::endl;
-
-    // We perform the check in each layer
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        aux_out += p_law->Check(r_prop, rElementGeometry, rCurrentProcessInfo);
-    }
-
-    if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
-        KRATOS_ERROR_IF(rMaterialProperties[LAYER_EULER_ANGLES].size() != 3 * mConstitutiveLaws.size()) << "Euler angles badly defined" << std::endl;
-    }
-
-    return aux_out;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::CalculateRotationMatrix(
-        const Properties& rMaterialProperties,
-        BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
-        const IndexType Layer
-    )
-{
-
-    if (rRotationMatrix.size1() != VoigtSize)
-        rRotationMatrix.resize(VoigtSize, VoigtSize, false);
-
-    if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
-        const Vector layers_euler_angles = rMaterialProperties[LAYER_EULER_ANGLES];
-        const double euler_angle_phi     = layers_euler_angles[3*Layer];
-        const double euler_angle_theta   = layers_euler_angles[3*Layer + 1];
-        const double euler_angle_hi      = layers_euler_angles[3*Layer + 2];
-
-        BoundedMatrix<double, 3, 3>  rotation_matrix;
-
-        if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, euler_angle_theta, euler_angle_hi, rotation_matrix);
-            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
-        } else {
-            noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
-        }
-    } else {
-        noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
-    }
 }
 
 /***********************************************************************************/
@@ -1915,44 +1740,6 @@ void TractionSeparationLaw3D<TDim>::CalculateTangentTensor(ConstitutiveLaw::Para
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure, consider_perturbation_threshold, 4);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
-{
-    // Some auxiliar values
-    const SizeType dimension = WorkingSpaceDimension();
-    Vector& r_strain_vector = rValues.GetStrainVector();
-
-    Matrix F(dimension, dimension);
-    noalias(F) = rValues.GetDeformationGradientF();
-    Matrix B_tensor;
-    B_tensor.resize(dimension, dimension, false);
-    noalias(B_tensor) = prod(F, trans(F));
-
-    AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
-{
-    // Some auxiliar values
-    const SizeType dimension = WorkingSpaceDimension();
-    Vector& r_strain_vector = rValues.GetStrainVector();
-
-    Matrix F(dimension, dimension);
-    noalias(F) = rValues.GetDeformationGradientF();
-    Matrix C_tensor;
-    C_tensor.resize(dimension, dimension, false);
-    noalias(C_tensor) = prod(trans(F),F);
-
-    ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
 }
 
 /***********************************************************************************/
