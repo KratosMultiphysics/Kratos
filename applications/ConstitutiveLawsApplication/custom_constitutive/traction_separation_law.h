@@ -369,7 +369,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     double& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
         double& rValue
         ) override;
@@ -382,7 +382,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     Vector& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
@@ -394,8 +394,8 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-     Matrix& CalculateValue(
-        Parameters& rParameterValues,
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
@@ -407,8 +407,8 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-     array_1d<double, 3 > & CalculateValue(
-        Parameters& rParameterValues,
+    array_1d<double, 3 > & CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<array_1d<double, 3 > >& rVariable,
         array_1d<double, 3 > & rValue
         ) override;
@@ -420,12 +420,12 @@ public:
      * @return The value of the specified variable
      */
     array_1d<double, 6 > & CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<array_1d<double, 6 > >& rVariable,
         array_1d<double, 6 > & rValue
         ) override;
 
-     /**
+    /**
       * @brief Is called to check whether the provided material parameters in the Properties match the requirements of current constitutive model.
       * @param rMaterialProperties the current Properties to be validated against.
       * @return true, if parameters are correct; false, if parameters are insufficient / faulty
