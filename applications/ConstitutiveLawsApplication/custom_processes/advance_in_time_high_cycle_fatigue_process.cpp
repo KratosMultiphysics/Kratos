@@ -39,6 +39,9 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     bool cycle_found = false;
     std::vector<double> damage;
     std::vector<double> previous_cycle_damage;
+    std::vector<double>  cycles_to_failure_element;
+    std::vector<int>  local_number_of_cycles;
+
     process_info[NO_LINEARITY_ACTIVATION] = false;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     //double increment;
@@ -54,8 +57,10 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
+        r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
+        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
             for (unsigned int i = 0; i < number_of_ip; i++) {
-                if (damage[i] - previous_cycle_damage[i] > 1.0e-6) {
+                if ((damage[i] - previous_cycle_damage[i] > 1.0e-6) || (cycles_to_failure_element[i] - local_number_of_cycles[i] <= 1.0)) {
                     process_info[NO_LINEARITY_ACTIVATION] = true;
                     break;
                 }
@@ -280,7 +285,6 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
                     { // This is used to guarantee that only IP in fatigue conditions are taken into account
                         double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
                         double user_advancing_cycles_conversion_to_time = user_advancing_cycles * period[i];
-
                         if (Nf_conversion_to_time < min_time_increment)
                         {
                             min_time_increment = Nf_conversion_to_time;

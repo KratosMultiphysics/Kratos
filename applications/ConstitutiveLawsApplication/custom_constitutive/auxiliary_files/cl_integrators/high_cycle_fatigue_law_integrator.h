@@ -189,7 +189,7 @@ public:
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
-        // const double yield_stress = ultimate_stress;
+        const double yield_stress = ultimate_stress;
 
         // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
         // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
@@ -227,7 +227,7 @@ public:
         // const double MinStress = MaxStress * ReversionFactor;
         if (MaxStress > rSth && MaxStress <= ultimate_stress) {
           if(std::abs(ReversionFactor) < 1.0){
-                rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
+                rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));                         
                 if (std::isnan(rN_f)){
                     rN_f = 1.0e15;
                     }           
