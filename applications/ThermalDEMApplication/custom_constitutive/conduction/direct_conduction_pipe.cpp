@@ -36,4 +36,17 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
+  double DirectConductionPipe::ComputeEffectiveThermalConductivity(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    KRATOS_TRY
+
+    const double Rc   = particle->mContactRadiusAdjusted;
+    const double d    = particle->mNeighborDistanceAdjusted;
+    const double kavg = particle->ComputeAverageConductivity();
+
+    return kavg * (Globals::Pi * Rc * Rc) * d;
+
+    KRATOS_CATCH("")
+  }
+
 } // namespace Kratos

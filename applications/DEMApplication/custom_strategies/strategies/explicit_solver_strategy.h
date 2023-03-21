@@ -357,6 +357,8 @@ namespace Kratos {
         Matrix mRVE_CauchyTensorInner;       // Cauchy stress tensor (inner particles)
         Matrix mRVE_TangentTensor;           // Tangent operator tensor (all particles)
         Matrix mRVE_TangentTensorInner;      // Tangent operator tensor (inner particles)
+        Matrix mRVE_ConductivityTensor;      // Effective thermal conductivity tensor (all particles)
+        Matrix mRVE_ConductivityTensorInner; // Effective thermal conductivity tensor (inner particles)
 
         std::ofstream mRVE_FileCoordinates;
         std::ofstream mRVE_FilePorosity;
@@ -376,6 +378,8 @@ namespace Kratos {
         std::ofstream mRVE_FileCauchyTensorInner;
         std::ofstream mRVE_FileTangentTensor;
         std::ofstream mRVE_FileTangentTensorInner;
+        std::ofstream mRVE_FileConductivityTensor;
+        std::ofstream mRVE_FileConductivityTensorInner;
 
         // Methods
         void RVEInitialize             (void);

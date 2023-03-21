@@ -1856,21 +1856,23 @@ namespace Kratos {
         const int dim  = mRVE_Dimension;
         const int dim2 = mRVE_Dimension * mRVE_Dimension;
 
-        mRVE_NumContacts        = 0;
-        mRVE_NumContactsInner   = 0;
-        mRVE_NumParticlesInner  = 0;
-        mRVE_AvgCoordNum        = 0.0;
-        mRVE_AvgCoordNumInner   = 0.0;
-        mRVE_VolSolid           = 0.0;
-        mRVE_WallForces         = 0.0;
-        mRVE_RoseDiagram        = ZeroMatrix(2,40);
-        mRVE_RoseDiagramInner   = ZeroMatrix(2,40);
-        mRVE_FabricTensor       = ZeroMatrix(dim,dim);
-        mRVE_FabricTensorInner  = ZeroMatrix(dim,dim);
-        mRVE_CauchyTensor       = ZeroMatrix(dim,dim);
-        mRVE_CauchyTensorInner  = ZeroMatrix(dim,dim);
-        mRVE_TangentTensor      = ZeroMatrix(dim2,dim2);
-        mRVE_TangentTensorInner = ZeroMatrix(dim2,dim2);
+        mRVE_NumContacts             = 0;
+        mRVE_NumContactsInner        = 0;
+        mRVE_NumParticlesInner       = 0;
+        mRVE_AvgCoordNum             = 0.0;
+        mRVE_AvgCoordNumInner        = 0.0;
+        mRVE_VolSolid                = 0.0;
+        mRVE_WallForces              = 0.0;
+        mRVE_RoseDiagram             = ZeroMatrix(2,40);
+        mRVE_RoseDiagramInner        = ZeroMatrix(2,40);
+        mRVE_FabricTensor            = ZeroMatrix(dim,dim);
+        mRVE_FabricTensorInner       = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensor            = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensorInner       = ZeroMatrix(dim,dim);
+        mRVE_TangentTensor           = ZeroMatrix(dim2,dim2);
+        mRVE_TangentTensorInner      = ZeroMatrix(dim2,dim2);
+        mRVE_ConductivityTensor      = ZeroMatrix(dim,dim);
+        mRVE_ConductivityTensorInner = ZeroMatrix(dim,dim);
         mRVE_InnerVolParticles.clear();
         mRVE_ForceChain.clear();
       }
@@ -1886,20 +1888,22 @@ namespace Kratos {
       const int dim2 = mRVE_Dimension * mRVE_Dimension;
 
       if (p_particle->mWall == 0) {
-        p_particle->mInner              = (p_particle->mNeighbourRigidFaces.size() == 0);
-        p_particle->mSkin               = false;
-        p_particle->mNumContacts        = 0;
-        p_particle->mNumContactsInner   = 0;
-        p_particle->mCoordNum           = 0;
-        p_particle->mVolOverlap         = 0.0;
-        p_particle->mWallForces         = 0.0;
-        p_particle->mRoseDiagram        = ZeroMatrix(2,40);
-        p_particle->mFabricTensor       = ZeroMatrix(dim,dim);
-        p_particle->mFabricTensorInner  = ZeroMatrix(dim,dim);
-        p_particle->mCauchyTensor       = ZeroMatrix(dim,dim);
-        p_particle->mCauchyTensorInner  = ZeroMatrix(dim,dim);
-        p_particle->mTangentTensor      = ZeroMatrix(dim2,dim2);
-        p_particle->mTangentTensorInner = ZeroMatrix(dim2,dim2);
+        p_particle->mInner                   = (p_particle->mNeighbourRigidFaces.size() == 0);
+        p_particle->mSkin                    = false;
+        p_particle->mNumContacts             = 0;
+        p_particle->mNumContactsInner        = 0;
+        p_particle->mCoordNum                = 0;
+        p_particle->mVolOverlap              = 0.0;
+        p_particle->mWallForces              = 0.0;
+        p_particle->mRoseDiagram             = ZeroMatrix(2,40);
+        p_particle->mFabricTensor            = ZeroMatrix(dim,dim);
+        p_particle->mFabricTensorInner       = ZeroMatrix(dim,dim);
+        p_particle->mCauchyTensor            = ZeroMatrix(dim,dim);
+        p_particle->mCauchyTensorInner       = ZeroMatrix(dim,dim);
+        p_particle->mTangentTensor           = ZeroMatrix(dim2,dim2);
+        p_particle->mTangentTensorInner      = ZeroMatrix(dim2,dim2);
+        p_particle->mConductivityTensor      = ZeroMatrix(dim,dim);
+        p_particle->mConductivityTensorInner = ZeroMatrix(dim,dim);
         p_particle->mForceChain.clear();
       }
     }
@@ -1909,24 +1913,26 @@ namespace Kratos {
       if (!mRVE_Solve) return;
 
       if (p_particle->mWall == 0) {
-        mRVE_NumContacts   += p_particle->mNumContacts;
-        mRVE_AvgCoordNum   += p_particle->mCoordNum;
-        mRVE_VolSolid      += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
-        mRVE_WallForces    += p_particle->mWallForces;
-        mRVE_RoseDiagram   += p_particle->mRoseDiagram;
-        mRVE_FabricTensor  += p_particle->mFabricTensor;
-        mRVE_CauchyTensor  += p_particle->mCauchyTensor;
-        mRVE_TangentTensor += p_particle->mTangentTensor;
+        mRVE_NumContacts        += p_particle->mNumContacts;
+        mRVE_AvgCoordNum        += p_particle->mCoordNum;
+        mRVE_VolSolid           += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
+        mRVE_WallForces         += p_particle->mWallForces;
+        mRVE_RoseDiagram        += p_particle->mRoseDiagram;
+        mRVE_FabricTensor       += p_particle->mFabricTensor;
+        mRVE_CauchyTensor       += p_particle->mCauchyTensor;
+        mRVE_TangentTensor      += p_particle->mTangentTensor;
+        mRVE_ConductivityTensor += p_particle->mConductivityTensor;
         mRVE_ForceChain.insert(mRVE_ForceChain.end(), p_particle->mForceChain.begin(), p_particle->mForceChain.end());
 
         if (p_particle->mInner) {
           mRVE_NumParticlesInner++;
-          mRVE_NumContactsInner   += p_particle->mNumContactsInner;
-          mRVE_AvgCoordNumInner   += p_particle->mCoordNum;
-          mRVE_RoseDiagramInner   += p_particle->mRoseDiagram;
-          mRVE_FabricTensorInner  += p_particle->mFabricTensorInner;
-          mRVE_CauchyTensorInner  += p_particle->mCauchyTensorInner;
-          mRVE_TangentTensorInner += p_particle->mTangentTensorInner;
+          mRVE_NumContactsInner        += p_particle->mNumContactsInner;
+          mRVE_AvgCoordNumInner        += p_particle->mCoordNum;
+          mRVE_RoseDiagramInner        += p_particle->mRoseDiagram;
+          mRVE_FabricTensorInner       += p_particle->mFabricTensorInner;
+          mRVE_CauchyTensorInner       += p_particle->mCauchyTensorInner;
+          mRVE_TangentTensorInner      += p_particle->mTangentTensorInner;
+          mRVE_ConductivityTensorInner += p_particle->mConductivityTensorInner;
           if (p_particle->mNeighbourElements.size() > 0) {
             mRVE_InnerVolParticles.push_back(p_particle);
           }
@@ -2367,18 +2373,20 @@ namespace Kratos {
         const int dim  = mRVE_Dimension;
         const int dim2 = mRVE_Dimension * mRVE_Dimension;
 
-        mRVE_FabricTensor       = ZeroMatrix(dim,dim);
-        mRVE_FabricTensorInner  = ZeroMatrix(dim,dim);
-        mRVE_CauchyTensor       = ZeroMatrix(dim,dim);
-        mRVE_CauchyTensorInner  = ZeroMatrix(dim,dim);
-        mRVE_TangentTensor      = ZeroMatrix(dim2,dim2);
-        mRVE_TangentTensorInner = ZeroMatrix(dim2,dim2);
-        mRVE_Anisotropy         = 0.0;
-        mRVE_AnisotropyInner    = 0.0;
-        mRVE_EffectStress       = 0.0;
-        mRVE_EffectStressInner  = 0.0;
-        mRVE_DevStress          = 0.0;
-        mRVE_DevStressInner     = 0.0;
+        mRVE_FabricTensor            = ZeroMatrix(dim,dim);
+        mRVE_FabricTensorInner       = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensor            = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensorInner       = ZeroMatrix(dim,dim);
+        mRVE_TangentTensor           = ZeroMatrix(dim2,dim2);
+        mRVE_TangentTensorInner      = ZeroMatrix(dim2,dim2);
+        mRVE_ConductivityTensor      = ZeroMatrix(dim,dim);
+        mRVE_ConductivityTensorInner = ZeroMatrix(dim,dim);
+        mRVE_Anisotropy              = 0.0;
+        mRVE_AnisotropyInner         = 0.0;
+        mRVE_EffectStress            = 0.0;
+        mRVE_EffectStressInner       = 0.0;
+        mRVE_DevStress               = 0.0;
+        mRVE_DevStressInner          = 0.0;
       }
 
       else {
@@ -2406,6 +2414,9 @@ namespace Kratos {
 
             mRVE_CauchyTensor(i,j)      /= mRVE_VolTotal;
             mRVE_CauchyTensorInner(i,j) /= mRVE_VolInner;
+
+            mRVE_ConductivityTensor(i,j)      /= mRVE_VolTotal;
+            mRVE_ConductivityTensorInner(i,j) /= mRVE_VolInner;
 
             if (i == j) {
               deviatoric_fabric       = 4.0 * (mRVE_FabricTensor(i,j)      - (1.0 / mRVE_Dimension));
@@ -2829,6 +2840,34 @@ namespace Kratos {
                                         << "[[" << mRVE_TangentTensorInner(8,0) << "],[" << mRVE_TangentTensorInner(8,1) << "],[" << mRVE_TangentTensorInner(8,2) << "],[" << mRVE_TangentTensorInner(8,3) << "],[" << mRVE_TangentTensorInner(8,4) << "],[" << mRVE_TangentTensorInner(8,5) << "],[" << mRVE_TangentTensorInner(8,6) << "],[" << mRVE_TangentTensorInner(8,7) << "],[" << mRVE_TangentTensorInner(8,8) << "]]"
                                         << std::endl;
       }
+
+      if (mRVE_FileConductivityTensor.is_open()) {
+        if (mRVE_Dimension == 2)
+          mRVE_FileConductivityTensor << time_step << " " << time << " "
+                                      << "[[" << mRVE_ConductivityTensor(0,0) << "],[" << mRVE_ConductivityTensor(0,1) << "]]" << " "
+                                      << "[[" << mRVE_ConductivityTensor(1,0) << "],[" << mRVE_ConductivityTensor(1,1) << "]]"
+                                      << std::endl;
+        else if (mRVE_Dimension == 3)
+          mRVE_FileConductivityTensor << time_step << " " << time << " "
+                                      << "[[" << mRVE_ConductivityTensor(0,0) << "],[" << mRVE_ConductivityTensor(0,1) << "],[" << mRVE_ConductivityTensor(0,2) << "]]" << " "
+                                      << "[[" << mRVE_ConductivityTensor(1,0) << "],[" << mRVE_ConductivityTensor(1,1) << "],[" << mRVE_ConductivityTensor(1,2) << "]]" << " "
+                                      << "[[" << mRVE_ConductivityTensor(2,0) << "],[" << mRVE_ConductivityTensor(2,1) << "],[" << mRVE_ConductivityTensor(2,2) << "]]"
+                                      << std::endl;
+      }
+
+      if (mRVE_FileConductivityTensorInner.is_open()) {
+        if (mRVE_Dimension == 2)
+          mRVE_FileConductivityTensorInner << time_step << " " << time << " "
+                                           << "[[" << mRVE_ConductivityTensorInner(0,0) << "],[" << mRVE_ConductivityTensorInner(0,1) << "]]" << " "
+                                           << "[[" << mRVE_ConductivityTensorInner(1,0) << "],[" << mRVE_ConductivityTensorInner(1,1) << "]]"
+                                           << std::endl;
+        else if (mRVE_Dimension == 3)
+          mRVE_FileConductivityTensorInner << time_step << " " << time << " "
+                                           << "[[" << mRVE_ConductivityTensorInner(0,0) << "],[" << mRVE_ConductivityTensorInner(0,1) << "],[" << mRVE_ConductivityTensorInner(0,2) << "]]" << " "
+                                           << "[[" << mRVE_ConductivityTensorInner(1,0) << "],[" << mRVE_ConductivityTensorInner(1,1) << "],[" << mRVE_ConductivityTensorInner(1,2) << "]]" << " "
+                                           << "[[" << mRVE_ConductivityTensorInner(2,0) << "],[" << mRVE_ConductivityTensorInner(2,1) << "],[" << mRVE_ConductivityTensorInner(2,2) << "]]"
+                                           << std::endl;
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2854,7 +2893,7 @@ namespace Kratos {
       mRVE_FilePorosity << "8 - VOID RATIO";
       mRVE_FilePorosity << std::endl;
 
-      mRVE_FileContactNumber.open("rve_conact_number.txt", std::ios::out);
+      mRVE_FileContactNumber.open("rve_contact_number.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FileContactNumber) << "Could not open file rve_conact_number.txt!" << std::endl;
       mRVE_FileContactNumber << "1 - STEP | ";
       mRVE_FileContactNumber << "2 - TIME | ";
@@ -2999,28 +3038,48 @@ namespace Kratos {
       mRVE_FileTangentTensorInner << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
       mRVE_FileTangentTensorInner << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
       mRVE_FileTangentTensorInner << std::endl;
+
+      mRVE_FileConductivityTensor.open("rve_conductivity_tensor.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileConductivityTensor) << "Could not open file rve_conductivity_tensor.txt!" << std::endl;
+      mRVE_FileConductivityTensor << "1 - STEP | ";
+      mRVE_FileConductivityTensor << "2 - TIME | ";
+      mRVE_FileConductivityTensor << "3 - [[1,1][1,2][1,3]] | ";
+      mRVE_FileConductivityTensor << "4 - [[2,1][2,2][2,3]] | ";
+      mRVE_FileConductivityTensor << "5 - [[3,1][3,2][3,3]]";
+      mRVE_FileConductivityTensor << std::endl;
+
+      mRVE_FileConductivityTensorInner.open("rve_conductivity_tensor_inner.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileConductivityTensorInner) << "Could not open file rve_conductivity_tensor_inner.txt!" << std::endl;
+      mRVE_FileConductivityTensorInner << "1 - STEP | ";
+      mRVE_FileConductivityTensorInner << "2 - TIME | ";
+      mRVE_FileConductivityTensorInner << "3 - [[1,1][1,2][1,3]] | ";
+      mRVE_FileConductivityTensorInner << "4 - [[2,1][2,2][2,3]] | ";
+      mRVE_FileConductivityTensorInner << "5 - [[3,1][3,2][3,3]]";
+      mRVE_FileConductivityTensorInner << std::endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVECloseFiles(void) {
-      if (mRVE_FileCoordinates.is_open())           mRVE_FileCoordinates.close();
-      if (mRVE_FilePorosity.is_open())              mRVE_FilePorosity.close();
-      if (mRVE_FileContactNumber.is_open())         mRVE_FileContactNumber.close();
-      if (mRVE_FileCoordNumber.is_open())           mRVE_FileCoordNumber.close();
-      if (mRVE_FileInnerVolumeParticles.is_open())  mRVE_FileInnerVolumeParticles.close();
-      if (mRVE_FileForceChain.is_open())            mRVE_FileForceChain.close();
-      if (mRVE_FileElasticContactForces.is_open())  mRVE_FileElasticContactForces.close();
-      if (mRVE_FileRoseDiagram.is_open())           mRVE_FileRoseDiagram.close();
-      if (mRVE_FileRoseDiagramInner.is_open())      mRVE_FileRoseDiagramInner.close();
-      if (mRVE_FileRoseDiagramUniformity.is_open()) mRVE_FileRoseDiagramUniformity.close();
-      if (mRVE_FileAnisotropy.is_open())            mRVE_FileAnisotropy.close();
-      if (mRVE_FileFabricTensor.is_open())          mRVE_FileFabricTensor.close();
-      if (mRVE_FileFabricTensorInner.is_open())     mRVE_FileFabricTensorInner.close();
-      if (mRVE_FileStress.is_open())                mRVE_FileStress.close();
-      if (mRVE_FileCauchyTensor.is_open())          mRVE_FileCauchyTensor.close();
-      if (mRVE_FileCauchyTensorInner.is_open())     mRVE_FileCauchyTensorInner.close();
-      if (mRVE_FileTangentTensor.is_open())         mRVE_FileTangentTensor.close();
-      if (mRVE_FileTangentTensorInner.is_open())    mRVE_FileTangentTensorInner.close();
+      if (mRVE_FileCoordinates.is_open())             mRVE_FileCoordinates.close();
+      if (mRVE_FilePorosity.is_open())                mRVE_FilePorosity.close();
+      if (mRVE_FileContactNumber.is_open())           mRVE_FileContactNumber.close();
+      if (mRVE_FileCoordNumber.is_open())             mRVE_FileCoordNumber.close();
+      if (mRVE_FileInnerVolumeParticles.is_open())    mRVE_FileInnerVolumeParticles.close();
+      if (mRVE_FileForceChain.is_open())              mRVE_FileForceChain.close();
+      if (mRVE_FileElasticContactForces.is_open())    mRVE_FileElasticContactForces.close();
+      if (mRVE_FileRoseDiagram.is_open())             mRVE_FileRoseDiagram.close();
+      if (mRVE_FileRoseDiagramInner.is_open())        mRVE_FileRoseDiagramInner.close();
+      if (mRVE_FileRoseDiagramUniformity.is_open())   mRVE_FileRoseDiagramUniformity.close();
+      if (mRVE_FileAnisotropy.is_open())              mRVE_FileAnisotropy.close();
+      if (mRVE_FileFabricTensor.is_open())            mRVE_FileFabricTensor.close();
+      if (mRVE_FileFabricTensorInner.is_open())       mRVE_FileFabricTensorInner.close();
+      if (mRVE_FileStress.is_open())                  mRVE_FileStress.close();
+      if (mRVE_FileCauchyTensor.is_open())            mRVE_FileCauchyTensor.close();
+      if (mRVE_FileCauchyTensorInner.is_open())       mRVE_FileCauchyTensorInner.close();
+      if (mRVE_FileTangentTensor.is_open())           mRVE_FileTangentTensor.close();
+      if (mRVE_FileTangentTensorInner.is_open())      mRVE_FileTangentTensorInner.close();
+      if (mRVE_FileConductivityTensor.is_open())      mRVE_FileConductivityTensor.close();
+      if (mRVE_FileConductivityTensorInner.is_open()) mRVE_FileConductivityTensorInner.close();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------

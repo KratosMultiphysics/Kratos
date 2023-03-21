@@ -89,11 +89,12 @@ namespace Kratos
       void UpdateTemperatureDependentRadius (const ProcessInfo& r_process_info);
 
       // Auxiliary computations
-      void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
-      double ComputePrandtlNumber         (const ProcessInfo& r_process_info);
-      double ComputeReynoldNumber         (const ProcessInfo& r_process_info);
-      double ComputeFluidRelativeVelocity (const ProcessInfo& r_process_info);
-      double GetVoronoiCellFaceRadius     (const ProcessInfo& r_process_info);
+      void   ComputeAddedSearchDistance          (const ProcessInfo& r_process_info, double& added_search_distance);
+      double ComputePrandtlNumber                (const ProcessInfo& r_process_info);
+      double ComputeReynoldNumber                (const ProcessInfo& r_process_info);
+      double ComputeFluidRelativeVelocity        (const ProcessInfo& r_process_info);
+      double GetVoronoiCellFaceRadius            (const ProcessInfo& r_process_info);
+      double ComputeEffectiveThermalConductivity (const ProcessInfo& r_process_info) override;  // For thermal conductivity homogenization
 
       // Neighbor interaction computations
       void   CleanContactParameters              (const ProcessInfo& r_process_info);
@@ -218,6 +219,7 @@ namespace Kratos
       bool         mHasFixedTemperature; // flag for constant temperature
       bool         mHasVariableRadius;   // flag for temperature-dependent radius
       bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem
+      bool         mComputeInteraction;  // flag to avoid computing interaction properties multiple times in the same step
 
       // Heat flux components
       double mConductionDirectHeatFlux;

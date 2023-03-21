@@ -30,7 +30,8 @@ namespace Kratos
       virtual ~DirectConductionBOBSimple();
 
       // Public methods
-      double ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double ComputeHeatFlux                     (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double ComputeEffectiveThermalConductivity (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {
