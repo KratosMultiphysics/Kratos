@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-template<class TValueType = double, class TIndexType = std::int32_t>
+template<class TValueType = double, class TIndexType = std::int64_t>
 class GinkoSolverPreconditioners {
 public:
     using rc_etype = gko::remove_complex<TValueType>;
@@ -255,7 +255,7 @@ public:
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
     using vec = gko::matrix::Dense<double>;
-    using mtx = gko::matrix::Csr<double, std::int32_t>;
+    using mtx = gko::matrix::Csr<double, std::int64_t>;
     
     GinkgoSolver() = delete;
 
@@ -304,7 +304,7 @@ public:
         mMaxIterationsNumber = settings["max_iteration"].GetDouble();
         mResidualMode = settings["residual_mode"].GetString();
 
-        mPrecond = GinkoSolverPreconditioners<double, std::int32_t>::mFactory.at(settings["preconditioner"].GetString())(mExec, settings);
+        mPrecond = GinkoSolverPreconditioners<double, std::int64_t>::mFactory.at(settings["preconditioner"].GetString())(mExec, settings);
 
         auto FLAGS_nrhs = 1;
 
@@ -395,7 +395,7 @@ public:
         #ifdef KRATOS_DEBUG
         std::cout << "Using Ginkgo solver..." << std::endl;
         std::cout << "\tSizeof(std::size_t)  (Kratos IndexType): " << sizeof(std::size_t)  << std::endl;
-        std::cout << "\tSizeof(std::int32_t) (Ginkgo IndexType): " << sizeof(std::int32_t) << std::endl;
+        std::cout << "\tSizeof(std::int64_t) (Ginkgo IndexType): " << sizeof(std::int64_t) << std::endl;
         #endif
 
         // Initialize ginkgo data interfaces
@@ -405,8 +405,8 @@ public:
             mExec, 
             gko::dim<2>{rA.size1(), rA.size2()},
             gko::make_array_view(mExec, rA.value_data().size(),  &(rA.value_data()[0])),                                    // Values
-            gko::make_array_view(mExec, rA.index2_data().size(), reinterpret_cast<std::int32_t *>(&(rA.index2_data()[0]))), // Col
-            gko::make_array_view(mExec, rA.index1_data().size(), reinterpret_cast<std::int32_t *>(&(rA.index1_data()[0]))), // Row
+            gko::make_array_view(mExec, rA.index2_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index2_data()[0]))), // Col
+            gko::make_array_view(mExec, rA.index1_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index1_data()[0]))), // Row
             std::make_shared<typename mtx::load_balance>(2)
         ));
 
@@ -434,14 +434,14 @@ public:
 
         std::cout << "Checking A rows..." << std::endl;
         for(std::size_t i = 0; i < rA.index1_data().size(); i++) {
-            if (static_cast<std::int32_t>(rA.index1_data()[i]) != gko_rA->get_row_ptrs()[i]) {
+            if (static_cast<std::int64_t>(rA.index1_data()[i]) != gko_rA->get_row_ptrs()[i]) {
                 std::cout << "row index incorrect at i=" << i << "(" << rA.index1_data()[i] << "," << gko_rA->get_row_ptrs()[i] << ")" << std::endl;
             } 
         }
 
         std::cout << "Checking A cols..." << std::endl;
         for(std::size_t i = 0; i < rA.index2_data().size(); i++) {
-            if (static_cast<std::int32_t>(rA.index2_data()[i]) != gko_rA->get_col_idxs()[i]) {
+            if (static_cast<std::int64_t>(rA.index2_data()[i]) != gko_rA->get_col_idxs()[i]) {
                 std::cout << "col index incorrect at i=" << i << "(" << rA.index2_data()[i] << "," << gko_rA->get_col_idxs()[i] << ")" << std::endl;
             } 
         }
@@ -478,12 +478,12 @@ public:
     {
         auto exec = gko::CudaExecutor::create(0, gko::OmpExecutor::create());
 
-        auto fact = gko::share(gko::factorization::ParIlu<double, std::int32_t>::build()
+        auto fact = gko::share(gko::factorization::ParIlu<double, std::int64_t>::build()
                 .with_iterations(3)
                 .with_skip_sorting(true)
                 .on(exec));
 
-        auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, std::int32_t>,gko::solver::UpperTrs<double, std::int32_t>, false, std::int32_t>::build()
+        auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, std::int64_t>,gko::solver::UpperTrs<double, std::int64_t>, false, std::int64_t>::build()
                 .with_factorization_factory(fact)
                 .on(exec);
 
