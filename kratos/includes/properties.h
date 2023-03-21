@@ -268,15 +268,17 @@ public:
         if (value != mAccessors.end()) {
             return value->second(variable_id, this, Args...);
         } else {
-            return GetValue(TVariableType);
+            return GetValue(rVariable);
         }
     }
 
     /* 
     Method to add Accessors to properties
     */
-    void AddAccessor(KeyType VariableKey, AccessorType && Accessor) {
-        mAccessors[VariableKey] = Accessor;
+    template<class TVariableType>
+    void AddAccessor(const TVariableType& rVariable, AccessorType && Accessor) {
+        const IndexType variable_key = rVariable.Key();
+        mAccessors[variable_key] = Accessor;
     }
 
     template<class TVariableType>
