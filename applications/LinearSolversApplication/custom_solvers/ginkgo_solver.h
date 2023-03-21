@@ -356,7 +356,7 @@ public:
         );
 
         mRelResidualStop = gko::stop::RelativeResidualNorm<double>::build()
-            .with_tolerance(1e-3)
+            .with_tolerance(mTolerance)
             .on(mExec);
 
         mStopCriteria = gko::stop::Combined::build()
@@ -493,7 +493,7 @@ public:
 
         auto rel_residual_stop = gko::share(
             gko::stop::RelativeResidualNorm<double>::build()
-                .with_tolerance(10e-6)
+                .with_tolerance(mTolerance)
             .on(exec)
         );
 
