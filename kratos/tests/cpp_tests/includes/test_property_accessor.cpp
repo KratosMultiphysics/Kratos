@@ -28,7 +28,7 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
         {
-
+            
         }
 
 
