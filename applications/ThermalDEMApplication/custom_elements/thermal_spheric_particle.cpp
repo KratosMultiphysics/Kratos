@@ -144,7 +144,6 @@ namespace Kratos
 
     // Set flags
     mHasMotion = r_process_info[MOTION_OPTION];
-    mComputeInteraction = true;
 
     mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
                           r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
@@ -311,9 +310,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Compute simulated or adjusted interaction properties
-    if (mComputeInteraction)
-      ComputeInteractionProps(r_process_info);
-    mComputeInteraction = true;
+    ComputeInteractionProps(r_process_info);
 
     // Heat generation
     // ASSUMPTION: Heat is generated even when neighbor is adiabatic
@@ -671,7 +668,6 @@ namespace Kratos
 
     // Compute simulated or adjusted interaction properties
     ComputeInteractionProps(r_process_info);
-    mComputeInteraction = false;
 
     // Compute effective conductivity
     return GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, this);

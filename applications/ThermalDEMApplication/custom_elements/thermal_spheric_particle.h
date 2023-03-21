@@ -219,7 +219,6 @@ namespace Kratos
       bool         mHasFixedTemperature; // flag for constant temperature
       bool         mHasVariableRadius;   // flag for temperature-dependent radius
       bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem
-      bool         mComputeInteraction;  // flag to avoid computing interaction properties multiple times in the same step
 
       // Heat flux components
       double mConductionDirectHeatFlux;

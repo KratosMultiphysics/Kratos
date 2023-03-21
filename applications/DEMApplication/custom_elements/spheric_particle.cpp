@@ -2318,6 +2318,8 @@ void SphericParticle::HierarchicalMultiscaleComputationsPP(const ProcessInfo& r_
     const double kt = mDiscontinuumConstitutiveLaw->mKt;
 
     // Tensors: tangent operator, fabric, cauchy stress, thermal conductivity
+    const double keff = ComputeEffectiveThermalConductivity(r_process_info);
+
     for (int i = 0; i < dim; i++) {
       for (int j = 0; j < dim; j++) {
         for (int k = 0; k < dim; k++) {
@@ -2335,7 +2337,7 @@ void SphericParticle::HierarchicalMultiscaleComputationsPP(const ProcessInfo& r_
         const double nij = normal[i] * normal[j];
         mFabricTensor(i,j)       += nij;
         mCauchyTensor(i,j)       += branch[i] * GlobalContactForce[j];
-        mConductivityTensor(i,j) += nij * ComputeEffectiveThermalConductivity(r_process_info);
+        mConductivityTensor(i,j) += nij * keff;
 
         if (has_inner_particle) {
           mFabricTensorInner(i,j)       += mFabricTensor(i,j);
@@ -2416,6 +2418,8 @@ void SphericParticle::HierarchicalMultiscaleComputationsPW(const ProcessInfo& r_
   const double kt = mDiscontinuumConstitutiveLaw->mKt;
 
   // Tensors: tangent operator, fabric, cauchy stress, thermal conductivity
+  const double keff = ComputeEffectiveThermalConductivity(r_process_info);
+
   for (int i = 0; i < dim; i++) {
     for (int j = 0; j < dim; j++) {
       for (int k = 0; k < dim; k++) {
@@ -2429,7 +2433,7 @@ void SphericParticle::HierarchicalMultiscaleComputationsPW(const ProcessInfo& r_
       const double nij = normal[i] * normal[j];
       mFabricTensor(i,j)       += nij;
       mCauchyTensor(i,j)       += branch[i] * GlobalContactForce[j];
-      mConductivityTensor(i,j) += nij * ComputeEffectiveThermalConductivity(r_process_info);
+      mConductivityTensor(i,j) += nij * keff;
     }
   }
 }
