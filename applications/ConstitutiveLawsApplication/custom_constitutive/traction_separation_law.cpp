@@ -964,6 +964,15 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
 /***********************************************************************************/
 
 template<unsigned int TDim>
+void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
 void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
@@ -1176,216 +1185,16 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
-
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-
-    // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is(BaseType::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(BaseType::COMPUTE_STRESS);
-    const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
-
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-    // The deformation gradient
-    if (rValues.IsSetDeterminantF()) {
-        const double determinant_f = rValues.GetDeterminantF();
-        KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
-    }
-
-    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateGreenLagrangeStrain(rValues);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
-
-    // The global strain vector, constant
-    const Vector strain_vector = rValues.GetStrainVector();
-
-    if (r_flags.Is( BaseType::COMPUTE_STRESS)) {
-        // Set new flags
-        r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        r_flags.Set(BaseType::COMPUTE_STRESS, true);
-
-        // Auxiliar stress vector
-        const auto it_prop_begin            = r_material_properties.GetSubProperties().begin();
-        Vector auxiliar_stress_vector       = ZeroVector(VoigtSize);
-
-        // The rotation matrix
-        BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-
-        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-
-            this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-
-            Properties& r_prop             = *(it_prop_begin + i_layer);
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-            const double factor            = mCombinationFactors[i_layer];
-
-            // We rotate to local axes the strain
-            noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-
-            rValues.SetMaterialProperties(r_prop);
-            p_law->CalculateMaterialResponsePK2(rValues);
-
-            // we return the stress and constitutive tensor to the global coordinates
-            rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
-
-            // we reset the properties and Strain
-            rValues.SetMaterialProperties(r_material_properties);
-            noalias(rValues.GetStrainVector()) = strain_vector;
-        }
-        Vector &r_stress_vector = rValues.GetStressVector();
-        noalias(r_stress_vector) = auxiliar_stress_vector;
-
-        if (rValues.IsSetDeterminantF()) {
-            // we push forward the stress
-            Matrix stress_matrix(Dimension, Dimension);
-            noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
-            this->ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
-            noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_stress_vector.size() );
-        }
-
-        if (flag_const_tensor) {
-            this->CalculateTangentTensor(rValues, BaseType::StressMeasure_PK2);
-            // push forward Constitutive tangent tensor
-            if (rValues.IsSetDeterminantF())
-                this->PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
-        }
-
-        // Previous flags restored
-        r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(BaseType::COMPUTE_STRESS, flag_stress);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-    }
-
-    KRATOS_CATCH("");
+    CalculateMaterialResponsePK2(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateGreenLagrangeStrain(rValues);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
-    // The rotation matrix
-    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    const Vector strain_vector = rValues.GetStrainVector();
-    // We perform the reset in each layer
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-        Properties& r_prop             = *(it_prop_begin + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        rValues.SetMaterialProperties(r_prop);
-        // We rotate to local axes the strain
-        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-        p_law->InitializeMaterialResponsePK1(rValues);
-    }
-    rValues.SetMaterialProperties(r_material_properties);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateGreenLagrangeStrain(rValues);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
-    // The rotation matrix
-    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    const Vector strain_vector = rValues.GetStrainVector();
-    // We perform the reset in each layer
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-        Properties& r_prop             = *(it_prop_begin + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        rValues.SetMaterialProperties(r_prop);
-        // We rotate to local axes the strain
-        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-        p_law->InitializeMaterialResponsePK2(rValues);
-    }
-    rValues.SetMaterialProperties(r_material_properties);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-{
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateGreenLagrangeStrain(rValues);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
-    // The rotation matrix
-    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    const Vector strain_vector = rValues.GetStrainVector();
-    // We perform the reset in each layer
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-        Properties& r_prop             = *(it_prop_begin + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        rValues.SetMaterialProperties(r_prop);
-        // We rotate to local axes the strain
-        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-        p_law->InitializeMaterialResponsePK2(rValues);
-    }
-    rValues.SetMaterialProperties(r_material_properties);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-{
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateGreenLagrangeStrain(rValues);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
-    // The rotation matrix
-    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    const Vector strain_vector = rValues.GetStrainVector();
-    // We perform the reset in each layer
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-        Properties& r_prop             = *(it_prop_begin + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        rValues.SetMaterialProperties(r_prop);
-        // We rotate to local axes the strain
-        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-        p_law->InitializeMaterialResponsePK2(rValues);
-    }
-    rValues.SetMaterialProperties(r_material_properties);
+    CalculateMaterialResponsePK2(rValues);
 }
 
 /***********************************************************************************/
@@ -1394,39 +1203,8 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterialResponseCauchy(Constitutiv
 template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-    // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is(BaseType::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(BaseType::COMPUTE_STRESS);
-    const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
-    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateGreenLagrangeStrain(rValues);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
-    // The rotation matrix
-    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    const Vector strain_vector = rValues.GetStrainVector();
-    // We perform the reset in each layer
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-        Properties& r_prop             = *(it_prop_begin + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        rValues.SetMaterialProperties(r_prop);
-        // We rotate to local axes the strain
-        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-        p_law->FinalizeMaterialResponsePK1(rValues);
-    }
-    rValues.SetMaterialProperties(r_material_properties);
-    // Previous flags restored
-    r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    r_flags.Set(BaseType::COMPUTE_STRESS, flag_stress);
-    r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+    FinalizeMaterialResponsePK2(rValues);
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1645,37 +1423,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-    // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is(BaseType::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(BaseType::COMPUTE_STRESS);
-    const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
-    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateGreenLagrangeStrain(rValues);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
-    // The rotation matrix
-    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    const Vector strain_vector = rValues.GetStrainVector();
-    // We perform the reset in each layer
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-        Properties& r_prop             = *(it_prop_begin + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        rValues.SetMaterialProperties(r_prop);
-        // We rotate to local axes the strain
-        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-        p_law->FinalizeMaterialResponsePK2(rValues);
-    }
-    rValues.SetMaterialProperties(r_material_properties);
-    // Previous flags restored
-    r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    r_flags.Set(BaseType::COMPUTE_STRESS, flag_stress);
-    r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+    FinalizeMaterialResponsePK2(rValues);
 }
 
 /***********************************************************************************/
@@ -1684,37 +1432,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseKirchhoff(Constituti
 template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-    // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is(BaseType::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(BaseType::COMPUTE_STRESS);
-    const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
-    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateGreenLagrangeStrain(rValues);
-        r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
-    // The rotation matrix
-    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    const Vector strain_vector = rValues.GetStrainVector();
-    // We perform the reset in each layer
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-        Properties& r_prop             = *(it_prop_begin + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        rValues.SetMaterialProperties(r_prop);
-        // We rotate to local axes the strain
-        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-        p_law->FinalizeMaterialResponsePK2(rValues);
-    }
-    rValues.SetMaterialProperties(r_material_properties);
-    // Previous flags restored
-    r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    r_flags.Set(BaseType::COMPUTE_STRESS, flag_stress);
-    r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+    FinalizeMaterialResponsePK2(rValues);
 }
 
 /***********************************************************************************/
