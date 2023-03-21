@@ -798,7 +798,7 @@ Matrix& TractionSeparationLaw3D<TDim>::CalculateValue(
 
 template<unsigned int TDim>
 array_1d<double, 3 >& TractionSeparationLaw3D<TDim>::CalculateValue(
-    Parameters& rParameterValues,
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
     )
@@ -830,7 +830,7 @@ array_1d<double, 3 >& TractionSeparationLaw3D<TDim>::CalculateValue(
 
 template<unsigned int TDim>
 array_1d<double, 6 >& TractionSeparationLaw3D<TDim>::CalculateValue(
-    Parameters& rParameterValues,
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
     )
@@ -924,7 +924,7 @@ bool TractionSeparationLaw3D<TDim>::IsIncremental()
 template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
+    const ConstitutiveLaw::GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
     )
 {
@@ -1803,7 +1803,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseCauchy(Parameters& r
 template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::ResetMaterial(
     const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
+    const ConstitutiveLaw::GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
     )
 {
@@ -1835,7 +1835,7 @@ void TractionSeparationLaw3D<TDim>::GetLawFeatures(Features& rFeatures)
 template<unsigned int TDim>
 int TractionSeparationLaw3D<TDim>::Check(
     const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
+    const ConstitutiveLaw::GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {

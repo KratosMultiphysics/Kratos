@@ -66,6 +66,8 @@ public:
     ///@{
         typedef ParallelRuleOfMixturesLaw<TDim> BaseType;
 
+        typedef std::size_t SizeType;
+
         /// The define the working dimension size, already defined in the integrator
         static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
 
