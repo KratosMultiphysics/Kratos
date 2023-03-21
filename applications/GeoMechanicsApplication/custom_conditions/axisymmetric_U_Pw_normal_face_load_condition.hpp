@@ -42,26 +42,22 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwNormalFaceLoadCondition<TDim,TNumNodes>::mThisIntegrationMethod;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    AxisymmetricUPwNormalFaceLoadCondition() : UPwNormalFaceLoadCondition<TDim,TNumNodes>() {}
+    AxisymmetricUPwNormalFaceLoadCondition() : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr) {}
 
-    // Constructor 1
-    AxisymmetricUPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    AxisymmetricUPwNormalFaceLoadCondition( IndexType               NewId,
+                                            GeometryType::Pointer   pGeometry )
+        : AxisymmetricUPwNormalFaceLoadCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Constructor 2
-    AxisymmetricUPwNormalFaceLoadCondition( IndexType NewId,
-                                            GeometryType::Pointer pGeometry,
+    AxisymmetricUPwNormalFaceLoadCondition( IndexType               NewId,
+                                            GeometryType::Pointer   pGeometry,
                                             PropertiesType::Pointer pProperties )
-                                            : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
-    {
-        mThisIntegrationMethod = this->GetIntegrationMethod();
-    }
+        : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
+    {}
 
-    // Destructor
     ~AxisymmetricUPwNormalFaceLoadCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

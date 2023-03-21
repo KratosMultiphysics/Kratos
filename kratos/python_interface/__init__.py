@@ -24,13 +24,17 @@ class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
     kratos_libs = os.path.join(kratos_install_path, "libs")
+    kratos_module_libs = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".libs")
     kratos_applications = os.path.join(kratos_install_path, "applications")
     kratos_scripts = os.path.join(kratos_install_path, "kratos", "python_scripts")
     kratos_tests = os.path.join(kratos_install_path, "kratos", "tests")
 
 # import core library (Kratos.so)
 sys.path.append(KratosPaths.kratos_libs)
+sys.path.append(KratosPaths.kratos_module_libs)
 from Kratos import *
+
+Kernel.RegisterPythonVersion()
 
 def __getattr__(name):
     if name == "CppRegistry":

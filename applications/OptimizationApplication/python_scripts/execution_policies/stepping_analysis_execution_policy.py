@@ -31,6 +31,9 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
         analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
         self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
 
+    def GetAnalysisModelPart(self):
+        return self.analysis._GetSolver().GetComputingModelPart()
+
     def ExecuteInitialize(self):
         self.analysis.Initialize()
 
