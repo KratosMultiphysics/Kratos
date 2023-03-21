@@ -13,8 +13,7 @@
 //                   Alejandro Cornejo Velazquez
 //
 
-#if !defined (KRATOS_TRACTION_SEPARATION_LAW_H_INCLUDED)
-#define  KRATOS_TRACTION_SEPARATION_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -670,4 +669,3 @@ private:
 
 }; // Class TractionSeparationLaw3D
 }  // namespace Kratos.
-#endif // KRATOS_TRACTION_SEPARATION_LAW_H_INCLUDED  defined
