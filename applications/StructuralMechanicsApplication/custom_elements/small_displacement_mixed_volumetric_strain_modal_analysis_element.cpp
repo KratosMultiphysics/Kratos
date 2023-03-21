@@ -110,6 +110,8 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::EquationIdVecto
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, eps_vol_pos).EquationId();
+        }
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_PROJECTION_X, disp_proj_pos).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_PROJECTION_Y, disp_proj_pos + 1).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN_PROJECTION, eps_vol_proj_pos).EquationId();
@@ -120,6 +122,8 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::EquationIdVecto
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, disp_pos + 2).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, eps_vol_pos).EquationId();
+        }
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_PROJECTION_X, disp_proj_pos).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_PROJECTION_Y, disp_proj_pos + 1).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_PROJECTION_Z, disp_proj_pos + 2).EquationId();
@@ -142,11 +146,13 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::GetDofList(
     const auto& r_geometry = GetGeometry();
     const IndexType n_nodes = r_geometry.PointsNumber();
     const IndexType dim = r_geometry.WorkingSpaceDimension();
-    const IndexType block_size = 2.0 * (dim + 1);
-    const IndexType dof_size = n_nodes * block_size;
+    const IndexType block_size = dim + 1;
+    const IndexType block_size_full = 2 * block_size;
+    const IndexType matrix_size = block_size * n_nodes;
+    const IndexType matrix_size_full = n_nodes * block_size_full;
 
-    if (rElementalDofList.size() != dof_size){
-        rElementalDofList.resize(dof_size);
+    if (rElementalDofList.size() != matrix_size_full){
+        rElementalDofList.resize(matrix_size_full);
     }
 
     if (dim == 2) {
@@ -154,20 +160,20 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::GetDofList(
             rElementalDofList[i * block_size] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[i * block_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[i * block_size + 2] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN);
-            rElementalDofList[i * block_size + 3] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_X);
-            rElementalDofList[i * block_size + 4] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_Y);
-            rElementalDofList[i * block_size + 5] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN_PROJECTION);
+            rElementalDofList[matrix_size + i * block_size] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_X);
+            rElementalDofList[matrix_size + i * block_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_Y);
+            rElementalDofList[matrix_size + i * block_size + 2] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN_PROJECTION);
         }
     } else if (dim == 3) {
-        for(IndexType i = 0; i < n_nodes; ++i){
+        for(IndexType i = 0; i < n_nodes; ++i) {
             rElementalDofList[i * block_size] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[i * block_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[i * block_size + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
             rElementalDofList[i * block_size + 3] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN);
-            rElementalDofList[i * block_size + 4] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_X);
-            rElementalDofList[i * block_size + 5] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_Y);
-            rElementalDofList[i * block_size + 6] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_Z);
-            rElementalDofList[i * block_size + 7] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN_PROJECTION);
+            rElementalDofList[matrix_size + i * block_size] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_X);
+            rElementalDofList[matrix_size + i * block_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_Y);
+            rElementalDofList[matrix_size + i * block_size + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_PROJECTION_Z);
+            rElementalDofList[matrix_size + i * block_size + 3] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN_PROJECTION);
         }
     }
 
@@ -227,16 +233,17 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLocalS
     VectorType aux_data(matrix_size_full);
     if (dim == 2) {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            IndexType i_row_full = i_node * block_size_full;
+            IndexType i_row_dof = i_node * block_size;
+            IndexType i_row_proj = matrix_size + i_node * block_size;
             const auto& r_node = r_geometry[i_node];
             const auto& r_disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
             const auto& r_disp_proj = r_node.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
-            aux_data[i_row_full] = r_disp[0];
-            aux_data[i_row_full + 1] = r_disp[1];
-            aux_data[i_row_full + 2] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-            aux_data[i_row_full + 3] = r_disp_proj[0];
-            aux_data[i_row_full + 4] = r_disp_proj[1];
-            aux_data[i_row_full + 5] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
+            aux_data[i_row_dof] = r_disp[0];
+            aux_data[i_row_dof + 1] = r_disp[1];
+            aux_data[i_row_dof + 2] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+            aux_data[i_row_proj] = r_disp_proj[0];
+            aux_data[i_row_proj + 1] = r_disp_proj[1];
+            aux_data[i_row_proj + 2] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
         }
     } else {
         KRATOS_ERROR << "No 3D implementation yet." << std::endl;
@@ -274,33 +281,30 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLeftHa
         rCurrentProcessInfo);
 
     // Call the base element OSS operator
+    MatrixType aux_oss_stab_operator(matrix_size, matrix_size);
+    CalculateOrthogonalSubScalesStabilizationOperator(
+        aux_oss_stab_operator,
+        rCurrentProcessInfo);
+
+    // Call the base element OSS operator
     MatrixType aux_oss_operator(matrix_size, matrix_size);
-    BaseType::CalculateOrthogonalSubScalesOperator(
+    CalculateOrthogonalSubScalesOperator(
         aux_oss_operator,
         rCurrentProcessInfo);
 
     // Call the base element OSS lumped projection operator
     MatrixType aux_lumped_mass_operator(matrix_size, matrix_size);
-    BaseType::CalculateOrthogonalSubScalesLumpedProjectionOperator(
+    CalculateOrthogonalSubScalesLumpedProjectionOperator(
         aux_lumped_mass_operator,
         rCurrentProcessInfo);
 
     // Assemble the extended modal analysis LHS
-    for (IndexType i = 0; i < n_nodes; ++i) {
-        IndexType i_row = i*block_size;
-        IndexType i_row_full = i*block_size_full;
-        for (IndexType j = 0; j < n_nodes; ++j) {
-            IndexType j_col = j*block_size;
-            IndexType j_col_full = j*block_size_full;
-            for (IndexType l = 0; l < block_size; ++l) {
-                for (IndexType m = 0; m < block_size; ++m) {
-                    rLeftHandSideMatrix(i_row_full+l, j_col_full+m) = aux_stiffnes(i_row+l, j_col+m);
-                    rLeftHandSideMatrix(i_row_full+l, j_col_full+block_size+m) = aux_oss_operator(i_row+l, j_col+m);
-                    rLeftHandSideMatrix(i_row_full+block_size+l, j_col_full+m) = aux_oss_operator(j_col+m, i_row+l);
-                    // rLeftHandSideMatrix(i*block_size_full + block_size + l, j*block_size_full + block_size + m) = aux_lumped_mass_operator(i*block_size + l, j*block_size + m);
-                }
-                rLeftHandSideMatrix(i_row_full+block_size+l, i_row_full+block_size+l) = aux_lumped_mass_operator(i_row+l, i_row+l);
-            }
+    for (IndexType i = 0; i < matrix_size; ++i) {
+        for (IndexType j = 0; j < matrix_size; ++j) {
+            rLeftHandSideMatrix(i,j) = aux_stiffnes(i,j);
+            rLeftHandSideMatrix(i, matrix_size + j) = aux_oss_stab_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + i, matrix_size + j) = aux_lumped_mass_operator(i,j);
         }
     }
 }
@@ -408,7 +412,9 @@ int SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Check(const Proc
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT_PROJECTION, r_node)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_PROJECTION_X, r_node)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_PROJECTION_Y, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_PROJECTION_Z, r_node)
+        if (rCurrentProcessInfo[DOMAIN_SIZE] == 3) {
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_PROJECTION_Z, r_node)
+        }
     }
 
     return check;
@@ -457,6 +463,296 @@ const Parameters SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Get
     }
 
     return specifications;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthogonalSubScalesOperator(
+    MatrixType &rOrthogonalSubScalesOperator,
+    const ProcessInfo &rProcessInfo) const
+{
+    const auto &r_geometry = GetGeometry();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * n_nodes;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+
+    // Check LHS size
+    if (rOrthogonalSubScalesOperator.size1() != matrix_size || rOrthogonalSubScalesOperator.size2() != matrix_size) {
+        rOrthogonalSubScalesOperator.resize(matrix_size, matrix_size, false);
+    }
+
+    // Initialize the OSS operator with zeros
+    rOrthogonalSubScalesOperator.clear();
+
+    // Create the kinematics container
+    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+
+    // Create the constitutive variables and values containers
+    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rProcessInfo);
+    auto& r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    // Set auxiliary arrays
+    Vector voigt_identity =  ZeroVector(strain_size);
+    for (IndexType d = 0; d < dim; ++d) {
+        voigt_identity[d] = 1.0;
+    }
+    Vector G_j(dim);
+    Vector psi_j(dim);
+    Matrix B_j(strain_size, dim);
+
+    // Calculate the anisotropy tensor products
+    const Vector m_T = prod(voigt_identity, GetAnisotropyTensor());
+
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const double thickness = (dim == 2 && GetProperties().Has(THICKNESS)) ? GetProperties()[THICKNESS] : 1.0;
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        // Calculate kinematics
+        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+
+        // Calculate the constitutive response
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // // Calculate tau_1 stabilization constant
+        // const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rProcessInfo);
+
+        // // Calculate tau_2 stabilization constant
+        // const double tau_2 = CalculateTau2(constitutive_variables);
+
+        const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
+        // const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
+        // const double aux_w_kappa_tau_2 = w_gauss * bulk_modulus * tau_2;
+
+        for (IndexType j = 0; j < n_nodes; ++j) {
+            const double N_j = kinematic_variables.N[j];
+            noalias(G_j) = row(kinematic_variables.DN_DX, j);
+            for (IndexType k = 0;  k < strain_size; ++k) {
+                for (IndexType l = 0; l < dim; ++l) {
+                    B_j(k,l) = kinematic_variables.B(k, j * dim + l);
+                }
+            }
+            noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(GetAnisotropyTensor(), B_j)));
+
+            for (IndexType i = 0; i < n_nodes; ++i) {
+                const double N_i = kinematic_variables.N[i];
+                rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) += w_gauss * N_i * N_j;
+                for (IndexType d = 0; d < dim; ++d) {
+                    rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) -= w_gauss * bulk_modulus * N_i * G_j[d] ;
+                    rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) -= w_gauss * N_i * psi_j[d];
+                }
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthogonalSubScalesStabilizationOperator(
+    MatrixType &rOrthogonalSubScalesStabilizationOperator,
+    const ProcessInfo &rProcessInfo) const
+{
+    const auto &r_geometry = GetGeometry();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * n_nodes;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+
+    // Check LHS size
+    if (rOrthogonalSubScalesStabilizationOperator.size1() != matrix_size || rOrthogonalSubScalesStabilizationOperator.size2() != matrix_size) {
+        rOrthogonalSubScalesStabilizationOperator.resize(matrix_size, matrix_size, false);
+    }
+
+    // Initialize the OSS operator with zeros
+    rOrthogonalSubScalesStabilizationOperator.clear();
+
+    // Create the kinematics container
+    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+
+    // Create the constitutive variables and values containers
+    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rProcessInfo);
+    auto& r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    // Set the auxiliary Gauss point variable container
+    GaussPointAuxiliaryVariables gauss_point_auxiliary_variables(this, dim, strain_size);
+
+    // // Set auxiliary arrays
+    // Vector voigt_identity =  ZeroVector(strain_size);
+    // for (IndexType d = 0; d < dim; ++d) {
+    //     voigt_identity[d] = 1.0;
+    // }
+    // Vector G_i(dim);
+    // Vector psi_i(dim);
+    // Matrix B_i(strain_size, dim);
+
+    // // Calculate the anisotropy tensor products
+    // const Vector m_T = prod(voigt_identity, mAnisotropyTensor);
+
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    // const double thickness = (dim == 2 && GetProperties().Has(THICKNESS)) ? GetProperties()[THICKNESS] : 1.0;
+    // const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        // Calculate kinematics
+        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        // const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+
+        // Calculate the constitutive response
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate the auxiliary Gauss point variables
+        CalculateGaussPointAuxiliaryVariables(
+            gauss_point_auxiliary_variables,
+            kinematic_variables,
+            constitutive_variables,
+            rProcessInfo,
+            i_gauss);
+
+        // Assemble the current Gauss point OSS projection operator
+        CalculateOssStabilizationOperatorGaussPointContribution(
+            rOrthogonalSubScalesStabilizationOperator,
+            kinematic_variables,
+            gauss_point_auxiliary_variables);
+
+        // // Calculate tau_1 stabilization constant
+        // const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rProcessInfo);
+
+        // // Calculate tau_2 stabilization constant
+        // const double tau_2 = CalculateTau2(constitutive_variables);
+
+        // const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
+        // const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
+        // const double aux_w_kappa_tau_2 = w_gauss * bulk_modulus * tau_2;
+
+        // for (IndexType i = 0; i < n_nodes; ++i) {
+        //     const double N_i = kinematic_variables.N[i];
+        //     noalias(G_i) = row(kinematic_variables.DN_DX, i);
+        //     for (IndexType k = 0;  k < strain_size; ++k) {
+        //         for (IndexType l = 0; l < dim; ++l) {
+        //             B_i(k,l) = kinematic_variables.B(k, i * dim + l);
+        //         }
+        //     }
+        //     noalias(psi_i) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
+
+        //     for (IndexType j = 0; j < n_nodes; ++j) {
+        //         const double N_j = kinematic_variables.N[j];
+        //         rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) -= aux_w_kappa_tau_2 * N_i * N_j;
+        //         for (IndexType d = 0; d < dim; ++d) {
+        //             rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) += aux_w_kappa_tau_1 * G_i[d] * N_j;
+        //             rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) += aux_w_kappa_tau_2 * psi_i[d] * N_j;
+        //         }
+        //     }
+        // }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthogonalSubScalesLumpedProjectionOperator(
+        MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
+        const ProcessInfo& rProcessInfo) const
+{
+    const auto &r_geometry = GetGeometry();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * n_nodes;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+
+    // Check LHS size
+    if (rOrthogonalSubScalesLumpedProjectionOperator.size1() != matrix_size || rOrthogonalSubScalesLumpedProjectionOperator.size2() != matrix_size) {
+        rOrthogonalSubScalesLumpedProjectionOperator.resize(matrix_size, matrix_size, false);
+    }
+
+    // Initialize the OSS operator with zeros
+    rOrthogonalSubScalesLumpedProjectionOperator.clear();
+
+    // Create the kinematics container
+    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+
+    // Create the constitutive variables and values containers
+    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rProcessInfo);
+    auto& r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    // Set auxiliary arrays
+    Vector voigt_identity =  ZeroVector(strain_size);
+    for (IndexType d = 0; d < dim; ++d) {
+        voigt_identity[d] = 1.0;
+    }
+
+    // Calculate the anisotropy tensor products
+    const Vector m_T = prod(voigt_identity, GetAnisotropyTensor());
+
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const double thickness = (dim == 2 && GetProperties().Has(THICKNESS)) ? GetProperties()[THICKNESS] : 1.0;
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        // Calculate kinematics
+        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+
+        // Calculate the constitutive response
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate tau_1 stabilization constant
+        const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rProcessInfo);
+
+        // Calculate tau_2 stabilization constant
+        const double tau_2 = CalculateTau2(constitutive_variables);
+
+        double sum_N_j;
+        const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
+        const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
+        const double aux_w_kappa_tau_2 = w_gauss * bulk_modulus * tau_2;
+        for (IndexType i = 0; i < n_nodes; ++i) {
+            sum_N_j = 0.0;
+            const double N_i = kinematic_variables.N[i];
+            for (IndexType j = 0; j < n_nodes; ++j) {
+                sum_N_j += kinematic_variables.N[j];
+            }
+            for (IndexType d = 0; d < dim; ++d) {
+                // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) -= aux_w_kappa_tau_1 * N_i * sum_N_j;
+                rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += w_gauss * N_i * sum_N_j;
+            }
+            // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) -= aux_w_kappa_tau_2 * N_i * sum_N_j;
+            rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) += w_gauss * N_i * sum_N_j;
+        }
+    }
 }
 
 /***********************************************************************************/

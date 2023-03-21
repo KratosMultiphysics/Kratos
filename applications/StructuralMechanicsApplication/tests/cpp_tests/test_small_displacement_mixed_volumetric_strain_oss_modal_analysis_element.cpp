@@ -55,64 +55,64 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 //     }
 // }
 
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3N, KratosStructuralMechanicsFastSuite)
-    {
+    // KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssModalAnalysisElement2D3N, KratosStructuralMechanicsFastSuite)
+    // {
 
-        Model current_model;
-        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+    //     Model current_model;
+    //     auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
-        auto& r_process_info = r_model_part.GetProcessInfo();
+    //     auto& r_process_info = r_model_part.GetProcessInfo();
 
-        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
-        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_PROJECTION);
-        r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN_PROJECTION);
+    //     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    //     r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
+    //     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_PROJECTION);
+    //     r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN_PROJECTION);
 
-        // Set the element properties
-        auto p_elem_prop = r_model_part.CreateNewProperties(0);
-        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
-        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+    //     // Set the element properties
+    //     auto p_elem_prop = r_model_part.CreateNewProperties(0);
+    //     p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+    //     p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+    //     const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
+    //     p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
-        // Create the test element
-        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
-        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
-        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssElement2D3N", 1, element_nodes, p_elem_prop);
+    //     // Create the test element
+    //     auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    //     auto p_node_3 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    //     auto p_node_2 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
+    //     std::vector<ModelPart::IndexType> element_nodes {1,2,3};
+    //     auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssModalAnalysisElement2D3N", 1, element_nodes, p_elem_prop);
 
-        // Set a fake displacement and volumetric strain field to compute the residual
-        array_1d<double, 3> aux_disp = ZeroVector(3);
-        p_node_1->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-        p_node_2->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-        aux_disp[1] = 0.1;
-        p_node_3->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-        p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
-        p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
-        p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
+    //     // Set a fake displacement and volumetric strain field to compute the residual
+    //     array_1d<double, 3> aux_disp = ZeroVector(3);
+    //     p_node_1->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+    //     p_node_2->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+    //     aux_disp[1] = 0.1;
+    //     p_node_3->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+    //     p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+    //     p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+    //     p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
 
-        // Set fake projection values to calculate the residual
-        p_node_1->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
-        p_node_2->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
-        p_node_3->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
-        p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 1e-3;
-        p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 2e-3;
-        p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 3e-3;
+    //     // Set fake projection values to calculate the residual
+    //     p_node_1->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
+    //     p_node_2->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
+    //     p_node_3->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
+    //     p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 1e-3;
+    //     p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 2e-3;
+    //     p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 3e-3;
 
-        // Compute RHS and LHS
-        Vector RHS = ZeroVector(9);
-        Matrix LHS = ZeroMatrix(9,9);
-        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
+    //     // Compute RHS and LHS
+    //     Vector RHS = ZeroVector(9);
+    //     Matrix LHS = ZeroMatrix(9,9);
+    //     p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+    //     p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-        // Check RHS and LHS results
-        const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({51163.4615385, 51163.4615385, -1826.95729354, -12701.9230769, -38461.5384615, 10545.7373939, -38461.5384615, -12701.9230769, 3963.91220736});
-        const std::vector<double> expected_LHS_row_0({778846, 9615.38, -317308, -394231, -384615, -317308, -384615, 375000, -317308});
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
-    }
+    //     // Check RHS and LHS results
+    //     const double tolerance = 1.0e-5;
+    //     const std::vector<double> expected_RHS({51163.4615385, 51163.4615385, -1826.95729354, -12701.9230769, -38461.5384615, 10545.7373939, -38461.5384615, -12701.9230769, 3963.91220736});
+    //     const std::vector<double> expected_LHS_row_0({778846, 9615.38, -317308, -394231, -384615, -317308, -384615, 375000, -317308});
+    //     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
+    //     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+    // }
 
     // /**
     // * Checks the Small Displacement Mixed Strain Element
@@ -389,7 +389,7 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     * Checks the Small Displacement Mixed Strain Element
     * Zienkiewicz patch test
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssModalAnalysisElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto& r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -402,9 +402,6 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
         r_model_part.AddNodalSolutionStepVariable(REACTION_STRAIN);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN_PROJECTION);
-
-        // Activate the OSS projections
-        r_process_info.GetValue(OSS_SWITCH) = true;
 
         // Set the element properties
         auto p_elem_prop = r_model_part.CreateNewProperties(1);
@@ -420,8 +417,8 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
         auto p_node_4 = r_model_part.CreateNewNode(4, 1.0 , 0.0 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes_1 {1,3,2};
         std::vector<ModelPart::IndexType> element_nodes_2 {1,4,3};
-        auto p_element_1 = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssElement2D3N", 1, element_nodes_1, p_elem_prop);
-        auto p_element_2 = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssElement2D3N", 2, element_nodes_2, p_elem_prop);
+        auto p_element_1 = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N", 1, element_nodes_1, p_elem_prop);
+        auto p_element_2 = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N", 2, element_nodes_2, p_elem_prop);
 
         // Create the load condition
         auto p_cond_prop = r_model_part.CreateNewProperties(0);
@@ -433,10 +430,14 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
         // Add DOFs
         for (auto &r_node: r_model_part.Nodes()) {
-            r_node.AddDof(DISPLACEMENT_X, REACTION_X);
-            r_node.AddDof(DISPLACEMENT_Y, REACTION_Y);
-            r_node.AddDof(DISPLACEMENT_Z, REACTION_Z);
-            r_node.AddDof(VOLUMETRIC_STRAIN, REACTION_STRAIN);
+            r_node.AddDof(DISPLACEMENT_X);
+            r_node.AddDof(DISPLACEMENT_Y);
+            r_node.AddDof(DISPLACEMENT_Z);
+            r_node.AddDof(VOLUMETRIC_STRAIN);
+            r_node.AddDof(DISPLACEMENT_PROJECTION_X);
+            r_node.AddDof(DISPLACEMENT_PROJECTION_Y);
+            r_node.AddDof(DISPLACEMENT_PROJECTION_Z);
+            r_node.AddDof(VOLUMETRIC_STRAIN_PROJECTION);
         }
 
         // Initialize the elements to initialize the constitutive law
@@ -489,7 +490,7 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
         // KRATOS_CHECK_NEAR(p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN), expected_vol_strain, tolerance);
 
         // GiD output
-        GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/test_small_displacement_mixed_volumetric_strain_oss_element_zienkiewicz_patch", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/test_small_displacement_mixed_volumetric_strain_oss_modal_analysis_element_zienkiewicz_patch", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		gid_io_fluid.InitializeMesh(0.0);
 		gid_io_fluid.WriteMesh(r_model_part.GetMesh());
 		gid_io_fluid.FinalizeMesh();

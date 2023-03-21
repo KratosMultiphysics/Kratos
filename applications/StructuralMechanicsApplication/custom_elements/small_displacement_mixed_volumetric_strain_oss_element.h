@@ -223,7 +223,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateOssOperatorGaussPointContribution(
+    void CalculateOssStabilizationOperatorGaussPointContribution(
         MatrixType &rOrthogonalSubScalesOperator,
         const KinematicVariables &rThisKinematicVariables,
         const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;

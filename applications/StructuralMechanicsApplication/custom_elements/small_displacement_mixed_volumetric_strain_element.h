@@ -596,14 +596,6 @@ protected:
      */
     double CalculateTau2(const ConstitutiveVariables& rThisConstitutiveVariables) const;
 
-    void CalculateOrthogonalSubScalesOperator(
-        MatrixType& rOrthogonalSubScalesOperator,
-        const ProcessInfo& rProcessInfo) const;
-
-    void CalculateOrthogonalSubScalesLumpedProjectionOperator(
-        MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
-        const ProcessInfo& rProcessInfo) const;
-
     virtual void CalculateLocalSystemGaussPointContribution(
         VectorType& rRightHandSideVector,
         MatrixType& rLeftHandSideMatrix,

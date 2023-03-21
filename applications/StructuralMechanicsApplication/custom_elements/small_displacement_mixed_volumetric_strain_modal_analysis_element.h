@@ -23,7 +23,7 @@
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
-#include "small_displacement_mixed_volumetric_strain_element.h"
+#include "small_displacement_mixed_volumetric_strain_oss_element.h"
 
 namespace Kratos
 {
@@ -63,7 +63,7 @@ namespace Kratos
  * @author Riccardo Rossi
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedVolumetricStrainModalAnalysisElement
-    : public SmallDisplacementMixedVolumetricStrainElement
+    : public SmallDisplacementMixedVolumetricStrainOssElement
 {
 
 public:
@@ -72,7 +72,7 @@ public:
     ///@{
 
     /// The base element type
-    using BaseType = SmallDisplacementMixedVolumetricStrainElement;
+    using BaseType = SmallDisplacementMixedVolumetricStrainOssElement;
 
     ///Reference type definition for constitutive laws
     using ConstitutiveLawType = typename BaseType::ConstitutiveLawType;
@@ -335,6 +335,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void CalculateOrthogonalSubScalesOperator(
+        MatrixType &rOrthogonalSubScalesOperator,
+        const ProcessInfo &rProcessInfo) const;
+
+    void CalculateOrthogonalSubScalesStabilizationOperator(
+        MatrixType &rOrthogonalSubScalesStabilizationOperator,
+        const ProcessInfo &rProcessInfo) const;
+
+    void CalculateOrthogonalSubScalesLumpedProjectionOperator(
+        MatrixType &rOrthogonalSubScalesLumpedProjectionOperator,
+        const ProcessInfo &rProcessInfo) const;
 
     ///@}
     ///@name Private  Access

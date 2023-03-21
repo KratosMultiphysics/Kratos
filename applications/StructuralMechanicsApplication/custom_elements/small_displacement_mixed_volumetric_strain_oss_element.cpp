@@ -150,13 +150,14 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
             gauss_point_auxiliary_variables);
 
         // Assemble the current Gauss point OSS projection operator
-        CalculateOssOperatorGaussPointContribution(
+        CalculateOssStabilizationOperatorGaussPointContribution(
             oss_proj_op,
             kinematic_variables,
             gauss_point_auxiliary_variables);
     }
 
     // Substract the OSS projections to the current residual
+    // Note that the OSS stabilization projection operator already includes the minus sign
     VectorType proj_vect(matrix_size);
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_us_proj = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
@@ -165,7 +166,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
         }
         proj_vect(i_node*block_size + dim) = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
     }
-    rRightHandSideVector -= prod(oss_proj_op, proj_vect);
+    rRightHandSideVector += prod(oss_proj_op, proj_vect);
 }
 
 /***********************************************************************************/
@@ -246,7 +247,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
             gauss_point_auxiliary_variables);
 
         // Assemble the current Gauss point OSS projection operator
-        CalculateOssOperatorGaussPointContribution(
+        CalculateOssStabilizationOperatorGaussPointContribution(
             oss_proj_op,
             kinematic_variables,
             gauss_point_auxiliary_variables);
@@ -261,7 +262,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
         }
         proj_vect(i_node*block_size + dim) = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
     }
-    rRightHandSideVector -= prod(oss_proj_op, proj_vect);
+    rRightHandSideVector += prod(oss_proj_op, proj_vect);
 }
 
 /***********************************************************************************/
@@ -312,33 +313,32 @@ void SmallDisplacementMixedVolumetricStrainOssElement::Calculate(
             // Note that this already includes the thickness
             const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
-            // Calculate current Gauss point displacement subscale projection contribution
-            double aux_res;
-            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-                const double N_i = kinematic_variables.N[i_node];
-                for (IndexType j_node = 0; j_node < n_nodes; ++j_node) {
-                    for (IndexType k = 0;  k < strain_size; ++k) {
-                        for (IndexType l = 0; l < dim; ++l) {
-                            B_j(k,l) = kinematic_variables.B(k, j_node * dim + l);
-                        }
-                    }
-                    noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(GetAnisotropyTensor(), B_j)));
-
-                    aux_res = N_j * kinematic_variables.VolumetricNodalStrains[j_node];
-                    const double N_j = kinematic_variables.N[j_node];
-                    for (IndexType d = 0; d < dim; ++d) {
-                        aux_res -= psi_j[d] * kinematic_variables.Displacements[j_node*dim + d];
+            // Calculate current Gauss point volumetric strain subscale projection contribution
+            double aux_res = 0.0;
+            for (IndexType j_node = 0; j_node < n_nodes; ++j_node) {
+                for (IndexType k = 0;  k < strain_size; ++k) {
+                    for (IndexType l = 0; l < dim; ++l) {
+                        B_j(k,l) = kinematic_variables.B(k, j_node * dim + l);
                     }
                 }
-                aux_proj[i_node] += w_gauss * N_i * aux_res;
+                const double N_j = kinematic_variables.N[j_node];
+                noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(GetAnisotropyTensor(), B_j)));
+                // aux_res += N_j * kinematic_variables.VolumetricNodalStrains[j_node];
+                // for (IndexType d = 0; d < dim; ++d) {
+                //     aux_res -= psi_j[d] * kinematic_variables.Displacements[j_node*dim + d];
+                // }
+                for (IndexType d = 0; d < dim; ++d) {
+                    aux_res += psi_j[d] * kinematic_variables.Displacements[j_node*dim + d];
+                }
+                aux_res -= N_j * kinematic_variables.VolumetricNodalStrains[j_node];
+            }
+
+            // Nodal assembly of the projection contributions
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                const double N_i = kinematic_variables.N[i_node];
+                AtomicAdd(r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION), w_gauss*N_i*aux_res);
             }
         }
-
-        // Nodal assembly of the projection contributions
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            AtomicAdd(r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION), aux_proj[i_node]);
-        }
-
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
     }
@@ -387,7 +387,8 @@ void SmallDisplacementMixedVolumetricStrainOssElement::Calculate(
         GaussPointAuxiliaryVariables gauss_point_auxiliary_variables(this, dim, strain_size);
 
         // Calculate the momentum equation projection
-        Vector aux_proj = ZeroVector(n_nodes*dim);
+        array_1d<double,3> aux_proj;
+        array_1d<double,3> w_Ni_aux_proj;
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Calculate kinematics
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
@@ -410,26 +411,19 @@ void SmallDisplacementMixedVolumetricStrainOssElement::Calculate(
                 i_gauss);
 
             // Calculate current Gauss point displacement subscale projection contribution
+            aux_proj = ZeroVector(3);
             const auto& r_body_force = gauss_point_auxiliary_variables.BodyForce;
             const auto& r_grad_eps = gauss_point_auxiliary_variables.VolumetricStrainGradient;
-            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-                const double N_i = kinematic_variables.N[i_node];
-                for (IndexType d = 0; d < dim; ++d) {
-                    aux_proj[i_node*dim + d] += gauss_point_auxiliary_variables.Weight * N_i * (r_body_force[d] + gauss_point_auxiliary_variables.BulkModulus * r_grad_eps[d]);
-                }
-            }
-        }
-
-        // Nodal assembly of the projection contributions
-        array_1d<double,3> i_aux_proj;
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            i_aux_proj = ZeroVector(3);
             for (IndexType d = 0; d < dim; ++d) {
-                i_aux_proj[d] = aux_proj[i_node*dim + d];
+                aux_proj[d] = -r_body_force[d] - gauss_point_auxiliary_variables.BulkModulus * r_grad_eps[d];
             }
-            AtomicAdd(r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION), i_aux_proj);
-        }
 
+            // Nodal assembly of the projection contributions
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                w_Ni_aux_proj = gauss_point_auxiliary_variables.Weight * kinematic_variables.N[i_node] * aux_proj;
+                AtomicAdd(r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION), w_Ni_aux_proj);
+            }
+        }
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
     }
@@ -496,7 +490,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::UpdateGaussPointDisplacem
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainOssElement::CalculateOssOperatorGaussPointContribution(
+void SmallDisplacementMixedVolumetricStrainOssElement::CalculateOssStabilizationOperatorGaussPointContribution(
     MatrixType& rOrthogonalSubScalesOperator,
     const KinematicVariables& rThisKinematicVariables,
     const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const
@@ -526,10 +520,10 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateOssOperatorGauss
 
         for (IndexType j = 0; j < n_nodes; ++j) {
             const double N_j = rThisKinematicVariables.N[j];
-            rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) -= aux_w_kappa_tau_2 * N_i * N_j;
+            rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j;
             for (IndexType d = 0; d < dim; ++d) {
-                rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) += aux_w_kappa_tau_1 * G_i[d] * N_j;
-                rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) += aux_w_kappa_tau_2 * psi_i[d] * N_j;
+                rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) -= aux_w_kappa_tau_1 * G_i[d] * N_j;
+                rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) -= aux_w_kappa_tau_2 * psi_i[d] * N_j;
             }
         }
     }
