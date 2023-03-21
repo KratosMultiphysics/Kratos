@@ -41,7 +41,6 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

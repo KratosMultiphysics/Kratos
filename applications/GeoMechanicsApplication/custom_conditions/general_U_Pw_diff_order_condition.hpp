@@ -47,16 +47,18 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    GeneralUPwDiffOrderCondition();
+    GeneralUPwDiffOrderCondition() : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
 
-    // Constructor 1
-    GeneralUPwDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    GeneralUPwDiffOrderCondition( IndexType               NewId,
+                                  GeometryType::Pointer   pGeometry )
+        : GeneralUPwDiffOrderCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Constructor 2
-    GeneralUPwDiffOrderCondition( IndexType NewId,
-                                  GeometryType::Pointer pGeometry,
-                                  PropertiesType::Pointer pProperties );
+    GeneralUPwDiffOrderCondition( IndexType               NewId,
+                                  GeometryType::Pointer   pGeometry,
+                                  PropertiesType::Pointer pProperties )
+        : Condition(NewId, pGeometry, pProperties)
+    {}
 
     // Destructor
     virtual ~GeneralUPwDiffOrderCondition();
@@ -108,9 +110,6 @@ protected:
     };
 
     // Member Variables
-
-    IntegrationMethod mThisIntegrationMethod;
-
     Geometry< Node<3> >::Pointer mpPressureGeometry;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
