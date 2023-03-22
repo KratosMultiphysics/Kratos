@@ -11,8 +11,7 @@
 //                   Alejandro Cornejo Velazquez
 //
 
-#if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
-#define  KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -915,7 +914,7 @@ protected:
      * @brief This method checks is an element has to be rotated
      * according to a set of local axes
      */
-    bool IsElementRotated() const;
+    virtual bool IsElementRotated() const;
 
     /**
      * @brief This method rotates the F or strain according to local axis from
@@ -1093,5 +1092,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED  defined

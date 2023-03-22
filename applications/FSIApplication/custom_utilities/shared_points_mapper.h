@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "containers/pointer_vector.h"
 #include "includes/node.h"
 
@@ -146,7 +147,7 @@ public:
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
-            (it_origin++ )->FastGetSolutionStepValue(rOriginVariable) = 
+            (it_origin++ )->FastGetSolutionStepValue(rOriginVariable) =
                 (it_destination++ )->FastGetSolutionStepValue(rDestinationVariable);
 
         }
@@ -186,9 +187,9 @@ public:
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
-            noalias((it_origin++ )->FastGetSolutionStepValue(rOriginVariable)) = 
+            noalias((it_origin++ )->FastGetSolutionStepValue(rOriginVariable)) =
                  (it_destination++ )->FastGetSolutionStepValue(rDestinationVariable);
-                
+
 
         }
 
@@ -330,6 +331,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SHARED_POINTS_MAPPER_H_INCLUDED  defined 
+#endif // KRATOS_SHARED_POINTS_MAPPER_H_INCLUDED  defined
 
 

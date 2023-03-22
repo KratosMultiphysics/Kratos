@@ -85,7 +85,7 @@ NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters Settings, File::Poin
             "list_of_variables": []
         })");
 
-    Settings.ValidateAndAssignDefaults(default_params);
+    Settings.AddMissingParameters(default_params);
 
     mPrefix = Settings["prefix"].GetString();
     mVariableNames = Settings["list_of_variables"].GetStringArray();

@@ -104,20 +104,6 @@ public:
     }
 
     /**
-     * @brief This function calculates the number of elements between first and last.
-     * @param rFirstData First element
-     * @param rSecondData Second element
-     * @return Distance Number of elements
-     */
-    static TDataType Distance(
-        const TDataType& rFirstData,
-        const TDataType& rSecondData
-        )
-    {
-        return rFirstData.Distance(rSecondData);
-    }
-
-    /**
      * @brief In geometry, Heron's formula (sometimes called Hero's formula), named after Hero of Alexandria, gives the area of a triangle by requiring no arbitrary choice of side as base or vertex as origin, contrary to other formulas for the area of a triangle, such as half the base times the height or half the norm of a cross product of two sides.
      * @param a First length
      * @param b Second length

@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: OptimizationApplication/license.txt
 //
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //

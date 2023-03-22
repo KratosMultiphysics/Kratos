@@ -13,6 +13,7 @@
 
 // System includes
 #include <fstream>
+#include <tuple>
 
 // External includes
 
@@ -142,12 +143,12 @@ KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToFile, KratosCoreFastSuite)
         // Cyclic indirections 2-4 cycles
         for (const auto& r_symlink : symlinks) {
             ScopedSymlink loopback(file_path, r_symlink);
-            KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(std::ignore=FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
         }
 
         // 1-cycle
         ScopedSymlink loopback(file_path, file_path);
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(std::ignore=FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
     }
 }
 
@@ -188,12 +189,12 @@ KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToDirectory, KratosCoreFastSuite)
         // Cyclic indirections 2-4 cycles
         for (const auto& r_symlink : symlinks) {
             ScopedSymlink loopback(directory_path, r_symlink);
-            KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(std::ignore=FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
         }
 
         // 1-cycle
         ScopedSymlink loopback(directory_path, directory_path);
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(std::ignore=FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
     }
 }
 

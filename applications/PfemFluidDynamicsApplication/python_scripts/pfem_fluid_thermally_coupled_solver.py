@@ -347,4 +347,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
 
+        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.HEAT_FLUX):
+            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.HEAT_FLUX)
+
 

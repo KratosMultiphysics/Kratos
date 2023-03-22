@@ -10,8 +10,7 @@
 //
 
 
-#if !defined(ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_LINEAR_H_INCLUDED )
-#define  ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_LINEAR_H_INCLUDED
+#pragma once
 
 #include "adjoint_finite_difference_truss_element_3D2N.h"
 
@@ -96,5 +95,3 @@ private:
 
 
 }
-
-#endif

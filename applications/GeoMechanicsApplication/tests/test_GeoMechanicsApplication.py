@@ -33,6 +33,7 @@ from test_consecutive_pipe_lines import TestConsecutivePipeLines
 from test_line_loads import KratosGeoMechanicsLineLoadTests
 from test_element_lab import KratosGeoMechanicsLabElementTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
+from test_parameter_field import KratosGeoMechanicsParameterFieldTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -54,7 +55,6 @@ def AssembleTestSuites():
     small_test_cases = [
                         KratosGeoMechanicsGeneralTests,
                         KratosGeoMechanicsExcavationTests,
-                        KratosGeoMechanicsInterfaceTests,
                         KratosGeoMechanicsResetDisplacementTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
                         KratosGeoMechanicsWaterPressureTests,
@@ -66,6 +66,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsCurvedBeamElementTests,
                         KratosGeoMechanicsLabElementTests,
                         KratosGeoMechanicsTransientThermalTests
+                        KratosGeoMechanicsParameterFieldTests
                         ]
 
     # Create an array with the selected tests
@@ -74,7 +75,8 @@ def AssembleTestSuites():
     # - testNightlyFirstExample
     # - testNightlySecondExample
 
-    night_test_cases = [ 
+    night_test_cases = [
+                        KratosGeoMechanicsInterfaceTests,
                         KratosGeoMechanicsDynamicsTests,
                         KratosGeoMechanicsAbsorbingBoundaryColumnTests,
                         TestSellmeijersRule,

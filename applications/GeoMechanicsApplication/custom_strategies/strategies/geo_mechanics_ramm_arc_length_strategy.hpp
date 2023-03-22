@@ -84,8 +84,6 @@ public:
             mDesiredIterations = rParameters["desired_iterations"].GetInt();
             mMaxRadiusFactor   = rParameters["max_radius_factor"].GetDouble();
             mMinRadiusFactor   = rParameters["min_radius_factor"].GetDouble();
-
-            mInitializeArcLengthWasPerformed = false;
         }
 
     //------------------------------------------------------------------------------------
@@ -437,7 +435,7 @@ protected:
 
     unsigned int mDesiredIterations; /// This is used to calculate the radius of the next step
 
-    bool mInitializeArcLengthWasPerformed;
+    bool mInitializeArcLengthWasPerformed = false;
 
     double mMaxRadiusFactor, mMinRadiusFactor; /// Used to limit the radius of the arc length strategy
     double mRadius, mRadius_0; /// Radius of the arc length strategy
@@ -450,10 +448,7 @@ protected:
     {
         KRATOS_TRY
 
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        return ierr;
+        return MotherType::Check();
 
         KRATOS_CATCH( "" )
     }

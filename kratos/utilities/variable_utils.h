@@ -1008,7 +1008,7 @@ public:
      * @param rOriginNodes Reference to the objective node set
      * @return selected_nodes: List of filtered nodes
      */
-    NodesContainerType SelectNodeList(
+    [[nodiscard]] NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
         const double Value,
         const NodesContainerType& rOriginNodes
@@ -1178,7 +1178,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation vector result
      */
-    array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -1190,7 +1190,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumNonHistoricalNodeScalarVariable(
+    [[nodiscard]] double SumNonHistoricalNodeScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1225,7 +1225,7 @@ public:
      * @return TDataType Value of the summation
      */
     template< class TDataType, class TVarType = Variable<TDataType> >
-    TDataType SumHistoricalVariable(
+    [[nodiscard]] TDataType SumHistoricalVariable(
         const TVarType &rVariable,
         const ModelPart &rModelPart,
         const unsigned int BuffStep = 0
@@ -1251,7 +1251,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective condition set
      * @return sum_value: summation result
      */
-    array_1d<double, 3> SumConditionVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumConditionVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -1263,7 +1263,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumConditionScalarVariable(
+    [[nodiscard]] double SumConditionScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1304,7 +1304,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumElementScalarVariable(
+    [[nodiscard]] double SumElementScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1452,7 +1452,8 @@ public:
      * @param rNodes array of nodes from which coordinates will be extracted
      * @param Dimension number of desired components
      */
-    Vector GetCurrentPositionsVector(
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetCurrentPositionsVector(
         const ModelPart::NodesContainerType& rNodes,
         const unsigned int Dimension
         );
@@ -1468,7 +1469,8 @@ public:
      * @param rNodes array of nodes from which coordinates will be extracted
      * @param Dimension number of desired components
      */
-    Vector GetInitialPositionsVector(
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetInitialPositionsVector(
         const ModelPart::NodesContainerType& rNodes,
         const unsigned int Dimension
         );
@@ -1518,7 +1520,7 @@ public:
      * @param Step step in the database
      * @param Dimension number of components in output
      */
-    Vector GetSolutionStepValuesVector(
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
                                 const ModelPart::NodesContainerType& rNodes,
                                 const Variable<array_1d<double,3>>& rVar,
                                 const unsigned int Step,
@@ -1535,7 +1537,7 @@ public:
      * @param rVar the variable being addressed
      * @param Step step in the database
      */
-    Vector GetSolutionStepValuesVector(
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
                                 const ModelPart::NodesContainerType& rNodes,
                                 const Variable<double>& rVar,
                                 const unsigned int Step
@@ -1585,7 +1587,7 @@ public:
      * @param Step step in the database
      * @param Dimension number of components in output
      */
-    Vector GetValuesVector(
+    [[nodiscard]] Vector GetValuesVector(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<array_1d<double,3>>& rVar,
         const unsigned int Dimension=3
@@ -1602,7 +1604,7 @@ public:
      * @param rVar the variable being addressed
      * @param Step step in the database
      */
-    Vector GetValuesVector(
+    [[nodiscard]] Vector GetValuesVector(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<double>& rVar
         );
@@ -1697,10 +1699,10 @@ private:
     }
 
     template <class TContainerType>
-    TContainerType& GetContainer(ModelPart& rModelPart);
+    [[nodiscard]] TContainerType& GetContainer(ModelPart& rModelPart);
 
     template <class TContainerType>
-    const TContainerType& GetContainer(const ModelPart& rModelPart);
+    [[nodiscard]] const TContainerType& GetContainer(const ModelPart& rModelPart);
 
     template<class TDataType>
     static void AuxiliaryHistoricalValueSetter(

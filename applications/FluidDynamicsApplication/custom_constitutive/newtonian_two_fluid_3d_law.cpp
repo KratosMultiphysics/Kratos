@@ -19,6 +19,7 @@
 #include "includes/checks.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "utilities/element_size_calculator.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -78,6 +79,11 @@ double NewtonianTwoFluid3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
     double viscosity;
     EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);
     const Properties& prop = rParameters.GetMaterialProperties();
+    const auto& r_geom = rParameters.GetElementGeometry();
+
+    if (r_geom.Has(ARTIFICIAL_DYNAMIC_VISCOSITY)){
+        viscosity += r_geom.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+    }
 
     if (prop.Has(C_SMAGORINSKY)) {
         const double csmag = prop[C_SMAGORINSKY];

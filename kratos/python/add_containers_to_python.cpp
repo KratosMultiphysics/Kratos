@@ -247,6 +247,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,BLOCKED);
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,MARKER);
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,PERIODIC);
+    KRATOS_REGISTER_IN_PYTHON_FLAG(m,WALL);
 
     // Note: using internal macro for these two because they do not have a NOT_ version
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(m,ALL_DEFINED);

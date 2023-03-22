@@ -38,7 +38,7 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
         if not self.interface_data.IsDefinedOnThisRank(): return
 
         smp_normal_calculator = self.interface_data.GetModelPart()
-        KM.NormalCalculationUtils().CalculateOnSimplex(smp_normal_calculator, smp_normal_calculator.ProcessInfo[KM.DOMAIN_SIZE])
+        KM.NormalCalculationUtils().CalculateNormals(smp_normal_calculator)
 
     def PrintInfo(self):
         pass
