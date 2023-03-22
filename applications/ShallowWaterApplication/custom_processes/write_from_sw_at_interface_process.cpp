@@ -59,6 +59,7 @@ WriteFromSwAtInterfaceProcess<TDim>::WriteFromSwAtInterfaceProcess(
         VariableUtils().SetNonHistoricalVariableToZero(MOMENTUM, mrInterfaceModelPart.Nodes());
         VariableUtils().SetNonHistoricalVariableToZero(VELOCITY, mrInterfaceModelPart.Nodes());
         VariableUtils().SetNonHistoricalVariableToZero(HEIGHT, mrInterfaceModelPart.Nodes());
+        VariableUtils().SetNonHistoricalVariableToZero(VERTICAL_VELOCITY, mrInterfaceModelPart.Nodes());
     }
 
     // if (mExtrapolateBoundaries) {
@@ -115,14 +116,17 @@ void WriteFromSwAtInterfaceProcess<TDim>::ReadAndSetValues(
     array_1d<double,3> velocity = ZeroVector(3);
     array_1d<double,3> momentum = ZeroVector(3);
     double height = 0.0;
+    double vertical_velocity = 0.0;
     
     velocity = rNode.FastGetSolutionStepValue(VELOCITY);
     momentum = rNode.FastGetSolutionStepValue(MOMENTUM);
     height = rNode.FastGetSolutionStepValue(HEIGHT);
+    vertical_velocity = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY);
 
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);
     SetValue(rNode, HEIGHT, height);
+    SetValue(rNode, VERTICAL_VELOCITY, vertical_velocity);
 
 }
 

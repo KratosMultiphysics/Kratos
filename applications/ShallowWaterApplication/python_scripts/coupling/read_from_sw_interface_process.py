@@ -108,14 +108,17 @@ class ReadFromSwInterfaceProcess(KM.Process):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
                 avg_vel_x = 0
                 avg_h = 0
+                avg_vel_z = 0
                 n = 0
                 for node in self.input_model_part.Nodes:
                     n = n+1
-                    avg_h         = avg_h + node.GetValue(SW.HEIGHT) 
+                    avg_h         = avg_h      + node.GetValue(SW.HEIGHT) 
                     avg_vel_x     = avg_vel_x  + node.GetValue(KM.VELOCITY_X) 
+                    avg_vel_z     = avg_vel_z  + node.GetValue(SW.VERTICAL_VELOCITY) 
                 self.avg_h = avg_h/n
                 self.avg_vel_x = avg_vel_x/n
-                print(avg_h, avg_vel_x)
+                self.avg_vel_z = avg_vel_z/n
+                print(self.avg_h, self.avg_vel_x, self.avg_vel_z)
 
     def FindPfemHeight(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
@@ -127,26 +130,32 @@ class ReadFromSwInterfaceProcess(KM.Process):
                 if node.Y > ymax:
                     ymax = node.Y
             self.h_pfem = ymax - ymin
+            self.y_bottom = ymin
             
     def DistributeVelocityToPfem(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            # self.vel_pfem = self.avg_vel_x*self.avg_h/self.h_pfem
+            # self.avg_vel_z = 0.0
+            # self.vel_pfem   = self.avg_vel_x*self.avg_h/self.h_pfem
+            # self.vel_pfem_z = self.avg_vel_z*self.avg_h/self.h_pfem
+            # print(self.avg_vel_z)
             # for node in self.interface_model_part.Nodes:
+            #     vel_z_var = self.vel_pfem_z*(node.Y - self.y_bottom)/self.h_pfem
             #     node.SetSolutionStepValue(KM.VELOCITY_X, self.vel_pfem) 
-            #     node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0) 
-            for node in self.interface_model_part.Nodes:
-               node.Y = node.Y0*self.avg_h/self.h_pfem
+            #     node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var)
+            #     print(node.Y,vel_z_var) 
+           for node in self.interface_model_part.Nodes:
+               node.Y = (node.Y0 - self.y_bottom)*self.avg_h/self.h_pfem + self.y_bottom
                displacement = node.Y - node.Y0
                node.SetSolutionStepValue(KM.DISPLACEMENT_Y, displacement)
-               print(node.Y)
+               vel_z_var = self.avg_vel_z*(node.Y - self.y_bottom)/self.avg_h
+               # vel_z_var = 0.0
                node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
-               node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0) 
+               node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var) 
+               print(node.Y, vel_z_var)
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
         file = Path(file_settings["file_name"].GetString())
-        print(file)
-        print("QUESTO E' IL FILE")
         directory = file.parent
         file_names = [str(f) for f in directory.glob("*.h5")]
         if len(file_names) == 0:
@@ -240,8 +249,6 @@ class ReadFromSwInterfaceProcess(KM.Process):
 
     def _CreateMapper(self):
         domain_size = self.input_model_part.ProcessInfo[KM.DOMAIN_SIZE]
-        print(self.input_model_part)
-        print("QUESTO E' IL MODEL PART")
         if domain_size == 2:
             mapper_settings = KM.Parameters("""{
                 "mapper_type": "nearest_neighbor",
@@ -274,7 +281,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
         hdf5_settings = KM.Parameters()
         hdf5_settings.AddValue("model_part_name", self.settings["input_model_part_name"])
         hdf5_settings.AddValue("file_settings", self.settings["file_settings"])
-        data_settings = KM.Parameters("""{"list_of_variables" : ["MOMENTUM","VELOCITY","HEIGHT"]}""")
+        data_settings = KM.Parameters("""{"list_of_variables" : ["MOMENTUM","VELOCITY","HEIGHT","VERTICAL_VELOCITY"]}""")
         if self.settings["read_historical_database"].GetBool():
             hdf5_settings.AddValue("nodal_solution_step_data_settings", data_settings)
         else:
