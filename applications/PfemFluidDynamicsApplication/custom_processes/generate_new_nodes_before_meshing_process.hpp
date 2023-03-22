@@ -866,7 +866,6 @@ namespace Kratos
 					}
 				}
 
-				// if ((CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength && eulerianInletNodes == 0) || (eulerianInletNodes > 0 && LargestEdge > (2.25 * meanMeshSize)))
 				if (CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength && eulerianInletNodes == 0)
 				{
 
@@ -885,17 +884,6 @@ namespace Kratos
 
 					if (suitableElement)
 					{
-						// if (CountNodes >= ElementsToRefine)
-						// {
-						// 	std::cout << "I DO RESIZE OF VECTORS! ELEMENTS TO REFINE ARE: " << ElementsToRefine << " COUNT NODES ARE " << CountNodes << std::endl;
-						// 	NewPositions.resize(CountNodes + 1);
-						// 	BiggestVolumes.resize(CountNodes + 1, false);
-						// 	NodesIDToInterpolate.resize(CountNodes + 1);
-						// 	unsigned int sizeVectors = BiggestVolumes.size();
-						// 	std::cout << " NEW SIZE IS " << sizeVectors << std::endl;
-						// 	std::cout << " BiggestVolumes IS " << BiggestVolumes << std::endl;
-						// 	addedNodesAtEulerianInlet++;
-						// }
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
 						// if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
@@ -1206,7 +1194,6 @@ namespace Kratos
 						LargestEdge = Edges[i];
 					}
 				}
-				// if ((CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength && eulerianInletNodes == 0) || (eulerianInletNodes > 0 && LargestEdge > (2.05 * meanMeshSize)))
 				if ((CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength && eulerianInletNodes == 0))
 				{
 
@@ -1226,18 +1213,6 @@ namespace Kratos
 
 					if (suitableElement)
 					{
-						// if (CountNodes >= ElementsToRefine)
-						// {
-						// 	std::cout << "I DO RESIZE OF VECTORS! ELEMENTS TO REFINE ARE: " << ElementsToRefine << " COUNT NODES ARE " << CountNodes << std::endl;
-						// 	NewPositions.resize(CountNodes + 1);
-						// 	BiggestVolumes.resize(CountNodes + 1, false);
-						// 	NodesIDToInterpolate.resize(CountNodes + 1);
-						// 	unsigned int sizeVectors = BiggestVolumes.size();
-						// 	std::cout << " NEW SIZE IS " << sizeVectors << std::endl;
-						// 	double positionX = NewPosition[0];
-						// 	std::cout << "I add a node at position " << positionX << std::endl;
-						// 	addedNodesAtEulerianInlet++;
-						// }
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
 						// if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
@@ -1309,7 +1284,7 @@ namespace Kratos
 					}
 				}
 
-				if (eulerianInletNodes > 0 && LargestEdge > (2.0 * meanMeshSize))
+				if (eulerianInletNodes > 0 && LargestEdge > (1.9 * meanMeshSize))
 				{
 
 					array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
