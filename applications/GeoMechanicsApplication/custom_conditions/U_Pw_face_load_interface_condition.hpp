@@ -43,24 +43,25 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    UPwFaceLoadInterfaceCondition() : UPwCondition<TDim,TNumNodes>() {}
+    UPwFaceLoadInterfaceCondition() : UPwFaceLoadInterfaceCondition(0, nullptr, nullptr) {}
 
-    // Constructor 1
-    UPwFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwFaceLoadInterfaceCondition( IndexType               NewId,
+                                   GeometryType::Pointer   pGeometry )
+        : UPwFaceLoadInterfaceCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Constructor 2
-    UPwFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
+    UPwFaceLoadInterfaceCondition( IndexType               NewId,
+                                   GeometryType::Pointer   pGeometry,
+                                   PropertiesType::Pointer pProperties )
+        : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
     {
         // Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+        this->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1);
     }
 
-    // Destructor
     ~UPwFaceLoadInterfaceCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -72,13 +73,6 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
-    // Member Variables
-
-    Vector mInitialGap;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateInitialGap(const GeometryType& Geom);
 
     void CalculateRHS(VectorType& rRightHandSideVector,
@@ -97,8 +91,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-
-    // Member Variables
+    Vector mInitialGap;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
