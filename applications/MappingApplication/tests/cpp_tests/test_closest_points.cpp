@@ -17,8 +17,7 @@
 #include "includes/stream_serializer.h"
 #include "custom_utilities/closest_points.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(PointWithIdBasics, KratosMappingApplicationSerialTestSuite)
 {
@@ -266,5 +265,4 @@ KRATOS_TEST_CASE_IN_SUITE(ClosestPointsContainerSerialization, KratosMappingAppl
     }
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing
