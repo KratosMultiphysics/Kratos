@@ -510,7 +510,7 @@ public:
         using DofsVectorType = Element::DofsVectorType;
 
         // Gets the array of elements from the modeler
-        DofsVectorType dof_list, second_dof_list;
+        DofsVectorType dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
