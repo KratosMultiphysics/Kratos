@@ -177,7 +177,7 @@ public:
             SizeType size_residual;
             CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, rb);
 
-            TDataType ratio = 0.0;
+            TDataType ratio{};
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
                 ratio = 0.0;
             } else {
@@ -362,7 +362,7 @@ protected:
         SizeType dof_num = 0;
 
         // Auxiliar values
-        TDataType residual_dof_value = 0.0;
+        TDataType residual_dof_value{};
         const auto it_dof_begin = rDofSet.begin();
         const int number_of_dof = static_cast<int>(rDofSet.size());
 
@@ -431,17 +431,17 @@ private:
     ///@name Member Variables
     ///@{
 
-    TDataType mRatioTolerance = 0.0;      /// The ratio threshold for the norm of the residual
+    TDataType mRatioTolerance{};      /// The ratio threshold for the norm of the residual
 
-    TDataType mInitialResidualNorm = 0.0; /// The reference norm of the residual
+    TDataType mInitialResidualNorm{}; /// The reference norm of the residual
 
-    TDataType mCurrentResidualNorm = 0.0; /// The current norm of the residual
+    TDataType mCurrentResidualNorm{}; /// The current norm of the residual
 
-    TDataType mAlwaysConvergedNorm = 0.0; /// The absolute value threshold for the norm of the residual
+    TDataType mAlwaysConvergedNorm{}; /// The absolute value threshold for the norm of the residual
 
-    TDataType mReferenceDispNorm = 0.0;   /// The norm at the beginning of the iterations
+    TDataType mReferenceDispNorm{};   /// The norm at the beginning of the iterations
 
-    std::vector<int> mActiveDofs;         /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
