@@ -474,16 +474,12 @@ namespace Kratos
 							radius = 0.48 * meshSize; // 20% less than normal nodes
 					}
 
-					if (in->Is(INLET))
-					{
-						radius = 0.3 * meshSize; // compared with element radius
-					}
 					n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(), neighbour_distances.begin(), num_neighbours);
 
-					if (n_points_in_radius > 1 && neighErasedNodes == 0)
+					if (n_points_in_radius > 1 && neighErasedNodes == 0 && in->IsNot(INLET))
 					{
 
-						if (in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED))
+						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED))
 						{
 							if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 							{
@@ -540,7 +536,7 @@ namespace Kratos
 								}
 							}
 						}
-						else if (in->IsNot(INLET))
+						else 
 						{
 							unsigned int k = 0;
 							unsigned int counter = 0;
