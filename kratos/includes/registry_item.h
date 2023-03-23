@@ -228,8 +228,6 @@ public:
                 return std::make_shared<TItemType>((Arguments)...);
             };
 
-            using CallableType = typename std::conditional<std::is_same<std::function<std::shared_ptr<TItemType>()>, RegistryItem>::value, SubRegistryItemFunctor, SubValueItemFunctor<std::function<std::shared_ptr<TItemType>()>>>::type;
-
             auto insert_result = GetSubRegistryItemMap().emplace(
                 std::make_pair(
                     ItemName,
@@ -242,7 +240,8 @@ public:
                 << "' in registry item with name '" << this->Name() << "'." << std::endl;
 
             // Force the evaluation of the lambda in order to set mpCallable and mpValueName
-            this->EvaluateValue<TItemType>();
+            auto inserted_item = std::any_cast<SubRegistryItemPointerType>(mpValue);
+            (*inserted_item)[ItemName]->EvaluateValue<TItemType>();
 
             return *insert_result.first->second;
         }
@@ -297,15 +296,21 @@ public:
     template <typename TDataType>
     void EvaluateValue()
     {
-         // Assign callable value
-        using TFunctionType = std::function<std::shared_ptr<TDataType>()>;
+        KRATOS_TRY
+
+        using TFunctionReturnType = std::shared_ptr<TDataType>;
+        using TFunctionType = std::function<TFunctionReturnType()>;
+
+        // Assign callable value
         TFunctionType func = std::any_cast<TFunctionType>(mpValue);
         mpCallable = func();
 
         // Set value name
         std::stringstream buffer;
-        buffer << *(std::any_cast<std::shared_ptr<TDataType>>(mpCallable));
+        buffer << *(std::any_cast<TFunctionReturnType>(mpCallable));
         mValueName = buffer.str();
+
+        KRATOS_CATCH("");
     }
 
     template <typename TDataType>
@@ -314,12 +319,13 @@ public:
         KRATOS_TRY
 
         // This is executed the first time we access the GetValue for this item
-        using TFunctionType = std::function<std::shared_ptr<TDataType>()>;
-        if (std::any_cast<std::shared_ptr<TDataType>>(&mpCallable) == nullptr) {
+        using TFunctionReturnType = std::shared_ptr<TDataType>;
+
+        if (std::any_cast<TFunctionReturnType>(&mpCallable) == nullptr) {
             this->EvaluateValue<TDataType>();
         }
 
-        return *(std::any_cast<std::shared_ptr<TDataType>>(mpCallable));
+        return *(std::any_cast<TFunctionReturnType>(mpCallable));
 
         KRATOS_CATCH("");
     }
