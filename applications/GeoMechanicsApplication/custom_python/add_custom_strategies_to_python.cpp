@@ -44,26 +44,25 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector>           LocalSpaceType;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType >                        LinearSolverType;
-    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >  BaseSolvingStrategyType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType >                             BaseSchemeType;
-    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType >                ConvergenceCriteriaType;
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
+    using BaseSolvingStrategyType = ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    using BaseSchemeType = Scheme< SparseSpaceType, LocalSpaceType >;
+    using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    using ConvergenceCriteriaType = ConvergenceCriteria< SparseSpaceType, LocalSpaceType >;
 
-    typedef NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >        NewmarkQuasistaticUPwSchemeType;
-    typedef NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticDampedUPwSchemeType;
-    typedef NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >            NewmarkDynamicUPwSchemeType;
-    typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
-    typedef BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  BackwardEulerQuasistaticUPwSchemeType;
-    typedef BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwSchemeType;
-    
+    using NewmarkQuasistaticUPwSchemeType = NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >;
+    using NewmarkQuasistaticDampedUPwSchemeType = NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >;
+    using NewmarkDynamicUPwSchemeType = NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >;
+    using NewmarkQuasistaticPwSchemeType = NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >;
+    using BackwardEulerQuasistaticUPwSchemeType = BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >;
+    using BackwardEulerQuasistaticPwSchemeType = BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >;
 
-    typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
-    typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
-    typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
+    using GeoMechanicsNewtonRaphsonStrategyType = GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    using GeoMechanicsRammArcLengthStrategyType = GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    using GeoMechanicsNewtonRaphsonErosionProcessStrategyType = GeoMechanicsNewtonRaphsonErosionProcessStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

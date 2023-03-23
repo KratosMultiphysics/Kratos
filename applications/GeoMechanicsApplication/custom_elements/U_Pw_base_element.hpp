@@ -39,7 +39,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwBaseElement : public Element
 public:
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwBaseElement );
 
