@@ -117,6 +117,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
             convergence_criteria = self._GetSolver()._GetConvergenceCriterion()
+            scheme = self._GetSolver()._GetScheme()
             builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
             mechanical_solution_strategy = self._GetSolver()._GetSolutionStrategy()
 
@@ -141,6 +142,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                         self._GetSolver().Predict()
                         computing_model_part.Set(KM.MODIFIED, False)
                     computing_model_part.ProcessInfo.SetValue(KM.NL_ITERATION_NUMBER, non_linear_iteration)
+                    builder_and_solver.SetUpDofSet(scheme, computing_model_part)
                     builder_and_solver.SetUpSystem(computing_model_part)
                     is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._GetSolver().SolveSolutionStep()
