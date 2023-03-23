@@ -65,7 +65,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsLineLoadTests,
                         KratosGeoMechanicsCurvedBeamElementTests,
                         KratosGeoMechanicsLabElementTests,
-                        KratosGeoMechanicsTransientThermalTests
+                        KratosGeoMechanicsTransientThermalTests,
                         KratosGeoMechanicsParameterFieldTests
                         ]
 
