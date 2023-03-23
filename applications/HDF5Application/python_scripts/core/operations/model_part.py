@@ -54,7 +54,7 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
 
     #@abc.abstractmethod # <== missing the ABCMeta metaclass
     def Execute(self) -> None:
-        raise RuntimeError("Call to a pure abstract method")
+        raise NotImplementedError("Call to a pure abstract method")
 
     #@abc.abstractclassmethod # <== missing the ABCMeta metaclass
     @classmethod
