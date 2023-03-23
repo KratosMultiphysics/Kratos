@@ -177,8 +177,10 @@ public:
         // Save the variables to be employed so that they can be restored after the solution
         const auto& r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-        if (mElementTauNodal){
-            ComputeNodalH();    
+        if (mElementTauNodal || mHIsCalculated)
+        {
+            ComputeNodalH();
+            mHIsCalculated = false;
         }
         const double dynamic_tau = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
         // Save current level set value and current and previous step velocity values
@@ -370,6 +372,8 @@ protected:
     bool mElementRequiresLimiter;
 
     bool mElementTauNodal; 
+
+    bool mHIsCalculated = true;
 
     bool mElementRequiresLevelSetGradient;
 

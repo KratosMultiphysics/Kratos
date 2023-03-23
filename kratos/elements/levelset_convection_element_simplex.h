@@ -116,7 +116,7 @@ public:
         mElementTauNodal = std::all_of(r_geometry.begin(),
                                        r_geometry.end(),
                                        [](const auto& rNode) {
-                                           rNode.Has(TAU)
+                                           return rNode.Has(TAU);
                                        });
     }
     
