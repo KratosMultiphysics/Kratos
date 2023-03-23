@@ -25,7 +25,6 @@
 #include "includes/define.h"
 #include "includes/accessor.h"
 #include "includes/node.h"
-#include "geometries/geometry.h"
 #include "includes/variables.h"
 #include "includes/indexed_object.h"
 #include "containers/data_value_container.h"
@@ -114,13 +113,13 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
+    explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(), mAccessors() {}
 
     /// Default of properties with subproperties
-    explicit Properties(IndexType NewId, const SubPropertiesContainerType& SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
+    explicit Properties(IndexType NewId, const SubPropertiesContainerType& SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList), mAccessors() {}
 
     /// Copy constructor.
-    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList) {}
+    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList), mAccessors(rOther.mAccessors) {}
 
     /// Destructor.
     ~Properties() override {}
@@ -137,6 +136,7 @@ public:
         mData = rOther.mData;
         mTables = rOther.mTables;
         mSubPropertiesList = rOther.mSubPropertiesList;
+        mAccessors = rOther.mAccessors;
         return *this;
     }
 
