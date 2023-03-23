@@ -41,6 +41,7 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/variational_distance_calculation_process.h"
+#include "processes/flux_based_redistance_process.h"
 #include "processes/levelset_convection_process.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "processes/apply_constant_vectorvalue_process.h"
@@ -319,6 +320,15 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<Model&, Parameters>())
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<3>::FindMaximumEdgeSize)
+    ;
+
+    
+    py::class_<FluxBasedRedistanceProcess<2,3,SparseSpaceType,LocalSpaceType,LinearSolverType>, FluxBasedRedistanceProcess<2,3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"FluxBasedRedistanceProcess2D")
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
+    ;
+    
+    py::class_<FluxBasedRedistanceProcess<3,4,SparseSpaceType,LocalSpaceType,LinearSolverType>, FluxBasedRedistanceProcess<3,4,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"FluxBasedRedistanceProcess3D")
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")

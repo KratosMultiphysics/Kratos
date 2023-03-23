@@ -91,6 +91,10 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mDistanceCalculationElementSimplex2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mDistanceCalculationElementSimplex3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
 
+      mDistanceCalculationFluxBasedElement2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mDistanceCalculationFluxBasedElement3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mDistanceCalculationFluxBasedElement3D8N( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
+
       mEdgeBasedGradientRecoveryElement2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType>(GeometryType::PointsArrayType(2)))),
       mEdgeBasedGradientRecoveryElement3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType>(GeometryType::PointsArrayType(2)))),
 
@@ -208,6 +212,10 @@ void KratosApplication::RegisterKratosCore() {
 
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex2D3N", mDistanceCalculationElementSimplex2D3N)
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D4N", mDistanceCalculationElementSimplex3D4N)
+
+    KRATOS_REGISTER_ELEMENT("DistanceCalculationFluxBasedElement2D3N", mDistanceCalculationFluxBasedElement2D3N)
+    KRATOS_REGISTER_ELEMENT("DistanceCalculationFluxBasedElement3D4N", mDistanceCalculationFluxBasedElement3D4N)
+    KRATOS_REGISTER_ELEMENT("DistanceCalculationFluxBasedElement3D8N", mDistanceCalculationFluxBasedElement3D8N)
 
     KRATOS_REGISTER_ELEMENT("EdgeBasedGradientRecoveryElement2D2N", mEdgeBasedGradientRecoveryElement2D2N)
     KRATOS_REGISTER_ELEMENT("EdgeBasedGradientRecoveryElement3D2N", mEdgeBasedGradientRecoveryElement3D2N)

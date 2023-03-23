@@ -24,6 +24,7 @@
 #include "includes/element.h"
 #include "elements/mesh_element.h"
 #include "elements/distance_calculation_element_simplex.h"
+#include "elements/distance_calculation_flux_based_element.h"
 #include "elements/edge_based_gradient_recovery_element.h"
 #include "elements/levelset_convection_element_simplex.h"
 #include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
@@ -476,6 +477,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
+
+
+    const DistanceCalculationFluxBasedElement<2,3> mDistanceCalculationFluxBasedElement2D3N;
+    const DistanceCalculationFluxBasedElement<3,4> mDistanceCalculationFluxBasedElement3D4N;
+    const DistanceCalculationFluxBasedElement<3,8> mDistanceCalculationFluxBasedElement3D8N;
 
     const EdgeBasedGradientRecoveryElement<2> mEdgeBasedGradientRecoveryElement2D2N;
     const EdgeBasedGradientRecoveryElement<3> mEdgeBasedGradientRecoveryElement3D2N;
