@@ -145,10 +145,10 @@ public:
     RegistryItem() = delete;
 
     /// Constructor with the name
-    RegistryItem(const std::string& rName)
+    RegistryItem(const std::string &rName)
         : mName(rName),
           mpValue(Kratos::make_shared<SubRegistryItemType>()),
-          mpValueName("RegistryItem") {}
+          mValueName(GetRegistryItemType()) {}
 
     /// Constructor with the name and lambda
     template <typename TItemType, typename... TArgs>
@@ -157,10 +157,7 @@ public:
         const std::function<TItemType(TArgs...)> &rValue)
         : mName(rName),
           mpValue(rValue),
-          mpValueName(typeid(TItemType).name())
-          {
-            std::cout << "Function constructor" << std::endl;
-          }
+          mValueName(typeid(TItemType).name()) {}
 
     /// Constructor with the name and value
     template<class TItemType>
@@ -168,8 +165,12 @@ public:
         const std::string&  rName,
         const TItemType& rValue)
         : mName(rName),
-          mpValue([=](){return Kratos::make_shared<TItemType>(rValue);}),
-          mpValueName(typeid(TItemType).name()) {}
+          mpValue((std::function<std::shared_ptr<TItemType>()>)[=](){return Kratos::make_shared<TItemType>(rValue);})
+    {
+        std::stringstream buffer;
+        buffer << rValue;
+        mValueName = buffer.str();
+    }
 
     /// Constructor with the name and shared ptr
     template<class TItemType>
@@ -177,8 +178,12 @@ public:
         const std::string&  rName,
         const shared_ptr<TItemType>& pValue)
         : mName(rName),
-          mpValue([=](){return pValue;}),
-          mpValueName(typeid(TItemType).name()) {}
+          mpValue((std::function<std::shared_ptr<TItemType>()>)[=](){return pValue;})
+    {
+        std::stringstream buffer;
+        buffer << *pValue;
+        mValueName = buffer.str();
+    }
 
     // Copy constructor deleted
     RegistryItem(RegistryItem const& rOther) = delete;
@@ -216,8 +221,10 @@ public:
                 << "' in registry item with name '" << this->Name() << "'." << std::endl;
 
             return *insert_result.first->second;
-        } else {
-            auto aux_lambda = [=]() -> std::shared_ptr<TItemType> {
+        }
+        else
+        {
+            std::function<std::shared_ptr<TItemType>()> aux_lambda = [=]() -> std::shared_ptr<TItemType> {
                 return std::make_shared<TItemType>((Arguments)...);
             };
 
@@ -226,11 +233,16 @@ public:
             auto insert_result = GetSubRegistryItemMap().emplace(
                 std::make_pair(
                     ItemName,
-                    CallableType::Create(ItemName, std::move(aux_lambda))));
+                    std::make_shared<RegistryItem>(ItemName, aux_lambda)
+                )
+            );
 
             KRATOS_ERROR_IF_NOT(insert_result.second)
                 << "Error in inserting '" << ItemName
                 << "' in registry item with name '" << this->Name() << "'." << std::endl;
+
+            // Force the evaluation of the lambda in order to set mpCallable and mpValueName
+            this->EvaluateValue<TItemType>();
 
             return *insert_result.first->second;
         }
@@ -282,17 +294,29 @@ public:
 
     RegistryItem& GetItem(std::string const& rItemName);
 
-    template<typename TDataType>
-    TDataType const& GetValue()
+    template <typename TDataType>
+    void EvaluateValue()
+    {
+         // Assign callable value
+        using TFunctionType = std::function<std::shared_ptr<TDataType>()>;
+        TFunctionType func = std::any_cast<TFunctionType>(mpValue);
+        mpCallable = func();
+
+        // Set value name
+        std::stringstream buffer;
+        buffer << *(std::any_cast<std::shared_ptr<TDataType>>(mpCallable));
+        mValueName = buffer.str();
+    }
+
+    template <typename TDataType>
+    TDataType const &GetValue()
     {
         KRATOS_TRY
 
+        // This is executed the first time we access the GetValue for this item
         using TFunctionType = std::function<std::shared_ptr<TDataType>()>;
-
-        if (std::any_cast<std::shared_ptr<TDataType>>(&mpCallable) == nullptr)
-        {
-            TFunctionType func = std::any_cast<TFunctionType>(mpValue);
-            mpCallable = func();
+        if (std::any_cast<std::shared_ptr<TDataType>>(&mpCallable) == nullptr) {
+            this->EvaluateValue<TDataType>();
         }
 
         return *(std::any_cast<std::shared_ptr<TDataType>>(mpCallable));
@@ -337,7 +361,7 @@ private:
     std::string mName;
     std::any mpValue;
     std::any mpCallable = nullptr;
-    const std::string mpValueName;
+    std::string mValueName;
 
     ///@}
     ///@name Private operations

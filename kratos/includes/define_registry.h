@@ -7,19 +7,20 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Carlos Roig
+//                   Ruben Zorrilla
 //
 
 #pragma once
 
-/* System includes */
+// System includes
 #include <stdexcept>
 #include <sstream>
 
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/registry.h"
 #include "includes/registry_item.h"
 
