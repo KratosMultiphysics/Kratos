@@ -8,7 +8,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authorse:    Philipp Bucher, Jordi Cotela
+//  Main authors:    Philipp Bucher, Jordi Cotela
 //
 // See Master-Thesis P.Bucher
 // "Development and Implementation of a Parallel
