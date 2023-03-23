@@ -58,7 +58,7 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
 
     #@abc.abstractclassmethod # <== missing the ABCMeta metaclass
     @classmethod
-    def GetDefaultParameters(cls: "typing.Type[IOOperation]") -> KratosMultiphysics.Parameters:
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
             "operation_type" : "",
             "prefix" : "/",
