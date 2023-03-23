@@ -33,13 +33,13 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticTScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace> MotherType;
+    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
+    using DofsArrayType = typename BaseType::DofsArrayType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+    using MotherType = NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>;
     using MotherType::mDeltaTime;
     using MotherType::mBeta;
     using MotherType::mGamma;
