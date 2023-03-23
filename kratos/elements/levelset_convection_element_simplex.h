@@ -112,17 +112,12 @@ public:
 
     void Initialize(const ProcessInfo& rProcessInfo) override
     {
-        std::size_t count = 0;
-        for (const auto& r_node : GetGeometry()) {
-            if(r_node.Has(TAU)){
-                count++;
-            }
-        }
-        if (count == TNumNodes) {
-            mElementTauNodal = true;
-        } else {
-            mElementTauNodal = false;
-        }
+        const auto& r_geometry = GetGeometry();
+        mElementTauNodal = std::all_of(r_geometry.begin(),
+                                       r_geometry.end(),
+                                       [](const auto& rNode) {
+                                           rNode.Has(TAU)
+                                       });
     }
     
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
