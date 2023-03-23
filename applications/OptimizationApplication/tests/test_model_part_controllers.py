@@ -10,7 +10,7 @@ class TestMdpaModelPartController(kratos_unittest.TestCase):
         with kratos_unittest.WorkFolderScope("model_part_utils_test", __file__):
             model_part_controller_settings = Kratos.Parameters("""{
                 "model_part_name": "Structure",
-                "input_filename" : "quads",
+                "input_filename" : "quads_with_nodal_values",
                 "domain_size"    : 3,
                 "read_data"      : true
             }""")
@@ -21,7 +21,7 @@ class TestMdpaModelPartController(kratos_unittest.TestCase):
             model_part_controller.ImportModelPart()
 
             ref_model_part = model.CreateModelPart("ref")
-            Kratos.ModelPartIO("quads", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(ref_model_part)
+            Kratos.ModelPartIO("quads_with_nodal_values", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(ref_model_part)
 
             self.assertEqual(model_part_controller.GetModelPart().NumberOfNodes(), ref_model_part.NumberOfNodes())
             self.assertEqual(model_part_controller.GetModelPart().NumberOfConditions(), ref_model_part.NumberOfConditions())
@@ -57,6 +57,7 @@ class TestMdpaModelPartController(kratos_unittest.TestCase):
     def tearDownClass(cls) -> None:
         with kratos_unittest.WorkFolderScope("model_part_utils_test", __file__):
             DeleteFileIfExisting("quads.time")
+            DeleteFileIfExisting("quads_with_nodal_values.time")
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
