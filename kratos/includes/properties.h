@@ -23,6 +23,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/accessor.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "includes/variables.h"
