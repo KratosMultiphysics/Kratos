@@ -57,11 +57,6 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /// Default constructor.
         Accessor(){};
 
-        Accessor(const double Value)
-        {
-            mValue = Value;
-        };
-
         /// Destructor.
         virtual ~Accessor() {}
 
@@ -101,18 +96,14 @@ class KRATOS_API(KRATOS_CORE) Accessor
 
         ///@name Member Variables
         ///@{
-        double mValue = 0.0;
 
         friend class Serializer;
 
         void save(Serializer& rSerializer) const
-        {
-            // to be added
-        }
+        {}
 
         void load(Serializer& rSerializer)
-        {
-        }
+        {}
 
 
 }; // class
