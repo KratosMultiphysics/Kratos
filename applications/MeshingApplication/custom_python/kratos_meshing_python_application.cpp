@@ -27,6 +27,8 @@
 #include "custom_python/add_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
+#include "custom_python/add_custom_modelers_to_python.h"
+
 
 namespace Kratos
 {
@@ -47,6 +49,7 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
     AddProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomIOToPython(m);
+    AddCustomModelersToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AVERAGE_NODAL_ERROR)                                  // The average nodal error
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ANISOTROPIC_RATIO)                                    // The anisotropic aspect ratio

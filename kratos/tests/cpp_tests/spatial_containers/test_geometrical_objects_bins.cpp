@@ -60,7 +60,7 @@ namespace Testing {
 
         Model current_model;
 
-        const double cube_x = 0.6;
+        const double cube_x = 0.6; 
         const double cube_y = 0.9;
         const double cube_z = 0.3;
 
@@ -77,6 +77,38 @@ namespace Testing {
         KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[0], cube_x, tolerance);
         KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[1], cube_y, tolerance);
         KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], cube_z, tolerance);
+    }
+
+    
+    /** Checks the new constructor 
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsConstructor, KratosFastSuite) {
+        constexpr double tolerance = 1e-12;
+
+        Model current_model;
+
+        const double cube_x = 0.6; //The cube will then be a 1.2x1.8x0.6 cube
+        const double cube_y = 0.9;
+        const double cube_z = 0.3;
+
+        // Generate the cube skin
+        ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+
+        array_1d<double,3> cell_size{0.2,0.1,0.05};
+        array_1d<double,3> min_bounding_box{-1.2,-0.9,-0.3};
+        array_1d<double,3> max_bounding_box{0.6,0.9,0.3};
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd(), cell_size, min_bounding_box,max_bounding_box);
+
+        auto number_of_cells = bins.GetNumberOfCells();
+        KRATOS_CHECK_EQUAL(number_of_cells[0], 9);
+        KRATOS_CHECK_EQUAL(number_of_cells[1], 18);
+        KRATOS_CHECK_EQUAL(number_of_cells[2], 12);
+
+        auto cell_sizes = bins.GetCellSizes();
+        KRATOS_CHECK_NEAR(cell_sizes[0], 0.2, tolerance);
+        KRATOS_CHECK_NEAR(cell_sizes[1], 0.1, tolerance);
+        KRATOS_CHECK_NEAR(cell_sizes[2], 0.05, tolerance);
     }
 
     /** Checks bins number of cells
