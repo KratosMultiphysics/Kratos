@@ -243,6 +243,7 @@ class MPMSolver(PythonSolver):
         searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
         if (searching_alg_type == "bin_based"):
             KratosParticle.SearchElement(self.grid_model_part, self.material_point_model_part, max_number_of_search_results, searching_tolerance)
+            KratosParticle.ParticleEraseProcess(self.material_point_model_part).Execute()
         else:
             err_msg  = "The requested searching algorithm \"" + searching_alg_type
             err_msg += "\" is not available for ParticleMechanicsApplication!\n"
