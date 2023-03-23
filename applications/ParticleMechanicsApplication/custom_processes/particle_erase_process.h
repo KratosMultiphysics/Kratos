@@ -11,25 +11,15 @@
 //
 
 
-#if !defined(KRATOS_PARTICLE_ERASE_PROCESS_INCLUDED )
-#define  KRATOS_PARTICLE_ERASE_PROCESS_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
-#include "utilities/math_utils.h"
-
 
 namespace Kratos
 {
@@ -78,7 +68,7 @@ public:
         : mr_model_part(model_part)
     {
         KRATOS_TRY
-                KRATOS_CATCH("");
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -107,15 +97,15 @@ public:
 
         const int initial_num_element = mr_model_part.NumberOfElements();
         mr_model_part.RemoveElements( TO_ERASE );
-        const int num_element = mr_model_part.NumberOfElements();
+        const int num_removed_elements = initial_num_element - mr_model_part.NumberOfElements();
 
-        KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << num_element - initial_num_element << " particle elements have been erased.";
+        KRATOS_WARNING_IF("ParticleEraseProcess", num_removed_elements > 0) << num_removed_elements << " particle elements have been erased.\n";
 
         const int initial_num_condition = mr_model_part.NumberOfConditions();
         mr_model_part.RemoveConditions( TO_ERASE );
-        const int num_condition = mr_model_part.NumberOfConditions();
+        const int num_removed_condition = initial_num_condition - mr_model_part.NumberOfConditions();
 
-        KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << num_condition - initial_num_condition << " particle conditions have been erased.";
+        KRATOS_WARNING_IF("ParticleEraseProcess", num_removed_condition > 0) << num_removed_condition << " particle conditions have been erased.\n";
 
         KRATOS_CATCH("");
     }
@@ -206,8 +196,6 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mr_model_part;
-    PointerVector<Node<3> > mTrashedNodes;
-
 
     ///@}
     ///@name Private Operators
@@ -272,6 +260,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NODE_AND_ELEMENT_ERASE_PROCESS_INCLUDED   defined
-
