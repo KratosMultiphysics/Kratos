@@ -596,7 +596,7 @@ private:
 
     SubPropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
-    std::unordered_map<KeyType, AccessorType> mAccessors  = {};
+    std::unordered_map<KeyType, AccessorPointerType> mAccessors  = {};
 
     ///@}
     ///@name Private Operators
