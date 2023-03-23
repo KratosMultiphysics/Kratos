@@ -705,8 +705,8 @@ class DEMAnalysisStage(AnalysisStage):
         if type == "porosity":
 
             measure_sphere_volume = 4/3 * math.pi * radius * radius * radius
-
             sphere_volume_inside_range = 0.0
+            measured_porosity = 0.0
 
             for element in self.spheres_model_part.Elements:
 
