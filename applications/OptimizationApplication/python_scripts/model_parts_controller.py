@@ -13,8 +13,8 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.mdpa_model_part_controller import MdpaModelPartController
 
 # ==============================================================================
-def CreateController(model_parts_settings,model):
-    return ModelPartsController(model_parts_settings,model)
+def CreateController(model_parts_settings: KM.Parameters, model: KM.Model):
+    return ModelPartsController(model_parts_settings, model)
 
 # ==============================================================================
 class ModelPartsController:
@@ -30,12 +30,12 @@ class ModelPartsController:
             self.mdpa_model_part_controllers.append(MdpaModelPartController(model, params["settings"], None))
 
     # --------------------------------------------------------------------------
-    def Initialize(self):
+    def Initialize(self) -> None:
         for mdpa_model_part_controller in self.mdpa_model_part_controllers:
             mdpa_model_part_controller.ImportModelPart()
 
     # --------------------------------------------------------------------------
-    def CheckIfRootModelPartsExist(self, root_model_parts_name: 'list[str]', raise_error = True):
+    def CheckIfRootModelPartsExist(self, root_model_parts_name: 'list[str]', raise_error = True) -> bool:
         if not isinstance(root_model_parts_name, list):
             raise RuntimeError("ModelPartsController: CheckIfRootModelPartsExist requires list of model parts")
 
@@ -51,20 +51,20 @@ class ModelPartsController:
 
         return if_exist
     # --------------------------------------------------------------------------
-    def GetModelPart(self, model_part_name: str):
+    def GetModelPart(self, model_part_name: str) -> KM.ModelPart:
         if not model_part_name in self.model.GetModelPartNames():
             raise RuntimeError("ModelPartsController: Try to get model part {} which does not exist.".format(model_part_name))
         else:
             return self.model.GetModelPart(model_part_name)
     # --------------------------------------------------------------------------
-    def GetRootModelPart(self, root_model_part_name: str):
+    def GetRootModelPart(self, root_model_part_name: str) -> KM.ModelPart:
         extracted_root_model_part_name = root_model_part_name.split(".")[0]
         if not self.model.HasModelPart(extracted_root_model_part_name):
             raise RuntimeError("ModelPartsController: Try to get root model part {} which does not exist.".format(root_model_part_name))
         else:
             return self.model[extracted_root_model_part_name]
     # --------------------------------------------------------------------------
-    def GetRootModelParts(self, root_model_parts_name: 'list[str]'):
+    def GetRootModelParts(self, root_model_parts_name: 'list[str]') -> 'list[KM.ModelPart]':
         if not isinstance(root_model_parts_name, list):
             raise RuntimeError("ModelPartsController: GetRootModelParts requires list of model parts name")
 
@@ -79,12 +79,12 @@ class ModelPartsController:
         return list_root_model_parts
 
     # --------------------------------------------------------------------------
-    def UpdateTimeStep(self, step):
+    def UpdateTimeStep(self, step: int) -> None:
         for mdpa_odel_part_controller in self.mdpa_model_part_controllers:
             mdpa_odel_part_controller.GetModelPart().CloneTimeStep(step)
             mdpa_odel_part_controller.GetModelPart().ProcessInfo.SetValue(KM.STEP, step)
     # --------------------------------------------------------------------------
-    def SetMinimalBufferSize(self, buffer_size):
+    def SetMinimalBufferSize(self, buffer_size: int) -> None:
         for mdpa_odel_part_controller in self.mdpa_model_part_controllers:
             if mdpa_odel_part_controller.GetModelPart().GetBufferSize() < buffer_size:
                 mdpa_odel_part_controller.GetModelPart().SetBufferSize(buffer_size)
