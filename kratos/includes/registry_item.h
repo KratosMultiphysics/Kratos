@@ -348,14 +348,6 @@ private:
         return mpValue.type().name();
     }
 
-    template<class TItemType>
-    std::string GetItemString() const
-    {
-        std::stringstream buffer;
-        buffer << this->GetValue<TItemType>();
-        return buffer.str();
-    }
-
     ///@}
     ///@name Private classes
     ///@{
