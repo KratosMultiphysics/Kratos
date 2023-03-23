@@ -28,15 +28,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-    // double Accessor::GetProperty(
-    //     const TVariableType &rVariable,
-    //     const Properties &rProperties,
-    //     const Geometry<Node<3>> &rGeometry,
-    //     const Vector &rShapeFunctionVector,
-    //     const ProcessInfo &rProcessInfo
-    //     )
-    // {
-    //     return mValue;
-    // }
+    double Accessor::GetProperty(
+        const Variable<double> &rVariable,
+        const Properties &rProperties,
+        const GeometryType &rGeometry,
+        const Vector &rShapeFunctionVector,
+        const ProcessInfo &rProcessInfo
+        )
+    {
+        KRATOS_ERROR << "You are calling to the virtual Accessor class..." << std::endl;
+        return 0.0;
+    }
+
 
 } // namespace Kratos

@@ -83,6 +83,8 @@ public:
 
     typedef Node<3> NodeType;
 
+    typedef Geometry<NodeType> GeometryType;
+
     typedef NodeType::IndexType IndexType;
 
     typedef Table<double> TableType;
@@ -261,13 +263,13 @@ public:
     /*
     Custom GetValue in which we check the Accessor
     */
-    template<class TVariableType, typename ...TArgs>
-    double GetValue(const TVariableType& rVariable, TArgs... Args) {
+    template<class TVariableType>
+    double GetValue(const TVariableType& rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo) {
         const KeyType variable_id = rVariable.Key();
         auto value = mAccessors.find(variable_id);
         if (value != mAccessors.end()) {
             // return value->second(variable_id, this, Args...);
-            return value->second(GetProperty(rVariable, this, Args...));
+            return value->second(GetProperty(rVariable, *this, rGeometry, rShapeFunctionVector, rProcessInfo));
         } else {
             return GetValue(rVariable);
         }

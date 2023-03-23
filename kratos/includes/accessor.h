@@ -18,12 +18,9 @@
 // External includes
 
 // Project includes
-// #include "includes/define.h"
-// #include "includes/variables.h"
 #include "geometries/geometry.h"
 #include "includes/process_info.h"
 #include "includes/node.h"
-// #include "includes/properties.h"
 
 namespace Kratos
 {
@@ -32,6 +29,8 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
+
+class Properties;
 
 /**
  * @class Accessor
@@ -72,14 +71,10 @@ class KRATOS_API(KRATOS_CORE) Accessor
 
         virtual double GetProperty(
             const Variable<double> &rVariable,
-            const Properties::Pointer pProperties,
+            const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo)
-        {
-            return 0.0;
-        }
-        virtual double GetDoubleTypeProperty() { return 0.0; }
+            const ProcessInfo &rProcessInfo);
 
         ///@}
         ///@name Input and output
