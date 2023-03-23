@@ -8,6 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
+//                   Peter Wilson
+//                   Tobias Teschemacher
 //
 
 #pragma once
