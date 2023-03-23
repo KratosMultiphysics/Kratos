@@ -653,7 +653,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def ProcessAnalyticDataCounter(self):
         return SDP.Counter(
-            steps_in_cycle=self.project_parameters["stationarity"]["time_steps_per_analytic_processing_step"].GetInt(),
+            steps_in_cycle=int(self.output_time / self.time_step + 0.5),
             beginning_step=1,
             is_active=self.project_parameters["do_process_analytic_data"].GetBool())
 
