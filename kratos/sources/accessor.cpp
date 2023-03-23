@@ -28,4 +28,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+    // double Accessor::GetProperty(
+    //     const TVariableType &rVariable,
+    //     const Properties &rProperties,
+    //     const Geometry<Node<3>> &rGeometry,
+    //     const Vector &rShapeFunctionVector,
+    //     const ProcessInfo &rProcessInfo
+    //     )
+    // {
+    //     return mValue;
+    // }
+
 } // namespace Kratos

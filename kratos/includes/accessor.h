@@ -18,8 +18,12 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
+// #include "includes/define.h"
+// #include "includes/variables.h"
+#include "geometries/geometry.h"
+#include "includes/process_info.h"
+#include "includes/node.h"
+// #include "includes/properties.h"
 
 namespace Kratos
 {
@@ -40,7 +44,9 @@ class KRATOS_API(KRATOS_CORE) Accessor
     public:
         ///@name Type Definitions
         ///@{
-
+            typedef Node<3> NodeType;
+            typedef Geometry<NodeType> GeometryType;
+            
 
         /// Pointer definition of NodeSearchUtility
         KRATOS_CLASS_POINTER_DEFINITION(Accessor);
@@ -50,8 +56,12 @@ class KRATOS_API(KRATOS_CORE) Accessor
         ///@{
 
         /// Default constructor.
-        Accessor()
-        {}
+        Accessor(){};
+
+        Accessor(const double Value)
+        {
+            mValue = Value;
+        };
 
         /// Destructor.
         virtual ~Accessor() {}
@@ -60,6 +70,16 @@ class KRATOS_API(KRATOS_CORE) Accessor
         ///@name Operations
         ///@{
 
+        virtual double GetProperty(
+            const Variable<double> &rVariable,
+            const Properties::Pointer pProperties,
+            const GeometryType &rGeometry,
+            const Vector &rShapeFunctionVector,
+            const ProcessInfo &rProcessInfo)
+        {
+            return 0.0;
+        }
+        virtual double GetDoubleTypeProperty() { return 0.0; }
 
         ///@}
         ///@name Input and output
@@ -86,12 +106,13 @@ class KRATOS_API(KRATOS_CORE) Accessor
 
         ///@name Member Variables
         ///@{
-
+        double mValue = 0.0;
 
         friend class Serializer;
 
         void save(Serializer& rSerializer) const
         {
+            // to be added
         }
 
         void load(Serializer& rSerializer)
