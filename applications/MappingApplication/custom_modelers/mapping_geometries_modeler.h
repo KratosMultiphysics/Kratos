@@ -7,12 +7,10 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Philipp Bucher
 //
 
-
-#if !defined(KRATOS_MAPPING_GEOMETRIES_MODELER_H_INCLUDED )
-#define  KRATOS_MAPPING_GEOMETRIES_MODELER_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -21,7 +19,6 @@
 // Project includes
 #include "modeler/modeler.h"
 #include "custom_utilities/mapping_intersection_utilities.h"
-
 
 namespace Kratos
 {
@@ -154,5 +151,3 @@ inline std::ostream& operator << (
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPING_GEOMETRIES_MODELER_H_INCLUDED  defined
