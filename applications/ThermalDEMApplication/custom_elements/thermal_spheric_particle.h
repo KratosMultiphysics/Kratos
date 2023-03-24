@@ -61,7 +61,7 @@ namespace Kratos
 
       struct ContactParamsHMS
       {
-        array_1d<double, 3> normal;
+        array_1d<double,3> normal;
       };
 
       // Constructor
