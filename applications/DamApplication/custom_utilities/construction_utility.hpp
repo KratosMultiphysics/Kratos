@@ -22,6 +22,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 #include "includes/element.h"
 
 // Application includes
@@ -99,19 +100,17 @@ class ConstructionUtility
             ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.ElementsBegin();
             mNumNode = el_begin->GetGeometry().PointsNumber();
 
+            // Deactivate all elements of both thermal and mechanical model parts
+            VariableUtils().SetFlag(ACTIVE, false, mrThermalModelPart.Elements());
+            VariableUtils().SetFlag(ACTIVE, false, mrMechanicalModelPart.Elements());
+
+            // Deactivate all nodes of one of the model parts (thermal) as both model parts share the same nodes
+            VariableUtils().SetFlag(ACTIVE, false, mrThermalModelPart.Nodes());
+            VariableUtils().SetFlag(SOLID, false, mrThermalModelPart.Nodes());
+
             block_for_each(mrMechanicalModelPart.Elements(), [&](auto& rMechanicalElement){
-                rMechanicalElement.Set(ACTIVE, false);
+                // Initialize non-active elements of the mechanical model part (to avoid segmentation fault)
                 rMechanicalElement.Initialize(r_current_process_info);
-            });
-
-            block_for_each(mrThermalModelPart.Elements(), [&](auto& rThermalElement){
-                rThermalElement.Set(ACTIVE, false);
-            });
-
-            // Same nodes for both computing model part
-            block_for_each(mrThermalModelPart.Nodes(), [&](auto& rNode){
-                rNode.Set(ACTIVE, false);
-                rNode.Set(SOLID, false);
             });
         }
 
@@ -122,19 +121,13 @@ class ConstructionUtility
 
             if (soil_nelements != 0)
             {
-                block_for_each(mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements(), [&](auto& rMechanicalElement){
-                    rMechanicalElement.Set(ACTIVE, true);
-                });
+                // Activate elements of the soil part of both model parts
+                VariableUtils().SetFlag(ACTIVE, true, mrThermalModelPart.GetSubModelPart(mThermalSoilPart).Elements());
+                VariableUtils().SetFlag(ACTIVE, true, mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements());
 
-                block_for_each(mrThermalModelPart.GetSubModelPart(mThermalSoilPart).Elements(), [&](auto& rThermalElement){
-                    rThermalElement.Set(ACTIVE, true);
-                });
-
-                // Same nodes for both computing model part
-                block_for_each(mrThermalModelPart.GetSubModelPart(mThermalSoilPart).Nodes(), [&](auto& rNode){
-                    rNode.Set(ACTIVE, true);
-                    rNode.Set(SOLID, true);
-                });
+                // Activate nodes of the soil part of one of the model parts (thermal) as both model parts share the same nodes
+                VariableUtils().SetFlag(ACTIVE, true, mrThermalModelPart.GetSubModelPart(mThermalSoilPart).Nodes());
+                VariableUtils().SetFlag(SOLID, true, mrThermalModelPart.GetSubModelPart(mThermalSoilPart).Nodes());
             }
         }
 
@@ -144,19 +137,13 @@ class ConstructionUtility
 
             if (existing_nelements != 0)
             {
-                block_for_each(mrMechanicalModelPart.GetSubModelPart(mMechanicalExistingPart).Elements(), [&](auto& rMechanicalElement){
-                    rMechanicalElement.Set(ACTIVE, true);
-                });
+                // Activate elements of the existing part of both model parts
+                VariableUtils().SetFlag(ACTIVE, true, mrThermalModelPart.GetSubModelPart(mThermalExistingPart).Elements());
+                VariableUtils().SetFlag(ACTIVE, true, mrMechanicalModelPart.GetSubModelPart(mMechanicalExistingPart).Elements());
 
-                block_for_each(mrThermalModelPart.GetSubModelPart(mThermalExistingPart).Elements(), [&](auto& rThermalElement){
-                    rThermalElement.Set(ACTIVE, true);
-                });
-
-                // Same nodes for both computing model part
-                block_for_each(mrThermalModelPart.GetSubModelPart(mThermalExistingPart).Nodes(), [&](auto& rNode){
-                    rNode.Set(ACTIVE, true);
-                    rNode.Set(SOLID, true);
-                });
+                // Activate nodes of the existing part of one of the model parts (thermal) as both model parts share the same nodes
+                VariableUtils().SetFlag(ACTIVE, true, mrThermalModelPart.GetSubModelPart(mThermalExistingPart).Nodes());
+                VariableUtils().SetFlag(SOLID, true, mrThermalModelPart.GetSubModelPart(mThermalExistingPart).Nodes());
             }
         }
 
