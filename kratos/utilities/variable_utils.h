@@ -125,8 +125,8 @@ public:
         const TVarType &rDestinationVariable,
         const ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart,
-        const unsigned int ReadBufferStep = 0,
-        const unsigned int WriteBufferStep = 0)
+        const unsigned int ReadBufferStep,
+        const unsigned int WriteBufferStep )
     {
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
