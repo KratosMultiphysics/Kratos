@@ -332,16 +332,9 @@ namespace MPMSearchElementUtility
                     }
                     else
                     {
-                        if (rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
-                            (*element_itr).GetGeometry().SetGeometryParent((pelem->pGetGeometry().get()));
-                        }
                         auto p_quadrature_point_geometry = element_itr->pGetGeometry();
                         array_1d<double, 3> local_coordinates;
-                        if (!rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
-                            p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
-                        } else {
-                            pelem->pGetGeometry()->PointLocalCoordinates(local_coordinates, xg[0]);
-                        }
+                        pelem->pGetGeometry()->PointLocalCoordinates(local_coordinates, xg[0]);
                         CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                             p_quadrature_point_geometry, local_coordinates,
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
@@ -380,11 +373,7 @@ namespace MPMSearchElementUtility
                     if (is_found == true) {
                         auto p_quadrature_point_geometry = condition_itr->pGetGeometry();
                         array_1d<double, 3> local_coordinates;
-                        if (!rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
-                            p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
-                        } else {
-                            pelem->pGetGeometry()->PointLocalCoordinates(local_coordinates, xg[0]);
-                        }
+                        pelem->pGetGeometry()->PointLocalCoordinates(local_coordinates, xg[0]);
                         CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                             p_quadrature_point_geometry, local_coordinates,
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
