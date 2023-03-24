@@ -38,7 +38,7 @@ namespace Kratos {
  * This class does not have any member variables, hence it uses expressions to represent the
  * data. Therefore, all the operations such as "+", "-", "*", etc are light weight because
  * they do not compute the value in place, they just create an expression which keeps track fo the expressions.
- * These expressions are evaluated only if AssignDataToContainerVariable. This also does not create additional
+ * These expressions are evaluated only if AssignData. This also does not create additional
  * vectors to hold the resultant value of the expression. It uses the model parts respective containers entity input/output
  * method specified to write evaluated entity resultant values to model part entities. Hence, these
  * SpecializedContainerVariableData can be easily visualized using common variable data visualization methods.
@@ -110,7 +110,7 @@ public:
      * @param rVariable         Variable of the entities in the container
      */
     template <class TDataType>
-    void ReadDataFromContainerVariable(
+    void ReadData(
         const Variable<TDataType>& rVariable);
 
     /**
@@ -130,7 +130,7 @@ public:
      * @param rVariable         Variable the data to be written to.
      */
     template <class TDataType>
-    void AssignDataToContainerVariable(
+    void AssignData(
         const Variable<TDataType>& rVariable);
 
     /**
@@ -143,7 +143,7 @@ public:
      * @param rValue            Value the container data is set to.
      */
     template <class TDataType>
-    void SetDataToValue(
+    void SetData(
         const TDataType& rValue);
 
     /**
@@ -156,7 +156,7 @@ public:
      * @param rVariable         Variable which is used to get the zero value to set to.
      */
     template <class TDataType>
-    void SetDataToVariableZeroValue(
+    void SetZero(
         const Variable<TDataType>& rVariable);
 
     ///@}

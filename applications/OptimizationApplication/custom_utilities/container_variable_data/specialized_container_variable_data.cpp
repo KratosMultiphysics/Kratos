@@ -12,6 +12,7 @@
 
 // System includes
 #include <string>
+#include <tuple>
 
 // Project includes
 #include "includes/define.h"
@@ -21,6 +22,7 @@
 
 // Application includes
 #include "container_data_io.h"
+#include "variable_flatten_data_io.h"
 
 // Include base h
 #include "specialized_container_variable_data.h"
@@ -47,40 +49,6 @@ IndexType GetLocalSize<array_1d<double, 3>>(const IndexType DomainSize)
     return DomainSize;
 }
 
-void AssignValueToVector(
-    Vector& rOutput,
-    const IndexType StartIndex,
-    const IndexType ComponentIndex,
-    double rValue)
-{
-    rOutput[StartIndex] = rValue;
-}
-
-void AssignValueToVector(
-    Vector& rOutput,
-    const IndexType StartIndex,
-    const IndexType ComponentIndex,
-    const Array3D& rValue)
-{
-    rOutput[StartIndex + ComponentIndex] = rValue[ComponentIndex];
-}
-
-void AssignValueFromVector(
-    double& rOutput,
-    const IndexType ValueComponentIndex,
-    const double rInput)
-{
-    rOutput = rInput;
-}
-
-void AssignValueFromVector(
-    Array3D& rOutput,
-    const IndexType ValueComponentIndex,
-    const double rInput)
-{
-    rOutput[ValueComponentIndex] = rInput;
-}
-
 } // namespace ContainerVariableDataHolderHelperUtilities
 
 template <class TContainerType, class TContainerDataIO>
@@ -103,53 +71,46 @@ typename SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Poi
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::ReadDataFromContainerVariable(const Variable<TDataType>& rVariable)
+void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::ReadData(const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(this->GetModelPart().GetProcessInfo().Has(DOMAIN_SIZE))
-        << "DOMAIN_SIZE variable is not found in process info of model part "
-           "with name "
-        << this->GetModelPart().FullName() << ".\n";
+    const auto& r_container = this->GetContainer();
+    const IndexType number_of_entities = r_container.size();
 
-    const IndexType number_of_entities = this->GetContainer().size();
-    const auto dimension = ContainerVariableDataHolderHelperUtilities::GetLocalSize<TDataType>(this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
+    if (number_of_entities != 0) {
+        KRATOS_ERROR_IF_NOT(this->GetModelPart().GetProcessInfo().Has(DOMAIN_SIZE))
+            << "DOMAIN_SIZE variable is not found in process info of model part "
+            "with name "
+            << this->GetModelPart().FullName() << ".\n";
 
-    auto p_data = Kratos::make_shared<Vector>(number_of_entities * dimension);
-    this->mpExpression = LiteralVectorExpression::Create(p_data, dimension);
+        const IndexType domain_size = this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE];
 
-    auto& r_data = *p_data;
-    auto& r_container = this->GetContainer();
+        // initialize the shape with the first entity value
+        VariableFlattenDataIO<TDataType> variable_flatten_data_io(TContainerDataIO::GetValue(*r_container.begin(), rVariable), domain_size);
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &r_data, dimension](const IndexType Index){
-        const auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
-        const IndexType local_index = Index * dimension;
-        for (IndexType i = 0; i < dimension; ++i) {
-            ContainerVariableDataHolderHelperUtilities::AssignValueToVector(r_data, local_index, i, values);
-        }
-    });
+        auto p_data = Kratos::make_shared<Vector>();
+        this->mpExpression = LiteralVectorExpression::Create(p_data, variable_flatten_data_io.GetShape());
+        const IndexType local_size = this->mpExpression->GetLocalSize();
+
+        auto& r_data = *p_data;
+        r_data.resize(number_of_entities * local_size);
+
+        IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &r_data, &variable_flatten_data_io, local_size](const IndexType Index){
+            const auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
+            variable_flatten_data_io.Read(&r_data[Index * local_size], values);
+        });
+
+    }
 
     KRATOS_CATCH("")
 }
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::AssignDataToContainerVariable(const Variable<TDataType>& rVariable)
+void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::AssignData(const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(this->GetModelPart().GetProcessInfo().Has(DOMAIN_SIZE))
-        << "DOMAIN_SIZE variable is not found in process info of model part "
-           "with name "
-        << this->GetModelPart().FullName() << ".\n";
-
-    const IndexType local_size = ContainerVariableDataHolderHelperUtilities::GetLocalSize<TDataType>(this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
-
-    KRATOS_ERROR_IF_NOT(local_size == this->GetDataDimension())
-        << "Stored data dimension and requested assignment variable data "
-           "dimension mismatch. [ Sotred data dimension = "
-        << this->GetDataDimension()
-        << ", assignment requested variable data diemension = " << local_size << " ].\n";
 
     auto& r_container = this->GetContainer();
     const IndexType number_of_entities = r_container.size();
@@ -163,13 +124,26 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::AssignD
         VariableUtils().SetNonHistoricalVariablesToZero(this->GetModelPart().GetCommunicator().GhostMesh().Nodes(), rVariable);
     }
 
-    auto& r_expression = *this->mpExpression;
+    const auto& r_expression = *this->mpExpression;
+    const IndexType local_size = r_expression.GetLocalSize();
 
-    IndexPartition<IndexType>(number_of_entities).for_each(TDataType(), [&r_container, &rVariable, &local_size, &r_expression](const IndexType Index, TDataType& rValue){
+    struct tls_type
+    {
+        tls_type(const IndexType LocalSize) { mFlattenedVector.resize(LocalSize); }
+
+        TDataType mValue{};
+
+        Vector mFlattenedVector;
+    };
+
+    VariableFlattenDataIO<TDataType> variable_flatten_data_io(r_expression.GetShape());
+
+    IndexPartition<IndexType>(number_of_entities).for_each(tls_type(local_size), [&r_container, &rVariable, &local_size, &r_expression, &variable_flatten_data_io](const IndexType Index, tls_type& rTLS){
         for (IndexType i = 0; i < local_size; ++i) {
-            ContainerVariableDataHolderHelperUtilities::AssignValueFromVector(rValue, i, r_expression.Evaluate(Index, i));
+            rTLS.mFlattenedVector[i] = r_expression.Evaluate(Index, i);
         }
-        TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
+        variable_flatten_data_io.Assign(rTLS.mValue, &rTLS.mFlattenedVector[0]);
+        TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rTLS.mValue);
     });
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
@@ -188,7 +162,7 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::AssignD
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetDataToValue(const TDataType& rValue)
+void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetData(const TDataType& rValue)
 {
     static_assert(
         std::is_same_v<TDataType, double>               ||
@@ -202,20 +176,20 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetData
            "with name "
         << this->GetModelPart().FullName() << ".\n";
 
-    const auto dimension = ContainerVariableDataHolderHelperUtilities::GetLocalSize<TDataType>(this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
     if constexpr(std::is_same_v<TDataType, double> || std::is_same_v<TDataType, int> || std::is_same_v<TDataType, std::size_t>) {
         this->mpExpression = LiteralDoubleExpression::Create(rValue);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-        this->mpExpression = LiteralArray3Expression::Create(rValue, dimension);
+        VariableFlattenDataIO<TDataType> variable_flatten_data_io(rValue, this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
+        this->mpExpression = LiteralArray3Expression::Create(rValue, variable_flatten_data_io.GetShape()[0]);
     }
 
 }
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetDataToVariableZeroValue(const Variable<TDataType>& rVariable)
+void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetZero(const Variable<TDataType>& rVariable)
 {
-    this->SetDataToValue(rVariable.Zero());
+    this->SetData(rVariable.Zero());
 }
 
 template <class TContainerType, class TContainerDataIO>
@@ -417,10 +391,10 @@ std::string SpecializedContainerVariableData<TContainerType, TContainerDataIO>::
 
 //template instantiations
 #define KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, DataType)                                                                   \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::ReadDataFromContainerVariable(const Variable<DataType>&);                \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetDataToValue(const DataType&); \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetDataToVariableZeroValue(const Variable<DataType>&);            \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::AssignDataToContainerVariable(const Variable<DataType>&);
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::ReadData(const Variable<DataType>&);                \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetData(const DataType&); \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetZero(const Variable<DataType>&);            \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::AssignData(const Variable<DataType>&);
 
 #define KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOTag)                                                           \
     template class SpecializedContainerVariableData<ContainerType, ContainerDataIO<ContainerDataIOTag>>;                                             \
