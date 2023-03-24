@@ -2317,9 +2317,7 @@ void SphericParticle::HierarchicalMultiscaleComputationsPP(const ProcessInfo& r_
     const double kn = mDiscontinuumConstitutiveLaw->mKn;
     const double kt = mDiscontinuumConstitutiveLaw->mKt;
 
-    // Tensors: tangent operator, fabric, cauchy stress, thermal conductivity
-    const double keff = ComputeEffectiveThermalConductivity(r_process_info);
-
+    // Tensors: tangent operator, fabric, cauchy stress
     for (int i = 0; i < dim; i++) {
       for (int j = 0; j < dim; j++) {
         for (int k = 0; k < dim; k++) {
@@ -2335,17 +2333,17 @@ void SphericParticle::HierarchicalMultiscaleComputationsPP(const ProcessInfo& r_
           }
         }
         const double nij = normal[i] * normal[j];
-        mFabricTensor(i,j)       += nij;
-        mCauchyTensor(i,j)       += branch[i] * GlobalContactForce[j];
-        mConductivityTensor(i,j) += nij * keff;
-
+        mFabricTensor(i,j) += nij;
+        mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
         if (has_inner_particle) {
-          mFabricTensorInner(i,j)       += mFabricTensor(i,j);
-          mCauchyTensorInner(i,j)       += mCauchyTensor(i,j);
-          mConductivityTensorInner(i,j) += mConductivityTensor(i,j);
+          mFabricTensorInner(i,j) += mFabricTensor(i,j);
+          mCauchyTensorInner(i,j) += mCauchyTensor(i,j);
         }
       }
     }
+
+    // Store contact info
+    StoreContactInfoPP(data_buffer);
   }
 }
 
@@ -2417,9 +2415,7 @@ void SphericParticle::HierarchicalMultiscaleComputationsPW(const ProcessInfo& r_
   const double kn = mDiscontinuumConstitutiveLaw->mKn;
   const double kt = mDiscontinuumConstitutiveLaw->mKt;
 
-  // Tensors: tangent operator, fabric, cauchy stress, thermal conductivity
-  const double keff = ComputeEffectiveThermalConductivity(r_process_info);
-
+  // Tensors: tangent operator, fabric, cauchy stress
   for (int i = 0; i < dim; i++) {
     for (int j = 0; j < dim; j++) {
       for (int k = 0; k < dim; k++) {
@@ -2431,17 +2427,17 @@ void SphericParticle::HierarchicalMultiscaleComputationsPW(const ProcessInfo& r_
         }
       }
       const double nij = normal[i] * normal[j];
-      mFabricTensor(i,j)       += nij;
-      mCauchyTensor(i,j)       += branch[i] * GlobalContactForce[j];
-      mConductivityTensor(i,j) += nij * keff;
+      mFabricTensor(i,j) += nij;
+      mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
     }
   }
+
+  // Store contact info
+  StoreContactInfoPW(data_buffer);
 }
 
-double SphericParticle::ComputeEffectiveThermalConductivity(const ProcessInfo& r_process_info)
-{
-  return 0.0;
-}
+void SphericParticle::StoreContactInfoPP(SphericParticle::ParticleDataBuffer& data_buffer) {}
+void SphericParticle::StoreContactInfoPW(SphericParticle::ParticleDataBuffer& data_buffer) {}
 
 //==========================================================================================================================================
 // HIERARCHICAL MULTISCALE RVE - FINISH

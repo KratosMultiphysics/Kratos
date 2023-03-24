@@ -59,6 +59,11 @@ namespace Kratos
         std::vector<double> impact_velocity;
       };
 
+      struct ContactParamsHMS
+      {
+        array_1d<double, 3> normal;
+      };
+
       // Constructor
       ThermalSphericParticle();
       ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -79,6 +84,9 @@ namespace Kratos
       void CalculateRightHandSide          (const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
+      void HierarchicalMultiscale          (const ProcessInfo& r_process_info);
+      void StoreContactInfoPP              (SphericParticle::ParticleDataBuffer& data_buffer) override;
+      void StoreContactInfoPW              (SphericParticle::ParticleDataBuffer& data_buffer) override;
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
       void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
       void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
@@ -94,7 +102,6 @@ namespace Kratos
       double ComputeReynoldNumber                (const ProcessInfo& r_process_info);
       double ComputeFluidRelativeVelocity        (const ProcessInfo& r_process_info);
       double GetVoronoiCellFaceRadius            (const ProcessInfo& r_process_info);
-      double ComputeEffectiveThermalConductivity (const ProcessInfo& r_process_info) override;  // For thermal conductivity homogenization
 
       // Neighbor interaction computations
       void   CleanContactParameters              (const ProcessInfo& r_process_info);
@@ -266,13 +273,15 @@ namespace Kratos
       double       mEnvironmentTempAux;
 
       // Neighboring data
-      ThermalSphericParticle*                   mNeighbor_p;
-      DEMWall*                                  mNeighbor_w;
-      int                                       mNeighborType;
-      unsigned int                              mNeighborIndex;
-      unsigned int                              mNumberOfContactParticleNeighbor;
-      std::map<SphericParticle*, ContactParams> mContactParamsParticle;
-      std::map<DEMWall*, ContactParams>         mContactParamsWall;
+      ThermalSphericParticle*                      mNeighbor_p;
+      DEMWall*                                     mNeighbor_w;
+      int                                          mNeighborType;
+      unsigned int                                 mNeighborIndex;
+      unsigned int                                 mNumberOfContactParticleNeighbor;
+      std::map<SphericParticle*, ContactParams>    mContactParamsParticle;
+      std::map<DEMWall*, ContactParams>            mContactParamsWall;
+      std::map<SphericParticle*, ContactParamsHMS> mContactParamsParticleHMS;
+      std::map<DEMWall*, ContactParamsHMS>         mContactParamsWallHMS;
 
       // Tesselation data
       unsigned int         mDelaunayPointListIndex;

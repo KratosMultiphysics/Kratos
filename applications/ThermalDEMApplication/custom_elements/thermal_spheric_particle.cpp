@@ -234,6 +234,10 @@ namespace Kratos
     if (mIsTimeToSolve)
       ComputeHeatFluxes(r_process_info);
 
+    // Hierarchical multiscale
+    if (mRVESolve && mWall == 0)
+      HierarchicalMultiscale(r_process_info);
+
     KRATOS_CATCH("")
   }
 
@@ -330,6 +334,120 @@ namespace Kratos
 
     if (r_process_info[RADIATION_OPTION])
       mRadiationHeatFlux += GetRadiationModel().ComputeHeatFlux(r_process_info, this);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::HierarchicalMultiscale(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    const int dim = r_process_info[DOMAIN_SIZE];
+
+    // Particle neighbors
+    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+      if (mNeighbourElements[i] == NULL) continue;
+      mNeighbor_p    = dynamic_cast<ThermalSphericParticle*>(mNeighbourElements[i]);
+      mNeighborType  = PARTICLE_NEIGHBOR;
+      mNeighborIndex = i;
+
+      // Check if neighbor is adiabatic
+      if (CheckAdiabaticNeighbor()) continue;
+
+      // Unique contacts (each binary contact evaluated only once)
+      if (GetId() > mNeighbor_p->GetId() && mNeighbor_p->mWall == 0) continue;
+
+      // Compute simulated or adjusted interaction properties
+      ComputeInteractionProps(r_process_info);
+      if (!mNeighborInContact) continue;
+      array_1d<double,3> normal = mContactParamsParticleHMS[mNeighbor_p].normal;
+
+      // Check inner particle
+      bool has_inner_particle = (mInner || (mNeighbor_p->mNeighbourRigidFaces.size() == 0));
+
+      // Compute effective conductivity
+      const double keff = GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, this);
+      
+      // Add contact contribution to thermal conductivity tensor
+      for (int j = 0; j < dim; j++) {
+        for (int k = 0; k < dim; k++) {
+          mConductivityTensor(j,k) += normal[j] * normal[k] * keff;
+          if (has_inner_particle)
+            mConductivityTensorInner(j,k) += mConductivityTensor(j,k);
+        }
+      }
+    }
+
+    // Wall neighbors
+    for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++) {
+      if (mNeighbourRigidFaces[i] == NULL) continue;
+      mNeighbor_w    = dynamic_cast<DEMWall*>(mNeighbourRigidFaces[i]);
+      mNeighborType  = WALL_NEIGHBOR_CONTACT;
+      mNeighborIndex = i;
+      if (i > 1) return;
+
+      // Check if neighbor is adiabatic
+      if (CheckAdiabaticNeighbor()) continue;
+      
+      // Compute simulated or adjusted interaction properties
+      ComputeInteractionProps(r_process_info);
+      if (!mNeighborInContact) continue;
+      array_1d<double,3> normal = mContactParamsWallHMS[mNeighbor_w].normal;
+      
+      // Compute effective conductivity
+      const double keff = GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, this);
+      
+      // Add contact contribution to thermal conductivity tensor
+      for (int j = 0; j < dim; j++) {
+        for (int k = 0; k < dim; k++) {
+          mConductivityTensor(j,k) += normal[j] * normal[k] * keff;
+        }
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::StoreContactInfoPP(SphericParticle::ParticleDataBuffer& data_buffer) {
+    KRATOS_TRY
+
+    // Get neighbor
+    SphericParticle* neighbor = data_buffer.mpOtherParticle;
+
+    // New contact: Add new parameters to map and initialize it
+    if (!mContactParamsParticleHMS.count(neighbor)) {
+      ContactParamsHMS params;
+      mContactParamsParticleHMS[neighbor] = params;
+      mContactParamsParticleHMS[neighbor].normal = zero_vector(3);
+    }
+
+    // Set normal direction
+    mContactParamsParticleHMS[neighbor].normal[0] = -data_buffer.mLocalCoordSystem[2][0];
+    mContactParamsParticleHMS[neighbor].normal[1] = -data_buffer.mLocalCoordSystem[2][1];
+    mContactParamsParticleHMS[neighbor].normal[2] = -data_buffer.mLocalCoordSystem[2][2];
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::StoreContactInfoPW(SphericParticle::ParticleDataBuffer& data_buffer) {
+    KRATOS_TRY
+
+    // Get neighbor
+    DEMWall* neighbor = data_buffer.mpOtherRigidFace;
+
+    // New contact: Add new parameters to map and initialize it
+    if (!mContactParamsWallHMS.count(neighbor)) {
+      ContactParamsHMS params;
+      mContactParamsWallHMS[neighbor] = params;
+      mContactParamsWallHMS[neighbor].normal = zero_vector(3);
+    }
+
+    // Set normal direction
+    mContactParamsWallHMS[neighbor].normal[0] = -data_buffer.mLocalCoordSystem[2][0];
+    mContactParamsWallHMS[neighbor].normal[1] = -data_buffer.mLocalCoordSystem[2][1];
+    mContactParamsWallHMS[neighbor].normal[2] = -data_buffer.mLocalCoordSystem[2][2];
 
     KRATOS_CATCH("")
   }
@@ -654,23 +772,6 @@ namespace Kratos
     else {
       return 0.0;
     }
-
-    KRATOS_CATCH("")
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeEffectiveThermalConductivity(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Check if neighbor is adiabatic
-    if (CheckAdiabaticNeighbor())
-      return 0.0;
-
-    // Compute simulated or adjusted interaction properties
-    ComputeInteractionProps(r_process_info);
-
-    // Compute effective conductivity
-    return GetDirectConductionModel().ComputeEffectiveThermalConductivity(r_process_info, this);
 
     KRATOS_CATCH("")
   }

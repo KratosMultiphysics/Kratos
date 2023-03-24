@@ -309,9 +309,10 @@ Matrix mConductivityTensor;       // Effective thermal conductivity tensor with 
 Matrix mConductivityTensorInner;  // Effective thermal conductivity tensor with unique contacts (only contacts involving inner particles)
 
 // Methods
-void           HierarchicalMultiscaleComputationsPP (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]);
-void           HierarchicalMultiscaleComputationsPW (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], double indentation);
-virtual double ComputeEffectiveThermalConductivity  (const ProcessInfo& r_process_info);
+void         HierarchicalMultiscaleComputationsPP (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]);
+void         HierarchicalMultiscaleComputationsPW (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], double indentation);
+virtual void StoreContactInfoPP(SphericParticle::ParticleDataBuffer& data_buffer);
+virtual void StoreContactInfoPW(SphericParticle::ParticleDataBuffer& data_buffer);
 
 //==========================================================================================================================================
 // HIERARCHICAL MULTISCALE RVE - FINISH
