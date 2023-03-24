@@ -208,7 +208,7 @@ public:
             << "The RegistryItem '" << this->Name() << "' already has an item with name "
             << ItemName << "." << std::endl;
 
-        if constexpr (std::is_same<TItemType, RegistryItem>::value == true) {
+        if constexpr (std::is_same_v<TItemType, RegistryItem>) {
             using ValueType = typename std::conditional<std::is_same<TItemType, RegistryItem>::value, SubRegistryItemFunctor, SubValueItemFunctor<TItemType>>::type;
 
             auto insert_result = GetSubRegistryItemMap().emplace(
