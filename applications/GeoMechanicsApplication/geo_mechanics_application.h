@@ -51,6 +51,7 @@
 #include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 #include "custom_conditions/T_normal_flux_condition.hpp"
+#include "custom_conditions/T_microclimate_flux_condition.hpp"
 
 // Geometries
 #include "geometries/triangle_2d_3.h"
@@ -527,6 +528,9 @@ private:
 
     const TNormalFluxCondition<2,2> mTNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const TNormalFluxCondition<2,3> mTNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+	
+    const TMicroClimateFluxCondition<2,2> mTMicroClimateFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const TMicroClimateFluxCondition<2,3> mTMicroClimateFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
 
     const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N{ 0, Kratos::make_shared< Line2D2                   <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N{ 0, Kratos::make_shared< QuadrilateralInterface3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
