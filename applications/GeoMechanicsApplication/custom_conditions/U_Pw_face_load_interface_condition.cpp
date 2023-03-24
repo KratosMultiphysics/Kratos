@@ -192,7 +192,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bo
     //Quadrilateral_interface_3d_4
     array_1d<double, 3> pmid0;
     array_1d<double, 3> pmid1;
-    array_1d<double,3> P2 = Geom.GetPoint( 2 );
+    const array_1d<double, 3>& P2 = Geom.GetPoint( 2 );
     noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
     noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + P2);
     

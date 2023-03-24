@@ -46,7 +46,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     /// Processes
     py::class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
         .def(py::init<Model&, Parameters>())
-        .def(py::init<ModelPart&, Parameters>())
         ;
 
     py::class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")

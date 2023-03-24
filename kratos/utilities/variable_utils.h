@@ -1119,20 +1119,18 @@ public:
             CheckVariableExists(rVariable, rNodes);
 
             if (IsFixed) {
-                BlockPartition<NodesContainerType>(rNodes).for_each(
-                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
-                        if (rNode.Is(rFlag) == CheckValue) {
-                            rNode.pGetDof(rVariable)->FixDof();
-                        }
-                    });
+                block_for_each(rNodes, [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                    if (rNode.Is(rFlag) == CheckValue) {
+                        rNode.pGetDof(rVariable)->FixDof();
+                    }
+                });
             }
             else {
-                BlockPartition<NodesContainerType>(rNodes).for_each(
-                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
-                        if (rNode.Is(rFlag) == CheckValue) {
-                            rNode.pGetDof(rVariable)->FreeDof();
-                        }
-                    });
+                block_for_each(rNodes, [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                    if (rNode.Is(rFlag) == CheckValue) {
+                        rNode.pGetDof(rVariable)->FreeDof();
+                    }
+                });
             }
         }
 

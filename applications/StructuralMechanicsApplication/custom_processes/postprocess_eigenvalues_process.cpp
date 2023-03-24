@@ -153,27 +153,13 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(
     mOutputParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
     mpModelPart = &(rModel.GetModelPart(mOutputParameters["model_part_name"].GetString()));
     const std::string folder_name = mOutputParameters["folder_name"].GetString();
-    if (mOutputParameters["wipe_results_folder"].GetBool()) {
-        std::filesystem::remove_all(folder_name);
-    }
-    if (!std::filesystem::exists(folder_name)) {
-        std::filesystem::create_directories(folder_name);
-    }
-}
-
-PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(
-    ModelPart& rModelPart,
-    Parameters OutputParameters)
-    : mpModelPart(&rModelPart)
-    , mOutputParameters(OutputParameters)
-{
-    mOutputParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
-    const std::string folder_name = mOutputParameters["folder_name"].GetString();
-    if (mOutputParameters["wipe_results_folder"].GetBool()) {
-        std::filesystem::remove_all(folder_name);
-    }
-    if (!std::filesystem::exists(folder_name)) {
-        std::filesystem::create_directories(folder_name);
+    if (OutputParameters["save_output_files_in_folder"].GetBool()) {
+        if (mOutputParameters["wipe_results_folder"].GetBool()) {
+            std::filesystem::remove_all(folder_name);
+        }
+        if (!std::filesystem::exists(folder_name)) {
+            std::filesystem::create_directories(folder_name);
+        }
     }
 }
 

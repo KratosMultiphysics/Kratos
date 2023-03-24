@@ -59,10 +59,6 @@ public:
         Model& rModel,
         Parameters OutputParameters);
 
-    PostprocessEigenvaluesProcess(
-        ModelPart& rModelPart,
-        Parameters OutputParameters);
-
     ///@}
     ///@name Operations
     ///@{
