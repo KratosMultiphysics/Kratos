@@ -12,10 +12,10 @@
 
 #pragma once
 
-// --- Utility Includes ---
+// Project includes
 #include "utilities/profiler.h" // <== help the language server
 
-// --- STL Includes ---
+// System includes
 #include <string>
 #include <chrono>
 
