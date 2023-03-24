@@ -8,7 +8,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from generalTests import KratosDamGeneralTests
 
-
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 

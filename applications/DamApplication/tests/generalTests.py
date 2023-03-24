@@ -22,7 +22,6 @@ class KratosDamGeneralTests(KratosUnittest.TestCase):
             simulation = DamAnalysis(model, parameters)
             simulation.Run()
 
-            # self._check_results(model_part, A, b)
             if self.print_results:
                 self.__print_results(model, results_filename, parameters)
             self.__check_results(model, results_filename, parameters)
