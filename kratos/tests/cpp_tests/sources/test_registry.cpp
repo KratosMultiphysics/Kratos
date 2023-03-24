@@ -276,7 +276,16 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
             }
         );
 
+        
+
 }
+
+KRATOS_TEST_CASE_IN_SUITE(RegistrySomeRegisteredVariables, KratosCoreFastSuite){
+     KRATOS_CHECK(Registry::HasItem("variables.all.TEMPERATURE"));
+     KRATOS_CHECK(Registry::HasItem("variables.all.VELOCITY"));
+     KRATOS_CHECK(Registry::HasItem("variables.all.DISPLACEMENT_Z"));
+}
+
 
 }
 }  // namespace Kratos.
