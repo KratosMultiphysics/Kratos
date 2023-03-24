@@ -12,10 +12,10 @@
 
 #pragma once
 
-// --- Core Includes ---
+// Core includes
 #include "includes/code_location.h"
 
-// --- STL Includes ---
+// STL includes
 #include <unordered_map>
 #include <filesystem>
 #include <chrono>

@@ -10,12 +10,12 @@
 //  Main authors:    Máté Kelemen
 //
 
-// --- Core Includes ---
+// Core includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/profiler.h"
 
-// --- STL Includes ---
+// STL includes
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
