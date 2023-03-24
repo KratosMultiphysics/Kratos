@@ -373,7 +373,7 @@ protected:
 
     bool mElementTauNodal; 
 
-    bool mHIsCalculated = true;
+    bool mCalculateNodalH = true;
 
     bool mElementRequiresLevelSetGradient;
 
