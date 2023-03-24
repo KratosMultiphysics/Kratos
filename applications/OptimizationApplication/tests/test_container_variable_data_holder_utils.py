@@ -27,43 +27,43 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
     def test_ContainerVariableDataNormInf(self):
         a = KratosOA.HistoricalVariableData(self.model_part)
 
-        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        a.ReadData(Kratos.PRESSURE)
         self.assertEqual(KratosOA.ContainerVariableDataUtils.NormInf(a), 28)
 
-        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        a.ReadData(Kratos.VELOCITY)
         self.assertEqual(KratosOA.ContainerVariableDataUtils.NormInf(a), 30)
 
     def test_ContainerVariableDataNormL2(self):
         a = KratosOA.HistoricalVariableData(self.model_part)
 
-        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        a.ReadData(Kratos.PRESSURE)
         self.assertEqual(KratosOA.ContainerVariableDataUtils.NormL2(a), 87.74964387392122)
 
-        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        a.ReadData(Kratos.VELOCITY)
         self.assertEqual(KratosOA.ContainerVariableDataUtils.NormL2(a), 160.0781059358212)
 
     def test_ContainerVariableDataEntityMaxNormL2(self):
         a = KratosOA.HistoricalVariableData(self.model_part)
 
-        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        a.ReadData(Kratos.PRESSURE)
         self.assertEqual(KratosOA.ContainerVariableDataUtils.EntityMaxNormL2(a), 28)
 
-        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        a.ReadData(Kratos.VELOCITY)
         self.assertEqual(KratosOA.ContainerVariableDataUtils.EntityMaxNormL2(a), math.sqrt(28**2 + 29**2 + 30**2))
 
     def test_ContainerVariableDataInnerProduct(self):
         a = KratosOA.HistoricalVariableData(self.model_part)
         b = KratosOA.HistoricalVariableData(self.model_part)
 
-        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        b.ReadDataFromContainerVariable(Kratos.DENSITY)
+        a.ReadData(Kratos.PRESSURE)
+        b.ReadData(Kratos.DENSITY)
 
         self.assertEqual(KratosOA.ContainerVariableDataUtils.InnerProduct(a, b), 8100.0)
 
     def test_ComputeNumberOfNeighbourConditions(self):
         neighbour_conditions = KratosOA.NodalNonHistoricalVariableData(self.model_part)
         KratosOA.ContainerVariableDataUtils.ComputeNumberOfNeighbourConditions(neighbour_conditions)
-        neighbour_conditions.AssignDataToContainerVariable(Kratos.DENSITY)
+        neighbour_conditions.AssignData(Kratos.DENSITY)
 
         neighbour_map = {
             2.0: [1, 2, 4, 5, 7, 9, 10, 12, 15, 17, 20, 21, 22, 23, 24, 25],
@@ -76,7 +76,7 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
     def test_ComputeNumberOfNeighbourElements(self):
         neighbour_elements = KratosOA.NodalNonHistoricalVariableData(self.model_part)
         KratosOA.ContainerVariableDataUtils.ComputeNumberOfNeighbourElements(neighbour_elements)
-        neighbour_elements.AssignDataToContainerVariable(Kratos.DENSITY)
+        neighbour_elements.AssignData(Kratos.DENSITY)
 
         neighbour_map = {
             1.0: [1, 9, 22, 25],
@@ -99,11 +99,11 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         mapped_values = KratosOA.NodalNonHistoricalVariableData(self.model_part)
 
         KratosOA.ContainerVariableDataUtils.ComputeNumberOfNeighbourConditions(neighbour_conditions)
-        neighbour_conditions.AssignDataToContainerVariable(Kratos.YOUNG_MODULUS)
+        neighbour_conditions.AssignData(Kratos.YOUNG_MODULUS)
 
-        condition_container.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        KratosOA.ContainerVariableDataUtils.MapContainerVariableDataToNodalVariableData(mapped_values, condition_container, neighbour_conditions)
-        mapped_values.AssignDataToContainerVariable(Kratos.VELOCITY)
+        condition_container.ReadData(Kratos.VELOCITY)
+        KratosOA.ContainerVariableDataUtils.MapContainerVariableToNodalVariable(mapped_values, condition_container, neighbour_conditions)
+        mapped_values.AssignData(Kratos.VELOCITY)
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Nodes)
         for condition in self.model_part.Conditions:
@@ -115,9 +115,9 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertVectorAlmostEqual(node[Kratos.ACCELERATION], node[Kratos.VELOCITY])
 
-        condition_container.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        KratosOA.ContainerVariableDataUtils.MapContainerVariableDataToNodalVariableData(mapped_values, condition_container, neighbour_conditions)
-        mapped_values.AssignDataToContainerVariable(Kratos.PRESSURE)
+        condition_container.ReadData(Kratos.PRESSURE)
+        KratosOA.ContainerVariableDataUtils.MapContainerVariableToNodalVariable(mapped_values, condition_container, neighbour_conditions)
+        mapped_values.AssignData(Kratos.PRESSURE)
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
         for condition in self.model_part.Conditions:
@@ -141,11 +141,11 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         mapped_values = KratosOA.NodalNonHistoricalVariableData(self.model_part)
 
         KratosOA.ContainerVariableDataUtils.ComputeNumberOfNeighbourElements(neighbour_conditions)
-        neighbour_conditions.AssignDataToContainerVariable(Kratos.YOUNG_MODULUS)
+        neighbour_conditions.AssignData(Kratos.YOUNG_MODULUS)
 
-        element_container.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        KratosOA.ContainerVariableDataUtils.MapContainerVariableDataToNodalVariableData(mapped_values, element_container, neighbour_conditions)
-        mapped_values.AssignDataToContainerVariable(Kratos.VELOCITY)
+        element_container.ReadData(Kratos.VELOCITY)
+        KratosOA.ContainerVariableDataUtils.MapContainerVariableToNodalVariable(mapped_values, element_container, neighbour_conditions)
+        mapped_values.AssignData(Kratos.VELOCITY)
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Nodes)
         for element in self.model_part.Elements:
@@ -157,9 +157,9 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertVectorAlmostEqual(node[Kratos.ACCELERATION], node[Kratos.VELOCITY])
 
-        element_container.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        KratosOA.ContainerVariableDataUtils.MapContainerVariableDataToNodalVariableData(mapped_values, element_container, neighbour_conditions)
-        mapped_values.AssignDataToContainerVariable(Kratos.PRESSURE)
+        element_container.ReadData(Kratos.PRESSURE)
+        KratosOA.ContainerVariableDataUtils.MapContainerVariableToNodalVariable(mapped_values, element_container, neighbour_conditions)
+        mapped_values.AssignData(Kratos.PRESSURE)
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
         for element in self.model_part.Elements:
@@ -179,9 +179,9 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         nodal_container = KratosOA.NodalNonHistoricalVariableData(self.model_part)
         mapped_value = KratosOA.ConditionNonHistoricalVariableData(self.model_part)
 
-        nodal_container.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        KratosOA.ContainerVariableDataUtils.MapNodalVariableDataToContainerVariableData(mapped_value, nodal_container)
-        mapped_value.AssignDataToContainerVariable(Kratos.ACCELERATION)
+        nodal_container.ReadData(Kratos.VELOCITY)
+        KratosOA.ContainerVariableDataUtils.MapNodalVariableToContainerVariable(mapped_value, nodal_container)
+        mapped_value.AssignData(Kratos.ACCELERATION)
 
         for condition in self.model_part.Conditions:
             v = Kratos.Array3([0, 0, 0])
@@ -189,9 +189,9 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
                 v += node.GetValue(Kratos.VELOCITY)
             self.assertVectorAlmostEqual(v / 2.0, condition.GetValue(Kratos.ACCELERATION))
 
-        nodal_container.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        KratosOA.ContainerVariableDataUtils.MapNodalVariableDataToContainerVariableData(mapped_value, nodal_container)
-        mapped_value.AssignDataToContainerVariable(Kratos.DENSITY)
+        nodal_container.ReadData(Kratos.PRESSURE)
+        KratosOA.ContainerVariableDataUtils.MapNodalVariableToContainerVariable(mapped_value, nodal_container)
+        mapped_value.AssignData(Kratos.DENSITY)
 
         for condition in self.model_part.Conditions:
             v = 0.0
@@ -206,7 +206,7 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         number_of_nodes = self.model_part.NumberOfNodes()
 
         a = KratosOA.HistoricalVariableData(self.model_part)
-        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        a.ReadData(Kratos.PRESSURE)
 
         m = Kratos.Matrix(number_of_nodes, number_of_nodes)
         for i in range(number_of_nodes):
@@ -215,7 +215,7 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
 
         b = KratosOA.HistoricalVariableData(self.model_part)
         KratosOA.ContainerVariableDataUtils.ProductWithEntityMatrix(b, m, a)
-        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        b.AssignData(Kratos.DENSITY)
 
         for i, node_b in enumerate(b.GetContainer()):
             v = 0
@@ -230,7 +230,7 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         number_of_nodes = self.model_part.NumberOfNodes()
 
         a = KratosOA.HistoricalVariableData(self.model_part)
-        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        a.ReadData(Kratos.PRESSURE)
 
         dense_m = Kratos.Matrix(number_of_nodes, number_of_nodes)
         for i in range(number_of_nodes):
@@ -295,10 +295,10 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
             node.SetSolutionStepValue(KratosOA.HELMHOLTZ_VAR_DENSITY, node.Id + 1)
 
         nodal_values = KratosOA.NodalNonHistoricalVariableData(self.model_part)
-        nodal_values.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        nodal_values.ReadData(Kratos.PRESSURE)
 
         output_values = KratosOA.NodalNonHistoricalVariableData(self.model_part)
-        KratosOA.ContainerVariableDataUtils.ComputeVariableDataProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.Elements)
+        KratosOA.ContainerVariableDataUtils.ComputeNodalVariableProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.Elements)
 
         # analytical calculation
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
@@ -317,9 +317,26 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         self.model_part.GetCommunicator().AssembleNonHistoricalData(Kratos.DENSITY)
 
         analytical_values = KratosOA.NodalNonHistoricalVariableData(self.model_part)
-        analytical_values.ReadDataFromContainerVariable(Kratos.DENSITY)
+        analytical_values.ReadData(Kratos.DENSITY)
 
         self.assertEqual(KratosOA.ContainerVariableDataUtils.NormL2(analytical_values - output_values), 0.0)
+
+    def test_ContainerVariableDataNormL2(self):
+        a = KratosOA.HistoricalVariableData(self.model_part)
+        b = KratosOA.HistoricalVariableData(self.model_part)
+        c = KratosOA.NodalNonHistoricalVariableData(self.model_part)
+
+        a.ReadData(Kratos.VELOCITY)
+        b.ReadData(Kratos.PRESSURE)
+
+        KratosOA.ContainerVariableDataUtils.WeightedProduct(c, a, b)
+        c.AssignData(Kratos.ACCELERATION)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            w = node.GetSolutionStepValue(Kratos.PRESSURE)
+            v = node.GetSolutionStepValue(Kratos.VELOCITY)
+            self.assertVectorAlmostEqual(v * w, node.GetValue(Kratos.ACCELERATION), 12)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
