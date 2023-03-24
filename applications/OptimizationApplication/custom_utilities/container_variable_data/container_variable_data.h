@@ -51,9 +51,9 @@ namespace Kratos {
  *                              They are used to store keep track of the operations carried on the LiteralExpressions.
  *
  * Literal expressions are created on the following cases:
- *      1. When data is set using the SpecializedContainerVariableData::ReadDataFromContainerVariable. Here, a LiteralVectorExpression is created.
- *      2. When data is reset to one value using either ContainerVariableData::SetDataToZero or SpecializedContainerVariableData::SetDataToValue
- *         or SpecializedContainerVariableData::SetDataToVariableZeroValue. Here a LiteralDoubleExpression or LiteralArray3Expression is created.
+ *      1. When data is set using the SpecializedContainerVariableData::ReadData. Here, a LiteralVectorExpression is created.
+ *      2. When data is reset to one value using either ContainerVariableData::SetDataToZero or SpecializedContainerVariableData::SetData
+ *         or SpecializedContainerVariableData::SetZero. Here a LiteralDoubleExpression or LiteralArray3Expression is created.
  *      3. When a SpecializedContainerVariableData is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
  *
  * BinaryExpressions are created on the followin cases:
@@ -143,13 +143,22 @@ public:
     const Expression::Pointer pGetExpression() const;
 
     /**
-     * @brief Get the Data Dimension of the expression
+     * @brief Get the shape of the expression data
      *
-     * This returns the dimension of the underlying expression.
+     * This returns the dimension of the underlying expression in each element of the vector.
+     *
+     * @return const std::vector<IndexType>
+     */
+    const std::vector<IndexType> GetShape() const;
+
+    /**
+     * @brief Get the Local Size of the data
+     *
+     * This returns the local size which is the sum of available indices in each dimension.
      *
      * @return IndexType
      */
-    IndexType GetDataDimension() const;
+    IndexType GetLocalSize() const;
 
     /**
      * @brief Get the Model Part used in the container data

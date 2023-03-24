@@ -84,9 +84,15 @@ const Expression::Pointer ContainerVariableData<TContainerType>::pGetExpression(
 }
 
 template <class TContainerType>
-IndexType ContainerVariableData<TContainerType>::GetDataDimension() const
+const std::vector<std::size_t> ContainerVariableData<TContainerType>::GetShape() const
 {
-    return this->GetExpression().GetDimension();
+    return this->GetExpression().GetShape();
+}
+
+template <class TContainerType>
+std::size_t ContainerVariableData<TContainerType>::GetLocalSize() const
+{
+    return this->GetExpression().GetLocalSize();
 }
 
 template <class TContainerType>
@@ -145,7 +151,7 @@ std::string ContainerVariableData<TContainerType>::Info() const
     msg << "ContainerVariableDataHolderInfo: [ ModelPartName: "
         << this->GetModelPart().FullName()
         << ", Number of entities: " << this->GetContainer().size()
-        << ", Data dimension: " << (mpExpression.get() ? this->GetDataDimension() : 0) << " ].\n";
+        << ", Data dimension: " << (mpExpression.get() ? this->GetLocalSize() : 0) << " ].\n";
 
     return msg.str();
 }
