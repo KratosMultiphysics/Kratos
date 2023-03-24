@@ -778,7 +778,7 @@ namespace Kratos
 					penalization = 0.9;
 				}
 			}
-			else if (rigidNodes > 0 && freesurfaceNodes > 0)
+			else if (rigidNodes > 0 && freesurfaceNodes > 0 && eulerianInletNodes == 0)
 			{
 				penalization = 0;
 			}
@@ -786,7 +786,7 @@ namespace Kratos
 			{
 				penalization = 0.875;
 			}
-
+			
 			double ElementalVolume = Element.Area();
 
 			array_1d<double, 3> Edges(3, 0.0);
@@ -813,7 +813,7 @@ namespace Kratos
 					Edges[Counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[Counter] = j;
 					SecondEdgeNode[Counter] = i;
-					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
+					if (((Element[i].Is(RIGID) && Element[j].Is(RIGID)) || (Element[i].Is(INLET) && Element[j].Is(INLET))) && Edges[Counter] > WallCharacteristicDistance)
 					{
 						WallCharacteristicDistance = Edges[Counter];
 					}
@@ -827,12 +827,13 @@ namespace Kratos
 				if (rigidNodes > 1)
 				{
 					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient2D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
-						(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
+						((Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)) || (Element[FirstEdgeNode[i]].Is(INLET) && Element[SecondEdgeNode[i]].Is(INLET))))
 					{
 						Edges[i] = 0;
 					}
 					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
-						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
+						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)) &&
+						(Element[FirstEdgeNode[i]].IsNot(PFEMFlags::EULERIAN_INLET) && Element[SecondEdgeNode[i]].IsNot(PFEMFlags::EULERIAN_INLET)))
 					{
 						Edges[i] = 0;
 					}
@@ -964,7 +965,9 @@ namespace Kratos
 					{
 						const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
 						const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
-						if (diffX < 0 && diffY < 0) //  the node is in the same zone of a previously inserted node
+						// if (diffX < 0 && diffY < 0)																															//  the node is in the same zone of a previously inserted node
+						if ((diffX < 0 && diffY < 0) || (Element[FirstEdgeNode[maxCount]].IsNot(INLET) && Element[SecondEdgeNode[maxCount]].IsNot(INLET))) //  the node is in the same zone of a previously inserted node
+
 						{
 							suitableElement = false;
 						}
@@ -1078,7 +1081,7 @@ namespace Kratos
 					penalization = 0.9;
 				}
 			}
-			else if (rigidNodes > 0 && freesurfaceNodes > 0)
+			else if (rigidNodes > 0 && freesurfaceNodes > 0 && eulerianInletNodes == 0)
 			{
 				penalization = 0;
 			}
@@ -1113,7 +1116,7 @@ namespace Kratos
 					Edges[Counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[Counter] = j;
 					SecondEdgeNode[Counter] = i;
-					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
+					if (((Element[i].Is(RIGID) && Element[j].Is(RIGID)) || (Element[i].Is(INLET) && Element[j].Is(INLET))) && Edges[Counter] > WallCharacteristicDistance)
 					{
 						WallCharacteristicDistance = Edges[Counter];
 					}
@@ -1127,12 +1130,13 @@ namespace Kratos
 				if (rigidNodes > 1)
 				{
 					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient3D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
-						(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
+						((Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)) || (Element[FirstEdgeNode[i]].Is(INLET) && Element[SecondEdgeNode[i]].Is(INLET))))
 					{
 						Edges[i] = 0;
 					}
 					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
-						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
+						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)) &&
+						(Element[FirstEdgeNode[i]].IsNot(PFEMFlags::EULERIAN_INLET) && Element[SecondEdgeNode[i]].IsNot(PFEMFlags::EULERIAN_INLET)))
 					{
 						Edges[i] = 0;
 					}
@@ -1284,7 +1288,7 @@ namespace Kratos
 					}
 				}
 
-				if (eulerianInletNodes > 0 && LargestEdge > (1.9 * meanMeshSize))
+				if (eulerianInletNodes > 0 && LargestEdge > (2.0 * meanMeshSize))
 				{
 
 					array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
@@ -1295,7 +1299,7 @@ namespace Kratos
 						const double diffX = std::abs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
 						const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
 						const double diffZ = std::abs(NewPositions[j][2] - NewPosition[2]) - meanMeshSize * 0.5;
-						if (diffX < 0 && diffY < 0 && diffZ < 0) //  the node is in the same zone of a previously inserted node
+						if ((diffX < 0 && diffY < 0 && diffZ < 0) || (Element[FirstEdgeNode[maxCount]].IsNot(INLET) && Element[SecondEdgeNode[maxCount]].IsNot(INLET))) //  the node is in the same zone of a previously inserted node
 						{
 							suitableElement = false;
 						}
