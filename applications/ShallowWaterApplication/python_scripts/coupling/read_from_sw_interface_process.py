@@ -42,13 +42,13 @@ class ReadFromSwInterfaceProcess(KM.Process):
 
         KM.Process.__init__(self)
         self.settings = settings
-        print(self.settings)
-        print("HO SCRITTO I SETTINGS")
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.interface_model_part = model[self.settings["interface_model_part_name"].GetString()]
         self.input_model_part = model.CreateModelPart(self.settings["input_model_part_name"].GetString())
-        #self.volume_model_part = model[self.settings["volume_model_part_name"].GetString()]
+
+        self.interpolate_sw_to_pfem_utility = SW.InterpolateSwToPfemUtility()
+        
         self.interval = KM.IntervalUtility(self.settings)
         self.variables = GenerateVariableListFromInput(self.settings["list_of_variables"])
         self.variables_to_fix = GenerateVariableListFromInput(self.settings["list_of_variables_to_fix"])
@@ -78,10 +78,10 @@ class ReadFromSwInterfaceProcess(KM.Process):
         '''Read the input_model_part and set the variables.'''
         self.hdf5_import.ExecuteInitialize()
         self._CheckInputCoordinates()
-        self.FindPfemHeight()
+        self.FindPfemHeight() # To be change for topography varying along the interface
         self._CheckInputVariables()
-        self._CreateMapper()
-        self._MapToBoundaryCondition()
+        # self._CreateMapper()
+        # self._MapToBoundaryCondition()
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -105,20 +105,19 @@ class ReadFromSwInterfaceProcess(KM.Process):
                 self._SmoothDefaultValue()
 
     def ComputeAverageValues(self):
-        if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-                avg_vel_x = 0
-                avg_h = 0
-                avg_vel_z = 0
-                n = 0
-                for node in self.input_model_part.Nodes:
-                    n = n+1
-                    avg_h         = avg_h      + node.GetValue(SW.HEIGHT) 
-                    avg_vel_x     = avg_vel_x  + node.GetValue(KM.VELOCITY_X) 
-                    avg_vel_z     = avg_vel_z  + node.GetValue(SW.VERTICAL_VELOCITY) 
-                self.avg_h = avg_h/n
-                self.avg_vel_x = avg_vel_x/n
-                self.avg_vel_z = avg_vel_z/n
-                print(self.avg_h, self.avg_vel_x, self.avg_vel_z)
+        avg_vel_x = 0
+        avg_h = 0
+        avg_vel_z = 0
+        n = 0
+        for node in self.input_model_part.Nodes:
+            n = n+1
+            avg_h         = avg_h      + node.GetValue(SW.HEIGHT) 
+            avg_vel_x     = avg_vel_x  + node.GetValue(KM.VELOCITY_X) 
+            avg_vel_z     = avg_vel_z  + node.GetValue(SW.VERTICAL_VELOCITY) 
+        self.avg_h = avg_h/n
+        self.avg_vel_x = avg_vel_x/n
+        self.avg_vel_z = avg_vel_z/n
+        print(self.avg_h, self.avg_vel_x, self.avg_vel_z)
 
     def FindPfemHeight(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
@@ -131,6 +130,16 @@ class ReadFromSwInterfaceProcess(KM.Process):
                     ymax = node.Y
             self.h_pfem = ymax - ymin
             self.y_bottom = ymin
+        if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
+            zmin =  1e32
+            zmax = -1e32
+            for node in self.interface_model_part.Nodes:
+                if node.Z < zmin:
+                    zmin = node.Z 
+                if node.Z > zmax:
+                    zmax = node.Z
+            self.h_pfem = zmax - zmin
+            self.z_bottom = zmin
             
     def DistributeVelocityToPfem(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
@@ -152,6 +161,26 @@ class ReadFromSwInterfaceProcess(KM.Process):
                node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
                node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var) 
                print(node.Y, vel_z_var)
+        if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
+            
+            self.interpolate_sw_to_pfem_utility.TransferVariables(self.interface_model_part,self.input_model_part)
+            
+            for node in self.interface_model_part.Nodes:
+                self.height = node.GetValue(SW.HEIGHT)
+                node.Z = (node.Z0 - self.z_bottom)*self.height/self.h_pfem + self.z_bottom
+                displacement = node.Z - node.Z0
+                node.SetSolutionStepValue(KM.DISPLACEMENT_Z, displacement)
+                
+                self.vel_z = node.GetValue(SW.VERTICAL_VELOCITY) 
+                vel_z_var = (node.Z - self.z_bottom)/self.height*self.vel_z
+                vel_x = node.GetValue(KM.VELOCITY_X)
+                vel_y = node.GetValue(KM.VELOCITY_Y)
+                node.SetSolutionStepValue(KM.VELOCITY_X, vel_x)
+                node.SetSolutionStepValue(KM.VELOCITY_Y, vel_y)
+
+                node.SetSolutionStepValue(KM.VELOCITY_Z, vel_z_var)
+                # print(node.Z, vel_x, vel_y,vel_z_var)
+                
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
