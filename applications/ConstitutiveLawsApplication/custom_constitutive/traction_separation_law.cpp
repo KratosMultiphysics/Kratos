@@ -41,23 +41,25 @@ TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D()
 /***********************************************************************************/
 
 template<unsigned int TDim>
-TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const std::vector<double>& rCombinationFactors) : BaseType()
+TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const std::vector<double>& rCombinationFactors) : BaseType(rCombinationFactors)
 {
-    // We compute the proportion of the factors (must be over 1)
-    double aux_factor = 0.0;
-    for (IndexType i_layer = 0; i_layer < rCombinationFactors.size(); ++i_layer) {
-        aux_factor += rCombinationFactors[i_layer];
-    }
+    // auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    // auto combination_factors = this->GetCombinationFactors(); 
+    // // We compute the proportion of the factors (must be over 1)
+    // double aux_factor = 0.0;
+    // for (IndexType i_layer = 0; i_layer < rCombinationFactors.size(); ++i_layer) {
+    //     aux_factor += rCombinationFactors[i_layer];
+    // }
 
-    KRATOS_ERROR_IF(aux_factor < std::numeric_limits<double>::epsilon()) << "Wrong factors in TractionSeparationLaw3D" << std::endl;
+    // KRATOS_ERROR_IF(aux_factor < std::numeric_limits<double>::epsilon()) << "Wrong factors in TractionSeparationLaw3D" << std::endl;
 
-    // Resize
-    mCombinationFactors.resize(rCombinationFactors.size());
+    // // Resize
+    // combination_factors.resize(rCombinationFactors.size());
 
-    // We fill the maps
-    for (IndexType i_layer = 0; i_layer < rCombinationFactors.size(); ++i_layer) {
-        mCombinationFactors[i_layer] = rCombinationFactors[i_layer]/aux_factor;
-    }
+    // // We fill the maps
+    // for (IndexType i_layer = 0; i_layer < rCombinationFactors.size(); ++i_layer) {
+    //     combination_factors[i_layer] = rCombinationFactors[i_layer]/aux_factor;
+    // }
 }
 
 /******************************COPY CONSTRUCTOR*************************************/
@@ -66,8 +68,6 @@ TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const std::vector<double>
 template<unsigned int TDim>
 TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const TractionSeparationLaw3D<TDim>& rOther)
     : BaseType(rOther),
-      mConstitutiveLaws(rOther.mConstitutiveLaws),
-      mCombinationFactors(rOther.mCombinationFactors),
       mdelamination_damage_mode_one(rOther.mdelamination_damage_mode_one),
       mdelamination_damage_mode_two(rOther.mdelamination_damage_mode_two),
       mthreshold_mode_one(rOther.mthreshold_mode_one),
@@ -119,48 +119,11 @@ TractionSeparationLaw3D<TDim>::~TractionSeparationLaw3D()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-std::size_t TractionSeparationLaw3D<TDim>::WorkingSpaceDimension()
-{
-    IndexType counter = 0;
-    SizeType dimension = 3;
-    if (mConstitutiveLaws.size() == 0) return dimension; // In case of not initialized CL
-    // We perform the check in each layer
-    for (auto& p_law : mConstitutiveLaws) {
-        if (counter == 0) {
-            dimension = p_law->WorkingSpaceDimension();
-        } else {
-            KRATOS_ERROR_IF_NOT(dimension == p_law->WorkingSpaceDimension()) << "Combining different size laws" << std::endl;
-        }
-
-        ++counter;
-    }
-
-    return dimension;
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-std::size_t TractionSeparationLaw3D<TDim>::GetStrainSize() const
-{
-    IndexType counter = 0;
-    SizeType strain_size = 6;
-    if (mConstitutiveLaws.size() == 0) return strain_size; // In case of not initialized CL
-    // We perform the check in each layer
-    for (auto& p_law : mConstitutiveLaws) {
-        if (counter == 0) {
-            strain_size = p_law->GetStrainSize();
-        } else {
-            KRATOS_ERROR_IF_NOT(strain_size == p_law->GetStrainSize()) << "Combining different size laws" << std::endl;
-        }
 
-        ++counter;
-    }
-
-    return strain_size;
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -168,10 +131,12 @@ std::size_t TractionSeparationLaw3D<TDim>::GetStrainSize() const
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<bool>& rThisVariable)
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+
     // At least one layer should have the value
     bool has = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->Has(rThisVariable)) {
             has = true;
             break;
@@ -187,10 +152,12 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<bool>& rThisVariable)
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<int>& rThisVariable)
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+   
     // At least one layer should have the value
     bool has = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->Has(rThisVariable)) {
             has = true;
             break;
@@ -206,10 +173,12 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<int>& rThisVariable)
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<double>& rThisVariable)
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // At least one layer should have the value
     bool has = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->Has(rThisVariable)) {
             has = true;
             break;
@@ -225,10 +194,12 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<double>& rThisVariable)
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<Vector>& rThisVariable)
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // At least one layer should have the value
     bool has = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->Has(rThisVariable)) {
             has = true;
             break;
@@ -252,10 +223,12 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<Vector>& rThisVariable)
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<Matrix>& rThisVariable)
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // At least one layer should have the value
     bool has = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->Has(rThisVariable)) {
             has = true;
             break;
@@ -271,10 +244,12 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<Matrix>& rThisVariable)
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // At least one layer should have the value
     bool has = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->Has(rThisVariable)) {
             has = true;
             break;
@@ -290,10 +265,12 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<array_1d<double, 3 > >& r
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // At least one layer should have the value
     bool has = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->Has(rThisVariable)) {
             has = true;
             break;
@@ -312,10 +289,12 @@ bool& TractionSeparationLaw3D<TDim>::GetValue(
     bool& rValue
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // At least one layer should have the value
     rValue = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->GetValue(rThisVariable, rValue))
             break;
     }
@@ -332,10 +311,12 @@ int& TractionSeparationLaw3D<TDim>::GetValue(
     int& rValue
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // At least one layer should have the value
     rValue = 0;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->Has(rThisVariable)) {
             p_law->GetValue(rThisVariable, rValue);
             break;
@@ -354,11 +335,13 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
     double& rValue
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We combine the values of the layers
     rValue = 0.0;
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         double aux_value;
         p_law->GetValue(rThisVariable, aux_value);
@@ -377,11 +360,13 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
     Vector& rValue
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We combine the values of the layers
     rValue.clear();
-    // for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-    //     const double factor = mCombinationFactors[i_layer];
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    // for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+    //     const double factor = combination_factors[i_layer];
+    //     ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
     //     Vector aux_value;
     //     p_law->GetValue(rThisVariable, aux_value);
@@ -390,7 +375,7 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
 
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
         
-        rValue.resize(mCombinationFactors.size()+1, false);
+        rValue.resize(combination_factors.size()+1, false);
         
         noalias(rValue) = mdelamination_damage_mode_one;
         return rValue;
@@ -398,7 +383,7 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
 
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
         
-        rValue.resize(mCombinationFactors.size()+1, false);
+        rValue.resize(combination_factors.size()+1, false);
         
         noalias(rValue) = mdelamination_damage_mode_two;
         return rValue;
@@ -416,11 +401,13 @@ Matrix& TractionSeparationLaw3D<TDim>::GetValue(
     Matrix& rValue
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We combine the values of the layers
     rValue.clear();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         Matrix aux_value;
         p_law->GetValue(rThisVariable, aux_value);
@@ -439,11 +426,13 @@ array_1d<double, 3 >& TractionSeparationLaw3D<TDim>::GetValue(
     array_1d<double, 3 >& rValue
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We combine the values of the layers
     rValue = ZeroVector(3);
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         array_1d<double, 3 > aux_value;
         p_law->GetValue(rThisVariable, aux_value);
@@ -462,11 +451,13 @@ array_1d<double, 6 >& TractionSeparationLaw3D<TDim>::GetValue(
     array_1d<double, 6 >& rValue
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We combine the values of the layers
     rValue = ZeroVector(6);
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         array_1d<double, 6 > aux_value;
         p_law->GetValue(rThisVariable, aux_value);
@@ -486,9 +477,11 @@ void TractionSeparationLaw3D<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // We set the value in all layers
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
@@ -503,9 +496,11 @@ void TractionSeparationLaw3D<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    
     // We set the value in all layers
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
@@ -520,10 +515,12 @@ void TractionSeparationLaw3D<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
@@ -539,10 +536,12 @@ void TractionSeparationLaw3D<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < p_constitutive_law_vector.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
@@ -558,10 +557,12 @@ void TractionSeparationLaw3D<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
@@ -577,10 +578,12 @@ void TractionSeparationLaw3D<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
@@ -596,10 +599,12 @@ void TractionSeparationLaw3D<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
     // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
 
         p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
@@ -617,13 +622,15 @@ double& TractionSeparationLaw3D<TDim>::CalculateValue(
     )
 {
     const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
 
     // We combine the value of each layer
     rValue = 0.0;
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
         Properties& r_prop = *(it_prop_begin + i_layer);
 
         rParameterValues.SetMaterialProperties(r_prop);
@@ -714,9 +721,11 @@ Vector& TractionSeparationLaw3D<TDim>::CalculateValue(
         // We combine the value of each layer
         rValue.clear();
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-        for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-            const double factor = mCombinationFactors[i_layer];
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+        auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+        auto combination_factors = this->GetCombinationFactors(); 
+        for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+            const double factor = combination_factors[i_layer];
+            ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
             Properties& r_prop = *(it_prop_begin + i_layer);
 
             rParameterValues.SetMaterialProperties(r_prop);
@@ -776,9 +785,11 @@ Matrix& TractionSeparationLaw3D<TDim>::CalculateValue(
         // We combine the value of each layer
         rValue.clear();
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-        for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-            const double factor = mCombinationFactors[i_layer];
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+        auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+        auto combination_factors = this->GetCombinationFactors(); 
+        for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+            const double factor = combination_factors[i_layer];
+            ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
             Properties& r_prop = *(it_prop_begin + i_layer);
 
             rParameterValues.SetMaterialProperties(r_prop);
@@ -808,9 +819,11 @@ array_1d<double, 3 >& TractionSeparationLaw3D<TDim>::CalculateValue(
     // We combine the value of each layer
     noalias(rValue) = ZeroVector(3);
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
         Properties& r_prop = *(it_prop_begin + i_layer);
 
         rParameterValues.SetMaterialProperties(r_prop);
@@ -840,9 +853,11 @@ array_1d<double, 6 >& TractionSeparationLaw3D<TDim>::CalculateValue(
     // We combine the value of each layer
     noalias(rValue) = ZeroVector(6);
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto combination_factors = this->GetCombinationFactors(); 
+    for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
+        const double factor = combination_factors[i_layer];
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
         Properties& r_prop = *(it_prop_begin + i_layer);
 
         rParameterValues.SetMaterialProperties(r_prop);
@@ -865,8 +880,9 @@ bool TractionSeparationLaw3D<TDim>::ValidateInput(const Properties& rMaterialPro
 {
     // We check it layer by layer
     bool valid_input = true;
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    for (IndexType i_layer = 0; i_layer < p_constitutive_law_vector.size(); ++i_layer) {
+        ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
         Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
         if (p_law->ValidateInput(r_prop)) {
             valid_input = false;
@@ -883,9 +899,10 @@ bool TractionSeparationLaw3D<TDim>::ValidateInput(const Properties& rMaterialPro
 template<unsigned int TDim>
 ConstitutiveLaw::StrainMeasure TractionSeparationLaw3D<TDim>::GetStrainMeasure()
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
     // We return the first one
-    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "TractionSeparationLaw3D: No constitutive laws defined" << std::endl;
-    return mConstitutiveLaws[0]->GetStrainMeasure();
+    KRATOS_ERROR_IF(p_constitutive_law_vector.size() == 0) << "TractionSeparationLaw3D: No constitutive laws defined" << std::endl;
+    return p_constitutive_law_vector[0]->GetStrainMeasure();
 }
 
 /***********************************************************************************/
@@ -894,9 +911,10 @@ ConstitutiveLaw::StrainMeasure TractionSeparationLaw3D<TDim>::GetStrainMeasure()
 template<unsigned int TDim>
 ConstitutiveLaw::StressMeasure TractionSeparationLaw3D<TDim>::GetStressMeasure()
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
     // We return the first one
-    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "TractionSeparationLaw3D: No constitutive laws defined" << std::endl;
-    return mConstitutiveLaws[0]->GetStressMeasure();
+    KRATOS_ERROR_IF(p_constitutive_law_vector.size() == 0) << "TractionSeparationLaw3D: No constitutive laws defined" << std::endl;
+    return p_constitutive_law_vector[0]->GetStressMeasure();
 }
 
 /***********************************************************************************/
@@ -905,10 +923,12 @@ ConstitutiveLaw::StressMeasure TractionSeparationLaw3D<TDim>::GetStressMeasure()
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::IsIncremental()
 {
+    auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+
     // We check it layer by layer
     bool is_incremental = false;
 
-    for (auto& p_law : mConstitutiveLaws) {
+    for (auto& p_law : p_constitutive_law_vector) {
         if (p_law->IsIncremental()) {
             is_incremental = true;
             break;
@@ -928,36 +948,32 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     const Vector& rShapeFunctionsValues
     )
 {
-    // Resizing first
-    mConstitutiveLaws.resize(mCombinationFactors.size());
+    auto &p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    auto &combination_factors = this->GetCombinationFactors(); 
+    
+    BaseType::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+    // auto &p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+    // auto &combination_factors = this->GetCombinationFactors(); 
+    
 
-    // We create the inner constitutive laws
-    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        Properties& r_prop = *(it_cl_begin + i_layer);
+    mdelamination_damage_mode_one.resize(p_constitutive_law_vector.size()+1, false);
+    noalias(mdelamination_damage_mode_one) = ZeroVector(p_constitutive_law_vector.size()+1);
+    
+    mdelamination_damage_mode_two.resize(p_constitutive_law_vector.size()+1, false);
+    noalias(mdelamination_damage_mode_two) = ZeroVector(p_constitutive_law_vector.size()+1);
 
-        KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
-        mConstitutiveLaws[i_layer] = r_prop[CONSTITUTIVE_LAW]->Clone();
-        mConstitutiveLaws[i_layer]->InitializeMaterial(r_prop, rElementGeometry, rShapeFunctionsValues);
-    }
+    KRATOS_WATCH(p_constitutive_law_vector.size())
 
-    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "TractionSeparationLaw3D: No CL defined" << std::endl;
-
-    mdelamination_damage_mode_one.resize(mConstitutiveLaws.size()+1, false);
-    noalias(mdelamination_damage_mode_one) = ZeroVector(mConstitutiveLaws.size()+1);
-
-    mdelamination_damage_mode_two.resize(mConstitutiveLaws.size()+1, false);
-    noalias(mdelamination_damage_mode_two) = ZeroVector(mConstitutiveLaws.size()+1);
-
-    mthreshold_mode_one.resize(mConstitutiveLaws.size()-1, false);
-    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+    mthreshold_mode_one.resize(p_constitutive_law_vector.size()-1, false);
+    for (SizeType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
             mthreshold_mode_one[i] = rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
         }
-
-    mthreshold_mode_two.resize(mConstitutiveLaws.size()-1, false);
-    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+    
+    mthreshold_mode_two.resize(p_constitutive_law_vector.size()-1, false);
+    for (SizeType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
             mthreshold_mode_two[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
         }
+     
 }
 
 /***********************************************************************************/
@@ -1015,30 +1031,32 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
+        auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+        auto combination_factors = this->GetCombinationFactors(); 
 
-        std::vector<Vector> layer_stress(mConstitutiveLaws.size());
-        for (int i=0; i < mConstitutiveLaws.size(); ++i) {
+        std::vector<Vector> layer_stress(p_constitutive_law_vector.size());
+        for (int i=0; i < p_constitutive_law_vector.size(); ++i) {
             layer_stress[i].resize(6, false);
         }
 
-        std::vector<Vector> interfacial_stress(mConstitutiveLaws.size()-1);
-        for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+        std::vector<Vector> interfacial_stress(p_constitutive_law_vector.size()-1);
+        for (int i=0; i < p_constitutive_law_vector.size()-1; ++i) {
             interfacial_stress[i].resize(3, false);
         }
 
-        std::vector<bool> negative_interfacial_stress_indicator(mConstitutiveLaws.size()+1);
-        for (int i=0; i < mConstitutiveLaws.size()+1; ++i) {
+        std::vector<bool> negative_interfacial_stress_indicator(p_constitutive_law_vector.size()+1);
+        for (int i=0; i < p_constitutive_law_vector.size()+1; ++i) {
             negative_interfacial_stress_indicator[i] = false;
         }
 
 
-        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        for (IndexType i_layer = 0; i_layer < p_constitutive_law_vector.size(); ++i_layer) {
 
             this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
 
             Properties& r_prop             = *(it_prop_begin + i_layer);
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-            const double factor            = mCombinationFactors[i_layer];
+            ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
+            const double factor            = combination_factors[i_layer];
 
             // We rotate to local axes the strain
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
@@ -1056,10 +1074,10 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         }
 
         const double tolerance = std::numeric_limits<double>::epsilon();
-        Vector delamination_damage_mode_one(mConstitutiveLaws.size()+1);
-        Vector delamination_damage_mode_two(mConstitutiveLaws.size()+1);
-        Vector threshold_mode_one(mConstitutiveLaws.size()-1);
-        Vector threshold_mode_two(mConstitutiveLaws.size()-1);
+        Vector delamination_damage_mode_one(p_constitutive_law_vector.size()+1);
+        Vector delamination_damage_mode_two(p_constitutive_law_vector.size()+1);
+        Vector threshold_mode_one(p_constitutive_law_vector.size()-1);
+        Vector threshold_mode_two(p_constitutive_law_vector.size()-1);
     
         noalias(delamination_damage_mode_one) = mdelamination_damage_mode_one;
         noalias(delamination_damage_mode_two) = mdelamination_damage_mode_two;
@@ -1067,7 +1085,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         noalias(threshold_mode_two) = mthreshold_mode_two;
 
 
-        for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+        for(int i=0; i < p_constitutive_law_vector.size()-1; ++i) {
 
             interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
@@ -1126,7 +1144,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             // End damage calculation
         }
 
-        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
+        for(int i=0; i < p_constitutive_law_vector.size(); ++i) {
             double layer_damage_variable_mode_one = 0;
             double layer_damage_variable_mode_two = 0;
 
@@ -1156,8 +1174,8 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         }
         
 
-        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
-            const double factor = mCombinationFactors[i];
+        for(int i=0; i < p_constitutive_law_vector.size(); ++i) {
+            const double factor = combination_factors[i];
             delamination_damage_affected_stress_vector += factor * layer_stress[i];
         }
 
@@ -1253,29 +1271,31 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
+        auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
+        auto combination_factors = this->GetCombinationFactors(); 
 
-        std::vector<Vector> layer_stress(mConstitutiveLaws.size());
-        for (int i=0; i < mConstitutiveLaws.size(); ++i) {
+        std::vector<Vector> layer_stress(p_constitutive_law_vector.size());
+        for (int i=0; i < p_constitutive_law_vector.size(); ++i) {
             layer_stress[i].resize(6, false);
         }
 
-        std::vector<Vector> interfacial_stress(mConstitutiveLaws.size()-1);
-        for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+        std::vector<Vector> interfacial_stress(p_constitutive_law_vector.size()-1);
+        for (int i=0; i < p_constitutive_law_vector.size()-1; ++i) {
             interfacial_stress[i].resize(3, false);
         }
 
-        std::vector<bool> negative_interfacial_stress_indicator(mConstitutiveLaws.size()+1);
-        for (int i=0; i < mConstitutiveLaws.size()+1; ++i) {
+        std::vector<bool> negative_interfacial_stress_indicator(p_constitutive_law_vector.size()+1);
+        for (int i=0; i < p_constitutive_law_vector.size()+1; ++i) {
             negative_interfacial_stress_indicator[i] = false;
         }
 
-        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        for (IndexType i_layer = 0; i_layer < p_constitutive_law_vector.size(); ++i_layer) {
 
             this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
 
             Properties& r_prop             = *(it_prop_begin + i_layer);
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-            const double factor            = mCombinationFactors[i_layer];
+            ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
+            const double factor            = combination_factors[i_layer];
 
             // We rotate to local axes the strain
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
@@ -1295,17 +1315,17 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         }
 
         const double tolerance = std::numeric_limits<double>::epsilon();
-        Vector delamination_damage_mode_one(mConstitutiveLaws.size()+1);
-        Vector delamination_damage_mode_two(mConstitutiveLaws.size()+1);
-        Vector threshold_mode_one(mConstitutiveLaws.size()-1);
-        Vector threshold_mode_two(mConstitutiveLaws.size()-1);
+        Vector delamination_damage_mode_one(p_constitutive_law_vector.size()+1);
+        Vector delamination_damage_mode_two(p_constitutive_law_vector.size()+1);
+        Vector threshold_mode_one(p_constitutive_law_vector.size()-1);
+        Vector threshold_mode_two(p_constitutive_law_vector.size()-1);
 
         noalias(delamination_damage_mode_one) = mdelamination_damage_mode_one;
         noalias(delamination_damage_mode_two) = mdelamination_damage_mode_two;
         noalias(threshold_mode_one) = mthreshold_mode_one;
         noalias(threshold_mode_two) = mthreshold_mode_two;
         
-        for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+        for(int i=0; i < p_constitutive_law_vector.size()-1; ++i) {
 
             interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
@@ -1371,7 +1391,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             // End damage calculation
         }
 
-        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
+        for(int i=0; i < p_constitutive_law_vector.size(); ++i) {
             double layer_damage_variable_mode_one = 0;
             double layer_damage_variable_mode_two = 0;
             double maximum_damage = 0;
@@ -1397,8 +1417,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         }
         
 
-        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
-            const double factor = mCombinationFactors[i];
+        for(int i=0; i < p_constitutive_law_vector.size(); ++i) {
+            const double factor = combination_factors[i];
             delamination_damage_affected_stress_vector += factor * layer_stress[i];
         }
 
@@ -1463,7 +1483,7 @@ void TractionSeparationLaw3D<TDim>::CalculateTangentTensor(ConstitutiveLaw::Para
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class TractionSeparationLaw3D<2>;
+// template class TractionSeparationLaw3D<2>;
 template class TractionSeparationLaw3D<3>;
 
 } // Namespace Kratos

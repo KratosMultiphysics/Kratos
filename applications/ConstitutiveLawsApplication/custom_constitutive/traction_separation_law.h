@@ -124,17 +124,9 @@ public:
          */
         ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
 
-        /**
-         * @brief Dimension of the law
-         * @details This is not used, so 0 is returned
-         */
-        SizeType WorkingSpaceDimension() override;
+        
 
-        /**
-         * @brief Voigt tensor size
-         * @details This is not used, so 0 is returned
-         */
-        SizeType GetStrainSize() const override;
+        
 
         /**
          * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
@@ -552,8 +544,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
-    std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
+    // std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
+    // std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
     Vector mdelamination_damage_mode_one;
     Vector mdelamination_damage_mode_two;
     Vector mthreshold_mode_one;
@@ -578,19 +570,19 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-        rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
-        rSerializer.save("CombinationFactors", mCombinationFactors);
-    }
+    // void save(Serializer& rSerializer) const override
+    // {
+    //     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+    //     rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
+    //     rSerializer.save("CombinationFactors", mCombinationFactors);
+    // }
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
-        rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
-        rSerializer.load("CombinationFactors", mCombinationFactors);
-    }
+    // void load(Serializer& rSerializer) override
+    // {
+    //     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+    //     rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
+    //     rSerializer.load("CombinationFactors", mCombinationFactors);
+    // }
     
     double MacaullyBrackets(const double Number)
     {

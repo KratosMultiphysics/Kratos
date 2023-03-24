@@ -477,6 +477,21 @@ public:
         const Vector& rShapeFunctionsValues
         ) override;
 
+    std::vector<ConstitutiveLaw::Pointer> &GetConstitutiveLaws()
+    {
+        return mConstitutiveLaws;
+    }
+
+    std::vector<double> &GetCombinationFactors()
+    {
+        return mCombinationFactors;
+    }
+
+    void SetCombinationFactors(const std::vector<double>& rVector ) 
+    {
+        mCombinationFactors = rVector;
+    }
+
     /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
@@ -644,26 +659,7 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
     std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
-    // Vector mGc;
-    // Vector minitial_threshold;
-    // Vector mthreshold;
-    Vector mdelamination_damage;
-    // Vector mAParameter;
-    // Vector mDamageIndicator;
-    Vector mstatus_coeff;
-    // double mT_eq = 0;                                        // Equivalent Stress
-    // double mDamageIndicator = 1;                             // Onset of Damage
-    // double mGc = 0;                                          // Mix Mode Energy Release Rate
-    // double mElastic_energy = 0;                              // Elastic energy stored before damage initiation 
-    // double mDelta_G = 0;
-    // double mDelta_epsilon_one = 0;
-    // double mSERR = 0;                                        // Strain Energy Release Rate
-    // double mdelamination_damage = 0;                         // Scalar delamination damage variable  
-    // double mDelta_eq_max = 0;                                // Equivalent Strain History Variable
-    // double minitial_threshold = 0;
-    // double minitial_Delta_eq = 0;
-    // double mthreshold = std::numeric_limits<double>::infinity();
-    // double mAParameter = 0;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -695,11 +691,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
         rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
         rSerializer.load("CombinationFactors", mCombinationFactors);
-    }
-    
-    double MacaullyBrackets(const double Number)
-    {
-        return (Number > machine_tolerance) ? Number : 0.0;
     }
 
 
