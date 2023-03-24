@@ -77,6 +77,24 @@ public:
         const double Value);
 
     /**
+     * @brief Computes the weighted product
+     *
+     * This method computes entity wise weighted product between rInputContainer
+     * and rWeightsContainer. rWeightsContainer should be a vector with shape [1].
+     * This only creates a BinaryExpression, hence this is a light weight operation.
+     *
+     * @tparam TContainerType
+     * @param rOutputContainer          Output container containing weighted values
+     * @param rInputContainer           Input container
+     * @param rWeightsContainer         Weights container with shape [1]
+     */
+    template<class TContainerType>
+    static void WeightedProduct(
+        ContainerVariableData<TContainerType>& rOutputContainer,
+        const ContainerVariableData<TContainerType>& rInputContainer,
+        const ContainerVariableData<TContainerType>& rWeightsContainer);
+
+    /**
      * @brief Calculate infinity norm of the evaluated expression for each entitiy.
      *
      * This method calculates the infinity norm of the expression by evaluating
@@ -236,7 +254,7 @@ public:
      * @param rNeighbourEntities    Number of neighbour entities present around each node.
      */
     template<class TContainerType>
-    static void MapContainerVariableDataToNodalVariableData(
+    static void MapContainerVariableToNodalVariable(
         ContainerVariableData<ModelPart::NodesContainerType>& rOutput,
         const ContainerVariableData<TContainerType>& rInput,
         const ContainerVariableData<ModelPart::NodesContainerType>& rNeighbourEntities);
@@ -255,7 +273,7 @@ public:
      * @param rInput                Nodal data to be mapped to the other type of container.
      */
     template<class TContainerType>
-    static void MapNodalVariableDataToContainerVariableData(
+    static void MapNodalVariableToContainerVariable(
         ContainerVariableData<TContainerType>& rOutput,
         const ContainerVariableData<ModelPart::NodesContainerType>& rInput);
 
@@ -277,7 +295,7 @@ public:
      * @param rEntities                 Entities to compute the matrix.
      */
     template<class TContainerType>
-    static void ComputeVariableDataProductWithEntityMatrix(
+    static void ComputeNodalVariableProductWithEntityMatrix(
         ContainerVariableData<ModelPart::NodesContainerType>& rOutput,
         const ContainerVariableData<ModelPart::NodesContainerType>& rNodalValues,
         const Variable<Matrix>& rMatrixVariable,
