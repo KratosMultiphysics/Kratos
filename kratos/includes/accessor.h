@@ -63,13 +63,24 @@ class KRATOS_API(KRATOS_CORE) Accessor
         ///@}
         ///@name Operations
         ///@{
-
+        
+        /**
+         * Custom method to retrieve double type properties
+         */
         virtual double GetProperty(
             const Variable<double> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
             const ProcessInfo &rProcessInfo);
+
+        // Getting a pointer tot he class
+        virtual Accessor::Pointer Clone() const;
+
+        /**
+         * Copy constructor.
+         */
+        // Accessor(const Accessor &rOther);
 
         ///@}
         ///@name Input and output
