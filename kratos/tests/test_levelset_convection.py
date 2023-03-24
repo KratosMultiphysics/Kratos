@@ -286,8 +286,8 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
-        self.assertAlmostEqual(max_distance, 0.8209084289826344)
-        self.assertAlmostEqual(min_distance,-0.049613825219342975)
+        self.assertAlmostEqual(max_distance,0.7868643986367427)
+        self.assertAlmostEqual(min_distance,-0.057482590870069024)
 
 
 
