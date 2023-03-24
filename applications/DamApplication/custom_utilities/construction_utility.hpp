@@ -204,16 +204,12 @@ class ConstructionUtility
         {
             if (mAging == false)
             {
-                block_for_each(mrThermalModelPart.Nodes(), [&](auto& rNode){
-                    rNode.FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
-                });
+                VariableUtils().SetVariable(ALPHA_HEAT_SOURCE, mAlphaInitial, mrThermalModelPart.Nodes());
             }
             else
             {
-                block_for_each(mrThermalModelPart.Nodes(), [&](auto& rNode){
-                    rNode.FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
-                    rNode.FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = sqrt(mAlphaInitial) * mYoungInf;
-                });
+                VariableUtils().SetVariable(ALPHA_HEAT_SOURCE, mAlphaInitial, mrThermalModelPart.Nodes());
+                VariableUtils().SetVariable(NODAL_YOUNG_MODULUS, sqrt(mAlphaInitial) * mYoungInf, mrThermalModelPart.Nodes());
             }
         }
 
