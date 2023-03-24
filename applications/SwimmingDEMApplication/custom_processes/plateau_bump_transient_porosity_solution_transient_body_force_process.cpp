@@ -369,6 +369,8 @@ void PlateauBumpTransientPorositySolutionTransientBodyForceProcess::SetBodyForce
             r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2.0 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + r_sigma(1,0) * r_u1 + r_sigma(1,1) * r_u2;
 
         }else{
+            r_sigma /= r_alpha;
+
             r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + r_sigma(0,0) * r_u1 + r_sigma(0,1) * r_u2;
 
             r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + r_sigma(1,0) * r_u1 + r_sigma(1,1) * r_u2;
@@ -620,6 +622,8 @@ void PlateauBumpTransientPorositySolutionTransientBodyForceProcess::SetValuesOnI
             body_force2 = alpha * du2dt + alpha * convective2 + alpha / rho * press_grad2 - 2.0 * nu * (alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (alpha * grad_of_div2 + grad_alpha_div2) + sigma(1,0) * u1 + sigma(1,1) * u2;
 
         }else{
+            sigma /= alpha;
+
             body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * u1 + sigma(0,1) * u2;
 
             body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(1,0) * u1 + sigma(1,1) * u2;
