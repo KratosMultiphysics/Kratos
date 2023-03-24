@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <cmath>
 #include <atomic>
 #include <vector>
 
@@ -65,11 +64,24 @@ public:
         const IndexType ComponentIndex) const = 0;
 
     /**
-     * @brief Get the Dimension of the expression
+     * @brief Get the Shape of the expression
      *
-     * @return IndexType    Dimension of the expression
+     * @return const std::vector<IndexType>     Size of each dimension is in the vector elements.
      */
-    virtual IndexType GetDimension() const = 0;
+    virtual const std::vector<IndexType> GetShape() const = 0;
+
+    /**
+     * @brief Get the Local Size of the expression
+     *
+     * @return IndexType
+     */
+    IndexType GetLocalSize() const;
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    virtual std::string Info() const = 0;
 
     ///@}
 
@@ -114,7 +126,9 @@ public:
         const IndexType EntityIndex,
         const IndexType ComponentIndex) const override;
 
-    IndexType GetDimension() const override;
+    const std::vector<IndexType> GetShape() const override;
+
+    std::string Info() const override;
 
     ///@}
 
@@ -156,7 +170,9 @@ public:
         const IndexType EntityIndex,
         const IndexType ComponentIndex) const override;
 
-    IndexType GetDimension() const override;
+    const std::vector<IndexType> GetShape() const override;
+
+    std::string Info() const override;
 
     ///@}
 
@@ -182,7 +198,7 @@ public:
 
     LiteralVectorExpression(
         Kratos::shared_ptr<const Vector> pValue,
-        const IndexType Dimension);
+        const std::vector<IndexType>& rShape);
 
     LiteralVectorExpression(const LiteralVectorExpression& rOther) = delete;
 
@@ -194,13 +210,15 @@ public:
 
     static Expression::Pointer Create(
         Kratos::shared_ptr<Vector> pValue,
-        const IndexType Dimension);
+        const std::vector<IndexType>& rShape);
 
     double Evaluate(
         const IndexType EntityIndex,
         const IndexType ComponentIndex) const override;
 
-    IndexType GetDimension() const override;
+    const std::vector<IndexType> GetShape() const override;
+
+    std::string Info() const override;
 
     ///@}
 
@@ -210,7 +228,45 @@ private:
 
     const Kratos::shared_ptr<const Vector> mpValue;
 
-    const IndexType mDimension;
+    const std::vector<IndexType> mShape;
+
+    IndexType mLocalSize;
+
+    ///@}
+};
+
+class BinaryExpression: public Expression
+{
+public:
+    ///@name Life cycle
+    ///@{
+
+    BinaryExpression(
+        Expression::Pointer pLeft,
+        Expression::Pointer pRight);
+
+    BinaryExpression(const BinaryExpression& rOther) = delete;
+
+    ~BinaryExpression() override = default;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    const std::vector<IndexType> GetShape() const override;
+
+    virtual std::string Operation() const = 0;
+
+    std::string Info() const override;
+
+    ///@}
+protected:
+    ///@name Private member variables
+    ///@{
+
+    const Expression::Pointer mpLeft;
+
+    const Expression::Pointer mpRight;
 
     ///@}
 };
@@ -219,18 +275,12 @@ private:
  * @brief Expression to add two given expressions.
  *
  */
-class BinaryAddExpression : public Expression {
+class BinaryAddExpression : public BinaryExpression {
 public:
-    ///@name Life cycle
+    ///@name Base class exposures
     ///@{
 
-    BinaryAddExpression(
-        Expression::Pointer pLeft,
-        Expression::Pointer pRight);
-
-    BinaryAddExpression(const BinaryAddExpression& rOther) = delete;
-
-    ~BinaryAddExpression() override = default;
+    using BinaryExpression::BinaryExpression;
 
     ///@}
     ///@name Public operations
@@ -244,17 +294,7 @@ public:
         const IndexType EntityIndex,
         const IndexType ComponentIndex) const override;
 
-    IndexType GetDimension() const override;
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Expression::Pointer mpLeft;
-
-    const Expression::Pointer mpRight;
+    std::string Operation() const override { return "+"; }
 
     ///@}
 };
@@ -263,18 +303,12 @@ private:
  * @brief Expression to substract two given expressions.
  *
  */
-class BinarySubstractExpression : public Expression {
+class BinarySubstractExpression : public BinaryExpression {
 public:
-    ///@name Life cycle
+    ///@name Base class exposures
     ///@{
 
-    BinarySubstractExpression(
-        Expression::Pointer pLeft,
-        Expression::Pointer pRight);
-
-    BinarySubstractExpression(const BinarySubstractExpression& rOther) = delete;
-
-    ~BinarySubstractExpression() override = default;
+    using BinaryExpression::BinaryExpression;
 
     ///@}
     ///@name Public operations
@@ -288,17 +322,7 @@ public:
         const IndexType EntityIndex,
         const IndexType ComponentIndex) const override;
 
-    IndexType GetDimension() const override;
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Expression::Pointer mpLeft;
-
-    const Expression::Pointer mpRight;
+    std::string Operation() const override { return "-"; }
 
     ///@}
 };
@@ -307,18 +331,12 @@ private:
  * @brief Expression to multiply two given expressions.
  *
  */
-class BinaryMultiplyExpression : public Expression {
+class BinaryMultiplyExpression : public BinaryExpression {
 public:
-    ///@name Life cycle
+    ///@name Base class exposures
     ///@{
 
-    BinaryMultiplyExpression(
-        Expression::Pointer pLeft,
-        Expression::Pointer pRight);
-
-    BinaryMultiplyExpression(const BinaryMultiplyExpression& rOther) = delete;
-
-    ~BinaryMultiplyExpression() override = default;
+    using BinaryExpression::BinaryExpression;
 
     ///@}
     ///@name Public operations
@@ -332,17 +350,7 @@ public:
         const IndexType EntityIndex,
         const IndexType ComponentIndex) const override;
 
-    IndexType GetDimension() const override;
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Expression::Pointer mpLeft;
-
-    const Expression::Pointer mpRight;
+    std::string Operation() const override { return "*"; }
 
     ///@}
 };
@@ -351,18 +359,12 @@ private:
  * @brief Expression to divide two given expressions.
  *
  */
-class BinaryDivideExpression : public Expression {
+class BinaryDivideExpression : public BinaryExpression {
 public:
-    ///@name Life cycle
+    ///@name Base class exposures
     ///@{
 
-    BinaryDivideExpression(
-        Expression::Pointer pLeft,
-        Expression::Pointer pRight);
-
-    BinaryDivideExpression(const BinaryDivideExpression& rOther) = delete;
-
-    ~BinaryDivideExpression() override = default;
+    using BinaryExpression::BinaryExpression;
 
     ///@}
     ///@name Public operations
@@ -376,17 +378,7 @@ public:
         const IndexType EntityIndex,
         const IndexType ComponentIndex) const override;
 
-    IndexType GetDimension() const override;
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Expression::Pointer mpLeft;
-
-    const Expression::Pointer mpRight;
+    std::string Operation() const override { return "/"; }
 
     ///@}
 };
@@ -395,18 +387,12 @@ private:
  * @brief Expression to raise one expression to the power of other expression.
  *
  */
-class BinaryPowerExpression : public Expression {
+class BinaryPowerExpression : public BinaryExpression {
 public:
-    ///@name Life cycle
+    ///@name Base class exposures
     ///@{
 
-    BinaryPowerExpression(
-        Expression::Pointer pLeft,
-        Expression::Pointer pRight);
-
-    BinaryPowerExpression(const BinaryPowerExpression& rOther) = delete;
-
-    ~BinaryPowerExpression() override = default;
+    using BinaryExpression::BinaryExpression;
 
     ///@}
     ///@name Public operations
@@ -420,11 +406,46 @@ public:
         const IndexType EntityIndex,
         const IndexType ComponentIndex) const override;
 
-    IndexType GetDimension() const override;
+    std::string Operation() const override { return "^"; }
 
     ///@}
+};
 
-private:
+/**
+ * @brief Expression to compute weighted multiplication.
+ *
+ */
+class BinaryWeightedMultiplicationExpression : public Expression {
+public:
+    ///@name Life cycle
+    ///@{
+
+    BinaryWeightedMultiplicationExpression(
+        Expression::Pointer pLeft,
+        Expression::Pointer pRight);
+
+    BinaryWeightedMultiplicationExpression(const BinaryWeightedMultiplicationExpression& rOther) = delete;
+
+    ~BinaryWeightedMultiplicationExpression() override = default;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    static Expression::Pointer Create(
+        Expression::Pointer pLeft,
+        Expression::Pointer pRight);
+
+    double Evaluate(
+        const IndexType EntityIndex,
+        const IndexType ComponentIndex) const override;
+
+    const std::vector<IndexType> GetShape() const override;
+
+    std::string Info() const override;
+
+    ///@}
+protected:
     ///@name Private member variables
     ///@{
 
@@ -434,5 +455,13 @@ private:
 
     ///@}
 };
+
+/// output stream functions
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const Expression& rThis)
+{
+    return rOStream << rThis.Info();
+}
 
 } // namespace Kratos
