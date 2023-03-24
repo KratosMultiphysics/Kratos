@@ -240,8 +240,7 @@ public:
                 << "' in registry item with name '" << this->Name() << "'." << std::endl;
 
             // Force the evaluation of the lambda in order to set mpCallable and mpValueName
-            auto inserted_item = std::any_cast<SubRegistryItemPointerType>(mpValue);
-            (*inserted_item)[ItemName]->EvaluateValue<TItemType>();
+            (*insert_result.first->second).template EvaluateValue<TItemType>();
 
             return *insert_result.first->second;
         }
