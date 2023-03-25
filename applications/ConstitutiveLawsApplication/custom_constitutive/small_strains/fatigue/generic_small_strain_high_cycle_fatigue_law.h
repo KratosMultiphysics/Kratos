@@ -412,7 +412,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mReferenceDamage = 0.0;
+    double mMinReferenceDamage = 0.0;
+    double mMaxReferenceDamage = 0.0;
     double mFatigueReductionFactor = 1.0;
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mPreviousMaxStress = 0.0;
@@ -424,10 +425,13 @@ private:
     unsigned int mNumberOfLoadIncrements = 1;
     unsigned int mNumberOfCyclesGlobal = 1; // Total number of cycles in the whole analysis
     unsigned int mNumberOfCyclesLocal = 1; // Equivalent number of cycles for the current cyclic load
+    unsigned int mNumberOfCyclesToCalibrateDamage = 1;
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
-    bool mMaxDetected = true; // Maximum's indicator in the current cycle
-    bool mMinDetected = true; // Minimum's indicator in the current cycle
+    bool mFirstMaxDetected = true; // Maximum's indicator in the current cycle
+    bool mFirstMinDetected = true; // Minimum's indicator in the current cycle
+    bool mMaxDetected = false; // Maximum's indicator in the current cycle
+    bool mMinDetected = false; // Minimum's indicator in the current cycle
     bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process.
     // double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
     double mThresholdStress = 0.0; // Endurance limit of the fatigue model.
