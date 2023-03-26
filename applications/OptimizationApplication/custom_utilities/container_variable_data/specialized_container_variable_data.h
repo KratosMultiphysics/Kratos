@@ -20,7 +20,7 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "container_variable_data.h"
+#include "custom_utilities/container_variable_data/container_variable_data.h"
 
 namespace Kratos {
 
@@ -136,7 +136,7 @@ public:
     /**
      * @brief Set the Data For Container Variable to given value.
      *
-     * This replaces the existing expression with LiteralDoubleExpression
+     * This replaces the existing expression with LiteralExpression<double>
      * or LiteralArra3Expression. This is a light weight operation.
      *
      * @tparam TDataType
@@ -149,7 +149,7 @@ public:
     /**
      * @brief Set the Data To Variable Zero Value
      *
-     * This replaces the existing expression with LiteralDoubleExpression
+     * This replaces the existing expression with LiteralExpression<double>
      * or LiteralArra3Expression. This is a light weight operation.
      *
      * @tparam TDataType

@@ -21,35 +21,16 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "container_data_io.h"
-#include "variable_flatten_data_io.h"
+#include "custom_utilities/container_variable_data/container_data_io.h"
+#include "custom_utilities/container_variable_data/variable_expression_data_io.h"
+#include "custom_utilities/container_variable_data/expressions/literal/literal_expression.h"
+#include "custom_utilities/container_variable_data/expressions/literal/literal_flat_expression.h"
+#include "custom_utilities/container_variable_data/expressions/binary/binary_expression.h"
 
 // Include base h
 #include "specialized_container_variable_data.h"
 
 namespace Kratos {
-
-namespace ContainerVariableDataHolderHelperUtilities
-{
-
-using Array3D = array_1d<double, 3>;
-
-template<class TDataType>
-IndexType GetLocalSize(const IndexType DomainSize);
-
-template<>
-IndexType GetLocalSize<double>(const IndexType DomainSize)
-{
-    return 1;
-}
-
-template<>
-IndexType GetLocalSize<array_1d<double, 3>>(const IndexType DomainSize)
-{
-    return DomainSize;
-}
-
-} // namespace ContainerVariableDataHolderHelperUtilities
 
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator=(const SpecializedContainerVariableData& rOther)
@@ -79,28 +60,17 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::ReadDat
     const IndexType number_of_entities = r_container.size();
 
     if (number_of_entities != 0) {
-        KRATOS_ERROR_IF_NOT(this->GetModelPart().GetProcessInfo().Has(DOMAIN_SIZE))
-            << "DOMAIN_SIZE variable is not found in process info of model part "
-            "with name "
-            << this->GetModelPart().FullName() << ".\n";
-
-        const IndexType domain_size = this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE];
-
         // initialize the shape with the first entity value
-        VariableFlattenDataIO<TDataType> variable_flatten_data_io(TContainerDataIO::GetValue(*r_container.begin(), rVariable), domain_size);
+        VariableExpressionDataIO<TDataType> variable_flatten_data_io(TContainerDataIO::GetValue(*r_container.begin(), rVariable));
 
-        auto p_data = Kratos::make_shared<Vector>();
-        this->mpExpression = LiteralVectorExpression::Create(p_data, variable_flatten_data_io.GetShape());
-        const IndexType local_size = this->mpExpression->GetLocalSize();
+        auto p_expression = Kratos::make_intrusive<LiteralFlatExpression>(number_of_entities, variable_flatten_data_io.GetShape());
+        auto& r_expression = *p_expression;
+        this->mpExpression = p_expression;
 
-        auto& r_data = *p_data;
-        r_data.resize(number_of_entities * local_size);
-
-        IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &r_data, &variable_flatten_data_io, local_size](const IndexType Index){
+        IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &variable_flatten_data_io, &r_expression](const IndexType Index){
             const auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
-            variable_flatten_data_io.Read(&r_data[Index * local_size], values);
+            variable_flatten_data_io.Read(r_expression, Index, values);
         });
-
     }
 
     KRATOS_CATCH("")
@@ -125,25 +95,12 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::AssignD
     }
 
     const auto& r_expression = *this->mpExpression;
-    const IndexType local_size = r_expression.GetLocalSize();
 
-    struct tls_type
-    {
-        tls_type(const IndexType LocalSize) { mFlattenedVector.resize(LocalSize); }
+    VariableExpressionDataIO<TDataType> variable_flatten_data_io(r_expression.GetShape());
 
-        TDataType mValue{};
-
-        Vector mFlattenedVector;
-    };
-
-    VariableFlattenDataIO<TDataType> variable_flatten_data_io(r_expression.GetShape());
-
-    IndexPartition<IndexType>(number_of_entities).for_each(tls_type(local_size), [&r_container, &rVariable, &local_size, &r_expression, &variable_flatten_data_io](const IndexType Index, tls_type& rTLS){
-        for (IndexType i = 0; i < local_size; ++i) {
-            rTLS.mFlattenedVector[i] = r_expression.Evaluate(Index, i);
-        }
-        variable_flatten_data_io.Assign(rTLS.mValue, &rTLS.mFlattenedVector[0]);
-        TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rTLS.mValue);
+    IndexPartition<IndexType>(number_of_entities).for_each(TDataType{}, [&r_container, &rVariable, &r_expression, &variable_flatten_data_io](const IndexType Index, TDataType& rValue){
+        variable_flatten_data_io.Assign(rValue, r_expression, Index);
+        TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
     });
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
@@ -164,25 +121,7 @@ template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
 void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetData(const TDataType& rValue)
 {
-    static_assert(
-        std::is_same_v<TDataType, double>               ||
-        std::is_same_v<TDataType, int>                  ||
-        std::is_same_v<TDataType, std::size_t>          ||
-        std::is_same_v<TDataType, array_1d<double, 3>>  ||
-            "Only allowed types are double, int, size_t, array_1d<double, 3>");
-
-    KRATOS_ERROR_IF_NOT(this->GetModelPart().GetProcessInfo().Has(DOMAIN_SIZE))
-        << "DOMAIN_SIZE variable is not found in process info of model part "
-           "with name "
-        << this->GetModelPart().FullName() << ".\n";
-
-    if constexpr(std::is_same_v<TDataType, double> || std::is_same_v<TDataType, int> || std::is_same_v<TDataType, std::size_t>) {
-        this->mpExpression = LiteralDoubleExpression::Create(rValue);
-    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-        VariableFlattenDataIO<TDataType> variable_flatten_data_io(rValue, this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
-        this->mpExpression = LiteralArray3Expression::Create(rValue, variable_flatten_data_io.GetShape()[0]);
-    }
-
+    this->mpExpression = LiteralExpression<TDataType>::Create(rValue);
 }
 
 template <class TContainerType, class TContainerDataIO>
@@ -201,7 +140,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryAddExpression::Create(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -213,7 +152,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryAddExpression::Create(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -222,14 +161,14 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
 {
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryAddExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator+=(const double Value)
 {
-    this->mpExpression = BinaryAddExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
@@ -242,7 +181,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinarySubstractExpression::Create(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -254,7 +193,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinarySubstractExpression::Create(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -262,14 +201,14 @@ template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator-(const double Value) const
 {
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinarySubstractExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator-=(const double Value)
 {
-    this->mpExpression = BinarySubstractExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
@@ -282,7 +221,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -294,7 +233,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -302,14 +241,14 @@ template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator*(const double Value) const
 {
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator*=(const double Value)
 {
-    this->mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
@@ -322,7 +261,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryDivideExpression::Create(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryExpression<BinaryOperations::Division>::Create(this->mpExpression, rOther.mpExpression);
     return result;
 }
 
@@ -334,7 +273,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryDivideExpression::Create(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryExpression<BinaryOperations::Division>::Create(this->mpExpression, rOther.mpExpression);
     return *this;
 }
 
@@ -347,7 +286,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Divisor           : " << Value << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(1.0 / Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, LiteralExpression<double>::Create(1.0 / Value));
     return result;
 }
 
@@ -359,7 +298,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Divisor           : " << Value << "\n";
 
-    this->mpExpression = BinaryMultiplyExpression::Create(this->mpExpression, LiteralDoubleExpression::Create(1.0 / Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, LiteralExpression<double>::Create(1.0 / Value));
     return *this;
 }
 
@@ -390,16 +329,16 @@ std::string SpecializedContainerVariableData<TContainerType, TContainerDataIO>::
 }
 
 //template instantiations
-#define KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, DataType)                                                                   \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::ReadData(const Variable<DataType>&);                \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetData(const DataType&); \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetZero(const Variable<DataType>&);            \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::AssignData(const Variable<DataType>&);
+#define KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, ...)                                                                   \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::ReadData(const Variable<__VA_ARGS__>&);                \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetData(const __VA_ARGS__&); \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetZero(const Variable<__VA_ARGS__>&);            \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::AssignData(const Variable<__VA_ARGS__>&);
 
 #define KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOTag)                                                           \
     template class SpecializedContainerVariableData<ContainerType, ContainerDataIO<ContainerDataIOTag>>;                                             \
     KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, double)                                             \
-    KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, ContainerVariableDataHolderHelperUtilities::Array3D)
+    KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, array_1d<double, 3>)
 
 KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::Historical)
 KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical)
