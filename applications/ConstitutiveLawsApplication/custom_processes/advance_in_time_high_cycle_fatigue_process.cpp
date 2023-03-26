@@ -77,8 +77,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
         
         bool advancing_strategy = false;
-        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[NO_LINEARITY_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in
-                                                                        //terms of max stress and reversion factor variation.                                                                                                                              
+        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[NO_LINEARITY_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in                                                                                                                    
         double increment = 0.0;
         if (advancing_strategy) {
             this->TimeIncrement(increment);

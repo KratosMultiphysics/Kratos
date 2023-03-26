@@ -186,9 +186,8 @@ public:
      */
     static void CalculateFatigueParameters(const double MaxStress,
                                             double Threshold,
-                                            double MaxReferenceDamage,
-                                            double MinReferenceDamage,
                                             double ReversionFactor,
+                                            double MaxReferenceDamage,
                                             const Properties& rMaterialParameters,
                                             double& rB0,
                                             double& rSth,
@@ -198,7 +197,7 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
         const double yield_stress = ultimate_stress;
-        const double damage_factor = (1 - MaxReferenceDamage) / (1 - MinReferenceDamage);
+        // const double damage_factor = (1 - MaxReferenceDamage) / (1 - MinReferenceDamage);
 
         // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
         // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
@@ -224,18 +223,19 @@ public:
         const double AUXR2 = r_fatigue_coefficients[6];
         const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
 
-        if (std::abs(damage_factor * ReversionFactor) < 1.0) {
-            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * (damage_factor * ReversionFactor)), STHR1);
-			rAlphat = ALFAF + (0.5 + 0.5 * (damage_factor * ReversionFactor)) * AUXR1;
+        if (std::abs(ReversionFactor) < 1.0) {
+            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
+			rAlphat = ALFAF + (0.5 + 0.5 * (ReversionFactor)) * AUXR1;
         } else {
-            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / (damage_factor * ReversionFactor)), STHR2);
-			rAlphat = ALFAF - (0.5 + 0.5 / (damage_factor * ReversionFactor)) * AUXR2;
+            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / (ReversionFactor)), STHR2);
+			rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
         }
 
         const double square_betaf = std::pow(BETAF, 2.0);
         // const double MinStress = MaxStress * ReversionFactor;
         
-        // if (ReversionFactor > 4.94345e-01 && ReversionFactor < 4.94355e-01){
+        // if ((ReversionFactor) > 0.0266321 && (ReversionFactor) < 0.0266323){
+        //     KRATOS_WATCH(ReversionFactor)
         //     KRATOS_WATCH(MaxStress)
         //     KRATOS_WATCH(rSth)
         //     KRATOS_WATCH(MaxStress)
@@ -243,18 +243,29 @@ public:
         // }
 
         if (MaxStress > rSth && MaxStress <= ultimate_stress) {
-          if(std::abs(damage_factor * ReversionFactor) < 1.0){
+          if(std::abs(ReversionFactor) < 1.0){
                 rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
-                if (ReversionFactor > 4.15485e-01 && ReversionFactor < 4.15495e-01){
-                    KRATOS_WATCH(MaxStress)
-                    KRATOS_WATCH(Threshold)  
-                    KRATOS_WATCH(rSth)
-                    KRATOS_WATCH(ultimate_stress)
-                    // KRATOS_WATCH(rSth)
-                    // KRATOS_WATCH(rAlphat)
-                    // KRATOS_WATCH(BETAF)
-                    KRATOS_WATCH(rN_f)
-                }                                 
+                // if (ReversionFactor > 4.94085e-01 && ReversionFactor < 4.94095e-01){
+                //     KRATOS_WATCH(MaxStress)
+                //     KRATOS_WATCH(Threshold)  
+                //     KRATOS_WATCH(rSth)
+                //     KRATOS_WATCH(ultimate_stress)
+                //     // KRATOS_WATCH(rSth)
+                //     // KRATOS_WATCH(rAlphat)
+                //     // KRATOS_WATCH(BETAF)
+                //     KRATOS_WATCH(rN_f)
+                // }
+                // if (ReversionFactor > -0.258171 && ReversionFactor < -0.258169){
+                //     KRATOS_WATCH(MaxStress)
+                //     KRATOS_WATCH(Threshold)  
+                //     KRATOS_WATCH(rSth)
+                //     KRATOS_WATCH(ultimate_stress)
+                //     // KRATOS_WATCH(rSth)
+                //     // KRATOS_WATCH(rAlphat)
+                //     // KRATOS_WATCH(BETAF)
+                //     KRATOS_WATCH(rN_f)
+                // }
+                                    
                 if (std::isnan(rN_f)){
                     rN_f = 1.0e15;
                     }
@@ -291,6 +302,7 @@ public:
     static void CalculateFatigueReductionFactor(const Properties& rMaterialParameters,
                                                                 const double MaxStress,
                                                                 double ReversionFactor,
+                                                                double MaxReferenceDamage,
                                                                 unsigned int LocalNumberOfCycles,
                                                                 unsigned int GlobalNumberOfCycles,
                                                                 const double B0,
@@ -330,13 +342,18 @@ public:
         if (MaxStress > Sth) {
             rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
-            if (ReversionFactor > 4.15485e-01 && ReversionFactor < 4.15495e-01) {
-                KRATOS_WATCH(B0)
-                // KRATOS_WATCH(LocalNumberOfCycles)
-                // KRATOS_WATCH(BETAF)
-                KRATOS_WATCH(rFatigueReductionFactor)
-            }  
-
+            // if (ReversionFactor > 4.94085e-01 && ReversionFactor < 4.94095e-01) {
+            //     KRATOS_WATCH(B0)
+            //     // KRATOS_WATCH(LocalNumberOfCycles)
+            //     // KRATOS_WATCH(BETAF)
+            //     KRATOS_WATCH(rFatigueReductionFactor)
+            // }  
+            // if (ReversionFactor > -0.258171 && ReversionFactor < -0.258169) {
+            //     KRATOS_WATCH(B0)
+            //     // KRATOS_WATCH(LocalNumberOfCycles)
+            //     // KRATOS_WATCH(BETAF)
+            //     KRATOS_WATCH(rFatigueReductionFactor)
+            // }  
 
             // if(std::abs(ReversionFactor) < 1.001){
             //     rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
