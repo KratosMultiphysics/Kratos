@@ -63,6 +63,8 @@ private:
 
     const TDataType mValue;
 
+    std::vector<IndexType> mShape;
+
     ///@}
 };
 

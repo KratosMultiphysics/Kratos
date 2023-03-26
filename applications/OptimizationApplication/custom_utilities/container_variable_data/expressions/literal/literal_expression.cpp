@@ -26,9 +26,17 @@
 namespace Kratos {
 
 template <class TDataType>
-LiteralExpression<TDataType>::LiteralExpression(const TDataType& Value)
-    : mValue(Value)
+std::string LiteralExpression<TDataType>::Info() const
 {
+    std::stringstream msg;
+    msg << mValue;
+    return msg.str();
+}
+
+template <class TDataType>
+const std::vector<std::size_t> LiteralExpression<TDataType>::GetShape() const
+{
+    return mShape;
 }
 
 template <class TDataType>
@@ -37,12 +45,11 @@ Expression::Pointer LiteralExpression<TDataType>::Create(const TDataType& Value)
     return Kratos::make_intrusive<LiteralExpression<TDataType>>(Value);
 }
 
-template <class TDataType>
-std::string LiteralExpression<TDataType>::Info() const
+template <>
+LiteralExpression<double>::LiteralExpression(const double& Value)
+    : mValue(Value),
+      mShape({})
 {
-    std::stringstream msg;
-    msg << mValue;
-    return msg.str();
 }
 
 template <>
@@ -54,9 +61,10 @@ double LiteralExpression<double>::Evaluate(
 }
 
 template <>
-const std::vector<std::size_t> LiteralExpression<double>::GetShape() const
+LiteralExpression<array_1d<double, 3>>::LiteralExpression(const array_1d<double, 3>& Value)
+    : mValue(Value),
+      mShape({3})
 {
-    return {};
 }
 
 template <>
@@ -65,12 +73,6 @@ double LiteralExpression<array_1d<double, 3>>::Evaluate(
     const IndexType ComponentIndex) const
 {
     return mValue[ComponentIndex];
-}
-
-template <>
-const std::vector<std::size_t> LiteralExpression<array_1d<double, 3>>::GetShape() const
-{
-    return {3};
 }
 
 // template instantiations
