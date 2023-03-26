@@ -38,11 +38,18 @@ namespace Kratos {
  */
 class LiteralFlatExpression : public Expression {
 public:
+    ///@name Type definition
+    ///@{
+
+    using Pointer = Kratos::intrusive_ptr<LiteralFlatExpression>;
+
+    ///@}
     ///@name Life cycle
     ///@{
 
-    LiteralFlatExpression(const IndexType NumberOfEntities,
-                          const std::vector<IndexType>& rShape);
+    LiteralFlatExpression(
+        const IndexType NumberOfEntities,
+        const std::vector<IndexType>& rShape);
 
     LiteralFlatExpression(const LiteralFlatExpression& rOther) = delete;
 
@@ -51,6 +58,21 @@ public:
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief A specific create method is used in here to return a pointer to the LiteralFlatExpression
+     *
+     * This method is used to return the derrived class LiteralFlatExpression pointer
+     * so that additional SetData method can be accessed to initialize
+     * the vector data.
+     *
+     * @param NumberOfEntities                  Number of entities in the container.
+     * @param rShape                            Shape of the data in each entitiy.
+     * @return LiteralFlatExpression::Pointer   Returns an intrusive pointer to LiteralFlatExpression.
+     */
+    static LiteralFlatExpression::Pointer Create(
+        const IndexType NumberOfEntities,
+        const std::vector<IndexType>& rShape);
 
     void SetData(
         const IndexType EntityDataBeginIndex,

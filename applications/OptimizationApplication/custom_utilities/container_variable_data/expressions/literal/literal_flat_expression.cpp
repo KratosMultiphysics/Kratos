@@ -30,6 +30,13 @@ LiteralFlatExpression::LiteralFlatExpression(
     mData.resize(NumberOfEntities * this->GetLocalSize());
 }
 
+LiteralFlatExpression::Pointer LiteralFlatExpression::Create(
+    const IndexType NumberOfEntities,
+    const std::vector<IndexType>& rShape)
+{
+    return Kratos::make_intrusive<LiteralFlatExpression>(NumberOfEntities, rShape);
+}
+
 void LiteralFlatExpression::SetData(
     const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex,
