@@ -19,6 +19,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "custom_utilities/container_variable_data/expressions/literal/literal_expression.h"
 
 // Include base h
 #include "container_variable_data.h"
@@ -53,7 +54,7 @@ void ContainerVariableData<TContainerType>::CopyDataFrom(
 template <class TContainerType>
 void ContainerVariableData<TContainerType>::SetDataToZero()
 {
-    mpExpression = LiteralDoubleExpression::Create(0.0);
+    mpExpression = LiteralExpression<double>::Create(0.0);
 }
 
 template <class TContainerType>

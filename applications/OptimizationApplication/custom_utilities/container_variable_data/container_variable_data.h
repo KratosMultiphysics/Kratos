@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "custom_utilities/container_variable_data/expressions.h"
+#include "custom_utilities/container_variable_data/expressions/expression.h"
 
 namespace Kratos {
 
@@ -38,9 +38,9 @@ namespace Kratos {
  * The data is stored as an Expression. The expression can be one of the followings:
  *
  *      1. A literal expression is a concrete value expression. Followints are the types:
- *              LiteralDoubleExpression: This expression holds a single double value for
+ *              LiteralExpression<double>: This expression holds a single double value for
  *                                       all the entities of the TContainerType. This is light weight.
- *              LiteralArray3Expression: This expression holds a single array3 value for
+ *              LiteralExpression<array_1d<double, 3>>: This expression holds a single array3 value for
  *                                       all the entities of the TContainerType. This is light weight.
  *              LiteralVectorExpression: This expression can hold double, array3 different values for
  *                                       all the entities of the TContainerType. In this case, the dimension
@@ -53,7 +53,7 @@ namespace Kratos {
  * Literal expressions are created on the following cases:
  *      1. When data is set using the SpecializedContainerVariableData::ReadData. Here, a LiteralVectorExpression is created.
  *      2. When data is reset to one value using either ContainerVariableData::SetDataToZero or SpecializedContainerVariableData::SetData
- *         or SpecializedContainerVariableData::SetZero. Here a LiteralDoubleExpression or LiteralArray3Expression is created.
+ *         or SpecializedContainerVariableData::SetZero. Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
  *      3. When a SpecializedContainerVariableData is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
  *
  * BinaryExpressions are created on the followin cases:
@@ -110,7 +110,7 @@ public:
     /**
      * @brief Set the Data To Zero container.
      *
-     * This replaces the expression with a LiteralDoubleExpression with 0.0.
+     * This replaces the expression with a LiteralExpression<double> with 0.0.
      * This is also a light weight operation since it only creates on literal with
      * one 0.0 value.
      *
