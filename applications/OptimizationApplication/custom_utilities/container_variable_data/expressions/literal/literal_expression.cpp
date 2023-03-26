@@ -47,7 +47,7 @@ std::string LiteralExpression<TDataType>::Info() const
 
 template <>
 double LiteralExpression<double>::Evaluate(
-    const IndexType EntityIndex,
+    const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
     return mValue;
@@ -61,7 +61,7 @@ const std::vector<std::size_t> LiteralExpression<double>::GetShape() const
 
 template <>
 double LiteralExpression<array_1d<double, 3>>::Evaluate(
-    const IndexType EntityIndex,
+    const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
     return mValue[ComponentIndex];

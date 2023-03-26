@@ -54,14 +54,14 @@ public:
     ///@{
 
     /**
-     * @brief Evalute the expression for the given entity index and component index and returns the value
+     * @brief Evalute the expression for the given entity data start index and component index and returns the value
      *
-     * @param EntityIndex       Entity index
-     * @param ComponentIndex    Component index
-     * @return double           Evaluated expression
+     * @param EntityDataBeginIndex  Index at which entity data starts
+     * @param ComponentIndex        Component index
+     * @return double               Evaluated expression
      */
     virtual double Evaluate(
-        const IndexType EntityIndex,
+        const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex) const = 0;
 
     /**

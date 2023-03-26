@@ -66,7 +66,7 @@ public:
         Expression::Pointer pRight);
 
     double Evaluate(
-        const IndexType EntityIndex,
+        const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex) const override;
 
     const std::vector<IndexType> GetShape() const override;

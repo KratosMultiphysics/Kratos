@@ -83,12 +83,12 @@ Expression::Pointer BinaryExpression<TOperationType>::Create(
 
 template <class TOperationType>
 double BinaryExpression<TOperationType>::Evaluate(
-    const IndexType EntityIndex,
+    const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
     return TOperationType::Evaluate(
-        mpLeft->Evaluate(EntityIndex, ComponentIndex),
-        mpRight->Evaluate(EntityIndex, ComponentIndex));
+        mpLeft->Evaluate(EntityDataBeginIndex, ComponentIndex),
+        mpRight->Evaluate(EntityDataBeginIndex, ComponentIndex));
 }
 
 template <class TOperationType>

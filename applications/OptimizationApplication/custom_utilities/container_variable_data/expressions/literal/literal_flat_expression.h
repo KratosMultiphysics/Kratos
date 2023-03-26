@@ -53,12 +53,12 @@ public:
     ///@{
 
     void SetData(
-        const IndexType EntityIndex,
+        const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex,
         const double Value);
 
     double Evaluate(
-        const IndexType EntityIndex,
+        const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex) const override;
 
     const std::vector<IndexType> GetShape() const override;
@@ -74,8 +74,6 @@ private:
     const std::vector<IndexType> mShape;
 
     Vector mData;
-
-    IndexType mLocalSize;
 
     ///@}
 };

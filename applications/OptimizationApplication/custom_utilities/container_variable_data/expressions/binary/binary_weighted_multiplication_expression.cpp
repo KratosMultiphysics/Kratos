@@ -80,11 +80,11 @@ Expression::Pointer BinaryWeightedMultiplicationExpression::Create(
 }
 
 double BinaryWeightedMultiplicationExpression::Evaluate(
-    const IndexType EntityIndex,
+    const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
-    return mpLeft->Evaluate(EntityIndex, ComponentIndex) *
-           mpRight->Evaluate(EntityIndex, 0);
+    return mpLeft->Evaluate(EntityDataBeginIndex, ComponentIndex) *
+           mpRight->Evaluate(EntityDataBeginIndex, 0);
 }
 
 const std::vector<std::size_t> BinaryWeightedMultiplicationExpression::GetShape() const

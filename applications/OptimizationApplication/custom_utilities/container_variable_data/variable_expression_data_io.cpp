@@ -74,9 +74,10 @@ void VariableExpressionDataIO<array_1d<double, 3>>::Assign(
     const Expression& rExpression,
     const IndexType EntityIndex) const
 {
-    rOutput[0] = rExpression.Evaluate(EntityIndex, 0);
-    rOutput[1] = rExpression.Evaluate(EntityIndex, 1);
-    rOutput[2] = rExpression.Evaluate(EntityIndex, 2);
+    const IndexType entity_data_begin_index = EntityIndex * 3;
+    rOutput[0] = rExpression.Evaluate(entity_data_begin_index , 0);
+    rOutput[1] = rExpression.Evaluate(entity_data_begin_index, 1);
+    rOutput[2] = rExpression.Evaluate(entity_data_begin_index, 2);
 }
 
 template<>
@@ -85,9 +86,10 @@ void VariableExpressionDataIO<array_1d<double, 3>>::Read(
     const IndexType EntityIndex,
     const array_1d<double, 3>& Value) const
 {
-    rExpression.SetData(EntityIndex, 0, Value[0]);
-    rExpression.SetData(EntityIndex, 1, Value[1]);
-    rExpression.SetData(EntityIndex, 2, Value[2]);
+    const IndexType entity_data_begin_index = EntityIndex * 3;
+    rExpression.SetData(entity_data_begin_index, 0, Value[0]);
+    rExpression.SetData(entity_data_begin_index, 1, Value[1]);
+    rExpression.SetData(entity_data_begin_index, 2, Value[2]);
 }
 
 // template instantiations

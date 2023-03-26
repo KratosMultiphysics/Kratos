@@ -27,23 +27,22 @@ LiteralFlatExpression::LiteralFlatExpression(
     const std::vector<IndexType>& rShape)
     : mShape(rShape)
 {
-    mLocalSize = this->GetLocalSize();
-    mData.resize(NumberOfEntities * mLocalSize);
+    mData.resize(NumberOfEntities * this->GetLocalSize());
 }
 
 void LiteralFlatExpression::SetData(
-    const IndexType EntityIndex,
+    const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex,
     const double Value)
 {
-    mData[EntityIndex * mLocalSize + ComponentIndex] = Value;
+    mData[EntityDataBeginIndex + ComponentIndex] = Value;
 }
 
 double LiteralFlatExpression::Evaluate(
-    const IndexType EntityIndex,
+    const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
-    return mData[EntityIndex * mLocalSize + ComponentIndex];
+    return mData[EntityDataBeginIndex + ComponentIndex];
 }
 
 const std::vector<std::size_t> LiteralFlatExpression::GetShape() const
