@@ -38,7 +38,7 @@ namespace Kratos {
  * This class does not have any member variables, instead it uses expressions to represent the
  * data. Therefore, all the operations such as "+", "-", "*", etc are light weight because
  * they do not compute the value in place, they just create an expression which keeps track fo the expressions.
- * These expressions are evaluated only if AssignData. This also does not create additional
+ * These expressions are evaluated only if @ref AssignData. This also does not create additional
  * vectors to hold the resultant value of the expression. It uses the model parts respective containers entity input/output
  * method specified to write evaluated entity resultant values to model part entities. Hence, these
  * SpecializedContainerVariableData can be easily visualized using common variable data visualization methods.

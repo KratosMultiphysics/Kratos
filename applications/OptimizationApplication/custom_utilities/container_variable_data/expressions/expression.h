@@ -91,7 +91,7 @@ private:
     ///@{
 
     //*********************************************
-    // this block is needed for refcounting in th eintrusive ptr
+    // this block is needed for refcounting in the @ref intrusive ptr
     mutable std::atomic<int> mReferenceCounter{0};
 
     friend void intrusive_ptr_add_ref(const Expression* x);
