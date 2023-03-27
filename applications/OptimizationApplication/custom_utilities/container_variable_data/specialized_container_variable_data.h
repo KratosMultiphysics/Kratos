@@ -43,7 +43,7 @@ namespace Kratos {
  * method specified to write evaluated entity resultant values to model part entities. Hence, these
  * SpecializedContainerVariableData can be easily visualized using common variable data visualization methods.
  *
- * Copy constructor is introduced with the base class type becaues, this allows copying data
+ * Copy constructor is introduced with the base class type because, this allows copying data
  * between compatible @ref SpecializedContainerVariableData containers. This copy is also light weight since
  * this only copies the pointers, not the data itself.
  *
