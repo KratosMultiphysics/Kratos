@@ -363,7 +363,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
         for(IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
 
-            interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
+            interfacial_stress[i][0] = AdvancedConstitutiveLawUtilities<VoigtSize>::MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
 
@@ -603,7 +603,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         
         for(IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
 
-            interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
+            interfacial_stress[i][0] = AdvancedConstitutiveLawUtilities<VoigtSize>::MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
 

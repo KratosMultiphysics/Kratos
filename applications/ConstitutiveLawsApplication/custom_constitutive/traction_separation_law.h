@@ -329,12 +329,6 @@ private:
         rSerializer.load("threshold_mode_one", mthreshold_mode_one);
         rSerializer.load("threshold_mode_two", mthreshold_mode_two);
     }
-    
-    double MacaullyBrackets(const double Number)
-    {
-        return (Number > machine_tolerance) ? Number : 0.0;
-    }
-
 
 }; // Class TractionSeparationLaw3D
 }  // namespace Kratos.
