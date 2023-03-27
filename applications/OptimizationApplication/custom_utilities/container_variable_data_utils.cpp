@@ -80,81 +80,6 @@ typename VariableExpressionDataIO<TDataType>::Pointer GetVariableExpressionDataI
     return VariableExpressionDataIO<TDataType>::Create(rShape);
 }
 
-double GetEntityData(
-    const Expression& rExpression,
-    const IndexType EntityIndex,
-    const IndexType DataDimension,
-    const Variable<double>& rVariable)
-{
-    return rExpression.Evaluate(EntityIndex, 0);
-}
-
-array_1d<double, 3> GetEntityData(
-    const Expression& rExpression,
-    const IndexType EntityIndex,
-    const IndexType DataDimension,
-    const Variable<array_1d<double, 3>>& rVariable)
-{
-    array_1d<double, 3> result = ZeroVector(3);
-    for (IndexType i = 0; i < DataDimension; ++i) {
-        result[i] = rExpression.Evaluate(EntityIndex, i);
-    }
-    return result;
-}
-
-double GetEntityData(
-    const Vector& rVector,
-    const IndexType EntityIndex,
-    const IndexType DataDimension,
-    const Variable<double>& rVariable)
-{
-    return rVector[EntityIndex];
-}
-
-array_1d<double, 3> GetEntityData(
-    const Vector& rVector,
-    const IndexType EntityIndex,
-    const IndexType DataDimension,
-    const Variable<array_1d<double, 3>>& rVariable)
-{
-    array_1d<double, 3> result = ZeroVector(3);
-    for (IndexType i = 0; i < DataDimension; ++i) {
-        result[i] = rVector[EntityIndex * DataDimension + i];
-    }
-    return result;
-}
-
-void AddToEntityData(
-    Vector& rData,
-    const IndexType EntityStartIndex,
-    const IndexType DataDimension,
-    const double& rValue)
-{
-    switch (DataDimension) {
-        case 1:
-            rData[EntityStartIndex] += rValue;
-            break;
-        default: KRATOS_ERROR << "Unsupported data dimension. Only 1 data dimension is supported for temporary variable entity data setting. [ data_dimension = " << DataDimension << " ].\n";
-    }
-}
-
-void AddToEntityData(
-    Vector& rData,
-    const IndexType EntityStartIndex,
-    const IndexType DataDimension,
-    const array_1d<double, 3>& rValue)
-{
-    switch (DataDimension) {
-        case 2:
-        case 3:
-            for (IndexType i = 0; i < DataDimension; ++i) {
-                rData[EntityStartIndex * DataDimension + i] += rValue[i];
-            }
-            break;
-        default: KRATOS_ERROR << "Unsupported data dimension. Only 2 and 3 data dimension is supported for temporary variable entity data setting. [ data_dimension = " << DataDimension << " ].\n";
-    }
-}
-
 void ComputeMatrixExpressionProduct(
     LiteralFlatExpression& rOutputExpression,
     const Matrix& rMatrix,
@@ -198,7 +123,7 @@ void ComputeMatrixExpressionProduct(
 
     KRATOS_CATCH("");
 }
-}
+} // namespace ContainerVariableDataHolderUtilsHelper
 
 template<class TContainerType>
 void ContainerVariableDataUtils::Pow(
