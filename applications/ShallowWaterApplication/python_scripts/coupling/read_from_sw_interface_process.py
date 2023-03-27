@@ -179,7 +179,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
                 node.SetSolutionStepValue(KM.VELOCITY_Y, vel_y)
 
                 node.SetSolutionStepValue(KM.VELOCITY_Z, vel_z_var)
-                # print(node.Z, vel_x, vel_y,vel_z_var)
+                print(node.Z, vel_x, vel_y,vel_z_var)
                 
 
     def _GetInputTimes(self, file_settings):

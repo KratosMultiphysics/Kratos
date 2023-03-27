@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ignasi de Pouplana
+//  Main authors:    Andrea Montanino
 //
 
 #if !defined(KRATOS_INTERPOLATE_SW_TO_PFEM_UTILITY )
@@ -73,13 +73,13 @@ public:
         ModelPart::NodesContainerType::iterator node_beginPfem = rPfemModelPart.NodesBegin();
 
         double distance, distance1, distance2;
-        double ratio;
+        double ratio, ratio1,ratio2;
+        double tol = 1e-4;
                 
         int     j1, j2;
         
         double             height, vertical_velocity;
         array_1d<double,3> velocity;
-
 
         for(int i = 0; i < NNodesPfem; i++) {
             ModelPart::NodesContainerType::iterator it_node = node_beginPfem + i;
@@ -110,15 +110,36 @@ public:
             ModelPart::NodesContainerType::iterator jt_node1 = node_beginSW + j1;
             ModelPart::NodesContainerType::iterator jt_node2 = node_beginSW + j2;
 
-            if (fabs(jt_node1->X() - jt_node2->X()) > 1e-3){
-                ratio = (it_node->X() - jt_node2->X())/(jt_node1->X() - jt_node2->X());
-            } else {
-                ratio = (it_node->Y() - jt_node2->Y())/(jt_node1->Y() - jt_node2->Y());
-            }
+            double dx = fabs(jt_node1->X() - jt_node2->X());
+            double dy = fabs(jt_node1->Y() - jt_node2->Y());
+            
 
-            velocity = ratio*(jt_node1->GetValue(VELOCITY) - jt_node2->GetValue(VELOCITY)) + jt_node2->GetValue(VELOCITY);
-            height   = ratio*(jt_node1->GetValue(HEIGHT) - jt_node2->GetValue(HEIGHT)) + jt_node2->GetValue(HEIGHT); 
-            vertical_velocity = ratio*(jt_node1->GetValue(VERTICAL_VELOCITY) - jt_node2->GetValue(VERTICAL_VELOCITY)) + jt_node2->GetValue(VERTICAL_VELOCITY); 
+            if ((dx > tol & dy < tol) | (dx < tol & dy > tol)){
+                if (dx > tol & dy < tol){
+                    ratio = (it_node->X() - jt_node2->X())/(jt_node1->X() - jt_node2->X());
+                } else if (dx < tol & dy > tol){
+                    ratio = (it_node->Y() - jt_node2->Y())/(jt_node1->Y() - jt_node2->Y());
+                }
+
+                velocity = ratio*(jt_node1->GetValue(VELOCITY) - jt_node2->GetValue(VELOCITY)) + jt_node2->GetValue(VELOCITY);
+                height   = ratio*(jt_node1->GetValue(HEIGHT) - jt_node2->GetValue(HEIGHT)) + jt_node2->GetValue(HEIGHT); 
+                vertical_velocity = ratio*(jt_node1->GetValue(VERTICAL_VELOCITY) - jt_node2->GetValue(VERTICAL_VELOCITY)) + jt_node2->GetValue(VERTICAL_VELOCITY); 
+            } else {
+                ratio1 = (it_node->X() - jt_node2->X())/(jt_node1->X() - jt_node2->X());
+                ratio2 = (it_node->Y() - jt_node2->Y())/(jt_node1->Y() - jt_node2->Y());
+
+                velocity = ratio1*(jt_node1->GetValue(VELOCITY) - jt_node2->GetValue(VELOCITY)) + jt_node2->GetValue(VELOCITY);
+                height   = ratio1*(jt_node1->GetValue(HEIGHT) - jt_node2->GetValue(HEIGHT)) + jt_node2->GetValue(HEIGHT); 
+                vertical_velocity = ratio1*(jt_node1->GetValue(VERTICAL_VELOCITY) - jt_node2->GetValue(VERTICAL_VELOCITY)) + jt_node2->GetValue(VERTICAL_VELOCITY); 
+
+                velocity += ratio2*(jt_node1->GetValue(VELOCITY) - jt_node2->GetValue(VELOCITY)) + jt_node2->GetValue(VELOCITY);
+                height   += ratio2*(jt_node1->GetValue(HEIGHT) - jt_node2->GetValue(HEIGHT)) + jt_node2->GetValue(HEIGHT); 
+                vertical_velocity += ratio2*(jt_node1->GetValue(VERTICAL_VELOCITY) - jt_node2->GetValue(VERTICAL_VELOCITY)) + jt_node2->GetValue(VERTICAL_VELOCITY); 
+
+                velocity = 0.5*velocity;
+                height = 0.5*height;
+                vertical_velocity = 0.5*vertical_velocity;
+            }
 
             it_node->GetValue(HEIGHT) = height;
             it_node->GetValue(VELOCITY) = velocity;
