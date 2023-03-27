@@ -59,13 +59,14 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
     // Create a map
-    Epetra_Map Map(NumGlobalElements,0,epetra_comm);
+    const Epetra_Map map(NumGlobalElements,0,epetra_comm);
+    KRATOS_ERROR_IF_NOT(map.NumGlobalElements() == NumGlobalElements) << "Inconsistent number of rows" << std::endl;
 
     // Local number of rows
-    const int NumMyElements = Map.NumMyElements();
+    const int NumMyElements = map.NumMyElements();
 
     // Get update list
-    int* MyGlobalElements = Map.MyGlobalElements( );
+    int* MyGlobalElements = map.MyGlobalElements( );
 
     // Create an integer vector NumNz that is used to build the EPetra Matrix.
     // NumNz[i] is the Number of OFF-DIAGONAL term for the ith global equation
@@ -83,7 +84,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     }
 
     // Create an Epetra_Matrix
-    TrilinosSparseMatrixType A(Copy, Map, NumNz.data());
+    TrilinosSparseMatrixType A(Copy, map, NumNz.data());
 
     std::vector<double> non_diagonal_values(2);
     non_diagonal_values[0] = -1.0; non_diagonal_values[1] = -1.0;
@@ -149,16 +150,16 @@ TrilinosCPPTestUtilities::TrilinosVectorType TrilinosCPPTestUtilities::GenerateD
     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
     // Create a map
-    Epetra_Map Map(NumGlobalElements,0,epetra_comm);
+    const Epetra_Map map(NumGlobalElements,0,epetra_comm);
 
     // Local number of rows
-    const int NumMyElements = Map.NumMyElements();
+    const int NumMyElements = map.NumMyElements();
 
     // Get update list
-    int* MyGlobalElements = Map.MyGlobalElements( );
+    int* MyGlobalElements = map.MyGlobalElements( );
 
     // Create an Epetra_Vector
-    TrilinosVectorType b(Map);
+    TrilinosVectorType b(map);
 
     double value;
     for( int i=0 ; i<NumMyElements; ++i ) {
