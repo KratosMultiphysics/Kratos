@@ -48,7 +48,7 @@
         {                                                                                 \
             auto &r_item = Registry::AddItem<RegistryItem>(key_name);                     \
             TFunctionType dispatcher = [](){return std::make_shared<X>(__VA_ARGS__);};    \
-            r_item.AddCallable<TFunctionType>("Prototype", std::move(dispatcher));        \
+            r_item.AddItem<TFunctionType>("Prototype", std::move(dispatcher));            \
         }                                                                                 \
         return Registry::HasItem(key_name);                                               \
     }();
