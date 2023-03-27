@@ -52,8 +52,10 @@ BinaryExpression<TOperationType>::BinaryExpression(
     const auto& r_left_shape = mpLeft->GetShape();
     const auto& r_right_shape = mpRight->GetShape();
 
+    auto p_right_obj = mpRight.get();
+
     KRATOS_ERROR_IF_NOT(r_left_shape == r_right_shape ||
-                        (typeid(*mpRight) == typeid(LiteralExpression<double>(0))))
+                        (typeid(*p_right_obj) == typeid(LiteralExpression<double>(0))))
         << "Binary operation should have equal shape in left and right side "
            "expressions or right hand side should be a scalar. ["
         << "lhs shape = " << ExpressionHelperUtilities::GetShape(r_left_shape) << ", "
