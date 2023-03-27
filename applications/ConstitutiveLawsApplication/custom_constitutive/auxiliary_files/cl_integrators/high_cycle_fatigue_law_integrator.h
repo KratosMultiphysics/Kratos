@@ -187,7 +187,6 @@ public:
     static void CalculateFatigueParameters(const double MaxStress,
                                             double Threshold,
                                             double ReversionFactor,
-                                            double MaxReferenceDamage,
                                             const Properties& rMaterialParameters,
                                             double& rB0,
                                             double& rSth,
@@ -197,7 +196,6 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
         const double yield_stress = ultimate_stress;
-        // const double damage_factor = (1 - MaxReferenceDamage) / (1 - MinReferenceDamage);
 
         // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
         // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
@@ -302,7 +300,6 @@ public:
     static void CalculateFatigueReductionFactor(const Properties& rMaterialParameters,
                                                                 const double MaxStress,
                                                                 double ReversionFactor,
-                                                                double MaxReferenceDamage,
                                                                 unsigned int LocalNumberOfCycles,
                                                                 unsigned int GlobalNumberOfCycles,
                                                                 const double B0,
