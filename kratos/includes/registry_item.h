@@ -165,7 +165,7 @@ public:
         const std::string&  rName,
         const TItemType& rValue)
         : mName(rName),
-          mpValue((std::function<std::shared_ptr<TItemType>()>)[=](){return Kratos::make_shared<TItemType>(rValue);})
+          mpValue((std::function<std::shared_ptr<TItemType>()>)[rValue](){return Kratos::make_shared<TItemType>(rValue);})
     {
         std::stringstream buffer;
         buffer << rValue;
