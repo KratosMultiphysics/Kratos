@@ -89,6 +89,11 @@ const std::vector<std::size_t> BinaryWeightedMultiplicationExpression::GetShape(
     return this->mpLeft->GetShape();
 }
 
+bool BinaryWeightedMultiplicationExpression::IsScalar() const
+{
+    return this->mpLeft->IsScalar() && this->mpRight->IsScalar();
+}
+
 std::string BinaryWeightedMultiplicationExpression::Info() const
 {
     std::stringstream msg;

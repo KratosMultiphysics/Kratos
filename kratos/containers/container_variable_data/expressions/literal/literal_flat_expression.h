@@ -83,6 +83,8 @@ public:
 
     const std::vector<IndexType> GetShape() const override;
 
+    bool IsScalar() const override;
+
     std::string Info() const override;
 
     ///@}

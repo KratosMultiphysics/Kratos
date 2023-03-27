@@ -15,7 +15,6 @@
 #include <vector>
 
 // Project includes
-#include "containers/container_variable_data/expressions/literal/literal_expression.h"
 
 // Include base h
 #include "binary_expression.h"
@@ -52,10 +51,7 @@ BinaryExpression<TOperationType>::BinaryExpression(
     const auto& r_left_shape = mpLeft->GetShape();
     const auto& r_right_shape = mpRight->GetShape();
 
-    auto p_right_obj = mpRight.get();
-
-    KRATOS_ERROR_IF_NOT(r_left_shape == r_right_shape ||
-                        (typeid(*p_right_obj) == typeid(LiteralExpression<double>(0))))
+    KRATOS_ERROR_IF_NOT(r_left_shape == r_right_shape || mpRight->IsScalar())
         << "Binary operation should have equal shape in left and right side "
            "expressions or right hand side should be a scalar. ["
         << "lhs shape = " << ExpressionHelperUtilities::GetShape(r_left_shape) << ", "
@@ -95,6 +91,12 @@ template <class TOperationType>
 const std::vector<std::size_t> BinaryExpression<TOperationType>::GetShape() const
 {
     return this->mpLeft->GetShape();
+}
+
+template <class TOperationType>
+bool BinaryExpression<TOperationType>::IsScalar() const
+{
+    return this->mpLeft->IsScalar() && this->mpRight->IsScalar();
 }
 
 template <class TOperationType>

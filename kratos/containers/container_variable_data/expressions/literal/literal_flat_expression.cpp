@@ -55,6 +55,11 @@ const std::vector<std::size_t> LiteralFlatExpression::GetShape() const
     return mShape;
 }
 
+bool LiteralFlatExpression::IsScalar() const
+{
+    return false;
+}
+
 std::string LiteralFlatExpression::Info() const
 {
     std::stringstream msg;

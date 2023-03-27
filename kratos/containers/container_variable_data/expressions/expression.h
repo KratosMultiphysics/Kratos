@@ -70,6 +70,14 @@ public:
     virtual const std::vector<IndexType> GetShape() const = 0;
 
     /**
+     * @brief Returns true if this expression is a scalar
+     *
+     * @return true
+     * @return false
+     */
+    virtual bool IsScalar() const = 0;
+
+    /**
      * @brief Get the Local Size of the expression
      *
      * @return IndexType

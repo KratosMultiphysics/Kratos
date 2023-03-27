@@ -59,6 +59,12 @@ double LiteralExpression<TDataType>::Evaluate(
     return mValue[ComponentIndex];
 }
 
+template <class TDataType>
+bool LiteralExpression<TDataType>::IsScalar() const
+{
+    return false;
+}
+
 template <>
 LiteralExpression<double>::LiteralExpression(const double& Value)
     : mValue(Value),
@@ -72,6 +78,12 @@ double LiteralExpression<double>::Evaluate(
     const IndexType ComponentIndex) const
 {
     return mValue;
+}
+
+template <>
+bool LiteralExpression<double>::IsScalar() const
+{
+    return true;
 }
 
 template <>
