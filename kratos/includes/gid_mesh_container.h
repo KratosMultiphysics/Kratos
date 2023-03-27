@@ -130,7 +130,7 @@ public:
             {
                 if (elements_per_layer[current_layer] > 0)
                 {
-                    //create an appropiate name
+                    //create an appropriate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
                     current_layer_name << mMeshTitle << "_" << current_layer ;
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
@@ -180,11 +180,7 @@ public:
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
 
-                        bool element_is_active = true;
-                        if ((it)->IsDefined(ACTIVE))
-                            element_is_active = (it)->Is(ACTIVE);
-
-                        if (element_is_active)
+                        if (it->IsActive())
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
 
@@ -286,11 +282,7 @@ public:
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
 
-                        bool element_is_active = true;
-                        if ((it)->IsDefined(ACTIVE))
-                            element_is_active = (it)->Is(ACTIVE);
-
-                        if (element_is_active)
+                        if (it->IsActive())
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                     }

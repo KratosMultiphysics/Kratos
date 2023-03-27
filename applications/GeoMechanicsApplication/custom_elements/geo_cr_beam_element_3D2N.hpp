@@ -41,16 +41,16 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCrBeamElement3D2N : public CrBeam
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCrBeamElement3D2N);
 
-    typedef CrBeamElement3D2N BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::NodesArrayType NodesArrayType;
-    typedef BaseType::PropertiesType PropertiesType;
-    typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;
-    typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;
-    typedef BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef BaseType::DofsVectorType DofsVectorType;
+    using BaseType = CrBeamElement3D2N;
+    using GeometryType = BaseType::GeometryType;
+    using NodesArrayType = BaseType::NodesArrayType;
+    using PropertiesType = BaseType::PropertiesType;
+    using IndexType = BaseType::IndexType;
+    using SizeType = BaseType::SizeType;
+    using MatrixType = BaseType::MatrixType;
+    using VectorType = BaseType::VectorType;
+    using EquationIdVectorType = BaseType::EquationIdVectorType;
+    using DofsVectorType = BaseType::DofsVectorType;
 
     GeoCrBeamElement3D2N() {};
     GeoCrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);

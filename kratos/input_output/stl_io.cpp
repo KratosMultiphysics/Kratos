@@ -78,32 +78,29 @@ void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
 template<class TContainerType>
 void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
 {
+    std::size_t num_degenerate_geometries = 0;
     for (auto & r_entity : rThisEntities) {
         const auto & r_geometry = r_entity.GetGeometry();
-
-        // restrict to triangles only for now
-        const bool is_triangle = (
-            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
-            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
-
-        if (is_triangle) {
+        if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
             WriteFacet(r_geometry);
         }
     }
+    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
+        << "Model part contained " << num_degenerate_geometries
+        << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
 
 void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
 {
+    std::size_t num_degenerate_geometries = 0;
     for (auto & r_geometry : rThisGeometries) {
-        // restrict to triangles only for now
-        const bool is_triangle = (
-            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
-            r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
-
-        if (is_triangle) {
+        if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
             WriteFacet(r_geometry);
         }
     }
+    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
+        << "Model part contained " << num_degenerate_geometries
+        << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
 
 
@@ -136,6 +133,22 @@ void StlIO::PrintInfo(std::ostream& rOStream) const{
 /// Print object's data.
 void StlIO::PrintData(std::ostream& rOStream) const{
 
+}
+
+
+bool StlIO::IsValidGeometry(
+    const Geometry<Node<3>>& rGeometry,
+    std::size_t& rNumDegenerateGeos) const 
+{
+    // restrict to triangles only for now
+    const bool is_triangle = (
+        rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 ||
+        rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6);
+    const bool area_greater_than_zero = rGeometry.Area() > std::numeric_limits<double>::epsilon();
+    if (!area_greater_than_zero && is_triangle) {
+        rNumDegenerateGeos++;
+    }
+    return (is_triangle && area_greater_than_zero);
 }
 
 void StlIO::ReadSolid(ModelPart & rThisModelPart)

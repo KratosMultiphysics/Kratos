@@ -86,7 +86,7 @@ public:
     /// Destructor.
     ~MCStrainSofteningPlasticFlowRule() override;
 
-    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables, const Properties& rProp ) override;
 
     ///@}
     ///@name Operators
@@ -125,7 +125,7 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    void UpdateMaterialParameters();
+    void UpdateMaterialParameters(const Properties& rProp);
 
     ///@}
     ///@name Protected Inquiry
