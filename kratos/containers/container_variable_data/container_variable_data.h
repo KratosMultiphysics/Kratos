@@ -107,6 +107,65 @@ public:
     void CopyDataFrom(const ContainerVariableData<TContainerType>& rOther);
 
     /**
+     * @brief Reads data from c like interface
+     *
+     * This method can read data from a c-interface where @ref pBegin is the
+     * starting pointer to a contiguous array having space and data
+     * to all @ref NumberOfEntities where each entity having data for
+     * shape @ref rShape.
+     *
+     * Eg: 1) If NumberOfEntities = 10, and rShape = {4}, then
+     *        pBegin should point to starting double value's pointer
+     *        where it has 40 doubles in a contiguous manner.
+     *     2) iF NumberOfEntities = 10 and rShape = (4, 3), then
+     *        pBegin should point to starting double value's pointer
+     *        where it has 120 doubles in a contiguous manner.
+     *        The matrix within these containers are using row first notation.
+     *              [
+     *                  [1, 2, 3]
+     *                  [3, 4, 5]
+     *              ] = {1, 2, 3, 3, 4, 5}
+     *
+     * @param pBegin            Starting pointer to the data.
+     * @param NumberOfEntities  Number of entities present in data.
+     * @param rShape            Shape of data in each entity.
+     */
+    void ReadData(
+        double const* pBegin,
+        const IndexType NumberOfEntities,
+        const std::vector<IndexType>& rShape);
+
+    /**
+     * @brief Assign the data in the expression to c-like interfaces
+     *
+     * This method can assign data to a c-interface where @ref pBegin is the
+     * starting pointer to a contiguous array having space and data
+     * to all @ref NumberOfEntities where each entity having data for
+     * shape @ref rShape. This is checking whether the internal @ref NumberOfEntities
+     * and internal @ref Expression shape is matching with the user input.
+     *
+     * Eg: 1) If NumberOfEntities = 10, and rShape = {4}, then
+     *        pBegin should point to starting double value's pointer
+     *        where it has 40 doubles in a contiguous manner.
+     *     2) iF NumberOfEntities = 10 and rShape = (4, 3), then
+     *        pBegin should point to starting double value's pointer
+     *        where it has 120 doubles in a contiguous manner.
+     *        The matrix within these containers are using row first notation.
+     *              [
+     *                  [1, 2, 3]
+     *                  [3, 4, 5]
+     *              ] = {1, 2, 3, 3, 4, 5}
+     *
+     * @param pBegin            Starting pointer to the data.
+     * @param NumberOfEntities  Number of entities present in data.
+     * @param rShape            Shape of data in each entity.
+     */
+    void AssignData(
+        double* pBegin,
+        const IndexType NumberOfEntities,
+        const std::vector<IndexType>& rShape);
+
+    /**
      * @brief Set the Data To Zero container.
      *
      * This replaces the expression with a LiteralExpression<double> with 0.0.

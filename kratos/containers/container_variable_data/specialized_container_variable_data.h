@@ -193,6 +193,10 @@ public:
 
     SpecializedContainerVariableData& operator/=(const double Value);
 
+    SpecializedContainerVariableData Pow(const SpecializedContainerVariableData& rOther) const;
+
+    SpecializedContainerVariableData Pow(const double Value) const;
+
     ///@}
     ///@name Input and output
     ///@{

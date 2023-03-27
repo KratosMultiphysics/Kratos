@@ -298,6 +298,27 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
 }
 
 template <class TContainerType, class TContainerDataIO>
+SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Pow(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther) const
+{
+    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
+        << "Mismatching model parts found in substraction.\n"
+        << "      Left operand data : " << *this << "\n"
+        << "      Right operand data: " << rOther << "\n";
+
+    SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
+    result.mpExpression = BinaryExpression<BinaryOperations::Power>::Create(*this->mpExpression, *rOther.mpExpression);
+    return result;
+}
+
+template <class TContainerType, class TContainerDataIO>
+SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Pow(const double Value) const
+{
+    SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
+    result.mpExpression = BinaryExpression<BinaryOperations::Power>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
+    return result;
+}
+
+template <class TContainerType, class TContainerDataIO>
 std::string SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Info() const
 {
     std::stringstream msg;

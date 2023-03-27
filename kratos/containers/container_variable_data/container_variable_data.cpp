@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "containers/container_variable_data/expressions/literal/literal_expression.h"
+#include "containers/container_variable_data/expressions/literal/literal_flat_expression.h"
 
 // Include base h
 #include "container_variable_data.h"
@@ -47,6 +48,69 @@ void ContainerVariableData<TContainerType>::CopyDataFrom(
         << ", origin model part name: " << rOther.GetModelPart().FullName() << " ].\n";
 
     mpExpression = rOther.mpExpression;
+}
+
+template <class TContainerType>
+void ContainerVariableData<TContainerType>::ReadData(
+    double const* pBegin,
+    const IndexType NumberOfEntities,
+    const std::vector<IndexType>& rShape)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(NumberOfEntities == this->GetContainer().size())
+        << "Number of entities does not match with the local container size. [ "
+           "NumberOfEntities = "
+        << NumberOfEntities
+        << ", local container size = " << this->GetContainer().size() << " ].\n";
+
+    auto p_expression = LiteralFlatExpression::Create(NumberOfEntities, rShape);
+    this->mpExpression = p_expression;
+
+    const IndexType local_size = this->GetExpression().GetLocalSize();
+
+    IndexPartition<IndexType>(NumberOfEntities).for_each([pBegin, local_size, &p_expression](const IndexType EntityIndex) {
+        const IndexType entity_data_begin_index = EntityIndex * local_size;
+        double const* p_input_data_begin = pBegin + entity_data_begin_index;
+        for (IndexType i = 0; i < local_size; ++i) {
+            p_expression->SetData(entity_data_begin_index, i, *(p_input_data_begin+i));
+        }
+    });
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType>
+void ContainerVariableData<TContainerType>::AssignData(
+    double* pBegin,
+    const IndexType NumberOfEntities,
+    const std::vector<IndexType>& rShape)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(NumberOfEntities == this->GetContainer().size())
+        << "Number of entities does not match with the local container size. [ "
+           "NumberOfEntities = "
+        << NumberOfEntities
+        << ", local container size = " << this->GetContainer().size() << " ].\n";
+
+    const auto& r_expression = this->GetExpression();
+
+    KRATOS_ERROR_IF_NOT(rShape == r_expression.GetShape())
+        << "Shape mismatch. [ Requested shape  = " << rShape
+        << ", available shape = " << r_expression.GetShape() << " ].\n";
+
+    const IndexType local_size = r_expression.GetLocalSize();
+
+    IndexPartition<IndexType>(NumberOfEntities).for_each([pBegin, local_size, &r_expression](const IndexType EntityIndex) {
+        const IndexType entity_data_begin_index = EntityIndex * local_size;
+        double* p_input_data_begin = pBegin + entity_data_begin_index;
+        for (IndexType i = 0; i < local_size; ++i) {
+            *(p_input_data_begin+i) = r_expression.Evaluate(entity_data_begin_index, i);
+        }
+    });
+
+    KRATOS_CATCH("");
 }
 
 template <class TContainerType>

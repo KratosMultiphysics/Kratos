@@ -37,6 +37,8 @@ void AddContainerVariableDataToPython(pybind11::module& m, const std::string& rN
     using container_variable_data_holder_base = ContainerVariableData<TContainerType>;
     py::class_<container_variable_data_holder_base, typename container_variable_data_holder_base::Pointer>(m, rName.c_str())
         .def("CopyDataFrom", &container_variable_data_holder_base::CopyDataFrom, py::arg("origin_container_data"))
+        .def("ReadData", &container_variable_data_holder_base::ReadData, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("shape"))
+        .def("AssignData", &container_variable_data_holder_base::AssignData, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("shape"))
         .def("GetModelPart", py::overload_cast<>(&container_variable_data_holder_base::GetModelPart), py::return_value_policy::reference)
         .def("GetContainer", py::overload_cast<>(&container_variable_data_holder_base::GetContainer), py::return_value_policy::reference)
         .def("PrintData", &container_variable_data_holder_base::PrintData)
@@ -99,6 +101,10 @@ void AddSpecializedContainerVariableDataToPython(pybind11::module& m, const std:
         .def(py::self /= py::self)
         .def(py::self /  float())
         .def(py::self /= float())
+        .def("__pow__", [](container_type& rSelf, const container_type& rInput) { container_type result(rSelf.GetModelPart()); result = rSelf.Pow(rInput); return result; })
+        .def("__ipow__", [](container_type& rSelf, const container_type& rInput) { rSelf = rSelf.Pow(rInput); return rSelf; })
+        .def("__pow__", [](container_type& rSelf, const double Value) { container_type result(rSelf.GetModelPart()); result = rSelf.Pow(Value); return result; })
+        .def("__ipow__", [](container_type& rSelf, const double Value) { rSelf = rSelf.Pow(Value); return rSelf; })
         .def("__neg__", [](container_type& rSelf) { return rSelf.operator*(-1.0); })
         ;
 }
