@@ -374,7 +374,10 @@ public:
     KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
     SizeType Dimension() const
     {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         return mpGeometryDimension->Dimension();
+        #pragma GCC diagnostic pop
     }
 
     /** Working space dimension. for example a triangle is a 2
