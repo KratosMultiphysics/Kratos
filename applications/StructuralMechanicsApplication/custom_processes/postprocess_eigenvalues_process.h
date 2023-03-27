@@ -55,14 +55,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    PostprocessEigenvaluesProcess(ModelPart& rModelPart,
-                                  Parameters OutputParameters);
+    PostprocessEigenvaluesProcess(
+        Model& rModel,
+        Parameters OutputParameters);
 
     ///@}
     ///@name Operations
     ///@{
 
     void ExecuteFinalizeSolutionStep() override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -88,7 +95,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart;
     Parameters mOutputParameters;
 
     ///@}
