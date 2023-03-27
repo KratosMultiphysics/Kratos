@@ -68,6 +68,8 @@ protected:
 
     const Expression::Pointer mpRight;
 
+    const IndexType mLocalSize;
+
     ///@}
 };
 

@@ -48,15 +48,15 @@ BinaryWeightedMultiplicationExpression::BinaryWeightedMultiplicationExpression(
     Expression::Pointer pLeft,
     Expression::Pointer pRight)
     : mpLeft(pLeft),
-      mpRight(pRight)
+      mpRight(pRight),
+      mLocalSize(mpLeft->GetLocalSize())
 {
     const auto& r_left_shape = mpLeft->GetShape();
     const auto& r_right_shape = mpRight->GetShape();
 
-    KRATOS_ERROR_IF_NOT(mpRight->GetLocalSize() == 1 &&
-                        typeid(*mpRight) == typeid(LiteralFlatExpression(0, {})))
+    KRATOS_ERROR_IF_NOT(mpRight->GetLocalSize() == 1 && r_right_shape.size() == 0)
         << "Binary weighted multiplication should have right hand with a "
-           "vector having shape of [1]. ["
+           "vector/scalar having shape of []. ["
         << "lhs shape = " << BinaryExpressionHelperUtilities::GetShape(r_left_shape) << ", "
         << "rhs shape = " << BinaryExpressionHelperUtilities::GetShape(r_right_shape) << " ].\n"
         << "Expression:\n"
@@ -83,8 +83,7 @@ double BinaryWeightedMultiplicationExpression::Evaluate(
     const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
-    return mpLeft->Evaluate(EntityDataBeginIndex, ComponentIndex) *
-           mpRight->Evaluate(EntityDataBeginIndex, 0);
+    return mpLeft->Evaluate(EntityDataBeginIndex, ComponentIndex) * mpRight->Evaluate(EntityDataBeginIndex / mLocalSize, 0);
 }
 
 const std::vector<std::size_t> BinaryWeightedMultiplicationExpression::GetShape() const
