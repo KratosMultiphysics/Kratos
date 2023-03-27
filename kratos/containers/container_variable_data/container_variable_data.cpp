@@ -42,8 +42,8 @@ template <class TContainerType>
 void ContainerVariableData<TContainerType>::CopyDataFrom(
     const ContainerVariableData<TContainerType>& rOther)
 {
-    KRATOS_ERROR_IF(this->mpModelPart != &rOther.GetModelPart())
-        << "Model part mismatch. [ Destination model part name: "
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in CopyDataFrom operation.\n"
         << this->mpModelPart->FullName()
         << ", origin model part name: " << rOther.GetModelPart().FullName() << " ].\n";
 

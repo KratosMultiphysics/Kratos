@@ -30,8 +30,8 @@ namespace Kratos {
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator=(const SpecializedContainerVariableData& rOther)
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in assignment.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in assignment operation.\n"
         << "      Assignee data: " << *this << "\n"
         << "      Assignor data: " << rOther << "\n";
 
@@ -129,8 +129,8 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::SetZero
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator+(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther) const
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in addition.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in addition operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -142,8 +142,8 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator+=(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther)
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in addition.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in addition operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -170,8 +170,8 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator-(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther) const
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in substraction operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -183,8 +183,8 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator-=(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther)
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in substraction operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -210,8 +210,8 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator*(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther) const
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in substraction operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -223,8 +223,8 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator*=(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther)
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in substraction operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -250,8 +250,8 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator/(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther) const
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in substraction operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -263,8 +263,8 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator/=(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther)
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in substraction operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -300,8 +300,8 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Pow(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther) const
 {
-    KRATOS_ERROR_IF(&this->GetModelPart() != &rOther.GetModelPart())
-        << "Mismatching model parts found in substraction.\n"
+    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
+        << "Mismatching model parts found with different number of entities in substraction operation.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
