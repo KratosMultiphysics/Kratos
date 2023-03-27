@@ -125,9 +125,9 @@ public:
          */
         ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
 
-        
 
-        
+
+
 
         /**
          * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
@@ -292,7 +292,7 @@ private:
     Vector mDelaminationDamageModeTwo;
     Vector mThresholdModeOne;
     Vector mThresholdModeTwo;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
