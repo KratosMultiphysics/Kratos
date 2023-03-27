@@ -288,8 +288,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    // std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
-    // std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
     Vector mdelamination_damage_mode_one;
     Vector mdelamination_damage_mode_two;
     Vector mthreshold_mode_one;
