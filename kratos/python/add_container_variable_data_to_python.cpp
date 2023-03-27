@@ -17,8 +17,6 @@
 #include <pybind11/operators.h>
 
 // Project includes
-
-// Application includes
 #include "containers/container_variable_data/container_data_io.h"
 #include "containers/container_variable_data/container_variable_data.h"
 #include "containers/container_variable_data/specialized_container_variable_data.h"
