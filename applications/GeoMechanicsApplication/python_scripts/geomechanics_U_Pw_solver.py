@@ -309,7 +309,9 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
 
         # Creating the builder and solver
         if (block_builder):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(
+                self.linear_solver)
+            # builder_and_solver = KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
