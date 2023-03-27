@@ -145,19 +145,20 @@ public:
     RegistryItem() = delete;
 
     /// Constructor with the name
-    RegistryItem(const std::string &rName)
+    RegistryItem(const std::string& rName)
         : mName(rName),
-          mpCallable(Kratos::make_shared<SubRegistryItemType>()),
-          mValueName(GetRegistryItemType()) {}
+          mpValue(Kratos::make_shared<SubRegistryItemType>()),
+          mGetValueStringMethod(&RegistryItem::GetRegistryItemType) {}
 
     /// Constructor with the name and lambda
     template <typename TItemType, typename... TArgs>
     RegistryItem(
         const std::string &rName,
-        const std::function<TItemType(TArgs...)> &rValue)
+        const std::function<std::shared_ptr<TItemType>(TArgs...)> &rValue)
+        //typename std::enable_if<std::is_same_v<std::function<std::shared_ptr<TItemType>(TArgs...)>::resut_type, std::shared_ptr<TItemType>>>::type* = nullptr)
         : mName(rName),
-          mpCallable(rValue),
-          mValueName(typeid(TItemType).name()) {}
+          mpValue(rValue()),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
 
     /// Constructor with the name and value
     template<class TItemType>
@@ -165,12 +166,8 @@ public:
         const std::string&  rName,
         const TItemType& rValue)
         : mName(rName),
-          mpCallable((std::function<std::shared_ptr<TItemType>()>)[rValue](){return Kratos::make_shared<TItemType>(rValue);})
-    {
-        std::stringstream buffer;
-        buffer << rValue;
-        mValueName = buffer.str();
-    }
+          mpValue(Kratos::make_shared<TItemType>(rValue)),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
 
     /// Constructor with the name and shared ptr
     template<class TItemType>
@@ -178,12 +175,8 @@ public:
         const std::string&  rName,
         const shared_ptr<TItemType>& pValue)
         : mName(rName),
-          mpCallable((std::function<std::shared_ptr<TItemType>()>)[pValue](){return pValue;})
-    {
-        std::stringstream buffer;
-        buffer << *pValue;
-        mValueName = buffer.str();
-    }
+          mpValue(pValue),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
 
     // Copy constructor deleted
     RegistryItem(RegistryItem const& rOther) = delete;
@@ -199,77 +192,23 @@ public:
     ///@{
 
     // Adding sub value item
-    template <typename TItemType, class... TArgumentsList>
-    RegistryItem &AddItem(
-        std::string const &ItemName,
-        TArgumentsList &&...Arguments)
+    template<typename TItemType, class... TArgumentsList>
+    RegistryItem& AddItem(
+        std::string const& ItemName,
+        TArgumentsList&&... Arguments)
     {
         KRATOS_ERROR_IF(this->HasItem(ItemName))
             << "The RegistryItem '" << this->Name() << "' already has an item with name "
             << ItemName << "." << std::endl;
 
-        if constexpr (std::is_same_v<TItemType, RegistryItem>) {
-            return AddRegistryItem(ItemName, std::forward<TArgumentsList>(Arguments)...);
-        } else {
-            return AddRegistryValue<TItemType>(ItemName, std::forward<TArgumentsList>(Arguments)...);
-        }
-    }
+        using ValueType = typename std::conditional<std::is_same<TItemType, RegistryItem>::value, SubRegistryItemFunctor, SubValueItemFunctor<TItemType>>::type;
 
-    // Adding sub value item
-    template <class... TArgumentsList>
-    RegistryItem &AddRegistryItem(
-        std::string const &ItemName,
-        TArgumentsList &&...Arguments)
-    {
         auto insert_result = GetSubRegistryItemMap().emplace(
             std::make_pair(
                 ItemName,
-                SubRegistryItemFunctor::Create(ItemName, std::forward<TArgumentsList>(Arguments)...)));
-
-        KRATOS_ERROR_IF_NOT(insert_result.second)
-            << "Error in inserting '" << ItemName
-            << "' in registry item with name '" << this->Name() << "'." << std::endl;
-
-        return *insert_result.first->second;
-    }
-
-    // Adding sub value callable item
-    template <typename TItemType, class TFunctionReturnType, class... TFArgumentsList>
-    RegistryItem &AddRegistryValue(
-        std::string const &ItemName,
-        std::function<TFunctionReturnType(TFArgumentsList...)> &&ItemFunction)
-    {
-        auto insert_result = GetSubRegistryItemMap().emplace(
-            std::make_pair(
-                ItemName,
-                std::make_shared<RegistryItem>(ItemName, ItemFunction)
-            )
-        );
-
-        KRATOS_ERROR_IF_NOT(insert_result.second)
-            << "Error in inserting '" << ItemName
-            << "' in registry item with name '" << this->Name() << "'." << std::endl;
-
-        return *insert_result.first->second;
-    }
-
-    // Adding sub value callable item
-    template <typename TItemType, class... TArgumentsList>
-    RegistryItem &AddRegistryValue(
-        std::string const &ItemName,
-        TArgumentsList &&...Arguments)
-    {
-        auto insert_result = GetSubRegistryItemMap().emplace(
-            std::make_pair(
-                ItemName,
-                std::make_shared<RegistryItem>(ItemName, std::function<std::shared_ptr<TItemType>()>([Arguments...]() -> std::shared_ptr<TItemType> {
-                    return std::make_shared<TItemType>(Arguments...);
-                }))
-            )
-        );
-
-        // Force the evaluation of the lambda in order to set mpCallable and mpValueName
-        (*insert_result.first->second).template EvaluateValue<TItemType>();
+                ValueType::Create(ItemName, std::forward<TArgumentsList>(Arguments)...)
+                )
+            );
 
         KRATOS_ERROR_IF_NOT(insert_result.second)
             << "Error in inserting '" << ItemName
@@ -300,19 +239,11 @@ public:
 
     RegistryItem& GetItem(std::string const& rItemName);
 
-    template <typename TDataType>
-    TDataType const &GetValue()
+    template<typename TDataType> TDataType const& GetValue() const
     {
         KRATOS_TRY
 
-        // This is executed the first time we access the GetValue for this item
-        using TFunctionReturnType = std::shared_ptr<TDataType>;
-
-        if (std::any_cast<TFunctionReturnType>(&mpValue) == nullptr) {
-            this->EvaluateValue<TDataType>();
-        }
-
-        return *(std::any_cast<TFunctionReturnType>(mpValue));
+        return *(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
 
         KRATOS_CATCH("");
     }
@@ -352,9 +283,8 @@ private:
     ///@{
 
     std::string mName;
-    std::any mpCallable;
-    std::any mpValue = nullptr;
-    std::string mValueName;
+    std::any mpValue;
+    std::string (RegistryItem::*mGetValueStringMethod)() const;
 
     ///@}
     ///@name Private operations
@@ -362,27 +292,15 @@ private:
 
     std::string GetRegistryItemType() const
     {
-        return mpCallable.type().name();
+        return mpValue.type().name();
     }
 
-    template <typename TDataType>
-    void EvaluateValue()
+    template<class TItemType>
+    std::string GetItemString() const
     {
-        KRATOS_TRY
-
-        using TFunctionReturnType = std::shared_ptr<TDataType>;
-        using TFunctionType = std::function<TFunctionReturnType()>;
-
-        // Assign callable value
-        TFunctionType func = std::any_cast<TFunctionType>(mpCallable);
-        mpValue = func();
-
-        // Set value name
         std::stringstream buffer;
-        buffer << *(std::any_cast<TFunctionReturnType>(mpValue));
-        mValueName = buffer.str();
-
-        KRATOS_CATCH("");
+        buffer << this->GetValue<TItemType>();
+        return buffer.str();
     }
 
     ///@}
@@ -405,6 +323,14 @@ private:
     class SubValueItemFunctor
     {
     public:
+        template<class... TArgumentsList, class TFunctionType = std::function<std::shared_ptr<TItemType>(TArgumentsList...)>>
+        static inline RegistryItem::Pointer Create(
+            std::string const& ItemName,
+            TFunctionType && Function)
+        {
+            return Kratos::make_shared<RegistryItem>(ItemName, std::forward<TFunctionType>(Function));
+        }
+
         template<class... TArgumentsList>
         static inline RegistryItem::Pointer Create(
             std::string const& ItemName,

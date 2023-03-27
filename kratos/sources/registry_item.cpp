@@ -23,13 +23,13 @@ namespace Kratos
     RegistryItem::SubRegistryItemType& RegistryItem::GetSubRegistryItemMap()
     {
         KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return *(std::any_cast<SubRegistryItemPointerType>(mpCallable));
+        return *(std::any_cast<SubRegistryItemPointerType>(mpValue));
     }
 
     RegistryItem::SubRegistryItemType& RegistryItem::GetSubRegistryItemMap() const
     {
         KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return *(std::any_cast<SubRegistryItemPointerType>(mpCallable));
+        return *(std::any_cast<SubRegistryItemPointerType>(mpValue));
     }
 
     RegistryItem::SubRegistryItemType::iterator RegistryItem::begin()
@@ -85,7 +85,7 @@ namespace Kratos
 
     std::string RegistryItem::GetValueString() const
     {
-        return this->mValueName;
+        return (this->*(this->mGetValueStringMethod))();
     }
 
     std::string RegistryItem::ToJson(std::string const& rTabSpacing, const std::size_t Level) const
@@ -128,7 +128,7 @@ namespace Kratos
 
     bool RegistryItem::HasValue() const
     {
-        return (mpCallable.type() != typeid(SubRegistryItemPointerType));
+        return (mpValue.type() != typeid(SubRegistryItemPointerType));
     }
 
     bool RegistryItem::HasItem(std::string const& rItemName) const
