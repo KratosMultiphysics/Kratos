@@ -33,7 +33,7 @@ namespace Kratos {
 /**
  * @brief Container variable data holder
  *
- * Objects of this class is used to hold any type of data in a container
+ * Instances of this class are used to hold any type of data in a container
  * of TContainerType. TContainerType can be nodes, conditions or elements.
  * The data is stored as an Expression. The expression can be one of the followings:
  *
