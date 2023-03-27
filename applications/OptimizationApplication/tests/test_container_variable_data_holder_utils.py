@@ -87,7 +87,7 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertTrue(node.Id in neighbour_map[int(node.GetValue(Kratos.DENSITY))])
 
-    def test_MapConditionContainerVariableDataToNodalVariableDataHolder(self):
+    def test_MapConditionVariableToNodalVariable(self):
         communicator: Kratos.Communicator = self.model_part.GetCommunicator()
 
         for condition in self.model_part.Conditions:
@@ -129,7 +129,7 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertAlmostEqual(node[Kratos.DENSITY], node[Kratos.PRESSURE], 9)
 
-    def test_MapElementContainerVariableDataToNodalVariableDataHolder(self):
+    def test_MapElementVariableToNodalVariable(self):
         communicator: Kratos.Communicator = self.model_part.GetCommunicator()
 
         for element in self.model_part.Elements:
@@ -171,7 +171,7 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertEqual(node[Kratos.DENSITY], node[Kratos.PRESSURE])
 
-    def test_MapNodalVariableDataHolderToConditionContainerVariableDataHolder(self):
+    def test_MapNodalVariableToConditionVariable(self):
         for node in self.model_part.Nodes:
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id + 1, node.Id + 3]))
             node.SetValue(Kratos.PRESSURE, node.Id + 4)
@@ -321,7 +321,7 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
 
         self.assertEqual(KratosOA.ContainerVariableDataUtils.NormL2(analytical_values - output_values), 0.0)
 
-    def test_ContainerVariableDataNormL2(self):
+    def test_ContainerVariableDataWeightedProduct(self):
         a = KratosOA.HistoricalVariableData(self.model_part)
         b = KratosOA.HistoricalVariableData(self.model_part)
         c = KratosOA.NodalNonHistoricalVariableData(self.model_part)
