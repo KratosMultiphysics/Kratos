@@ -155,7 +155,6 @@ public:
     RegistryItem(
         const std::string &rName,
         const std::function<std::shared_ptr<TItemType>(TArgs...)> &rValue)
-        //typename std::enable_if<std::is_same_v<std::function<std::shared_ptr<TItemType>(TArgs...)>::resut_type, std::shared_ptr<TItemType>>>::type* = nullptr)
         : mName(rName),
           mpValue(rValue()),
           mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
