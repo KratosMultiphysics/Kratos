@@ -288,10 +288,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    Vector mdelamination_damage_mode_one;
-    Vector mdelamination_damage_mode_two;
-    Vector mthreshold_mode_one;
-    Vector mthreshold_mode_two;
+    Vector mDelaminationDamageModeOne;
+    Vector mDelaminationDamageModeTwo;
+    Vector mThresholdModeOne;
+    Vector mThresholdModeTwo;
     
     ///@}
     ///@name Private Operators
@@ -315,19 +315,19 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParallelRuleOfMixturesLaw<TDim> )
-        rSerializer.save("delamination_damage_mode_one", mdelamination_damage_mode_one);
-        rSerializer.save("delamination_damage_mode_two", mdelamination_damage_mode_two);
-        rSerializer.save("threshold_mode_one", mthreshold_mode_one);
-        rSerializer.save("threshold_mode_two", mthreshold_mode_two);
+        rSerializer.save("DelaminationDamageModeOne", mDelaminationDamageModeOne);
+        rSerializer.save("DelaminationDamageModeTwo", mDelaminationDamageModeTwo);
+        rSerializer.save("ThresholdModeOne", mThresholdModeOne);
+        rSerializer.save("ThresholdModeTwo", mThresholdModeTwo);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParallelRuleOfMixturesLaw<TDim>)
-        rSerializer.load("delamination_damage_mode_one", mdelamination_damage_mode_one);
-        rSerializer.load("delamination_damage_mode_two", mdelamination_damage_mode_two);
-        rSerializer.load("threshold_mode_one", mthreshold_mode_one);
-        rSerializer.load("threshold_mode_two", mthreshold_mode_two);
+        rSerializer.load("DelaminationDamageModeOne", mDelaminationDamageModeOne);
+        rSerializer.load("DelaminationDamageModeTwo", mDelaminationDamageModeTwo);
+        rSerializer.load("ThresholdModeOne", mThresholdModeOne);
+        rSerializer.load("ThresholdModeTwo", mThresholdModeTwo);
     }
 
 }; // Class TractionSeparationLaw3D

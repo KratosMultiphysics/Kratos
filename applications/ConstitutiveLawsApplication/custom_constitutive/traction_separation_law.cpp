@@ -52,10 +52,10 @@ TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const std::vector<double>
 template<unsigned int TDim>
 TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const TractionSeparationLaw3D<TDim>& rOther)
     : BaseType(rOther),
-      mdelamination_damage_mode_one(rOther.mdelamination_damage_mode_one),
-      mdelamination_damage_mode_two(rOther.mdelamination_damage_mode_two),
-      mthreshold_mode_one(rOther.mthreshold_mode_one),
-      mthreshold_mode_two(rOther.mthreshold_mode_two)
+      mDelaminationDamageModeOne(rOther.mDelaminationDamageModeOne),
+      mDelaminationDamageModeTwo(rOther.mDelaminationDamageModeTwo),
+      mThresholdModeOne(rOther.mThresholdModeOne),
+      mThresholdModeTwo(rOther.mThresholdModeTwo)
 {
 }
 
@@ -138,13 +138,13 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
         
         rValue.resize(combination_factors.size()+1, false);
         
-        noalias(rValue) = mdelamination_damage_mode_one;
+        noalias(rValue) = mDelaminationDamageModeOne;
         return rValue;
     } else if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
         
         rValue.resize(combination_factors.size()+1, false);
         
-        noalias(rValue) = mdelamination_damage_mode_two;
+        noalias(rValue) = mDelaminationDamageModeTwo;
         return rValue;
     } else {
         BaseType::GetValue(rThisVariable,rValue);
@@ -234,20 +234,20 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     
     BaseType::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
     
-    mdelamination_damage_mode_one.resize(p_constitutive_law_vector.size()+1, false);
-    noalias(mdelamination_damage_mode_one) = ZeroVector(p_constitutive_law_vector.size()+1);
+    mDelaminationDamageModeOne.resize(p_constitutive_law_vector.size()+1, false);
+    noalias(mDelaminationDamageModeOne) = ZeroVector(p_constitutive_law_vector.size()+1);
     
-    mdelamination_damage_mode_two.resize(p_constitutive_law_vector.size()+1, false);
-    noalias(mdelamination_damage_mode_two) = ZeroVector(p_constitutive_law_vector.size()+1);
+    mDelaminationDamageModeTwo.resize(p_constitutive_law_vector.size()+1, false);
+    noalias(mDelaminationDamageModeTwo) = ZeroVector(p_constitutive_law_vector.size()+1);
 
-    mthreshold_mode_one.resize(p_constitutive_law_vector.size()-1, false);
+    mThresholdModeOne.resize(p_constitutive_law_vector.size()-1, false);
     for (IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
-            mthreshold_mode_one[i] = rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
+            mThresholdModeOne[i] = rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
         }
     
-    mthreshold_mode_two.resize(p_constitutive_law_vector.size()-1, false);
+    mThresholdModeTwo.resize(p_constitutive_law_vector.size()-1, false);
     for (IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
-            mthreshold_mode_two[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
+            mThresholdModeTwo[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
         }
      
 }
@@ -350,15 +350,15 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         }
 
         const double tolerance = std::numeric_limits<double>::epsilon();
-        Vector delamination_damage_mode_one(p_constitutive_law_vector.size()+1);
-        Vector delamination_damage_mode_two(p_constitutive_law_vector.size()+1);
-        Vector threshold_mode_one(p_constitutive_law_vector.size()-1);
-        Vector threshold_mode_two(p_constitutive_law_vector.size()-1);
+        Vector DelaminationDamageModeOne(p_constitutive_law_vector.size()+1);
+        Vector DelaminationDamageModeTwo(p_constitutive_law_vector.size()+1);
+        Vector ThresholdModeOne(p_constitutive_law_vector.size()-1);
+        Vector ThresholdModeTwo(p_constitutive_law_vector.size()-1);
     
-        noalias(delamination_damage_mode_one) = mdelamination_damage_mode_one;
-        noalias(delamination_damage_mode_two) = mdelamination_damage_mode_two;
-        noalias(threshold_mode_one) = mthreshold_mode_one;
-        noalias(threshold_mode_two) = mthreshold_mode_two;
+        noalias(DelaminationDamageModeOne) = mDelaminationDamageModeOne;
+        noalias(DelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
+        noalias(ThresholdModeOne) = mThresholdModeOne;
+        noalias(ThresholdModeTwo) = mThresholdModeTwo;
 
 
         for(IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
@@ -385,7 +385,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
             const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
         
-            const double F_mode_one = equivalent_stress_mode_one - threshold_mode_one[i];
+            const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
 
                 // const double AParameter_mode_one = -std::pow(T0n, 2) / (2.0 * Ei * GIc / characteristic_length); // Linear
@@ -393,15 +393,15 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
                 
                 KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "AParameter_mode_one is negative." << std::endl;
 
-                // delamination_damage_mode_one[i+1] = (1.0 - T0n / equivalent_stress_mode_one) / (1.0 + AParameter_mode_one); // Linear
-                delamination_damage_mode_one[i+1] = 1.0 - (T0n / equivalent_stress_mode_one) * std::exp(AParameter_mode_one *
+                // DelaminationDamageModeOne[i+1] = (1.0 - T0n / equivalent_stress_mode_one) / (1.0 + AParameter_mode_one); // Linear
+                DelaminationDamageModeOne[i+1] = 1.0 - (T0n / equivalent_stress_mode_one) * std::exp(AParameter_mode_one *
                     (1.0 - equivalent_stress_mode_one / T0n)); // Exponential
 
-                delamination_damage_mode_one[i+1] = (delamination_damage_mode_one[i+1] >= 0.99999) ? 0.99999 : delamination_damage_mode_one[i+1];
-                delamination_damage_mode_one[i+1] = (delamination_damage_mode_one[i+1] < 0.0) ? 0.0 : delamination_damage_mode_one[i+1];
+                DelaminationDamageModeOne[i+1] = (DelaminationDamageModeOne[i+1] >= 0.99999) ? 0.99999 : DelaminationDamageModeOne[i+1];
+                DelaminationDamageModeOne[i+1] = (DelaminationDamageModeOne[i+1] < 0.0) ? 0.0 : DelaminationDamageModeOne[i+1];
             }
 
-            const double F_mode_two = equivalent_stress_mode_two - threshold_mode_two[i];
+            const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
 
                 // const double AParameter_mode_two = -std::pow(T0s, 2) / (2.0 * Gi * GIIc / characteristic_length); // Linear
@@ -409,12 +409,12 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
                 
                 KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "AParameter_mode_two is negative." << std::endl;
 
-                // delamination_damage_mode_two[i+1] = (1.0 - T0s / equivalent_stress_mode_two) / (1.0 + AParameter_mode_two); // Linear
-                delamination_damage_mode_two[i+1] = 1.0 - (T0s / equivalent_stress_mode_two) * std::exp(AParameter_mode_two *
+                // DelaminationDamageModeTwo[i+1] = (1.0 - T0s / equivalent_stress_mode_two) / (1.0 + AParameter_mode_two); // Linear
+                DelaminationDamageModeTwo[i+1] = 1.0 - (T0s / equivalent_stress_mode_two) * std::exp(AParameter_mode_two *
                     (1.0 - equivalent_stress_mode_two / T0s)); // Exponential
 
-                delamination_damage_mode_two[i+1] = (delamination_damage_mode_two[i+1] >= 0.99999) ? 0.99999 : delamination_damage_mode_two[i+1];
-                delamination_damage_mode_two[i+1] = (delamination_damage_mode_two[i+1] < 0.0) ? 0.0 : delamination_damage_mode_two[i+1];
+                DelaminationDamageModeTwo[i+1] = (DelaminationDamageModeTwo[i+1] >= 0.99999) ? 0.99999 : DelaminationDamageModeTwo[i+1];
+                DelaminationDamageModeTwo[i+1] = (DelaminationDamageModeTwo[i+1] < 0.0) ? 0.0 : DelaminationDamageModeTwo[i+1];
             }
 
             // End damage calculation
@@ -424,16 +424,16 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             double layer_damage_variable_mode_one = 0;
             double layer_damage_variable_mode_two = 0;
 
-            if (delamination_damage_mode_one[i+1] > delamination_damage_mode_one[i]) {
-                layer_damage_variable_mode_one = delamination_damage_mode_one[i+1];
+            if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
+                layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
             } else {
-                layer_damage_variable_mode_one = delamination_damage_mode_one[i];
+                layer_damage_variable_mode_one = DelaminationDamageModeOne[i];
             }
 
-            if (delamination_damage_mode_two[i+1] > delamination_damage_mode_two[i]) {
-                layer_damage_variable_mode_two = delamination_damage_mode_two[i+1];
+            if (DelaminationDamageModeTwo[i+1] > DelaminationDamageModeTwo[i]) {
+                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i+1];
             } else {
-                layer_damage_variable_mode_two = delamination_damage_mode_two[i];
+                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i];
             }
 
             layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
@@ -591,15 +591,15 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         }
 
         const double tolerance = std::numeric_limits<double>::epsilon();
-        Vector delamination_damage_mode_one(p_constitutive_law_vector.size()+1);
-        Vector delamination_damage_mode_two(p_constitutive_law_vector.size()+1);
-        Vector threshold_mode_one(p_constitutive_law_vector.size()-1);
-        Vector threshold_mode_two(p_constitutive_law_vector.size()-1);
+        Vector DelaminationDamageModeOne(p_constitutive_law_vector.size()+1);
+        Vector DelaminationDamageModeTwo(p_constitutive_law_vector.size()+1);
+        Vector ThresholdModeOne(p_constitutive_law_vector.size()-1);
+        Vector ThresholdModeTwo(p_constitutive_law_vector.size()-1);
 
-        noalias(delamination_damage_mode_one) = mdelamination_damage_mode_one;
-        noalias(delamination_damage_mode_two) = mdelamination_damage_mode_two;
-        noalias(threshold_mode_one) = mthreshold_mode_one;
-        noalias(threshold_mode_two) = mthreshold_mode_two;
+        noalias(DelaminationDamageModeOne) = mDelaminationDamageModeOne;
+        noalias(DelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
+        noalias(ThresholdModeOne) = mThresholdModeOne;
+        noalias(ThresholdModeTwo) = mThresholdModeTwo;
         
         for(IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
 
@@ -625,7 +625,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
             const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
         
-            const double F_mode_one = equivalent_stress_mode_one - threshold_mode_one[i];
+            const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
                 
                 // const double AParameter_mode_one = -std::pow(T0n, 2) / (2.0 * Ei * GIc / characteristic_length); // Linear
@@ -633,19 +633,19 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             
                 KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "AParameter_mode_one is negative." << std::endl;
 
-                // delamination_damage_mode_one[i+1] = (1.0 - T0n / equivalent_stress_mode_one) / (1.0 + AParameter_mode_one); // Linear
-                delamination_damage_mode_one[i+1] = 1.0 - (T0n / equivalent_stress_mode_one) * std::exp(AParameter_mode_one *
+                // DelaminationDamageModeOne[i+1] = (1.0 - T0n / equivalent_stress_mode_one) / (1.0 + AParameter_mode_one); // Linear
+                DelaminationDamageModeOne[i+1] = 1.0 - (T0n / equivalent_stress_mode_one) * std::exp(AParameter_mode_one *
                     (1.0 - equivalent_stress_mode_one / T0n)); // Exponential
 
-                delamination_damage_mode_one[i+1] = (delamination_damage_mode_one[i+1] >= 0.99999) ? 0.99999 : delamination_damage_mode_one[i+1];
-                delamination_damage_mode_one[i+1] = (delamination_damage_mode_one[i+1] < 0.0) ? 0.0 : delamination_damage_mode_one[i+1];
+                DelaminationDamageModeOne[i+1] = (DelaminationDamageModeOne[i+1] >= 0.99999) ? 0.99999 : DelaminationDamageModeOne[i+1];
+                DelaminationDamageModeOne[i+1] = (DelaminationDamageModeOne[i+1] < 0.0) ? 0.0 : DelaminationDamageModeOne[i+1];
 
-                mdelamination_damage_mode_one[i+1] = delamination_damage_mode_one[i+1];
-                mthreshold_mode_one[i] = equivalent_stress_mode_one;
+                mDelaminationDamageModeOne[i+1] = DelaminationDamageModeOne[i+1];
+                mThresholdModeOne[i] = equivalent_stress_mode_one;
 
             }
 
-            const double F_mode_two = equivalent_stress_mode_two - threshold_mode_two[i];
+            const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
                 
                 // const double AParameter_mode_two = -std::pow(T0s, 2) / (2.0 * Gi * GIIc / characteristic_length); // Linear
@@ -653,15 +653,15 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         
                 KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "AParameter_mode_two is negative." << std::endl;
 
-                // delamination_damage_mode_two[i+1] = (1.0 - T0s / equivalent_stress_mode_two) / (1.0 + AParameter_mode_two); // Linear
-                delamination_damage_mode_two[i+1] = 1.0 - (T0s / equivalent_stress_mode_two) * std::exp(AParameter_mode_two *
+                // DelaminationDamageModeTwo[i+1] = (1.0 - T0s / equivalent_stress_mode_two) / (1.0 + AParameter_mode_two); // Linear
+                DelaminationDamageModeTwo[i+1] = 1.0 - (T0s / equivalent_stress_mode_two) * std::exp(AParameter_mode_two *
                     (1.0 - equivalent_stress_mode_two / T0s)); // Exponential
 
-                delamination_damage_mode_two[i+1] = (delamination_damage_mode_two[i+1] >= 0.99999) ? 0.99999 : delamination_damage_mode_two[i+1];
-                delamination_damage_mode_two[i+1] = (delamination_damage_mode_two[i+1] < 0.0) ? 0.0 : delamination_damage_mode_two[i+1];
+                DelaminationDamageModeTwo[i+1] = (DelaminationDamageModeTwo[i+1] >= 0.99999) ? 0.99999 : DelaminationDamageModeTwo[i+1];
+                DelaminationDamageModeTwo[i+1] = (DelaminationDamageModeTwo[i+1] < 0.0) ? 0.0 : DelaminationDamageModeTwo[i+1];
 
-                mdelamination_damage_mode_two[i+1] = delamination_damage_mode_two[i+1];
-                mthreshold_mode_two[i] = equivalent_stress_mode_two;
+                mDelaminationDamageModeTwo[i+1] = DelaminationDamageModeTwo[i+1];
+                mThresholdModeTwo[i] = equivalent_stress_mode_two;
             }
 
             // End damage calculation
@@ -672,16 +672,16 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             double layer_damage_variable_mode_two = 0;
             double maximum_damage = 0;
 
-            if (delamination_damage_mode_one[i+1] > delamination_damage_mode_one[i]) {
-                layer_damage_variable_mode_one = delamination_damage_mode_one[i+1];
+            if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
+                layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
             } else {
-                layer_damage_variable_mode_one = delamination_damage_mode_one[i];
+                layer_damage_variable_mode_one = DelaminationDamageModeOne[i];
             }
 
-            if (delamination_damage_mode_two[i+1] > delamination_damage_mode_two[i]) {
-                layer_damage_variable_mode_two = delamination_damage_mode_two[i+1];
+            if (DelaminationDamageModeTwo[i+1] > DelaminationDamageModeTwo[i]) {
+                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i+1];
             } else {
-                layer_damage_variable_mode_two = delamination_damage_mode_two[i];
+                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i];
             }
 
             layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
