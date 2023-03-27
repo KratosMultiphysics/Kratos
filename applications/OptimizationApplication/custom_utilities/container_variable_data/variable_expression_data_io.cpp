@@ -55,8 +55,8 @@ VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const TDataType& S
 {
     if constexpr(std::is_same_v<TDataType, double>) {
         mShape.clear();
-    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-        mShape.push_back(3);
+    } else { // this is for all array_1d types
+        mShape.push_back(std::tuple_size_v<typename TDataType::array_type>);
     }
 }
 
@@ -68,8 +68,8 @@ VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const std::vector<
             << "Constructing a double VariableExpressionDataIO with invalid "
                "shape. [ shape = "
             << rShape << " ].\n";
-    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-        KRATOS_ERROR_IF_NOT(rShape == std::vector<IndexType>{3})
+    } else { // this is for all array_1d types
+        KRATOS_ERROR_IF_NOT(rShape == std::vector<IndexType>{std::tuple_size_v<typename TDataType::array_type>})
             << "Constructing a array3 VariableExpressionDataIO with invalid "
                "shape. [ shape = "
             << rShape << " ].\n";
