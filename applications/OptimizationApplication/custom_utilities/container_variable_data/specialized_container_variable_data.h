@@ -35,7 +35,7 @@ namespace Kratos {
  * Hence this class can be specialized to read and write data to different entity containers
  * for each container type.
  *
- * This class does not have any member variables, hence it uses expressions to represent the
+ * This class does not have any member variables, instead it uses expressions to represent the
  * data. Therefore, all the operations such as "+", "-", "*", etc are light weight because
  * they do not compute the value in place, they just create an expression which keeps track fo the expressions.
  * These expressions are evaluated only if AssignDataToContainerVariable. This also does not create additional
