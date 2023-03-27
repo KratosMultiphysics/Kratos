@@ -31,7 +31,7 @@ namespace Kratos {
  * @brief Construct a new specialized @ref ContainerVariableData.
  *
  * This class is used to represent objects which are the specializations
- * of ContainerVariableData. The base class ifof type ContainerVariableData<TContainerType>.
+ * of ContainerVariableData. The base class is @ref ContainerVariableData<TContainerType>.
  * Hence this class can be specialized to read and write data to different entity containers
  * for each container type.
  *
