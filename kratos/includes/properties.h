@@ -25,7 +25,6 @@
 #include "includes/define.h"
 #include "includes/accessor.h"
 #include "includes/node.h"
-#include "includes/variables.h"
 #include "includes/indexed_object.h"
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
