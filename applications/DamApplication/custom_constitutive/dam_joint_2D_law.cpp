@@ -46,8 +46,6 @@ void DamJoint2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                                            ConstitutiveLawVariables& rVariables,
                                                            Parameters& rValues)
 {
-    const Vector& StrainVector = rValues.GetStrainVector();
-
     if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY)) // No contact between interfaces
     {
         rConstitutiveMatrix(0,0) = rVariables.YieldStress;
