@@ -74,7 +74,7 @@ public:
             mSumObjectiveWeights += std::abs(weight);
             objetive.AddEmptyArray("controlled_objects_start_index");
             objetive.AddEmptyArray("controlled_objects_size");
-            for(int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
+            for(long unsigned int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
                 auto objective_control_name = objetive["controls"][objective_control_i].GetString();
                 auto objective_controlled_object_name = objetive["controlled_objects"][objective_control_i].GetString();
                 int objective_control_object_start_index = 0;
@@ -112,7 +112,7 @@ public:
         for(auto& objetive : mrSettings["objectives"]){
             double weight = objetive["objective_weight"].GetDouble();
             
-            for(int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
+            for(long unsigned int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
                 int objective_controlled_object_start_index = objetive["controlled_objects_start_index"][objective_control_i].GetInt();
                 int objective_controlled_object_size = objetive["controlled_objects_size"][objective_control_i].GetInt();
                 auto objective_control_gradient_name = objetive["control_gradient_names"][objective_control_i].GetString();
@@ -166,7 +166,8 @@ public:
 
             for(auto& control_obj : control["controlling_objects"]){
                 ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
-                for(auto& node : r_controlling_object.Nodes()){
+                long unsigned int node_counter = 0;
+                while (node_counter<r_controlling_object.Nodes().size()){
                     if (control_size==3){
                         if (std::abs(mSearchDirection[control_begin_index])>control_max_abs_value)
                             control_max_abs_value = std::abs(mSearchDirection[control_begin_index]);
@@ -181,6 +182,7 @@ public:
                             control_max_abs_value = std::abs(mSearchDirection[control_begin_index]);
                         control_begin_index +=1;
                     }
+                    node_counter++;
                 }
             }
 
