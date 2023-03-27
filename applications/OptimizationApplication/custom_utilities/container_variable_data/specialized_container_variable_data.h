@@ -47,7 +47,7 @@ namespace Kratos {
  * between compatible @ref SpecializedContainerVariableData containers. This copy is also light weight since
  * this only copies the pointers, not the data itself.
  *
- * This class is optimized and compatible with OpenMP and MPI.
+ * This class can take advantage of OpenMP and MPI.
  *
  * @tparam TContainerType           Container type
  * @tparam TContainerDataIO         Container entity input/output type
