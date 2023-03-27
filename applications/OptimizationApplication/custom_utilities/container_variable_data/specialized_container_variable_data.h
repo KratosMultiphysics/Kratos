@@ -28,14 +28,14 @@ namespace Kratos {
 ///@{
 
 /**
- * @brief Construct a new specialized container variable data
+ * @brief Construct a new specialized @ref ContainerVariableData.
  *
  * This class is used to represent objects which are the specializations
- * of ContainerVariableData. The base class ifof type ContainerVariableData<TContainerType>.
+ * of ContainerVariableData. The base class is @ref ContainerVariableData<TContainerType>.
  * Hence this class can be specialized to read and write data to different entity containers
  * for each container type.
  *
- * This class does not have any member variables, hence it uses expressions to represent the
+ * This class does not have any member variables, instead it uses expressions to represent the
  * data. Therefore, all the operations such as "+", "-", "*", etc are light weight because
  * they do not compute the value in place, they just create an expression which keeps track fo the expressions.
  * These expressions are evaluated only if AssignData. This also does not create additional
@@ -43,11 +43,11 @@ namespace Kratos {
  * method specified to write evaluated entity resultant values to model part entities. Hence, these
  * SpecializedContainerVariableData can be easily visualized using common variable data visualization methods.
  *
- * Copy constructor is introduced with the base class type becaues, this allows copying data
- * between compatible SpecializedContainerVariableData containers. This copy is also light weight since
+ * Copy constructor is introduced with the base class type because, this allows copying data
+ * between compatible @ref SpecializedContainerVariableData containers. This copy is also light weight since
  * this only copies the pointers, not the data itself.
  *
- * This class is optimized and compatible with OpenMP and MPI.
+ * This class can take advantage of OpenMP and MPI.
  *
  * @tparam TContainerType           Container type
  * @tparam TContainerDataIO         Container entity input/output type
