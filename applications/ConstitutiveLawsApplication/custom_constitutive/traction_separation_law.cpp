@@ -229,8 +229,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     const Vector& rShapeFunctionsValues
     )
 {
-    auto &p_constitutive_law_vector = this->GetConstitutiveLaws(); 
-    auto &combination_factors = this->GetCombinationFactors(); 
+    auto &p_constitutive_law_vector = this->GetConstitutiveLaws();
     
     BaseType::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
     
@@ -332,7 +331,6 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
             Properties& r_prop             = *(it_prop_begin + i_layer);
             ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
-            const double factor            = combination_factors[i_layer];
 
             // We rotate to local axes the strain
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
@@ -378,7 +376,6 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
             const double T0n = r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
             const double T0s = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
-            const double T0t = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
             const double GIc = r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
             const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
             const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
@@ -571,7 +568,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             Properties& r_prop             = *(it_prop_begin + i_layer);
             ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
-            const double factor            = combination_factors[i_layer];
 
             // We rotate to local axes the strain
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
@@ -618,7 +614,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             const double T0n = r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
             const double T0s = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
-            const double T0t = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
             const double GIc = r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
             const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
             const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
@@ -670,7 +665,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         for(IndexType i=0; i < p_constitutive_law_vector.size(); ++i) {
             double layer_damage_variable_mode_one = 0;
             double layer_damage_variable_mode_two = 0;
-            double maximum_damage = 0;
 
             if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
                 layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
