@@ -257,6 +257,19 @@ class TestContainerVariableData(ABC):
         for node in a.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 12, 12)
 
+    def test_WeightedProduct(self):
+        a = self._GetContainerVariableDataHolder()
+        b = self._GetContainerVariableDataHolder()
+
+        a.ReadData(Kratos.VELOCITY)
+        b.ReadData(Kratos.PRESSURE)
+
+        c = a.WeightedProduct(b)
+        c.AssignData(Kratos.ACCELERATION)
+
+        for entity in a.GetContainer():
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.VELOCITY) * self._GetValue(entity, Kratos.PRESSURE), self._GetValue(entity, Kratos.ACCELERATION), 12)
+
     def test_GetContainer(self):
         a = self._GetContainerVariableDataHolder()
         self.assertEqual(self._GetContainer(), a.GetContainer())
