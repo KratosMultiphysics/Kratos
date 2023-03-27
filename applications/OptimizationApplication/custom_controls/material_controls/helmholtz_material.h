@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// ==============================================================================
 
 #ifndef HELMHOLTZ_MATERIAL_H
 #define HELMHOLTZ_MATERIAL_H
@@ -110,6 +112,7 @@ public:
         physical_densities =  mTechniqueSettings["physical_densities"].GetVector();
         initial_density = mTechniqueSettings["initial_density"].GetDouble();
         youngs_modules =  mTechniqueSettings["youngs_modules"].GetVector();
+        SIMP_pow_fac = mTechniqueSettings["SIMP_power_fac"].GetInt();
         beta = mTechniqueSettings["beta_settings"]["initial_value"].GetDouble();
         adaptive_beta = mTechniqueSettings["beta_settings"]["adaptive"].GetBool();
         beta_fac = mTechniqueSettings["beta_settings"]["increase_fac"].GetDouble();
@@ -256,6 +259,7 @@ protected:
     Parameters mTechniqueSettings;
     double beta;
     bool adaptive_beta;
+    int SIMP_pow_fac;
     double beta_fac;
     double max_beta;
     int beta_update_period;
@@ -474,7 +478,7 @@ private:
                 auto& physical_density = node_i.FastGetSolutionStepValue(PD);
                 auto& physical_density_der = node_i.FastGetSolutionStepValue(D_PD_D_FD);
                 physical_density = ProjectForward(filtered_density,filtered_densities,physical_densities,beta);
-                physical_density_der = FirstFilterDerivative(filtered_density,filtered_densities,physical_densities,beta);
+                physical_density_der = ProjectionDerivative(filtered_density,filtered_densities,physical_densities,beta);
             }
         }
 
@@ -501,8 +505,8 @@ private:
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 auto& youngs_modulus = node_i.FastGetSolutionStepValue(PE);
                 auto& youngs_modulus_der = node_i.FastGetSolutionStepValue(D_PE_D_FD);
-                youngs_modulus = ProjectForward(filtered_density,filtered_densities,youngs_modules,beta);
-                youngs_modulus_der = FirstFilterDerivative(filtered_density,filtered_densities,youngs_modules,beta);
+                youngs_modulus = ProjectForward(filtered_density,filtered_densities,youngs_modules,beta,SIMP_pow_fac);
+                youngs_modulus_der = ProjectionDerivative(filtered_density,filtered_densities,youngs_modules,beta,SIMP_pow_fac);
             }
         }
 
@@ -517,26 +521,12 @@ private:
                     elem_i_young_modulus += it->GetGeometry()[node_element].FastGetSolutionStepValue(PE);
                 elem_i_young_modulus /= it->GetGeometry().size();
 
-                double E_min,E_max;
-
-                for(int i=0;i<youngs_modules.size()-1;i++){
-                    if(elem_i_young_modulus>=youngs_modules[i] && elem_i_young_modulus<=youngs_modules[i+1]){
-                        E_min = youngs_modules[i];
-                        E_max = youngs_modules[i+1];
-                        break;
-                    }
-                }           
-                double penal_elem_i_young_modulus = E_min + std::pow((elem_i_young_modulus-E_min)/(E_max-E_min),3.0) * (E_max-E_min); 
-                it->GetProperties().SetValue(YOUNG_MODULUS,penal_elem_i_young_modulus);
-                it->GetProperties().SetValue(E_MIN,E_min);
-                it->GetProperties().SetValue(E_MAX,E_max);
-                it->GetProperties().SetValue(E_PR,elem_i_young_modulus);
-                it->GetProperties().SetValue(E_PE,penal_elem_i_young_modulus);
+                it->GetProperties().SetValue(YOUNG_MODULUS,elem_i_young_modulus);
             }
         }
     }
 
-    double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta){
+    double ProjectForward(double x, Vector x_limits, Vector y_limits, double beta, int penal_fac = 1){
 
         double x1,x2,y1,y2;
         int index_x1 = 0;
@@ -569,17 +559,7 @@ private:
         
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
 
-        // if(index_x1>0){
-        //     double prev_x1,prev_x2,prev_y1,prev_y2;
-        //     prev_x1 = x_limits[index_x1-1];
-        //     prev_x2 = x_limits[index_x1];
-        //     prev_y1 = y_limits[index_x1-1];
-        //     prev_y2 = y_limits[index_x1];
-        //     double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
-        //     y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
-        // }
-
-        return (y2-y1)/(1+std::exp(pow_val)) + y1;
+        return (y2-y1)/(std::pow(1+std::exp(pow_val),penal_fac)) + y1;
     }
 
 
@@ -613,7 +593,7 @@ private:
         return x;
     }
 
-    double FirstFilterDerivative(double x,Vector x_limits,Vector y_limits,double beta){
+    double ProjectionDerivative(double x,Vector x_limits,Vector y_limits,double beta,int penal_fac = 1){
 
         double dfdx = 0;
         double x1,x2,y1,y2;
@@ -642,10 +622,10 @@ private:
         }
 
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
-        double dydx = (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
+        double dydx = (y2-y1) * (1.0/std::pow(1+std::exp(pow_val),penal_fac+1)) * penal_fac * 2.0 * beta * std::exp(pow_val);
 
-        if (y2<y1)
-            dydx *=-1;
+        // if (y2<y1)
+        //     dydx *=-1;
 
         return dydx;
 

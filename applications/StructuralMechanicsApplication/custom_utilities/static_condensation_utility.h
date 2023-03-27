@@ -11,8 +11,7 @@
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED )
-#define  KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -123,7 +122,5 @@ namespace Kratos
 	}  // namespace StaticCondensationUtility
 
 }  // namespace Kratos.
-
-#endif // KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED  defined
 
 

@@ -562,56 +562,56 @@ public:
         //0
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 8 ),
-                                              this->pGetPoint( 1 ) ) ) );
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 8 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 9 ),
-                                              this->pGetPoint( 2 ) ) ) );
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 9 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 10 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 10 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 11 ),
-                                              this->pGetPoint( 0 ) ) ) );
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 11 ) ) ) );
 
         //4
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 4 ),
-                                              this->pGetPoint( 16 ),
-                                              this->pGetPoint( 5 ) ) ) );
+                                              this->pGetPoint( 5 ),
+                                              this->pGetPoint( 16 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 5 ),
-                                              this->pGetPoint( 17 ),
-                                              this->pGetPoint( 6 ) ) ) );
+                                              this->pGetPoint( 6 ),
+                                              this->pGetPoint( 17 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 6 ),
-                                              this->pGetPoint( 18 ),
-                                              this->pGetPoint( 7 ) ) ) );
+                                              this->pGetPoint( 7 ),
+                                              this->pGetPoint( 18 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 7 ),
-                                              this->pGetPoint( 19 ),
-                                              this->pGetPoint( 4 ) ) ) );
+                                              this->pGetPoint( 4 ),
+                                              this->pGetPoint( 19 ) ) ) );
 
         //8
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 12 ),
-                                              this->pGetPoint( 4 ) ) ) );
+                                              this->pGetPoint( 4 ),
+                                              this->pGetPoint( 12 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 13 ),
-                                              this->pGetPoint( 5 ) ) ) );
+                                              this->pGetPoint( 5 ),
+                                              this->pGetPoint( 13 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 14 ),
-                                              this->pGetPoint( 6 ) ) ) );
+                                              this->pGetPoint( 6 ),
+                                              this->pGetPoint( 14 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 15 ),
-                                              this->pGetPoint( 7 ) ) ) );
+                                              this->pGetPoint( 7 ),
+                                              this->pGetPoint( 15 ) ) ) );
         return edges;
     }
 

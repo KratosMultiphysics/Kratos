@@ -9,8 +9,7 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED)
-#define  KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -202,4 +201,3 @@ private:
 
 }; // Class TrussConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED  defined

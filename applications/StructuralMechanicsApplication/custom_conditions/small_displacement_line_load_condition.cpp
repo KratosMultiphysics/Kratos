@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_conditions/small_displacement_line_load_condition.h"
 #include "utilities/math_utils.h"
+#include "includes/variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/integration_utilities.h"
 

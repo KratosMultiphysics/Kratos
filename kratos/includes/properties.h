@@ -87,7 +87,7 @@ public:
 
     typedef Table<double> TableType;
 
-    typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
+    typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implementation and should be changed to hash. Pooyan.
 
     /// Properties container. A vector set of properties with their Id's as key.
     typedef PointerVectorSet<Properties, IndexedObject> SubPropertiesContainerType;

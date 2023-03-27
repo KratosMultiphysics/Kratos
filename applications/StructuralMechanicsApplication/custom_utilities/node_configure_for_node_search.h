@@ -9,8 +9,7 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H)
-#define  KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H
+#pragma once
 
 // System includes
 #include <string>
@@ -244,4 +243,3 @@ private:
 ///@} addtogroup block
 
 }   // namespace Kratos.
-#endif	/* KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H */

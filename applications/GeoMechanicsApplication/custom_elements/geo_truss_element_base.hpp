@@ -47,18 +47,18 @@ protected:
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElementBase);
 
-    typedef Element BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::NodesArrayType NodesArrayType;
-    typedef BaseType::PropertiesType PropertiesType;
-    typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;
-    typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;
-    typedef BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef BaseType::DofsVectorType DofsVectorType;
-    typedef BoundedMatrix<double, TDim*TNumNodes, TDim*TNumNodes> FullDofMatrixType;
-    typedef BoundedVector<double, TDim*TNumNodes> FullDofVectorType;
+    using BaseType = Element;
+    using GeometryType = BaseType::GeometryType;
+    using NodesArrayType = BaseType::NodesArrayType;
+    using PropertiesType = BaseType::PropertiesType;
+    using IndexType = BaseType::IndexType;
+    using SizeType = BaseType::SizeType;
+    using MatrixType = BaseType::MatrixType;
+    using VectorType = BaseType::VectorType;
+    using EquationIdVectorType = BaseType::EquationIdVectorType;
+    using DofsVectorType = BaseType::DofsVectorType;
+    using FullDofMatrixType = BoundedMatrix<double, TDim*TNumNodes, TDim*TNumNodes>;
+    using FullDofVectorType = BoundedVector<double, TDim*TNumNodes>;
 
 
     GeoTrussElementBase() {};

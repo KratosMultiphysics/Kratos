@@ -119,7 +119,6 @@ class DamWestergaardConditionLoadProcess : public Process
         else
             direction = 2;
 
-        double ref_coord = mReferenceCoordinate + mWaterLevel;
         double unit_acceleration = mAcceleration / 9.81;
 
         if (nnodes != 0)
@@ -131,14 +130,14 @@ class DamWestergaardConditionLoadProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water = ref_coord - (it->Coordinates()[direction]);
+                double y_water = mWaterLevel - (it->Coordinates()[direction]);
 
                 if (y_water < 0.0)
                 {
                     y_water = 0.0;
                 }
 
-                pressure = (mSpecific * (y_water)) + 0.875 * (unit_acceleration)*mSpecific * sqrt(y_water * mWaterLevel);
+                pressure = (mSpecific * (y_water)) + 0.875 * (unit_acceleration)*mSpecific * sqrt(y_water * (mWaterLevel - mReferenceCoordinate));
                 it->FastGetSolutionStepValue(var) = pressure;
             }
         }
@@ -181,7 +180,6 @@ class DamWestergaardConditionLoadProcess : public Process
         else
             direction = 2;
 
-        double ref_coord = mReferenceCoordinate + mWaterLevel;
         double unit_acceleration = mAcceleration / 9.81;
 
         if (nnodes != 0)
@@ -193,7 +191,7 @@ class DamWestergaardConditionLoadProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water = ref_coord - (it->Coordinates()[direction]);
+                double y_water = mWaterLevel - (it->Coordinates()[direction]);
 
                 if (y_water < 0.0)
                 {
@@ -203,7 +201,7 @@ class DamWestergaardConditionLoadProcess : public Process
                 // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction
                 if (unit_acceleration < 0.0)
                 {
-                    pressure = (mSpecific * (y_water)) + 0.875 * (-1.0 * unit_acceleration) * mSpecific * sqrt(y_water * mWaterLevel);
+                    pressure = (mSpecific * (y_water)) + 0.875 * (-1.0 * unit_acceleration) * mSpecific * sqrt(y_water * (mWaterLevel - mReferenceCoordinate));
                 }
                 else
                 {

@@ -12,8 +12,7 @@
 //  Collaborator:   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED)
-#define KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -141,6 +140,8 @@ public:
         // Converged values to be storaged
         const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
+        const auto &r_properties = rValues.GetMaterialProperties();
+        const bool symmetrize_operator = (r_properties.Has(SYMMETRIZE_TANGENT_OPERATOR)) ? r_properties[SYMMETRIZE_TANGENT_OPERATOR] : false;
 
         // The number of components
         const SizeType num_components = unperturbed_stress_vector_gp.size();
@@ -152,8 +153,8 @@ public:
 
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
-        if (rValues.GetMaterialProperties().Has(PERTURBATION_SIZE)) {
-            pertubation = rValues.GetMaterialProperties()[PERTURBATION_SIZE];
+        if (r_properties.Has(PERTURBATION_SIZE)) {
+            pertubation = r_properties[PERTURBATION_SIZE];
             if (pertubation == -1.0)
                 pertubation = std::sqrt(tolerance);
         } else {
@@ -256,7 +257,10 @@ public:
                 noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
             }
         }
-        noalias(r_tangent_tensor) = auxiliary_tensor;
+        if (symmetrize_operator)
+            noalias(r_tangent_tensor) = 0.5*(auxiliary_tensor + trans(auxiliary_tensor));
+        else
+            noalias(r_tangent_tensor) = auxiliary_tensor;
     }
 
     /**
@@ -277,6 +281,9 @@ public:
         const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
+        const auto &r_properties = rValues.GetMaterialProperties();
+        const bool symmetrize_operator = (r_properties.Has(SYMMETRIZE_TANGENT_OPERATOR)) ? r_properties[SYMMETRIZE_TANGENT_OPERATOR] : false;
+
         // The number of components
         const SizeType num_components = unperturbed_stress_vector_gp.size();
 
@@ -296,8 +303,8 @@ public:
 
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
-        if (rValues.GetMaterialProperties().Has(PERTURBATION_SIZE)) {
-            pertubation = rValues.GetMaterialProperties()[PERTURBATION_SIZE];
+        if (r_properties.Has(PERTURBATION_SIZE)) {
+            pertubation = r_properties[PERTURBATION_SIZE];
         } else {
             for (IndexType i_component = 0; i_component < num_components; ++i_component) {
                 double component_perturbation;
@@ -375,7 +382,10 @@ public:
                 }
             }
         }
-        noalias(r_tangent_tensor) = auxiliary_tensor;
+        if (symmetrize_operator)
+            noalias(r_tangent_tensor) = 0.5*(auxiliary_tensor + trans(auxiliary_tensor));
+        else
+            noalias(r_tangent_tensor) = auxiliary_tensor;
     }
 
     /**
@@ -858,4 +868,3 @@ private:
     TangentOperatorCalculatorUtility &operator=(TangentOperatorCalculatorUtility const &rOther);
 };
 } // namespace Kratos.
-#endif // KRATOS_TANGENT_OPERATOR_CALCULATOR_PROCESS_H_INCLUDED  defined

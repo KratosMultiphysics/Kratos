@@ -1,9 +1,20 @@
-#if defined(KRATOS_PYTHON)
-// External includes
-#include "custom_python/add_trilinos_processes_to_python.h"
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
-// Trilinos includes
-#include "Epetra_FEVector.h"
+#if defined(KRATOS_PYTHON)
+
+// System includes
+
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -13,13 +24,11 @@
 #include "processes/variational_distance_calculation_process.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
-
+#include "custom_python/add_trilinos_processes_to_python.h"
 #include "custom_processes/trilinos_levelset_convection_process.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -103,7 +112,6 @@ void AddProcesses(pybind11::module& m)
 
 }
 
-}
 }
 
 #endif

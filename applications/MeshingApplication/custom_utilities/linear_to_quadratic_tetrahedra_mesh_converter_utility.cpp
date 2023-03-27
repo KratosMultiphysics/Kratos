@@ -197,7 +197,7 @@ namespace Kratos {
 
             // Replace the conditions in SubModelParts
             if (NewConditions.size() > 0) {
-                ReplaceConditionsInSubModelPart(rThisModelPart);
+                ReplaceConditionsInSubModelPart(rThisModelPart.GetRootModelPart());
             }
         }
         KRATOS_CATCH("");

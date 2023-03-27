@@ -144,13 +144,16 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    // Initialize parameters
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    mDeterminantF0 = 1;
-    mDeformationGradientF0 = IdentityMatrix(dimension);
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        // Initialize parameters
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        mDeterminantF0 = 1;
+        mDeformationGradientF0 = IdentityMatrix(dimension);
 
-    // Initialize constitutive law and materials
-    InitializeMaterial();
+        // Initialize constitutive law and materials
+        InitializeMaterial(rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -1018,7 +1021,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 }
 
 
-void UpdatedLagrangian::InitializeMaterial()
+void UpdatedLagrangian::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     GeneralVariables Variables;

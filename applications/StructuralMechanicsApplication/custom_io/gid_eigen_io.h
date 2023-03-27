@@ -10,8 +10,7 @@
 //  Main authors:    Philipp Bucher
 //
 
-#if !defined(KRATOS_GID_EIGEN_IO_H_INCLUDED )
-#define  KRATOS_GID_EIGEN_IO_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -261,6 +260,4 @@ class GidEigenIO : public GidIO<>
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GID_EIGEN_IO_H_INCLUDED  defined
 

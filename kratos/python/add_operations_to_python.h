@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/define_python.h"
 
-
 namespace Kratos::Python
 {
 
