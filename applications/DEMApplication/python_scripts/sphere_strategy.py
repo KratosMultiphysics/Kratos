@@ -541,7 +541,10 @@ class ExplicitStrategy():
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
 
-    def GammaClassical(self, e):
+    def GammaCritical(self, e):
+        # Traken from 'Determination of the normal spring stiffness coefficient
+        # in the linear spring–dashpot contact model of discrete element method'
+        # https://www.sciencedirect.com/science/article/pii/S0032591013004178
         if e < 0.001:
             e = 0.001
 
@@ -698,8 +701,8 @@ class ExplicitStrategy():
             gamma = self.GammaForHertzThornton(coefficient_of_restitution)
             write_gamma = True
 
-        elif (type_of_law == 'Stress_dependent'): # TODO: Change name to function and bibliography
-            gamma = self.GammaClassical(coefficient_of_restitution)
+        elif (type_of_law == 'Stress_dependent'):
+            gamma = self.GammaCritical(coefficient_of_restitution)
             write_gamma = True
 
         elif (type_of_law == 'Conical_damage'):

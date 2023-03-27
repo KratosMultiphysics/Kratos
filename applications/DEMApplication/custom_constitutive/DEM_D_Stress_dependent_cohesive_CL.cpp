@@ -61,17 +61,17 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        //Particles Radius Sum
+        // Particles Radius Sum
         const double radius = element1->GetRadius();
         const double other_radius = element2->GetRadius();
         const double radius_sum = radius + other_radius;
 
-        //Get equivalent Young's Modulus
+        // Get equivalent Young's Modulus
         const double my_young = element1->GetYoung();
         const double other_young = element2->GetYoung();
         const double equiv_young = my_young * other_young / (other_young + my_young);
 
-        //Get equivalent Poisson
+        // Get equivalent Poisson
         const double my_poisson = element1->GetPoisson();
         const double other_poisson = element2->GetPoisson();
         const double equiv_poisson = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
@@ -79,9 +79,11 @@ namespace Kratos {
         double contact_area = 0.0;
         CalculateIndentedContactArea(radius, other_radius, indentation, contact_area);
 
-        //Normal and Tangent elastic constants
+        // Normal and Tangent elastic constants
+        // Taken from 'A methodology for calibrating parameters in discrete element models based on machine learning surrogates.'
+        // https://link.springer.com/article/10.1007/s40571-022-00550-1
         mKn = contact_area * equiv_young / (radius_sum - indentation);
-        mKt = mKn * (2.0 * (1.0 - equiv_poisson) / (2.0 - equiv_poisson)); // TODO: Bibliography
+        mKt = mKn * (2.0 * (1.0 - equiv_poisson) / (2.0 - equiv_poisson));
 
         KRATOS_CATCH("")
     }
@@ -223,8 +225,11 @@ namespace Kratos {
         double contact_area = 0.0;
         CalculateIndentedContactAreaWithFEM(radius, indentation, contact_area);
 
+        // Normal and Tangent elastic constants
+        // Taken from 'A methodology for calibrating parameters in discrete element models based on machine learning surrogates.'
+        // https://link.springer.com/article/10.1007/s40571-022-00550-1
         mKn = contact_area * equiv_young / (radius - indentation);
-        mKt = mKn * (2.0 * (1.0 - equiv_poisson) / (2.0 - equiv_poisson)); // TODO: Bibliography
+        mKt = mKn * (2.0 * (1.0 - equiv_poisson) / (2.0 - equiv_poisson));
 
         KRATOS_CATCH("")
     }
