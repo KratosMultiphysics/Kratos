@@ -45,6 +45,22 @@ Expression::Pointer LiteralExpression<TDataType>::Create(const TDataType& Value)
     return Kratos::make_intrusive<LiteralExpression<TDataType>>(Value);
 }
 
+template <class TDataType>
+LiteralExpression<TDataType>::LiteralExpression(const TDataType& rValue)
+    : mValue(rValue),
+      mShape({rValue.size()})
+{
+
+}
+
+template <class TDataType>
+double LiteralExpression<TDataType>::Evaluate(
+    const IndexType EntityDataBeginIndex,
+    const IndexType ComponentIndex) const
+{
+    return mValue[ComponentIndex];
+}
+
 template <>
 LiteralExpression<double>::LiteralExpression(const double& Value)
     : mValue(Value),
@@ -58,21 +74,6 @@ double LiteralExpression<double>::Evaluate(
     const IndexType ComponentIndex) const
 {
     return mValue;
-}
-
-template <>
-LiteralExpression<array_1d<double, 3>>::LiteralExpression(const array_1d<double, 3>& Value)
-    : mValue(Value),
-      mShape({3})
-{
-}
-
-template <>
-double LiteralExpression<array_1d<double, 3>>::Evaluate(
-    const IndexType EntityDataBeginIndex,
-    const IndexType ComponentIndex) const
-{
-    return mValue[ComponentIndex];
 }
 
 // template instantiations
