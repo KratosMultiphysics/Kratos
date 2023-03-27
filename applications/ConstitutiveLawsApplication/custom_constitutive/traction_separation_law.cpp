@@ -107,23 +107,14 @@ template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<Vector>& rThisVariable)
 {
     auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
-    
-    // At least one layer should have the value
     bool has = false;
-
-    for (auto& p_law : p_constitutive_law_vector) {
-        if (p_law->Has(rThisVariable)) {
-            has = true;
-            break;
-        }
-    }
-
+    
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
-        return true;
-    }
-
-    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
-        return true;
+        has = true;
+    } else if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
+        has = true;
+    } else {
+        BaseType::Has(rThisVariable);
     }
     
     return has;
@@ -140,16 +131,8 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
 {
     auto p_constitutive_law_vector = this->GetConstitutiveLaws(); 
     auto combination_factors = this->GetCombinationFactors(); 
-    // We combine the values of the layers
+   
     rValue.clear();
-    // for (IndexType i_layer = 0; i_layer < combination_factors.size(); ++i_layer) {
-    //     const double factor = combination_factors[i_layer];
-    //     ConstitutiveLaw::Pointer p_law = p_constitutive_law_vector[i_layer];
-
-    //     Vector aux_value;
-    //     p_law->GetValue(rThisVariable, aux_value);
-    //     rValue += aux_value * factor;
-    // }
 
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
         
@@ -157,14 +140,14 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
         
         noalias(rValue) = mdelamination_damage_mode_one;
         return rValue;
-    }
-
-    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
+    } else if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
         
         rValue.resize(combination_factors.size()+1, false);
         
         noalias(rValue) = mdelamination_damage_mode_two;
         return rValue;
+    } else {
+        BaseType::GetValue(rThisVariable,rValue);
     }
     
     return rValue;
@@ -258,12 +241,12 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     noalias(mdelamination_damage_mode_two) = ZeroVector(p_constitutive_law_vector.size()+1);
 
     mthreshold_mode_one.resize(p_constitutive_law_vector.size()-1, false);
-    for (SizeType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
+    for (IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
             mthreshold_mode_one[i] = rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
         }
     
     mthreshold_mode_two.resize(p_constitutive_law_vector.size()-1, false);
-    for (SizeType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
+    for (IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
             mthreshold_mode_two[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
         }
      
@@ -328,17 +311,17 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         auto combination_factors = this->GetCombinationFactors(); 
 
         std::vector<Vector> layer_stress(p_constitutive_law_vector.size());
-        for (int i=0; i < p_constitutive_law_vector.size(); ++i) {
+        for (IndexType i=0; i < p_constitutive_law_vector.size(); ++i) {
             layer_stress[i].resize(6, false);
         }
 
         std::vector<Vector> interfacial_stress(p_constitutive_law_vector.size()-1);
-        for (int i=0; i < p_constitutive_law_vector.size()-1; ++i) {
+        for (IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
             interfacial_stress[i].resize(3, false);
         }
 
         std::vector<bool> negative_interfacial_stress_indicator(p_constitutive_law_vector.size()+1);
-        for (int i=0; i < p_constitutive_law_vector.size()+1; ++i) {
+        for (IndexType i=0; i < p_constitutive_law_vector.size()+1; ++i) {
             negative_interfacial_stress_indicator[i] = false;
         }
 
@@ -378,7 +361,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         noalias(threshold_mode_two) = mthreshold_mode_two;
 
 
-        for(int i=0; i < p_constitutive_law_vector.size()-1; ++i) {
+        for(IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
 
             interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
@@ -437,7 +420,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             // End damage calculation
         }
 
-        for(int i=0; i < p_constitutive_law_vector.size(); ++i) {
+        for(IndexType i=0; i < p_constitutive_law_vector.size(); ++i) {
             double layer_damage_variable_mode_one = 0;
             double layer_damage_variable_mode_two = 0;
 
@@ -467,7 +450,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         }
         
 
-        for(int i=0; i < p_constitutive_law_vector.size(); ++i) {
+        for(IndexType i=0; i < p_constitutive_law_vector.size(); ++i) {
             const double factor = combination_factors[i];
             delamination_damage_affected_stress_vector += factor * layer_stress[i];
         }
@@ -568,17 +551,17 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         auto combination_factors = this->GetCombinationFactors(); 
 
         std::vector<Vector> layer_stress(p_constitutive_law_vector.size());
-        for (int i=0; i < p_constitutive_law_vector.size(); ++i) {
+        for (IndexType i=0; i < p_constitutive_law_vector.size(); ++i) {
             layer_stress[i].resize(6, false);
         }
 
         std::vector<Vector> interfacial_stress(p_constitutive_law_vector.size()-1);
-        for (int i=0; i < p_constitutive_law_vector.size()-1; ++i) {
+        for (IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
             interfacial_stress[i].resize(3, false);
         }
 
         std::vector<bool> negative_interfacial_stress_indicator(p_constitutive_law_vector.size()+1);
-        for (int i=0; i < p_constitutive_law_vector.size()+1; ++i) {
+        for (IndexType i=0; i < p_constitutive_law_vector.size()+1; ++i) {
             negative_interfacial_stress_indicator[i] = false;
         }
 
@@ -618,7 +601,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         noalias(threshold_mode_one) = mthreshold_mode_one;
         noalias(threshold_mode_two) = mthreshold_mode_two;
         
-        for(int i=0; i < p_constitutive_law_vector.size()-1; ++i) {
+        for(IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
 
             interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
@@ -684,7 +667,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             // End damage calculation
         }
 
-        for(int i=0; i < p_constitutive_law_vector.size(); ++i) {
+        for(IndexType i=0; i < p_constitutive_law_vector.size(); ++i) {
             double layer_damage_variable_mode_one = 0;
             double layer_damage_variable_mode_two = 0;
             double maximum_damage = 0;
@@ -710,7 +693,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         }
         
 
-        for(int i=0; i < p_constitutive_law_vector.size(); ++i) {
+        for(IndexType i=0; i < p_constitutive_law_vector.size(); ++i) {
             const double factor = combination_factors[i];
             delamination_damage_affected_stress_vector += factor * layer_stress[i];
         }
