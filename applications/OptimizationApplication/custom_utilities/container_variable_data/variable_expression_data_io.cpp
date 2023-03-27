@@ -12,6 +12,7 @@
 
 // System includes
 #include <vector>
+#include <utility>
 
 // Project includes
 #include "includes/define.h"
@@ -23,6 +24,31 @@
 #include "variable_expression_data_io.h"
 
 namespace Kratos {
+
+namespace VariableExpressionDataIOHelperUtilities {
+using IndexType = std::size_t;
+
+template<class TDataType, std::size_t... TIndex>
+void Read(
+    LiteralFlatExpression& rExpression,
+    const IndexType EntityDataBeginIndex,
+    const TDataType& rValue,
+    std::index_sequence<TIndex...>)
+{
+    (rExpression.SetData(EntityDataBeginIndex, TIndex, rValue[TIndex]), ...);
+}
+
+template<class TDataType, std::size_t... TIndex>
+void Assign(
+    const Expression& rExpression,
+    const IndexType EntityDataBeginIndex,
+    TDataType& rValue,
+    std::index_sequence<TIndex...>)
+{
+    (rValue.insert_element(TIndex, rExpression.Evaluate(EntityDataBeginIndex, TIndex)), ...);
+}
+
+} // namespace VariableExpressionDataIOHelperUtilities
 
 template<class TDataType>
 VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const TDataType& SampleValue)
@@ -62,6 +88,26 @@ std::shared_ptr<VariableExpressionDataIO<TDataType>> VariableExpressionDataIO<TD
     return std::make_shared<VariableExpressionDataIO<TDataType>>(rShape);
 }
 
+template<class TDataType>
+void VariableExpressionDataIO<TDataType>::Assign(
+    TDataType& rOutput,
+    const Expression& rExpression,
+    const IndexType EntityIndex) const
+{
+    constexpr IndexType N = std::tuple_size_v<typename TDataType::array_type>;
+    VariableExpressionDataIOHelperUtilities::Assign(rExpression, EntityIndex * N, rOutput, std::make_index_sequence<N>{});
+}
+
+template<class TDataType>
+void VariableExpressionDataIO<TDataType>::Read(
+    LiteralFlatExpression& rExpression,
+    const IndexType EntityIndex,
+    const TDataType& Value) const
+{
+    constexpr IndexType N = std::tuple_size_v<typename TDataType::array_type>;
+    VariableExpressionDataIOHelperUtilities::Read(rExpression, EntityIndex * N, Value, std::make_index_sequence<N>{});
+}
+
 template<>
 void VariableExpressionDataIO<double>::Assign(
     double& rOutput,
@@ -78,30 +124,6 @@ void VariableExpressionDataIO<double>::Read(
     const double& Value) const
 {
     rExpression.SetData(EntityIndex, 0, Value);
-}
-
-template<>
-void VariableExpressionDataIO<array_1d<double, 3>>::Assign(
-    array_1d<double, 3>& rOutput,
-    const Expression& rExpression,
-    const IndexType EntityIndex) const
-{
-    const IndexType entity_data_begin_index = EntityIndex * 3;
-    rOutput[0] = rExpression.Evaluate(entity_data_begin_index, 0);
-    rOutput[1] = rExpression.Evaluate(entity_data_begin_index, 1);
-    rOutput[2] = rExpression.Evaluate(entity_data_begin_index, 2);
-}
-
-template<>
-void VariableExpressionDataIO<array_1d<double, 3>>::Read(
-    LiteralFlatExpression& rExpression,
-    const IndexType EntityIndex,
-    const array_1d<double, 3>& Value) const
-{
-    const IndexType entity_data_begin_index = EntityIndex * 3;
-    rExpression.SetData(entity_data_begin_index, 0, Value[0]);
-    rExpression.SetData(entity_data_begin_index, 1, Value[1]);
-    rExpression.SetData(entity_data_begin_index, 2, Value[2]);
 }
 
 // template instantiations
