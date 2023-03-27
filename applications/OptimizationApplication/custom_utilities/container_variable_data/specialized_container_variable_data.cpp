@@ -329,15 +329,15 @@ std::string SpecializedContainerVariableData<TContainerType, TContainerDataIO>::
 }
 
 //template instantiations
-#define KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, ...)                                                                   \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::ReadData(const Variable<__VA_ARGS__>&);                \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetData(const __VA_ARGS__&); \
-    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetZero(const Variable<__VA_ARGS__>&);            \
+#define KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIOType, ...)                                       \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::ReadData(const Variable<__VA_ARGS__>&);  \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetData(const __VA_ARGS__&);             \
+    template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::SetZero(const Variable<__VA_ARGS__>&);   \
     template void SpecializedContainerVariableData<ContainerType, ContainerDataIOType>::AssignData(const Variable<__VA_ARGS__>&);
 
-#define KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOTag)                                                           \
-    template class SpecializedContainerVariableData<ContainerType, ContainerDataIO<ContainerDataIOTag>>;                                             \
-    KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, double)                                             \
+#define KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ContainerType, ContainerDataIOTag)                           \
+    template class SpecializedContainerVariableData<ContainerType, ContainerDataIO<ContainerDataIOTag>>;               \
+    KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, double)              \
     KRATOS_INSTANTIATE_CONTAINER_DATA_METHODS(ContainerType, ContainerDataIO<ContainerDataIOTag>, array_1d<double, 3>)
 
 KRATOS_INSTANTIATE_CONTAINER_VARIABLE_DATA_HOLDER(ModelPart::NodesContainerType, ContainerDataIOTags::Historical)
