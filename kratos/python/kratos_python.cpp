@@ -72,6 +72,7 @@
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
 #include "add_registry_to_python.h"
+#include "add_container_variable_data_to_python.h"
 
 namespace Kratos
 {
@@ -150,6 +151,7 @@ PYBIND11_MODULE(Kratos, m)
     AddMapperToPython(m);
     AddSparseMatricesToPython(m);
     AddRegistryToPython(m);
+    AddContainerVariableDataToPython(m);
 
     m.def("Hello", Hello);
 }
