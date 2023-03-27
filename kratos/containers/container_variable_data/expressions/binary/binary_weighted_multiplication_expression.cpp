@@ -5,9 +5,9 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Suneth Warnakulasuriya
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
