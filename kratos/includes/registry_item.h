@@ -224,7 +224,7 @@ public:
         }
         else
         {
-            std::function<std::shared_ptr<TItemType>()> aux_lambda = [=]() -> std::shared_ptr<TItemType> {
+            std::function<std::shared_ptr<TItemType>()> aux_lambda = [Arguments...]() -> std::shared_ptr<TItemType> {
                 return std::make_shared<TItemType>((Arguments)...);
             };
 
