@@ -44,7 +44,7 @@ namespace Kratos {
  * SpecializedContainerVariableData can be easily visualized using common variable data visualization methods.
  *
  * Copy constructor is introduced with the base class type becaues, this allows copying data
- * between compatible SpecializedContainerVariableData containers. This copy is also light weight since
+ * between compatible @ref SpecializedContainerVariableData containers. This copy is also light weight since
  * this only copies the pointers, not the data itself.
  *
  * This class is optimized and compatible with OpenMP and MPI.
