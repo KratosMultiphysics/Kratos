@@ -63,7 +63,7 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::ReadDat
         // initialize the shape with the first entity value
         VariableExpressionDataIO<TDataType> variable_flatten_data_io(TContainerDataIO::GetValue(*r_container.begin(), rVariable));
 
-        auto p_expression = Kratos::make_intrusive<LiteralFlatExpression>(number_of_entities, variable_flatten_data_io.GetShape());
+        auto p_expression = LiteralFlatExpression::Create(number_of_entities, variable_flatten_data_io.GetShape());
         auto& r_expression = *p_expression;
         this->mpExpression = p_expression;
 
