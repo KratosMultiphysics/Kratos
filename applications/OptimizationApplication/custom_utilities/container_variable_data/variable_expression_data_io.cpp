@@ -70,7 +70,7 @@ VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const std::vector<
             << rShape << " ].\n";
     } else { // this is for all array_1d types
         KRATOS_ERROR_IF_NOT(rShape == std::vector<IndexType>{std::tuple_size_v<typename TDataType::array_type>})
-            << "Constructing a array3 VariableExpressionDataIO with invalid "
+            << "Constructing a array VariableExpressionDataIO with invalid "
                "shape. [ shape = "
             << rShape << " ].\n";
     }
