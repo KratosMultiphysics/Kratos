@@ -312,19 +312,23 @@ private:
     ///@{
     friend class Serializer;
 
-    // void save(Serializer& rSerializer) const override
-    // {
-    //     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    //     rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
-    //     rSerializer.save("CombinationFactors", mCombinationFactors);
-    // }
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParallelRuleOfMixturesLaw<TDim> )
+        rSerializer.save("delamination_damage_mode_one", mdelamination_damage_mode_one);
+        rSerializer.save("delamination_damage_mode_two", mdelamination_damage_mode_two);
+        rSerializer.save("threshold_mode_one", mthreshold_mode_one);
+        rSerializer.save("threshold_mode_two", mthreshold_mode_two);
+    }
 
-    // void load(Serializer& rSerializer) override
-    // {
-    //     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
-    //     rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
-    //     rSerializer.load("CombinationFactors", mCombinationFactors);
-    // }
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParallelRuleOfMixturesLaw<TDim>)
+        rSerializer.load("delamination_damage_mode_one", mdelamination_damage_mode_one);
+        rSerializer.load("delamination_damage_mode_two", mdelamination_damage_mode_two);
+        rSerializer.load("threshold_mode_one", mthreshold_mode_one);
+        rSerializer.load("threshold_mode_two", mthreshold_mode_two);
+    }
     
     double MacaullyBrackets(const double Number)
     {
