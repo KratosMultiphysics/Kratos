@@ -57,7 +57,7 @@ namespace Kratos
                     return mValue * rProperties[YOUNG_MODULUS];
                 }
 
-                Accessor::Pointer Clone() const
+                Accessor::Pointer Clone() const override
                 {
                     return Kratos::make_shared<CustomAccessor>(*this);
                 }
