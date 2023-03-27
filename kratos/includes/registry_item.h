@@ -301,26 +301,6 @@ public:
     RegistryItem& GetItem(std::string const& rItemName);
 
     template <typename TDataType>
-    void EvaluateValue()
-    {
-        KRATOS_TRY
-
-        using TFunctionReturnType = std::shared_ptr<TDataType>;
-        using TFunctionType = std::function<TFunctionReturnType()>;
-
-        // Assign callable value
-        TFunctionType func = std::any_cast<TFunctionType>(mpCallable);
-        mpValue = func();
-
-        // Set value name
-        std::stringstream buffer;
-        buffer << *(std::any_cast<TFunctionReturnType>(mpValue));
-        mValueName = buffer.str();
-
-        KRATOS_CATCH("");
-    }
-
-    template <typename TDataType>
     TDataType const &GetValue()
     {
         KRATOS_TRY
@@ -383,6 +363,26 @@ private:
     std::string GetRegistryItemType() const
     {
         return mpCallable.type().name();
+    }
+
+    template <typename TDataType>
+    void EvaluateValue()
+    {
+        KRATOS_TRY
+
+        using TFunctionReturnType = std::shared_ptr<TDataType>;
+        using TFunctionType = std::function<TFunctionReturnType()>;
+
+        // Assign callable value
+        TFunctionType func = std::any_cast<TFunctionType>(mpCallable);
+        mpValue = func();
+
+        // Set value name
+        std::stringstream buffer;
+        buffer << *(std::any_cast<TFunctionReturnType>(mpValue));
+        mValueName = buffer.str();
+
+        KRATOS_CATCH("");
     }
 
     ///@}
