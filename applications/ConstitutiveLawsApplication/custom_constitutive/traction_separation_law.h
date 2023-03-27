@@ -172,25 +172,6 @@ public:
     bool ValidateInput(const Properties& rMaterialProperties) override;
 
     /**
-     * @brief Returns the expected strain measure of this constitutive law (by default linear strains)
-     * @return the expected strain measure
-     */
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override;
-
-    /**
-     * @brief Returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
-     * @return the expected stress measure
-     */
-    ConstitutiveLaw::StressMeasure GetStressMeasure() override;
-
-    /**
-     * @brief Returns whether this constitutive model is formulated in incremental strains/stresses
-     * @note By default, all constitutive models should be formulated in total strains
-     * @return true, if formulated in incremental strains/stresses, false otherwise
-     */
-    bool IsIncremental() override;
-
-    /**
      * @brief This is to be called at the very beginning of the calculation
      * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
      * @param rMaterialProperties the Properties instance of the current element

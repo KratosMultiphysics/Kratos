@@ -5,8 +5,8 @@
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
 //                                                                                         |_|   |_|
 //
-//  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alireza Taherzadeh-Fard
 //                   Alejandro Cornejo Velazquez
@@ -14,8 +14,6 @@
 //                   Lucia Gratiela Barbu
 //
 // System includes
-#include <iostream>
-#include <set>
 
 // External includes
 
@@ -106,7 +104,6 @@ TractionSeparationLaw3D<TDim>::~TractionSeparationLaw3D()
 template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<Vector>& rThisVariable)
 {
-    auto p_constitutive_law_vector = this->GetConstitutiveLaws();
     bool has = false;
 
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
@@ -129,7 +126,6 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
     Vector& rValue
     )
 {
-    auto p_constitutive_law_vector = this->GetConstitutiveLaws();
     auto combination_factors = this->GetCombinationFactors();
 
     rValue.clear();
@@ -178,51 +174,6 @@ bool TractionSeparationLaw3D<TDim>::ValidateInput(const Properties& rMaterialPro
 /***********************************************************************************/
 
 template<unsigned int TDim>
-ConstitutiveLaw::StrainMeasure TractionSeparationLaw3D<TDim>::GetStrainMeasure()
-{
-    auto p_constitutive_law_vector = this->GetConstitutiveLaws();
-    // We return the first one
-    KRATOS_ERROR_IF(p_constitutive_law_vector.size() == 0) << "TractionSeparationLaw3D: No constitutive laws defined" << std::endl;
-    return p_constitutive_law_vector[0]->GetStrainMeasure();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-ConstitutiveLaw::StressMeasure TractionSeparationLaw3D<TDim>::GetStressMeasure()
-{
-    auto p_constitutive_law_vector = this->GetConstitutiveLaws();
-    // We return the first one
-    KRATOS_ERROR_IF(p_constitutive_law_vector.size() == 0) << "TractionSeparationLaw3D: No constitutive laws defined" << std::endl;
-    return p_constitutive_law_vector[0]->GetStressMeasure();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-bool TractionSeparationLaw3D<TDim>::IsIncremental()
-{
-    auto p_constitutive_law_vector = this->GetConstitutiveLaws();
-
-    // We check it layer by layer
-    bool is_incremental = false;
-
-    for (auto& p_law : p_constitutive_law_vector) {
-        if (p_law->IsIncremental()) {
-            is_incremental = true;
-            break;
-        }
-    }
-
-    return is_incremental;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const ConstitutiveLaw::GeometryType& rElementGeometry,
@@ -241,13 +192,13 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
 
     mThresholdModeOne.resize(p_constitutive_law_vector.size()-1, false);
     for (IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
-            mThresholdModeOne[i] = rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
-        }
+        mThresholdModeOne[i] = rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
+    }
 
     mThresholdModeTwo.resize(p_constitutive_law_vector.size()-1, false);
     for (IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
-            mThresholdModeTwo[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
-        }
+        mThresholdModeTwo[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
+    }
 
 }
 
@@ -324,9 +275,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             negative_interfacial_stress_indicator[i] = false;
         }
 
-
         for (IndexType i_layer = 0; i_layer < p_constitutive_law_vector.size(); ++i_layer) {
-
             this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
 
             Properties& r_prop             = *(it_prop_begin + i_layer);
@@ -357,7 +306,6 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         noalias(DelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
         noalias(ThresholdModeOne) = mThresholdModeOne;
         noalias(ThresholdModeTwo) = mThresholdModeTwo;
-
 
         for(IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
 
@@ -446,7 +394,6 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             // }
         }
 
-
         for(IndexType i=0; i < p_constitutive_law_vector.size(); ++i) {
             const double factor = combination_factors[i];
             delamination_damage_affected_stress_vector += factor * layer_stress[i];
@@ -459,7 +406,6 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues, BaseType::StressMeasure_PK2);
         }
-
 
         // Previous flags restored
         r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
@@ -563,7 +509,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         }
 
         for (IndexType i_layer = 0; i_layer < p_constitutive_law_vector.size(); ++i_layer) {
-
             this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
 
             Properties& r_prop             = *(it_prop_begin + i_layer);
@@ -598,7 +543,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         noalias(ThresholdModeTwo) = mThresholdModeTwo;
 
         for(IndexType i=0; i < p_constitutive_law_vector.size()-1; ++i) {
-
             interfacial_stress[i][0] = AdvancedConstitutiveLawUtilities<VoigtSize>::MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
@@ -611,7 +555,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             }
 
             // Damage calculation
-
             const double T0n = r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
             const double T0s = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
             const double GIc = r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
@@ -622,7 +565,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
-
                 // const double AParameter_mode_one = -std::pow(T0n, 2) / (2.0 * Ei * GIc / characteristic_length); // Linear
                 const double AParameter_mode_one = 1.00 / (GIc * Ei / (characteristic_length * std::pow(T0n, 2)) - 0.5); // Exponential
 
@@ -637,12 +579,10 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
                 mDelaminationDamageModeOne[i+1] = DelaminationDamageModeOne[i+1];
                 mThresholdModeOne[i] = equivalent_stress_mode_one;
-
             }
 
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
-
                 // const double AParameter_mode_two = -std::pow(T0s, 2) / (2.0 * Gi * GIIc / characteristic_length); // Linear
                 const double AParameter_mode_two = 1.00 / (GIIc * Gi / (characteristic_length * std::pow(T0s, 2)) - 0.5); // Exponential
 
