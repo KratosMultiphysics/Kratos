@@ -35,6 +35,8 @@ public:
     ///@name Type definitions
     ///@{
 
+    using Pointer = std::shared_ptr<VariableExpressionDataIO<TDataType>>;
+
     using IndexType = std::size_t;
 
     ///@}
@@ -48,6 +50,10 @@ public:
     ///@}
     ///@name Public operations
     ///@{
+
+    static Pointer Create(const TDataType& SampleValue);
+
+    static Pointer Create(const std::vector<IndexType>& rShape);
 
     void Assign(
         TDataType& rOutput,

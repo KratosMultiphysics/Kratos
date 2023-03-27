@@ -50,6 +50,18 @@ VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const std::vector<
     }
 }
 
+template<class TDataType>
+std::shared_ptr<VariableExpressionDataIO<TDataType>> VariableExpressionDataIO<TDataType>::Create(const TDataType& SampleValue)
+{
+    return std::make_shared<VariableExpressionDataIO<TDataType>>(SampleValue);
+}
+
+template<class TDataType>
+std::shared_ptr<VariableExpressionDataIO<TDataType>> VariableExpressionDataIO<TDataType>::Create(const std::vector<IndexType>& rShape)
+{
+    return std::make_shared<VariableExpressionDataIO<TDataType>>(rShape);
+}
+
 template<>
 void VariableExpressionDataIO<double>::Assign(
     double& rOutput,
@@ -75,7 +87,7 @@ void VariableExpressionDataIO<array_1d<double, 3>>::Assign(
     const IndexType EntityIndex) const
 {
     const IndexType entity_data_begin_index = EntityIndex * 3;
-    rOutput[0] = rExpression.Evaluate(entity_data_begin_index , 0);
+    rOutput[0] = rExpression.Evaluate(entity_data_begin_index, 0);
     rOutput[1] = rExpression.Evaluate(entity_data_begin_index, 1);
     rOutput[2] = rExpression.Evaluate(entity_data_begin_index, 2);
 }
