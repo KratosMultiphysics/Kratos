@@ -11,8 +11,6 @@
 //
 
 // System includes
-#include <functional>
-#include <numeric>
 
 // Project includes
 
@@ -23,9 +21,11 @@ namespace Kratos {
 
 std::size_t Expression::GetLocalSize() const
 {
-    const auto& r_shape = this->GetShape();
-    return std::transform_reduce(r_shape.begin(), r_shape.end(), 1UL, std::multiplies{},
-                                 [](const auto v) { return v; });
+    IndexType result = 1;
+    for (const auto v : this->GetShape()) {
+        result *= v;
+    }
+    return result;
 }
 
 void intrusive_ptr_add_ref(const Expression* x)
