@@ -178,7 +178,7 @@ public:
         const std::string&  rName,
         const shared_ptr<TItemType>& pValue)
         : mName(rName),
-          mpValue((std::function<std::shared_ptr<TItemType>()>)[=](){return pValue;})
+          mpValue((std::function<std::shared_ptr<TItemType>()>)[pValue](){return pValue;})
     {
         std::stringstream buffer;
         buffer << *pValue;
