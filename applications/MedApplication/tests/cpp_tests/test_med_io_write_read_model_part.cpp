@@ -77,4 +77,18 @@ KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodes, KratosMedFastSuite)
     });
 }
 
+KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMesh, KratosMedFastSuite)
+{
+        KRATOS_WATCH(KratosComponents<ModelPart::GeometryType>::GetComponents().size() );
+    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+        constexpr std::size_t num_nodes = 10;
+        for (std::size_t i=0; i<num_nodes; ++i) {
+            rModelPart.CreateNewNode(i+1, i,0,0);
+        }
+        for (std::size_t i=0; i<num_nodes-1; ++i) {
+            rModelPart.CreateNewGeometry("Line3D2", i+1, std::vector<ModelPart::IndexType>{i+1, i+2});
+        }
+    });
+}
+
 } // Kratos::Testing
