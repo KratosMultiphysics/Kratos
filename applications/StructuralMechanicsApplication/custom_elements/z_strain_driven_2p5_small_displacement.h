@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_Z_DRIVEN_2p5D_SMALL_DISPLACEMENT_H_INCLUDED )
-#define  KRATOS_Z_DRIVEN_2p5D_SMALL_DISPLACEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/checks.h"
@@ -295,4 +294,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_Z_DRIVEN_2p5D_SMALL_DISPLACEMENT_H_INCLUDED  defined

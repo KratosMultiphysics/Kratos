@@ -80,7 +80,7 @@ namespace Kratos {
 /**
  * @class KratosApplication
  * @brief This class defines the interface with kernel for all applications in Kratos.
- * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
+ * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole system correctly.
  * @ingroup KratosCore
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
@@ -140,6 +140,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///////////////////////////////////////////////////////////////////
     void RegisterOperations(); // This contains the whole list of operations in the Kratos Core
     void RegisterProcesses();  // This contains the whole list of standard (i.e. model - parameters constructible) processes in the Kratos Core
+    void RegisterControllers();  // This contains the whole list of standard (i.e. model - parameters constructible) processes in the Kratos Core
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
     void RegisterDeprecatedVariables();           //TODO: remove, this variables should not be there
     void RegisterCFDVariables();                  //TODO: move to application

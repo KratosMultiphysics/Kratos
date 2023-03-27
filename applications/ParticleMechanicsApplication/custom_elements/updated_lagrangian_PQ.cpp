@@ -152,7 +152,7 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
 }
 
 
-void UpdatedLagrangianPQ::InitializeMaterial()
+void UpdatedLagrangianPQ::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     GeneralVariables Variables;

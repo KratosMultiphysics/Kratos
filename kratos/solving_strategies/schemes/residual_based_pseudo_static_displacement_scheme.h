@@ -1,21 +1,22 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:          BSD License
-//  Main authors:  Vicente Mataix Ferrandiz
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RESIDUAL_PSEUDO_STATIC_DISPLACEMENT_SCHEME )
-#define  KRATOS_RESIDUAL_PSEUDO_STATIC_DISPLACEMENT_SCHEME
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 
 namespace Kratos
@@ -507,5 +508,3 @@ private:
     ///@}
 }; /* Class ResidualBasedPseudoStaticDisplacementScheme */
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_PSEUDO_STATIC_DISPLACEMENT_SCHEME E defined */

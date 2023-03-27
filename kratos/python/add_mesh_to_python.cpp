@@ -257,6 +257,15 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
 }
 
 template<class TEntityType>
+void EntityCalculateRightHandSide(
+    TEntityType& dummy,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+template<class TEntityType>
 void EntityCalculateLocalSystem(
     TEntityType& dummy,
     Matrix& rLeftHandSideMatrix,
@@ -494,6 +503,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Element>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Element>)
+    .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Element>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Element>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Element>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Element>)
@@ -636,9 +646,15 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Calculate", &EntityCalculateInterface<Condition, Matrix >)
 
     .def("Initialize", &EntityInitialize<Condition>)
+    .def("EquationIdVector", [](const Condition& self, const ProcessInfo& rProcessInfo){
+        Condition::EquationIdVectorType ids;
+        self.EquationIdVector(ids,rProcessInfo);
+        return ids;
+    })
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
+    .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Condition>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Condition>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Condition>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Condition>)
@@ -677,6 +693,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)
     .def("HasCondition", &MeshType::HasCondition)
+    .def("HasMasterSlaveConstraint ", &MeshType::HasMasterSlaveConstraint )
     .def("__str__", PrintObject<MeshType>)
     ;
 }

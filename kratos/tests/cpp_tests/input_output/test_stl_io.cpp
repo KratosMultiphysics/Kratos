@@ -101,10 +101,13 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
     r_model_part.CreateNewNode(1, 0.1, -2.56114e-08, 0.1);
     r_model_part.CreateNewNode(2, 0.1, -0.499156, -0.0352136);
     r_model_part.CreateNewNode(3, 0.1, -0.473406, -0.0446259);
+    r_model_part.CreateNewNode(4, 0.1, -2.56114e-08, 0.1);
 
     // create a triangle element
     Properties::Pointer p_properties(new Properties(0));
     r_model_part.CreateNewElement("Element3D3N", 101, {1, 2, 3}, p_properties);
+    //this element should be ignored as its area is zero.
+    r_model_part.CreateNewElement("Element3D3N", 102, {1, 2, 4}, p_properties);
 
     // write stl
     std::filesystem::path filename = "test_stl_write.stl";
