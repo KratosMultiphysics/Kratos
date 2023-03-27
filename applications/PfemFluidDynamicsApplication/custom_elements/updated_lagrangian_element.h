@@ -411,7 +411,7 @@ namespace Kratos
                                   const double TimeStep);
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
-    void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
+    virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
                                Matrix &rNContainer,
                                Vector &rGaussWeights);
 
@@ -460,13 +460,6 @@ namespace Kratos
 
     virtual void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
                                        const double Weight){};
-
-    virtual void ComputeBulkMatrixConsistent(MatrixType &BulkMatrix,
-                                             const double Weight){};
-
-    virtual void ComputeBulkMatrix(MatrixType &BulkMatrix,
-                                   const ShapeFunctionsType &rN,
-                                   const double Weight){};
 
     virtual void ComputeBulkMatrixRHS(MatrixType &BulkMatrix,
                                       const double Weight){};
@@ -547,6 +540,8 @@ namespace Kratos
     virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
                                                   unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
                                                   double &DeviatoricCoeff, double &VolumetricCoeff){};
+
+    void ComputeMechanicalDissipation(ElementalVariables &rElementalVariables);
 
     /// Write the value of a variable at a point inside the element to a double
     /**

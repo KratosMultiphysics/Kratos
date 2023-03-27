@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
@@ -15,9 +15,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "custom_searching/interface_object.h"
 
-namespace Kratos {
-namespace Testing {
-
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSerialTestSuite)
 {
@@ -89,5 +87,4 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSui
     // KRATOS_CHECK_EQUAL(*(p_interface_obj->pGetBaseGeometry()), *p_quad); // does not compile ...
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined( KRATOS_VTK_EIGEN_OUTPUT_H_INCLUDED )
-#define KRATOS_VTK_EIGEN_OUTPUT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -116,5 +115,3 @@ private:
 };
 
 } // namespace Kratos
-
-#endif // KRATOS_VTK_EIGEN_OUTPUT_H_INCLUDED
