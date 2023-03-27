@@ -86,9 +86,7 @@ double LiteralExpression<Matrix>::Evaluate(
     const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
-    const IndexType row = ComponentIndex / mShape[1];
-    const IndexType col = ComponentIndex % mShape[1];
-    return mValue(row, col);
+    return mValue.data()[ComponentIndex];
 }
 
 // template instantiations
