@@ -338,6 +338,30 @@ class TestContainerVariableDataUtils(kratos_unittest.TestCase):
             v = node.GetSolutionStepValue(Kratos.VELOCITY)
             self.assertVectorAlmostEqual(v * w, node.GetValue(Kratos.ACCELERATION), 12)
 
+    def test_Scopes(self):
+        a = KratosOA.HistoricalVariableData(self.model_part)
+        b = KratosOA.HistoricalVariableData(self.model_part)
+
+        a.ReadData(Kratos.VELOCITY)
+        b.ReadData(Kratos.PRESSURE)
+
+        def func(a):
+            c = a * 2
+            d = c * 3
+            return d
+
+        c = func(a)
+        d = func(b)
+
+        e = KratosOA.NodalNonHistoricalVariableData(c)
+        e.AssignData(Kratos.ACCELERATION)
+        f = KratosOA.NodalNonHistoricalVariableData(d)
+        f.AssignData(Kratos.DENSITY)
+
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.VELOCITY) * 6, node.GetValue(Kratos.ACCELERATION))
+            self.assertEqual(node.GetSolutionStepValue(Kratos.PRESSURE) * 6, node.GetValue(Kratos.DENSITY))
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

@@ -94,7 +94,7 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::AssignD
         VariableUtils().SetNonHistoricalVariablesToZero(this->GetModelPart().GetCommunicator().GhostMesh().Nodes(), rVariable);
     }
 
-    const auto& r_expression = *this->mpExpression;
+    const auto& r_expression = this->GetExpression();
 
     VariableExpressionDataIO<TDataType> variable_flatten_data_io(r_expression.GetShape());
 
@@ -140,7 +140,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, *rOther.mpExpression);
     return result;
 }
 
@@ -152,7 +152,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, *rOther.mpExpression);
     return *this;
 }
 
@@ -161,14 +161,14 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
 {
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator+=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
@@ -181,7 +181,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, *rOther.mpExpression);
     return result;
 }
 
@@ -193,7 +193,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, *rOther.mpExpression);
     return *this;
 }
 
@@ -201,14 +201,14 @@ template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator-(const double Value) const
 {
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator-=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
@@ -221,7 +221,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, *rOther.mpExpression);
     return result;
 }
 
@@ -233,7 +233,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, *rOther.mpExpression);
     return *this;
 }
 
@@ -241,14 +241,14 @@ template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator*(const double Value) const
 {
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO>
 SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedContainerVariableData<TContainerType, TContainerDataIO>::operator*=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, LiteralExpression<double>::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
@@ -261,7 +261,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Division>::Create(this->mpExpression, rOther.mpExpression);
+    result.mpExpression = BinaryExpression<BinaryOperations::Division>::Create(*this->mpExpression, *rOther.mpExpression);
     return result;
 }
 
@@ -273,7 +273,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Division>::Create(this->mpExpression, rOther.mpExpression);
+    this->mpExpression = BinaryExpression<BinaryOperations::Division>::Create(*this->mpExpression, *rOther.mpExpression);
     return *this;
 }
 
@@ -286,7 +286,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
         << "      Divisor           : " << Value << "\n";
 
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, LiteralExpression<double>::Create(1.0 / Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(1.0 / Value));
     return result;
 }
 
@@ -298,7 +298,7 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO>& SpecializedC
         << "      Left operand data : " << *this << "\n"
         << "      Divisor           : " << Value << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(this->mpExpression, LiteralExpression<double>::Create(1.0 / Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(1.0 / Value));
     return *this;
 }
 

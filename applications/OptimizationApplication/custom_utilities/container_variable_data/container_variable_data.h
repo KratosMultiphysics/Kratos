@@ -17,6 +17,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <optional>
 
 // Project includes
 #include "includes/define.h"
@@ -225,7 +226,7 @@ protected:
     ///@name Protected member variables
     ///@{
 
-    Expression::Pointer mpExpression = nullptr;
+    std::optional<Expression::Pointer> mpExpression;
 
     ModelPart* const mpModelPart;
 

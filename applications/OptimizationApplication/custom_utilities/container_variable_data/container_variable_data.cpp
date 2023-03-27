@@ -66,22 +66,14 @@ void ContainerVariableData<TContainerType>::SetExpression(Expression::Pointer pE
 template <class TContainerType>
 const Expression& ContainerVariableData<TContainerType>::GetExpression() const
 {
-    if (mpExpression) {
-        return *mpExpression;
-    } else {
-        KRATOS_ERROR << "Uninitialized expression.\n";
-    }
+    return *(*mpExpression);
 }
 
 
 template <class TContainerType>
 const Expression::Pointer ContainerVariableData<TContainerType>::pGetExpression() const
 {
-    if (mpExpression) {
-        return mpExpression;
-    } else {
-        KRATOS_ERROR << "Uninitialized expression.\n";
-    }
+    return *mpExpression;
 }
 
 template <class TContainerType>
@@ -152,7 +144,7 @@ std::string ContainerVariableData<TContainerType>::Info() const
     msg << "ContainerVariableDataHolderInfo: [ ModelPartName: "
         << this->GetModelPart().FullName()
         << ", Number of entities: " << this->GetContainer().size()
-        << ", Data dimension: " << (mpExpression.get() ? this->GetLocalSize() : 0) << " ].\n";
+        << ", Data dimension: " << (mpExpression.has_value() ? this->GetLocalSize() : 0) << " ].\n";
 
     return msg.str();
 }
