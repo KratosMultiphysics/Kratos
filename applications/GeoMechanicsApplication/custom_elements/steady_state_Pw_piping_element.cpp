@@ -77,7 +77,8 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY
     SteadyStatePwInterfaceElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
 
-    this->CalculateLengthSlope(this->GetGeometry());
+    this->CalculateLength(this->GetGeometry());
+    this->CalculateSlope(this->GetGeometry());
 
     // initialse pipe parameters if not initalised, (important for staged analysis. 
     if (!this->pipe_initialised)
@@ -130,7 +131,7 @@ array_1d<double, TNumNodes> SteadyStatePwPipingElement<TDim, TNumNodes>::Hydraul
 }
 
 template< >
-void SteadyStatePwPipingElement<2, 4>::CalculateLengthSlope(const GeometryType& Geom)
+void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
 {
     KRATOS_TRY
 
@@ -138,20 +139,43 @@ void SteadyStatePwPipingElement<2, 4>::CalculateLengthSlope(const GeometryType& 
     double dy = Geom.GetPoint(1)[1] - Geom.GetPoint(0)[1];
 
 	this->SetValue(PIPE_ELEMENT_LENGTH, sqrt(pow(dx, 2) + pow(dy, 2)));
-    this->SetValue(PIPE_ELEMENT_SLOPE, atan(dy / dx) / (M_PI/180.0));
     
 	KRATOS_CATCH("")
 }
 
 template< >
-void SteadyStatePwPipingElement<3, 6>::CalculateLengthSlope(const GeometryType& Geom)
+void SteadyStatePwPipingElement<3, 6>::CalculateLength(const GeometryType& Geom)
 {
-    KRATOS_ERROR << " Length/Slope of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
+    KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
 }
 template< >
-void SteadyStatePwPipingElement<3, 8>::CalculateLengthSlope(const GeometryType& Geom)
+void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
 {
-    KRATOS_ERROR << " Length/Slope of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
+    KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
+}
+
+template< >
+void SteadyStatePwPipingElement<2, 4>::CalculateSlope(const GeometryType& Geom)
+{
+    KRATOS_TRY
+
+	double dx = Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0];
+    double dy = Geom.GetPoint(1)[1] - Geom.GetPoint(0)[1];
+    this->SetValue(PIPE_ELEMENT_SLOPE, atan(dy / dx) / (M_PI / 180.0));
+    KRATOS_INFO("PipeAngle") << this->GetValue(PIPE_ELEMENT_SLOPE) << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+template< >
+void SteadyStatePwPipingElement<3, 6>::CalculateSlope(const GeometryType& Geom)
+{
+    KRATOS_ERROR << " Slope of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
+}
+template< >
+void SteadyStatePwPipingElement<3, 8>::CalculateSlope(const GeometryType& Geom)
+{
+    KRATOS_ERROR << " Slope of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -387,7 +411,18 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     // gravity is taken from first node
     array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double gravity = norm_2(gravity_array);
-    return modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta * sin((theta + pipeSlope) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / (dhdl * FluidDensity * gravity);
+
+    // KRATOS_INFO("modelFactor") << modelFactor << std::endl;
+    // KRATOS_INFO("particle_d") << particle_d << std::endl;
+    // KRATOS_INFO("solidDensity") << SolidDensity << std::endl;
+    // KRATOS_INFO("fluidDensity") << FluidDensity << std::endl;
+    // KRATOS_INFO("eta") << eta << std::endl;
+    // KRATOS_INFO("theta") << theta << std::endl;
+    double pHeight = this->GetValue(PIPE_HEIGHT);
+    double equilibriumHeight = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity / FluidDensity - 1) * eta * sin((theta + pipeSlope) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / dhdl;
+	KRATOS_INFO("Equilibrium") << pipeSlope << " : " << dhdl << " : " << particle_d << " : " << equilibriumHeight << " : " << pHeight << std::endl;
+    return equilibriumHeight;
+	
 }
 
 template class SteadyStatePwPipingElement<2,4>;

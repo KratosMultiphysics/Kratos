@@ -99,7 +99,8 @@ public:
 
     double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom);
 
-    void CalculateLengthSlope(const GeometryType& Geom);
+    void CalculateLength(const GeometryType& Geom);
+    void CalculateSlope(const GeometryType& Geom);
 
 
 protected:
