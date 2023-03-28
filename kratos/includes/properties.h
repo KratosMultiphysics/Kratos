@@ -263,11 +263,11 @@ public:
     Custom GetValue in which we check the Accessor
     */
     template<class TVariableType>
-    double GetValue(const TVariableType& rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo) {
-        const KeyType variable_id = rVariable.Key();
-        auto value = mAccessors.find(variable_id);
-        if (value != mAccessors.end()) {
-            return (value->second)->GetProperty(rVariable, *this, rGeometry, rShapeFunctionVector, rProcessInfo);
+    double GetValue(const TVariableType& rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+    {
+        auto it_value = mAccessors.find(rVariable.Key());
+        if (it_value != mAccessors.end()) {
+            return (it_value->second)->GetProperty(rVariable, *this, rGeometry, rShapeFunctionVector, rProcessInfo);
         } else {
             return GetValue(rVariable);
         }
@@ -277,9 +277,9 @@ public:
     Method to add Accessors to properties
     */
     template<class TVariableType>
-    void AddAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor) {
-        const IndexType variable_key = rVariable.Key();
-        mAccessors[variable_key] = pAccessor;
+    void AddAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
+    {
+        mAccessors[rVariable.Key()] = pAccessor;
     }
 
     template<class TVariableType>
