@@ -113,48 +113,38 @@ namespace Kratos
 				std::cout << " [ REMOVE CLOSE NODES: " << std::endl;
 			}
 
-			int error_nodes_removed = 0;
-			int inside_nodes_removed = 0;
-			int boundary_nodes_removed = 0;
+			unsigned int inside_nodes_removed = 0;
+			unsigned int boundary_nodes_removed = 0;
+			unsigned int nodes_removed_inlet_zone = 0;
 
 			// if the remove_node switch is activated, we check if the nodes got too close
 			if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES))
 			{
 				bool some_node_is_removed = false;
-				
+
 				if (mEchoLevel > 1)
 					std::cout << " REMOVE_NODES is TRUE " << std::endl;
 
-				if (mEchoLevel > 1)
-					std::cout << "error_nodes_removed :" << error_nodes_removed << std::endl;
-
-				bool some_node_is_removed_due_to_distance = false;
-				////////////////////////////////////////////////////////////
 				if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 				{
 					if (mEchoLevel > 1)
 						std::cout << " REMOVE_NODES_ON_DISTANCE is TRUE " << std::endl;
 
-					some_node_is_removed_due_to_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed);
+					some_node_is_removed = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed, nodes_removed_inlet_zone);
 				}
-				// REMOVE ON DISTANCE
-				////////////////////////////////////////////////////////////
-
-				if (some_node_is_removed_due_to_distance)
-					some_node_is_removed = true;
 
 				if (some_node_is_removed || mrRemesh.UseBoundingBox == true)
 					this->CleanRemovedNodes(mrModelPart);
 			}
 
 			// number of removed nodes:
-			mrRemesh.Info->RemovedNodes += error_nodes_removed + inside_nodes_removed + boundary_nodes_removed;
+			mrRemesh.Info->RemovedNodes += inside_nodes_removed + boundary_nodes_removed - nodes_removed_inlet_zone;
 			int distance_remove = inside_nodes_removed + boundary_nodes_removed;
 
 			if (mEchoLevel > 1)
 			{
 				std::cout << "   [ NODES      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
-				std::cout << "   [ Error(removed: " << error_nodes_removed << "); Distance(removed: " << distance_remove << "; inside: " << inside_nodes_removed << "; boundary: " << boundary_nodes_removed << ") ]" << std::endl;
+				std::cout << "   [ Distance(removed: " << distance_remove << "; inside: " << inside_nodes_removed << "; boundary: " << boundary_nodes_removed << ") ]" << std::endl;
 				std::cout << "   REMOVE CLOSE NODES ]; " << std::endl;
 			}
 
@@ -277,13 +267,14 @@ namespace Kratos
 		//**************************************************************************
 		//**************************************************************************
 
-		bool RemoveNodesOnDistance(int &inside_nodes_removed, int &boundary_nodes_removed)
+		bool RemoveNodesOnDistance(unsigned int &inside_nodes_removed,
+								   unsigned int &boundary_nodes_removed,
+								   unsigned int &nodes_removed_inlet_zone)
 		{
 			KRATOS_TRY
 
 			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-			//***SIZES :::: parameters do define the tolerance in mesh size:
 			bool some_node_is_removed = false;
 
 			// bucket size definition:
@@ -323,7 +314,6 @@ namespace Kratos
 			}
 
 			const unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
-			unsigned int erased_nodes = 0;
 			for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
 				 ie != mrModelPart.ElementsEnd(); ie++)
 			{
@@ -331,7 +321,7 @@ namespace Kratos
 				// coordinates
 				for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
 				{
-					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
+					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(PFEMFlags::LAGRANGIAN_INLET)) || ie->GetGeometry()[i].Is(SOLID) || ie->GetGeometry()[i].Is(PFEMFlags::EULERIAN_INLET))
 					{
 						rigidNodes++;
 					}
@@ -339,12 +329,12 @@ namespace Kratos
 				if (dimension == 2)
 				{
 					if (rigidNodes > 0)
-						EraseCriticalNodes2D(ie->GetGeometry(), erased_nodes, inside_nodes_removed);
+						EraseCriticalNodes2D(ie->GetGeometry(), inside_nodes_removed, nodes_removed_inlet_zone);
 				}
 				else if (dimension == 3)
 				{
 					if (rigidNodes > 1)
-						EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
+						EraseCriticalNodes3D(ie->GetGeometry(), inside_nodes_removed, nodes_removed_inlet_zone, rigidNodes);
 				}
 			}
 
@@ -408,14 +398,14 @@ namespace Kratos
 				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(ISOLATED) && in->IsNot(RIGID) && in->IsNot(SOLID))
 				{
 					unsigned int neighErasedNodes = 0;
-					radius = 0.6 * meshSize;
+					unsigned int freeSurfaceNeighNodes = 0;
+					bool inletElement = false;
+					bool interfaceElement = false;
 
+					radius = 0.6 * meshSize;
 					work_point[0] = in->X();
 					work_point[1] = in->Y();
 					work_point[2] = in->Z();
-					unsigned int freeSurfaceNeighNodes = 0;
-					// unsigned int rigidNeighNodes=0;
-					bool interfaceElement = false;
 
 					if (in->Is(FREE_SURFACE))
 					{
@@ -454,6 +444,10 @@ namespace Kratos
 							if ((nn)->Is(TO_ERASE))
 							{
 								neighErasedNodes++;
+							}
+							if ((nn)->Is(PFEMFlags::EULERIAN_INLET))
+							{
+								inletElement = true;
 							}
 							if (propertyIdNode != propertyIdSecondNode && (nn)->IsNot(RIGID))
 							{
@@ -529,6 +523,10 @@ namespace Kratos
 									in->Set(TO_ERASE);
 									some_node_is_removed = true;
 									inside_nodes_removed++;
+									if (inletElement)
+									{
+										nodes_removed_inlet_zone++;
+									}
 									if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 									{
 										mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -536,7 +534,7 @@ namespace Kratos
 								}
 							}
 						}
-						else 
+						else
 						{
 							unsigned int k = 0;
 							unsigned int counter = 0;
@@ -583,10 +581,8 @@ namespace Kratos
 				}
 			}
 
-			if (erased_nodes > 0)
+			if (boundary_nodes_removed > 0 || inside_nodes_removed>0)
 			{
-				if (mEchoLevel > 1)
-					std::cout << "layer_nodes_removed " << erased_nodes << std::endl;
 				some_node_is_removed = true;
 			}
 			// Build boundary after removing boundary nodes due distance criterion
@@ -600,7 +596,7 @@ namespace Kratos
 			KRATOS_CATCH(" ")
 		}
 
-		void EraseCriticalNodes2D(Element::GeometryType &eElement, unsigned int &erased_nodes, int &inside_nodes_removed)
+		void EraseCriticalNodes2D(Element::GeometryType &eElement, unsigned int &inside_nodes_removed, unsigned int &nodes_removed_inlet_zone)
 		{
 
 			KRATOS_TRY
@@ -624,6 +620,11 @@ namespace Kratos
 			if (eElement[0].Is(RIGID) && eElement[1].Is(RIGID))
 			{
 				wallLength = Edges[0];
+			}
+			bool inletElement = false;
+			if (eElement[0].Is(PFEMFlags::EULERIAN_INLET) || eElement[1].Is(PFEMFlags::EULERIAN_INLET) || eElement[2].Is(PFEMFlags::EULERIAN_INLET))
+			{
+				inletElement = true;
 			}
 			unsigned int counter = 0;
 			for (unsigned int i = 2; i < eElement.size(); i++)
@@ -677,8 +678,12 @@ namespace Kratos
 					if (height < (0.5 * safetyCoefficient2D * wallLength))
 					{
 						eElement[i].Set(TO_ERASE);
-						erased_nodes += 1;
 						inside_nodes_removed++;
+
+						if (inletElement)
+						{
+							nodes_removed_inlet_zone++;
+						}
 
 						const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -704,8 +709,11 @@ namespace Kratos
 						{
 							eElement[i].Set(TO_ERASE);
 							std::cout << "erased an isolated element node" << std::endl;
-							erased_nodes += 1;
 							inside_nodes_removed++;
+							if (inletElement)
+							{
+								nodes_removed_inlet_zone++;
+							}
 
 							const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -727,8 +735,12 @@ namespace Kratos
 									{
 										eElement[i].Set(TO_ERASE);
 										std::cout << "_________________________          erased an isolated element node" << std::endl;
-										erased_nodes += 1;
 										inside_nodes_removed++;
+
+										if (inletElement)
+										{
+											nodes_removed_inlet_zone++;
+										}
 
 										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -746,7 +758,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void EraseCriticalNodes3D(Element::GeometryType &eElement, unsigned int &erased_nodes, int &inside_nodes_removed, unsigned int rigidNodes)
+		void EraseCriticalNodes3D(Element::GeometryType &eElement, unsigned int &inside_nodes_removed, unsigned int &nodes_removed_inlet_zone, unsigned int rigidNodes)
 		{
 
 			KRATOS_TRY
@@ -805,6 +817,12 @@ namespace Kratos
 				}
 			}
 
+			bool inletElement = false;
+			if (eElement[0].Is(PFEMFlags::EULERIAN_INLET) || eElement[1].Is(PFEMFlags::EULERIAN_INLET) || eElement[2].Is(PFEMFlags::EULERIAN_INLET) || eElement[3].Is(PFEMFlags::EULERIAN_INLET))
+			{
+				inletElement = true;
+			}
+
 			unsigned int rigidNode = 0;
 			array_1d<double, 3> WallBaricenter = ZeroVector(3);
 
@@ -837,8 +855,12 @@ namespace Kratos
 						eElement[i].Set(TO_ERASE);
 						if (mEchoLevel > 1)
 							std::cout << "erase this layer node because it may be potentially dangerous and pass through the solid contour" << std::endl;
-						erased_nodes += 1;
 						inside_nodes_removed++;
+
+						if (inletElement)
+						{
+							nodes_removed_inlet_zone++;
+						}
 
 						const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -896,9 +918,12 @@ namespace Kratos
 				if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995) && (cosAngleBetweenNormals01 > 0.99 && cosAngleBetweenNormals02 > 0.99 && cosAngleBetweenNormals12 > 0.99))
 				{
 					eElement[notRigidNodeId].Set(TO_ERASE);
-					// std::cout << eElement[notRigidNodeId].Id() << " nodeId is erased because it may pass through the solid contour. Coordinates are: " << notRigidNodeCoordinates << std::endl;
-					erased_nodes += 1;
 					inside_nodes_removed++;
+
+					if (inletElement)
+					{
+						nodes_removed_inlet_zone++;
+					}
 
 					const unsigned int propertyIdNode = eElement[notRigidNodeId].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -929,9 +954,12 @@ namespace Kratos
 						if (neighb_elems.size() < 2)
 						{
 							eElement[i].Set(TO_ERASE);
-							// std::cout<<"erased an isolated element node"<<std::endl;
-							erased_nodes += 1;
 							inside_nodes_removed++;
+
+							if (inletElement)
+							{
+								nodes_removed_inlet_zone++;
+							}
 
 							const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -957,9 +985,12 @@ namespace Kratos
 									if (j == (neighb_nodes.size() - 1) && freeSurfaceNodesNeigh < 2)
 									{
 										eElement[i].Set(TO_ERASE);
-										// std::cout<<"_________________________          erased an isolated element node"<<std::endl;
-										erased_nodes += 1;
 										inside_nodes_removed++;
+
+										if (inletElement)
+										{
+											nodes_removed_inlet_zone++;
+										}
 
 										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -980,8 +1011,12 @@ namespace Kratos
 									if (j == (neighb_nodes.size() - 1))
 									{
 										eElement[i].Set(TO_ERASE);
-										erased_nodes += 1;
 										inside_nodes_removed++;
+
+										if (inletElement)
+										{
+											nodes_removed_inlet_zone++;
+										}
 
 										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -1101,7 +1136,11 @@ namespace Kratos
 				{
 					eElement[erasableNode].Set(TO_ERASE);
 					inside_nodes_removed++;
-					erased_nodes += 1;
+
+					if (inletElement)
+					{
+						nodes_removed_inlet_zone++;
+					}
 					const unsigned int propertyIdNode = eElement[erasableNode].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 					{
@@ -1139,7 +1178,11 @@ namespace Kratos
 
 						eElement[FirstEdgeNode[i]].Set(TO_ERASE);
 						inside_nodes_removed++;
-						erased_nodes += 1;
+
+						if (inletElement)
+						{
+							nodes_removed_inlet_zone++;
+						}
 
 						const unsigned int propertyIdNode = eElement[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -1151,7 +1194,11 @@ namespace Kratos
 					{
 						eElement[SecondEdgeNode[i]].Set(TO_ERASE);
 						inside_nodes_removed++;
-						erased_nodes += 1;
+
+						if (inletElement)
+						{
+							nodes_removed_inlet_zone++;
+						}
 
 						const unsigned int propertyIdNode = eElement[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
