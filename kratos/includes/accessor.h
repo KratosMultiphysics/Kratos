@@ -114,6 +114,131 @@ class KRATOS_API(KRATOS_CORE) Accessor
             const Vector &rShapeFunctionVector,
             const ProcessInfo &rProcessInfo);
 
+        /**
+         * Custom method to retrieve bool type properties
+         */
+        virtual bool GetProperty(
+            const Variable<bool> &rVariable,
+            const Properties &rProperties);
+
+        virtual bool GetProperty(
+            const Variable<bool> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode);
+
+        virtual bool GetProperty(
+            const Variable<bool> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode,
+            IndexType SolutionStepIndex);
+
+        virtual bool GetProperty(
+            const Variable<bool> &rVariable,
+            const Properties &rProperties,
+            const GeometryType &rGeometry,
+            const Vector &rShapeFunctionVector,
+            const ProcessInfo &rProcessInfo);
+
+        /**
+         * Custom method to retrieve int type properties
+         */
+        virtual int GetProperty(
+            const Variable<int> &rVariable,
+            const Properties &rProperties);
+
+        virtual int GetProperty(
+            const Variable<int> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode);
+
+        virtual int GetProperty(
+            const Variable<int> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode,
+            IndexType SolutionStepIndex);
+
+        virtual int GetProperty(
+            const Variable<int> &rVariable,
+            const Properties &rProperties,
+            const GeometryType &rGeometry,
+            const Vector &rShapeFunctionVector,
+            const ProcessInfo &rProcessInfo);
+
+        /**
+         * Custom method to retrieve Matrix type properties
+         */
+        virtual Matrix GetProperty(
+            const Variable<Matrix> &rVariable,
+            const Properties &rProperties);
+
+        virtual Matrix GetProperty(
+            const Variable<Matrix> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode);
+
+        virtual Matrix GetProperty(
+            const Variable<Matrix> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode,
+            IndexType SolutionStepIndex);
+
+        virtual Matrix GetProperty(
+            const Variable<Matrix> &rVariable,
+            const Properties &rProperties,
+            const GeometryType &rGeometry,
+            const Vector &rShapeFunctionVector,
+            const ProcessInfo &rProcessInfo);
+
+        /**
+         * Custom method to retrieve array_1d<double, 3 > type properties
+         */
+        virtual array_1d<double, 3 > GetProperty(
+            const Variable<array_1d<double, 3 >> &rVariable,
+            const Properties &rProperties);
+
+        virtual array_1d<double, 3 > GetProperty(
+            const Variable<array_1d<double, 3 >> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode);
+
+        virtual array_1d<double, 3 > GetProperty(
+            const Variable<array_1d<double, 3 >> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode,
+            IndexType SolutionStepIndex);
+
+        virtual array_1d<double, 3 > GetProperty(
+            const Variable<array_1d<double, 3 >> &rVariable,
+            const Properties &rProperties,
+            const GeometryType &rGeometry,
+            const Vector &rShapeFunctionVector,
+            const ProcessInfo &rProcessInfo);
+
+        /**
+         * Custom method to retrieve array_1d<double, 6 > type properties
+         */
+        virtual array_1d<double, 6 > GetProperty(
+            const Variable<array_1d<double, 6 >> &rVariable,
+            const Properties &rProperties);
+
+        virtual array_1d<double, 6 > GetProperty(
+            const Variable<array_1d<double, 6 >> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode);
+
+        virtual array_1d<double, 6 > GetProperty(
+            const Variable<array_1d<double, 6 >> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode,
+            IndexType SolutionStepIndex);
+
+        virtual array_1d<double, 6 > GetProperty(
+            const Variable<array_1d<double, 6 >> &rVariable,
+            const Properties &rProperties,
+            const GeometryType &rGeometry,
+            const Vector &rShapeFunctionVector,
+            const ProcessInfo &rProcessInfo);
+
         // Getting a pointer tot he class
         virtual Accessor::Pointer Clone() const;
 
