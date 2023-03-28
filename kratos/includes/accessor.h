@@ -242,22 +242,22 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve string type properties
          */
-        virtual std::string const& GetProperty(
+        virtual std::string& GetProperty(
             const Variable<std::string> &rVariable,
             const Properties &rProperties);
 
-        virtual std::string const& GetProperty(
+        virtual std::string& GetProperty(
             const Variable<std::string> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode);
 
-        virtual std::string const& GetProperty(
+        virtual std::string& GetProperty(
             const Variable<std::string> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode,
             IndexType SolutionStepIndex);
 
-        virtual std::string const& GetProperty(
+        virtual std::string& GetProperty(
             const Variable<std::string> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
