@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Riccardo Rossi, Aron Noordam
 //  Collaborators:   Vicente Mataix
 //
 //
@@ -211,10 +211,10 @@ public:
 
         mMassMatrix.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
 
-        ConstructMatrixStructure(pScheme, mMassMatrix, rModelPart);
+        BaseType::ConstructMatrixStructure(pScheme, mMassMatrix, rModelPart);
 
         mDampingMatrix.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-        ConstructMatrixStructure(pScheme, mDampingMatrix, rModelPart);
+        BaseType::ConstructMatrixStructure(pScheme, mDampingMatrix, rModelPart);
 
         TSparseSpace::SetToZero(mMassMatrix);
         TSparseSpace::SetToZero(mDampingMatrix);
@@ -243,16 +243,16 @@ public:
 
                     if (mass_contribution.size1() != 0)
                     {
-                        AssembleLHS(mMassMatrix, mass_contribution, EquationId);
+                        BaseType::AssembleLHS(mMassMatrix, mass_contribution, EquationId);
                     }
                     if (damping_contribution.size1() != 0)
                     {
-                        AssembleLHS(mDampingMatrix, damping_contribution, EquationId);
+                        BaseType::AssembleLHS(mDampingMatrix, damping_contribution, EquationId);
                     }
                     
 
                     // Assemble the elemental contribution
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
 
             }
@@ -271,15 +271,15 @@ public:
 
                     if (mass_contribution.size1() != 0)
                     {
-                        AssembleLHS(mMassMatrix, mass_contribution, EquationId);
+                        BaseType::AssembleLHS(mMassMatrix, mass_contribution, EquationId);
                     }
                     if (damping_contribution.size1() != 0)
                     {
-                        AssembleLHS(mDampingMatrix, damping_contribution, EquationId);
+                        BaseType::AssembleLHS(mDampingMatrix, damping_contribution, EquationId);
                     }
 
                     // Assemble the elemental contribution
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
             }
         }
@@ -320,26 +320,26 @@ public:
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             const auto timer_constraints = BuiltinTimer();
             Timer::Start("ApplyConstraints");
-            ApplyConstraints(pScheme, rModelPart, A, b);
+            BaseType::ApplyConstraints(pScheme, rModelPart, A, b);
             Timer::Stop("ApplyConstraints");
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
 
-        ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
-        ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, Dx, b);
-        ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, Dx, b);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, Dx, b);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, Dx, b);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        SystemSolveWithPhysics(A, Dx, b, rModelPart);
+        BaseType::SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -367,23 +367,23 @@ public:
 
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             Timer::Start("ApplyRHSConstraints");
-            ApplyRHSConstraints(pScheme, rModelPart, rb);
+            BaseType::ApplyRHSConstraints(pScheme, rModelPart, rb);
             Timer::Stop("ApplyRHSConstraints");
         }
 
-        ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", (this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", (this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -494,17 +494,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    // TSystemMatrixType mT;                             /// This is matrix containing the global relation for the constraints
-    // TSystemVectorType mConstantVector;                /// This is vector containing the rigid movement of the constraint
-    // std::vector<IndexType> mSlaveIds;                 /// The equation ids of the slaves
-    // std::vector<IndexType> mMasterIds;                /// The equation ids of the master
-    // std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
     TSystemMatrixType mMassMatrix;
     TSystemMatrixType mDampingMatrix;
-    // double mScaleFactor = 1.0;                        /// The manually set scale factor
-
-    // SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING; /// We identify the scaling considered for the dirichlet dofs
-    // Flags mOptions;                                                   /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -515,7 +506,7 @@ protected:
     ///@{
 
 
-    void GetFirstAndSecondDeriviativeVector(TSystemVectorType& rFirstDerivativeVector, TSystemVectorType& rSecondDerivativeVector, ModelPart& rModelPart)
+    void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector, TSystemVectorType& rSecondDerivativeVector, ModelPart& rModelPart)
     {
         NodesArrayType& rNodes = rModelPart.Nodes();
         const int n_nodes = static_cast<int>(rNodes.size());
@@ -602,7 +593,7 @@ protected:
                     it->EquationIdVector(EquationIds, CurrentProcessInfo);
 
                     //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationIds);
+                    BaseType::AssembleRHS(b, RHS_Contribution, EquationIds);
                 }
             }
 
@@ -621,7 +612,7 @@ protected:
                     it->EquationIdVector(EquationIds, CurrentProcessInfo);
 
                     //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationIds);
+                    BaseType::AssembleRHS(b, RHS_Contribution, EquationIds);
 
                 }
             }
@@ -630,7 +621,7 @@ protected:
         TSystemVectorType firstDerivativeVector;
         TSystemVectorType secondDerivativeVector;
 
-        GetFirstAndSecondDeriviativeVector(firstDerivativeVector, secondDerivativeVector, rModelPart);
+        GetFirstAndSecondDerivativeVector(firstDerivativeVector, secondDerivativeVector, rModelPart);
 
         TSystemVectorType mass_contribution = prod(mMassMatrix, secondDerivativeVector);
         TSystemVectorType damping_contribution = prod(mDampingMatrix, firstDerivativeVector);
@@ -644,7 +635,7 @@ protected:
 
 private:
 
-}; /* Class ResidualBasedBlockBuilderAndSolver */
+}; /* Class ResidualBasedBlockBuilderAndSolverWithMassAndDamping */
 
 ///@}
 
