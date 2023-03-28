@@ -56,6 +56,7 @@ namespace Kratos
 		typedef ModelPart::ConditionType ConditionType;
 		typedef ModelPart::PropertiesType PropertiesType;
 		typedef ConditionType::GeometryType GeometryType;
+		typedef std::size_t SizeType;
 
 		///@}
 		///@name Life Cycle
@@ -102,10 +103,10 @@ namespace Kratos
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+			const SizeType dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			bool refiningBox = false;
-			for (unsigned int index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
+			for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
 			{
 				if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
 				{
@@ -124,7 +125,7 @@ namespace Kratos
 			}
 
 			int ElementsToRefine = mrRemesh.Info->RemovedNodes;
-			unsigned int eulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
+			SizeType eulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
 
 			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
 			int numberOfNodes = mrRemesh.Info->NumberOfNodes;
@@ -153,7 +154,7 @@ namespace Kratos
 				{
 					std::vector<array_1d<double, 3>> new_positions;
 					std::vector<double> biggest_volumes;
-					std::vector<array_1d<unsigned int, 4>> nodes_id_to_interpolate;
+					std::vector<array_1d<SizeType, 4>> nodes_id_to_interpolate;
 
 					int CountNodes = 0;
 
@@ -167,7 +168,7 @@ namespace Kratos
 					}
 
 					// std::vector<array_1d<double, 3>> CornerWallNewPositions;
-					// std::vector<array_1d<unsigned int, 4>> CornerWallNodesIDToInterpolate;
+					// std::vector<array_1d<SizeType, 4>> CornerWallNodesIDToInterpolate;
 					// std::vector<Node<3>::DofsContainerType> CornerWallNewDofs;
 					// int cornerWallNewNodes = 0;
 					// int maxOfNewWallNodes = toleredExtraNodes;
@@ -177,7 +178,7 @@ namespace Kratos
 					// 	CornerWallNodesIDToInterpolate.resize(maxOfNewWallNodes, false);
 					// 	CornerWallNewDofs.resize(maxOfNewWallNodes, false);
 					// }
-					unsigned int addedNodesAtEulerianInlet = 0;
+					SizeType addedNodesAtEulerianInlet = 0;
 					ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 					for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
 					{
@@ -203,7 +204,7 @@ namespace Kratos
 						biggest_volumes.resize(CountNodes, false);
 						nodes_id_to_interpolate.resize(CountNodes);
 					}
-					unsigned int maxId = 0;
+					SizeType maxId = 0;
 					CreateAndAddNewNodes(new_positions, nodes_id_to_interpolate, ElementsToRefine, maxId);
 
 					// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
@@ -222,7 +223,7 @@ namespace Kratos
 			{
 
 				std::vector<array_1d<double, 3>> new_positions;
-				std::vector<array_1d<unsigned int, 4>> nodes_id_to_interpolate;
+				std::vector<array_1d<SizeType, 4>> nodes_id_to_interpolate;
 
 				int CountNodes = 0;
 
@@ -233,7 +234,7 @@ namespace Kratos
 				int nodesInTransitionZone = 0;
 				for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
 				{
-					const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
+					const SizeType dimension = ie->GetGeometry().WorkingSpaceDimension();
 					//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
 					if (dimension == 2)
 					{
@@ -253,7 +254,7 @@ namespace Kratos
 					new_positions.resize(CountNodes);
 					nodes_id_to_interpolate.resize(CountNodes);
 				}
-				unsigned int maxId = 0;
+				SizeType maxId = 0;
 				CreateAndAddNewNodes(new_positions, nodes_id_to_interpolate, CountNodes, maxId);
 			}
 
@@ -333,18 +334,18 @@ namespace Kratos
 
 		void InsertNodeInCornerElement2D(Element::GeometryType &Element,
 										 std::vector<array_1d<double, 3>> &new_positions,
-										 std::vector<array_1d<unsigned int, 4>> &nodes_id_to_interpolate,
+										 std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 										 std::vector<Node<3>::DofsContainerType> &NewDofs,
 										 int &CountNodes)
 		{
 			KRATOS_TRY
 
-			const unsigned int nds = Element.size();
+			const SizeType nds = Element.size();
 
-			unsigned int rigidNodes = 0;
-			unsigned int freesurfaceNodes = 0;
+			SizeType rigidNodes = 0;
+			SizeType freesurfaceNodes = 0;
 
-			for (unsigned int pn = 0; pn < nds; ++pn)
+			for (SizeType pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -439,19 +440,19 @@ namespace Kratos
 
 		void InsertNodeInCornerElement3D(Element::GeometryType &Element,
 										 std::vector<array_1d<double, 3>> &new_positions,
-										 std::vector<array_1d<unsigned int, 4>> &nodes_id_to_interpolate,
+										 std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 										 std::vector<Node<3>::DofsContainerType> &NewDofs,
 										 int &CountNodes)
 		{
 			KRATOS_TRY
 
-			const unsigned int nds = Element.size();
+			const SizeType nds = Element.size();
 
-			unsigned int rigidNodes = 0;
-			unsigned int freesurfaceNodes = 0;
-			unsigned int toEraseNodes = 0;
+			SizeType rigidNodes = 0;
+			SizeType freesurfaceNodes = 0;
+			SizeType toEraseNodes = 0;
 
-			for (unsigned int pn = 0; pn < nds; ++pn)
+			for (SizeType pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -475,8 +476,8 @@ namespace Kratos
 				double normNormalB = 0;
 				double cos = 1.0;
 				double minCos = 1.0;
-				array_1d<unsigned int, 2> idsWallNodes(2, 0);
-				unsigned int idFreeNode = 0;
+				array_1d<SizeType, 2> idsWallNodes(2, 0);
+				SizeType idFreeNode = 0;
 				double cosTolerance = 0.1;
 				if (Element[0].IsNot(RIGID))
 				{
@@ -649,17 +650,17 @@ namespace Kratos
 				{
 
 					bool alreadyAddedNode = false;
-					unsigned int idA = Element[idsWallNodes[0]].GetId();
-					unsigned int idB = Element[idsWallNodes[1]].GetId();
+					SizeType idA = Element[idsWallNodes[0]].GetId();
+					SizeType idB = Element[idsWallNodes[1]].GetId();
 					double minimumDistanceToInstert = 1.3 * mrRemesh.Refine->CriticalRadius;
 					array_1d<double, 3> CoorDifference = Element[idsWallNodes[0]].Coordinates() - Element[idsWallNodes[1]].Coordinates();
 					double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 					double separation = std::sqrt(SquaredLength);
-					unsigned int idC = Element[idFreeNode].GetId();
+					SizeType idC = Element[idFreeNode].GetId();
 					if (separation > minimumDistanceToInstert)
 					{
 
-						for (unsigned int i = 0; i < unsigned(CountNodes); i++)
+						for (SizeType i = 0; i < unsigned(CountNodes); i++)
 						{
 							if (idA == nodes_id_to_interpolate[i][0] || idA == nodes_id_to_interpolate[i][1] || idB == nodes_id_to_interpolate[i][0] || idB == nodes_id_to_interpolate[i][1])
 							{
@@ -694,27 +695,27 @@ namespace Kratos
 		void SelectEdgeToRefine2D(Element::GeometryType &Element,
 								  std::vector<array_1d<double, 3>> &new_positions,
 								  std::vector<double> &biggest_volumes,
-								  std::vector<array_1d<unsigned int, 4>> &nodes_id_to_interpolate,
+								  std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 								  int &CountNodes,
 								  int &ElementsToRefine,
-								  unsigned int &addedNodesAtEulerianInlet)
+								  SizeType &addedNodesAtEulerianInlet)
 		{
 			KRATOS_TRY
 
-			const unsigned int nds = Element.size();
+			const SizeType nds = Element.size();
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 
-			unsigned int rigidNodes = 0;
-			unsigned int boundaryNodes = 0;
-			unsigned int freesurfaceNodes = 0;
-			unsigned int lagrangianInletNodes = 0;
-			unsigned int eulerianInletNodes = 0;
+			SizeType rigidNodes = 0;
+			SizeType boundaryNodes = 0;
+			SizeType freesurfaceNodes = 0;
+			SizeType lagrangianInletNodes = 0;
+			SizeType eulerianInletNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
 			bool suitableElementForSecondAdd = true;
 
-			for (unsigned int pn = 0; pn < nds; ++pn)
+			for (SizeType pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -779,8 +780,8 @@ namespace Kratos
 			double ElementalVolume = Element.Area();
 
 			array_1d<double, 3> Edges(3, 0.0);
-			array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
-			array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
+			array_1d<SizeType, 3> FirstEdgeNode(3, 0);
+			array_1d<SizeType, 3> SecondEdgeNode(3, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
@@ -791,10 +792,10 @@ namespace Kratos
 			{
 				WallCharacteristicDistance = Edges[0];
 			}
-			unsigned int Counter = 0;
-			for (unsigned int i = 2; i < nds; i++)
+			SizeType Counter = 0;
+			for (SizeType i = 2; i < nds; i++)
 			{
-				for (unsigned int j = 0; j < i; j++)
+				for (SizeType j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
@@ -811,7 +812,7 @@ namespace Kratos
 
 			bool dangerousElement = false;
 
-			for (unsigned int i = 0; i < 3; i++)
+			for (SizeType i = 0; i < 3; i++)
 			{
 				if (rigidNodes > 1)
 				{
@@ -829,8 +830,8 @@ namespace Kratos
 				}
 				else if (rigidNodes == 0)
 				{
-					unsigned int propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
 						penalization = 0.9; // 10% less than normal nodes
@@ -844,10 +845,10 @@ namespace Kratos
 
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-				unsigned int maxCount = 3;
+				SizeType maxCount = 3;
 				double LargestEdge = 0;
 
-				for (unsigned int i = 0; i < 3; i++)
+				for (SizeType i = 0; i < 3; i++)
 				{
 					if (Edges[i] > LargestEdge)
 					{
@@ -961,26 +962,26 @@ namespace Kratos
 		void SelectEdgeToRefine3D(Element::GeometryType &Element,
 								  std::vector<array_1d<double, 3>> &new_positions,
 								  std::vector<double> &biggest_volumes,
-								  std::vector<array_1d<unsigned int, 4>> &nodes_id_to_interpolate,
+								  std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 								  int &CountNodes,
 								  int &ElementsToRefine,
-								  unsigned int &addedNodesAtEulerianInlet)
+								  SizeType &addedNodesAtEulerianInlet)
 		{
 			KRATOS_TRY
 
-			const unsigned int nds = Element.size();
+			const SizeType nds = Element.size();
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 
-			unsigned int rigidNodes = 0;
-			unsigned int freesurfaceNodes = 0;
-			unsigned int lagrangianInletNodes = 0;
-			unsigned int eulerianInletNodes = 0;
+			SizeType rigidNodes = 0;
+			SizeType freesurfaceNodes = 0;
+			SizeType lagrangianInletNodes = 0;
+			SizeType eulerianInletNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
 			bool suitableElementForSecondAdd = true;
 
-			for (unsigned int pn = 0; pn < nds; ++pn)
+			for (SizeType pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -1041,8 +1042,8 @@ namespace Kratos
 			double ElementalVolume = Element.Volume();
 
 			array_1d<double, 6> Edges(6, 0.0);
-			array_1d<unsigned int, 6> FirstEdgeNode(6, 0);
-			array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
+			array_1d<SizeType, 6> FirstEdgeNode(6, 0);
+			array_1d<SizeType, 6> SecondEdgeNode(6, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
@@ -1053,10 +1054,10 @@ namespace Kratos
 			{
 				WallCharacteristicDistance = Edges[0];
 			}
-			unsigned int Counter = 0;
-			for (unsigned int i = 2; i < nds; i++)
+			SizeType Counter = 0;
+			for (SizeType i = 2; i < nds; i++)
 			{
-				for (unsigned int j = 0; j < i; j++)
+				for (SizeType j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
@@ -1073,7 +1074,7 @@ namespace Kratos
 			// Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 			bool dangerousElement = false;
 
-			for (unsigned int i = 0; i < 6; i++)
+			for (SizeType i = 0; i < 6; i++)
 			{
 				if (rigidNodes > 1)
 				{
@@ -1091,8 +1092,8 @@ namespace Kratos
 				}
 				else if (rigidNodes == 0)
 				{
-					unsigned int propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
 						penalization = 0.8; // 20% less than normal nodes
@@ -1135,10 +1136,10 @@ namespace Kratos
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-				unsigned int maxCount = 6;
+				SizeType maxCount = 6;
 				double LargestEdge = 0;
 
-				for (unsigned int i = 0; i < 6; i++)
+				for (SizeType i = 0; i < 6; i++)
 				{
 					if (Edges[i] > LargestEdge)
 					{
@@ -1252,17 +1253,17 @@ namespace Kratos
 
 		void SelectEdgeToRefine2DWithRefinement(Element::GeometryType &Element,
 												std::vector<array_1d<double, 3>> &new_positions,
-												std::vector<array_1d<unsigned int, 4>> &nodes_id_to_interpolate,
+												std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 												int &CountNodes,
 												const int ElementsToRefine,
 												int &nodesInTransitionZone)
 		{
 			KRATOS_TRY
 
-			const unsigned int nds = Element.size();
+			const SizeType nds = Element.size();
 
-			unsigned int rigidNodes = 0;
-			unsigned int freesurfaceNodes = 0;
+			SizeType rigidNodes = 0;
+			SizeType freesurfaceNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
@@ -1270,12 +1271,12 @@ namespace Kratos
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			const double currentTime = rCurrentProcessInfo[TIME];
 			bool insideTransitionZone = false;
-			for (unsigned int pn = 0; pn < nds; ++pn)
+			for (SizeType pn = 0; pn < nds; ++pn)
 			{
 				mMesherUtilities.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideTransitionZone);
 			}
 
-			for (unsigned int pn = 0; pn < nds; ++pn)
+			for (SizeType pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -1312,8 +1313,8 @@ namespace Kratos
 			}
 			const double safetyCoefficient2D = 1.5;
 			array_1d<double, 3> Edges(3, 0.0);
-			array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
-			array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
+			array_1d<SizeType, 3> FirstEdgeNode(3, 0);
+			array_1d<SizeType, 3> SecondEdgeNode(3, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
@@ -1324,10 +1325,10 @@ namespace Kratos
 			{
 				WallCharacteristicDistance = Edges[0];
 			}
-			unsigned int Counter = 0;
-			for (unsigned int i = 2; i < nds; i++)
+			SizeType Counter = 0;
+			for (SizeType i = 2; i < nds; i++)
 			{
-				for (unsigned int j = 0; j < i; j++)
+				for (SizeType j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
@@ -1344,7 +1345,7 @@ namespace Kratos
 
 			bool dangerousElement = false;
 
-			for (unsigned int i = 0; i < 3; i++)
+			for (SizeType i = 0; i < 3; i++)
 			{
 				if (rigidNodes > 1)
 				{
@@ -1361,8 +1362,8 @@ namespace Kratos
 				}
 				else if (rigidNodes == 0)
 				{
-					unsigned int propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
 						penalization = 1.1; // 10% more than normal nodes
@@ -1378,10 +1379,10 @@ namespace Kratos
 
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-				unsigned int maxCount = 3;
+				SizeType maxCount = 3;
 				double LargestEdge = 0;
 
-				for (unsigned int i = 0; i < 3; i++)
+				for (SizeType i = 0; i < 3; i++)
 				{
 					if (Edges[i] > LargestEdge)
 					{
@@ -1393,7 +1394,7 @@ namespace Kratos
 				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
 				{
 					bool newNode = true;
-					for (unsigned int i = 0; i < unsigned(CountNodes); i++)
+					for (SizeType i = 0; i < unsigned(CountNodes); i++)
 					{
 						if ((nodes_id_to_interpolate[i][0] == Element[FirstEdgeNode[maxCount]].GetId() && nodes_id_to_interpolate[i][1] == Element[SecondEdgeNode[maxCount]].GetId()) ||
 							(nodes_id_to_interpolate[i][1] == Element[FirstEdgeNode[maxCount]].GetId() && nodes_id_to_interpolate[i][0] == Element[SecondEdgeNode[maxCount]].GetId()))
@@ -1423,17 +1424,17 @@ namespace Kratos
 
 		void SelectEdgeToRefine3DWithRefinement(Element::GeometryType &Element,
 												std::vector<array_1d<double, 3>> &new_positions,
-												std::vector<array_1d<unsigned int, 4>> &nodes_id_to_interpolate,
+												std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 												int &CountNodes,
 												const int ElementsToRefine,
 												int &nodesInTransitionZone)
 		{
 			KRATOS_TRY
 
-			const unsigned int nds = Element.size();
+			const SizeType nds = Element.size();
 
-			unsigned int rigidNodes = 0;
-			unsigned int freesurfaceNodes = 0;
+			SizeType rigidNodes = 0;
+			SizeType freesurfaceNodes = 0;
 			bool toEraseNodeFound = false;
 
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
@@ -1442,12 +1443,12 @@ namespace Kratos
 			bool insideTransitionZone = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
-			for (unsigned int pn = 0; pn < nds; ++pn)
+			for (SizeType pn = 0; pn < nds; ++pn)
 			{
 				mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideTransitionZone);
 			}
 
-			for (unsigned int pn = 0; pn < nds; ++pn)
+			for (SizeType pn = 0; pn < nds; ++pn)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -1486,8 +1487,8 @@ namespace Kratos
 
 			const double safetyCoefficient3D = 1.6;
 			array_1d<double, 6> Edges(6, 0.0);
-			array_1d<unsigned int, 6> FirstEdgeNode(6, 0);
-			array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
+			array_1d<SizeType, 6> FirstEdgeNode(6, 0);
+			array_1d<SizeType, 6> SecondEdgeNode(6, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
@@ -1498,10 +1499,10 @@ namespace Kratos
 			{
 				WallCharacteristicDistance = Edges[0];
 			}
-			unsigned int Counter = 0;
-			for (unsigned int i = 2; i < nds; i++)
+			SizeType Counter = 0;
+			for (SizeType i = 2; i < nds; i++)
 			{
-				for (unsigned int j = 0; j < i; j++)
+				for (SizeType j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
@@ -1517,7 +1518,7 @@ namespace Kratos
 			}
 			// Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 			bool dangerousElement = false;
-			for (unsigned int i = 0; i < 6; i++)
+			for (SizeType i = 0; i < 6; i++)
 			{
 				if (rigidNodes > 1)
 				{
@@ -1534,8 +1535,8 @@ namespace Kratos
 				}
 				else if (rigidNodes == 0)
 				{
-					unsigned int propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
 						penalization = 1.2; // 20% less than normal nodes
@@ -1580,9 +1581,9 @@ namespace Kratos
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-				unsigned int maxCount = 6;
+				SizeType maxCount = 6;
 				double LargestEdge = 0;
-				for (unsigned int i = 0; i < 6; i++)
+				for (SizeType i = 0; i < 6; i++)
 				{
 					if (Edges[i] > LargestEdge)
 					{
@@ -1594,7 +1595,7 @@ namespace Kratos
 				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
 				{
 					bool newNode = true;
-					for (unsigned int i = 0; i < unsigned(CountNodes); i++)
+					for (SizeType i = 0; i < unsigned(CountNodes); i++)
 					{
 						if ((nodes_id_to_interpolate[i][0] == Element[FirstEdgeNode[maxCount]].GetId() && nodes_id_to_interpolate[i][1] == Element[SecondEdgeNode[maxCount]].GetId()) ||
 							(nodes_id_to_interpolate[i][1] == Element[FirstEdgeNode[maxCount]].GetId() && nodes_id_to_interpolate[i][0] == Element[SecondEdgeNode[maxCount]].GetId()))
@@ -1623,24 +1624,24 @@ namespace Kratos
 		}
 
 		void CreateAndAddNewNodesInCornerWall(std::vector<array_1d<double, 3>> &new_positions,
-											  std::vector<array_1d<unsigned int, 4>> &nodes_id_to_interpolate,
+											  std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 											  std::vector<Node<3>::DofsContainerType> &NewDofs,
 											  int ElementsToRefine,
-											  unsigned int &maxId)
+											  SizeType &maxId)
 		{
 			KRATOS_TRY
 
-			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+			const SizeType dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			std::vector<Node<3>::Pointer> list_of_new_nodes;
 
 			// assign data to dofs
 			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
-			for (unsigned int nn = 0; nn < new_positions.size(); nn++)
+			for (SizeType nn = 0; nn < new_positions.size(); nn++)
 			{
 
-				unsigned int id = maxId + 1 + nn;
+				SizeType id = maxId + 1 + nn;
 
 				double x = new_positions[nn][0];
 				double y = new_positions[nn][1];
@@ -1698,19 +1699,19 @@ namespace Kratos
 		}
 
 		void CreateAndAddNewNodes(std::vector<array_1d<double, 3>> &new_positions,
-								  std::vector<array_1d<unsigned int, 4>> &nodes_id_to_interpolate,
+								  std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 								  int ElementsToRefine,
-								  unsigned int &maxId)
+								  SizeType &maxId)
 		{
 			KRATOS_TRY
 
-			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+			const SizeType dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			std::vector<Node<3>::Pointer> list_of_new_nodes;
 			double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
 			double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
-			unsigned int initial_node_size = NodeIdParent + 1 + ElementsToRefine; // total model part node size
+			SizeType initial_node_size = NodeIdParent + 1 + ElementsToRefine; // total model part node size
 
 			NodeType::Pointer pnode;
 			NodeType::DofsContainerType &ReferenceDofs = mrModelPart.Nodes().front().GetDofs();
@@ -1725,12 +1726,12 @@ namespace Kratos
 			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
+			SizeType principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 
-			for (unsigned int nn = 0; nn < new_positions.size(); nn++)
+			for (SizeType nn = 0; nn < new_positions.size(); nn++)
 			{
 
-				unsigned int id = initial_node_size + nn;
+				SizeType id = initial_node_size + nn;
 				maxId = id;
 				double x = new_positions[nn][0];
 				double y = new_positions[nn][1];
@@ -1782,7 +1783,7 @@ namespace Kratos
 				else
 				{
 
-					unsigned int propertyIdNodeSlave1 = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdNodeSlave1 = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
 					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 == principalModelPartId) ||
 						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 != principalModelPartId) ||
 						(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)))
@@ -1795,7 +1796,7 @@ namespace Kratos
 					}
 				}
 
-				unsigned int propertyIdNode = pnode->FastGetSolutionStepValue(PROPERTY_ID);
+				SizeType propertyIdNode = pnode->FastGetSolutionStepValue(PROPERTY_ID);
 				if (propertyIdNode != principalModelPartId)
 				{
 					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
@@ -1826,7 +1827,7 @@ namespace Kratos
 
 			KRATOS_TRY
 
-			unsigned int buffer_size = MasterNode->GetBufferSize();
+			SizeType buffer_size = MasterNode->GetBufferSize();
 
 			for (VariablesList::const_iterator i_variable = rVariablesList.begin(); i_variable != rVariablesList.end(); i_variable++)
 			{
@@ -1834,7 +1835,7 @@ namespace Kratos
 				if (KratosComponents<Variable<double>>::Has(variable_name))
 				{
 					const Variable<double> &variable = KratosComponents<Variable<double>>::Get(variable_name);
-					for (unsigned int step = 0; step < buffer_size; step++)
+					for (SizeType step = 0; step < buffer_size; step++)
 					{
 						// getting the data of the solution step
 						double &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
@@ -1848,7 +1849,7 @@ namespace Kratos
 				else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
 				{
 					const Variable<array_1d<double, 3>> &variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-					for (unsigned int step = 0; step < buffer_size; step++)
+					for (SizeType step = 0; step < buffer_size; step++)
 					{
 						// getting the data of the solution step
 						array_1d<double, 3> &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
@@ -1874,7 +1875,7 @@ namespace Kratos
 				{
 					// std::cout<<"Matrix"<<std::endl;
 					const Variable<Matrix> &variable = KratosComponents<Variable<Matrix>>::Get(variable_name);
-					for (unsigned int step = 0; step < buffer_size; step++)
+					for (SizeType step = 0; step < buffer_size; step++)
 					{
 						// getting the data of the solution step
 						Matrix &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
@@ -1898,7 +1899,7 @@ namespace Kratos
 				{
 					// std::cout<<"Vector"<<std::endl;
 					const Variable<Vector> &variable = KratosComponents<Variable<Vector>>::Get(variable_name);
-					for (unsigned int step = 0; step < buffer_size; step++)
+					for (SizeType step = 0; step < buffer_size; step++)
 					{
 						// getting the data of the solution step
 						Vector &node_data = MasterNode->FastGetSolutionStepValue(variable, step);

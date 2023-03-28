@@ -58,8 +58,8 @@ namespace Kratos
         typedef ModelPart::ConditionType ConditionType;
         typedef ModelPart::PropertiesType PropertiesType;
         typedef ConditionType::GeometryType GeometryType;
-
         typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+		typedef std::size_t SizeType;
         ///@}
         ///@name Life Cycle
         ///@{
@@ -124,7 +124,7 @@ namespace Kratos
             int number_of_slivers = 0;
 
             bool refiningBox = false;
-            for (unsigned int index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
+            for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
             {
                 if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
                 {
@@ -146,8 +146,8 @@ namespace Kratos
                     std::cout << " Start Element Selection " << OutNumberOfElements << std::endl;
 
                 ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-                const unsigned int nds = element_begin->GetGeometry().size();
-                const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+                const SizeType nds = element_begin->GetGeometry().size();
+                const SizeType dimension = element_begin->GetGeometry().WorkingSpaceDimension();
                 int *OutElementList = mrRemesh.OutMesh.GetElementList();
                 ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
@@ -159,36 +159,36 @@ namespace Kratos
                 {
                     Geometry<Node<3>> vertices;
                     double meanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
-                    unsigned int numfreesurf = 0;
-                    unsigned int numboundary = 0;
-                    unsigned int numrigid = 0;
-                    unsigned int numInletNodes = 0;
-                    unsigned int numisolated = 0;
+                    SizeType numfreesurf = 0;
+                    SizeType numboundary = 0;
+                    SizeType numrigid = 0;
+                    SizeType numInletNodes = 0;
+                    SizeType numisolated = 0;
                     bool noremesh = false;
                     std::vector<double> normVelocityP;
                     normVelocityP.resize(nds, false);
-                    unsigned int checkedNodes = 0;
+                    SizeType checkedNodes = 0;
                     box_side_element = false;
-                    unsigned int countIsolatedWallNodes = 0;
+                    SizeType countIsolatedWallNodes = 0;
                     bool increaseAlfa = false;
-                    unsigned int previouslyFreeSurfaceNodes = 0;
-                    unsigned int previouslyIsolatedNodes = 0;
-                    unsigned int sumPreviouslyIsolatedFreeSurf = 0;
-                    unsigned int sumIsolatedFreeSurf = 0;
+                    SizeType previouslyFreeSurfaceNodes = 0;
+                    SizeType previouslyIsolatedNodes = 0;
+                    SizeType sumPreviouslyIsolatedFreeSurf = 0;
+                    SizeType sumIsolatedFreeSurf = 0;
                     std::vector<array_1d<double, 3>> nodesCoordinates;
                     nodesCoordinates.resize(nds);
                     std::vector<array_1d<double, 3>> nodesVelocities;
                     nodesVelocities.resize(nds);
-                    unsigned int isolatedNodesInTheElement = 0;
+                    SizeType isolatedNodesInTheElement = 0;
                     double rigidNodeLocalMeshSize = 0;
                     double rigidNodeMeshCounter = 0;
 
-                    for (unsigned int pn = 0; pn < nds; pn++)
+                    for (SizeType pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
                             std::cout << " ERROR: something is wrong: nodal id < 0 " << el << std::endl;
 
-                        if ((unsigned int)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
+                        if ((SizeType)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
                         {
                             wrong_added_node = true;
                             std::cout << " ERROR: something is wrong: node out of bounds " << std::endl;
@@ -234,7 +234,7 @@ namespace Kratos
 
                             NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
                             bool localIsolatedWallNode = true;
-                            for (unsigned int i = 0; i < rN.size(); i++)
+                            for (SizeType i = 0; i < rN.size(); i++)
                             {
                                 if (rN[i].IsNot(RIGID))
                                 {
@@ -614,7 +614,7 @@ namespace Kratos
             if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES))
             {
                 ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-                const unsigned int nds = (*element_begin).GetGeometry().size();
+                const SizeType nds = (*element_begin).GetGeometry().size();
 
                 int *OutElementList = mrRemesh.OutMesh.GetElementList();
 
@@ -625,7 +625,7 @@ namespace Kratos
                 {
                     if (mrRemesh.PreservedElements[el])
                     {
-                        for (unsigned int pn = 0; pn < nds; pn++)
+                        for (SizeType pn = 0; pn < nds; pn++)
                         {
                             // set vertices
                             rNodes[OutElementList[el * nds + pn]].Set(BLOCKED);
@@ -750,10 +750,10 @@ namespace Kratos
 
         void IncreaseAlphaForRefininedZones(double &Alpha,
                                             bool increaseAlfa,
-                                            unsigned int nds,
-                                            unsigned int numfreesurf,
-                                            unsigned int numrigid,
-                                            unsigned int numisolated)
+                                            SizeType nds,
+                                            SizeType numfreesurf,
+                                            SizeType numrigid,
+                                            SizeType numisolated)
         {
             KRATOS_TRY
 
