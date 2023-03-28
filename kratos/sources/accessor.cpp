@@ -39,10 +39,39 @@ namespace Kratos
         const ProcessInfo &rProcessInfo
         )
     {
-        KRATOS_ERROR << "You are calling to the virtual Accessor class..." << std::endl;
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         return 0.0;
     }
 
+    double Accessor::GetProperty(
+        const Variable<double> &rVariable,
+        const Properties &rProperties
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0.0;
+    }
+
+    double Accessor::GetProperty(
+        const Variable<double> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0.0;
+    }
+
+    double Accessor::GetProperty(
+        const Variable<double> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode,
+        IndexType SolutionStepIndex
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0.0;
+    }
     /**
      * @brief This method returns a pointer of the class
      */

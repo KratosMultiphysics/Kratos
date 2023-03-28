@@ -69,6 +69,21 @@ class KRATOS_API(KRATOS_CORE) Accessor
          */
         virtual double GetProperty(
             const Variable<double> &rVariable,
+            const Properties &rProperties);
+
+        virtual double GetProperty(
+            const Variable<double> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode);
+
+        virtual double GetProperty(
+            const Variable<double> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode,
+            IndexType SolutionStepIndex);
+
+        virtual double GetProperty(
+            const Variable<double> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
