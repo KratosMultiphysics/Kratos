@@ -93,6 +93,10 @@ class MechanicalSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
+        # Some variables initialization
+        self.mpc_block_builder_initialized = False
+
+        # Printing message
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
@@ -243,10 +247,6 @@ class MechanicalSolver(PythonSolver):
         mechanical_solution_strategy = self._GetSolutionStrategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         mechanical_solution_strategy.Initialize()
-
-        # Some variables initialization
-        self.use_block_builder = self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool()
-        self.mpc_block_builder_initialized = False
 
         # Printing that inialization is finished
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
@@ -443,7 +443,7 @@ class MechanicalSolver(PythonSolver):
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
-        if self.use_block_builder:
+        self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
             if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
