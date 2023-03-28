@@ -28,6 +28,7 @@
 #include "containers/model.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/variable_utils.h"
 #include "custom_utilities/mmg/mmg_utilities.h"
 
 // NOTE: The following contains the license of the MMG library
@@ -4263,11 +4264,22 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     for (IndexType i_node = 1; i_node <= rMMGMeshInfo.NumberOfNodes; ++i_node) {
         NodeType::Pointer p_node = CreateNode(rModelPart, i_node, ref, is_required);
 
-        // Set the DOFs in the nodes
-        for (auto it_dof = rDofs.begin(); it_dof != rDofs.end(); ++it_dof)
-            p_node->pAddDof(**it_dof);
-
         if (ref != 0) color_nodes[static_cast<IndexType>(ref)].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
+    }
+
+    // Set the DOFs in the nodes
+    for (auto& p_dof : rDofs) {
+        const auto& r_variable_data = p_dof->GetVariable();
+        const auto& r_variable_name = r_variable_data.Name();
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
+        if (p_dof->HasReaction()) {
+            const auto& r_reaction = p_dof->GetReaction();
+            const auto& r_reaction_name = r_reaction.Name();
+            const auto& r_reaction_variable = KratosComponents<Variable<double>>::Get(r_reaction_name);
+            VariableUtils().AddDofWithReaction(r_variable, r_reaction_variable, rModelPart);
+        } else {
+            VariableUtils().AddDof(r_variable, rModelPart);
+        }
     }
 
     /* CONDITIONS */ // TODO: ADD OMP
