@@ -443,7 +443,7 @@ class MechanicalSolver(PythonSolver):
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
-        self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
             if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
