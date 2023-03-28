@@ -125,17 +125,6 @@ namespace Kratos
 
 			int ElementsToRefine = mrRemesh.Info->RemovedNodes;
 			unsigned int eulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
-			// unsigned int addedNodesForEulerianInlet = 0;
-			// if (eulerianInletNodes > 0)
-			// {
-			// 	bool addNodesForEulerianInlet = false;
-			// 	EstablishGenerationNewNodesForEulerianInlet(addNodesForEulerianInlet, addedNodesForEulerianInlet);
-			// 	// if (addNodesForEulerianInlet == true)
-			// 	// {
-			// 	// 	ElementsToRefine += addedNodesForEulerianInlet;
-			// 	// }
-			// 	std::cout << "eulerianInletNodes " << eulerianInletNodes << "addedNodesForEulerianInlet " << addedNodesForEulerianInlet << std::endl;
-			// }
 
 			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
 			int numberOfNodes = mrRemesh.Info->NumberOfNodes;
@@ -786,7 +775,7 @@ namespace Kratos
 			{
 				penalization = 0.875;
 			}
-			
+
 			double ElementalVolume = Element.Area();
 
 			array_1d<double, 3> Edges(3, 0.0);
