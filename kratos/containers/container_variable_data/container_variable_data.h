@@ -36,12 +36,12 @@ namespace Kratos {
  * of TContainerType. TContainerType can be a container of nodes, conditions or elements.
  * The data is stored as an Expression. The expression can be one of the followings:
  *
- *      1. A literal expression is a concrete value expression. Followints are the types:
+ *      1. A literal expression is a concrete value expression. Followints are the eg. types:
  *              LiteralExpression<double>: This expression holds a single double value for
  *                                       all the entities of the TContainerType. This is light weight.
  *              LiteralExpression<array_1d<double, 3>>: This expression holds a single array3 value for
  *                                       all the entities of the TContainerType. This is light weight.
- *              LiteralVectorExpression: This expression can hold double, array3 different values for
+ *              LiteralFlatExpression: This expression can hold double, array3 different values for
  *                                       all the entities of the TContainerType. In this case, the dimension
  *                                       of the original data is stored, and then higher dimensional entity data
  *                                       is flattened out to a single vector. This will occupy almost the same memory as
@@ -50,7 +50,7 @@ namespace Kratos {
  *                              They are used to store keep track of the operations carried on the LiteralExpressions.
  *
  * Literal expressions are created on the following cases:
- *      1. When data is set using the SpecializedContainerVariableData::ReadData. Here, a LiteralVectorExpression is created.
+ *      1. When data is set using the SpecializedContainerVariableData::ReadData. Here, a LiteralFlatExpression is created.
  *      2. When data is reset to one value using either ContainerVariableData::SetDataToZero or SpecializedContainerVariableData::SetData
  *         or SpecializedContainerVariableData::SetZero. Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
  *      3. When a SpecializedContainerVariableData is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
@@ -61,7 +61,7 @@ namespace Kratos {
  * ContainerVariableData only holds double vector if any nodal, condition or element variable data needs to be stored for future calculations
  * where the variable can be released to store new data. Hence same variable can be used to store different data in the same container.
  *
- * When operatos such as "+", "-", "*", "/", "Pow" are used on these contaienrs in python or c++, it creates an expression. They are not
+ * When operatos such as "+", "-", "*", "/", "Pow" are used on these containers in python or c++, it creates an expression. They are not
  * evaluated and the results are not stored on vectors hence avoiding unnecessary computations and unnecessary memory allocations and de-allocations.
  *
  * This class's constructors are protected, hence no objects of this class can be created. This class is used as the common
