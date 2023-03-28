@@ -67,22 +67,22 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve double type properties
          */
-        virtual double GetProperty(
+        virtual double& GetProperty(
             const Variable<double> &rVariable,
             const Properties &rProperties);
 
-        virtual double GetProperty(
+        virtual double& GetProperty(
             const Variable<double> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode);
 
-        virtual double GetProperty(
+        virtual double& GetProperty(
             const Variable<double> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode,
             IndexType SolutionStepIndex);
 
-        virtual double GetProperty(
+        virtual double& GetProperty(
             const Variable<double> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -92,22 +92,22 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve Vector type properties
          */
-        virtual Vector GetProperty(
+        virtual Vector& GetProperty(
             const Variable<Vector> &rVariable,
             const Properties &rProperties);
 
-        virtual Vector GetProperty(
+        virtual Vector& GetProperty(
             const Variable<Vector> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode);
 
-        virtual Vector GetProperty(
+        virtual Vector& GetProperty(
             const Variable<Vector> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode,
             IndexType SolutionStepIndex);
 
-        virtual Vector GetProperty(
+        virtual Vector& GetProperty(
             const Variable<Vector> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -117,22 +117,22 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve bool type properties
          */
-        virtual bool GetProperty(
+        virtual bool& GetProperty(
             const Variable<bool> &rVariable,
             const Properties &rProperties);
 
-        virtual bool GetProperty(
+        virtual bool& GetProperty(
             const Variable<bool> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode);
 
-        virtual bool GetProperty(
+        virtual bool& GetProperty(
             const Variable<bool> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode,
             IndexType SolutionStepIndex);
 
-        virtual bool GetProperty(
+        virtual bool& GetProperty(
             const Variable<bool> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -142,22 +142,22 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve int type properties
          */
-        virtual int GetProperty(
+        virtual int& GetProperty(
             const Variable<int> &rVariable,
             const Properties &rProperties);
 
-        virtual int GetProperty(
+        virtual int& GetProperty(
             const Variable<int> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode);
 
-        virtual int GetProperty(
+        virtual int& GetProperty(
             const Variable<int> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode,
             IndexType SolutionStepIndex);
 
-        virtual int GetProperty(
+        virtual int& GetProperty(
             const Variable<int> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -167,22 +167,22 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve Matrix type properties
          */
-        virtual Matrix GetProperty(
+        virtual Matrix& GetProperty(
             const Variable<Matrix> &rVariable,
             const Properties &rProperties);
 
-        virtual Matrix GetProperty(
+        virtual Matrix& GetProperty(
             const Variable<Matrix> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode);
 
-        virtual Matrix GetProperty(
+        virtual Matrix& GetProperty(
             const Variable<Matrix> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode,
             IndexType SolutionStepIndex);
 
-        virtual Matrix GetProperty(
+        virtual Matrix& GetProperty(
             const Variable<Matrix> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -192,22 +192,22 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve array_1d<double, 3 > type properties
          */
-        virtual array_1d<double, 3 > GetProperty(
+        virtual array_1d<double, 3 >& GetProperty(
             const Variable<array_1d<double, 3 >> &rVariable,
             const Properties &rProperties);
 
-        virtual array_1d<double, 3 > GetProperty(
+        virtual array_1d<double, 3 >& GetProperty(
             const Variable<array_1d<double, 3 >> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode);
 
-        virtual array_1d<double, 3 > GetProperty(
+        virtual array_1d<double, 3 >& GetProperty(
             const Variable<array_1d<double, 3 >> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode,
             IndexType SolutionStepIndex);
 
-        virtual array_1d<double, 3 > GetProperty(
+        virtual array_1d<double, 3 >& GetProperty(
             const Variable<array_1d<double, 3 >> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -217,23 +217,48 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve array_1d<double, 6 > type properties
          */
-        virtual array_1d<double, 6 > GetProperty(
+        virtual array_1d<double, 6 >& GetProperty(
             const Variable<array_1d<double, 6 >> &rVariable,
             const Properties &rProperties);
 
-        virtual array_1d<double, 6 > GetProperty(
+        virtual array_1d<double, 6 >& GetProperty(
             const Variable<array_1d<double, 6 >> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode);
 
-        virtual array_1d<double, 6 > GetProperty(
+        virtual array_1d<double, 6 >& GetProperty(
             const Variable<array_1d<double, 6 >> &rVariable,
             const Properties &rProperties,
             NodeType& rThisNode,
             IndexType SolutionStepIndex);
 
-        virtual array_1d<double, 6 > GetProperty(
+        virtual array_1d<double, 6 >& GetProperty(
             const Variable<array_1d<double, 6 >> &rVariable,
+            const Properties &rProperties,
+            const GeometryType &rGeometry,
+            const Vector &rShapeFunctionVector,
+            const ProcessInfo &rProcessInfo);
+
+        /**
+         * Custom method to retrieve string type properties
+         */
+        virtual std::string const& GetProperty(
+            const Variable<std::string> &rVariable,
+            const Properties &rProperties);
+
+        virtual std::string const& GetProperty(
+            const Variable<std::string> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode);
+
+        virtual std::string const& GetProperty(
+            const Variable<std::string> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode,
+            IndexType SolutionStepIndex);
+
+        virtual std::string const& GetProperty(
+            const Variable<std::string> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
@@ -245,7 +270,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Copy constructor.
          */
-        // Accessor(const Accessor &rOther);
+        Accessor(const Accessor &rOther);
 
         ///@}
         ///@name Input and output
