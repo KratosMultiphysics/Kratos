@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_CLASSES )
-#define  KRATOS_MORTAR_CLASSES
+#pragma once
 
 // System includes
 
@@ -2317,5 +2316,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_MORTAR_CLASSES  defined
