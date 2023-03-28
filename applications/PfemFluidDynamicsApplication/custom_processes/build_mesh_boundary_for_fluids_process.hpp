@@ -104,8 +104,6 @@ namespace Kratos
 
       bool success = false;
 
-      // boost::timer auxiliary;
-
       if (mEchoLevel > 0)
         std::cout << " [ Build Boundary on ModelPart [" << mrModelPart.Name() << "] ]" << std::endl;
 
@@ -115,12 +113,6 @@ namespace Kratos
       {
         std::cout << "  ERROR:  BOUNDARY BUILD FAILED ModelPart : [" << mrModelPart << "] " << std::endl;
       }
-      //     else
-      // {
-      //         if( mEchoLevel >= 1 )
-      //     std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
-      //           //PrintSkin(mrModelPart);
-      //       }
 
       KRATOS_CATCH(" ")
     }
@@ -373,7 +365,6 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      // rModelPart.AddCondition(pCondition); //if a Local Id corresponds to a Global Id not added
       rModelPart.Conditions().push_back(pCondition);
 
       KRATOS_CATCH("")
@@ -487,9 +478,6 @@ namespace Kratos
 
     /// Assignment operator.
     BuildMeshBoundaryForFluidsProcess &operator=(BuildMeshBoundaryForFluidsProcess const &rOther);
-
-    /// Copy constructor.
-    // BuildMeshBoundaryForFluidsProcess(BuildMeshBoundaryForFluidsProcess const& rOther);
 
     ///@}
 

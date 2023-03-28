@@ -416,7 +416,7 @@ namespace Kratos
                                                                   (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2)) *
                                                                    std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2)));
 
-                                        if (fabs(cosAngle01) < 0.95 || fabs(cosAngle02) < 0.95 || fabs(cosAngle12) < 0.95)
+                                        if (std::abs(cosAngle01) < 0.95 || std::abs(cosAngle02) < 0.95 || std::abs(cosAngle12) < 0.95)
                                         {
                                             accepted = false;
                                             // std::cout << isolatedNodesInTheElement << " isolatedNodesInTheElement The angle between the velocity vectors is too big" << std::endl;
@@ -471,7 +471,7 @@ namespace Kratos
                                                                   (std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)) *
                                                                    std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
 
-                                        if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle03) < 0.85 || fabs(cosAngle12) < 0.85 || fabs(cosAngle13) < 0.85 || fabs(cosAngle23) < 0.85)
+                                        if (std::abs(cosAngle01) < 0.85 || std::abs(cosAngle02) < 0.85 || std::abs(cosAngle03) < 0.85 || std::abs(cosAngle12) < 0.85 || std::abs(cosAngle13) < 0.85 || std::abs(cosAngle23) < 0.85)
                                         {
                                             accepted = false;
                                             // std::cout << "The angle between the velocity vectors is too big" << std::endl;
@@ -521,7 +521,7 @@ namespace Kratos
                         const double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
                         const double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
 
-                        if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+                        if (std::abs(cosAngle12) > 0.999 || std::abs(cosAngle13) > 0.999 || std::abs(cosAngle14) > 0.999 || std::abs(cosAngle23) > 0.999 || std::abs(cosAngle24) > 0.999 || std::abs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
                         {
                             accepted = false;
                             number_of_slivers++;
@@ -588,7 +588,7 @@ namespace Kratos
                     //             CriticalVolume = 0.00001 * regularTetrahedronVolume;
                     //         }
 
-                    //         if (fabs(Volume) < CriticalVolume)
+                    //         if (std::abs(Volume) < CriticalVolume)
                     //         {
                     //             accepted = false;
                     //             number_of_slivers++;

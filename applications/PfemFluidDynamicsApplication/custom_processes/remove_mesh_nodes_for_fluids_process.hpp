@@ -915,7 +915,7 @@ namespace Kratos
 												  (std::sqrt(std::pow(rigidNodesNormals[1][0], 2) + std::pow(rigidNodesNormals[1][1], 2)) *
 												   std::sqrt(std::pow(rigidNodesNormals[2][0], 2) + std::pow(rigidNodesNormals[2][1], 2)));
 
-				if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995) && (cosAngleBetweenNormals01 > 0.99 && cosAngleBetweenNormals02 > 0.99 && cosAngleBetweenNormals12 > 0.99))
+				if ((std::abs(cosAngle12) > 0.995 || std::abs(cosAngle13) > 0.995 || std::abs(cosAngle14) > 0.995) && (cosAngleBetweenNormals01 > 0.99 && cosAngleBetweenNormals02 > 0.99 && cosAngleBetweenNormals12 > 0.99))
 				{
 					eElement[notRigidNodeId].Set(TO_ERASE);
 					inside_nodes_removed++;
