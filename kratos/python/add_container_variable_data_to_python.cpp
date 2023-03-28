@@ -83,6 +83,15 @@ pybind11::array_t<TDataType> MakeNumpyArray(
     return array;
 }
 
+/**
+ * @brief Forbids the casting by defining the forbidden type methods.
+ *
+ * pybind11 casts to the method arguments types which ever is passed from python side. If the types
+ * are not matching, then a new object is made from copying and then casting. For large vectors this is
+ * an expensive operation. Therefore, this macro is used to forbid the casting and throw an error
+ * if an unsupported numpy array is passed to the function.
+ *
+ */
 #define KRATOS_FORBIDDEN_CAST(METHOD_NAME, SELF_TYPE, CONST, DATA_TYPE)                           \
     .def(METHOD_NAME, [](SELF_TYPE& rSelf, CONST py::array_t<DATA_TYPE>& rData) {                 \
         KRATOS_ERROR << "Unsupported numpy array is passed. Please change "                       \
