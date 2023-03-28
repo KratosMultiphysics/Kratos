@@ -379,11 +379,11 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       array_1d<double, VOIGT_SIZE_3D> mStressVectorFinalized;
       array_1d<double, 9> mStressAndUnsatVector;
 
-      array_1d<double, 1> mDegreeOfSaturaion;
-      array_1d<double, 1> mDerivativeOfSaturation;
-      array_1d<double, 1> mIncrementOfSuction;
+      double  mDegreeOfSaturaion=1.0;
+      double  mDerivativeOfSaturation=0.0;
+      double  mIncrementOfSuction=0.0;
 
-
+         
 
       array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
       array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;

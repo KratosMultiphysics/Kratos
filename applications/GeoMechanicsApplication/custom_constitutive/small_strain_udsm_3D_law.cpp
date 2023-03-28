@@ -856,16 +856,18 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &r
     for ( unsigned int i=0;i<VOIGT_SIZE_3D;++i) 
       {mStressAndUnsatVector[i] = mStressVectorFinalized[i];}
    
-    mStressAndUnsatVector[6] = DEGREE_OF_SATURATION;
-    mStressAndUnsatVector[7] = DERIVATIVE_OF_SATURATION; 
-    mStressAndUnsatVector[8] = INCREMENT_OF_SUCTION;
+    mStressAndUnsatVector[6] = mDegreeOfSaturaion;
+    mStressAndUnsatVector[7] = mDerivativeOfSaturation; 
+    mStressAndUnsatVector[8] = mIncrementOfSuction;
+      
+
 
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
    pUserMod(pIDTask, &modelNumber, &isUndr,
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
-            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            &(MaterialParameters.data()[0]), &(mStressAndUnsatVector.data()[0]), &excessPorePressurePrevious, 
             &(mStateVariablesFinalized.data()[0]),
             &(mDeltaStrainVector.data()[0]), (double **) mMatrixD, &bulkWater,
             &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic,
@@ -1296,16 +1298,29 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<double>& rThisVariable,
                                      const ProcessInfo& rCurrentProcessInfo )
 {
    // KRATOS_INFO("01-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
+   if (rThisVariable == DEGREE_OF_SATURATION)
+   {
+      mDegreeOfSaturaion = rValue;
+   }
+   else if (rThisVariable == DERIVATIVE_OF_SATURATION)
+   {
+      mDerivativeOfSaturation = rValue;
 
-   const int index = GetStateVariableIndex(rThisVariable);
+   }
+   else if (rThisVariable == INCREMENT_OF_SUCTION)
+   {
+      mIncrementOfSuction = rValue;
 
-   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
-                        << "GetValue: Variable: "
-                        << rThisVariable
-                        << " does not exist in UDSM. Requested index: " << index << std::endl;
+   } else {
+      const int index = GetStateVariableIndex(rThisVariable);
 
-   mStateVariablesFinalized[index] = rValue;
+      KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                           << "GetValue: Variable: "
+                           << rThisVariable
+                           << " does not exist in UDSM. Requested index: " << index << std::endl;
 
+      mStateVariablesFinalized[index] = rValue;
+   }
    // KRATOS_INFO("11-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
 
 }
@@ -1337,20 +1352,7 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<Vector>& rThisVariable,
          }
       }
    }
-   else if (rThisVariable == DEGREE_OF_SATURATION)
-   {
-      mDegreeOfSaturaion[1] = rValue[1];
-   }
-   else if (rThisVariable == DERIVATIVE_OF_SATURATION)
-   {
-      mDerivativeOfSaturation[1] = rValue[1];
-
-   }
-   else if (rThisVariable == INCREMENT_OF_SUCTION)
-   {
-      mIncrementOfSuction[1] = rValue[1];
-
-   }
+  
    
    // KRATOS_INFO("12-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
 
