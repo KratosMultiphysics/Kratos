@@ -4,16 +4,21 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#pragma once
+#if !defined(KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED )
+#define KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED
 
 // System includes
+#include <string>
+#include <iostream>
+#include <cstddef>
+#include <cstring>
 
 // External includes
 
@@ -63,17 +68,14 @@ public:
     /// Pointer definition of VariablesListDataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(VariablesListDataValueContainer);
 
-    /// The block type definition
-    using BlockType = VariablesList::BlockType;
+    typedef VariablesList::BlockType BlockType;
 
     /// Type of the container used for variables
-    using ContainerType= BlockType*;
+    typedef BlockType* ContainerType;
 
-    /// The index type definition
-    using IndexType = std::size_t;
+    typedef std::size_t IndexType;
 
-    /// The size type definition
-    using SizeType = std::size_t;
+    typedef std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -693,12 +695,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    /**
-     * @brief This method returns if a certain variable is stored in the data value container
-     * @param rThisVariable The variable to be checked
-     * @return True if the variable is stored, false otherwise
-     */
-    bool Has(const VariableData& rThisVariable) const
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
         if(!mpVariablesList)
             return false;
@@ -996,3 +993,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
+
+#endif // KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED  defined

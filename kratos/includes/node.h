@@ -451,7 +451,7 @@ public:
     }
 
 
-    bool SolutionStepsDataHas(const VariableData& rThisVariable) const
+    template<class TDataType> bool SolutionStepsDataHas(const Variable<TDataType>& rThisVariable) const
     {
         return SolutionStepData().Has(rThisVariable);
     }
