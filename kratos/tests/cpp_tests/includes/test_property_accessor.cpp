@@ -45,7 +45,6 @@ namespace Kratos
             class CustomAccessor
                 : public  Accessor 
             {
-                KRATOS_CLASS_POINTER_DEFINITION(CustomAccessor);
                 public:
                 double GetProperty(
                     const Variable<double> &rVariable,
