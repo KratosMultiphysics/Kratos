@@ -1981,57 +1981,6 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void EstablishGenerationNewNodesForEulerianInlet(bool &addNodes, unsigned int &addedNodes)
-
-		{
-			KRATOS_TRY
-
-			if (mEchoLevel > 1)
-				std::cout << " EstablishGenerationNewNodesForEulerianInlet " << std::endl;
-			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
-			addNodes = false;
-			addedNodes = 0;
-			double maxSeparation = mrRemesh.Refine->CriticalRadius * 2.2;
-
-			for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
-			{
-				if (i_node->Is(PFEMFlags::EULERIAN_INLET))
-				{
-					NodeWeakPtrVectorType &rN = i_node->GetValue(NEIGHBOUR_NODES);
-					for (unsigned int i = 0; i < rN.size(); i++)
-					{
-						if (rN[i].IsNot(RIGID) && rN[i].IsNot(PFEMFlags::EULERIAN_INLET))
-						{
-							array_1d<double, 3> CoorDifference = rN[i].Coordinates() - i_node->Coordinates();
-							if (dimension == 2)
-							{
-								double squaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-								double distanceToNode = std::sqrt(squaredLength);
-								if (distanceToNode > maxSeparation)
-								{
-									addNodes = true;
-									addedNodes++;
-								}
-							}
-							else
-							{
-								maxSeparation = mrRemesh.Refine->CriticalRadius * 2.2;
-								double squaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-								double distanceToNode = std::sqrt(squaredLength);
-								if (distanceToNode > maxSeparation)
-								{
-									addNodes = true;
-									addedNodes++;
-								}
-							}
-						}
-					}
-				}
-			}
-
-			KRATOS_CATCH("")
-		}
 		///@}
 		///@name Private  Access
 		///@{
