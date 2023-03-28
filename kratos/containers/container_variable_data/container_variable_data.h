@@ -128,10 +128,27 @@ public:
      *
      * @param pBegin            Starting pointer to the data.
      * @param NumberOfEntities  Number of entities present in data.
-     * @param rShape            Shape of data in each entity.
+     * @param pShapeBegin       Starting  point of the shape of data in each entity.
+     * @param ShapeSize         Size of the shape.
      */
     void ReadData(
         double const* pBegin,
+        const int NumberOfEntities,
+        int const* pShapeBegin,
+        const int ShapeSize);
+
+    /**
+     * @brief Move data from pBegin array to internal structure.
+     *
+     * @warning This instance takes ownership of the passed array.
+     *
+     * @param pBegin            Starting pointer to the data.
+     * @param NumberOfEntities  Number of entities present in data.
+     * @param pShapeBegin       Starting  point of the shape of data in each entity.
+     * @param ShapeSize         Size of the shape.
+     */
+    void MoveData(
+        double* pBegin,
         const int NumberOfEntities,
         int const* pShapeBegin,
         const int ShapeSize);
@@ -165,7 +182,7 @@ public:
         double* pBegin,
         const int NumberOfEntities,
         int const* pShapeBegin,
-        const int ShapeSize);
+        const int ShapeSize) const;
 
     /**
      * @brief Set the Data To Zero container.
@@ -218,7 +235,7 @@ public:
      *
      * @return IndexType
      */
-    IndexType GetLocalSize() const;
+    IndexType GetFlattenedSize() const;
 
     /**
      * @brief Get the Model Part used in the container data

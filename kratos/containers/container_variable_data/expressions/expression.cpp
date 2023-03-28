@@ -19,7 +19,7 @@
 
 namespace Kratos {
 
-std::size_t Expression::GetLocalSize() const
+std::size_t Expression::GetFlattenedSize() const
 {
     IndexType result = 1;
     for (const auto v : this->GetShape()) {

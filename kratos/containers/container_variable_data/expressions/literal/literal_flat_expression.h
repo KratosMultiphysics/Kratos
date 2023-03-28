@@ -49,6 +49,11 @@ public:
         const IndexType NumberOfEntities,
         const std::vector<IndexType>& rShape);
 
+    LiteralFlatExpression(
+        double* pDataBegin,
+        const IndexType NumberOfEntities,
+        const std::vector<IndexType>& rShape);
+
     LiteralFlatExpression(const LiteralFlatExpression& rOther) = delete;
 
     ~LiteralFlatExpression() override = default;
@@ -72,6 +77,11 @@ public:
         const IndexType NumberOfEntities,
         const std::vector<IndexType>& rShape);
 
+    static LiteralFlatExpression::Pointer Create(
+        double* pDataBegin,
+        const IndexType NumberOfEntities,
+        const std::vector<IndexType>& rShape);
+
     void SetData(
         const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex,
@@ -88,7 +98,7 @@ protected:
 
     const std::vector<IndexType> mShape;
 
-    Vector mData;
+    std::vector<double> mData;
 
     ///@}
 };

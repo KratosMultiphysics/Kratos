@@ -75,7 +75,7 @@ void ContainerVariableData<TContainerType>::ReadData(
     auto p_expression = LiteralFlatExpression::Create(number_of_entities, shape);
     this->mpExpression = p_expression;
 
-    const IndexType local_size = this->GetExpression().GetLocalSize();
+    const IndexType local_size = this->GetExpression().GetFlattenedSize();
 
     IndexPartition<IndexType>(number_of_entities).for_each([pBegin, local_size, &p_expression](const IndexType EntityIndex) {
         const IndexType entity_data_begin_index = EntityIndex * local_size;
@@ -89,11 +89,39 @@ void ContainerVariableData<TContainerType>::ReadData(
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::AssignData(
+void ContainerVariableData<TContainerType>::MoveData(
     double* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
     const int ShapeSize)
+{
+    KRATOS_TRY
+
+    const IndexType number_of_entities = NumberOfEntities;
+
+    KRATOS_ERROR_IF_NOT(number_of_entities == this->GetContainer().size())
+        << "Number of entities does not match with the local container size. [ "
+           "NumberOfEntities = "
+        << NumberOfEntities
+        << ", local container size = " << this->GetContainer().size() << " ].\n";
+
+    std::vector<IndexType> shape(ShapeSize);
+    for (int i = 0; i < ShapeSize; ++i) {
+        shape[i] = *(pShapeBegin++);
+    }
+
+    auto p_expression = LiteralFlatExpression::Create(pBegin, number_of_entities, shape);
+    this->mpExpression = p_expression;
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType>
+void ContainerVariableData<TContainerType>::AssignData(
+    double* pBegin,
+    const int NumberOfEntities,
+    int const* pShapeBegin,
+    const int ShapeSize) const
 {
     KRATOS_TRY
 
@@ -116,7 +144,7 @@ void ContainerVariableData<TContainerType>::AssignData(
         << "Shape mismatch. [ Requested shape  = " << shape
         << ", available shape = " << r_expression.GetShape() << " ].\n";
 
-    const IndexType local_size = r_expression.GetLocalSize();
+    const IndexType local_size = r_expression.GetFlattenedSize();
 
     IndexPartition<IndexType>(number_of_entities).for_each([pBegin, local_size, &r_expression](const IndexType EntityIndex) {
         const IndexType entity_data_begin_index = EntityIndex * local_size;
@@ -161,9 +189,9 @@ const std::vector<std::size_t> ContainerVariableData<TContainerType>::GetShape()
 }
 
 template <class TContainerType>
-std::size_t ContainerVariableData<TContainerType>::GetLocalSize() const
+std::size_t ContainerVariableData<TContainerType>::GetFlattenedSize() const
 {
-    return this->GetExpression().GetLocalSize();
+    return this->GetExpression().GetFlattenedSize();
 }
 
 template <class TContainerType>
@@ -224,7 +252,7 @@ std::string ContainerVariableData<TContainerType>::Info() const
         << ", Number of entities: " << this->GetContainer().size();
 
     if (mpExpression.has_value()) {
-        msg << ", DataDimension: " << this->GetLocalSize();
+        msg << ", DataDimension: " << this->GetFlattenedSize();
         msg << ", Expression: " << this->GetExpression();
     } else {
         msg << ", Expression: not initialized";

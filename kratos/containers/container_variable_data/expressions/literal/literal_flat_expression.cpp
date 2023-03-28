@@ -25,7 +25,16 @@ LiteralFlatExpression::LiteralFlatExpression(
     const std::vector<IndexType>& rShape)
     : mShape(rShape)
 {
-    mData.resize(NumberOfEntities * this->GetLocalSize());
+    mData.resize(NumberOfEntities * this->GetFlattenedSize());
+}
+
+LiteralFlatExpression::LiteralFlatExpression(
+    double* pDataBegin,
+    const IndexType NumberOfEntities,
+    const std::vector<IndexType>& rShape)
+    : mShape(rShape)
+{
+    mData.assign(pDataBegin, pDataBegin + NumberOfEntities * this->GetFlattenedSize());
 }
 
 LiteralFlatExpression::Pointer LiteralFlatExpression::Create(
@@ -36,6 +45,18 @@ LiteralFlatExpression::Pointer LiteralFlatExpression::Create(
         return Kratos::make_intrusive<LiteralScalarFlatExpression>(NumberOfEntities, rShape);
     } else {
         return Kratos::make_intrusive<LiteralNonScalarFlatExpression>(NumberOfEntities, rShape);
+    }
+}
+
+LiteralFlatExpression::Pointer LiteralFlatExpression::Create(
+    double* pDataBegin,
+    const IndexType NumberOfEntities,
+    const std::vector<IndexType>& rShape)
+{
+    if (rShape.size() == 0) {
+        return Kratos::make_intrusive<LiteralScalarFlatExpression>(pDataBegin, NumberOfEntities, rShape);
+    } else {
+        return Kratos::make_intrusive<LiteralNonScalarFlatExpression>(pDataBegin, NumberOfEntities, rShape);
     }
 }
 

@@ -147,7 +147,7 @@ void VariableExpressionDataIO<Vector>::Assign(
     const Expression& rExpression,
     const IndexType EntityIndex) const
 {
-    const IndexType local_size = rExpression.GetLocalSize();
+    const IndexType local_size = rExpression.GetFlattenedSize();
 
     if (rOutput.size() != local_size) {
         rOutput.resize(local_size, false);
@@ -183,13 +183,11 @@ void VariableExpressionDataIO<Matrix>::Assign(
         rOutput.resize(r_shape[0], r_shape[1], false);
     }
 
-    const IndexType entity_data_begin_index = EntityIndex * rExpression.GetLocalSize();
+    const IndexType local_size = rExpression.GetFlattenedSize();
+    const IndexType entity_data_begin_index = EntityIndex * local_size;
 
-    IndexType local_index = 0;
-    for (IndexType i = 0; i < r_shape[0]; ++i) {
-        for (IndexType j = 0; j < r_shape[1]; ++j) {
-            rOutput(i, j) = rExpression.Evaluate(EntityIndex, entity_data_begin_index, local_index++);
-        }
+    for (IndexType i = 0; i < local_size; ++i) {
+        rOutput.data()[i] = rExpression.Evaluate(EntityIndex, entity_data_begin_index, i);
     }
 }
 
@@ -201,7 +199,7 @@ void VariableExpressionDataIO<Matrix>::Read(
 {
     IndexType local_index = 0;
 
-    const IndexType entity_data_begin_index = EntityIndex * rExpression.GetLocalSize();
+    const IndexType entity_data_begin_index = EntityIndex * rExpression.GetFlattenedSize();
 
     for (IndexType i = 0; i < Value.size1(); ++i) {
         for (IndexType j = 0; j < Value.size2(); ++j) {
