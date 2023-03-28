@@ -162,7 +162,7 @@ namespace Kratos
                     unsigned int numfreesurf = 0;
                     unsigned int numboundary = 0;
                     unsigned int numrigid = 0;
-                    unsigned int numLagrangianInlet = 0;
+                    unsigned int numInletNodes = 0;
                     unsigned int numisolated = 0;
                     bool noremesh = false;
                     std::vector<double> normVelocityP;
@@ -262,9 +262,9 @@ namespace Kratos
                             nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
-                        if (vertices.back().Is(PFEMFlags::LAGRANGIAN_INLET))
+                        if (vertices.back().Is(INLET))
                         {
-                            numLagrangianInlet++;
+                            numInletNodes++;
                         }
 
                         if (refiningBox == true && vertices.back().IsNot(RIGID))
@@ -373,7 +373,7 @@ namespace Kratos
                         }
                     }
 
-                    if (numLagrangianInlet > 0)
+                    if (numInletNodes > 0)
                     {
                         Alpha *= 1.5;
                     }
