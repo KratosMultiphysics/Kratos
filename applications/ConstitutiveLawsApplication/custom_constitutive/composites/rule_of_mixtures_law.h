@@ -477,17 +477,17 @@ public:
         const Vector& rShapeFunctionsValues
         ) override;
 
-    std::vector<ConstitutiveLaw::Pointer> &GetConstitutiveLaws()
+    std::vector<ConstitutiveLaw::Pointer>& GetConstitutiveLaws()
     {
         return mConstitutiveLaws;
     }
 
-    std::vector<double> &GetCombinationFactors()
+    std::vector<double>& GetCombinationFactors()
     {
         return mCombinationFactors;
     }
 
-    void SetCombinationFactors(const std::vector<double>& rVector ) 
+    void SetCombinationFactors(const std::vector<double>& rVector )
     {
         mCombinationFactors = rVector;
     }

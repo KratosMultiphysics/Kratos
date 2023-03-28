@@ -5,8 +5,8 @@
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
 //                                                                                         |_|   |_|
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:                 BSD License
+//                               license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alireza Taherzadeh-Fard
 //                   Alejandro Cornejo Velazquez
@@ -180,7 +180,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     const Vector& rShapeFunctionsValues
     )
 {
-    const auto &r_p_constitutive_law_vector = this->GetConstitutiveLaws();
+    const auto& r_p_constitutive_law_vector = this->GetConstitutiveLaws();
 
     BaseType::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
 
