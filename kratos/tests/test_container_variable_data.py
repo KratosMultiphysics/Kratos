@@ -358,9 +358,9 @@ class TestContainerVariableData(ABC):
         numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 8).reshape(len(a.GetContainer()), 8)
         a.Read(numpy_array)
         a *= 2
-        a.Evaluate(Kratos.INITIAL_STRAIN)
+        a.Evaluate(Kratos.PENALTY)
         for i, entity in enumerate(a.GetContainer()):
-            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.INITIAL_STRAIN), numpy_array[i, :] * 2, 12)
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), numpy_array[i, :] * 2, 12)
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 2 * 4).reshape(len(a.GetContainer()), 2, 4)
         a.Read(numpy_array)
