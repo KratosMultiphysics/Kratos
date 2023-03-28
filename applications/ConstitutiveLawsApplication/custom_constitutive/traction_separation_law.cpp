@@ -473,9 +473,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
         // Auxiliar stress vector
         const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
-        Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
-        Vector delamination_damage_affected_stress_vector  = ZeroVector(VoigtSize);
-        // Vector undamaged_auxiliar_stress_vector  = ZeroVector(VoigtSize);
 
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
