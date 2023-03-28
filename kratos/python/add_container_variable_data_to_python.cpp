@@ -115,8 +115,6 @@ void AddContainerVariableDataToPython(pybind11::module& m, const std::string& rN
                            rData.shape()[0],
                            shape.data(),
                            shape.size());
-
-            std::for_each(rData.mutable_data(), rData.mutable_data() + rData.size(), [](double& rValue) { rValue += 1;});
         })
         KRATOS_FORBIDDEN_CAST("MoveFrom", container_variable_data_holder_base, , float)
         KRATOS_FORBIDDEN_CAST("MoveFrom", container_variable_data_holder_base, , long double)
