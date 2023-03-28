@@ -469,7 +469,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
         const auto& r_p_constitutive_law_vector = this->GetConstitutiveLaws();
-        const auto& r_combination_factors = this->GetCombinationFactors();
 
         std::vector<Vector> layer_stress(r_p_constitutive_law_vector.size());
         for (IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
@@ -539,7 +538,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
             const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
-            const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {

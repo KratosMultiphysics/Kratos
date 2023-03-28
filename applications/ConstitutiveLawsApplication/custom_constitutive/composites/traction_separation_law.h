@@ -65,65 +65,65 @@ public:
 
     ///@name Type Definitions
     ///@{
-        typedef ParallelRuleOfMixturesLaw<TDim> BaseType;
+    typedef ParallelRuleOfMixturesLaw<TDim> BaseType;
 
-        typedef std::size_t SizeType;
+    typedef std::size_t SizeType;
 
-        /// The define the working dimension size, already defined in the integrator
-        static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
 
-        /// The define the Voigt size, already defined in the  integrator
-        static constexpr SizeType Dimension = TDim;
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType Dimension = TDim;
 
-        /// Definition of the machine precision tolerance
-        static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
+    /// Definition of the machine precision tolerance
+    static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-        /// Pointer definition of TractionSeparationLaw3D
-        KRATOS_CLASS_POINTER_DEFINITION(TractionSeparationLaw3D);
+    /// Pointer definition of TractionSeparationLaw3D
+    KRATOS_CLASS_POINTER_DEFINITION(TractionSeparationLaw3D);
 
-        ///@name Lyfe Cycle
-        ///@{
+    ///@name Lyfe Cycle
+    ///@{
 
-        /**
-         * @brief Default constructor.
-         */
-        TractionSeparationLaw3D();
+    /**
+     * @brief Default constructor.
+     */
+    TractionSeparationLaw3D();
 
-        /**
-         * @brief Constructor with values
-         * @param rCombinationFactors The list of subproperties combination factors
-         */
-        TractionSeparationLaw3D(const std::vector<double> &rCombinationFactors);
+    /**
+     * @brief Constructor with values
+     * @param rCombinationFactors The list of subproperties combination factors
+     */
+    TractionSeparationLaw3D(const std::vector<double> &rCombinationFactors);
 
-        /**
-         * @brief Copy constructor.
-         */
-        TractionSeparationLaw3D(const TractionSeparationLaw3D &rOther);
+    /**
+     * @brief Copy constructor.
+     */
+    TractionSeparationLaw3D(const TractionSeparationLaw3D &rOther);
 
-        /**
-         * @brief Destructor.
-         */
-        ~TractionSeparationLaw3D() override;
+    /**
+     * @brief Destructor.
+     */
+    ~TractionSeparationLaw3D() override;
 
-        ///@}
-        ///@name Operators
-        ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-        ///@}
-        ///@name Operations
-        ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-        /**
-         * @brief Clone operation
-         */
-        ConstitutiveLaw::Pointer Clone() const override;
+    /**
+     * @brief Clone operation
+     */
+    ConstitutiveLaw::Pointer Clone() const override;
 
-        /**
-         * @brief Creates a new constitutive law pointer
-         * @param NewParameters The configuration parameters of the new constitutive law
-         * @return a Pointer to the new constitutive law
-         */
-        ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
+    /**
+     * @brief Creates a new constitutive law pointer
+     * @param NewParameters The configuration parameters of the new constitutive law
+     * @return a Pointer to the new constitutive law
+     */
+    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (Vector)
