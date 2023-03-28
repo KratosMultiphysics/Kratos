@@ -202,13 +202,6 @@ public:
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
 
-        //
-        // auto p_mass_matrix = TSparseSpace::CreateEmptyMatrixPointer();
-        // auto p_damping_matrix = TSparseSpace::CreateEmptyMatrixPointer();
-        //
-        // mMassMatrix = *p_mass_matrix;
-        // mDampingMatrix = *p_damping_matrix;
-
         mMassMatrix.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
 
         BaseType::ConstructMatrixStructure(pScheme, mMassMatrix, rModelPart);
