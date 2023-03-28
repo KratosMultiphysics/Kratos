@@ -89,6 +89,31 @@ class KRATOS_API(KRATOS_CORE) Accessor
             const Vector &rShapeFunctionVector,
             const ProcessInfo &rProcessInfo);
 
+        /**
+         * Custom method to retrieve Vector type properties
+         */
+        virtual Vector GetProperty(
+            const Variable<Vector> &rVariable,
+            const Properties &rProperties);
+
+        virtual Vector GetProperty(
+            const Variable<Vector> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode);
+
+        virtual Vector GetProperty(
+            const Variable<Vector> &rVariable,
+            const Properties &rProperties,
+            NodeType& rThisNode,
+            IndexType SolutionStepIndex);
+
+        virtual Vector GetProperty(
+            const Variable<Vector> &rVariable,
+            const Properties &rProperties,
+            const GeometryType &rGeometry,
+            const Vector &rShapeFunctionVector,
+            const ProcessInfo &rProcessInfo);
+
         // Getting a pointer tot he class
         virtual Accessor::Pointer Clone() const;
 

@@ -72,6 +72,52 @@ namespace Kratos
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         return 0.0;
     }
+
+    /**
+     * @brief This method implements the way to retrieve a Vector type variable
+     */
+    Vector Accessor::GetProperty(
+        const Variable<Vector> &rVariable,
+        const Properties &rProperties,
+        const GeometryType &rGeometry,
+        const Vector &rShapeFunctionVector,
+        const ProcessInfo &rProcessInfo
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0.0;
+    }
+
+    Vector Accessor::GetProperty(
+        const Variable<Vector> &rVariable,
+        const Properties &rProperties
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0.0;
+    }
+
+    Vector Accessor::GetProperty(
+        const Variable<Vector> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0.0;
+    }
+
+    Vector Accessor::GetProperty(
+        const Variable<Vector> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode,
+        IndexType SolutionStepIndex
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0.0;
+    }
+
     /**
      * @brief This method returns a pointer of the class
      */
