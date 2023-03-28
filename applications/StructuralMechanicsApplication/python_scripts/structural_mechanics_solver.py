@@ -336,7 +336,7 @@ class MechanicalSolver(PythonSolver):
     def _GetBuilderAndSolver(self):
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._CreateBuilderAndSolver()
-        elif not self.use_block_builder: # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+        elif not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool(): # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
             if self.settings["multi_point_constraints_used"].GetBool() is False and self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
                 self.settings["multi_point_constraints_used"].SetBool(True)
                 self._builder_and_solver = self._CreateBuilderAndSolver()
@@ -346,7 +346,7 @@ class MechanicalSolver(PythonSolver):
     def _GetSolutionStrategy(self):
         if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._CreateSolutionStrategy()
-        elif not self.use_block_builder: # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+        elif not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool(): # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
             if self.settings["multi_point_constraints_used"].GetBool() is False and self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
                 self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         return self._mechanical_solution_strategy
