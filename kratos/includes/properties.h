@@ -264,7 +264,7 @@ public:
     {
         auto it_value = mAccessors.find(rVariable.Key());
         if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this, rThisNode);
+            return (it_value->second)->GetProperty(rVariable, *this, rThisNode, SolutionStepIndex);
         } else {
             if(mData.Has(rVariable))
                 return mData.GetValue(rVariable);
@@ -277,7 +277,7 @@ public:
     {
         auto it_value = mAccessors.find(rVariable.Key());
         if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this, rThisNode);
+            return (it_value->second)->GetProperty(rVariable, *this, rThisNode, SolutionStepIndex);
         } else {
             if(mData.Has(rVariable))
                 return mData.GetValue(rVariable);
@@ -295,7 +295,7 @@ public:
         if (it_value != mAccessors.end()) {
             return (it_value->second)->GetProperty(rVariable, *this, rGeometry, rShapeFunctionVector, rProcessInfo);
         } else {
-            return GetValue(rVariable);
+            return mData.GetValue(rVariable);
         }
     }
 
