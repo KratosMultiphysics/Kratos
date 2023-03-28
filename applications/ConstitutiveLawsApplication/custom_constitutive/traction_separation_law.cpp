@@ -200,6 +200,20 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
         mThresholdModeTwo[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
     }
 
+    // Check fracture energy
+    const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rElementGeometry));
+
+    // const double AParameter_mode_one = -std::pow(rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH], 2) /
+    //                                  (2.0 * rMaterialProperties[TENSILE_INTERFACE_MODULUS] * rMaterialProperties[MODE_ONE_FRACTURE_ENERGY] / characteristic_length); // Linear
+    const double AParameter_mode_one = 1.00 / (rMaterialProperties[MODE_ONE_FRACTURE_ENERGY] * rMaterialProperties[TENSILE_INTERFACE_MODULUS] / (characteristic_length
+                                    * std::pow(rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH], 2)) - 0.5); // Exponential
+    KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "MODE_ONE_FRACTURE_ENERGY is too low" << std::endl;
+
+    // const double AParameter_mode_two = -std::pow(rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH], 2) /
+    //                                  (2.0 * rMaterialProperties[SHEAR_INTERFACE_MODULUS] * rMaterialProperties[MODE_TWO_FRACTURE_ENERGY] / characteristic_length); // Linear
+    const double AParameter_mode_two = 1.00 / (rMaterialProperties[MODE_TWO_FRACTURE_ENERGY] * rMaterialProperties[SHEAR_INTERFACE_MODULUS] / (characteristic_length
+                                    * std::pow(rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH], 2)) - 0.5); // Exponential
+    KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "MODE_TWO_FRACTURE_ENERGY is too low" << std::endl;
 }
 
 /***********************************************************************************/
