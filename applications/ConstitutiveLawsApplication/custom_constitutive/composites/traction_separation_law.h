@@ -223,13 +223,6 @@ public:
         const double T0,
         const double equivalent_stress);
 
-    double CalculateDelaminationDamageLinearSoftening(
-        ConstitutiveLaw::Parameters& rValues,
-        const double GI,
-        const double E,
-        const double T0,
-        const double equivalent_stress);
-
     /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
