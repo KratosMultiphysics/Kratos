@@ -47,8 +47,12 @@ namespace Kratos {
     const double Rc   = particle->mContactRadiusAdjusted;
     const double d    = particle->mNeighborDistanceAdjusted;
     const double kavg = particle->ComputeAverageConductivity();
+    
+    double area = 0.0;
+    if      (particle->mDimension == 2) area = 2.0 * Rc;
+    else if (particle->mDimension == 3) area = Globals::Pi * Rc * Rc;
 
-    return kavg * (Globals::Pi * Rc * Rc) * d;
+    return kavg * area * d;
 
     KRATOS_CATCH("")
   }
