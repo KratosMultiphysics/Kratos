@@ -39,11 +39,11 @@ ContainerVariableData<TContainerType>::ContainerVariableData(
 {
 }
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::CopyDataFrom(
+void ContainerVariableData<TContainerType>::CopyFrom(
     const ContainerVariableData<TContainerType>& rOther)
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
-        << "Mismatching model parts found with different number of entities in CopyDataFrom operation.\n"
+        << "Mismatching model parts found with different number of entities in CopyFrom operation.\n"
         << this->mpModelPart->FullName()
         << ", origin model part name: " << rOther.GetModelPart().FullName() << " ].\n";
 
@@ -51,7 +51,7 @@ void ContainerVariableData<TContainerType>::CopyDataFrom(
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::ReadData(
+void ContainerVariableData<TContainerType>::Read(
     double const* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
@@ -89,7 +89,7 @@ void ContainerVariableData<TContainerType>::ReadData(
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::MoveData(
+void ContainerVariableData<TContainerType>::MoveFrom(
     double* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
@@ -117,7 +117,7 @@ void ContainerVariableData<TContainerType>::MoveData(
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::AssignData(
+void ContainerVariableData<TContainerType>::Evaluate(
     double* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,

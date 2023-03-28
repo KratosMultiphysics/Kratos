@@ -50,7 +50,7 @@ namespace Kratos {
  *                              They are used to store keep track of the operations carried on the LiteralExpressions.
  *
  * Literal expressions are created on the following cases:
- *      1. When data is set using the SpecializedContainerVariableData::ReadData. Here, a LiteralFlatExpression is created.
+ *      1. When data is set using the SpecializedContainerVariableData::Read. Here, a LiteralFlatExpression is created.
  *      2. When data is reset to one value using either ContainerVariableData::SetDataToZero or SpecializedContainerVariableData::SetData
  *         or SpecializedContainerVariableData::SetZero. Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
  *      3. When a SpecializedContainerVariableData is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
@@ -104,7 +104,7 @@ public:
      *
      * @param rOther        Other container variable data
      */
-    void CopyDataFrom(const ContainerVariableData<TContainerType>& rOther);
+    void CopyFrom(const ContainerVariableData<TContainerType>& rOther);
 
     /**
      * @brief Reads data from c like interface
@@ -131,7 +131,7 @@ public:
      * @param pShapeBegin       Starting  point of the shape of data in each entity.
      * @param ShapeSize         Size of the shape.
      */
-    void ReadData(
+    void Read(
         double const* pBegin,
         const int NumberOfEntities,
         int const* pShapeBegin,
@@ -147,7 +147,7 @@ public:
      * @param pShapeBegin       Starting  point of the shape of data in each entity.
      * @param ShapeSize         Size of the shape.
      */
-    void MoveData(
+    void MoveFrom(
         double* pBegin,
         const int NumberOfEntities,
         int const* pShapeBegin,
@@ -178,7 +178,7 @@ public:
      * @param NumberOfEntities  Number of entities present in data.
      * @param rShape            Shape of data in each entity.
      */
-    void AssignData(
+    void Evaluate(
         double* pBegin,
         const int NumberOfEntities,
         int const* pShapeBegin,
