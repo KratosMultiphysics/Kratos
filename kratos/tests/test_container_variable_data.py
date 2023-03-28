@@ -17,6 +17,10 @@ class TestContainerVariableData(ABC):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.INITIAL_STRAIN)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PENALTY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PK2_STRESS_TENSOR)
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
         ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
 
@@ -24,18 +28,26 @@ class TestContainerVariableData(ABC):
             id = node.Id
             node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
             node.SetSolutionStepValue(Kratos.PRESSURE, id+3)
+            node.SetSolutionStepValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
+            node.SetSolutionStepValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
             node.SetValue(Kratos.PRESSURE, id+3)
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
+            node.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
+            node.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
 
         for condition in cls.model_part.Conditions:
             id = condition.Id
             condition.SetValue(Kratos.PRESSURE, id+4)
             condition.SetValue(Kratos.VELOCITY, Kratos.Array3([id+5, id+6, id+7]))
+            condition.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
+            condition.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
 
         for element in cls.model_part.Elements:
             id = element.Id
             element.SetValue(Kratos.PRESSURE, id+5)
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
+            element.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
+            element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
 
     def test_ContaienrDataAdd(self):
         a = self._GetContainerVariableDataHolder()
@@ -264,11 +276,46 @@ class TestContainerVariableData(ABC):
         a.ReadData(Kratos.VELOCITY)
         b.ReadData(Kratos.PRESSURE)
 
-        c = a.WeightedProduct(b)
+        c = a * b
         c.AssignData(Kratos.ACCELERATION)
 
         for entity in a.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.VELOCITY) * self._GetValue(entity, Kratos.PRESSURE), self._GetValue(entity, Kratos.ACCELERATION), 12)
+
+    def test_Vector(self):
+        a = self._GetContainerVariableDataHolder()
+        a.ReadData(Kratos.INITIAL_STRAIN)
+
+        a *= 2
+        a.AssignData(Kratos.PENALTY)
+
+        for entity in a.GetContainer():
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.INITIAL_STRAIN) * 2.0, self._GetValue(entity, Kratos.PENALTY), 12)
+
+    def test_Matrix(self):
+        a = self._GetContainerVariableDataHolder()
+        a.ReadData(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+
+        a *= 2
+        a.AssignData(Kratos.PK2_STRESS_TENSOR)
+
+        for entity in a.GetContainer():
+            self.assertMatrixAlmostEqual(self._GetValue(entity, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR) * 2.0, self._GetValue(entity, Kratos.PK2_STRESS_TENSOR), 12)
+
+    def test_Scope(self):
+        def func(a):
+            b = a * 2
+            c = b * 3
+            return c * 4
+
+        a = self._GetContainerVariableDataHolder()
+
+        a.ReadData(Kratos.VELOCITY)
+        b = func(a)
+        b.AssignData(Kratos.ACCELERATION)
+
+        for entity in a.GetContainer():
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.VELOCITY) * 24.0, self._GetValue(entity, Kratos.ACCELERATION), 12)
 
     def test_GetContainer(self):
         a = self._GetContainerVariableDataHolder()
