@@ -663,9 +663,9 @@ CrBeamElement2D2N::CalculateDeformationParameters()
     BoundedVector<double, msLocalSize> deformation_parameters =
         ZeroVector(msLocalSize);
     deformation_parameters[0] = CalculateLength() - L;
-    deformation_parameters[0] -= initial_unit_elongation * L;
+    deformation_parameters[0] -= initial_unit_elongation * L; // adding initial strain contributions
     deformation_parameters[1] = current_displacement[5] - current_displacement[2];
-    deformation_parameters[1] -= initial_unit_rotation * L;
+    deformation_parameters[1] -= initial_unit_rotation * L; // adding initial curvature contributions
     deformation_parameters[2] = current_displacement[5] + current_displacement[2];
     deformation_parameters[2] -= 2.00 * (CalculateDeformedElementAngle() -
                                          CalculateInitialElementAngle());
