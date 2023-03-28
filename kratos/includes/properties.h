@@ -247,30 +247,42 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, NodeType const& rThisNode) const
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV);
+        auto it_value = mAccessors.find(rVariable.Key());
+        if (it_value != mAccessors.end()) {
+            return (it_value->second)->GetProperty(rVariable, *this, rThisNode);
+        } else {
+            if(mData.Has(rVariable))
+                return mData.GetValue(rVariable);
+            return rThisNode.GetValue(rVariable);
+        }
     }
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV, SolutionStepIndex);
+        auto it_value = mAccessors.find(rVariable.Key());
+        if (it_value != mAccessors.end()) {
+            return (it_value->second)->GetProperty(rVariable, *this, rThisNode);
+        } else {
+            if(mData.Has(rVariable))
+                return mData.GetValue(rVariable);
+            return rThisNode.GetValue(rVariable, SolutionStepIndex);
+        }
     }
 
     template<class TVariableType>
     typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV, SolutionStepIndex);
+        auto it_value = mAccessors.find(rVariable.Key());
+        if (it_value != mAccessors.end()) {
+            return (it_value->second)->GetProperty(rVariable, *this, rThisNode);
+        } else {
+            if(mData.Has(rVariable))
+                return mData.GetValue(rVariable);
+            return rThisNode.GetValue(rVariable, SolutionStepIndex);
+        }
     }
 
     /*
