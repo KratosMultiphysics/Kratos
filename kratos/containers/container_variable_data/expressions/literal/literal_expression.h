@@ -47,12 +47,11 @@ public:
     static Expression::Pointer Create(const TDataType& Value);
 
     double Evaluate(
+        const IndexType EntityIndex,
         const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex) const override;
 
     const std::vector<IndexType> GetShape() const override;
-
-    bool IsScalar() const override;
 
     std::string Info() const override;
 

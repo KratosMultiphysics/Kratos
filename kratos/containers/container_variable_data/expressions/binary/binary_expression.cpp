@@ -51,9 +51,9 @@ BinaryExpression<TOperationType>::BinaryExpression(
     const auto& r_left_shape = mpLeft->GetShape();
     const auto& r_right_shape = mpRight->GetShape();
 
-    KRATOS_ERROR_IF_NOT(r_left_shape == r_right_shape || mpRight->IsScalar())
+    KRATOS_ERROR_IF_NOT(r_left_shape == r_right_shape || r_right_shape.size() == 0)
         << "Binary operation should have equal shape in left and right side "
-           "expressions or right hand side should be a scalar. ["
+           "expressions or right hand side should be a expression with shape {}. ["
         << "lhs shape = " << ExpressionHelperUtilities::GetShape(r_left_shape) << ", "
         << "rhs shape = " << ExpressionHelperUtilities::GetShape(r_right_shape) << " ].\n"
         << "Expression:\n"
@@ -79,24 +79,19 @@ Expression::Pointer BinaryExpression<TOperationType>::Create(
 
 template <class TOperationType>
 double BinaryExpression<TOperationType>::Evaluate(
+    const IndexType EntityIndex,
     const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
     return TOperationType::Evaluate(
-        mpLeft->Evaluate(EntityDataBeginIndex, ComponentIndex),
-        mpRight->Evaluate(EntityDataBeginIndex, ComponentIndex));
+        mpLeft->Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex),
+        mpRight->Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex));
 }
 
 template <class TOperationType>
 const std::vector<std::size_t> BinaryExpression<TOperationType>::GetShape() const
 {
     return this->mpLeft->GetShape();
-}
-
-template <class TOperationType>
-bool BinaryExpression<TOperationType>::IsScalar() const
-{
-    return this->mpLeft->IsScalar() && this->mpRight->IsScalar();
 }
 
 template <class TOperationType>

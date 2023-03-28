@@ -32,7 +32,11 @@ LiteralFlatExpression::Pointer LiteralFlatExpression::Create(
     const IndexType NumberOfEntities,
     const std::vector<IndexType>& rShape)
 {
-    return Kratos::make_intrusive<LiteralFlatExpression>(NumberOfEntities, rShape);
+    if (rShape.size() == 0) {
+        return Kratos::make_intrusive<LiteralScalarFlatExpression>(NumberOfEntities, rShape);
+    } else {
+        return Kratos::make_intrusive<LiteralNonScalarFlatExpression>(NumberOfEntities, rShape);
+    }
 }
 
 void LiteralFlatExpression::SetData(
@@ -43,28 +47,32 @@ void LiteralFlatExpression::SetData(
     mData[EntityDataBeginIndex + ComponentIndex] = Value;
 }
 
-double LiteralFlatExpression::Evaluate(
-    const IndexType EntityDataBeginIndex,
-    const IndexType ComponentIndex) const
-{
-    return mData[EntityDataBeginIndex + ComponentIndex];
-}
-
 const std::vector<std::size_t> LiteralFlatExpression::GetShape() const
 {
     return mShape;
 }
 
-bool LiteralFlatExpression::IsScalar() const
-{
-    return false;
-}
-
 std::string LiteralFlatExpression::Info() const
 {
     std::stringstream msg;
-    msg << "v" << mShape;
+    msg << "V" << mShape;
     return msg.str();
+}
+
+double LiteralScalarFlatExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType EntityDataBeginIndex,
+    const IndexType ComponentIndex) const
+{
+    return mData[EntityIndex];
+}
+
+double LiteralNonScalarFlatExpression::Evaluate(
+    const IndexType EntityIndex,
+    const IndexType EntityDataBeginIndex,
+    const IndexType ComponentIndex) const
+{
+    return mData[EntityDataBeginIndex + ComponentIndex];
 }
 
 } // namespace Kratos

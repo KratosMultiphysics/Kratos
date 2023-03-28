@@ -54,11 +54,13 @@ public:
     /**
      * @brief Evalute the expression for the given entity data start index and component index and returns the value
      *
-     * @param EntityDataBeginIndex  Index at which entity data starts
-     * @param ComponentIndex        Component index
-     * @return double               Evaluated expression
+     * @param EntityIndex           Index of the entity.
+     * @param EntityDataBeginIndex  Index at which entity data starts.
+     * @param ComponentIndex        Component index.
+     * @return double               Evaluated expression.
      */
     virtual double Evaluate(
+        const IndexType EntityIndex,
         const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex) const = 0;
 
@@ -68,14 +70,6 @@ public:
      * @return const std::vector<IndexType>     Size of each dimension is in the vector elements.
      */
     virtual const std::vector<IndexType> GetShape() const = 0;
-
-    /**
-     * @brief Returns true if this expression is a scalar
-     *
-     * @return true
-     * @return false
-     */
-    virtual bool IsScalar() const = 0;
 
     /**
      * @brief Get the Local Size of the expression

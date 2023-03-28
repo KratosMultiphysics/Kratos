@@ -99,7 +99,6 @@ void AddSpecializedContainerVariableDataToPython(pybind11::module& m, const std:
         .def(py::self /= py::self)
         .def(py::self /  float())
         .def(py::self /= float())
-        .def("WeightedProduct", &container_type::WeightedProduct, py::arg("container_with_scalar_entities"))
         .def("__pow__", [](container_type& rSelf, const container_type& rInput) { container_type result(rSelf.GetModelPart()); result = rSelf.Pow(rInput); return result; })
         .def("__ipow__", [](container_type& rSelf, const container_type& rInput) { rSelf = rSelf.Pow(rInput); return rSelf; })
         .def("__pow__", [](container_type& rSelf, const double Value) { container_type result(rSelf.GetModelPart()); result = rSelf.Pow(Value); return result; })

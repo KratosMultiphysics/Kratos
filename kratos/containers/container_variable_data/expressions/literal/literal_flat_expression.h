@@ -77,20 +77,13 @@ public:
         const IndexType ComponentIndex,
         const double Value);
 
-    double Evaluate(
-        const IndexType EntityDataBeginIndex,
-        const IndexType ComponentIndex) const override;
-
     const std::vector<IndexType> GetShape() const override;
-
-    bool IsScalar() const override;
 
     std::string Info() const override;
 
     ///@}
-
-private:
-    ///@name Private member variables
+protected:
+    ///@name Protected member variables
     ///@{
 
     const std::vector<IndexType> mShape;
@@ -98,6 +91,32 @@ private:
     Vector mData;
 
     ///@}
+};
+
+class LiteralScalarFlatExpression : public LiteralFlatExpression
+{
+public:
+
+    using LiteralFlatExpression::LiteralFlatExpression;
+
+    double Evaluate(
+        const IndexType EntityIndex,
+        const IndexType EntityDataBeginIndex,
+        const IndexType ComponentIndex) const override;
+
+};
+
+class LiteralNonScalarFlatExpression : public LiteralFlatExpression
+{
+public:
+
+    using LiteralFlatExpression::LiteralFlatExpression;
+
+    double Evaluate(
+        const IndexType EntityIndex,
+        const IndexType EntityDataBeginIndex,
+        const IndexType ComponentIndex) const override;
+
 };
 
 } // namespace Kratos

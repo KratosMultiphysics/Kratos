@@ -106,7 +106,7 @@ void ContainerVariableData<TContainerType>::AssignData(
         const IndexType entity_data_begin_index = EntityIndex * local_size;
         double* p_input_data_begin = pBegin + entity_data_begin_index;
         for (IndexType i = 0; i < local_size; ++i) {
-            *(p_input_data_begin+i) = r_expression.Evaluate(entity_data_begin_index, i);
+            *(p_input_data_begin+i) = r_expression.Evaluate(EntityIndex, entity_data_begin_index, i);
         }
     });
 
@@ -203,10 +203,18 @@ std::string ContainerVariableData<TContainerType>::Info() const
 {
     std::stringstream msg;
 
-    msg << "ContainerVariableDataHolderInfo: [ ModelPartName: "
+    msg << "VariableDataInfo: [ ModelPartName: "
         << this->GetModelPart().FullName()
-        << ", Number of entities: " << this->GetContainer().size()
-        << ", Data dimension: " << (mpExpression.has_value() ? this->GetLocalSize() : 0) << " ].\n";
+        << ", Number of entities: " << this->GetContainer().size();
+
+    if (mpExpression.has_value()) {
+        msg << ", DataDimension: " << this->GetLocalSize();
+        msg << ", Expression: " << this->GetExpression();
+    } else {
+        msg << ", Expression: not initialized";
+    }
+
+    msg << " ].\n";
 
     return msg.str();
 }

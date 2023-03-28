@@ -40,11 +40,12 @@ void Read(
 template<class TDataType, std::size_t... TIndex>
 void Assign(
     const Expression& rExpression,
+    const IndexType EntityIndex,
     const IndexType EntityDataBeginIndex,
     TDataType& rValue,
     std::index_sequence<TIndex...>)
 {
-    (rValue.insert_element(TIndex, rExpression.Evaluate(EntityDataBeginIndex, TIndex)), ...);
+    (rValue.insert_element(TIndex, rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, TIndex)), ...);
 }
 
 } // namespace VariableExpressionDataIOHelperUtilities
@@ -109,7 +110,7 @@ void VariableExpressionDataIO<TDataType>::Assign(
     const IndexType EntityIndex) const
 {
     constexpr IndexType N = std::tuple_size_v<typename TDataType::array_type>;
-    VariableExpressionDataIOHelperUtilities::Assign(rExpression, EntityIndex * N, rOutput, std::make_index_sequence<N>{});
+    VariableExpressionDataIOHelperUtilities::Assign(rExpression, EntityIndex, EntityIndex * N, rOutput, std::make_index_sequence<N>{});
 }
 
 template<class TDataType>
@@ -128,7 +129,7 @@ void VariableExpressionDataIO<double>::Assign(
     const Expression& rExpression,
     const IndexType EntityIndex) const
 {
-    rOutput = rExpression.Evaluate(EntityIndex, 0);
+    rOutput = rExpression.Evaluate(EntityIndex, EntityIndex, 0);
 }
 
 template<>
@@ -152,8 +153,9 @@ void VariableExpressionDataIO<Vector>::Assign(
         rOutput.resize(local_size, false);
     }
 
+    const IndexType entity_data_begin_index = EntityIndex * local_size;
     for (IndexType i = 0; i < local_size; ++i) {
-        rOutput[i] = rExpression.Evaluate(EntityIndex, i);
+        rOutput[i] = rExpression.Evaluate(EntityIndex, entity_data_begin_index, i);
     }
 }
 
@@ -163,8 +165,9 @@ void VariableExpressionDataIO<Vector>::Read(
     const IndexType EntityIndex,
     const Vector& Value) const
 {
+    const IndexType entity_data_begin_index = EntityIndex * Value.size();
     for (IndexType i = 0; i < Value.size(); ++i) {
-        rExpression.SetData(EntityIndex, i, Value[i]);
+        rExpression.SetData(entity_data_begin_index, i, Value[i]);
     }
 }
 
@@ -180,10 +183,12 @@ void VariableExpressionDataIO<Matrix>::Assign(
         rOutput.resize(r_shape[0], r_shape[1], false);
     }
 
+    const IndexType entity_data_begin_index = EntityIndex * rExpression.GetLocalSize();
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < r_shape[0]; ++i) {
         for (IndexType j = 0; j < r_shape[1]; ++j) {
-            rOutput(i, j) = rExpression.Evaluate(EntityIndex, local_index++);
+            rOutput(i, j) = rExpression.Evaluate(EntityIndex, entity_data_begin_index, local_index++);
         }
     }
 }
@@ -196,9 +201,11 @@ void VariableExpressionDataIO<Matrix>::Read(
 {
     IndexType local_index = 0;
 
+    const IndexType entity_data_begin_index = EntityIndex * rExpression.GetLocalSize();
+
     for (IndexType i = 0; i < Value.size1(); ++i) {
         for (IndexType j = 0; j < Value.size2(); ++j) {
-            rExpression.SetData(EntityIndex, local_index++, Value(i, j));
+            rExpression.SetData(entity_data_begin_index, local_index++, Value(i, j));
         }
     }
 }

@@ -24,7 +24,6 @@
 #include "containers/container_variable_data/expressions/literal/literal_expression.h"
 #include "containers/container_variable_data/expressions/literal/literal_flat_expression.h"
 #include "containers/container_variable_data/expressions/binary/binary_expression.h"
-#include "containers/container_variable_data/expressions/binary/binary_weighted_multiplication_expression.h"
 
 namespace Kratos {
 
@@ -316,19 +315,6 @@ SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedCo
 {
     SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
     result.mpExpression = BinaryExpression<BinaryOperations::Power>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO>
-SpecializedContainerVariableData<TContainerType, TContainerDataIO> SpecializedContainerVariableData<TContainerType, TContainerDataIO>::WeightedProduct(const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rOther) const
-{
-    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
-        << "Mismatching model parts found with different number of entities in substraction operation.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    SpecializedContainerVariableData<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
-    result.mpExpression = BinaryWeightedMultiplicationExpression::Create(*this->mpExpression, *rOther.mpExpression);
     return result;
 }
 

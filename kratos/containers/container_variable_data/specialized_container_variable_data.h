@@ -197,8 +197,6 @@ public:
 
     SpecializedContainerVariableData Pow(const double Value) const;
 
-    SpecializedContainerVariableData WeightedProduct(const SpecializedContainerVariableData& rOther) const;
-
     ///@}
     ///@name Input and output
     ///@{
