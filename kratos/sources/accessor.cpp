@@ -85,7 +85,8 @@ namespace Kratos
         )
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        return 0.0;
+        Vector aux(0);
+        return aux;
     }
 
     Vector Accessor::GetProperty(
@@ -94,7 +95,8 @@ namespace Kratos
         )
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        return 0.0;
+        Vector aux(0);
+        return aux;
     }
 
     Vector Accessor::GetProperty(
@@ -104,7 +106,8 @@ namespace Kratos
         )
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        return 0.0;
+        Vector aux(0);
+        return aux;
     }
 
     Vector Accessor::GetProperty(
@@ -115,7 +118,245 @@ namespace Kratos
         )
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        return 0.0;
+        Vector aux(0);
+        return aux;
+    }
+
+    /**
+     * @brief This method implements the way to retrieve a bool type variable
+     */
+    bool Accessor::GetProperty(
+        const Variable<bool> &rVariable,
+        const Properties &rProperties,
+        const GeometryType &rGeometry,
+        const Vector &rShapeFunctionVector,
+        const ProcessInfo &rProcessInfo
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return false;
+    }
+
+    bool Accessor::GetProperty(
+        const Variable<bool> &rVariable,
+        const Properties &rProperties
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return false;
+    }
+
+    bool Accessor::GetProperty(
+        const Variable<bool> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return false;
+    }
+
+    bool Accessor::GetProperty(
+        const Variable<bool> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode,
+        IndexType SolutionStepIndex
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return false;
+    }
+
+    /**
+     * @brief This method implements the way to retrieve a int type variable
+     */
+    int Accessor::GetProperty(
+        const Variable<int> &rVariable,
+        const Properties &rProperties,
+        const GeometryType &rGeometry,
+        const Vector &rShapeFunctionVector,
+        const ProcessInfo &rProcessInfo
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0;
+    }
+
+    int Accessor::GetProperty(
+        const Variable<int> &rVariable,
+        const Properties &rProperties
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0;
+    }
+
+    int Accessor::GetProperty(
+        const Variable<int> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0;
+    }
+
+    int Accessor::GetProperty(
+        const Variable<int> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode,
+        IndexType SolutionStepIndex
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        return 0;
+    }
+
+    /**
+     * @brief This method implements the way to retrieve a Matrix type variable
+     */
+    Matrix Accessor::GetProperty(
+        const Variable<Matrix> &rVariable,
+        const Properties &rProperties,
+        const GeometryType &rGeometry,
+        const Vector &rShapeFunctionVector,
+        const ProcessInfo &rProcessInfo
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        Matrix mat(0, 0);
+        return mat;
+    }
+
+    Matrix Accessor::GetProperty(
+        const Variable<Matrix> &rVariable,
+        const Properties &rProperties
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        Matrix mat(0, 0);
+        return mat;
+    }
+
+    Matrix Accessor::GetProperty(
+        const Variable<Matrix> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        Matrix mat(0, 0);
+        return mat;
+    }
+
+    Matrix Accessor::GetProperty(
+        const Variable<Matrix> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode,
+        IndexType SolutionStepIndex
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        Matrix mat(0, 0);
+        return mat;
+    }
+
+    /**
+     * @brief This method implements the way to retrieve a array_1d<double, 3 > type variable
+     */
+    array_1d<double, 3 > Accessor::GetProperty(
+        const Variable<array_1d<double, 3 >> &rVariable,
+        const Properties &rProperties,
+        const GeometryType &rGeometry,
+        const Vector &rShapeFunctionVector,
+        const ProcessInfo &rProcessInfo
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        array_1d<double, 3 > mat;
+        return mat;
+    }
+
+    array_1d<double, 3 > Accessor::GetProperty(
+        const Variable<array_1d<double, 3 >> &rVariable,
+        const Properties &rProperties
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        array_1d<double, 3 > mat;
+        return mat;
+    }
+
+    array_1d<double, 3 > Accessor::GetProperty(
+        const Variable<array_1d<double, 3 >> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        array_1d<double, 3 > mat;
+        return mat;
+    }
+
+    array_1d<double, 3 > Accessor::GetProperty(
+        const Variable<array_1d<double, 3 >> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode,
+        IndexType SolutionStepIndex
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        array_1d<double, 3 > mat;
+        return mat;
+    }
+
+    /**
+     * @brief This method implements the way to retrieve a array_1d<double, 6 > type variable
+     */
+    array_1d<double, 6 > Accessor::GetProperty(
+        const Variable<array_1d<double, 6 >> &rVariable,
+        const Properties &rProperties,
+        const GeometryType &rGeometry,
+        const Vector &rShapeFunctionVector,
+        const ProcessInfo &rProcessInfo
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        array_1d<double, 6 > mat;
+        return mat;
+    }
+
+    array_1d<double, 6 > Accessor::GetProperty(
+        const Variable<array_1d<double, 6 >> &rVariable,
+        const Properties &rProperties
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        array_1d<double, 6 > mat;
+        return mat;
+    }
+
+    array_1d<double, 6 > Accessor::GetProperty(
+        const Variable<array_1d<double, 6 >> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        array_1d<double, 6 > mat;
+        return mat;
+    }
+
+    array_1d<double, 6 > Accessor::GetProperty(
+        const Variable<array_1d<double, 6 >> &rVariable,
+        const Properties &rProperties,
+        NodeType& rThisNode,
+        IndexType SolutionStepIndex
+        )
+    {
+        KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+        array_1d<double, 6 > mat;
+        return mat;
     }
 
     /**
