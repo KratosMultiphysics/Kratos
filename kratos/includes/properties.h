@@ -216,25 +216,34 @@ public:
     {
         auto it_value = mAccessors.find(rVariable.Key());
         if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable);
+            return (it_value->second)->GetProperty(rVariable, *this);
         } else {
             return mData.GetValue(rVariable);
         }
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rV) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable) const
     {
-        return mData.GetValue(rV);
+        auto it_value = mAccessors.find(rVariable.Key());
+        if (it_value != mAccessors.end()) {
+            return (it_value->second)->GetProperty(rVariable, *this);
+        } else {
+            return mData.GetValue(rVariable);
+        }
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode)
+    typename TVariableType::Type& GetValue(const TVariableType& rVariable, NodeType& rThisNode)
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV);
+        auto it_value = mAccessors.find(rVariable.Key());
+        if (it_value != mAccessors.end()) {
+            return (it_value->second)->GetProperty(rVariable, *this, rThisNode);
+        } else {
+            if(mData.Has(rVariable))
+                return mData.GetValue(rVariable);
+            return rThisNode.GetValue(rVariable);
+        }
     }
 
     template<class TVariableType>
