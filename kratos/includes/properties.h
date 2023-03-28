@@ -260,7 +260,7 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
+    typename TVariableType::Type& GetValue(const TVariableType& rVariable, NodeType& rThisNode, IndexType SolutionStepIndex)
     {
         auto it_value = mAccessors.find(rVariable.Key());
         if (it_value != mAccessors.end()) {
@@ -273,7 +273,7 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, NodeType const& rThisNode, IndexType SolutionStepIndex) const
     {
         auto it_value = mAccessors.find(rVariable.Key());
         if (it_value != mAccessors.end()) {
