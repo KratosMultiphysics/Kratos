@@ -125,26 +125,6 @@ public:
          */
         ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
 
-
-
-
-
-        /**
-         * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
-         */
-        bool RequiresInitializeMaterialResponse() override
-        {
-            return true;
-    }
-
-    /**
-     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
-     */
-    bool RequiresFinalizeMaterialResponse() override
-    {
-        return true;
-    }
-
     /**
      * @brief Returns whether this constitutive Law has specified variable (Vector)
      * @param rThisVariable the variable to be checked for
