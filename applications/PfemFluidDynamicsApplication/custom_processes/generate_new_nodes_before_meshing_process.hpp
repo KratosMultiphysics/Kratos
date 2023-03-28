@@ -1672,13 +1672,13 @@ namespace Kratos
 					pnode->pAddDof(rDof);
 				}
 
-				Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][0]);
-				Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][1]);
-				Node<3>::Pointer SlaveNode3 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][2]);
+				Node<3>::Pointer slave_node_1 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][0]);
+				Node<3>::Pointer slave_node_2 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][1]);
+				Node<3>::Pointer slave_node_3 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][2]);
 
-				InterpolateFromTwoNodes(pnode, SlaveNode1, SlaveNode2, VariablesList);
+				InterpolateFromTwoNodes(pnode, slave_node_1, slave_node_2, VariablesList);
 
-				TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode3);
+				TakeMaterialPropertiesFromNotRigidNode(pnode, slave_node_3);
 			}
 
 			// set the coordinates to the original value
@@ -1773,26 +1773,26 @@ namespace Kratos
 
 				list_of_new_nodes.push_back(pnode);
 
-				Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][0]);
-				Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][1]);
-				InterpolateFromTwoNodes(pnode, SlaveNode1, SlaveNode2, VariablesList);
-				if (SlaveNode1->Is(RIGID) || SlaveNode1->Is(SOLID))
+				Node<3>::Pointer slave_node_1 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][0]);
+				Node<3>::Pointer slave_node_2 = mrModelPart.pGetNode(nodes_id_to_interpolate[nn][1]);
+				InterpolateFromTwoNodes(pnode, slave_node_1, slave_node_2, VariablesList);
+				if (slave_node_1->Is(RIGID) || slave_node_1->Is(SOLID))
 				{
-					TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
+					TakeMaterialPropertiesFromNotRigidNode(pnode, slave_node_2);
 				}
 				else
 				{
 
-					SizeType propertyIdNodeSlave1 = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
+					SizeType propertyIdNodeSlave1 = slave_node_1->FastGetSolutionStepValue(PROPERTY_ID);
 					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 == principalModelPartId) ||
 						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 != principalModelPartId) ||
-						(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)))
+						(slave_node_2->Is(RIGID) || slave_node_2->Is(SOLID)))
 					{
-						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
+						TakeMaterialPropertiesFromNotRigidNode(pnode, slave_node_1);
 					}
 					else
 					{
-						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
+						TakeMaterialPropertiesFromNotRigidNode(pnode, slave_node_2);
 					}
 				}
 
@@ -1822,7 +1822,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void InterpolateFromTwoNodes(Node<3>::Pointer MasterNode, Node<3>::Pointer SlaveNode1, Node<3>::Pointer SlaveNode2, VariablesList &rVariablesList)
+		void InterpolateFromTwoNodes(Node<3>::Pointer MasterNode, Node<3>::Pointer slave_node_1, Node<3>::Pointer slave_node_2, VariablesList &rVariablesList)
 		{
 
 			KRATOS_TRY
@@ -1840,8 +1840,8 @@ namespace Kratos
 						// getting the data of the solution step
 						double &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
-						double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-						double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+						double node0_data = slave_node_1->FastGetSolutionStepValue(variable, step);
+						double node1_data = slave_node_2->FastGetSolutionStepValue(variable, step);
 
 						node_data = (0.5 * node0_data + 0.5 * node1_data);
 					}
@@ -1854,8 +1854,8 @@ namespace Kratos
 						// getting the data of the solution step
 						array_1d<double, 3> &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
-						const array_1d<double, 3> &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-						const array_1d<double, 3> &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+						const array_1d<double, 3> &node0_data = slave_node_1->FastGetSolutionStepValue(variable, step);
+						const array_1d<double, 3> &node1_data = slave_node_2->FastGetSolutionStepValue(variable, step);
 
 						noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
 						// node_data = (0.5*node0_data + 0.5*node1_data);
@@ -1880,8 +1880,8 @@ namespace Kratos
 						// getting the data of the solution step
 						Matrix &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
-						Matrix &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-						Matrix &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+						Matrix &node0_data = slave_node_1->FastGetSolutionStepValue(variable, step);
+						Matrix &node1_data = slave_node_2->FastGetSolutionStepValue(variable, step);
 
 						if (node_data.size1() > 0 && node_data.size2())
 						{
@@ -1904,8 +1904,8 @@ namespace Kratos
 						// getting the data of the solution step
 						Vector &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
-						Vector &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-						Vector &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+						Vector &node0_data = slave_node_1->FastGetSolutionStepValue(variable, step);
+						Vector &node1_data = slave_node_2->FastGetSolutionStepValue(variable, step);
 
 						if (node_data.size() > 0)
 						{
