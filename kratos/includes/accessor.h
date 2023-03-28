@@ -270,7 +270,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Copy constructor.
          */
-        Accessor(const Accessor &rOther);
+        // Accessor(const Accessor &rOther);
 
         ///@}
         ///@name Input and output

@@ -408,7 +408,7 @@ namespace Kratos
         return str;
     }
 
-    Mastd::stringtrix& Accessor::GetProperty(
+    std::string& Accessor::GetProperty(
         const Variable<std::string> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
@@ -431,9 +431,9 @@ namespace Kratos
     /**
      * @brief Copy method
      */
-    Accessor::Accessor(const Accessor& rOther)
-    {
-    }
+    // Accessor::Accessor(const Accessor& rOther)
+    // {
+    // }
 
 
 } // namespace Kratos
