@@ -23,18 +23,18 @@ namespace Kratos {
 LiteralFlatExpression::LiteralFlatExpression(
     const IndexType NumberOfEntities,
     const std::vector<IndexType>& rShape)
-    : mShape(rShape)
+    : mShape(rShape),
+      mData(NumberOfEntities * this->GetFlattenedSize())
 {
-    mData.resize(NumberOfEntities * this->GetFlattenedSize());
 }
 
 LiteralFlatExpression::LiteralFlatExpression(
     double* pDataBegin,
     const IndexType NumberOfEntities,
     const std::vector<IndexType>& rShape)
-    : mShape(rShape)
+    : mShape(rShape),
+      mData(pDataBegin)
 {
-    mData.assign(pDataBegin, pDataBegin + NumberOfEntities * this->GetFlattenedSize());
 }
 
 LiteralFlatExpression::Pointer LiteralFlatExpression::Create(

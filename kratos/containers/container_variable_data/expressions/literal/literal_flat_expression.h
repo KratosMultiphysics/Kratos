@@ -93,12 +93,59 @@ public:
 
     ///@}
 protected:
+    ///@name Protected classes
+    ///@{
+
+    class Data
+    {
+    public:
+        ///@}
+        ///@name Life cycle
+        ///@{
+
+        /**
+         * @brief Construct a new Data object where the array memory is managed by the object.
+         *
+         * @param Size      Size of the allocated array.
+         */
+        Data(const IndexType Size): mpBegin(new double[Size]), mIsManaged(true) {}
+
+        /**
+         * @brief Construct a new Data object, where the underlying array memory is not managed by the object.
+         *
+         * @param pBegin    Pointer to the memory array.
+         */
+        Data(double* pBegin): mpBegin(pBegin), mIsManaged(false) {}
+
+        ~Data() { if (mIsManaged) { delete[] mpBegin; } }
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        double& operator[](const IndexType Index) noexcept { return mpBegin[Index]; }
+
+        double operator[](const IndexType Index) const noexcept { return mpBegin[Index]; }
+
+        ///@}
+    private:
+        ///@name Private member variables
+        ///@{
+
+        double* mpBegin;
+
+        bool mIsManaged;
+
+        ///@}
+    };
+
+    ///@}
     ///@name Protected member variables
     ///@{
 
     const std::vector<IndexType> mShape;
 
-    std::vector<double> mData;
+    Data mData;
 
     ///@}
 };
