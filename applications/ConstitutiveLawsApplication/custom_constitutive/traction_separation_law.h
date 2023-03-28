@@ -233,6 +233,24 @@ public:
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * @brief Calculate delamination damage in different modes
+     * @see Parameters
+     */
+    double CalculateDelaminationDamageExponentialSoftening (
+        ConstitutiveLaw::Parameters& rValues,
+        const double GI,
+        const double E,
+        const double T0,
+        const double equivalent_stress);
+
+    double CalculateDelaminationDamageLinearSoftening(
+        ConstitutiveLaw::Parameters& rValues,
+        const double GI,
+        const double E,
+        const double T0,
+        const double equivalent_stress);
+
+    /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */

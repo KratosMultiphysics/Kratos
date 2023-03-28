@@ -342,38 +342,19 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
             const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
-            const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
 
-                // const double AParameter_mode_one = -std::pow(T0n, 2) / (2.0 * Ei * GIc / characteristic_length); // Linear
-                const double AParameter_mode_one = 1.00 / (GIc * Ei / (characteristic_length * std::pow(T0n, 2)) - 0.5); // Exponential
-
-                KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "AParameter_mode_one is negative." << std::endl;
-
-                // DelaminationDamageModeOne[i+1] = (1.0 - T0n / equivalent_stress_mode_one) / (1.0 + AParameter_mode_one); // Linear
-                DelaminationDamageModeOne[i+1] = 1.0 - (T0n / equivalent_stress_mode_one) * std::exp(AParameter_mode_one *
-                    (1.0 - equivalent_stress_mode_one / T0n)); // Exponential
-
-                DelaminationDamageModeOne[i+1] = (DelaminationDamageModeOne[i+1] >= 0.99999) ? 0.99999 : DelaminationDamageModeOne[i+1];
-                DelaminationDamageModeOne[i+1] = (DelaminationDamageModeOne[i+1] < 0.0) ? 0.0 : DelaminationDamageModeOne[i+1];
+                DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
+                // DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageLinearSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
             }
 
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
 
-                // const double AParameter_mode_two = -std::pow(T0s, 2) / (2.0 * Gi * GIIc / characteristic_length); // Linear
-                const double AParameter_mode_two = 1.00 / (GIIc * Gi / (characteristic_length * std::pow(T0s, 2)) - 0.5); // Exponential
-
-                KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "AParameter_mode_two is negative." << std::endl;
-
-                // DelaminationDamageModeTwo[i+1] = (1.0 - T0s / equivalent_stress_mode_two) / (1.0 + AParameter_mode_two); // Linear
-                DelaminationDamageModeTwo[i+1] = 1.0 - (T0s / equivalent_stress_mode_two) * std::exp(AParameter_mode_two *
-                    (1.0 - equivalent_stress_mode_two / T0s)); // Exponential
-
-                DelaminationDamageModeTwo[i+1] = (DelaminationDamageModeTwo[i+1] >= 0.99999) ? 0.99999 : DelaminationDamageModeTwo[i+1];
-                DelaminationDamageModeTwo[i+1] = (DelaminationDamageModeTwo[i+1] < 0.0) ? 0.0 : DelaminationDamageModeTwo[i+1];
+                DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
+                // DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageLinearSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
             }
 
             // End damage calculation
@@ -676,6 +657,52 @@ template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     FinalizeMaterialResponsePK2(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+double TractionSeparationLaw3D<TDim>::CalculateDelaminationDamageExponentialSoftening(
+    ConstitutiveLaw::Parameters& rValues,
+    const double GI,
+    const double E,
+    const double T0,
+    const double equivalent_stress)
+{
+    const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
+    const double AParameter = 1.00 / (GI * E / (characteristic_length * std::pow(T0, 2)) - 0.5); // Exponential
+
+    KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
+
+    double DelaminationDamage = 1.0 - (T0 / equivalent_stress) * std::exp(AParameter * (1.0 - equivalent_stress / T0)); // Exponential
+
+    DelaminationDamage = (DelaminationDamage >= 0.99999) ? 0.99999 : DelaminationDamage;
+    DelaminationDamage = (DelaminationDamage < 0.0) ? 0.0 : DelaminationDamage;
+    return DelaminationDamage;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+double TractionSeparationLaw3D<TDim>::CalculateDelaminationDamageLinearSoftening(
+    ConstitutiveLaw::Parameters& rValues,
+    const double GI,
+    const double E,
+    const double T0,
+    const double equivalent_stress)
+{
+    const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
+    const double AParameter = -std::pow(T0, 2) / (2.0 * E * GI / characteristic_length);
+
+    KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
+
+    double DelaminationDamage = (1.0 - T0 / equivalent_stress) / (1.0 + AParameter);
+
+    DelaminationDamage = (DelaminationDamage >= 0.99999) ? 0.99999 : DelaminationDamage;
+    DelaminationDamage = (DelaminationDamage < 0.0) ? 0.0 : DelaminationDamage;
+    return DelaminationDamage;
 }
 
 /***********************************************************************************/
