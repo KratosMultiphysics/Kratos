@@ -361,8 +361,8 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         }
 
         for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
-            double layer_damage_variable_mode_one = 0;
-            double layer_damage_variable_mode_two = 0;
+            double layer_damage_variable_mode_one = 0.0;
+            double layer_damage_variable_mode_two = 0.0;
 
             if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
                 layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
@@ -382,11 +382,6 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             layer_stress[i][0] *= 1.0;
             layer_stress[i][1] *= 1.0;
             layer_stress[i][3] *= 1.0;
-
-
-            // if (negative_interfacial_stress_indicator[i] == false && negative_interfacial_stress_indicator[i+1] == false) {
-            //     layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
-            // }
         }
 
         for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
@@ -560,17 +555,9 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
-                // const double AParameter_mode_one = -std::pow(T0n, 2) / (2.0 * Ei * GIc / characteristic_length); // Linear
-                const double AParameter_mode_one = 1.00 / (GIc * Ei / (characteristic_length * std::pow(T0n, 2)) - 0.5); // Exponential
 
-                KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "AParameter_mode_one is negative." << std::endl;
-
-                // DelaminationDamageModeOne[i+1] = (1.0 - T0n / equivalent_stress_mode_one) / (1.0 + AParameter_mode_one); // Linear
-                DelaminationDamageModeOne[i+1] = 1.0 - (T0n / equivalent_stress_mode_one) * std::exp(AParameter_mode_one *
-                    (1.0 - equivalent_stress_mode_one / T0n)); // Exponential
-
-                DelaminationDamageModeOne[i+1] = (DelaminationDamageModeOne[i+1] >= 0.99999) ? 0.99999 : DelaminationDamageModeOne[i+1];
-                DelaminationDamageModeOne[i+1] = (DelaminationDamageModeOne[i+1] < 0.0) ? 0.0 : DelaminationDamageModeOne[i+1];
+                DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
+                // DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageLinearSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
 
                 mDelaminationDamageModeOne[i+1] = DelaminationDamageModeOne[i+1];
                 mThresholdModeOne[i] = equivalent_stress_mode_one;
@@ -578,17 +565,9 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
-                // const double AParameter_mode_two = -std::pow(T0s, 2) / (2.0 * Gi * GIIc / characteristic_length); // Linear
-                const double AParameter_mode_two = 1.00 / (GIIc * Gi / (characteristic_length * std::pow(T0s, 2)) - 0.5); // Exponential
 
-                KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "AParameter_mode_two is negative." << std::endl;
-
-                // DelaminationDamageModeTwo[i+1] = (1.0 - T0s / equivalent_stress_mode_two) / (1.0 + AParameter_mode_two); // Linear
-                DelaminationDamageModeTwo[i+1] = 1.0 - (T0s / equivalent_stress_mode_two) * std::exp(AParameter_mode_two *
-                    (1.0 - equivalent_stress_mode_two / T0s)); // Exponential
-
-                DelaminationDamageModeTwo[i+1] = (DelaminationDamageModeTwo[i+1] >= 0.99999) ? 0.99999 : DelaminationDamageModeTwo[i+1];
-                DelaminationDamageModeTwo[i+1] = (DelaminationDamageModeTwo[i+1] < 0.0) ? 0.0 : DelaminationDamageModeTwo[i+1];
+                DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
+                // DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageLinearSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
 
                 mDelaminationDamageModeTwo[i+1] = DelaminationDamageModeTwo[i+1];
                 mThresholdModeTwo[i] = equivalent_stress_mode_two;
@@ -596,40 +575,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             // End damage calculation
         }
-
-        for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
-            double layer_damage_variable_mode_one = 0;
-            double layer_damage_variable_mode_two = 0;
-
-            if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
-                layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
-            } else {
-                layer_damage_variable_mode_one = DelaminationDamageModeOne[i];
-            }
-
-            if (DelaminationDamageModeTwo[i+1] > DelaminationDamageModeTwo[i]) {
-                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i+1];
-            } else {
-                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i];
-            }
-
-            layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
-            layer_stress[i][4] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
-            layer_stress[i][5] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
-            layer_stress[i][0] *= 1.0;
-            layer_stress[i][1] *= 1.0;
-            layer_stress[i][3] *= 1.0;
-        }
-
-
-        for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
-            const double factor = r_combination_factors[i];
-            delamination_damage_affected_stress_vector += factor * layer_stress[i];
-        }
-
-        auxiliar_stress_vector = delamination_damage_affected_stress_vector;
-
-        noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
         // Previous flags restored
         r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
