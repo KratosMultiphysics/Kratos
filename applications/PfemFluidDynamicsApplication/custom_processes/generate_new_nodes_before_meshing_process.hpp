@@ -876,18 +876,6 @@ namespace Kratos
 					{
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
-						// if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
-						// {
-						// 	CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
-						// }
-						// else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
-						// {
-						// 	CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
-						// }
-						// else
-						// {
-						// 	std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
-						// }
 						BiggestVolumes[CountNodes] = ElementalVolume;
 						NewPositions[CountNodes] = NewPosition;
 						CountNodes++;
@@ -912,7 +900,6 @@ namespace Kratos
 										const double diffY = std::abs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
 										if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node
 										{
-											// std::cout << " the nodes has more or less the same position of a previously inserted node" << NewPositions[j][0] << " " << NewPositions[j][1] << " versus " << NewPosition[0] << " " << NewPosition[1] << std::endl;
 											suitableElementForSecondAdd = false;
 										}
 									}
@@ -922,18 +909,6 @@ namespace Kratos
 								{
 									NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
 									NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
-									// if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
-									// {
-									// 	CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
-									// }
-									// else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
-									// {
-									// 	CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
-									// }
-									// else
-									// {
-									// 	std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
-									// }
 									BiggestVolumes[nn] = ElementalVolume;
 									NewPositions[nn] = NewPosition;
 								}
@@ -973,18 +948,6 @@ namespace Kratos
 						}
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
-						// if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
-						// {
-						// 	CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
-						// }
-						// else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
-						// {
-						// 	CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
-						// }
-						// else
-						// {
-						// 	std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
-						// }
 						BiggestVolumes[CountNodes] = ElementalVolume;
 						NewPositions[CountNodes] = NewPosition;
 						CountNodes++;
@@ -1204,18 +1167,6 @@ namespace Kratos
 					{
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
-						// if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
-						// {
-						// 	CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
-						// }
-						// else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
-						// {
-						// 	CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
-						// }
-						// else
-						// {
-						// 	std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
-						// }
 						BiggestVolumes[CountNodes] = ElementalVolume;
 						NewPositions[CountNodes] = NewPosition;
 						CountNodes++;
@@ -1251,18 +1202,6 @@ namespace Kratos
 								{
 									NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
 									NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
-									// if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
-									// {
-									// 	CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
-									// }
-									// else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
-									// {
-									// 	CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
-									// }
-									// else
-									// {
-									// 	std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
-									// }
 									BiggestVolumes[nn] = ElementalVolume;
 									NewPositions[nn] = NewPosition;
 								}
@@ -1301,18 +1240,6 @@ namespace Kratos
 						}
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
-						// if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
-						// {
-						// 	CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
-						// }
-						// else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
-						// {
-						// 	CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
-						// }
-						// else
-						// {
-						// 	std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
-						// }
 						BiggestVolumes[CountNodes] = ElementalVolume;
 						NewPositions[CountNodes] = NewPosition;
 						CountNodes++;
