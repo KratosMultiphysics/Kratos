@@ -534,69 +534,6 @@ namespace Kratos
                         delete tetrahedron;
                     }
 
-                    // // to control that the element has a good shape
-                    // if (accepted && (numfreesurf > 0 || numrigid == nds))
-                    //     {
-                    //         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
-
-                    //         double Volume = tetrahedron->Volume();
-                    //         double CriticalVolume = 0.01 * mrRemesh.Refine->MeanVolume;
-                    //         if(Volume==0){
-                    //             std::cout<<" !!!!! Volume==0 ";
-                    //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                    //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             Volume = std::pow(meanLength, 3) * std::sqrt(2) / 12.0;
-                    //             std::cout<<" now volume is  "<<Volume<<std::endl;
-                    //         }
-                    //         if (CriticalVolume == 0)
-                    //         {
-                    //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                    //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             double regularTetrahedronVolume = std::pow(meanLength, 3) * std::sqrt(2) / 12.0;
-                    //             CriticalVolume = 0.00001 * regularTetrahedronVolume;
-                    //         }
-
-                    //         if (std::abs(Volume) < CriticalVolume)
-                    //         {
-                    //             accepted = false;
-                    //             number_of_slivers++;
-                    //         }
-                    //         delete tetrahedron;
-                    //     }
-                    //}
-
                     if (accepted)
                     {
                         number += 1;
