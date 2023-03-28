@@ -30,6 +30,7 @@ with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     import test_sensitivity_utilities
     from test_model_part_io import TestModelPartIOMPI
     import test_variable_redistribution
+    import test_container_variable_data
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -62,6 +63,10 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_distributed_model_part_initializer.TestDistributedModelPartInitializer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_distributed_import_model_part_utility.TestDistributedImportModelPartUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_distributed_sparse_matrices.TestDistributedSparseMatrices]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_variable_data.TestHistoricalContainerVariableDataHolder]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_variable_data.TestNodalContainerVariableDataHolder]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_variable_data.TestConditionContainerVariableDataHolder]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_variable_data.TestElementContainerVariableDataHolder]))
 
     # adding non-mpi tests also as mpi tests
     smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursProcess"))
