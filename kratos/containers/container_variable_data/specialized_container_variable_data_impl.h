@@ -47,7 +47,7 @@ typename SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Poi
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::ReadData(const Variable<TDataType>& rVariable)
+void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Read(const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
 
@@ -73,7 +73,7 @@ void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::ReadDat
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::AssignData(const Variable<TDataType>& rVariable)
+void SpecializedContainerVariableData<TContainerType, TContainerDataIO>::Evaluate(const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
 
