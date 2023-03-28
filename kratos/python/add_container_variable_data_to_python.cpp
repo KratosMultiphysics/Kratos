@@ -35,8 +35,8 @@ void AddContainerVariableDataToPython(pybind11::module& m, const std::string& rN
     using container_variable_data_holder_base = ContainerVariableData<TContainerType>;
     py::class_<container_variable_data_holder_base, typename container_variable_data_holder_base::Pointer>(m, rName.c_str())
         .def("CopyDataFrom", &container_variable_data_holder_base::CopyDataFrom, py::arg("origin_container_data"))
-        .def("ReadData", &container_variable_data_holder_base::ReadData, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("shape"))
-        .def("AssignData", &container_variable_data_holder_base::AssignData, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("shape"))
+        .def("ReadData", &container_variable_data_holder_base::ReadData, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("starting_value_of_shape"), py::arg("shape_size"))
+        .def("AssignData", &container_variable_data_holder_base::AssignData, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("starting_value_of_shape"), py::arg("shape_size"))
         .def("GetModelPart", py::overload_cast<>(&container_variable_data_holder_base::GetModelPart), py::return_value_policy::reference)
         .def("GetContainer", py::overload_cast<>(&container_variable_data_holder_base::GetContainer), py::return_value_policy::reference)
         .def("PrintData", &container_variable_data_holder_base::PrintData)

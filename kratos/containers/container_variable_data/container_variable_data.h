@@ -132,8 +132,9 @@ public:
      */
     void ReadData(
         double const* pBegin,
-        const IndexType NumberOfEntities,
-        const std::vector<IndexType>& rShape);
+        const int NumberOfEntities,
+        int const* pShapeBegin,
+        const int ShapeSize);
 
     /**
      * @brief Assign the data in the expression to c-like interfaces
@@ -162,8 +163,9 @@ public:
      */
     void AssignData(
         double* pBegin,
-        const IndexType NumberOfEntities,
-        const std::vector<IndexType>& rShape);
+        const int NumberOfEntities,
+        int const* pShapeBegin,
+        const int ShapeSize);
 
     /**
      * @brief Set the Data To Zero container.
