@@ -23,31 +23,6 @@
 namespace Kratos
 {
 
-// Default Constructor
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition() : Condition() {}
-
-//----------------------------------------------------------------------------------------
-
-//Constructor 1
-GeneralUPwDiffOrderCondition::
-    GeneralUPwDiffOrderCondition(IndexType NewId,
-                                 GeometryType::Pointer pGeometry) :
-                                 Condition(NewId, pGeometry) {}
-
-//----------------------------------------------------------------------------------------
-
-//Constructor 2
-GeneralUPwDiffOrderCondition::
-    GeneralUPwDiffOrderCondition(IndexType NewId,
-                                 GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties) :
-                                 Condition(NewId, pGeometry, pProperties)
-{
-    mThisIntegrationMethod = this->GetIntegrationMethod();
-}
-
-//----------------------------------------------------------------------------------------
-
 //Destructor
 GeneralUPwDiffOrderCondition::~GeneralUPwDiffOrderCondition() {}
 
@@ -255,7 +230,7 @@ void GeneralUPwDiffOrderCondition::
     this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
     //Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
@@ -291,15 +266,15 @@ void GeneralUPwDiffOrderCondition::
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const SizeType NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
     const SizeType WorkingDim = rGeom.WorkingSpaceDimension();
     const SizeType LocalDim = rGeom.LocalSpaceDimension();
 
     (rVariables.NuContainer).resize(NumGPoints,NumUNodes,false);
-    rVariables.NuContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+    rVariables.NuContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     (rVariables.NpContainer).resize(NumGPoints,NumPNodes,false);
-    rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
+    rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues(this->GetIntegrationMethod());
 
     (rVariables.Nu).resize(NumUNodes,false);
     (rVariables.Np).resize(NumPNodes,false);
@@ -307,7 +282,7 @@ void GeneralUPwDiffOrderCondition::
     (rVariables.JContainer).resize(NumGPoints,false);
     for(SizeType i = 0; i<NumGPoints; ++i)
         ((rVariables.JContainer)[i]).resize(WorkingDim,LocalDim,false);
-    rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
+    rGeom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
 }
 
 //----------------------------------------------------------------------------------------

@@ -243,6 +243,53 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         self.assertAlmostEqual(max_distance, 1.0001547969705757)
         self.assertAlmostEqual(min_distance, -0.00022682772863112904)
 
+    def test_levelset_convection_tau_nodal(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/levelset_convection_process_mesh")).ReadModelPart(model_part)
+        model_part.SetBufferSize(2)
+
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, BaseDistance(node.X,node.Y,node.Z))
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, ConvectionVelocity(node.X,node.Y,node.Z))
+
+        for node in model_part.Nodes:
+            if node.X < 0.001:
+                node.Fix(KratosMultiphysics.DISTANCE)
+
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(
+            KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
+
+        model_part.CloneTimeStep(20.0)
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "eulerian_error_compensation" : false,
+            "element_type" : "levelset_convection_supg",
+            "element_settings" :{
+                "tau_nodal": true
+            }
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            model_part,
+            linear_solver,
+            levelset_convection_settings).Execute()
+
+        max_distance = -1.0
+        min_distance = +1.0
+        for node in model_part.Nodes:
+            d =  node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            max_distance = max(max_distance, d)
+            min_distance = min(min_distance, d)
+
+        self.assertAlmostEqual(max_distance,0.7868643986367427)
+        self.assertAlmostEqual(min_distance,-0.057482590870069024)
+
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
