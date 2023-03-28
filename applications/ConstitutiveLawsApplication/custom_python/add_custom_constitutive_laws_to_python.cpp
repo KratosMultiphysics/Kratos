@@ -93,7 +93,7 @@
 
 // Rules of mixtures
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
-#include "custom_constitutive/traction_separation_law.h"
+#include "custom_constitutive/composites/traction_separation_law.h"
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
