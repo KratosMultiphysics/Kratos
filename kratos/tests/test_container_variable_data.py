@@ -355,11 +355,17 @@ class TestContainerVariableData(ABC):
             v = self._GetValue(entity, Kratos.PRESSURE)
             self.assertEqual(v, numpy_array[i], 12)
 
-        numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 2 * 2).reshape(len(a.GetContainer()), 2, 2)
+        numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 8).reshape(len(a.GetContainer()), 8)
+        a.Read(numpy_array)
+        a *= 2
+        a.Evaluate(Kratos.INITIAL_STRAIN)
+        for i, entity in enumerate(a.GetContainer()):
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.INITIAL_STRAIN), numpy_array[i, :] * 2, 12)
+
+        numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 2 * 4).reshape(len(a.GetContainer()), 2, 4)
         a.Read(numpy_array)
         a *= 2
         a.Evaluate(Kratos.PK2_STRESS_TENSOR)
-
         for i_entity, entity in enumerate(a.GetContainer()):
             v = self._GetValue(entity, Kratos.PK2_STRESS_TENSOR)
             for i in range(v.Size1()):
