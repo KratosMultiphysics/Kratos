@@ -19,6 +19,7 @@ namespace Kratos
 void DamJoint2DLaw::GetLawFeatures(Features& rFeatures)
 {
     KRATOS_TRY
+
     //Set the type of law
 	rFeatures.mOptions.Set( PLANE_STRAIN_LAW );
 	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
@@ -33,6 +34,7 @@ void DamJoint2DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set the strain size
 	rFeatures.mStrainSize = 2;
+
     KRATOS_CATCH("")
 }
 
@@ -49,6 +51,7 @@ void DamJoint2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                                            Parameters& rValues)
 {
     KRATOS_TRY
+
     if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY)) // No contact between interfaces
     {
         rConstitutiveMatrix(0,0) = rVariables.YieldStress;
@@ -66,6 +69,7 @@ void DamJoint2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
         rConstitutiveMatrix(0,1) = 0.0;
         rConstitutiveMatrix(1,0) = 0.0;
     }
+
     KRATOS_CATCH("")
 }
 
@@ -76,6 +80,7 @@ void DamJoint2DLaw::ComputeStressVector(Vector& rStressVector,
                                                      Parameters& rValues)
 {
     KRATOS_TRY
+
     const Vector& StrainVector = rValues.GetStrainVector();
 
     if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY)) // No contact between interfaces
@@ -88,6 +93,10 @@ void DamJoint2DLaw::ComputeStressVector(Vector& rStressVector,
         rStressVector[0] = rVariables.YieldStress * StrainVector[0];
         rStressVector[1] = rVariables.YoungModulus * StrainVector[1];
     }
+
+    // Add Uplift Pressure
+    rStressVector[1] -= mUpliftPressure;
+
     KRATOS_CATCH("")
 }
 
