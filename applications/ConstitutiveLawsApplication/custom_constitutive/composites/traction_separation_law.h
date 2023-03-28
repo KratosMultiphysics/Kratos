@@ -224,6 +224,20 @@ public:
         const double equivalent_stress);
 
     /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
+     * @return 0 if OK, 1 otherwise
+     */
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
+    /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */

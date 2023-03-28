@@ -615,6 +615,28 @@ double TractionSeparationLaw3D<TDim>::CalculateDelaminationDamageExponentialSoft
 /***********************************************************************************/
 
 template<unsigned int TDim>
+int TractionSeparationLaw3D<TDim>::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACIAL_NORMAL_STRENGTH)) << "INTERFACIAL_NORMAL_STRENGTH is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACIAL_SHEAR_STRENGTH)) << "INTERFACIAL_SHEAR_STRENGTH is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MODE_ONE_FRACTURE_ENERGY)) << "MODE_ONE_FRACTURE_ENERGY is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MODE_TWO_FRACTURE_ENERGY)) << "MODE_TWO_FRACTURE_ENERGY is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(TENSILE_INTERFACE_MODULUS)) << "TENSILE_INTERFACE_MODULUS is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SHEAR_INTERFACE_MODULUS)) << "SHEAR_INTERFACE_MODULUS is not a defined value" << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[MODE_ONE_FRACTURE_ENERGY] < 0.0) << "MODE_ONE_FRACTURE_ENERGY is negative." << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[MODE_TWO_FRACTURE_ENERGY] < 0.0) << "MODE_TWO_FRACTURE_ENERGY is negative." << std::endl;
+
+    return BaseType::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
 void TractionSeparationLaw3D<TDim>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
