@@ -212,9 +212,14 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rV)
+    typename TVariableType::Type& GetValue(const TVariableType& rVariable)
     {
-        return mData.GetValue(rV);
+        auto it_value = mAccessors.find(rVariable.Key());
+        if (it_value != mAccessors.end()) {
+            return (it_value->second)->GetProperty(rVariable);
+        } else {
+            return mData.GetValue(rVariable);
+        }
     }
 
     template<class TVariableType>
