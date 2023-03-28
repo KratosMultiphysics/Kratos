@@ -1,7 +1,12 @@
 import KratosMultiphysics
 import KratosMultiphysics.DamApplication as KratosDam
 
-from gstools import SRF, Gaussian
+try:
+    import gstools
+    from gstools import SRF, Gaussian
+except ImportError:
+    raise ImportError("This module requires 'gstools'!")
+
 from statistics import mean, variance
 from math import sqrt
 

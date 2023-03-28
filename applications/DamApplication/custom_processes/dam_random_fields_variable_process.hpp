@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Lorenzo Gracia
+//  Main authors:    Joaquín Irazábal González (jirazabal@cimne.upc.edu)
 //
 //
 
