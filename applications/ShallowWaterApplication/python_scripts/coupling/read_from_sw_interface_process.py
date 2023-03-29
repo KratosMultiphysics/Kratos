@@ -80,9 +80,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
         self._CheckInputCoordinates()
         self.FindPfemHeight() 
         self._CheckInputVariables()
-        # self._CreateMapper()
-        # self._MapToBoundaryCondition()
-
+        
 
     def ExecuteInitializeSolutionStep(self):
         '''Set the variables in the input_model_part at the current time.'''
@@ -93,7 +91,6 @@ class ReadFromSwInterfaceProcess(KM.Process):
             self.ComputeAverageValues()
             self._CheckInputVariables()
             self.DistributeVelocityToPfem()
-            # self._MapToBoundaryCondition()
         else:
             if self.settings["default_time_after_interval"] is not None:
                 self._SetDefaultTime()
@@ -101,7 +98,6 @@ class ReadFromSwInterfaceProcess(KM.Process):
                 self.ComputeAverageValues()
                 self._CheckInputVariables()
                 self.DistributeVelocityToPfem()
-                # self._MapToBoundaryCondition()
                 self._SmoothDefaultValue()
 
     def ComputeAverageValues(self):
@@ -143,28 +139,10 @@ class ReadFromSwInterfaceProcess(KM.Process):
             
     def DistributeVelocityToPfem(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            # self.avg_vel_z = 0.0
-            # self.vel_pfem   = self.avg_vel_x*self.avg_h/self.h_pfem
-            # self.vel_pfem_z = self.avg_vel_z*self.avg_h/self.h_pfem
-            # print(self.avg_vel_z)
-            # for node in self.interface_model_part.Nodes:
-            #     vel_z_var = self.vel_pfem_z*(node.Y - self.y_bottom)/self.h_pfem
-            #     node.SetSolutionStepValue(KM.VELOCITY_X, self.vel_pfem) 
-            #     node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var)
-            #     print(node.Y,vel_z_var) 
-           for node in self.interface_model_part.Nodes:
-               node.Y = (node.Y0 - self.y_bottom)*self.avg_h/self.h_pfem + self.y_bottom
-               displacement = node.Y - node.Y0
-               node.SetSolutionStepValue(KM.DISPLACEMENT_Y, displacement)
-               vel_z_var = self.avg_vel_z*(node.Y - self.y_bottom)/self.avg_h
-               # vel_z_var = 0.0
-               node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
-               node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var) 
-               print(node.Y, vel_z_var)
+            self.Moving_v()
+
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
-            
             self.interpolate_sw_to_pfem_utility.InterpolateVariables(self.interface_model_part,self.input_model_part)
-                
             for node in self.interface_model_part.Nodes:
                 
                 node_topography = node.GetValue(SW.TOPOGRAPHY)
@@ -184,7 +162,41 @@ class ReadFromSwInterfaceProcess(KM.Process):
                 node.SetSolutionStepValue(KM.VELOCITY_Y, vel_y)
                 node.SetSolutionStepValue(KM.VELOCITY_Z, vel_z_var)
                 
-                
+
+    def Fixed_v0(self):
+        self.avg_vel_z = 0.0
+        self.vel_pfem   = self.avg_vel_x*self.avg_h/self.h_pfem
+        self.vel_pfem_z = self.avg_vel_z*self.avg_h/self.h_pfem
+        for node in self.interface_model_part.Nodes:
+            vel_z_var = self.vel_pfem_z*(node.Y - self.y_bottom)/self.h_pfem
+            node.SetSolutionStepValue(KM.VELOCITY_X, self.vel_pfem) 
+            node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var)
+
+    def Fixed_v(self):
+        self.vel_pfem   = self.avg_vel_x*self.avg_h/self.h_pfem
+        self.vel_pfem_z = self.avg_vel_z*self.avg_h/self.h_pfem
+        for node in self.interface_model_part.Nodes:
+            vel_z_var = self.vel_pfem_z*(node.Y - self.y_bottom)/self.h_pfem
+            node.SetSolutionStepValue(KM.VELOCITY_X, self.vel_pfem) 
+            node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var)
+
+    def Moving_v0(self):
+        for node in self.interface_model_part.Nodes:
+            node.Y = (node.Y0 - self.y_bottom)*self.avg_h/self.h_pfem + self.y_bottom
+            displacement = node.Y - node.Y0
+            node.SetSolutionStepValue(KM.DISPLACEMENT_Y, displacement)
+            vel_z_var = 0.0
+            node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
+            node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var) 
+
+    def Moving_v(self):
+        for node in self.interface_model_part.Nodes:
+            node.Y = (node.Y0 - self.y_bottom)*self.avg_h/self.h_pfem + self.y_bottom
+            displacement = node.Y - node.Y0
+            node.SetSolutionStepValue(KM.DISPLACEMENT_Y, displacement)
+            vel_z_var = self.avg_vel_z*(node.Y - self.y_bottom)/self.avg_h
+            node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
+            node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var) 
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
