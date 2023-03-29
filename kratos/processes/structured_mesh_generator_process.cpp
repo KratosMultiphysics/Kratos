@@ -93,7 +93,7 @@ void StructuredMeshGeneratorProcess::Execute()
         const Parameters skin_parameters = Parameters(R"(
         {
             "name_auxiliar_model_part" : "",
-            "name_auxiliar_condition"  : ""
+            "name_auxiliar_condition"  : "Condition"
         })" );
         skin_parameters["name_auxiliar_model_part"].SetString(mSkinSubModelPartName);
 

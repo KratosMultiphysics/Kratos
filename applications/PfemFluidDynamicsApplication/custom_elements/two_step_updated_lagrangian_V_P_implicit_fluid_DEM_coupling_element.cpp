@@ -576,11 +576,6 @@ namespace Kratos
         }
         FluidFractionRate = 0.0;
 
-        // double BulkCoeff =GaussWeight/(VolumetricCoeff);
-        // this->ComputeBulkMatrix(BulkVelMatrix,N,BulkCoeff);
-        // double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
-        // this->ComputeBulkMatrix(BulkAccMatrix,N,BulkStabCoeff);
-
         double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
         // if constexpr (TDim==3){
         //   BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
@@ -629,7 +624,6 @@ namespace Kratos
       double lumpedBulkStabCoeff = lumpedBulkCoeff * Tau * Density / TimeStep;
 
       this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
-      // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkCoeff);
       noalias(rLeftHandSideMatrix) += BulkMatrix;
       // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
@@ -639,7 +633,6 @@ namespace Kratos
       noalias(PressureValuesForRHS) += -PressureValues * TimeStep;
       noalias(BulkMatrix) = ZeroMatrix(NumNodes, NumNodes);
       this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkStabCoeff);
-      // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkStabCoeff);
       noalias(rLeftHandSideMatrix) += BulkMatrix;
       // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);

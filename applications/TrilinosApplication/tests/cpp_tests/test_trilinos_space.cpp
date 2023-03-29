@@ -19,7 +19,7 @@
 #include "trilinos_space.h"
 #include "containers/model.h"
 #include "mpi/includes/mpi_data_communicator.h"
-#include "custom_utilities/trilinos_cpp_test_utilities.h"
+#include "trilinos_cpp_test_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos::Testing
@@ -296,6 +296,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilin
     TrilinosLocalMatrixType multiply_reference;
     MathUtils<double>::BtDBProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+
+    // Non zero matrix
+    auto second_mult = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+
+    // Solution
+    TrilinosSparseSpaceType::BtDBProductOperation(second_mult, matrix_1, matrix_2);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(second_mult, multiply_reference);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilinosApplicationMPITestSuite)
@@ -328,6 +335,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilin
     TrilinosLocalMatrixType multiply_reference;
     MathUtils<double>::BDBtProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+
+    // Non zero matrix
+    auto second_mult = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+
+    // Solution
+    TrilinosSparseSpaceType::BDBtProductOperation(second_mult, matrix_1, matrix_2);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(second_mult, multiply_reference);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosInplaceMult, KratosTrilinosApplicationMPITestSuite)
@@ -500,6 +514,46 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSetToZeroVector, KratosTrilinosApp
 
     // Check
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCopyMatrixValues, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto matrix_1 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto matrix_2 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0);
+    auto local_matrix = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0);
+
+    // Solution
+    TrilinosSparseSpaceType::CopyMatrixValues(matrix_1, matrix_2);
+
+    // Check
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix_1, local_matrix);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCombineMatricesGraphs, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto matrix_1 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0);
+    auto matrix_2 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto local_matrix = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
+
+    // Creating new matrix
+    const auto combined_graph = TrilinosSparseSpaceType::CombineMatricesGraphs(matrix_1, matrix_2);
+    TrilinosSparseMatrixType copied_matrix(::Copy, combined_graph);
+
+    // Solution
+    TrilinosSparseSpaceType::CopyMatrixValues(copied_matrix, matrix_2);
+
+    // Check
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(copied_matrix, local_matrix);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)

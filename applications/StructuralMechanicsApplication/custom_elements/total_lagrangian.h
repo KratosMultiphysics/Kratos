@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -347,4 +346,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined

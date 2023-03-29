@@ -29,7 +29,8 @@
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 #include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
 #include "custom_processes/inlet_management_process.hpp"
-#include "custom_processes/set_inlet_process.hpp"
+#include "custom_processes/set_lagrangian_inlet_process.hpp"
+#include "custom_processes/set_eulerian_inlet_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
@@ -98,7 +99,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<CalculateWaveHeightProcess, CalculateWaveHeightProcess::Pointer, ProcessBaseType>(m, "CalculateWaveHeightProcess")
         .def(py::init<ModelPart&, const int, const int, const double, const double, const double, const std::string, const double>());
 
-    py::class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>(m, "SetInlet")
+    py::class_<SetLagrangianInletProcess, SetLagrangianInletProcess::Pointer, ProcessBaseType>(m, "SetLagrangianInlet")
+        .def(py::init<ModelPart &, int>());
+
+    py::class_<SetEulerianInletProcess, SetEulerianInletProcess::Pointer, ProcessBaseType>(m, "SetEulerianInlet")
         .def(py::init<ModelPart &, int>());
 
     py::class_<SplitElementsProcess, SplitElementsProcess::Pointer, ProcessBaseType>(m, "SplitElementsProcess")

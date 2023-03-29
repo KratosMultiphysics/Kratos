@@ -122,13 +122,7 @@ void UpdatedLagrangianVImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
 
-    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1]) * 0.5;
-
-    double mechanicalDissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
-                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
-                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.SpatialDefRate[2];
-
-    this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
+    this->ComputeMechanicalDissipation(rElementalVariables);
 }
 
 template <>
@@ -198,16 +192,7 @@ void UpdatedLagrangianVImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
 
-    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2]) / 3.0;
-
-    double mechanicalDissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
-                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
-                                   rElementalVariables.UpdatedDeviatoricCauchyStress[2] * (rElementalVariables.SpatialDefRate[2] - volumetric_strain) +
-                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.SpatialDefRate[3] +
-                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.SpatialDefRate[4] +
-                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.SpatialDefRate[5];
-
-    this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
+    this->ComputeMechanicalDissipation(rElementalVariables);
 }
 
 template class UpdatedLagrangianVImplicitSolidElement<2>;
