@@ -17,6 +17,7 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 
