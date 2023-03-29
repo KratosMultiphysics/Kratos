@@ -99,7 +99,7 @@ namespace Kratos
       {
         i_node->Set(INLET);
         i_node->Set(RIGID);
-        i_node->GetValue(LAGRANGIAN_INLET) = true;
+        i_node->Set(PFEMFlags::LAGRANGIAN_INLET);
       }
 
       KRATOS_CATCH(" ")

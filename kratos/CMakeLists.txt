@@ -97,10 +97,12 @@ endif()
 
 target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+
 # Set batch size in the unity build
-IF(CMAKE_UNITY_BUILD MATCHES ON)
+if(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
-ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+endif(CMAKE_UNITY_BUILD MATCHES ON)
+
 target_compile_definitions(KratosCore PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
@@ -125,6 +127,13 @@ endif()
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
+
+# Pass python version flags ONLY TO THE INTERFACE
+target_compile_definitions(Kratos PRIVATE
+    PYTHON_VERSION_MAJOR=${PYTHON_VERSION_MAJOR}
+    PYTHON_VERSION_MINOR=${PYTHON_VERSION_MINOR}
+    PYTHON_VERSION_PATCH=${PYTHON_VERSION_PATCH}
+)
 
 if(CMAKE_UNITY_BUILD MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram

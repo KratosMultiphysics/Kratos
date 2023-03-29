@@ -741,7 +741,7 @@ void GeoTrussElementBase<3,2>::
     KRATOS_TRY
 
     // 1st calculate transformation matrix
-    typedef BoundedVector<double, DIM> arraydim;
+    using arraydim = BoundedVector<double, DIM>;
     arraydim direction_vector_x = ZeroVector(DIM);
     arraydim direction_vector_y = ZeroVector(DIM);
     arraydim direction_vector_z = ZeroVector(DIM);
