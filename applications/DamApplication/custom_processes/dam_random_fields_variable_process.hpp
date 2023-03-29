@@ -146,8 +146,6 @@ protected:
     ModelPart& mrModelPart;
     TableType& mrTable;
     std::string mVariableName;
-    double mInitialValue;
-    std::string mInputFile;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

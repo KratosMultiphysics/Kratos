@@ -2,16 +2,15 @@ import KratosMultiphysics
 import KratosMultiphysics.DamApplication as KratosDam
 
 try:
-    import gstools
     from gstools import SRF, Gaussian
 except ImportError:
-    raise ImportError("This module requires 'gstools'!")
+    raise ImportError("The use of the random fields module requires 'gstools'!")
 
 from statistics import mean, variance
 from math import sqrt
 
 def Factory(settings, Model):
-    if(not isinstance(settings,KratosMultiphysics.Parameters)):
+    if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return Impose2dRandomFieldsVariableProcess(Model, settings["Parameters"])
 
@@ -20,7 +19,6 @@ class Impose2dRandomFieldsVariableProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
         model_part = Model[settings["model_part_name"].GetString()]
-        variable_name = settings["variable_name"].GetString()
         mean_value = settings["mean_value"].GetDouble()
         min_value = settings["min_value"].GetDouble()
         max_value = settings["max_value"].GetDouble()
@@ -47,17 +45,18 @@ class Impose2dRandomFieldsVariableProcess(KratosMultiphysics.Process):
 
         variable_values = []
 
-        for i in range(len(field)):
-            variable_values.append(mean_value + ((field[i]-field_mean)*var/sqrt(field_var)))
+        for field_i in field:
+            variable_values.append(mean_value + ((field_i-field_mean)*var/sqrt(field_var)))
 
         ### Truncate values
-        for i in range(len(variable_values)):
-            if variable_values[i] < min_value:
-                variable_values[i] = min_value
-            if variable_values[i] > max_value:
-                variable_values[i] = max_value
+        for variable_value in variable_values:
+            if variable_value < min_value:
+                variable_value = min_value
+            if variable_value > max_value:
+                variable_value = max_value
 
         self.table = KratosMultiphysics.PiecewiseLinearTable()
+
         for i in range(len(variable_values)):
             self.table.AddRow(int(ids[i]), float(variable_values[i]))
 
