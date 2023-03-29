@@ -37,7 +37,7 @@ namespace Kratos
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
         const ProcessInfo &rProcessInfo
-        )
+        ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         double aux;
@@ -53,7 +53,7 @@ namespace Kratos
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
         const ProcessInfo &rProcessInfo
-        )
+        ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         Vector aux(0);
@@ -69,7 +69,7 @@ namespace Kratos
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
         const ProcessInfo &rProcessInfo
-        )
+        ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         bool aux;
@@ -85,7 +85,7 @@ namespace Kratos
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
         const ProcessInfo &rProcessInfo
-        )
+        ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         int aux;
@@ -101,7 +101,7 @@ namespace Kratos
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
         const ProcessInfo &rProcessInfo
-        )
+        ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         Matrix mat(0, 0);
@@ -117,7 +117,7 @@ namespace Kratos
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
         const ProcessInfo &rProcessInfo
-        )
+        ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         array_1d<double, 3 > mat;
@@ -133,7 +133,7 @@ namespace Kratos
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
         const ProcessInfo &rProcessInfo
-        )
+        ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         array_1d<double, 6 > mat;
@@ -149,7 +149,7 @@ namespace Kratos
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
         const ProcessInfo &rProcessInfo
-        )
+        ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
         std::string str;

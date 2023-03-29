@@ -45,7 +45,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         ///@{
             typedef Node<3> NodeType;
             typedef Geometry<NodeType> GeometryType;
-            
+
 
         /// Pointer definition of NodeSearchUtility
         KRATOS_CLASS_POINTER_DEFINITION(Accessor);
@@ -117,8 +117,8 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve array_1d<double, 3 > type properties
          */
-        virtual array_1d<double, 3 > const& GetProperty(
-            const Variable<array_1d<double, 3 >> &rVariable,
+        virtual array_1d<double, 3> const& GetProperty(
+            const Variable<array_1d<double, 3>> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
@@ -127,8 +127,8 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve array_1d<double, 6 > type properties
          */
-        virtual array_1d<double, 6 > const& GetProperty(
-            const Variable<array_1d<double, 6 >> &rVariable,
+        virtual array_1d<double, 6> const& GetProperty(
+            const Variable<array_1d<double, 6>> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
@@ -169,7 +169,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "Accessor";}
 
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const {}
+        virtual void PrintData(std::ostream& rOStream) const {rOStream << "virtual method of the base Accessor class";}
 
         ///@}
 

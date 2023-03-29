@@ -532,6 +532,12 @@ public:
                 r_subprop.PrintData(rOStream);
             }
         }
+        if (mAccessors.size() > 0) {
+            rOStream << "\nThis properties contains the following " << mAccessors.size() << " accessors" << std::endl;
+            for (auto entry : mAccessors) {
+                (entry.second)->PrintData(rOStream);
+            }
+        }
     }
 
 
