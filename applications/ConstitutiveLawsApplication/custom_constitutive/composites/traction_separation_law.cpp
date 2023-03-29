@@ -617,7 +617,7 @@ double TractionSeparationLaw3D<TDim>::CalculateDelaminationDamageExponentialSoft
 template<unsigned int TDim>
 int TractionSeparationLaw3D<TDim>::Check(
     const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
+    const ConstitutiveLaw::GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
