@@ -290,7 +290,7 @@ class DamMechanicalSolver(object):
         rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
 
         if(solution_type == "Quasi-Static"):
-            if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
+            if(rayleigh_m<1.0e-15 and rayleigh_k<1.0e-15):
                 scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()
             else:
                 scheme =  KratosDam.IncrementalUpdateStaticDampedSmoothingScheme(rayleigh_m,rayleigh_k)

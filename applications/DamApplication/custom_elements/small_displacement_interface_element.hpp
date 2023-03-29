@@ -168,18 +168,15 @@ protected:
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& weight, const double& detJ);
 
-
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-
 
     void CalculateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues );
 
