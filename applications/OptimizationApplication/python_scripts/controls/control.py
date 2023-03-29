@@ -17,5 +17,5 @@ class Control(Kratos.Process):
         raise NotImplementedError("Calling base class Control::CalculateSensitivity method. Please implement it in the derived class.")
 
     def UpdateControl(self, update: KratosOA.CollectiveVariableDataHolder):
-        raise NotImplementedError("Calling base class Control::UpdateControl method. Please implement it in the derrived class.")
+        raise NotImplementedError("Calling base class Control::UpdateControl method. Please implement it in the derived class.")
 
