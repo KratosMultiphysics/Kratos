@@ -5,7 +5,7 @@ try:
     import gstools
     from gstools import SRF, Gaussian
 except ImportError:
-    raise ImportError("This module requires 'gstools'!")
+    raise ImportError("The use of the random fields module requires 'gstools'!")
 
 from statistics import mean, variance
 from math import sqrt
