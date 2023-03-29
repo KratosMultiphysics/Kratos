@@ -46,14 +46,14 @@ namespace Kratos
                 : public  Accessor 
             {
                 public:
-                double GetProperty(
+                double const& GetProperty(
                     const Variable<double> &rVariable,
                     const Properties &rProperties,
                     const GeometryType &rGeometry,
                     const Vector &rShapeFunctionVector,
-                    const ProcessInfo &rProcessInfo) override
+                    const ProcessInfo &rProcessInfo) const override
                 {
-                    return mValue * rProperties[YOUNG_MODULUS];
+                    return mValue * rProperties[rVariable];
                 }
 
                 Accessor::Pointer Clone() const override
@@ -84,7 +84,6 @@ namespace Kratos
             auto p_elem = Kratos::make_intrusive<TestElement>(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
             p_elem->Initialize(r_process_info);
             this_model_part.AddElement(p_elem);
-
 
             CustomAccessor custom_accessor = CustomAccessor();
             p_prop->SetAccessor(YOUNG_MODULUS, custom_accessor.Clone());

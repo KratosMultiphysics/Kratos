@@ -147,11 +147,6 @@ class KRATOS_API(KRATOS_CORE) Accessor
         // Getting a pointer tot he class
         virtual Accessor::Pointer Clone() const;
 
-        /**
-         * Copy constructor.
-         */
-        Accessor(const Accessor &rOther);
-
         ///@}
         ///@name Input and output
         ///@{

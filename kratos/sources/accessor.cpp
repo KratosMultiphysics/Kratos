@@ -163,13 +163,4 @@ namespace Kratos
     {
         return Kratos::make_shared<Accessor>(*this);
     }
-
-    /**
-     * @brief Copy method
-     */
-    Accessor::Accessor(const Accessor& rOther)
-    {
-    }
-
-
 } // namespace Kratos
