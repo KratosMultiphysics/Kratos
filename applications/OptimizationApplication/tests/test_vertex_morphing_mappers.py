@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import ContainerVariableDataHolderUnion
 
-class TestVertexMoprhingContainerVariableDataMapper(ABC):
+class TestVertexMorphingContainerVariableDataMapper(ABC):
     @classmethod
     def setUpClass(cls):
         cls.KratosEntity = Union[Kratos.Node, Kratos.Condition, Kratos.Element]
