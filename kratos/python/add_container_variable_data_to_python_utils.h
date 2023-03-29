@@ -15,7 +15,6 @@
 
 // External includes
 #include <pybind11/stl.h>
-#include <pybind11/operators.h>
 #include <pybind11/numpy.h>
 
 // Project includes
@@ -206,22 +205,22 @@ void AddSpecializedContainerVariableDataToPython(pybind11::module& m, const std:
         .def("SetZero", &container_type::template SetZero<Vector>, py::arg("Vector_variable"))
         .def("SetZero", &container_type::template SetZero<Matrix>, py::arg("Matrix_variable"))
         .def("Clone", &container_type::Clone)
-        .def(py::self +  py::self)
-        .def(py::self += py::self)
-        .def(py::self +  float())
-        .def(py::self += float())
-        .def(py::self -  py::self)
-        .def(py::self -= py::self)
-        .def(py::self -  float())
-        .def(py::self -= float())
-        .def(py::self *  py::self)
-        .def(py::self *= py::self)
-        .def(py::self *  float())
-        .def(py::self *= float())
-        .def(py::self /  py::self)
-        .def(py::self /= py::self)
-        .def(py::self /  float())
-        .def(py::self /= float())
+        .def("__add__", [](const container_type& rSelf, const container_type& rOther) { return rSelf + rOther; })
+        .def("__iadd__", [](container_type& rSelf, const container_type& rOther) { rSelf = rSelf + rOther; return rSelf; })
+        .def("__add__", [](const container_type& rSelf, const double Value) { return rSelf + Value; })
+        .def("__iadd__", [](container_type& rSelf, const double Value) { rSelf = rSelf + Value; return rSelf; })
+        .def("__sub__", [](const container_type& rSelf, const container_type& rOther) { return rSelf - rOther; })
+        .def("__isub__", [](container_type& rSelf, const container_type& rOther) { rSelf = rSelf - rOther; return rSelf; })
+        .def("__sub__", [](const container_type& rSelf, const double Value) { return rSelf - Value; })
+        .def("__isub__", [](container_type& rSelf, const double Value) { rSelf = rSelf - Value; return rSelf; })
+        .def("__mul__", [](const container_type& rSelf, const container_type& rOther) { return rSelf * rOther; })
+        .def("__imul__", [](container_type& rSelf, const container_type& rOther) { rSelf = rSelf * rOther; return rSelf; })
+        .def("__mul__", [](const container_type& rSelf, const double Value) { return rSelf * Value; })
+        .def("__imul__", [](container_type& rSelf, const double Value) { rSelf = rSelf * Value; return rSelf; })
+        .def("__truediv__", [](const container_type& rSelf, const container_type& rOther) { return rSelf / rOther; })
+        .def("__itruediv__", [](container_type& rSelf, const container_type& rOther) { rSelf = rSelf / rOther; return rSelf; })
+        .def("__truediv__", [](const container_type& rSelf, const double Value) { return rSelf / Value; })
+        .def("__itruediv__", [](container_type& rSelf, const double Value) { rSelf = rSelf / Value; return rSelf; })
         .def("__pow__", [](container_type& rSelf, const container_type& rInput) { container_type result(rSelf.GetModelPart()); result = rSelf.Pow(rInput); return result; })
         .def("__ipow__", [](container_type& rSelf, const container_type& rInput) { rSelf = rSelf.Pow(rInput); return rSelf; })
         .def("__pow__", [](container_type& rSelf, const double Value) { container_type result(rSelf.GetModelPart()); result = rSelf.Pow(Value); return result; })
