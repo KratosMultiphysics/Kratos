@@ -159,8 +159,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_< InterpolateSwToPfemUtility >
         (m, "InterpolateSwToPfemUtility")
         .def( py::init<>())
-        .def("TransferVariables",&InterpolateSwToPfemUtility::TransferVariables)
-    //    .def("SaveInitialStresses",&InterpolateSwToPfemUtility::SaveInitialStresses)
+        .def("InterpolateVariables",&InterpolateSwToPfemUtility::InterpolateVariables)
     ;
 
 }

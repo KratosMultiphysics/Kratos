@@ -117,16 +117,19 @@ void WriteFromSwAtInterfaceProcess<TDim>::ReadAndSetValues(
     array_1d<double,3> momentum = ZeroVector(3);
     double height = 0.0;
     double vertical_velocity = 0.0;
+    double topography = 0.0;
     
     velocity = rNode.FastGetSolutionStepValue(VELOCITY);
     momentum = rNode.FastGetSolutionStepValue(MOMENTUM);
     height = rNode.FastGetSolutionStepValue(HEIGHT);
     vertical_velocity = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY);
+    topography = rNode.FastGetSolutionStepValue(TOPOGRAPHY);
 
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);
     SetValue(rNode, HEIGHT, height);
     SetValue(rNode, VERTICAL_VELOCITY, vertical_velocity);
+    SetValue(rNode, TOPOGRAPHY, topography);
 
 }
 

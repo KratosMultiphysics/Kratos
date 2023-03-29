@@ -40,7 +40,7 @@ class WriteFromSwAtInterfaceProcess(BaseProcess.DepthIntegrationOutputProcess):
         self.interface_model_part = model[self.settings["interface_model_part_name"].GetString()]
         self.output_model_part = model.CreateModelPart(self.settings["output_model_part_name"].GetString())
         self.interval = KM.IntervalUtility(self.settings)
-        self.variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT, SW.VERTICAL_VELOCITY]
+        self.variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT, SW.VERTICAL_VELOCITY, SW.TOPOGRAPHY]
 
         if self.volume_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
             self.integration_process = SW.WriteFromSwAtInterfaceProcess2D(model, self._CreateIntegrationParameters())
@@ -54,6 +54,7 @@ class WriteFromSwAtInterfaceProcess(BaseProcess.DepthIntegrationOutputProcess):
             self.output_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
             self.output_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
             self.output_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
+            self.output_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
         domain_size = self.volume_model_part.ProcessInfo[KM.DOMAIN_SIZE]
         element_name = "Element{}D2N".format(domain_size)
         condition_name = "LineCondition{}D2N".format(domain_size)
@@ -66,7 +67,7 @@ class WriteFromSwAtInterfaceProcess(BaseProcess.DepthIntegrationOutputProcess):
         hdf5_settings.AddValue("model_part_name", self.settings["output_model_part_name"])
         hdf5_settings.AddValue("file_settings", self.settings["file_settings"])
         hdf5_settings.AddValue("output_time_settings", self.settings["output_time_settings"])
-        data_settings = KM.Parameters("""{"list_of_variables" : ["MOMENTUM","VELOCITY","HEIGHT", "VERTICAL_VELOCITY"]}""")
+        data_settings = KM.Parameters("""{"list_of_variables" : ["MOMENTUM","VELOCITY","HEIGHT", "VERTICAL_VELOCITY","TOPOGRAPHY"]}""")
         if self.settings["store_historical_database"].GetBool():
             hdf5_settings.AddValue("nodal_solution_step_data_settings", data_settings)
         else:

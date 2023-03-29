@@ -61,7 +61,7 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void TransferVariables (ModelPart& rPfemModelPart, ModelPart& rSWModelPart)
+    void InterpolateVariables (ModelPart& rPfemModelPart, ModelPart& rSWModelPart)
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
@@ -78,7 +78,7 @@ public:
                 
         int     j1, j2;
         
-        double             height, vertical_velocity;
+        double             height, vertical_velocity, topography;
         array_1d<double,3> velocity;
 
         for(int i = 0; i < NNodesPfem; i++) {
@@ -124,6 +124,7 @@ public:
                 velocity = ratio*(jt_node1->GetValue(VELOCITY) - jt_node2->GetValue(VELOCITY)) + jt_node2->GetValue(VELOCITY);
                 height   = ratio*(jt_node1->GetValue(HEIGHT) - jt_node2->GetValue(HEIGHT)) + jt_node2->GetValue(HEIGHT); 
                 vertical_velocity = ratio*(jt_node1->GetValue(VERTICAL_VELOCITY) - jt_node2->GetValue(VERTICAL_VELOCITY)) + jt_node2->GetValue(VERTICAL_VELOCITY); 
+                topography = ratio*(jt_node1->GetValue(TOPOGRAPHY) - jt_node2->GetValue(TOPOGRAPHY)) + jt_node2->GetValue(TOPOGRAPHY); 
             } else {
                 ratio1 = (it_node->X() - jt_node2->X())/(jt_node1->X() - jt_node2->X());
                 ratio2 = (it_node->Y() - jt_node2->Y())/(jt_node1->Y() - jt_node2->Y());
@@ -131,19 +132,23 @@ public:
                 velocity = ratio1*(jt_node1->GetValue(VELOCITY) - jt_node2->GetValue(VELOCITY)) + jt_node2->GetValue(VELOCITY);
                 height   = ratio1*(jt_node1->GetValue(HEIGHT) - jt_node2->GetValue(HEIGHT)) + jt_node2->GetValue(HEIGHT); 
                 vertical_velocity = ratio1*(jt_node1->GetValue(VERTICAL_VELOCITY) - jt_node2->GetValue(VERTICAL_VELOCITY)) + jt_node2->GetValue(VERTICAL_VELOCITY); 
+                topography = ratio1*(jt_node1->GetValue(TOPOGRAPHY) - jt_node2->GetValue(TOPOGRAPHY)) + jt_node2->GetValue(TOPOGRAPHY); 
 
-                velocity += ratio2*(jt_node1->GetValue(VELOCITY) - jt_node2->GetValue(VELOCITY)) + jt_node2->GetValue(VELOCITY);
-                height   += ratio2*(jt_node1->GetValue(HEIGHT) - jt_node2->GetValue(HEIGHT)) + jt_node2->GetValue(HEIGHT); 
+                velocity        += ratio2*(jt_node1->GetValue(VELOCITY) - jt_node2->GetValue(VELOCITY)) + jt_node2->GetValue(VELOCITY);
+                height          += ratio2*(jt_node1->GetValue(HEIGHT) - jt_node2->GetValue(HEIGHT)) + jt_node2->GetValue(HEIGHT); 
                 vertical_velocity += ratio2*(jt_node1->GetValue(VERTICAL_VELOCITY) - jt_node2->GetValue(VERTICAL_VELOCITY)) + jt_node2->GetValue(VERTICAL_VELOCITY); 
+                topography      += ratio2*(jt_node1->GetValue(TOPOGRAPHY) - jt_node2->GetValue(TOPOGRAPHY)) + jt_node2->GetValue(TOPOGRAPHY);
 
-                velocity = 0.5*velocity;
-                height = 0.5*height;
-                vertical_velocity = 0.5*vertical_velocity;
+                velocity            = 0.5*velocity;
+                height              = 0.5*height;
+                vertical_velocity   = 0.5*vertical_velocity;
+                topography          = 0.5*topography;
             }
 
             it_node->GetValue(HEIGHT) = height;
             it_node->GetValue(VELOCITY) = velocity;
             it_node->GetValue(VERTICAL_VELOCITY) = vertical_velocity;
+            it_node->GetValue(TOPOGRAPHY) = topography;
 
         }
     };
