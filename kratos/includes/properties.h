@@ -289,7 +289,7 @@ public:
     Custom GetValue in which we check the Accessor
     */
     template<class TVariableType>
-    double GetValue(const TVariableType& rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
     {
         auto it_value = mAccessors.find(rVariable.Key());
         if (it_value != mAccessors.end()) {
