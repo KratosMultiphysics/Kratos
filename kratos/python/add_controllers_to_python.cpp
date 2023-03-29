@@ -10,7 +10,6 @@
 //  Main authors:    Daniel Diez
 //
 
-
 // System includes
 
 // External includes

@@ -24,8 +24,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 
 void AddGlobalPointersToPython(pybind11::module& m)
@@ -41,5 +40,4 @@ void AddGlobalPointersToPython(pybind11::module& m)
 
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

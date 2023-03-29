@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -18,13 +18,9 @@
 #include "includes/define_python.h"
 #include "add_memory_info_to_python.h"
 
-namespace Kratos
+namespace Kratos::Python
 {
 
-namespace Python
-{
-
-//
 void AddMemoryInfoToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -38,6 +34,4 @@ void AddMemoryInfoToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

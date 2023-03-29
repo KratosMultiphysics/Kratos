@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -27,9 +27,7 @@
 #include "containers/variable.h"
 
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -243,5 +241,4 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     ;
 
 }
-}  // namespace Python.
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

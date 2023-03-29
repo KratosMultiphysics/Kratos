@@ -8,8 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_BREP_CURVE_3D_H_INCLUDED )
-#define  KRATOS_BREP_CURVE_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -492,5 +491,3 @@ const GeometryDimension BrepCurve<TContainerPointType, TContainerPointEmbeddedTy
 
 ///@}
 }// namespace Kratos.
-
-#endif // KRATOS_BREP_CURVE_3D_H_INCLUDED  defined
