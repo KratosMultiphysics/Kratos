@@ -70,6 +70,7 @@ void DamJoint3DLaw::InitializeMaterial( const Properties& rMaterialProperties,co
 
     mStateVariable = 0.0;
     mUpliftPressure = 0.0;
+
     KRATOS_CATCH("")
 }
 
