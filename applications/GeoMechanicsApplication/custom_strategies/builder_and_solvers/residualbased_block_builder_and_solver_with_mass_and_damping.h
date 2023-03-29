@@ -347,7 +347,7 @@ public:
     {
         KRATOS_TRY
 
-            BuildRHS(pScheme, rModelPart, rb);
+        BuildRHS(pScheme, rModelPart, rb);
 
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             Timer::Start("ApplyRHSConstraints");
@@ -548,21 +548,21 @@ protected:
 
         //Getting the Elements
         ElementsArrayType& r_elements = rModelPart.Elements();
-
+        
         //getting the array of the conditions
         ConditionsArrayType& r_conditions = rModelPart.Conditions();
-
+        
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
+        
         //contributions to the system
         LocalSystemVectorType rhs_contribution = LocalSystemVectorType(0);
-
+        
         //vector containing the localization in the system of the different
         //terms
         Element::EquationIdVectorType equation_ids;
-
+        
         // assemble all elements
-
+        
         const int nelements = static_cast<int>(r_elements.size());
         #pragma omp parallel firstprivate(nelements, rhs_contribution, equation_ids)
         {
@@ -571,18 +571,18 @@ protected:
                 typename ElementsArrayType::iterator it = r_elements.begin() + i;
                 // If the element is active
                 if(it->IsActive()) {
-
+        
                     //calculate elemental Right Hand Side Contribution
                     it->CalculateRightHandSide(rhs_contribution, r_current_process_info);
                     it->EquationIdVector(equation_ids, r_current_process_info);
-
+        
                     //assemble the elemental contribution
                     BaseType::AssembleRHS(rb, rhs_contribution, equation_ids);
                 }
             }
-
+        
             rhs_contribution.resize(0, false);
-
+        
             // assemble all conditions
             const int nconditions = static_cast<int>(r_conditions.size());
             #pragma omp for schedule(guided, 512)
@@ -590,26 +590,18 @@ protected:
                 auto it = r_conditions.begin() + i;
                 // If the condition is active
                 if(it->IsActive()) {
-
+        
                     it->CalculateRightHandSide(rhs_contribution, r_current_process_info);
                     it->EquationIdVector(equation_ids, r_current_process_info);
-
+        
                     //assemble the elemental contribution
                     BaseType::AssembleRHS(rb, rhs_contribution, equation_ids);
-
+        
                 }
             }
         }
 
-        TSystemVectorType first_derivative_vector;
-        TSystemVectorType second_derivative_vector;
-
-        GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
-
-        TSystemVectorType mass_contribution = prod(mMassMatrix, second_derivative_vector);
-        TSystemVectorType damping_contribution = prod(mDampingMatrix, first_derivative_vector);
-
-        rb -= damping_contribution + mass_contribution;
+        AddMassAndDampingToRhs(rModelPart, rb);
 
         KRATOS_CATCH("")
 
@@ -617,6 +609,38 @@ protected:
 
 
 private:
+
+    void CalculateAndAddDynamicContributionToRhs(TSystemVectorType& rSolutionVector,TSystemMatrixType& rGlobalMatrix, TSystemVectorType& rb)
+    {
+        TSystemVectorType contribution;
+        contribution.resize(BaseType::mEquationSystemSize, false);
+        TSparseSpace::SetToZero(contribution);
+        TSparseSpace::Mult(rGlobalMatrix, rSolutionVector, contribution);
+
+        TSparseSpace::UnaliasedAdd(rb, -1.0, contribution);
+    }
+
+    /**
+     * @brief Function to add the mass and damping contribution to the rhs.
+     * @details Damping contribution is the dot product of the global damping matrix and the first derivative vector,
+     * Mass contribution is the dot product of the global mass matrix and the second derivative vector
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
+     */
+    void AddMassAndDampingToRhs(ModelPart& rModelPart, TSystemVectorType& rb)
+    {
+
+		// Get first and second derivative vector
+        TSystemVectorType first_derivative_vector;
+        TSystemVectorType second_derivative_vector;
+        GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
+
+		// calculate and add mass and damping contribution to rhs
+        CalculateAndAddDynamicContributionToRhs(second_derivative_vector, mMassMatrix, rb);
+        CalculateAndAddDynamicContributionToRhs(first_derivative_vector, mDampingMatrix, rb);
+
+    }
+
 
 }; /* Class ResidualBasedBlockBuilderAndSolverWithMassAndDamping */
 
