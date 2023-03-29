@@ -1,11 +1,12 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   geo_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi, Aron Noordam
 //  Collaborators:   Vicente Mataix
@@ -61,17 +62,23 @@ namespace Kratos
 /**
  * @class ResidualBasedBlockBuilderAndSolverWithMassAndDamping
  * @ingroup KratosCore
- * @brief Current class provides an implementation for standard builder and solving operations.
- * @details The RHS is constituted by the unbalanced loads (residual)
+ * @brief Current class provides an implementation for builder and solving operations, while the global
+ * mass and damping matrices are stored.
+ * @details When the LHS is build, the global mass and damping matrices are build seperately. When building the RHS,
+ * the mass and damping matrices are multiplied with respectively the second and first derivative vector to calculate
+ * the mass and damping contribution.
+ * The RHS is constituted by the unbalanced loads (residual)
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet.
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
- * Calculation of the reactions involves a cost very similar to the calculation of the total residual
+ * Calculation of the reactions involves a cost very similar to the calculation of the total residual.
+ * This class is intended to be used when the mass and damping matrices are constant throughout the iterations,
+ * using this class, when rebuilding the LHS every iteration is not efficient.
  * @tparam TSparseSpace The sparse system considered
  * @tparam TDenseSpace The dense system considered
  * @tparam TLinearSolver The linear solver considered
- * @author Riccardo Rossi
+ * @author Aron Noordam
  */
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
@@ -91,39 +98,22 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithMassAndDamping);
 
     /// Definition of the base class
-    typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
-    /// The definition of the current class
-    typedef ResidualBasedBlockBuilderAndSolverWithMassAndDamping<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
-
-    // The size_t types
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
+    using BaseType = ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Definition of the classes from the base class
-    typedef typename BaseType::TSchemeType TSchemeType;
-    typedef typename BaseType::TDataType TDataType;
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-    typedef typename BaseType::NodesArrayType NodesArrayType;
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+    using TSchemeType = typename BaseType::TSchemeType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+    using ElementsArrayType = typename BaseType::ElementsArrayType;
+    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
 
     /// Additional definitions
-    typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
-    typedef Element::EquationIdVectorType EquationIdVectorType;
-    typedef Element::DofsVectorType DofsVectorType;
-    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
+    using ElementsContainerType = PointerVectorSet < Element, IndexedObject>;
+    using EquationIdVectorType = Element::EquationIdVectorType;
 
-    /// DoF types definition
-    typedef Node<3> NodeType;
-    typedef typename NodeType::DofType DofType;
-    typedef typename DofType::Pointer DofPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -172,14 +162,14 @@ public:
      * of dofs or as the number of unrestrained ones
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
      */
     void Build(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -191,16 +181,15 @@ public:
         // Getting the array of the conditions
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
         //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemMatrixType lhs_contribution = LocalSystemMatrixType(0, 0);
         LocalSystemMatrixType mass_contribution = LocalSystemMatrixType(0, 0);
         LocalSystemMatrixType damping_contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
+        LocalSystemVectorType rhs_contribution = LocalSystemVectorType(0);
 
         mMassMatrix.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
 
@@ -215,12 +204,12 @@ public:
 
         //vector containing the localization in the system of the different
         //terms
-        Element::EquationIdVectorType EquationId;
+        Element::EquationIdVectorType equation_ids;
 
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution,mass_contribution,damping_contribution, RHS_Contribution, EquationId )
+        #pragma omp parallel firstprivate(nelements,nconditions, lhs_contribution, mass_contribution,damping_contribution, rhs_contribution, equation_ids )
         {
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++) {
@@ -228,24 +217,24 @@ public:
 
                 if (it_elem->IsActive()) {
                     // Calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it_elem, lhs_contribution, rhs_contribution, equation_ids, r_current_process_info);
                     
                     // assemble mass and damping matrix
-                    it_elem->CalculateMassMatrix(mass_contribution, CurrentProcessInfo);
-                    it_elem->CalculateDampingMatrix(damping_contribution, CurrentProcessInfo);
+                    it_elem->CalculateMassMatrix(mass_contribution, r_current_process_info);
+                    it_elem->CalculateDampingMatrix(damping_contribution, r_current_process_info);
 
                     if (mass_contribution.size1() != 0)
                     {
-                        BaseType::AssembleLHS(mMassMatrix, mass_contribution, EquationId);
+                        BaseType::AssembleLHS(mMassMatrix, mass_contribution, equation_ids);
                     }
                     if (damping_contribution.size1() != 0)
                     {
-                        BaseType::AssembleLHS(mDampingMatrix, damping_contribution, EquationId);
+                        BaseType::AssembleLHS(mDampingMatrix, damping_contribution, equation_ids);
                     }
                     
 
                     // Assemble the elemental contribution
-                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    BaseType::Assemble(rA, rb, lhs_contribution, rhs_contribution, equation_ids);
                 }
 
             }
@@ -256,30 +245,30 @@ public:
 
                 if (it_cond->IsActive()) {
                     // Calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it_cond, lhs_contribution, rhs_contribution, equation_ids, r_current_process_info);
 
                     // assemble mass and damping matrix
-                    it_cond->CalculateMassMatrix(mass_contribution, CurrentProcessInfo);
-                    it_cond->CalculateDampingMatrix(damping_contribution, CurrentProcessInfo);
+                    it_cond->CalculateMassMatrix(mass_contribution, r_current_process_info);
+                    it_cond->CalculateDampingMatrix(damping_contribution, r_current_process_info);
 
                     if (mass_contribution.size1() != 0)
                     {
-                        BaseType::AssembleLHS(mMassMatrix, mass_contribution, EquationId);
+                        BaseType::AssembleLHS(mMassMatrix, mass_contribution, equation_ids);
                     }
                     if (damping_contribution.size1() != 0)
                     {
-                        BaseType::AssembleLHS(mDampingMatrix, damping_contribution, EquationId);
+                        BaseType::AssembleLHS(mDampingMatrix, damping_contribution, equation_ids);
                     }
 
                     // Assemble the elemental contribution
-                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    BaseType::Assemble(rA, rb, lhs_contribution, rhs_contribution, equation_ids);
                 }
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -291,61 +280,63 @@ public:
      * just after building
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
         Timer::Start("Build");
 
-        Build(pScheme, rModelPart, A, b);
+        Build(pScheme, rModelPart, rA, rb);
 
         Timer::Stop("Build");
 
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             const auto timer_constraints = BuiltinTimer();
             Timer::Start("ApplyConstraints");
-            BaseType::ApplyConstraints(pScheme, rModelPart, A, b);
+            BaseType::ApplyConstraints(pScheme, rModelPart, rA, rb);
+            BaseType::ApplyConstraints(pScheme, rModelPart, mMassMatrix, rb);
+            BaseType::ApplyConstraints(pScheme, rModelPart, mDampingMatrix, rb);
             Timer::Stop("ApplyConstraints");
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
 
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, Dx, b);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, Dx, b);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, rDx, rb);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, rDx, rb);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        BaseType::SystemSolveWithPhysics(A, Dx, b, rModelPart);
+        BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
 
 
     /**
- * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
- * @param pScheme The integration scheme considered
- * @param rModelPart The model part of the problem to solve
- * @param rA The LHS matrix
- * @param rDx The Unknowns vector
- * @param rb The RHS vector
- */
+     * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
     void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
@@ -382,28 +373,28 @@ public:
     }
 
     /**
-    * @brief Function to perform the build of the RHS.
-    * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
-    * @param pScheme The integration scheme considered
-    * @param rModelPart The model part of the problem to solve
-    */
+     * @brief Function to perform the build of the RHS.
+     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b) override
+        TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
-            Timer::Start("BuildRHS");
+    	Timer::Start("BuildRHS");
 
-        BuildRHSNoDirichlet(pScheme, rModelPart, b);
+        BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof) {
-            const std::size_t i = rDof.EquationId();
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& r_dof) {
+            const std::size_t i = r_dof.EquationId();
 
-            if (rDof.IsFixed())
-                b[i] = 0.0;
+            if (r_dof.IsFixed())
+                rb[i] = 0.0;
             });
 
         Timer::Stop("BuildRHS");
@@ -501,8 +492,8 @@ protected:
 
     void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector, TSystemVectorType& rSecondDerivativeVector, ModelPart& rModelPart)
     {
-        NodesArrayType& rNodes = rModelPart.Nodes();
-        const int n_nodes = static_cast<int>(rNodes.size());
+        NodesArrayType& r_nodes = rModelPart.Nodes();
+        const int n_nodes = static_cast<int>(r_nodes.size());
 
         if (rFirstDerivativeVector.size() != BaseType::mEquationSystemSize) {
             rFirstDerivativeVector.resize(BaseType::mEquationSystemSize, false);
@@ -522,7 +513,7 @@ protected:
         {
 			#pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < n_nodes; i++) {
-                typename NodesArrayType::iterator it = rNodes.begin() + i;
+                typename NodesArrayType::iterator it = r_nodes.begin() + i;
                 // If the node is active
                 if (it->IsActive()) {
 
@@ -551,75 +542,74 @@ protected:
     void BuildRHSNoDirichlet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b)
+        TSystemVectorType& rb)
     {
         KRATOS_TRY
 
         //Getting the Elements
-        ElementsArrayType& pElements = rModelPart.Elements();
+        ElementsArrayType& r_elements = rModelPart.Elements();
 
         //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
+        ConditionsArrayType& r_conditions = rModelPart.Conditions();
 
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         //contributions to the system
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+        LocalSystemVectorType rhs_contribution = LocalSystemVectorType(0);
 
         //vector containing the localization in the system of the different
         //terms
-        Element::EquationIdVectorType EquationIds;
+        Element::EquationIdVectorType equation_ids;
 
         // assemble all elements
 
-        const int nelements = static_cast<int>(pElements.size());
-        #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationIds)
+        const int nelements = static_cast<int>(r_elements.size());
+        #pragma omp parallel firstprivate(nelements, rhs_contribution, equation_ids)
         {
             #pragma omp for schedule(guided, 512) nowait
             for (int i=0; i<nelements; i++) {
-                typename ElementsArrayType::iterator it = pElements.begin() + i;
+                typename ElementsArrayType::iterator it = r_elements.begin() + i;
                 // If the element is active
                 if(it->IsActive()) {
 
                     //calculate elemental Right Hand Side Contribution
-                    it->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-                    it->EquationIdVector(EquationIds, CurrentProcessInfo);
+                    it->CalculateRightHandSide(rhs_contribution, r_current_process_info);
+                    it->EquationIdVector(equation_ids, r_current_process_info);
 
                     //assemble the elemental contribution
-                    BaseType::AssembleRHS(b, RHS_Contribution, EquationIds);
+                    BaseType::AssembleRHS(rb, rhs_contribution, equation_ids);
                 }
             }
 
-            RHS_Contribution.resize(0, false);
+            rhs_contribution.resize(0, false);
 
             // assemble all conditions
-            const int nconditions = static_cast<int>(ConditionsArray.size());
+            const int nconditions = static_cast<int>(r_conditions.size());
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++) {
-                auto it = ConditionsArray.begin() + i;
+                auto it = r_conditions.begin() + i;
                 // If the condition is active
                 if(it->IsActive()) {
 
-
-                    it->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-                    it->EquationIdVector(EquationIds, CurrentProcessInfo);
+                    it->CalculateRightHandSide(rhs_contribution, r_current_process_info);
+                    it->EquationIdVector(equation_ids, r_current_process_info);
 
                     //assemble the elemental contribution
-                    BaseType::AssembleRHS(b, RHS_Contribution, EquationIds);
+                    BaseType::AssembleRHS(rb, rhs_contribution, equation_ids);
 
                 }
             }
         }
 
-        TSystemVectorType firstDerivativeVector;
-        TSystemVectorType secondDerivativeVector;
+        TSystemVectorType first_derivative_vector;
+        TSystemVectorType second_derivative_vector;
 
-        GetFirstAndSecondDerivativeVector(firstDerivativeVector, secondDerivativeVector, rModelPart);
+        GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
 
-        TSystemVectorType mass_contribution = prod(mMassMatrix, secondDerivativeVector);
-        TSystemVectorType damping_contribution = prod(mDampingMatrix, firstDerivativeVector);
+        TSystemVectorType mass_contribution = prod(mMassMatrix, second_derivative_vector);
+        TSystemVectorType damping_contribution = prod(mDampingMatrix, first_derivative_vector);
 
-        b -= damping_contribution + mass_contribution;
+        rb -= damping_contribution + mass_contribution;
 
         KRATOS_CATCH("")
 
