@@ -63,9 +63,7 @@ public:
 
     void InterpolateVariables (ModelPart& rPfemModelPart, ModelPart& rSWModelPart)
     {
-        // Define necessary variables
-        UtilityVariables AuxVariables;
-
+        
         const int NNodesSW = static_cast<int>(rSWModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator node_beginSW = rSWModelPart.NodesBegin();
         
@@ -113,11 +111,14 @@ public:
             double dx = fabs(jt_node1->X() - jt_node2->X());
             double dy = fabs(jt_node1->Y() - jt_node2->Y());
             
+            if (distance1*distance1 > 5*5*(dx*dx + dy*dy)){
+                KRATOS_WARNING("Interpolate_sw_to_pfem") << "PFEM node quite far from SW output interface " << std::endl; 
+            }
 
-            if ((dx > tol & dy < tol) | (dx < tol & dy > tol)){
-                if (dx > tol & dy < tol){
+            if (((dx > tol) & (dy < tol)) | ((dx < tol) & (dy > tol))){
+                if ((dx > tol) & (dy < tol)){
                     ratio = (it_node->X() - jt_node2->X())/(jt_node1->X() - jt_node2->X());
-                } else if (dx < tol & dy > tol){
+                } else if ((dx < tol) & (dy > tol)){
                     ratio = (it_node->Y() - jt_node2->Y())/(jt_node1->Y() - jt_node2->Y());
                 }
 
