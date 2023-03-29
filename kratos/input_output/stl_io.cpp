@@ -17,6 +17,8 @@
 // Project includes
 #include "includes/define.h"
 #include "input_output/stl_io.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -206,8 +208,12 @@ void StlIO::ReadLoop(ModelPart & rThisModelPart)
     ReadKeyword("loop");
 
     *mpInputStream >> word; // Reading vertex or endloop
-    std::size_t node_id = rThisModelPart.GetRootModelPart().NumberOfNodes() + 1;
-    std::size_t element_id = rThisModelPart.GetRootModelPart().NumberOfElements() + 1;
+    std::size_t node_id = block_for_each<MaxReduction<std::size_t>>(
+        rThisModelPart.GetRootModelPart().Nodes(),
+        [](NodeType& rNode) { return rNode.Id();}) + 1;
+    std::size_t element_id = block_for_each<MaxReduction<std::size_t>>(
+        rThisModelPart.GetRootModelPart().Elements(),
+        [](Element& rElement) { return rElement.Id();}) + 1;
     Element::NodesArrayType temp_element_nodes;
     while(word == "vertex"){
         Point coordinates = ReadPoint();
