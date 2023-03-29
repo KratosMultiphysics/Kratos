@@ -214,82 +214,53 @@ public:
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rVariable)
     {
-        auto it_value = mAccessors.find(rVariable.Key());
-        if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this);
-        } else {
-            return mData.GetValue(rVariable);
-        }
+        return mData.GetValue(rVariable);
     }
 
     template<class TVariableType>
     typename TVariableType::Type const& GetValue(const TVariableType& rVariable) const
     {
-        auto it_value = mAccessors.find(rVariable.Key());
-        if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this);
-        } else {
-            return mData.GetValue(rVariable);
-        }
+
+        return mData.GetValue(rVariable);
     }
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rVariable, NodeType& rThisNode)
     {
-        auto it_value = mAccessors.find(rVariable.Key());
-        if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this, rThisNode);
-        } else {
-            if(mData.Has(rVariable))
-                return mData.GetValue(rVariable);
-            return rThisNode.GetValue(rVariable);
-        }
+        if (mData.Has(rVariable))
+            return mData.GetValue(rVariable);
+        return rThisNode.GetValue(rVariable);
     }
 
     template<class TVariableType>
     typename TVariableType::Type const& GetValue(const TVariableType& rVariable, NodeType const& rThisNode) const
     {
-        auto it_value = mAccessors.find(rVariable.Key());
-        if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this, rThisNode);
-        } else {
-            if(mData.Has(rVariable))
-                return mData.GetValue(rVariable);
-            return rThisNode.GetValue(rVariable);
-        }
+        if (mData.Has(rVariable))
+            return mData.GetValue(rVariable);
+        return rThisNode.GetValue(rVariable);
     }
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rVariable, NodeType& rThisNode, IndexType SolutionStepIndex)
     {
-        auto it_value = mAccessors.find(rVariable.Key());
-        if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this, rThisNode, SolutionStepIndex);
-        } else {
-            if(mData.Has(rVariable))
-                return mData.GetValue(rVariable);
-            return rThisNode.GetValue(rVariable, SolutionStepIndex);
-        }
+        if (mData.Has(rVariable))
+            return mData.GetValue(rVariable);
+        return rThisNode.GetValue(rVariable, SolutionStepIndex);
     }
 
     template<class TVariableType>
     typename TVariableType::Type const& GetValue(const TVariableType& rVariable, NodeType const& rThisNode, IndexType SolutionStepIndex) const
     {
-        auto it_value = mAccessors.find(rVariable.Key());
-        if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this, rThisNode, SolutionStepIndex);
-        } else {
-            if(mData.Has(rVariable))
-                return mData.GetValue(rVariable);
-            return rThisNode.GetValue(rVariable, SolutionStepIndex);
-        }
+        if (mData.Has(rVariable))
+            return mData.GetValue(rVariable);
+        return rThisNode.GetValue(rVariable, SolutionStepIndex);
     }
 
     /*
     Custom GetValue in which we check the Accessor
     */
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, const GeometryType &rGeometry, const Vector& rShapeFunctionVector, const ProcessInfo &rProcessInfo)
     {
         auto it_value = mAccessors.find(rVariable.Key());
         if (it_value != mAccessors.end()) {

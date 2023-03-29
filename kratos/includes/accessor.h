@@ -35,7 +35,7 @@ class Properties;
 /**
  * @class Accessor
  * @ingroup Kratos Core
- * @brief This class defines the way a certain property is accessed to
+ * @brief This class defines the way a certain property is accessed.
  * @author Alejandro Cornejo, Riccardo Rossi and Carlos Roig
  */
 class KRATOS_API(KRATOS_CORE) Accessor
@@ -69,200 +69,80 @@ class KRATOS_API(KRATOS_CORE) Accessor
          */
         virtual double const& GetProperty(
             const Variable<double> &rVariable,
-            const Properties &rProperties);
-
-        virtual double const& GetProperty(
-            const Variable<double> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode);
-
-        virtual double const& GetProperty(
-            const Variable<double> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode,
-            IndexType SolutionStepIndex);
-
-        virtual double const& GetProperty(
-            const Variable<double> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo);
+            const ProcessInfo &rProcessInfo) const;
 
         /**
          * Custom method to retrieve Vector type properties
          */
         virtual Vector const& GetProperty(
             const Variable<Vector> &rVariable,
-            const Properties &rProperties);
-
-        virtual Vector const& GetProperty(
-            const Variable<Vector> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode);
-
-        virtual Vector const& GetProperty(
-            const Variable<Vector> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode,
-            IndexType SolutionStepIndex);
-
-        virtual Vector const& GetProperty(
-            const Variable<Vector> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo);
+            const ProcessInfo &rProcessInfo) const;
 
         /**
          * Custom method to retrieve bool type properties
          */
         virtual bool const& GetProperty(
             const Variable<bool> &rVariable,
-            const Properties &rProperties);
-
-        virtual bool const& GetProperty(
-            const Variable<bool> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode);
-
-        virtual bool const& GetProperty(
-            const Variable<bool> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode,
-            IndexType SolutionStepIndex);
-
-        virtual bool const& GetProperty(
-            const Variable<bool> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo);
+            const ProcessInfo &rProcessInfo) const;
 
         /**
          * Custom method to retrieve int type properties
          */
         virtual int const& GetProperty(
             const Variable<int> &rVariable,
-            const Properties &rProperties);
-
-        virtual int const& GetProperty(
-            const Variable<int> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode);
-
-        virtual int const& GetProperty(
-            const Variable<int> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode,
-            IndexType SolutionStepIndex);
-
-        virtual int const& GetProperty(
-            const Variable<int> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo);
+            const ProcessInfo &rProcessInfo) const;
 
         /**
          * Custom method to retrieve Matrix type properties
          */
         virtual Matrix const& GetProperty(
             const Variable<Matrix> &rVariable,
-            const Properties &rProperties);
-
-        virtual Matrix const& GetProperty(
-            const Variable<Matrix> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode);
-
-        virtual Matrix const& GetProperty(
-            const Variable<Matrix> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode,
-            IndexType SolutionStepIndex);
-
-        virtual Matrix const& GetProperty(
-            const Variable<Matrix> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo);
+            const ProcessInfo &rProcessInfo) const;
 
         /**
          * Custom method to retrieve array_1d<double, 3 > type properties
          */
         virtual array_1d<double, 3 > const& GetProperty(
             const Variable<array_1d<double, 3 >> &rVariable,
-            const Properties &rProperties);
-
-        virtual array_1d<double, 3 > const& GetProperty(
-            const Variable<array_1d<double, 3 >> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode);
-
-        virtual array_1d<double, 3 > const& GetProperty(
-            const Variable<array_1d<double, 3 >> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode,
-            IndexType SolutionStepIndex);
-
-        virtual array_1d<double, 3 > const& GetProperty(
-            const Variable<array_1d<double, 3 >> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo);
+            const ProcessInfo &rProcessInfo) const;
 
         /**
          * Custom method to retrieve array_1d<double, 6 > type properties
          */
         virtual array_1d<double, 6 > const& GetProperty(
             const Variable<array_1d<double, 6 >> &rVariable,
-            const Properties &rProperties);
-
-        virtual array_1d<double, 6 > const& GetProperty(
-            const Variable<array_1d<double, 6 >> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode);
-
-        virtual array_1d<double, 6 > const& GetProperty(
-            const Variable<array_1d<double, 6 >> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode,
-            IndexType SolutionStepIndex);
-
-        virtual array_1d<double, 6 > const& GetProperty(
-            const Variable<array_1d<double, 6 >> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo);
+            const ProcessInfo &rProcessInfo) const;
 
         /**
          * Custom method to retrieve string type properties
          */
         virtual std::string const& GetProperty(
             const Variable<std::string> &rVariable,
-            const Properties &rProperties);
-
-        virtual std::string const& GetProperty(
-            const Variable<std::string> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode);
-
-        virtual std::string const& GetProperty(
-            const Variable<std::string> &rVariable,
-            const Properties &rProperties,
-            NodeType& rThisNode,
-            IndexType SolutionStepIndex);
-
-        virtual std::string const& GetProperty(
-            const Variable<std::string> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
             const Vector &rShapeFunctionVector,
-            const ProcessInfo &rProcessInfo);
+            const ProcessInfo &rProcessInfo) const;
 
         // Getting a pointer tot he class
         virtual Accessor::Pointer Clone() const;
@@ -270,7 +150,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Copy constructor.
          */
-        // Accessor(const Accessor &rOther);
+        Accessor(const Accessor &rOther);
 
         ///@}
         ///@name Input and output
