@@ -518,7 +518,7 @@ protected:
         std::size_t id_y;
         std::size_t id_z;
 
-		#pragma omp parallel firstprivate(n_nodes, id_x, id_y, id_z)
+		#pragma omp parallel firstprivate(n_nodes) private(id_x, id_y, id_z)
         {
 			#pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < n_nodes; i++) {
