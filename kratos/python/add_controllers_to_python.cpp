@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "includes/define_python.h"
 #include "add_controllers_to_python.h"
 #include "controllers/controller.h"
 

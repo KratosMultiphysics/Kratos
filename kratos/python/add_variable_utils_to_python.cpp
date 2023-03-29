@@ -19,7 +19,6 @@
 // Project includes
 #include "python/add_variable_utils_to_python.h"
 #include "includes/define_python.h"
-#include "processes/process.h"
 
 // Variable utilities
 #include "utilities/variable_utils.h"

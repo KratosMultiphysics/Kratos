@@ -12,10 +12,10 @@
 //
 
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/memory_info.h"
+#include "includes/define_python.h"
 #include "add_memory_info_to_python.h"
 
 namespace Kratos

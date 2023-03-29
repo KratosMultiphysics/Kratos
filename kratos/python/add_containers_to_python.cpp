@@ -16,18 +16,15 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
-#include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/flags.h"
+#include "containers/variable.h"
+#include "includes/define_python.h"
 #include "includes/kratos_flags.h"
-#include "includes/variables.h"
 #include "includes/constitutive_law.h"
-
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
-#include "utilities/timer.h"
 #include "utilities/quaternion.h"
 
 namespace Kratos
