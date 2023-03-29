@@ -87,7 +87,7 @@ namespace Kratos
 
 
             CustomAccessor custom_accessor = CustomAccessor();
-            p_prop->AddAccessor(YOUNG_MODULUS, custom_accessor.Clone());
+            p_prop->SetAccessor(YOUNG_MODULUS, custom_accessor.Clone());
 
             Vector N;
             const double modified_E = p_prop->GetValue(YOUNG_MODULUS, *pgeom, N, r_process_info);

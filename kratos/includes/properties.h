@@ -274,7 +274,7 @@ public:
     Method to add Accessors to properties
     */
     template<class TVariableType>
-    void AddAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
+    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
     {
         mAccessors[rVariable.Key()] = pAccessor;
     }
