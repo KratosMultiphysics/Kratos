@@ -9,4 +9,4 @@ class TransformationTechnique(Kratos.Process):
         raise NotImplementedError("Calling base class TransformationTechnique::TransformSensitivity. Please implement it in the derrived class")
 
     def TransformUpdate(self, container_variable_data_holder: ContainerVariableDataHolderUnion):
-        raise NotImplementedError("Calling base class TransformationTechnique::TransformUpdate. Please implement it in the derrived class")
+        raise NotImplementedError("Calling base class TransformationTechnique::TransformUpdate. Please implement it in the derived class")
