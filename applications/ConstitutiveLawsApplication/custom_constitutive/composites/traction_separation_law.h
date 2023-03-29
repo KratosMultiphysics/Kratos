@@ -233,7 +233,7 @@ public:
      */
     int Check(
         const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
+        const BaseType::GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
