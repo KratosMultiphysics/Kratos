@@ -67,7 +67,7 @@ public:
         const ContainerVariableDataHolderType& rDestinationDataContainer) const
     {
         KRATOS_ERROR << "Calling ContainerVariableDataMapper::Map. This needs to be "
-                        "implemented in the derrived class.";
+                        "implemented in the derived class.";
     }
 
     virtual std::string Info() const
