@@ -31,7 +31,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a double type variable
      */
-    double& Accessor::GetProperty(
+    double const& Accessor::GetProperty(
         const Variable<double> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -44,7 +44,7 @@ namespace Kratos
         return aux;
     }
 
-    double& Accessor::GetProperty(
+    double const& Accessor::GetProperty(
         const Variable<double> &rVariable,
         const Properties &rProperties
         )
@@ -54,7 +54,7 @@ namespace Kratos
         return aux;
     }
 
-    double& Accessor::GetProperty(
+    double const& Accessor::GetProperty(
         const Variable<double> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode
@@ -65,7 +65,7 @@ namespace Kratos
         return aux;
     }
 
-    double& Accessor::GetProperty(
+    double const& Accessor::GetProperty(
         const Variable<double> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
@@ -80,7 +80,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a Vector type variable
      */
-    Vector& Accessor::GetProperty(
+    Vector const& Accessor::GetProperty(
         const Variable<Vector> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -93,7 +93,7 @@ namespace Kratos
         return aux;
     }
 
-    Vector& Accessor::GetProperty(
+    Vector const& Accessor::GetProperty(
         const Variable<Vector> &rVariable,
         const Properties &rProperties
         )
@@ -103,7 +103,7 @@ namespace Kratos
         return aux;
     }
 
-    Vector& Accessor::GetProperty(
+    Vector const& Accessor::GetProperty(
         const Variable<Vector> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode
@@ -114,7 +114,7 @@ namespace Kratos
         return aux;
     }
 
-    Vector& Accessor::GetProperty(
+    Vector const& Accessor::GetProperty(
         const Variable<Vector> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
@@ -129,7 +129,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a bool type variable
      */
-    bool& Accessor::GetProperty(
+    bool const& Accessor::GetProperty(
         const Variable<bool> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -142,7 +142,7 @@ namespace Kratos
         return aux;
     }
 
-    bool& Accessor::GetProperty(
+    bool const& Accessor::GetProperty(
         const Variable<bool> &rVariable,
         const Properties &rProperties
         )
@@ -152,7 +152,7 @@ namespace Kratos
         return aux;
     }
 
-    bool& Accessor::GetProperty(
+    bool const& Accessor::GetProperty(
         const Variable<bool> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode
@@ -163,7 +163,7 @@ namespace Kratos
         return aux;
     }
 
-    bool& Accessor::GetProperty(
+    bool const& Accessor::GetProperty(
         const Variable<bool> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
@@ -178,7 +178,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a int type variable
      */
-    int& Accessor::GetProperty(
+    int const& Accessor::GetProperty(
         const Variable<int> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -191,7 +191,7 @@ namespace Kratos
         return aux;
     }
 
-    int& Accessor::GetProperty(
+    int const& Accessor::GetProperty(
         const Variable<int> &rVariable,
         const Properties &rProperties
         )
@@ -201,7 +201,7 @@ namespace Kratos
         return aux;
     }
 
-    int& Accessor::GetProperty(
+    int const& Accessor::GetProperty(
         const Variable<int> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode
@@ -212,7 +212,7 @@ namespace Kratos
         return aux;
     }
 
-    int& Accessor::GetProperty(
+    int const& Accessor::GetProperty(
         const Variable<int> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
@@ -227,7 +227,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a Matrix type variable
      */
-    Matrix& Accessor::GetProperty(
+    Matrix const& Accessor::GetProperty(
         const Variable<Matrix> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -240,7 +240,7 @@ namespace Kratos
         return mat;
     }
 
-    Matrix& Accessor::GetProperty(
+    Matrix const& Accessor::GetProperty(
         const Variable<Matrix> &rVariable,
         const Properties &rProperties
         )
@@ -250,7 +250,7 @@ namespace Kratos
         return mat;
     }
 
-    Matrix& Accessor::GetProperty(
+    Matrix const& Accessor::GetProperty(
         const Variable<Matrix> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode
@@ -261,7 +261,7 @@ namespace Kratos
         return mat;
     }
 
-    Matrix& Accessor::GetProperty(
+    Matrix const& Accessor::GetProperty(
         const Variable<Matrix> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
@@ -276,7 +276,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a array_1d<double, 3 > type variable
      */
-    array_1d<double, 3 >& Accessor::GetProperty(
+    array_1d<double, 3 > const& Accessor::GetProperty(
         const Variable<array_1d<double, 3 >> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -289,7 +289,7 @@ namespace Kratos
         return mat;
     }
 
-    array_1d<double, 3 >& Accessor::GetProperty(
+    array_1d<double, 3 > const& Accessor::GetProperty(
         const Variable<array_1d<double, 3 >> &rVariable,
         const Properties &rProperties
         )
@@ -299,7 +299,7 @@ namespace Kratos
         return mat;
     }
 
-    array_1d<double, 3 >& Accessor::GetProperty(
+    array_1d<double, 3 > const& Accessor::GetProperty(
         const Variable<array_1d<double, 3 >> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode
@@ -310,7 +310,7 @@ namespace Kratos
         return mat;
     }
 
-    array_1d<double, 3 >& Accessor::GetProperty(
+    array_1d<double, 3 > const& Accessor::GetProperty(
         const Variable<array_1d<double, 3 >> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
@@ -325,7 +325,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a array_1d<double, 6 > type variable
      */
-    array_1d<double, 6 >& Accessor::GetProperty(
+    array_1d<double, 6 > const& Accessor::GetProperty(
         const Variable<array_1d<double, 6 >> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -338,7 +338,7 @@ namespace Kratos
         return mat;
     }
 
-    array_1d<double, 6 >& Accessor::GetProperty(
+    array_1d<double, 6 > const& Accessor::GetProperty(
         const Variable<array_1d<double, 6 >> &rVariable,
         const Properties &rProperties
         )
@@ -348,7 +348,7 @@ namespace Kratos
         return mat;
     }
 
-    array_1d<double, 6 >& Accessor::GetProperty(
+    array_1d<double, 6 > const& Accessor::GetProperty(
         const Variable<array_1d<double, 6 >> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode
@@ -359,7 +359,7 @@ namespace Kratos
         return mat;
     }
 
-    array_1d<double, 6 >& Accessor::GetProperty(
+    array_1d<double, 6 > const& Accessor::GetProperty(
         const Variable<array_1d<double, 6 >> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
@@ -374,7 +374,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a std::string type variable
      */
-    std::string& Accessor::GetProperty(
+    std::string const& Accessor::GetProperty(
         const Variable<std::string> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -387,7 +387,7 @@ namespace Kratos
         return str;
     }
 
-    std::string& Accessor::GetProperty(
+    std::string const& Accessor::GetProperty(
         const Variable<std::string> &rVariable,
         const Properties &rProperties
         )
@@ -397,7 +397,7 @@ namespace Kratos
         return str;
     }
 
-    std::string& Accessor::GetProperty(
+    std::string const& Accessor::GetProperty(
         const Variable<std::string> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode
@@ -408,7 +408,7 @@ namespace Kratos
         return str;
     }
 
-    std::string& Accessor::GetProperty(
+    std::string const& Accessor::GetProperty(
         const Variable<std::string> &rVariable,
         const Properties &rProperties,
         NodeType& rThisNode,
