@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "TractionSeparationLaw3D", // TractionSeparationLaw3D
+                "name" : "TractionSeparationLaw3D",
                 "combination_factors"      : [0.5, 0.5]
             },
             "Variables"        : {
@@ -27,9 +27,9 @@
                 "name" : "GenericAnisotropic3DLaw"
             },
             "Variables"        : {
-				"ORTHOTROPIC_ELASTIC_CONSTANTS" : [161000000000, 140000000000, 100000000000, 0.2, 0.25, 0.3], // Ex, Ey, Ez, vxy, vyz, vxz
+				"ORTHOTROPIC_ELASTIC_CONSTANTS" : [161000000000, 140000000000, 100000000000, 0.2, 0.25, 0.3],
                 "EULER_ANGLES"     : [10,30,20],
-                "ISOTROPIC_ANISOTROPIC_YIELD_RATIO"  : [1.3,1.2,1.0,1.1,1.05,1.4] // yield_iso_space / yield_aniso
+                "ISOTROPIC_ANISOTROPIC_YIELD_RATIO"  : [1.3,1.2,1.0,1.1,1.05,1.4]
             },
             "Tables"           : {}
         },
@@ -54,9 +54,9 @@
                 "name" : "GenericAnisotropic3DLaw"
             },
             "Variables"        : {
-				"ORTHOTROPIC_ELASTIC_CONSTANTS" : [161000000000, 140000000000, 100000000000, 0.2, 0.25, 0.3], // Ex, Ey, Ez, vxy, vyz, vxz
+				"ORTHOTROPIC_ELASTIC_CONSTANTS" : [161000000000, 140000000000, 100000000000, 0.2, 0.25, 0.3],
                 "EULER_ANGLES"     : [10,30,20],
-                "ISOTROPIC_ANISOTROPIC_YIELD_RATIO"  : [1.3,1.2,1.0,1.1,1.05,1.4] // yield_iso_space / yield_aniso
+                "ISOTROPIC_ANISOTROPIC_YIELD_RATIO"  : [1.3,1.2,1.0,1.1,1.05,1.4]
             },
             "Tables"           : {}
         },
