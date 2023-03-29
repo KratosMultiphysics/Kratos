@@ -2243,7 +2243,7 @@ void SphericParticle::HierarchicalMultiscaleComputationsPP(const ProcessInfo& r_
 
   // Check for skin particle
   if (!mSkin)
-    mSkin = (!mInner > 0 && is_neighbour_inner);
+    mSkin = (!mInner && is_neighbour_inner);
 
   // Branch vector
   const double r1 = GetRadius();
@@ -2327,8 +2327,7 @@ void SphericParticle::HierarchicalMultiscaleComputationsPP(const ProcessInfo& r_
             mTangentTensor(idx_1,idx_2) += kn * normal[i]  * branch[j] * normal[k]  * branch[l] +
                                            kt * tangent[i] * branch[j] * tangent[k] * branch[l];
             if (has_inner_particle) {
-              mTangentTensorInner(idx_1,idx_2) += kn * normal[i]  * branch[j] * normal[k]  * branch[l] +
-                                                  kt * tangent[i] * branch[j] * tangent[k] * branch[l];
+              mTangentTensorInner(idx_1,idx_2) = mTangentTensor(idx_1,idx_2);
             }
           }
         }
@@ -2336,8 +2335,8 @@ void SphericParticle::HierarchicalMultiscaleComputationsPP(const ProcessInfo& r_
         mFabricTensor(i,j) += nij;
         mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
         if (has_inner_particle) {
-          mFabricTensorInner(i,j) += mFabricTensor(i,j);
-          mCauchyTensorInner(i,j) += mCauchyTensor(i,j);
+          mFabricTensorInner(i,j) = mFabricTensor(i,j);
+          mCauchyTensorInner(i,j) = mCauchyTensor(i,j);
         }
       }
     }
