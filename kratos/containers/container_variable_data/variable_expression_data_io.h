@@ -27,7 +27,7 @@ namespace Kratos {
 // Dummy generic class to be specialized later
 
 template<class TDataType>
-class VariableExpressionDataIO
+class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO
 {
 public:
     ///@name Type definitions

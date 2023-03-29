@@ -29,7 +29,7 @@ namespace Kratos {
  *
  */
 template <class TDataType>
-class LiteralExpression : public Expression {
+class KRATOS_API(KRATOS_CORE) LiteralExpression : public Expression {
 public:
     ///@name Life cycle
     ///@{

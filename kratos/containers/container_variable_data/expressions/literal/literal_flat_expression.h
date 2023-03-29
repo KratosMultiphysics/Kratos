@@ -34,7 +34,7 @@ namespace Kratos {
  * a Vector with large sizes.
  *
  */
-class LiteralFlatExpression : public Expression {
+class KRATOS_API(KRATOS_CORE) LiteralFlatExpression : public Expression {
 public:
     ///@name Type definition
     ///@{

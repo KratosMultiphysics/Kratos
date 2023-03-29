@@ -32,7 +32,7 @@ namespace Kratos {
  * This is used to represent an expression for arithmatic evaluation
  *
  */
-class Expression {
+class KRATOS_API(KRATOS_CORE) Expression {
 public:
     ///@name Type definitions
     ///@{

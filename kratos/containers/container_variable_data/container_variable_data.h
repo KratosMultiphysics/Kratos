@@ -75,7 +75,7 @@ namespace Kratos {
  * @tparam TContainerType
  */
 template <class TContainerType>
-class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerVariableData {
+class KRATOS_API(KRATOS_CORE) ContainerVariableData {
 public:
     ///@name Type definitions
     ///@{

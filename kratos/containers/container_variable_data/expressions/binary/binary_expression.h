@@ -36,7 +36,7 @@ namespace BinaryOperations
 
 
 template <class TOperationType>
-class BinaryExpression : public Expression {
+class KRATOS_API(KRATOS_CORE) BinaryExpression : public Expression {
 public:
     ///@name Type definitions
     ///@{
