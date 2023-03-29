@@ -73,7 +73,7 @@ public:
     virtual std::string Info() const
     {
         KRATOS_ERROR << "Calling ContainerVariableDataMapper::Info. This needs to be "
-                        "implemented in the derrived class.";
+                        "implemented in the derived class.";
         return "";
     }
 
