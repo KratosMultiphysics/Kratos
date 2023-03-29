@@ -616,6 +616,7 @@ private:
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
         rSerializer.save("SubPropertiesList", mSubPropertiesList);
+        rSerializer.save("Accessors", mAccessors);
     }
 
     void load(Serializer& rSerializer) override
@@ -624,6 +625,7 @@ private:
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
         rSerializer.load("SubPropertiesList", mSubPropertiesList);
+        rSerializer.load("Accessors", mAccessors);
     }
 
     ///@}
