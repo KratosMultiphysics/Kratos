@@ -79,7 +79,6 @@ KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodes, KratosMedFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMesh, KratosMedFastSuite)
 {
-        KRATOS_WATCH(KratosComponents<ModelPart::GeometryType>::GetComponents().size() );
     MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
         constexpr std::size_t num_nodes = 10;
         for (std::size_t i=0; i<num_nodes; ++i) {

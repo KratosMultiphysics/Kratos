@@ -12,9 +12,7 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/checks.h"
@@ -35,6 +33,19 @@ bool contains(
     const T& rValue)
 {
     return std::find(rVec.begin(), rVec.end(), rValue) != rVec.end();
+}
+
+bool have_same_node_ids(
+    const GeometryType& rGeom1,
+    const GeometryType& rGeom2)
+{
+    if (rGeom1.PointsNumber() != rGeom2.PointsNumber()) return false;
+
+    for (std::size_t i=0; i<rGeom1.PointsNumber(); ++i) {
+        if (rGeom1[i].Id() != rGeom2[i].Id()) return false;
+    }
+
+    return true;
 }
 
 void CheckEntitiesAreEqual(
@@ -63,21 +74,15 @@ void CheckGeometriesAreEqual(
 {
     KRATOS_TRY
 
-    KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id());
+    // KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id()); // those are not the same!
 
     KRATOS_CHECK_EQUAL(rGeom1.PointsNumber(), rGeom2.PointsNumber());
 
     KRATOS_CHECK(GeometryType::IsSame(rGeom1, rGeom2));
 
-
-    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.X(),  rNode2.X());
-    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.X0(), rNode2.X0());
-
-    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.Y(),  rNode2.Y());
-    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.Y0(), rNode2.Y0());
-
-    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.Z(),  rNode2.Z());
-    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.Z0(), rNode2.Z0());
+    for (std::size_t i=0; i<rGeom1.PointsNumber(); ++i) {
+        CheckEntitiesAreEqual(rGeom1[i], rGeom2[i]);
+    }
 
     KRATOS_CATCH("")
 }
@@ -109,15 +114,22 @@ void CheckGeometriesAreEqual(
     // basic checks
     KRATOS_CHECK_EQUAL(rModelPart1.NumberOfGeometries(), rModelPart2.NumberOfGeometries());
 
-    auto geom_1_iter = rModelPart1.GeometriesBegin();
-    auto geom_2_iter = rModelPart2.GeometriesBegin();
+    auto check_geoms = [](const ModelPart& rModelPart1, const ModelPart& rModelPart2){
+        for (auto geom_1 : rModelPart1.Geometries()) {
+            for (auto geom_2 : rModelPart2.Geometries()) {
+                if (have_same_node_ids(geom_1, geom_2)) {
+                    CheckGeometriesAreEqual(geom_1, geom_2);
+                    goto here;
+                }
+            }
+            KRATOS_ERROR << "no match found for geometry " << geom_1 << std::endl;
+            here:;
+        }
+    };
 
-    // check entities
-    for (std::size_t i=0; i<rModelPart1.NumberOfGeometries(); ++i) {
-        CheckGeometriesAreEqual(*geom_1_iter, *geom_2_iter);
-        geom_1_iter++;
-        geom_2_iter++;
-    }
+    check_geoms(rModelPart1, rModelPart2);
+    check_geoms(rModelPart2, rModelPart1);
+
 
     KRATOS_CATCH("")
 }

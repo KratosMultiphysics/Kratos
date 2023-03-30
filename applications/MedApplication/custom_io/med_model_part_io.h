@@ -69,8 +69,6 @@ public:
     /// Copy constructor.
     MedModelPartIO(MedModelPartIO const& rOther) = delete;
 
-    ~MedModelPartIO() = default;
-
     ///@}
     ///@name Operators
     ///@{
