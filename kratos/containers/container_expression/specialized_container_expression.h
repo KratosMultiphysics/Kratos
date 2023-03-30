@@ -51,7 +51,7 @@ namespace Kratos {
  * @tparam TContainerDataIO         Container entity input/output type
  */
 template <class TContainerType, class TContainerDataIO>
-class KRATOS_API(KRATOS_CORE) SpecializedContainerExpression : public ContainerExpression<TContainerType> {
+class SpecializedContainerExpression : public ContainerExpression<TContainerType> {
 public:
     ///@name Type definitions
     ///@{

@@ -28,7 +28,7 @@
 namespace Kratos {
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator=(const SpecializedContainerExpression& rOther)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator=(const SpecializedContainerExpression& rOther)
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in assignment operation.\n"
@@ -40,14 +40,14 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) typename SpecializedContainerExpression<TContainerType, TContainerDataIO>::Pointer SpecializedContainerExpression<TContainerType, TContainerDataIO>::Clone() const
+typename SpecializedContainerExpression<TContainerType, TContainerDataIO>::Pointer SpecializedContainerExpression<TContainerType, TContainerDataIO>::Clone() const
 {
     return Kratos::make_shared<SpecializedContainerExpression<TContainerType, TContainerDataIO>>(*this);
 }
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-KRATOS_API(KRATOS_CORE) void SpecializedContainerExpression<TContainerType, TContainerDataIO>::Read(const Variable<TDataType>& rVariable)
+void SpecializedContainerExpression<TContainerType, TContainerDataIO>::Read(const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
 
@@ -73,7 +73,7 @@ KRATOS_API(KRATOS_CORE) void SpecializedContainerExpression<TContainerType, TCon
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-KRATOS_API(KRATOS_CORE) void SpecializedContainerExpression<TContainerType, TContainerDataIO>::Evaluate(const Variable<TDataType>& rVariable)
+void SpecializedContainerExpression<TContainerType, TContainerDataIO>::Evaluate(const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
 
@@ -133,20 +133,20 @@ KRATOS_API(KRATOS_CORE) void SpecializedContainerExpression<TContainerType, TCon
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-KRATOS_API(KRATOS_CORE) void SpecializedContainerExpression<TContainerType, TContainerDataIO>::SetData(const TDataType& rValue)
+void SpecializedContainerExpression<TContainerType, TContainerDataIO>::SetData(const TDataType& rValue)
 {
     this->mpExpression = LiteralExpression<TDataType>::Create(rValue);
 }
 
 template <class TContainerType, class TContainerDataIO>
 template<class TDataType>
-KRATOS_API(KRATOS_CORE) void SpecializedContainerExpression<TContainerType, TContainerDataIO>::SetZero(const Variable<TDataType>& rVariable)
+void SpecializedContainerExpression<TContainerType, TContainerDataIO>::SetZero(const Variable<TDataType>& rVariable)
 {
     this->SetData(rVariable.Zero());
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator+(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator+(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in addition operation.\n"
@@ -159,7 +159,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator+=(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator+=(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther)
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in addition operation.\n"
@@ -171,7 +171,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator+(const double Value) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator+(const double Value) const
 {
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
@@ -180,14 +180,14 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator+=(const double Value)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator+=(const double Value)
 {
     this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator-(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator-(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in substraction operation.\n"
@@ -200,7 +200,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator-=(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator-=(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther)
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in substraction operation.\n"
@@ -212,7 +212,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator-(const double Value) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator-(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
     result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
@@ -220,14 +220,14 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator-=(const double Value)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator-=(const double Value)
 {
     this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator*(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator*(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in substraction operation.\n"
@@ -240,7 +240,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator*=(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator*=(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther)
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in substraction operation.\n"
@@ -252,7 +252,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator*(const double Value) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator*(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
     result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
@@ -260,14 +260,14 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator*=(const double Value)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator*=(const double Value)
 {
     this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
     return *this;
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator/(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator/(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in substraction operation.\n"
@@ -280,7 +280,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator/=(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator/=(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther)
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in substraction operation.\n"
@@ -292,7 +292,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator/(const double Value) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator/(const double Value) const
 {
     KRATOS_ERROR_IF(std::abs(Value) < std::numeric_limits<double>::epsilon())
         << "Division by zero.\n"
@@ -305,7 +305,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator/=(const double Value)
+SpecializedContainerExpression<TContainerType, TContainerDataIO>& SpecializedContainerExpression<TContainerType, TContainerDataIO>::operator/=(const double Value)
 {
     KRATOS_ERROR_IF(std::abs(Value) < std::numeric_limits<double>::epsilon())
         << "Division by zero.\n"
@@ -317,7 +317,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::Pow(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::Pow(const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rOther) const
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in substraction operation.\n"
@@ -330,7 +330,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::Pow(const double Value) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO> SpecializedContainerExpression<TContainerType, TContainerDataIO>::Pow(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO> result(*(this->mpModelPart));
     result.mpExpression = BinaryExpression<BinaryOperations::Power>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
@@ -338,7 +338,7 @@ KRATOS_API(KRATOS_CORE) SpecializedContainerExpression<TContainerType, TContaine
 }
 
 template <class TContainerType, class TContainerDataIO>
-KRATOS_API(KRATOS_CORE) std::string SpecializedContainerExpression<TContainerType, TContainerDataIO>::Info() const
+std::string SpecializedContainerExpression<TContainerType, TContainerDataIO>::Info() const
 {
     std::stringstream msg;
 
