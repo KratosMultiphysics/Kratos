@@ -231,18 +231,18 @@ private:
     ///@{
 
     // Elements
-    const UpdatedLagrangian mUpdatedLagrangian;
-    const UpdatedLagrangianUP mUpdatedLagrangianUP;
-    const UpdatedLagrangianPQ mUpdatedLagrangianPQ;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
+    const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
+    const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
 
     // Deprecated Elements
-    const UpdatedLagrangian mUpdatedLagrangian2D3N;
-    const UpdatedLagrangian mUpdatedLagrangian3D4N;
-    const UpdatedLagrangian mUpdatedLagrangianUP2D3N;
-    const UpdatedLagrangian mUpdatedLagrangian2D4N;
-    const UpdatedLagrangian mUpdatedLagrangian3D8N;
-    const UpdatedLagrangian mUpdatedLagrangianAxisymmetry2D3N;
-    const UpdatedLagrangian mUpdatedLagrangianAxisymmetry2D4N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian3D4N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangianUP2D3N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D4N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangian3D8N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangianAxisymmetry2D3N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangianAxisymmetry2D4N;
 
     // Conditions
     // Grid Conditions:
