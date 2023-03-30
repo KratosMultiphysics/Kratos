@@ -119,6 +119,7 @@ namespace Kratos
             auto &r_model_part = current_model.CreateModelPart("ModelPart", 1);
             r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
             r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+            r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
             // Set the element properties
             auto p_elem_prop = r_model_part.CreateNewProperties(0);
