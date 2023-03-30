@@ -318,19 +318,6 @@ public:
         return Result;
     }
 
-    void SearchNearestPoint(
-        PointerType const& ThisPoints,
-        SizeType const& NumberOfPoints,
-        IteratorType& Results,
-        std::vector<CoordinateType>& rResultsDistances
-        )
-    {
-        IndexPartition<SizeType>(NumberOfPoints).for_each(
-            [&](SizeType iPoint)
-            { Results[iPoint] = SearchNearestPoint(ThisPoints[iPoint],rResultsDistances[iPoint]); }
-        );
-    }
-
     SizeType SearchInRadius(
         PointType const& ThisPoint,
         CoordinateType Radius,
@@ -340,7 +327,7 @@ public:
         )
     {
         // Using the square of radius for avoiding square root calculation during search
-        CoordinateType Radius2 = Radius * Radius;
+        const CoordinateType Radius2 = Radius * Radius;
 
         // Searching the tree
         SizeType NumberOfResults = 0;
@@ -357,7 +344,7 @@ public:
         )
     {
         // Using the square of radius for avoiding square root calculation during search
-        CoordinateType Radius2 = Radius * Radius;
+        const CoordinateType Radius2 = Radius * Radius;
 
         // Searching the tree
         SizeType NumberOfResults = 0;
@@ -367,7 +354,7 @@ public:
 
     void SearchInRadius(
         PointerType const& ThisPoints,
-        SizeType const& NumberOfPoints,
+        const SizeType NumberOfPoints,
         std::vector<CoordinateType> const& Radius,
         std::vector<IteratorType>& rResults,
         std::vector<DistanceIteratorType>& rResultsDistances,
