@@ -97,6 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchInRadius, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(testKDTree.SearchInRadius(point_10, 3.0, result_points.begin(), distances.begin(), max_number_results), 1);
     KRATOS_CHECK_DOUBLE_EQUAL(distances[0], 3.0); // NOTE: Should be sqrt of 3, may require to check that
 
+    KRATOS_CHECK_EQUAL(testKDTree.SearchInRadius(point_10, 4.0, result_points.begin(), max_number_results), 2);
     KRATOS_CHECK_EQUAL(testKDTree.SearchInRadius(point_10, 4.0, result_points.begin(), distances.begin(), max_number_results), 2);
     KRATOS_CHECK_DOUBLE_EQUAL(distances[0] + distances[1], 15.0); // NOTE: Should be sqrt of 3 + sqrt of 6, may require to check that
 }
