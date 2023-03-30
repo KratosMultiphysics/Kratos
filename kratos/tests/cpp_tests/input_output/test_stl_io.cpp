@@ -133,6 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
 
     KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfGeometries(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfElements(), 0);
     KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfConditions(), 0);
 
     // remove the generated files
