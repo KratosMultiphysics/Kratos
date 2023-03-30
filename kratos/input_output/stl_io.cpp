@@ -211,16 +211,13 @@ void StlIO::ReadLoop(ModelPart & rThisModelPart)
     std::size_t node_id = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Nodes(),
         [](NodeType& rNode) { return rNode.Id();}) + 1;
-    std::size_t element_id = block_for_each<MaxReduction<std::size_t>>(
-        rThisModelPart.GetRootModelPart().Elements(),
-        [](Element& rElement) { return rElement.Id();}) + 1;
     Element::NodesArrayType temp_element_nodes;
     while(word == "vertex"){
         Point coordinates = ReadPoint();
         temp_element_nodes.push_back(rThisModelPart.CreateNewNode(node_id++, coordinates[0], coordinates[1], coordinates[2] ));
         *mpInputStream >> word; // Reading vertex or endloop
     }
-    rThisModelPart.CreateNewElement("Element3D3N", element_id, temp_element_nodes, rThisModelPart.pGetProperties(0));
+    rThisModelPart.CreateNewGeometry("Triangle3D3", temp_element_nodes);
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 

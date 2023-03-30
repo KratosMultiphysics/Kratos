@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
 
     KRATOS_CHECK(r_model_part.HasSubModelPart("1 triangle"));
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfGeometries(), 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
 
     KRATOS_CHECK(r_model_part.HasSubModelPart("3 triangles"));
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfNodes(), 9);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfElements(), 3);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfGeometries(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
@@ -128,13 +128,13 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfProperties(), 1);
     KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfSubModelParts() ,1);
     KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfGeometries(), 1);
     KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfConditions(), 0);
 
     KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfGeometries(), 1);
     KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfConditions(), 0);
-    
+
     // remove the generated files
     if (std::filesystem::remove(filename) != true) {
         KRATOS_ERROR << "Error deleting test output file: " << filename << "\n";
