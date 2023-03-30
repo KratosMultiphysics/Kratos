@@ -62,9 +62,6 @@ WriteFromSwAtInterfaceProcess<TDim>::WriteFromSwAtInterfaceProcess(
         VariableUtils().SetNonHistoricalVariableToZero(VERTICAL_VELOCITY, mrInterfaceModelPart.Nodes());
     }
 
-    // if (mExtrapolateBoundaries) {
-    //     FindBoundaryNeighbors();
-    // }
 }
 
 template<std::size_t TDim>
@@ -74,15 +71,6 @@ void WriteFromSwAtInterfaceProcess<TDim>::Execute()
     BinBasedFastPointLocator<TDim> locator(mrVolumeModelPart);
     locator.UpdateSearchDatabase();
 
-    struct locator_tls {
-        Vector N;
-        typename BinBasedFastPointLocator<TDim>::ResultContainerType results;
-        locator_tls(const int max_results = 10000) {
-            N.resize(TDim+1);
-            results.resize(max_results);
-        }
-    };
-    
     block_for_each(mrInterfaceModelPart.Nodes(), locator_tls(), [&](NodeType& rNode, locator_tls& rTLS){
         ReadAndSetValues(rNode, locator, rTLS.results);
     });
@@ -92,17 +80,6 @@ void WriteFromSwAtInterfaceProcess<TDim>::Execute()
         CopyValues(*mpSecondBoundaryNeighbor, *mpSecondBoundaryNode);
     }
 }
-
-// template<std::size_t TDim>
-// void WriteFromSwAtInterfaceProcess<TDim>::GetBoundingVolumeLimits(double& rMin, double& rMax)
-// {
-//     using MultipleReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
-
-//     std::tie(rMin, rMax) = block_for_each<MultipleReduction>(mrVolumeModelPart.Nodes(), [&](NodeType& node){
-//         const double distance = inner_prod(mDirection, node);
-//         return std::make_tuple(distance, distance);
-//     });
-// }
 
 template<std::size_t TDim>
 void WriteFromSwAtInterfaceProcess<TDim>::ReadAndSetValues(
@@ -119,8 +96,8 @@ void WriteFromSwAtInterfaceProcess<TDim>::ReadAndSetValues(
     double vertical_velocity = 0.0;
     double topography = 0.0;
     
-    velocity = rNode.FastGetSolutionStepValue(VELOCITY);
-    momentum = rNode.FastGetSolutionStepValue(MOMENTUM);
+    noalias(velocity) = rNode.FastGetSolutionStepValue(VELOCITY);
+    noalias(momentum) = rNode.FastGetSolutionStepValue(MOMENTUM);
     height = rNode.FastGetSolutionStepValue(HEIGHT);
     vertical_velocity = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY);
     topography = rNode.FastGetSolutionStepValue(TOPOGRAPHY);
@@ -133,21 +110,6 @@ void WriteFromSwAtInterfaceProcess<TDim>::ReadAndSetValues(
 
 }
 
-// template<std::size_t TDim>
-// array_1d<double,3> WriteFromSwAtInterfaceProcess<TDim>::InterpolateVelocity(
-//     const Element::Pointer pElement,
-//     const Vector& rShapeFunctionValues) const
-// {
-//     KRATOS_DEBUG_ERROR_IF(pElement->GetGeometry().size() != rShapeFunctionValues.size()) << "WriteFromSwAtInterfaceProcess: check the found element!" << std::endl;
-//     array_1d<double,3> velocity = ZeroVector(3);
-//     int n = 0;
-//     for (auto& r_node : pElement->GetGeometry()) {
-//         velocity += rShapeFunctionValues[n] * r_node.FastGetSolutionStepValue(VELOCITY);
-//         n++;
-//     }
-//     return velocity;
-// }
-
 template<std::size_t TDim>
 int WriteFromSwAtInterfaceProcess<TDim>::Check()
 {
@@ -158,56 +120,6 @@ int WriteFromSwAtInterfaceProcess<TDim>::Check()
     return 0;
 }
 
-// template<std::size_t TDim>
-// void WriteFromSwAtInterfaceProcess<TDim>::FindBoundaryNeighbors()
-// {
-//     // Step 1, find the center of the nodes
-//     const int num_nodes = mrInterfaceModelPart.NumberOfNodes();
-//     array_1d<double,3> center = block_for_each<SumReduction<array_1d<double,3>>>(
-//         mrInterfaceModelPart.Nodes(), [&](NodeType& rNode){return rNode.Coordinates();}
-//     );
-//     center /= num_nodes;
-
-//     // Step 2, compute the distances from the center
-//     std::vector<double> distances(num_nodes);
-//     IndexPartition<int>(num_nodes).for_each([&](int i){
-//         auto it_node = mrInterfaceModelPart.NodesBegin() + i;
-//         double distance = norm_2(center - *it_node);
-//         distances[i] = distance;
-//     });
-
-//     // Step 3, the two further nodes are the boundaries
-//     std::size_t i_first_node = std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
-//     double max_distance = distances[i_first_node];
-//     distances[i_first_node] = 0.0;
-//     std::size_t i_second_node = std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
-//     mpFirstBoundaryNode = &*(mrInterfaceModelPart.NodesBegin() + i_first_node);
-//     mpSecondBoundaryNode = &*(mrInterfaceModelPart.NodesBegin() + i_second_node);
-
-//     // Step 4, compute the distances from the first node, the closer is the neighbor
-//     IndexPartition<int>(num_nodes).for_each([&](int i){
-//         auto it_node = mrInterfaceModelPart.NodesBegin() + i;
-//         double distance = norm_2(*mpFirstBoundaryNode - *it_node);
-//         if (distance < 1e-6) {
-//             distance = max_distance; // this is the boundary itself
-//         }
-//         distances[i] = distance;
-//     });
-//     std::size_t i_first_neigh = std::distance(distances.begin(), std::min_element(distances.begin(), distances.end()));
-//     mpFirstBoundaryNeighbor = &*(mrInterfaceModelPart.NodesBegin() + i_first_neigh);
-
-//     // Step 5, compute the distances from the second node, the closer is the neighbor
-//     IndexPartition<int>(num_nodes).for_each([&](int i){
-//         auto it_node = mrInterfaceModelPart.NodesBegin() + i;
-//         double distance = norm_2(*mpSecondBoundaryNode - *it_node);
-//         if (distance < 1e-6) {
-//             distance = max_distance; // this is the boundary itself
-//         }
-//         distances[i] = distance;
-//     });
-//     std::size_t i_second_neigh = std::distance(distances.begin(), std::min_element(distances.begin(), distances.end()));
-//     mpSecondBoundaryNeighbor = &*(mrInterfaceModelPart.NodesBegin() + i_second_neigh);
-// }
 
 template<std::size_t TDim>
 void WriteFromSwAtInterfaceProcess<TDim>::CopyValues(const NodeType& rOriginNode, NodeType& rDestinationNode)

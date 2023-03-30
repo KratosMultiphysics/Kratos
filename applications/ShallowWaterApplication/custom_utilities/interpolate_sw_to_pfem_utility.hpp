@@ -10,8 +10,7 @@
 //  Main authors:    Andrea Montanino
 //
 
-#if !defined(KRATOS_INTERPOLATE_SW_TO_PFEM_UTILITY )
-#define  KRATOS_INTERPOLATE_SW_TO_PFEM_UTILITY
+#pragma once
 
 // System includes
 #include <fstream>
@@ -64,54 +63,56 @@ public:
     void InterpolateVariables (ModelPart& rPfemModelPart, ModelPart& rSWModelPart)
     {
         
-        const int NNodesSW = static_cast<int>(rSWModelPart.Nodes().size());
+        long unsigned int NNodesSW = static_cast<int>(rSWModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator node_beginSW = rSWModelPart.NodesBegin();
         
-        const int NNodesPfem = static_cast<int>(rPfemModelPart.Nodes().size());
+        long unsigned int NNodesPfem = static_cast<int>(rPfemModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator node_beginPfem = rPfemModelPart.NodesBegin();
 
-        double distance, distance1, distance2;
+        double distance, distance_to_first_neigh_node, distance_to_second_neigh_node;
         double ratio, ratio1,ratio2;
         double tol = 1e-4;
+        double Tol = 5.0;
+        double Tol2 = Tol*Tol;
                 
-        int     j1, j2;
+        int     first_neigh_node, second_neigh_node;
         
         double             height, vertical_velocity, topography;
         array_1d<double,3> velocity;
 
-        for(int i = 0; i < NNodesPfem; i++) {
+        for(std::size_t i = 0; i < NNodesPfem; i++) {
             ModelPart::NodesContainerType::iterator it_node = node_beginPfem + i;
 
-            distance1 = 1e32;
-            distance2 = 1e32;
+            distance_to_first_neigh_node = 1e32;
+            distance_to_second_neigh_node = 1e32;
 
-            for (int j = 0; j < NNodesSW; j++){
+            for (std::size_t j = 0; j < NNodesSW; j++){
             ModelPart::NodesContainerType::iterator jt_node = node_beginSW + j;
 
                 distance = (it_node->X() - jt_node->X())*(it_node->X() - jt_node->X()) + (it_node->Y() - jt_node->Y())*(it_node->Y() - jt_node->Y());
-                if (distance < distance1){
-                       distance1 = distance;
-                       j1 =  j;
+                if (distance < distance_to_first_neigh_node){
+                       distance_to_first_neigh_node = distance;
+                       first_neigh_node =  j;
                 }
             }
 
-            for (int j = 0; j < NNodesSW; j++){
+            for (std::size_t j = 0; j < NNodesSW; j++){
             ModelPart::NodesContainerType::iterator jt_node = node_beginSW + j;
 
                 distance = (it_node->X() - jt_node->X())*(it_node->X() - jt_node->X()) + (it_node->Y() - jt_node->Y())*(it_node->Y() - jt_node->Y());
-                if ((distance < distance2) & (distance > distance1)){
-                       distance2 = distance;
-                       j2 =  j;
+                if ((distance < distance_to_second_neigh_node) & (distance > distance_to_first_neigh_node)){
+                       distance_to_second_neigh_node = distance;
+                       second_neigh_node =  j;
                 }
             }
             
-            ModelPart::NodesContainerType::iterator jt_node1 = node_beginSW + j1;
-            ModelPart::NodesContainerType::iterator jt_node2 = node_beginSW + j2;
+            ModelPart::NodesContainerType::iterator jt_node1 = node_beginSW + first_neigh_node;
+            ModelPart::NodesContainerType::iterator jt_node2 = node_beginSW + second_neigh_node;
 
-            double dx = fabs(jt_node1->X() - jt_node2->X());
-            double dy = fabs(jt_node1->Y() - jt_node2->Y());
+            double dx = std::abs(jt_node1->X() - jt_node2->X());
+            double dy = std::abs(jt_node1->Y() - jt_node2->Y());
             
-            if (distance1*distance1 > 5*5*(dx*dx + dy*dy)){
+            if (distance_to_first_neigh_node*distance_to_first_neigh_node > Tol2*(dx*dx + dy*dy)){
                 KRATOS_WARNING("Interpolate_sw_to_pfem") << "PFEM node quite far from SW output interface " << std::endl; 
             }
 
@@ -171,4 +172,4 @@ private:
 
 } // namespace Kratos.
 
-#endif /* KRATOS_INTERPOLATE_SW_TO_PFEM_UTILITY defined */
+

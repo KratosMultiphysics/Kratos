@@ -10,9 +10,7 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_WRITE_FROM_SW_AT_INTERFACE_PROCESS_H_INCLUDED
-#define KRATOS_WRITE_FROM_SW_AT_INTERFACE_PROCESS_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -103,6 +101,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    
+    struct locator_tls {
+        Vector N;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results;
+        locator_tls(const int max_results = 10000) {
+            N.resize(TDim+1);
+            results.resize(max_results);
+        }
+    };
 
     void Execute() override;
 
@@ -246,4 +253,3 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DEPTH_INTEGRATION_PROCESS_H_INCLUDED defined

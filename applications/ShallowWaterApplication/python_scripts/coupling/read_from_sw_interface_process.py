@@ -102,9 +102,9 @@ class ReadFromSwInterfaceProcess(KM.Process):
 
     def ComputeAverageValues(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            avg_vel_x = 0
-            avg_h = 0
-            avg_vel_z = 0
+            avg_vel_x = 0.0
+            avg_h = 0.0
+            avg_vel_z = 0.0
             n = 0
             for node in self.input_model_part.Nodes:
                 n = n+1
