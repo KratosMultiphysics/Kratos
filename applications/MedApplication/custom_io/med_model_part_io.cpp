@@ -288,9 +288,6 @@ public:
 
             mMeshName.erase(std::find(mMeshName.begin(), mMeshName.end(), '\0'), mMeshName.end());
             mDimension = space_dim;
-
-            KRATOS_WATCH(space_dim);
-            KRATOS_WATCH(mesh_dim);
         }
 
         KRATOS_CATCH("")

@@ -65,6 +65,9 @@ public:
         const ModelPart& rModelPart1,
         const ModelPart& rModelPart2);
 
+    static void AddGeometriesFromElements(
+        ModelPart& rModelPart);
+
     ///@}
     ///@name Access
     ///@{

@@ -28,6 +28,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<MedTestingUtilities>(m,"MedTestingUtilities")
         .def_static("CheckModelPartsAreEqual", &MedTestingUtilities::CheckModelPartsAreEqual)
+        .def_static("AddGeometriesFromElements", &MedTestingUtilities::AddGeometriesFromElements)
         ;
 }
 

@@ -160,4 +160,17 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
     KRATOS_CATCH("")
 }
 
+
+void MedTestingUtilities::AddGeometriesFromElements(
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    for (const auto& r_elem : rModelPart.Elements()) {
+        rModelPart.AddGeometry(r_elem.pGetGeometry());
+    }
+
+    KRATOS_CATCH("")
+}
+
 } // namespace Kratos
