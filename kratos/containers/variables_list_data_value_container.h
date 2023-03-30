@@ -14,6 +14,10 @@
 #pragma once
 
 // System includes
+#include <string>
+#include <iostream>
+#include <cstddef>
+#include <cstring>
 
 // External includes
 
@@ -21,7 +25,6 @@
 #include "includes/define.h"
 #include "containers/variable.h"
 #include "containers/variables_list.h"
-#include "includes/global_variables.h"
 
 namespace Kratos
 {
