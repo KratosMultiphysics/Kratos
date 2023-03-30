@@ -96,7 +96,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double max_stress_relative_error = mMaxStressRelativeError;
     unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
     unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
-    unsigned int reference_damage_number_of_cycles = mNumberOfCyclesToCalibrateDamage;
+    unsigned int reference_number_of_cycles = mReferenceNumberOfCycles;
+    bool update_local_number_of_cycle = mUpdateNumberOfCyclesLocal;
     double B0 = mFatigueReductionParameter;
     // double wohler_stress = mWohlerStress;
     bool new_cycle = false;
@@ -140,13 +141,20 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
 
+        if (global_number_of_cycles > 2 && update_local_number_of_cycle && reference_damage && !reference_number_of_cycles && !advance_strategy_applied) {
+            local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
+            if (std::isnan(local_number_of_cycles)) {
+                local_number_of_cycles = global_number_of_cycles;
+            }
+            update_local_number_of_cycle = false;
+        }
+
         // if (global_number_of_cycles > 2 && !advance_strategy_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
         //     local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
         // }
         
         global_number_of_cycles++;
         local_number_of_cycles++;
-        reference_damage_number_of_cycles++;
         mCyclesToFailure = cycles_to_failure;
         number_of_load_increments = 0;
         new_cycle = true;
@@ -159,8 +167,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rValues.GetMaterialProperties(),
                                                                                         max_stress,
                                                                                         reversion_factor,
-                                                                                        reference_damage,
                                                                                         local_number_of_cycles,
+                                                                                        reference_number_of_cycles,
                                                                                         global_number_of_cycles,
                                                                                         B0,
                                                                                         s_th,
@@ -195,8 +203,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rValues.GetMaterialProperties(),
                                                                                         max_stress,
                                                                                         reversion_factor,
-                                                                                        reference_damage,
                                                                                         local_number_of_cycles,
+                                                                                        reference_number_of_cycles,
                                                                                         global_number_of_cycles,
                                                                                         B0,
                                                                                         s_th,
@@ -208,30 +216,29 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         previous_min_stress = min_stress;
     
     }
+           
+    max_stress = mMaxStress;
+    min_stress = mMinStress;
     
-    if (reference_damage_number_of_cycles < 2) {
-        
-        max_stress = mMaxStress;
-        min_stress = mMinStress;
-        
-        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
-        HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
+    const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+    HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
 
-        if (max_indicator && std::abs(reversion_factor) < 1.0 && max_stress > ultimate_stress) {
-            mReferenceDamage = 1 - (ultimate_stress/max_stress);
-            // KRATOS_WATCH(rValues.GetElementGeometry().Id())
-            // KRATOS_WATCH(mReferenceDamage)
+    if (max_indicator && std::abs(reversion_factor) < 1.0 && max_stress > ultimate_stress) {
+        if (!mReferenceDamage){
+            mReferenceDamage = 1 - (ultimate_stress/(max_stress));
         }
-        // else if (min_indicator && std::abs(reversion_factor) > 1.0 ) {
-        //     mMinReferenceDamage = (ultimate_stress/abs(min_stress));
-        //     if (std::abs(mMaxStress) > threshold){
-        //         mMaxReferenceDamage = std::abs(1 / reversion_factor) * mMinReferenceDamage;
-        //     }
-        // }
+        if (!mReferenceNumberOfCycles) {
+            mReferenceNumberOfCycles = local_number_of_cycles;
+            update_local_number_of_cycle = true;
+            // KRATOS_WATCH(rValues.GetElementGeometry().Id())
+            // KRATOS_WATCH(mReferenceNumberOfCycles)
+        }
+    } else if (max_indicator && std::abs(reversion_factor) < 1.0 && max_stress < ultimate_stress) {
+        mReferenceNumberOfCycles = 0.0;
     }
 
     if (new_model_part) {
-        mNumberOfCyclesToCalibrateDamage = 1;
+        mReferenceDamage = 0.0;
     }
 
     max_indicator = false;
@@ -241,7 +248,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     mNumberOfLoadIncrements = number_of_load_increments;
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
-    mNumberOfCyclesToCalibrateDamage = reference_damage_number_of_cycles;
+    mUpdateNumberOfCyclesLocal = update_local_number_of_cycle;
     mReversionFactorRelativeError = reversion_factor_relative_error;
     mMaxStressRelativeError = max_stress_relative_error;
     mFirstMaxDetected = first_max_indicator;
