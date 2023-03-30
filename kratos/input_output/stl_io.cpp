@@ -106,8 +106,8 @@ void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
 }
 
 
-void StlIO::WriteFacet(const GeometryType& rGeom) {
-    
+void StlIO::WriteFacet(const GeometryType& rGeom) 
+{
     const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
     (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
     (*mpInputStream) << "        outer loop\n";
@@ -211,13 +211,13 @@ void StlIO::ReadLoop(ModelPart & rThisModelPart)
     std::size_t node_id = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Nodes(),
         [](NodeType& rNode) { return rNode.Id();}) + 1;
-    Element::NodesArrayType temp_element_nodes;
+    Element::NodesArrayType temp_geom_nodes;
     while(word == "vertex"){
         Point coordinates = ReadPoint();
-        temp_element_nodes.push_back(rThisModelPart.CreateNewNode(node_id++, coordinates[0], coordinates[1], coordinates[2] ));
+        temp_geom_nodes.push_back(rThisModelPart.CreateNewNode(node_id++, coordinates[0], coordinates[1], coordinates[2] ));
         *mpInputStream >> word; // Reading vertex or endloop
     }
-    rThisModelPart.CreateNewGeometry("Triangle3D3", temp_element_nodes);
+    rThisModelPart.CreateNewGeometry("Triangle3D3", temp_geom_nodes);
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
