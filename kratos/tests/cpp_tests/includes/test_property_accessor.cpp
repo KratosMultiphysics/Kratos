@@ -46,7 +46,7 @@ namespace Kratos
                 : public  Accessor 
             {
                 public:
-                double const& GetProperty(
+                double GetProperty(
                     const Variable<double> &rVariable,
                     const Properties &rProperties,
                     const GeometryType &rGeometry,
