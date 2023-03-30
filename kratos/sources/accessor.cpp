@@ -31,7 +31,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a double type variable
      */
-    double const& Accessor::GetProperty(
+    double Accessor::GetProperty(
         const Variable<double> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -40,14 +40,13 @@ namespace Kratos
         ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        double aux;
-        return aux;
+        return 0.0;
     }
 
     /**
      * @brief This method implements the way to retrieve a Vector type variable
      */
-    Vector const& Accessor::GetProperty(
+    Vector Accessor::GetProperty(
         const Variable<Vector> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -63,7 +62,7 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a bool type variable
      */
-    bool const& Accessor::GetProperty(
+    bool Accessor::GetProperty(
         const Variable<bool> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -72,14 +71,13 @@ namespace Kratos
         ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        bool aux;
-        return aux;
+        return false;
     }
 
     /**
      * @brief This method implements the way to retrieve a int type variable
      */
-    int const& Accessor::GetProperty(
+    int Accessor::GetProperty(
         const Variable<int> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -88,14 +86,13 @@ namespace Kratos
         ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        int aux;
-        return aux;
+        return 0;
     }
 
     /**
      * @brief This method implements the way to retrieve a Matrix type variable
      */
-    Matrix const& Accessor::GetProperty(
+    Matrix Accessor::GetProperty(
         const Variable<Matrix> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -111,8 +108,8 @@ namespace Kratos
     /**
      * @brief This method implements the way to retrieve a array_1d<double, 3 > type variable
      */
-    array_1d<double, 3 > const& Accessor::GetProperty(
-        const Variable<array_1d<double, 3 >> &rVariable,
+    array_1d<double, 3> Accessor::GetProperty(
+        const Variable<array_1d<double, 3>> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
@@ -120,15 +117,15 @@ namespace Kratos
         ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        array_1d<double, 3 > mat;
+        array_1d<double, 3> mat;
         return mat;
     }
 
     /**
      * @brief This method implements the way to retrieve a array_1d<double, 6 > type variable
      */
-    array_1d<double, 6 > const& Accessor::GetProperty(
-        const Variable<array_1d<double, 6 >> &rVariable,
+    array_1d<double, 6> Accessor::GetProperty(
+        const Variable<array_1d<double, 6>> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
         const Vector &rShapeFunctionVector,
@@ -136,14 +133,14 @@ namespace Kratos
         ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        array_1d<double, 6 > mat;
+        array_1d<double, 6> mat;
         return mat;
     }
 
     /**
      * @brief This method implements the way to retrieve a std::string type variable
      */
-    std::string const& Accessor::GetProperty(
+    std::string Accessor::GetProperty(
         const Variable<std::string> &rVariable,
         const Properties &rProperties,
         const GeometryType &rGeometry,
@@ -152,8 +149,7 @@ namespace Kratos
         ) const
     {
         KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
-        std::string str;
-        return str;
+        return "string";
     }
 
     /**

@@ -67,7 +67,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve double type properties
          */
-        virtual double const& GetProperty(
+        virtual double GetProperty(
             const Variable<double> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -77,7 +77,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve Vector type properties
          */
-        virtual Vector const& GetProperty(
+        virtual Vector GetProperty(
             const Variable<Vector> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -87,7 +87,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve bool type properties
          */
-        virtual bool const& GetProperty(
+        virtual bool GetProperty(
             const Variable<bool> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -97,7 +97,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve int type properties
          */
-        virtual int const& GetProperty(
+        virtual int GetProperty(
             const Variable<int> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -107,7 +107,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve Matrix type properties
          */
-        virtual Matrix const& GetProperty(
+        virtual Matrix GetProperty(
             const Variable<Matrix> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -117,7 +117,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve array_1d<double, 3 > type properties
          */
-        virtual array_1d<double, 3> const& GetProperty(
+        virtual array_1d<double, 3> GetProperty(
             const Variable<array_1d<double, 3>> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -127,7 +127,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve array_1d<double, 6 > type properties
          */
-        virtual array_1d<double, 6> const& GetProperty(
+        virtual array_1d<double, 6> GetProperty(
             const Variable<array_1d<double, 6>> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
@@ -137,7 +137,7 @@ class KRATOS_API(KRATOS_CORE) Accessor
         /**
          * Custom method to retrieve string type properties
          */
-        virtual std::string const& GetProperty(
+        virtual std::string GetProperty(
             const Variable<std::string> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
