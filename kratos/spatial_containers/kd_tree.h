@@ -25,8 +25,6 @@
 
 namespace Kratos
 {
-//template<std::size_t Dimension, class TPointType, class TPointsContainerType>
-//class KDTree;
 ///@name Kratos Globals
 ///@{
 
