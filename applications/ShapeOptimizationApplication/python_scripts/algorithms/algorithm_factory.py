@@ -56,6 +56,12 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                          analyzer,
                                          communicator,
                                          model_part_controller)
+    elif algorithm_name == "thickness_optimization":
+        from .algorithm_thickness_optimization import AlgorithmThicknessOptimization
+        return AlgorithmThicknessOptimization(optimization_settings,
+                                              analyzer,
+                                              communicator,
+                                              model_part_controller)
     else:
         raise NameError("The following optimization algorithm is not supported by the algorithm factory: " + algorithm_name)
 

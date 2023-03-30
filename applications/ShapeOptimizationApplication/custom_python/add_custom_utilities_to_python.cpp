@@ -235,6 +235,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                                             }
                                             return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
                                         })
+        .def_static("AssembleMatrixScalarVariables", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
+                                    std::size_t list_length = pybind11::len(rVariables);
+                                    std::vector<Variable<double>*> variables_vector(list_length);
+                                    for (std::size_t i = 0; i < list_length; i++)
+                                    {
+                                        variables_vector[i] = (rVariables[i]).cast<Variable<double>*>();
+                                    }
+                                    return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
+                                })
         .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         .def_static("AssembleBufferMatrix", &OptimizationUtilities::AssembleBufferMatrix)
         .def_static("CalculateRelaxedProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateRelaxedProjectedSearchDirectionAndCorrection)
@@ -265,6 +274,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
         .def(py::init<ModelPart&>())
         .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("UpdateThicknessAccordingInputVariable", &MeshControllerUtilities::UpdateThicknessAccordingInputVariable)
         .def("RevertMeshUpdateAccordingInputVariable", &MeshControllerUtilities::RevertMeshUpdateAccordingInputVariable)
         .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)

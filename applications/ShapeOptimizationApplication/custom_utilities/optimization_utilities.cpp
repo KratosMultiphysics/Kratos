@@ -280,6 +280,30 @@ void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,
     }
 }
 
+void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,
+    Matrix& rMatrix,
+    const std::vector<Variable<double>*>& rVariables
+)
+{
+    if ((rMatrix.size1() != rModelPart.NumberOfNodes() || rMatrix.size2() !=  rVariables.size())){
+        rMatrix.resize(rModelPart.NumberOfNodes(), rVariables.size());
+    }
+
+    int i=0;
+    for (auto & node_i : rModelPart.Nodes())
+    {
+        int j=0;
+        for (Variable<double>* p_variable_j : rVariables)
+        {
+            const Variable<double>& r_variable_j = *p_variable_j;
+            double& variable = node_i.FastGetSolutionStepValue(r_variable_j);
+            rMatrix(i, j) = variable;
+            ++j;
+        }
+        ++i;
+    }
+}
+
 void OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection(
     Vector& rObjectiveGradient,
     Matrix& rConstraintGradients,
