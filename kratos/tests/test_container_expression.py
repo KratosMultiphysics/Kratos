@@ -10,51 +10,46 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 class TestContainerExpression(ABC):
-    model: Kratos.Model = None
-
     @classmethod
     def CreateEntities(cls):
-        if TestContainerExpression.model is None:
-            TestContainerExpression.model =  Kratos.Model()
-            cls.model_part = TestContainerExpression.model.CreateModelPart("test")
-            cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
-            cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
-            cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
-            cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-            cls.model_part.AddNodalSolutionStepVariable(Kratos.INITIAL_STRAIN)
-            cls.model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
-            cls.model_part.AddNodalSolutionStepVariable(Kratos.PENALTY)
-            cls.model_part.AddNodalSolutionStepVariable(Kratos.PK2_STRESS_TENSOR)
-            cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
-            with kratos_unittest.WorkFolderScope(".", __file__, True):
-                ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
+        cls.model =  Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.INITIAL_STRAIN)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PENALTY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PK2_STRESS_TENSOR)
+        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
+        with kratos_unittest.WorkFolderScope(".", __file__, True):
+            ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
 
-            for node in cls.model_part.Nodes:
-                id = node.Id
-                node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
-                node.SetSolutionStepValue(Kratos.PRESSURE, id+3)
-                node.SetSolutionStepValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
-                node.SetSolutionStepValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
-                node.SetValue(Kratos.PRESSURE, id+3)
-                node.SetValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
-                node.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
-                node.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
+        for node in cls.model_part.Nodes:
+            id = node.Id
+            node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
+            node.SetSolutionStepValue(Kratos.PRESSURE, id+3)
+            node.SetSolutionStepValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
+            node.SetSolutionStepValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
+            node.SetValue(Kratos.PRESSURE, id+3)
+            node.SetValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
+            node.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
+            node.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
 
-            for condition in cls.model_part.Conditions:
-                id = condition.Id
-                condition.SetValue(Kratos.PRESSURE, id+4)
-                condition.SetValue(Kratos.VELOCITY, Kratos.Array3([id+5, id+6, id+7]))
-                condition.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
-                condition.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
+        for condition in cls.model_part.Conditions:
+            id = condition.Id
+            condition.SetValue(Kratos.PRESSURE, id+4)
+            condition.SetValue(Kratos.VELOCITY, Kratos.Array3([id+5, id+6, id+7]))
+            condition.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
+            condition.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
 
-            for element in cls.model_part.Elements:
-                id = element.Id
-                element.SetValue(Kratos.PRESSURE, id+5)
-                element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
-                element.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
-                element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
-        else:
-            cls.model_part = TestContainerExpression.model["test"]
+        for element in cls.model_part.Elements:
+            id = element.Id
+            element.SetValue(Kratos.PRESSURE, id+5)
+            element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
+            element.SetValue(Kratos.INITIAL_STRAIN, Kratos.Vector([id+3, id+4, id+5, id+6, id+7, id+8]))
+            element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, Kratos.Matrix([[id+3, id+4], [id+5, id+6]]))
 
     def test_ContainerExpressionAdd(self):
         a = self._GetSpecializedContainerExpression()
