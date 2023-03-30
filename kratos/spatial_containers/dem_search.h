@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    clabra
 //
 
-#if !defined(KRATOS_DEM_SEARCH_H_INCLUDED )
-#define  KRATOS_DEM_SEARCH_H_INCLUDED
+#pragma once
 
 // include kratos definitions
 #include "includes/define.h"
@@ -463,5 +462,3 @@ class DEMSearch : public SpatialSearch
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DEM_SEARCH_H_INCLUDED  defined

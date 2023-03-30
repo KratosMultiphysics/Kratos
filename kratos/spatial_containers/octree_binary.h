@@ -5,23 +5,20 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Abel Coll
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_OCTREE_H_INCLUDED )
-#define  KRATOS_OCTREE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -1165,7 +1162,5 @@ namespace Kratos {
     ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_OCTREE_H_INCLUDED  defined
 
 
