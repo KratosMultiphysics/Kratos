@@ -115,20 +115,20 @@ namespace Kratos
                         << "Initializing KratosParticleMechanicsApplication..." << std::endl;
 
         // Registering elements
-        KRATOS_REGISTER_ELEMENT("UpdatedLagrangian", mMPMUpdatedLagrangian)
-        KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
-        KRATOS_REGISTER_ELEMENT("UpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
+        KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
+        KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
+        KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
 
         // Deprecated elements
-        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mMPMUpdatedLagrangian2D3N )
-        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mMPMUpdatedLagrangian3D4N )
-        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mMPMUpdatedLagrangianUP2D3N )
+        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D3N", mMPMUpdatedLagrangian2D3N )
+        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian3D4N", mMPMUpdatedLagrangian3D4N )
+        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP2D3N", mMPMUpdatedLagrangianUP2D3N )
         //KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP3D4N", mMPMUpdatedLagrangianUP3D4N )
-        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D4N", mMPMUpdatedLagrangian2D4N )
-        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D8N", mMPMUpdatedLagrangian3D8N )
+        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D4N", mMPMUpdatedLagrangian2D4N )
+        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian3D8N", mMPMUpdatedLagrangian3D8N )
         //KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP2D4N", mMPMUpdatedLagrangianUP2D4N )
-        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianAxisymmetry2D3N", mMPMUpdatedLagrangianAxisymmetry2D3N )
-        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianAxisymmetry2D4N", mMPMUpdatedLagrangianAxisymmetry2D4N )
+        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianAxisymmetry2D3N", mMPMUpdatedLagrangianAxisymmetry2D3N )
+        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianAxisymmetry2D4N", mMPMUpdatedLagrangianAxisymmetry2D4N )
 
         // Registering conditions
         // Grid Conditions
