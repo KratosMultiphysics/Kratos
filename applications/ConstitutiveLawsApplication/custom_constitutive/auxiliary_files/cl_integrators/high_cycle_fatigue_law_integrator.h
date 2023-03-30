@@ -263,6 +263,7 @@ public:
           if(std::abs(ReversionFactor) < 1.0){
                 rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
                 rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+              
                 const double stress_relative_error =  std::abs(MaxStress - ultimate_stress) / ultimate_stress;         
                 if (stress_relative_error < 1.0e-6){
                     rN_f = 1.0;

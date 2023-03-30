@@ -143,9 +143,15 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         if (global_number_of_cycles > 2 && update_local_number_of_cycle && reference_damage && !reference_number_of_cycles && !advance_strategy_applied) {
             local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
-            if (std::isnan(local_number_of_cycles)) {
+            // KRATOS_WATCH (B0)
+            // if (B0 == 0.0){
+            //     KRATOS_WATCH(max_stress)
+            //     KRATOS_WATCH(min_stress)
+            // }
+            if (std::isnan(B0) || local_number_of_cycles < global_number_of_cycles) {
                 local_number_of_cycles = global_number_of_cycles;
             }
+            // KRATOS_WATCH (local_number_of_cycles)
             update_local_number_of_cycle = false;
         }
 
@@ -223,9 +229,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
     HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
 
-    if (max_indicator && std::abs(reversion_factor) < 1.0 && max_stress > ultimate_stress) {
+    if (max_indicator && std::abs(reversion_factor) < 1.0 && max_stress >= ultimate_stress) {
         if (!mReferenceDamage){
-            mReferenceDamage = 1 - (ultimate_stress/(max_stress));
+            mReferenceDamage = 1 - (ultimate_stress / max_stress);
         }
         if (!mReferenceNumberOfCycles) {
             mReferenceNumberOfCycles = local_number_of_cycles;
