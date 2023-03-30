@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/container_variable_data/expressions/expression.h"
+#include "containers/container_expression/expressions/expression.h"
 
 namespace Kratos {
 
@@ -50,15 +50,15 @@ namespace Kratos {
  *                              They are used to store keep track of the operations carried on the LiteralExpressions.
  *
  * Literal expressions are created on the following cases:
- *      1. When data is set using the SpecializedContainerVariableData::Read. Here, a LiteralFlatExpression is created.
- *      2. When data is reset to one value using either ContainerVariableData::SetDataToZero or SpecializedContainerVariableData::SetData
- *         or SpecializedContainerVariableData::SetZero. Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
- *      3. When a SpecializedContainerVariableData is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
+ *      1. When data is set using the SpecializedContainerExpression::Read. Here, a LiteralFlatExpression is created.
+ *      2. When data is reset to one value using either ContainerExpression::SetDataToZero or SpecializedContainerExpression::SetData
+ *         or SpecializedContainerExpression::SetZero. Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
+ *      3. When a SpecializedContainerExpression is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
  *
  * BinaryExpressions are created on the followin cases:
- *      1. When a SpecializedContainerVariableData is operated with "+", "-", "*", "/", "Pow".
+ *      1. When a SpecializedContainerExpression is operated with "+", "-", "*", "/", "Pow".
  *
- * ContainerVariableData only holds double vector if any nodal, condition or element variable data needs to be stored for future calculations
+ * ContainerExpression only holds double vector if any nodal, condition or element variable data needs to be stored for future calculations
  * where the variable can be released to store new data. Hence same variable can be used to store different data in the same container.
  *
  * When operatos such as "+", "-", "*", "/", "Pow" are used on these containers in python or c++, it creates an expression. They are not
@@ -75,20 +75,20 @@ namespace Kratos {
  * @tparam TContainerType
  */
 template <class TContainerType>
-class KRATOS_API(KRATOS_CORE) ContainerVariableData {
+class KRATOS_API(KRATOS_CORE) ContainerExpression {
 public:
     ///@name Type definitions
     ///@{
 
     using IndexType = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION(ContainerVariableData);
+    KRATOS_CLASS_POINTER_DEFINITION(ContainerExpression);
 
     ///@}
     ///@name Life cycle
     ///#{
 
-    virtual ~ContainerVariableData() = default;
+    virtual ~ContainerExpression() = default;
 
     ///@}
     ///@name Public operations
@@ -104,7 +104,7 @@ public:
      *
      * @param rOther        Other container variable data
      */
-    void CopyFrom(const ContainerVariableData<TContainerType>& rOther);
+    void CopyFrom(const ContainerExpression<TContainerType>& rOther);
 
     /**
      * @brief Reads data from c like interface
@@ -293,10 +293,10 @@ protected:
     ///@{
 
     /// Constructor with the model part
-    ContainerVariableData(ModelPart& rModelPart);
+    ContainerExpression(ModelPart& rModelPart);
 
     /// Copy constructor
-    ContainerVariableData(const ContainerVariableData& rOther);
+    ContainerExpression(const ContainerExpression& rOther);
 
     ///@}
     ///@name Protected member variables
@@ -317,7 +317,7 @@ protected:
 template<class TContainerType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ContainerVariableData<TContainerType>& rThis)
+    const ContainerExpression<TContainerType>& rThis)
 {
     return rOStream << rThis.Info();
 }

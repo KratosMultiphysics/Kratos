@@ -18,7 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/container_variable_data/container_variable_data.h"
+#include "containers/container_expression/container_expression.h"
 
 namespace Kratos {
 
@@ -26,10 +26,10 @@ namespace Kratos {
 ///@{
 
 /**
- * @brief Construct a new specialized @ref ContainerVariableData.
+ * @brief Construct a new specialized @ref ContainerExpression.
  *
  * This class is used to represent objects which are the specializations
- * of ContainerVariableData. The base class is @ref ContainerVariableData<TContainerType>.
+ * of ContainerExpression. The base class is @ref ContainerExpression<TContainerType>.
  * Hence this class can be specialized to read and write data to different entity containers
  * for each container type.
  *
@@ -39,10 +39,10 @@ namespace Kratos {
  * These expressions are evaluated only if @ref Evaluate. This also does not create additional
  * vectors to hold the resultant value of the expression. It uses the model parts respective containers entity input/output
  * method specified to write evaluated entity resultant values to model part entities. Hence, these
- * SpecializedContainerVariableData can be easily visualized using common variable data visualization methods.
+ * SpecializedContainerExpression can be easily visualized using common variable data visualization methods.
  *
  * Copy constructor is introduced with the base class type because, this allows copying data
- * between compatible @ref SpecializedContainerVariableData containers. This copy is also light weight since
+ * between compatible @ref SpecializedContainerExpression containers. This copy is also light weight since
  * this only copies the pointers, not the data itself.
  *
  * This class can take advantage of OpenMP and MPI.
@@ -51,35 +51,35 @@ namespace Kratos {
  * @tparam TContainerDataIO         Container entity input/output type
  */
 template <class TContainerType, class TContainerDataIO>
-class KRATOS_API(KRATOS_CORE) SpecializedContainerVariableData : public ContainerVariableData<TContainerType> {
+class KRATOS_API(KRATOS_CORE) SpecializedContainerExpression : public ContainerExpression<TContainerType> {
 public:
     ///@name Type definitions
     ///@{
 
-    using BaseType = ContainerVariableData<TContainerType>;
+    using BaseType = ContainerExpression<TContainerType>;
 
     using IndexType = std::size_t;
 
-    /// Pointer definition of SpecializedContainerVariableData
-    KRATOS_CLASS_POINTER_DEFINITION(SpecializedContainerVariableData);
+    /// Pointer definition of SpecializedContainerExpression
+    KRATOS_CLASS_POINTER_DEFINITION(SpecializedContainerExpression);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    SpecializedContainerVariableData(ModelPart& rModelPart)
+    SpecializedContainerExpression(ModelPart& rModelPart)
         : BaseType(rModelPart)
     {
     }
 
     /// Copy constructor with base class used to transfer data between compatible data containers
-    SpecializedContainerVariableData(const BaseType& rOther)
+    SpecializedContainerExpression(const BaseType& rOther)
         : BaseType(rOther)
     {
     }
 
-    SpecializedContainerVariableData& operator=(const SpecializedContainerVariableData& rOther);
+    SpecializedContainerExpression& operator=(const SpecializedContainerExpression& rOther);
 
     ///@}
     ///@name Public operations
@@ -92,9 +92,9 @@ public:
      * since this just clones the expression pointer. No data copying for the underlying
      * data in expression is done.
      *
-     * @return SpecializedContainerVariableData::Pointer
+     * @return SpecializedContainerExpression::Pointer
      */
-    SpecializedContainerVariableData::Pointer Clone() const;
+    SpecializedContainerExpression::Pointer Clone() const;
 
     using BaseType::Read;
 
@@ -167,41 +167,41 @@ public:
     ///@name Operators
     ///@{
 
-    SpecializedContainerVariableData operator+(const SpecializedContainerVariableData& rOther) const;
+    SpecializedContainerExpression operator+(const SpecializedContainerExpression& rOther) const;
 
-    SpecializedContainerVariableData& operator+=(const SpecializedContainerVariableData& rOther);
+    SpecializedContainerExpression& operator+=(const SpecializedContainerExpression& rOther);
 
-    SpecializedContainerVariableData operator+(const double Value) const;
+    SpecializedContainerExpression operator+(const double Value) const;
 
-    SpecializedContainerVariableData& operator+=(const double Value);
+    SpecializedContainerExpression& operator+=(const double Value);
 
-    SpecializedContainerVariableData operator-(const SpecializedContainerVariableData& rOther) const;
+    SpecializedContainerExpression operator-(const SpecializedContainerExpression& rOther) const;
 
-    SpecializedContainerVariableData& operator-=(const SpecializedContainerVariableData& rOther);
+    SpecializedContainerExpression& operator-=(const SpecializedContainerExpression& rOther);
 
-    SpecializedContainerVariableData operator-(const double Value) const;
+    SpecializedContainerExpression operator-(const double Value) const;
 
-    SpecializedContainerVariableData& operator-=(const double Value);
+    SpecializedContainerExpression& operator-=(const double Value);
 
-    SpecializedContainerVariableData operator*(const SpecializedContainerVariableData& rOther) const;
+    SpecializedContainerExpression operator*(const SpecializedContainerExpression& rOther) const;
 
-    SpecializedContainerVariableData& operator*=(const SpecializedContainerVariableData& rOther);
+    SpecializedContainerExpression& operator*=(const SpecializedContainerExpression& rOther);
 
-    SpecializedContainerVariableData operator*(const double Value) const;
+    SpecializedContainerExpression operator*(const double Value) const;
 
-    SpecializedContainerVariableData& operator*=(const double Value);
+    SpecializedContainerExpression& operator*=(const double Value);
 
-    SpecializedContainerVariableData operator/(const SpecializedContainerVariableData& rOther) const;
+    SpecializedContainerExpression operator/(const SpecializedContainerExpression& rOther) const;
 
-    SpecializedContainerVariableData& operator/=(const SpecializedContainerVariableData& rOther);
+    SpecializedContainerExpression& operator/=(const SpecializedContainerExpression& rOther);
 
-    SpecializedContainerVariableData operator/(const double Value) const;
+    SpecializedContainerExpression operator/(const double Value) const;
 
-    SpecializedContainerVariableData& operator/=(const double Value);
+    SpecializedContainerExpression& operator/=(const double Value);
 
-    SpecializedContainerVariableData Pow(const SpecializedContainerVariableData& rOther) const;
+    SpecializedContainerExpression Pow(const SpecializedContainerExpression& rOther) const;
 
-    SpecializedContainerVariableData Pow(const double Value) const;
+    SpecializedContainerExpression Pow(const double Value) const;
 
     ///@}
     ///@name Input and output
@@ -217,7 +217,7 @@ public:
 template<class TContainerType, class TContainerDataIO>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const SpecializedContainerVariableData<TContainerType, TContainerDataIO>& rThis)
+    const SpecializedContainerExpression<TContainerType, TContainerDataIO>& rThis)
 {
     return rOStream << rThis.Info();
 }
@@ -227,4 +227,4 @@ inline std::ostream& operator<<(
 // includes the implementations of here
 // This is kept headers only because, this can be customized
 // in applications if required.
-#include "specialized_container_variable_data_impl.h"
+#include "specialized_container_expression_impl.h"

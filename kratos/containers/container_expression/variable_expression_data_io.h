@@ -16,8 +16,8 @@
 #include <vector>
 
 // Project includes
-#include "containers/container_variable_data/expressions/expression.h"
-#include "containers/container_variable_data/expressions/literal/literal_flat_expression.h"
+#include "containers/container_expression/expressions/expression.h"
+#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 
 namespace Kratos {
 

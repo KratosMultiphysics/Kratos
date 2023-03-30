@@ -17,30 +17,30 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
-#include "containers/container_variable_data/expressions/literal/literal_expression.h"
-#include "containers/container_variable_data/expressions/literal/literal_flat_expression.h"
+#include "containers/container_expression/expressions/literal/literal_expression.h"
+#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 
 // Include base h
-#include "container_variable_data.h"
+#include "container_expression.h"
 
 namespace Kratos {
 
 template <class TContainerType>
-ContainerVariableData<TContainerType>::ContainerVariableData(ModelPart& rModelPart)
+ContainerExpression<TContainerType>::ContainerExpression(ModelPart& rModelPart)
     : mpModelPart(&rModelPart)
 {
 }
 
 template <class TContainerType>
-ContainerVariableData<TContainerType>::ContainerVariableData(
-    const ContainerVariableData& rOther)
+ContainerExpression<TContainerType>::ContainerExpression(
+    const ContainerExpression& rOther)
     : mpExpression(rOther.mpExpression),
       mpModelPart(rOther.mpModelPart)
 {
 }
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::CopyFrom(
-    const ContainerVariableData<TContainerType>& rOther)
+void ContainerExpression<TContainerType>::CopyFrom(
+    const ContainerExpression<TContainerType>& rOther)
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
         << "Mismatching model parts found with different number of entities in CopyFrom operation.\n"
@@ -51,7 +51,7 @@ void ContainerVariableData<TContainerType>::CopyFrom(
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::Read(
+void ContainerExpression<TContainerType>::Read(
     double const* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
@@ -89,7 +89,7 @@ void ContainerVariableData<TContainerType>::Read(
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::MoveFrom(
+void ContainerExpression<TContainerType>::MoveFrom(
     double* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
@@ -117,7 +117,7 @@ void ContainerVariableData<TContainerType>::MoveFrom(
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::Evaluate(
+void ContainerExpression<TContainerType>::Evaluate(
     double* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
@@ -158,92 +158,92 @@ void ContainerVariableData<TContainerType>::Evaluate(
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::SetDataToZero()
+void ContainerExpression<TContainerType>::SetDataToZero()
 {
     mpExpression = LiteralExpression<double>::Create(0.0);
 }
 
 template <class TContainerType>
-void ContainerVariableData<TContainerType>::SetExpression(Expression::Pointer pExpression)
+void ContainerExpression<TContainerType>::SetExpression(Expression::Pointer pExpression)
 {
     this->mpExpression = pExpression;
 }
 
 template <class TContainerType>
-const Expression& ContainerVariableData<TContainerType>::GetExpression() const
+const Expression& ContainerExpression<TContainerType>::GetExpression() const
 {
     return *(*mpExpression);
 }
 
 
 template <class TContainerType>
-const Expression::Pointer ContainerVariableData<TContainerType>::pGetExpression() const
+const Expression::Pointer ContainerExpression<TContainerType>::pGetExpression() const
 {
     return *mpExpression;
 }
 
 template <class TContainerType>
-const std::vector<std::size_t> ContainerVariableData<TContainerType>::GetShape() const
+const std::vector<std::size_t> ContainerExpression<TContainerType>::GetShape() const
 {
     return this->GetExpression().GetShape();
 }
 
 template <class TContainerType>
-std::size_t ContainerVariableData<TContainerType>::GetFlattenedSize() const
+std::size_t ContainerExpression<TContainerType>::GetFlattenedSize() const
 {
     return this->GetExpression().GetFlattenedSize();
 }
 
 template <class TContainerType>
-ModelPart& ContainerVariableData<TContainerType>::GetModelPart()
+ModelPart& ContainerExpression<TContainerType>::GetModelPart()
 {
     return *mpModelPart;
 }
 
 template <class TContainerType>
-const ModelPart& ContainerVariableData<TContainerType>::GetModelPart() const
+const ModelPart& ContainerExpression<TContainerType>::GetModelPart() const
 {
     return *mpModelPart;
 }
 
 template <>
-ModelPart::NodesContainerType& ContainerVariableData<ModelPart::NodesContainerType>::GetContainer()
+ModelPart::NodesContainerType& ContainerExpression<ModelPart::NodesContainerType>::GetContainer()
 {
     return mpModelPart->GetCommunicator().LocalMesh().Nodes();
 }
 
 template <>
-ModelPart::ConditionsContainerType& ContainerVariableData<ModelPart::ConditionsContainerType>::GetContainer()
+ModelPart::ConditionsContainerType& ContainerExpression<ModelPart::ConditionsContainerType>::GetContainer()
 {
     return mpModelPart->GetCommunicator().LocalMesh().Conditions();
 }
 
 template <>
-ModelPart::ElementsContainerType& ContainerVariableData<ModelPart::ElementsContainerType>::GetContainer()
+ModelPart::ElementsContainerType& ContainerExpression<ModelPart::ElementsContainerType>::GetContainer()
 {
     return mpModelPart->GetCommunicator().LocalMesh().Elements();
 }
 
 template <>
-const ModelPart::NodesContainerType& ContainerVariableData<ModelPart::NodesContainerType>::GetContainer() const
+const ModelPart::NodesContainerType& ContainerExpression<ModelPart::NodesContainerType>::GetContainer() const
 {
     return mpModelPart->GetCommunicator().LocalMesh().Nodes();
 }
 
 template <>
-const ModelPart::ConditionsContainerType& ContainerVariableData<ModelPart::ConditionsContainerType>::GetContainer() const
+const ModelPart::ConditionsContainerType& ContainerExpression<ModelPart::ConditionsContainerType>::GetContainer() const
 {
     return mpModelPart->GetCommunicator().LocalMesh().Conditions();
 }
 
 template <>
-const ModelPart::ElementsContainerType& ContainerVariableData<ModelPart::ElementsContainerType>::GetContainer() const
+const ModelPart::ElementsContainerType& ContainerExpression<ModelPart::ElementsContainerType>::GetContainer() const
 {
     return mpModelPart->GetCommunicator().LocalMesh().Elements();
 }
 
 template <class TContainerType>
-std::string ContainerVariableData<TContainerType>::Info() const
+std::string ContainerExpression<TContainerType>::Info() const
 {
     std::stringstream msg;
 
@@ -264,7 +264,7 @@ std::string ContainerVariableData<TContainerType>::Info() const
 }
 
 template <class TContainerType>
-std::string ContainerVariableData<TContainerType>::PrintData() const
+std::string ContainerExpression<TContainerType>::PrintData() const
 {
     std::stringstream msg;
     msg << this->Info();
@@ -272,8 +272,8 @@ std::string ContainerVariableData<TContainerType>::PrintData() const
 }
 
 // template instantiations
-template class ContainerVariableData<ModelPart::NodesContainerType>;
-template class ContainerVariableData<ModelPart::ConditionsContainerType>;
-template class ContainerVariableData<ModelPart::ElementsContainerType>;
+template class ContainerExpression<ModelPart::NodesContainerType>;
+template class ContainerExpression<ModelPart::ConditionsContainerType>;
+template class ContainerExpression<ModelPart::ElementsContainerType>;
 
 } // namespace Kratos

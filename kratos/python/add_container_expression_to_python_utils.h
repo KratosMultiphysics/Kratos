@@ -18,8 +18,8 @@
 #include <pybind11/numpy.h>
 
 // Project includes
-#include "containers/container_variable_data/container_variable_data.h"
-#include "containers/container_variable_data/specialized_container_variable_data.h"
+#include "containers/container_expression/container_expression.h"
+#include "containers/container_expression/specialized_container_expression.h"
 
 namespace Kratos::Python
 {
@@ -99,14 +99,14 @@ pybind11::array_t<TDataType> MakeNumpyArray(
                      << "it to dtype = numpy.float64. [ data_type = " << #DATA_TYPE << " ].\n"; })
 
 template<class TContainerType>
-void AddContainerVariableDataToPython(pybind11::module& m, const std::string& rName)
+void AddContainerExpressionToPython(pybind11::module& m, const std::string& rName)
 {
     namespace py = pybind11;
 
-    using container_variable_data_holder_base = ContainerVariableData<TContainerType>;
-    py::class_<container_variable_data_holder_base, typename container_variable_data_holder_base::Pointer>(m, rName.c_str())
-        .def("CopyFrom", &container_variable_data_holder_base::CopyFrom, py::arg("origin_container_data"))
-        .def("MoveFrom", [](container_variable_data_holder_base& rSelf, py::array_t<double>& rData){
+    using container_expression_holder_base = ContainerExpression<TContainerType>;
+    py::class_<container_expression_holder_base, typename container_expression_holder_base::Pointer>(m, rName.c_str())
+        .def("CopyFrom", &container_expression_holder_base::CopyFrom, py::arg("origin_container_expression"))
+        .def("MoveFrom", [](container_expression_holder_base& rSelf, py::array_t<double>& rData){
             KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
 
             // dimension of the numpy array is always one dimension greater than the kratos stored dimension for each
@@ -121,30 +121,30 @@ void AddContainerVariableDataToPython(pybind11::module& m, const std::string& rN
                            shape.data(),
                            shape.size());
         })
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_variable_data_holder_base, , float)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_variable_data_holder_base, , long double)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_variable_data_holder_base, , int)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_variable_data_holder_base, , long int)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_variable_data_holder_base, , unsigned int)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_variable_data_holder_base, , long unsigned int)
-        .def("Read", &container_variable_data_holder_base::Read, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("starting_value_of_shape"), py::arg("shape_size"))
-        .def("GetModelPart", py::overload_cast<>(&container_variable_data_holder_base::GetModelPart), py::return_value_policy::reference)
-        .def("GetContainer", py::overload_cast<>(&container_variable_data_holder_base::GetContainer), py::return_value_policy::reference)
-        .def("PrintData", &container_variable_data_holder_base::PrintData)
-        .def("__str__", &container_variable_data_holder_base::Info)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , float)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , long double)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , long int)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , unsigned int)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , long unsigned int)
+        .def("Read", &container_expression_holder_base::Read, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("starting_value_of_shape"), py::arg("shape_size"))
+        .def("GetModelPart", py::overload_cast<>(&container_expression_holder_base::GetModelPart), py::return_value_policy::reference)
+        .def("GetContainer", py::overload_cast<>(&container_expression_holder_base::GetContainer), py::return_value_policy::reference)
+        .def("PrintData", &container_expression_holder_base::PrintData)
+        .def("__str__", &container_expression_holder_base::Info)
         ;
 }
 
 template<class TContainerType, class TContainerDataIOTag>
-void AddSpecializedContainerVariableDataToPython(pybind11::module& m, const std::string& rName)
+void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::string& rName)
 {
     namespace py = pybind11;
 
-    using container_type = SpecializedContainerVariableData<TContainerType, ContainerDataIO<TContainerDataIOTag>>;
-    py::class_<container_type, typename container_type::Pointer, ContainerVariableData<TContainerType>>(m, rName.c_str())
-        .def(py::init<ModelPart&>(), py::arg("model_part"), py::doc("Creates a new container data object with model_part."))
-        .def(py::init<const container_type&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new same type container data object by copying data from other_container_data_to_copy_from."))
-        .def(py::init<const typename container_type::BaseType&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new destination type container data object by copying data from compatible other_container_data_to_copy_from."))
+    using container_type = SpecializedContainerExpression<TContainerType, ContainerDataIO<TContainerDataIOTag>>;
+    py::class_<container_type, typename container_type::Pointer, ContainerExpression<TContainerType>>(m, rName.c_str())
+        .def(py::init<ModelPart&>(), py::arg("model_part"), py::doc("Creates a new container expression object with model_part."))
+        .def(py::init<const container_type&>(), py::arg("other_container_expression_to_copy_from"), py::doc("Creates a new same type container expression object by copying data from other_container_expression_to_copy_from."))
+        .def(py::init<const typename container_type::BaseType&>(), py::arg("other_container_expression_to_copy_from"), py::doc("Creates a new destination type container expression object by copying data from compatible other_container_expression_to_copy_from."))
         .def("Evaluate", [](const container_type& rSelf){
             const auto& r_shape = rSelf.GetShape();
             auto array = AllocateNumpyArray<double>(rSelf.GetContainer().size(), r_shape);
@@ -177,7 +177,7 @@ void AddSpecializedContainerVariableDataToPython(pybind11::module& m, const std:
                        rData.shape()[0],
                        shape.data(),
                        shape.size());
-        })
+        }, py::arg("numpy_array"))
         KRATOS_FORBIDDEN_CAST("Read", container_type, const, float)
         KRATOS_FORBIDDEN_CAST("Read", container_type, const, long double)
         KRATOS_FORBIDDEN_CAST("Read", container_type, const, int)

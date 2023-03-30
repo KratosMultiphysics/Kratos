@@ -22,6 +22,6 @@
 namespace Kratos::Python
 {
 
-void  AddContainerVariableDataToPython(pybind11::module& m);
+void  AddContainerExpressionToPython(pybind11::module& m);
 
 }  // namespace Kratos::Python.

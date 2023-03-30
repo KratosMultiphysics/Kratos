@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
-#include "containers/container_variable_data/expressions/expression.h"
+#include "containers/container_expression/expressions/expression.h"
 
 namespace Kratos {
 
