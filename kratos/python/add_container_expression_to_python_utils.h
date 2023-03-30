@@ -12,6 +12,7 @@
 
 // System includes
 #include <numeric>
+#include <cstdint>
 
 // External includes
 #include <pybind11/stl.h>
@@ -123,10 +124,14 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
         })
         KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , float)
         KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , long double)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , long int)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , unsigned int)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , long unsigned int)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int8_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int16_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int32_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int64_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , uint8_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , uint16_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , uint32_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , uint64_t)
         .def("Read", &container_expression_holder_base::Read, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("starting_value_of_shape"), py::arg("shape_size"))
         .def("GetModelPart", py::overload_cast<>(&container_expression_holder_base::GetModelPart), py::return_value_policy::reference)
         .def("GetContainer", py::overload_cast<>(&container_expression_holder_base::GetContainer), py::return_value_policy::reference)
@@ -180,10 +185,14 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         }, py::arg("numpy_array"))
         KRATOS_FORBIDDEN_CAST("Read", container_type, const, float)
         KRATOS_FORBIDDEN_CAST("Read", container_type, const, long double)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, long int)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, unsigned int)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, long unsigned int)
+        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int8_t)
+        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int16_t)
+        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int32_t)
+        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int64_t)
+        KRATOS_FORBIDDEN_CAST("Read", container_type, const, uint8_t)
+        KRATOS_FORBIDDEN_CAST("Read", container_type, const, uint16_t)
+        KRATOS_FORBIDDEN_CAST("Read", container_type, const, uint32_t)
+        KRATOS_FORBIDDEN_CAST("Read", container_type, const, uint64_t)
         .def("Read", &container_type::template Read<array_1d<double, 3>>, py::arg("Array3_variable"))
         .def("Read", &container_type::template Read<array_1d<double, 4>>, py::arg("Array4_variable"))
         .def("Read", &container_type::template Read<array_1d<double, 6>>, py::arg("Array6_variable"))
