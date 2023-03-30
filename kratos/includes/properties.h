@@ -264,7 +264,7 @@ public:
     {
         auto it_value = mAccessors.find(rVariable.Key());
         if (it_value != mAccessors.end()) {
-            return (it_value->second)->GetProperty(rVariable, *this, rGeometry, rShapeFunctionVector, rProcessInfo);
+            return (it_value->second)->GetValue(rVariable, *this, rGeometry, rShapeFunctionVector, rProcessInfo);
         } else {
             return mData.GetValue(rVariable);
         }

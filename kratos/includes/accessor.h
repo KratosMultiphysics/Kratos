@@ -72,7 +72,7 @@ public:
      * @param rProcessInfo The process info considered
      * @return The double type properties
      */
-    virtual double GetProperty(
+    virtual double GetValue(
         const Variable<double>& rVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,
@@ -89,7 +89,7 @@ public:
      * @param rProcessInfo The process info considered
      * @return The Vector type properties
      */
-    virtual Vector GetProperty(
+    virtual Vector GetValue(
         const Variable<Vector>& rVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,
@@ -106,7 +106,7 @@ public:
      * @param rProcessInfo The process info considered
      * @return The bool type properties
      */
-    virtual bool GetProperty(
+    virtual bool GetValue(
         const Variable<bool>& rVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,
@@ -123,7 +123,7 @@ public:
      * @param rProcessInfo The process info considered
      * @return The int type properties
      */
-    virtual int GetProperty(
+    virtual int GetValue(
         const Variable<int>& rVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,
@@ -140,7 +140,7 @@ public:
      * @param rProcessInfo The process info considered
      * @return The Matrix type properties
      */
-    virtual Matrix GetProperty(
+    virtual Matrix GetValue(
         const Variable<Matrix>& rVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,
@@ -157,7 +157,7 @@ public:
      * @param rProcessInfo The process info considered
      * @return The array_1d<double, 3 > type properties
      */
-    virtual array_1d<double, 3> GetProperty(
+    virtual array_1d<double, 3> GetValue(
         const Variable<array_1d<double, 3>>& rVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,
@@ -174,7 +174,7 @@ public:
      * @param rProcessInfo The process info considered
      * @return The array_1d<double, 6 > type properties
      */
-    virtual array_1d<double, 6> GetProperty(
+    virtual array_1d<double, 6> GetValue(
         const Variable<array_1d<double, 6>>& rVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,
@@ -191,7 +191,7 @@ public:
      * @param rProcessInfo The process info considered
      * @return The string type properties
      */
-    virtual std::string GetProperty(
+    virtual std::string GetValue(
         const Variable<std::string>& rVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,

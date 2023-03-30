@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-double Accessor::GetProperty(
+double Accessor::GetValue(
     const Variable<double>& rVariable,
     const Properties& rProperties,
     const GeometryType& rGeometry,
@@ -31,14 +31,14 @@ double Accessor::GetProperty(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
     return 0.0;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector Accessor::GetProperty(
+Vector Accessor::GetValue(
     const Variable<Vector>& rVariable,
     const Properties& rProperties,
     const GeometryType& rGeometry,
@@ -46,7 +46,7 @@ Vector Accessor::GetProperty(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
     Vector aux(0);
     return aux;
 }
@@ -54,7 +54,7 @@ Vector Accessor::GetProperty(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool Accessor::GetProperty(
+bool Accessor::GetValue(
     const Variable<bool>& rVariable,
     const Properties& rProperties,
     const GeometryType& rGeometry,
@@ -62,14 +62,14 @@ bool Accessor::GetProperty(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
     return false;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-int Accessor::GetProperty(
+int Accessor::GetValue(
     const Variable<int>& rVariable,
     const Properties& rProperties,
     const GeometryType& rGeometry,
@@ -77,14 +77,14 @@ int Accessor::GetProperty(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
     return 0;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix Accessor::GetProperty(
+Matrix Accessor::GetValue(
     const Variable<Matrix>& rVariable,
     const Properties& rProperties,
     const GeometryType& rGeometry,
@@ -92,7 +92,7 @@ Matrix Accessor::GetProperty(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
     Matrix mat(0, 0);
     return mat;
 }
@@ -100,7 +100,7 @@ Matrix Accessor::GetProperty(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 3> Accessor::GetProperty(
+array_1d<double, 3> Accessor::GetValue(
     const Variable<array_1d<double, 3>>& rVariable,
     const Properties& rProperties,
     const GeometryType& rGeometry,
@@ -108,7 +108,7 @@ array_1d<double, 3> Accessor::GetProperty(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
     array_1d<double, 3> mat;
     return mat;
 }
@@ -116,7 +116,7 @@ array_1d<double, 3> Accessor::GetProperty(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 6> Accessor::GetProperty(
+array_1d<double, 6> Accessor::GetValue(
     const Variable<array_1d<double, 6>>& rVariable,
     const Properties& rProperties,
     const GeometryType& rGeometry,
@@ -124,7 +124,7 @@ array_1d<double, 6> Accessor::GetProperty(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
     array_1d<double, 6> mat;
     return mat;
 }
@@ -132,7 +132,7 @@ array_1d<double, 6> Accessor::GetProperty(
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string Accessor::GetProperty(
+std::string Accessor::GetValue(
     const Variable<std::string>& rVariable,
     const Properties& rProperties,
     const GeometryType& rGeometry,
@@ -140,7 +140,7 @@ std::string Accessor::GetProperty(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    KRATOS_ERROR << "You are calling the GetProperty of the virtual Accessor class..." << std::endl;
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
     return "string";
 }
 

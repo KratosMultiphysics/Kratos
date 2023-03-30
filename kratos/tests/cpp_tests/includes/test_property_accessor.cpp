@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
         : public  Accessor 
     {
         public:
-        double GetProperty(
+        double GetValue(
             const Variable<double> &rVariable,
             const Properties &rProperties,
             const GeometryType &rGeometry,
