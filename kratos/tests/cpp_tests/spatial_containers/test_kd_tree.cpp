@@ -68,8 +68,10 @@ KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchNearestPoint, KratosCoreFastSuite)
 
     KDTree testKDTree(points.begin(), points.end(), 100);
 
+    auto point_10 = PointType(10, 10.0, 10.0, 10.0);
+    KRATOS_CHECK_EQUAL(testKDTree.SearchNearestPoint(point_10), points[9]);
     double distance;
-    KRATOS_CHECK_EQUAL(testKDTree.SearchNearestPoint( PointType(10, 10.0, 10.0, 10.0), distance), points[9]);
+    KRATOS_CHECK_EQUAL(testKDTree.SearchNearestPoint(point_10, distance), points[9]);
     KRATOS_CHECK_DOUBLE_EQUAL(distance, 3.0); // NOTE: Should be sqrt of 3, may require to check that
 }
 
