@@ -75,5 +75,30 @@ KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchNearestPoint, KratosCoreFastSuite)
     KRATOS_CHECK_DOUBLE_EQUAL(distance, 3.0); // NOTE: Should be sqrt of 3, may require to check that
 }
 
+/**
+ * @brief Test that SearchInRadius works correctly
+ */
+KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchInRadius, KratosCoreFastSuite)
+{
+    PointVector points;
+
+    for(std::size_t i = 0; i < 10; i++) {
+        points.push_back(PointTypePointer(new PointType(i, i, i, i)));
+    }
+
+    KDTree testKDTree(points.begin(), points.end(), 100);
+
+    const std::size_t max_number_results = 10;
+    PointVector result_points(max_number_results);
+    DistanceVector distances(max_number_results);
+    auto point_10 = PointType(10, 10.0, 10.0, 10.0);
+    KRATOS_CHECK_EQUAL(testKDTree.SearchInRadius(point_10, 1.0, result_points.begin(), distances.begin(), max_number_results), 0);
+
+    KRATOS_CHECK_EQUAL(testKDTree.SearchInRadius(point_10, 3.0, result_points.begin(), distances.begin(), max_number_results), 1);
+    KRATOS_CHECK_DOUBLE_EQUAL(distances[0], 3.0); // NOTE: Should be sqrt of 3, may require to check that
+
+    KRATOS_CHECK_EQUAL(testKDTree.SearchInRadius(point_10, 4.0, result_points.begin(), distances.begin(), max_number_results), 2);
+    KRATOS_CHECK_DOUBLE_EQUAL(distances[0] + distances[1], 15.0); // NOTE: Should be sqrt of 3 + sqrt of 6, may require to check that
+}
 
 } // namespace Kratos::Testing
