@@ -22,7 +22,6 @@ class TestContainerExpression(ABC):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PENALTY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PK2_STRESS_TENSOR)
-        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
         with kratos_unittest.WorkFolderScope(".", __file__, True):
             ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
 
