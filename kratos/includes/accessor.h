@@ -56,11 +56,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    Accessor(){};
-
     /// Destructor.
-    virtual ~Accessor() {}
+    virtual ~Accessor() = default;
 
     ///@}
     ///@name Operations
@@ -202,7 +199,7 @@ public:
         const ProcessInfo& rProcessInfo
         ) const;
 
-    // Getting a pointer tot he class
+    // Getting a pointer to the class
     virtual Accessor::Pointer Clone() const;
 
     ///@}
