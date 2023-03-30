@@ -94,12 +94,12 @@ private:
     // this block is needed for refcounting in the @ref intrusive ptr
     mutable std::atomic<int> mReferenceCounter{0};
 
-    friend void intrusive_ptr_add_ref(const Expression* x);
+    friend void intrusive_ptr_add_ref(const Expression* x)
     {
         x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
     }
 
-    friend void intrusive_ptr_release(const Expression* x);
+    friend void intrusive_ptr_release(const Expression* x)
     {
         if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
             std::atomic_thread_fence(std::memory_order_acquire);
