@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined( KRATOS_VTK_EIGEN_OUTPUT_H_INCLUDED )
-#define KRATOS_VTK_EIGEN_OUTPUT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -53,8 +52,8 @@ public:
     void PrintEigenOutput(
         const std::string& rLabel,
         const int AnimationStep,
-        const std::vector<Variable<double>>& rRequestedDoubleResults,
-        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults);
+        const std::vector<const Variable<double>*>& rRequestedDoubleResults,
+        const std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults);
 
     ///@}
 
@@ -116,5 +115,3 @@ private:
 };
 
 } // namespace Kratos
-
-#endif // KRATOS_VTK_EIGEN_OUTPUT_H_INCLUDED

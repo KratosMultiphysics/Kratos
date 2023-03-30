@@ -184,7 +184,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new MonolithicDEMCoupledWallCondition(NewId, Condition::GetGeometry().Create(ThisNodes), pProperties));
+        return Condition::Pointer(new MonolithicDEMCoupledWallCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
     Condition::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,

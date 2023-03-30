@@ -10,8 +10,7 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED )
-#define  KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -56,14 +55,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    PostprocessEigenvaluesProcess(ModelPart& rModelPart,
-                                  Parameters OutputParameters);
+    PostprocessEigenvaluesProcess(
+        Model& rModel,
+        Parameters OutputParameters);
 
     ///@}
     ///@name Operations
     ///@{
 
     void ExecuteFinalizeSolutionStep() override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -89,7 +95,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart;
     Parameters mOutputParameters;
 
     ///@}
@@ -100,8 +106,8 @@ private:
                          const int NumberOfEigenvalues,
                          const double EigenValueSolution) const;
 
-    void GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
-                      std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const;
+    void GetVariables(std::vector<const Variable<double>*>& rRequestedDoubleResults,
+                      std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults) const;
 
     ///@}
 
@@ -110,5 +116,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED  defined

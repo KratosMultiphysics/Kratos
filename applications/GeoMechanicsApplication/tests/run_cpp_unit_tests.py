@@ -1,10 +1,12 @@
+import sys
 import KratosMultiphysics
 from KratosMultiphysics.GeoMechanicsApplication import *
 
 
 def run():
     KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_LIST)
-    KratosMultiphysics.Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
+    exitCode = KratosMultiphysics.Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
+    sys.exit(exitCode)
 
 
 if __name__ == '__main__':

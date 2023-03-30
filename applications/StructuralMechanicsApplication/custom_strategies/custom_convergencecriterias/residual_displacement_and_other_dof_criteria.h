@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RESIDUAL_DISPLACEMENT_AND_OTHER_DOF_CRITERIA )
-#define  KRATOS_RESIDUAL_DISPLACEMENT_AND_OTHER_DOF_CRITERIA
+#pragma once
 
 // System includes
 
@@ -346,7 +345,7 @@ private:
         TDataType residual_solution_norm_other_dof = TDataType();
         SizeType disp_dof_num = 0;
 
-        // Auxiliar values
+        // Auxiliary values
         TDataType residual_dof_value = 0.0;
         const auto it_dof_begin = rDofSet.begin();
         const int number_of_dof = static_cast<int>(rDofSet.size());
@@ -418,6 +417,4 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_RESIDUAL_DISPLACEMENT_AND_OTHER_DOF_CRITERIA  defined
 

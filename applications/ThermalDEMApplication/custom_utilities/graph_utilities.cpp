@@ -133,11 +133,7 @@ namespace Kratos {
       mFile_ParticleEnergyContributions << "9 - ACCUMULATED DISSIP ROLL | ";
       mFile_ParticleEnergyContributions << "10 - ACCUMULATED DISSIP DAMPING | ";
       mFile_ParticleEnergyContributions << "11 - TOTAL ACCUMULATED DISSIP | ";
-      mFile_ParticleEnergyContributions << "12 - ACCUMULATED THERMAL FRICTION | ";
-      mFile_ParticleEnergyContributions << "13 - ACCUMULATED THERMAL ROLL | ";
-      mFile_ParticleEnergyContributions << "14 - ACCUMULATED THERMAL DAMPING | ";
-      mFile_ParticleEnergyContributions << "15 - TOTAL ACCUMULATED THERMAL | ";
-      mFile_ParticleEnergyContributions << "16 - TOTAL ENERGY + ACCUMULATED DISSIP";
+      mFile_ParticleEnergyContributions << "12 - TOTAL ENERGY + ACCUMULATED DISSIP";
       mFile_ParticleEnergyContributions << std::endl;
     }
 
@@ -191,15 +187,10 @@ namespace Kratos {
     double    total_accum_energy_dissip_damp      =  0.0;
     double    total_accum_energy_dissip           =  0.0;
 
-    double    total_accum_energy_thermal_slid     =  0.0;
-    double    total_accum_energy_thermal_roll     =  0.0;
-    double    total_accum_energy_thermal_damp     =  0.0;
-    double    total_accum_energy_thermal          =  0.0;
-
+    ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
-      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
 
       // Accumulate values
       const double vol                  = particle.CalculateVolume();
@@ -217,10 +208,7 @@ namespace Kratos {
       particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,         energy_kinetic_rotation,    r_process_info);
       particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,         accum_energy_dissip_slid,   r_process_info);
       particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, accum_energy_dissip_roll,   r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,  accum_energy_dissip_damp,   r_process_info);
-      double accum_energy_thermal_slid = particle.mThermalFrictionalEnergy;
-      double accum_energy_thermal_roll = particle.mThermalRollResistEnergy;
-      double accum_energy_thermal_damp = particle.mThermalViscodampingEnergy;
+      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,       accum_energy_dissip_damp,   r_process_info);
 
       #pragma omp critical
       {
@@ -241,11 +229,6 @@ namespace Kratos {
         total_accum_energy_dissip_roll   += accum_energy_dissip_roll;
         total_accum_energy_dissip_damp   += accum_energy_dissip_damp;
         total_accum_energy_dissip        += accum_energy_dissip_slid + accum_energy_dissip_roll + accum_energy_dissip_damp;
-
-        total_accum_energy_thermal_slid  += accum_energy_thermal_slid;
-        total_accum_energy_thermal_roll  += accum_energy_thermal_roll;
-        total_accum_energy_thermal_damp  += accum_energy_thermal_damp;
-        total_accum_energy_thermal       += accum_energy_thermal_slid + accum_energy_thermal_roll + accum_energy_thermal_damp;
       }
 
       if (mGraph_ParticleHeatFluxContributions) {
@@ -396,10 +379,6 @@ namespace Kratos {
                                         << total_accum_energy_dissip_roll   << " "
                                         << total_accum_energy_dissip_damp   << " "
                                         << total_accum_energy_dissip        << " "
-                                        << total_accum_energy_thermal_slid  << " "
-                                        << total_accum_energy_thermal_roll  << " "
-                                        << total_accum_energy_thermal_damp  << " "
-                                        << total_accum_energy_thermal       << " "
                                         << total_energy+total_accum_energy_dissip
                                         << std::endl;
 

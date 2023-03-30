@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -69,6 +68,8 @@ public:
 
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
+
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
 
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage);
@@ -405,7 +406,6 @@ private:
     // Converged values
     double mDamage = 0.0;
     double mThreshold = 0.0;
-    double mUniaxialStress = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -450,4 +450,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

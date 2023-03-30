@@ -41,8 +41,8 @@ void Kernel::Initialize() {
                     << " ' /   __| _` | __|  _ \\   __|    \n"
                     << " . \\  |   (   | |   (   |\\__ \\  \n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
-                    << "           Multi-Physics " << GetVersionString() << "\n"
-                    << "           Compiled for "<< GetOSName() << " and " << GetPythonVersion() << " with " << GetCompiler() << std::endl;
+                    << "           Multi-Physics " << Kernel::Version() << "\n"
+                    << "           Compiled for "  << Kernel::OSName()  << " and " << Kernel::PythonVersion() << " with " << Kernel::Compiler() << std::endl;
 
     PrintParallelismSupportInfo();
 
@@ -97,14 +97,12 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     rOStream << std::endl;
     rOStream << "Modelers:" << std::endl;
     KratosComponents<Modeler>().PrintData(rOStream);
-
+    rOStream << std::endl;
     rOStream << "Loaded applications:" << std::endl;
-
     auto& application_list = Kernel::GetApplicationsList();
-    rOStream << "number of loaded applications = " << application_list.size()
-             << std::endl;
+    rOStream << "    Number of loaded applications = " << application_list.size() << std::endl;
     for (auto it = application_list.begin(); it != application_list.end(); ++it)
-        rOStream << "  " << *it << std::endl;
+        rOStream << "    " << *it << std::endl;
 }
 
 // To be removed with the new entry points
@@ -115,6 +113,22 @@ std::string Kernel::BuildType() {
 // To be removed with the new entry points
 std::string Kernel::Version() {
     return GetVersionString();
+}
+
+std::string Kernel::OSName() {
+    return GetOSName();
+}
+
+std::string Kernel::PythonVersion() {
+    return mPyVersion;
+}
+
+std::string Kernel::Compiler() {
+    return GetCompiler();
+}
+
+void Kernel::SetPythonVersion(std::string pyVersion) {
+    mPyVersion = pyVersion;
 }
 
 void Kernel::PrintParallelismSupportInfo() const
@@ -165,5 +179,6 @@ void Kernel::PrintParallelismSupportInfo() const
 }
 
 bool Kernel::mIsDistributedRun = false;
+std::string Kernel::mPyVersion = std::string("Undefined");
 
 }

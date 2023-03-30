@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -377,7 +377,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateRightHa
 
     // Adding slip frictional force
     if (this->Is(SLIP)) {
-        // We got some auxiliar values
+        // We got some auxiliary values
         const GeometryType& r_slave_geometry = this->GetParentGeometry();
 
         for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
@@ -495,50 +495,50 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ConstraintDofDat
         const SizeType slave_size = slave_dofs_OK.size();
         const SizeType master_size = master_dofs_OK.size();
         if (slave_size < potential_slave_size || master_size < potential_master_size) {
-            Matrix auxiliar_matrix(slave_size, master_size);
-            Vector auxiliar_vector(slave_size);
+            Matrix auxiliary_matrix(slave_size, master_size);
+            Vector auxiliary_vector(slave_size);
             IndexType slave_counter = 0;
             for (IndexType i : slave_dofs_OK) {
                 IndexType master_counter = 0;
                 for (IndexType j : master_dofs_OK) {
-                    auxiliar_matrix(slave_counter, master_counter) = rRelationMatrix(i, j);
+                    auxiliary_matrix(slave_counter, master_counter) = rRelationMatrix(i, j);
                     ++master_counter;
                 }
-                auxiliar_vector[slave_counter] = rConstantVector[i];
+                auxiliary_vector[slave_counter] = rConstantVector[i];
                 ++slave_counter;
             }
             rRelationMatrix.resize(slave_size, master_size, false);
             rConstantVector.resize(slave_size, false);
 
-            noalias(rRelationMatrix) = auxiliar_matrix;
-            noalias(rConstantVector) = auxiliar_vector;
+            noalias(rRelationMatrix) = auxiliary_matrix;
+            noalias(rConstantVector) = auxiliary_vector;
         }
 
-        // We got some auxiliar values
+        // We got some auxiliary values
         const GeometryType& r_slave_geometry = this->GetParentGeometry();
         const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
         // Create dof list
         /* MASTER */
-        BaseType::DofsVectorType auxiliar_master_dof_vector, master_dof_vector;
+        BaseType::DofsVectorType auxiliary_master_dof_vector, master_dof_vector;
 
         master_dof_vector.resize(0);
         master_dof_vector.reserve(TDim * TNumNodesMaster);// + TDim * TNumNodes);
 
         if (master_size < potential_master_size) {
-            auxiliar_master_dof_vector.resize(0);
-            auxiliar_master_dof_vector.reserve(TDim * TNumNodes);
+            auxiliary_master_dof_vector.resize(0);
+            auxiliary_master_dof_vector.reserve(TDim * TNumNodes);
 
             for (auto& r_node_master : r_master_geometry) {
-                auxiliar_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_X));
-                auxiliar_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Y));
-                if constexpr (TDim == 3) auxiliar_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Z));
+                auxiliary_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_X));
+                auxiliary_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Y));
+                if constexpr (TDim == 3) auxiliary_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Z));
             }
 
             master_dof_vector.resize(0);
             master_dof_vector.reserve(master_size);
             for (IndexType j : master_dofs_OK) {
-                master_dof_vector.push_back(auxiliar_master_dof_vector[j]);
+                master_dof_vector.push_back(auxiliary_master_dof_vector[j]);
             }
         } else {
             for (auto& r_node_master : r_master_geometry) {
@@ -554,22 +554,22 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ConstraintDofDat
         }
 
         /* SLAVE */
-        BaseType::DofsVectorType auxiliar_slave_dof_vector, slave_dof_vector;
+        BaseType::DofsVectorType auxiliary_slave_dof_vector, slave_dof_vector;
 
         if (slave_size < potential_slave_size) {
-            auxiliar_slave_dof_vector.resize(0);
-            auxiliar_slave_dof_vector.reserve(TDim * TNumNodes);
+            auxiliary_slave_dof_vector.resize(0);
+            auxiliary_slave_dof_vector.reserve(TDim * TNumNodes);
 
             for (auto& r_node_slave : r_slave_geometry) {
-                auxiliar_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_X));
-                auxiliar_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Y));
-                if constexpr (TDim == 3) auxiliar_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Z));
+                auxiliary_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_X));
+                auxiliary_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Y));
+                if constexpr (TDim == 3) auxiliary_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Z));
             }
 
             slave_dof_vector.resize(0);
             slave_dof_vector.reserve(slave_size);
             for (IndexType i : slave_dofs_OK) {
-                slave_dof_vector.push_back(auxiliar_slave_dof_vector[i]);
+                slave_dof_vector.push_back(auxiliary_slave_dof_vector[i]);
             }
         } else {
             slave_dof_vector.resize(0);
@@ -598,7 +598,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const bool DualLM
     )
 {
-    // We got some auxiliar values
+    // We got some auxiliary values
     const GeometryType& r_slave_geometry = this->GetParentGeometry();
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
@@ -648,8 +648,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             const array_1d<double, 3>& r_normal = r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
@@ -724,7 +723,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const bool DualLM
     )
 {
-    // We got some auxiliar values
+    // We got some auxiliary values
     const GeometryType& r_slave_geometry = this->GetParentGeometry();
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
@@ -773,8 +772,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             const bool is_slip = r_slave_geometry[i_node].IsDefined(SLIP) ? r_slave_geometry[i_node].Is(SLIP) : false;
@@ -843,7 +841,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const bool DualLM
     )
 {
-    // We got some auxiliar values
+    // We got some auxiliary values
     const GeometryType& r_slave_geometry = this->GetParentGeometry();
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
@@ -892,8 +890,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             for (IndexType j_node = 0; j_node < TNumNodesMaster; ++j_node) {

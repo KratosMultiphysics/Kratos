@@ -13,8 +13,7 @@
 //                   Ruben Zorrilla
 //
 
-#if !defined( KRATOS_STRUCTURAL_MECHANICS_ELEMENT_UTILITIES_H_INCLUDED )
-#define  KRATOS_STRUCTURAL_MECHANICS_ELEMENT_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -105,14 +104,14 @@ void ComputeEquivalentF(
  */
 template<class TMatrixType1, class TMatrixType2>
 void CalculateB(
-    const Element& rElement,
+    const GeometricalObject& rElement,
     const TMatrixType1& rDN_DX,
     TMatrixType2& rB
     )
 {
     const auto& r_geometry = rElement.GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
-    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType dimension = rDN_DX.size2();
 
     rB.clear();
 
@@ -262,5 +261,3 @@ void BuildRotationMatrix(
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
-
-#endif // KRATOS_STRUCTURAL_MECHANICS_ELEMENT_UTILITIES_H_INCLUDED  defined

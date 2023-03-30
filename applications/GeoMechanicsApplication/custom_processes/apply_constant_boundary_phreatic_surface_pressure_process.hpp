@@ -59,6 +59,7 @@ public:
         rParameters["third_reference_coordinate"];
         rParameters["variable_name"];
         rParameters["model_part_name"];
+        mIsFixedProvided = rParameters.Has("is_fixed");
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -74,7 +75,7 @@ public:
 
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -103,7 +104,7 @@ public:
 
             block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node<3>& rNode){
                 if (mIsFixed) rNode.Fix(var);
-                else          rNode.Free(var);
+                else if (mIsFixedProvided) rNode.Free(var);
 
                 double distance = 0.0;
                 double d = 0.0;
@@ -151,6 +152,7 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
+    bool mIsFixedProvided;
     unsigned int mGravityDirection;
     double mSpecificWeight;
     Vector3 mFirstReferenceCoordinate;

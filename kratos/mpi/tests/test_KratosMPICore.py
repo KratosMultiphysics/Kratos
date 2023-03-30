@@ -26,6 +26,7 @@ import test_distributed_sparse_matrices
 with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     from test_processes import TestProcesses
     import test_normal_utils
+    import test_skin_detection_process
     import test_sensitivity_utilities
     from test_model_part_io import TestModelPartIOMPI
     import test_variable_redistribution
@@ -67,6 +68,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursForConditionsProcess"))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsQuadSphere]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_skin_detection_process.TestSkinDetectionProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_utilities.TestSensitivityUtilitiesTwoDimSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartIOMPI]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))

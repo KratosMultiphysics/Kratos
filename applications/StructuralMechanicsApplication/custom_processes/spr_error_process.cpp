@@ -15,6 +15,8 @@
 // External includes
 
 // Project includes
+#include "structural_mechanics_application_variables.h"
+#include "utilities/math_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "utilities/variable_utils.h"
@@ -150,7 +152,7 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
     double error_overall= 0.0;
     double energy_norm_overall = 0.0;
 
-    // Auxiliar GP vectors
+    // Auxiliary GP vectors
     std::vector<double> error_integration_point, strain_energy;
 
     #pragma omp parallel for reduction(+:error_overall, energy_norm_overall) firstprivate(error_integration_point,strain_energy)

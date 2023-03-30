@@ -273,6 +273,19 @@ namespace Kratos {
             return;
         }
 
+        if (rVariable == PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY) {
+
+          double particle_rollingresistance_energy = 0.0;
+
+          for (unsigned int i = 0; i < mListOfSphericParticles.size(); i++) {
+            particle_rollingresistance_energy += mListOfSphericParticles[i]->GetInelasticRollingResistanceEnergy();
+          }
+
+          Output = particle_rollingresistance_energy;
+
+          return;
+        }
+
         KRATOS_CATCH("")
 
     } //Calculate

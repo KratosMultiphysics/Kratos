@@ -10,8 +10,7 @@
 //                   Alejandro Cornejo
 //
 
-#if !defined(KRATOS_CONSTITUTIVE_LAW_UTILITIES)
-#define KRATOS_CONSTITUTIVE_LAW_UTILITIES
+#pragma once
 
 // System includes
 
@@ -180,7 +179,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         double& rJ2
         )
     {
-        if (Dimension == 3) {
+        if constexpr (Dimension == 3) {
             rDeviator = rStressVector;
             const double p_mean = I1 / 3.0;
             for (IndexType i = 0; i < Dimension; ++i)
@@ -257,4 +256,3 @@ private:
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
-#endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */

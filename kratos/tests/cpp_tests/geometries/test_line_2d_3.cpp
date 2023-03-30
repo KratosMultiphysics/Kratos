@@ -22,9 +22,8 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-namespace Testing {
-
+namespace Kratos::Testing {
+namespace {
     /// Factory functions
 
     /** Generates a point type sample Line2D3N
@@ -38,16 +37,16 @@ namespace Testing {
         );
     }
 
-    /** Generates a point type sample Line2D3N
-    * @return  Pointer to a Line2D3N
-    */
-    Line2D3<Point>::Pointer GeneratePointsUnitYDirectionLine2D3() {
-        return Kratos::make_shared<Line2D3<Point>>(
-        Kratos::make_shared<Point>(0.0, 0.0, 0.0),
-        Kratos::make_shared<Point>(0.0, 1.0, 0.0),
-        Kratos::make_shared<Point>(0.0, 0.5, 0.0)
-        );
-    }
+    // /** Generates a point type sample Line2D3N
+    // * @return  Pointer to a Line2D3N
+    // */
+    // Line2D3<Point>::Pointer GeneratePointsUnitYDirectionLine2D3() {
+    //     return Kratos::make_shared<Line2D3<Point>>(
+    //     Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+    //     Kratos::make_shared<Point>(0.0, 1.0, 0.0),
+    //     Kratos::make_shared<Point>(0.0, 0.5, 0.0)
+    //     );
+    // }
 
     /** Generates a point type sample Line2D3N
     * @return  Pointer to a Line2D3N
@@ -71,12 +70,13 @@ namespace Testing {
         );
     }
 
-    /** Generates a point type sample Line2D3N.
-    * @return  Pointer to a Line2D3N
-    */
-    Line2D3<Point>::Pointer GenerateLine2D3WithPoints(Point::Pointer pPointOne, Point::Pointer pPointTwo, Point::Pointer pPointThree ) {
-        return Kratos::make_shared<Line2D3<Point>>(pPointOne, pPointTwo, pPointThree);
-    }
+    // /** Generates a point type sample Line2D3N.
+    // * @return  Pointer to a Line2D3N
+    // */
+    // Line2D3<Point>::Pointer GenerateLine2D3WithPoints(Point::Pointer pPointOne, Point::Pointer pPointTwo, Point::Pointer pPointThree ) {
+    //     return Kratos::make_shared<Line2D3<Point>>(pPointOne, pPointTwo, pPointThree);
+    // }
+}
 
     /** Checks if the number of edges is correct.
     * Checks if the number of edges is correct.
@@ -91,7 +91,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D3FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D3();
-        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 2);
+        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
@@ -104,7 +104,7 @@ namespace Testing {
 
         p_geometry = GeneratePointsParabolaLine2D3();
 
-        KRATOS_CHECK_NEAR(p_geometry->Length(), 1.46884, 1.0e-5); // NOTE: Analytic 1.47894
+        KRATOS_CHECK_NEAR(p_geometry->Length(), 1.468838273033, TOLERANCE); // NOTE: Analytic 1.47894
     }
 
     /** Checks if the bounding box of the line is calculated correctly.
@@ -116,19 +116,19 @@ namespace Testing {
         Point low_point, high_point;
         p_geom->BoundingBox(low_point, high_point);
 
-        KRATOS_CHECK_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), ZERO_TOLERANCE);
+        KRATOS_CHECK_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), ZERO_TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), ZERO_TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(1))->Y(), ZERO_TOLERANCE);
 
         p_geom = GeneratePointsParabolaLine2D3();
 
         p_geom->BoundingBox(low_point, high_point);
 
-        KRATOS_CHECK_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), ZERO_TOLERANCE);
+        KRATOS_CHECK_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), ZERO_TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), ZERO_TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(2))->Y(), ZERO_TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the line
@@ -376,5 +376,4 @@ namespace Testing {
         TestAllShapeFunctionsLocalGradients(*p_p_geom_nodes);
     }
 
-} // namespace Testing.
-} // namespace Kratos.
+} // namespace Kratos::Testing.

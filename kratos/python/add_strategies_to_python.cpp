@@ -578,6 +578,8 @@ namespace Kratos
             py::class_<ImplicitSolvingStrategyType, typename ImplicitSolvingStrategyType::Pointer, BaseSolvingStrategyType>(m,"ImplicitSolvingStrategy")
                 .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, bool >())
+                .def("SetStiffnessMatrixIsBuilt", &ImplicitSolvingStrategyType::SetStiffnessMatrixIsBuilt)
+                .def("GetStiffnessMatrixIsBuilt", &ImplicitSolvingStrategyType::GetStiffnessMatrixIsBuilt)
                 ;
 
             typedef ExplicitSolvingStrategy< SparseSpaceType, LocalSpaceType > BaseExplicitSolvingStrategyType;

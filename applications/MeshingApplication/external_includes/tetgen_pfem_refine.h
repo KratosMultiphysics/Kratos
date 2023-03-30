@@ -32,7 +32,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 //#include "containers/bucket.h"
 //#include "containers/kd_tree.h"
@@ -103,7 +103,7 @@ namespace Kratos
 			ModelPart& ThisModelPart ,
 			Element const& rReferenceElement,
 			Condition const& rReferenceBoundaryCondition,
-			NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
+			EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes=true,
 			double alpha_param = 1.4, double h_factor=0.5)
 		{
 

@@ -66,33 +66,34 @@
 #include "custom_constitutive/composites/serial_parallel_rule_of_mixtures_law.h"
 
 // Integrators
-#include "custom_constitutive/auxiliar_files/cl_integrators/generic_cl_integrator_damage.h"
-#include "custom_constitutive/auxiliar_files/cl_integrators/generic_cl_integrator_plasticity.h"
-#include "custom_constitutive/auxiliar_files/cl_integrators/generic_cl_integrator_kinematic_plasticity.h"
-#include "custom_constitutive/auxiliar_files/cl_integrators/d+d-cl_integrators/generic_compression_cl_integrator.h"
-#include "custom_constitutive/auxiliar_files/cl_integrators/d+d-cl_integrators/generic_tension_cl_integrator.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_kinematic_plasticity.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/d+d-cl_integrators/generic_compression_cl_integrator.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/d+d-cl_integrators/generic_tension_cl_integrator.h"
 
 // Yield surfaces
-#include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/auxiliar_files/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/drucker_prager_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/rankine_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/rankine_plastic_potential.h"
 
 // Rules of mixtures
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
+#include "custom_constitutive/composites/traction_separation_law.h"
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
@@ -109,6 +110,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< MultiLinearIsotropicPlaneStress2D, typename MultiLinearIsotropicPlaneStress2D::Pointer, LinearPlaneStress >
     (m, "MultiLinearIsotropicPlaneStress2D").def(py::init<>() )
+    ;
+
+    py::class_< TractionSeparationLaw3D<3>, typename TractionSeparationLaw3D<3>::Pointer,  ConstitutiveLaw  >
+    (m,"TractionSeparationLaw3D").def(py::init<>())
     ;
 
     py::class_< WrinklingLinear2DLaw, typename WrinklingLinear2DLaw::Pointer, ConstitutiveLaw >

@@ -50,9 +50,6 @@ namespace Kratos
 
     void KratosTopologyOptimizationApplication::Register()
     {
-        // calling base class register to register Kratos components
-        KratosApplication::Register();
-
         std::cout << "     KRATOS|_   _/_ \\| _ \\ _ \\| |  / _ \\/ __\\ \\ / /         " << std::endl;
         std::cout << "             | | (_) |  _/(_) | |_| (_) |(_ |\\ V /               " << std::endl;
         std::cout << "             |_|\\___/|_| \\___/|____\\___/ ___| |_|OPTIMIZATION  " << std::endl;

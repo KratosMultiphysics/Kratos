@@ -53,9 +53,6 @@ public:
     /// Default constructor.
     OutputProcess() : Process() {}
 
-    /// Copy constructor.
-    OutputProcess(OutputProcess const& rOther) = delete;
-
     ///@}
     ///@name Operators
     ///@{

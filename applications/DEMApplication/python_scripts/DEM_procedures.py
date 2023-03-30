@@ -290,11 +290,12 @@ class DEMEnergyCalculator():
                 self.elastic_energy = 0.0
                 self.inelastic_frictional_energy = 0.0
                 self.inelastic_viscodamping_energy = 0.0
+                self.inelastic_rollingresistance_energy = 0.0
                 self.external_energy = 0.0
                 self.total_energy = 0.0
                 self.graph_frequency = int(self.DEM_parameters["GraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))  # TODO: change the name GraphExportFreq to GraphExportTimeInterval
                 self.energy_graph_counter = 0
-                self.energy_plot.write(str("Time").rjust(9) + "   " + str("Trans kinematic energy").rjust(22) + "   " + str("Rot kinematic energy").rjust(20) + "   " + str("Kinematic energy").rjust(16) + "   " + str("Gravitational energy").rjust(20) + "   " + str("Elastic energy").rjust(14) + "   " + str("Frictional energy").rjust(16) + "   " + str("Viscodamping energy").rjust(19) + "   " + str("Total energy").rjust(12) + "\n")
+                self.energy_plot.write(str("Time").rjust(9) + "   " + str("Trans kinematic energy").rjust(22) + "   " + str("Rot kinematic energy").rjust(20) + "   " + str("Kinematic energy").rjust(16) + "   " + str("Gravitational energy").rjust(20) + "   " + str("Elastic energy").rjust(14) + "   " + str("Frictional energy").rjust(16) + "   " + str("Viscodamping energy").rjust(19) + "   " + str("Rolling resistance energy").rjust(25) + "   " + str("Total energy").rjust(12) + "\n")
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
@@ -314,7 +315,8 @@ class DEMEnergyCalculator():
         self.elastic_energy = self.SpheresEnergyUtil.CalculateElasticEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateElasticEnergy(self.ClusterModelPart)
         self.inelastic_frictional_energy = self.SpheresEnergyUtil.CalculateInelasticFrictionalEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticFrictionalEnergy(self.ClusterModelPart)
         self.inelastic_viscodamping_energy = self.SpheresEnergyUtil.CalculateInelasticViscodampingEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticViscodampingEnergy(self.ClusterModelPart)
-        self.total_energy = self.kinematic_energy + self.gravitational_energy + self.elastic_energy + self.inelastic_frictional_energy + self.inelastic_viscodamping_energy
+        self.inelastic_rollingresistance_energy = self.SpheresEnergyUtil.CalculateInelasticRollingResistanceEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticRollingResistanceEnergy(self.ClusterModelPart)
+        self.total_energy = self.kinematic_energy + self.gravitational_energy + self.elastic_energy + self.inelastic_frictional_energy + self.inelastic_viscodamping_energy + self.inelastic_rollingresistance_energy
 
     def PlotEnergyGraph(self, time):
 
@@ -325,8 +327,9 @@ class DEMEnergyCalculator():
         plot_elastic = self.elastic_energy
         plot_inelastic_frictional = self.inelastic_frictional_energy
         plot_inelastic_viscodamping = self.inelastic_viscodamping_energy
+        plot_inelastic_rollingresistance = self.inelastic_rollingresistance_energy
         plot_total = self.total_energy
-        self.energy_plot.write(str("%.8g" % time).rjust(9) + "   " + str("%.6g" % plot_translational_kinematic).rjust(22) + "   " + str("%.6g" % plot_rotational_kinematic).rjust(20) + "   " + str("%.6g" % plot_kinematic).rjust(16) + "   " + str("%.6g"%plot_gravitational).rjust(20) + "   " + str("%.6g" % plot_elastic).rjust(14) + "   " + str("%.6g" % plot_inelastic_frictional).rjust(16) + "   " + str("%.6g" % plot_inelastic_viscodamping).rjust(19) + "   " + str("%.6g" % plot_total).rjust(12) + '\n')
+        self.energy_plot.write(str("%.8g" % time).rjust(9) + "   " + str("%.6g" % plot_translational_kinematic).rjust(22) + "   " + str("%.6g" % plot_rotational_kinematic).rjust(20) + "   " + str("%.6g" % plot_kinematic).rjust(16) + "   " + str("%.6g"%plot_gravitational).rjust(20) + "   " + str("%.6g" % plot_elastic).rjust(14) + "   " + str("%.6g" % plot_inelastic_frictional).rjust(16) + "   " + str("%.6g" % plot_inelastic_viscodamping).rjust(19) + "   " + str("%.6g" % plot_inelastic_rollingresistance).rjust(23) + "   " + str("%.6g" % plot_total).rjust(12) + '\n')
         self.energy_plot.flush()
 
     def FinalizeEnergyPlot(self):

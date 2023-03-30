@@ -36,6 +36,8 @@
 #include "add_geometries_to_python.h"
 #include "add_bounding_box_to_python.h"
 #include "add_containers_to_python.h"
+#include "add_controllers_to_python.h"
+#include "add_operations_to_python.h"
 #include "add_processes_to_python.h"
 #include "add_model_to_python.h"
 #include "add_io_to_python.h"
@@ -69,6 +71,7 @@
 #include "add_dofs_to_python.h"
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
+#include "add_registry_to_python.h"
 
 namespace Kratos
 {
@@ -108,6 +111,8 @@ PYBIND11_MODULE(Kratos, m)
     AddDeprecatedVariablesToPython(m);
     AddGlobalPointersToPython(m);
 
+    AddOperationsToPython(m);
+    AddControllersToPython(m);
     AddProcessesToPython(m);
     AddIOToPython(m);
     AddModelToPython(m);
@@ -144,6 +149,7 @@ PYBIND11_MODULE(Kratos, m)
     AddParallelEnvironmentToPython(m);
     AddMapperToPython(m);
     AddSparseMatricesToPython(m);
+    AddRegistryToPython(m);
 
     m.def("Hello", Hello);
 }

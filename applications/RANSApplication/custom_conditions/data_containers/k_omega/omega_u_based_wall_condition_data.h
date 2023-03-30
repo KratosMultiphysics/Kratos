@@ -37,12 +37,12 @@ class OmegaUBasedWallConditionData : public ScalarWallFluxConditionData
 public:
     using BaseType = ScalarWallFluxConditionData;
     using NodeType = Node<3>;
-    using GeomtryType = BaseType::GeometryType;
+    using GeometryType = BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();
 
     static void Check(
-        const GeometryType& rGeometry,
+        const Condition& rCondition,
         const ProcessInfo& rCurrentProcessInfo);
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();

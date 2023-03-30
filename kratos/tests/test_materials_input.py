@@ -1,11 +1,9 @@
 import os
-import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
-from KratosMultiphysics import read_materials_process
 
 dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "FluidDynamicsApplication")
 if dependencies_are_available:
@@ -94,12 +92,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.THICKNESS), 0.000889)
 
         self.assertEqual(sub_prop11.NumberOfSubproperties(), 3)
-
-    @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
-    def test_input_python(self):
-        self._prepare_test()
-        read_materials_process.Factory(self.test_settings,self.current_model)
-        self._check_results()
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_cpp(self):

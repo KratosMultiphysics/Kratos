@@ -168,7 +168,7 @@ public:
         }
 
         //fill the communicator
-        ParallelFillCommunicator(mr_model_part).Execute();
+        ParallelFillCommunicator(mr_model_part, mr_model_part.GetCommunicator().GetDataCommunicator()).Execute();
         if (mrComm.MyPID() == 0) std::cout << "recalculation of communication plan completed" << std::endl;
 
         //clean up the data
@@ -775,7 +775,7 @@ public:
                         InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                     // Transfer elemental variables
-                    p_element->Data() = it->Data();
+                    p_element->GetData() = it->GetData();
                     //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
                     p_element->GetValue(SPLIT_ELEMENT) = false;
                     //p_element->SetValue(REFINEMENT_LEVEL, 1);
@@ -1142,7 +1142,7 @@ protected:
                             InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                         // Transfer elemental variables
-                        p_element->Data() = it->Data();
+                        p_element->GetData() = it->GetData();
                         p_element->GetValue(SPLIT_ELEMENT) = false;
 
                         current_id++;
@@ -1378,7 +1378,7 @@ protected:
                         //                            InterpolateInternalVariables(nel, *it.base(), p_Condition, rCurrentProcessInfo);
 
                         // Transfer Conditional variables
-                        p_Condition->Data() = it->Data();
+                        p_Condition->GetData() = it->GetData();
                         //p_Condition->SetValue(REFINEMENT_LEVEL, 1);
                         New_Conditions.push_back(p_Condition);
                         current_id++;

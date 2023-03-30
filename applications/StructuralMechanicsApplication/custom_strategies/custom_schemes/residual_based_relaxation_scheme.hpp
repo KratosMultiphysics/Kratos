@@ -7,8 +7,7 @@
 //
 
 
-#if !defined(KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME )
-#define  KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME
+#pragma once
 
 
 /* System includes */
@@ -597,15 +596,15 @@ protected:
             int k = OpenMPUtils::ThisThread();
             const auto& r_const_elem_ref = rCurrentElement;
             /*              rCurrentElement-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
-                            (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
+            >GetSecondDerivativesVector(RelaxationAuxiliaryies::macc,0);
+                            (RelaxationAuxiliaryies::macc) *= (1.00-mAlphaBossak);
                             rCurrentElement-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::maccold,1);
-                            noalias(RelaxationAuxiliaries::macc) += mAlphaBossak *
-            RelaxationAuxiliaries::maccold;
+            >GetSecondDerivativesVector(RelaxationAuxiliaryies::maccold,1);
+                            noalias(RelaxationAuxiliaryies::macc) += mAlphaBossak *
+            RelaxationAuxiliaryies::maccold;
 
                             noalias(RHS_Contribution) -= prod(M,
-            RelaxationAuxiliaries::macc );*/
+            RelaxationAuxiliaryies::macc );*/
             /*          }
 
                         //adding damping contribution
@@ -630,15 +629,15 @@ protected:
         {
             int k = OpenMPUtils::ThisThread();
             /*              rCurrentCondition-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
-                            (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
+            >GetSecondDerivativesVector(RelaxationAuxiliaryies::macc,0);
+                            (RelaxationAuxiliaryies::macc) *= (1.00-mAlphaBossak);
                             rCurrentCondition-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::maccold,1);
-                            noalias(RelaxationAuxiliaries::macc) += mAlphaBossak *
-            RelaxationAuxiliaries::maccold;
+            >GetSecondDerivativesVector(RelaxationAuxiliaryies::maccold,1);
+                            noalias(RelaxationAuxiliaryies::macc) += mAlphaBossak *
+            RelaxationAuxiliaryies::maccold;
 
                             noalias(RHS_Contribution) -= prod(M,
-            RelaxationAuxiliaries::macc );*/
+            RelaxationAuxiliaryies::macc );*/
             /*          }
 
                         //adding damping contribution
@@ -722,6 +721,4 @@ private:
 /*@} */
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME  defined */
 

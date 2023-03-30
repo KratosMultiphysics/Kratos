@@ -34,6 +34,8 @@ def GetDefaultInputSettings():
             "global_porosity"                : 0.0,
             "alpha_shape_parameter"          : 1.2,
             "integral_tolerance"             : 0.000001,
+            "heat_map_corners"               : [[0,0,0],[1,1,1]],
+            "heat_map_subdivisions"          : [10,10,10],
             "global_fluid_properties"        : {
                 "fluid_density"              : 1.0,
                 "fluid_viscosity"            : 1.0,

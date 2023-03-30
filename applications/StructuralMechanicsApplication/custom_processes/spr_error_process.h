@@ -10,13 +10,9 @@
 //  Co-author   :    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SPR_ERROR_PROCESS)
-#define KRATOS_SPR_ERROR_PROCESS
+#pragma once
 
 // System includes
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 // External includes
 
@@ -24,9 +20,6 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "structural_mechanics_application_variables.h"
-#include "spaces/ublas_space.h"
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -285,4 +278,3 @@ private:
 };// class SPRErrorProcess
 
 };// namespace Kratos.
-#endif /* KRATOS_SPR_ERROR_PROCESS defined */

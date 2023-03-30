@@ -106,7 +106,7 @@ public:
 
     /** Constructors.
      */
-    
+
      MPMResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
@@ -133,7 +133,6 @@ public:
     MPMResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         int MaxIterations = 30,
@@ -141,9 +140,8 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-            rModelPart, pScheme, pNewLinearSolver,
-            pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations,
-            CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+            rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver,
+            MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
     }
 
@@ -152,7 +150,7 @@ public:
     virtual ~MPMResidualBasedNewtonRaphsonStrategy()
     {
     }
-    
+
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
@@ -160,7 +158,7 @@ public:
     {
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
-        
+
         TSystemMatrixType& rA = *(this->mpA);
         TSystemVectorType& rDx = *(this->mpDx);
         TSystemVectorType& rb = *(this->mpb);

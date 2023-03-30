@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
-#define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
+#pragma once
 
 /* System includes */
 
@@ -508,7 +507,7 @@ private:
             // If we consider rotation dofs
             const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
 
-            // Auxiliar values
+            // Auxiliary values
             const array_1d<double,3> zero_array = ZeroVector(3);
 
             // Getting
@@ -641,5 +640,3 @@ protected:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_STRATEGY  defined */

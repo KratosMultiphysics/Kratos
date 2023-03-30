@@ -1,8 +1,10 @@
-/////////////////////////////////////////////////
-// Main author: Chengshun Shang (CIMNE)
-// Email: chengshun.shang1996@gmail.com
-// Date: Aug 2022
-/////////////////////////////////////////////////
+//  Kratos Multi-Physics - DEM Application
+//
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
+//
 
 #if !defined(DEM_ROLLING_FRICTION_MODEL_CONSTANT_TORQUE_H_INCLUDED)
 #define DEM_ROLLING_FRICTION_MODEL_CONSTANT_TORQUE_H_INCLUDED
@@ -25,23 +27,27 @@ namespace Kratos{
 
         ~DEMRollingFrictionModelConstantTorque() {}
 
-        virtual DEMRollingFrictionModel::Pointer Clone() const override;
+        DEMRollingFrictionModel::Pointer Clone() const override;
 
-        virtual std::unique_ptr<DEMRollingFrictionModel> CloneUnique() override;
+        std::unique_ptr<DEMRollingFrictionModel> CloneUnique() override;
 
-        virtual void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment, double indentation) override;
+        void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) override;
         
-        virtual void ComputeRollingFrictionWithWall(double LocalContactForce[3], SphericParticle* p_element, Condition* const wall, double indentation, array_1d<double, 3>& mContactMoment) override;
+        void ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) override;
+
+        void CalculateInelasticRollingResistanceEnergy(double& inelastic_rollingresistance_energy, const array_1d<double, 3>& rolling_friction_moment, const array_1d<double, 3>& relative_angular_velocity, double dt) override;
+
+        void CalculateInelasticRollingResistanceEnergyWithWall(double& inelastic_rollingresistance_energy, const array_1d<double, 3>& rolling_friction_moment, const array_1d<double, 3>& relative_angular_velocity, double dt) override;
     
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const override {
+        void save(Serializer& rSerializer) const override {
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) override {
+        void load(Serializer& rSerializer) override {
                     //rSerializer.load("MyMemberName",myMember);
         }
 

@@ -34,7 +34,6 @@
 #include "pfem_2_application_variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
-#include "processes/node_erase_process.h"
 #include "utilities/binbased_fast_point_locator.h"
 //#include "utilities/enrichment_utilities.h"
 

@@ -56,7 +56,7 @@ class TemporalStatisticsProcess(Kratos.Process):
         self.echo_level = self.settings["echo_level"].GetInt()
         self.variables_settings_list = self.settings["input_variable_settings"]
 
-        for variable_settings in self.variables_settings_list:
+        for variable_settings in self.variables_settings_list.values():
             variable_settings.ValidateAndAssignDefaults(default_parameters["input_variable_settings"][0])
             container_name = variable_settings["container"].GetString()
             norm_type = variable_settings["norm_type"].GetString()
@@ -93,7 +93,7 @@ class TemporalStatisticsProcess(Kratos.Process):
 
     def ExecuteInitialize(self):
         self.method_list = []
-        for variable_settings in self.variables_settings_list:
+        for variable_settings in self.variables_settings_list.values():
             container_name = variable_settings["container"].GetString()
             norm_type = variable_settings["norm_type"].GetString()
             method_name = variable_settings["method_name"].GetString()

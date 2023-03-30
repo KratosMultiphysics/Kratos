@@ -27,25 +27,12 @@
 #include "custom_processes/metis_divide_heterogeneous_input_in_memory_process.h"
 #include "custom_processes/morton_divide_input_to_partitions_process.h"
 
-#ifndef KRATOS_USE_METIS_5
-#include "custom_processes/metis_divide_input_to_partitions_process.h"
-#endif
-
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-#ifndef KRATOS_USE_METIS_5
-
-    py::class_<MetisDivideInputToPartitionsProcess, MetisDivideInputToPartitionsProcess::Pointer, Process>(
-        m,"MetisDivideInputToPartitionsProcess")
-        .def(py::init<IO&, unsigned int, unsigned int>())
-        .def(py::init<IO&, unsigned int>())
-        ;
-#endif
     py::class_<MetisDivideHeterogeneousInputProcess, MetisDivideHeterogeneousInputProcess::Pointer, Process>(
         m,"MetisDivideHeterogeneousInputProcess")
         .def(py::init<IO&, unsigned int>())
@@ -96,5 +83,4 @@ void AddProcessesToPython(pybind11::module& m)
 
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // Namespace Kratos::Python

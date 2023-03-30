@@ -4,39 +4,38 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_MPC_CONTACT_STRATEGY)
-#define KRATOS_RESIDUALBASED_NEWTON_RAPHSON_MPC_CONTACT_STRATEGY
+#pragma once
 
-/* System Includes */
+// System includes
 
-/* External Includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
 
-// Strategies
+/* Strategies */
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-// Contact criteria
+/* Contact criteria */
 #include "custom_strategies/custom_convergencecriterias/mpc_contact_criteria.h"
 
-// Utilities
+/* Utilities */
 #include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/atomic_utilities.h"
 
-// // Processes
+// /* Processes */
 // #include "processes/fast_transfer_between_model_parts_process.h"
 
 namespace Kratos {
@@ -416,7 +415,7 @@ public:
 
                 // We solve one loop
                 r_process_info[NL_ITERATION_NUMBER] = 1;
-                is_converged = AuxiliarSolveSolutionStep();
+                is_converged = AuxiliarySolveSolutionStep();
 
                 // We check the convergence
                 if (r_process_info[NL_ITERATION_NUMBER] == 1) r_process_info[NL_ITERATION_NUMBER] = 2; // Trigger check
@@ -428,7 +427,7 @@ public:
                 }
             }
         } else {
-            is_converged = AuxiliarSolveSolutionStep();
+            is_converged = AuxiliarySolveSolutionStep();
         }
 
         return is_converged;
@@ -438,9 +437,9 @@ public:
 
 
     /**
-     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise. (auxiliar method)
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise. (auxiliary method)
      */
-    bool AuxiliarSolveSolutionStep()
+    bool AuxiliarySolveSolutionStep()
     {
         // Getting flag INTERACTION
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
@@ -758,7 +757,7 @@ private:
 //             ++counter;
 //         }
 //
-//         // Auxiliar classes
+//         // Auxiliary classes
 //         Matrix original_relation_matrix, relation_matrix;
 //         Vector original_constant_vector, constant_vector;
 //         ModelPart::DofsVectorType original_master_dofs, master_dofs, original_slave_dofs, slave_dofs;
@@ -860,5 +859,3 @@ private:
 ///@{
 ///@}
 }  // namespace Kratos
-
-#endif /* KRATOS_RESIDUALBASED_NEWTON_RAPHSON_MPC_CONTACT_STRATEGY */

@@ -633,11 +633,10 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     ModelPart& rModelPart,
     const Variable< TValueType >& rDistributedVariable)
 {
-    double domain_size, error_l2_norm;
     TValueType delta = rDistributedVariable.Zero();
     const auto& r_rhs_variable = GetRHSVariable(rDistributedVariable);
     typedef CombinedReduction<SumReduction<double>,SumReduction<double>> TwoSumReduction;
-    std::tie(domain_size, error_l2_norm) = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){
+    auto [domain_size, error_l2_norm] = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){
         // Add correction to the current distributed nodal values
         const double size = rNode.GetValue(NODAL_MAUX);
         rDelta = rNode.GetValue(r_rhs_variable) / size;

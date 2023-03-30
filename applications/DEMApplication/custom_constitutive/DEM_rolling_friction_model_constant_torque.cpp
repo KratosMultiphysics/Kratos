@@ -1,10 +1,14 @@
-/////////////////////////////////////////////////
-// Main author: Chengshun Shang (CIMNE)
-// Email: chengshun.shang1996@gmail.com
-// Date: Aug 2022
-/////////////////////////////////////////////////
+//  Kratos Multi-Physics - DEM Application
+//
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
+//
 
-//This model can be found as Model Type A in [Jun Ai, 2011, Assessment of rolling resistance models in discrete element simulations]
+// Description:
+// This model can be found as Model Type A in [Jun Ai, 2011, Assessment of rolling resistance models in discrete element simulations]
+// ATTENTION: Current implementation only works for spherical particles!
 
 #include "DEM_rolling_friction_model_constant_torque.h"
 #include "custom_utilities/GeometryFunctions.h"
@@ -29,57 +33,94 @@ namespace Kratos{
         
     }
 
-    void DEMRollingFrictionModelConstantTorque::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment, double indentation)
+    void DEMRollingFrictionModelConstantTorque::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment)
     {
         array_1d<double, 3> elementRelAngularVelocity;
         noalias(elementRelAngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) - p_neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         if (elementRelAngularVelocity[0] || elementRelAngularVelocity[1] || elementRelAngularVelocity[2]){
-            const double my_young      = p_element->GetYoung(); 
-            const double other_young   = p_neighbor->GetYoung();
-            const double my_arm_length = p_element->GetInteractionRadius() - indentation * other_young / (other_young + my_young);
-            //TODO: This should be updated for non-spherical particle
-            double contact_center_point_to_element1_mass_center_distance = my_arm_length; //Here, this only works for sphere particles
-                       
-            GeometryFunctions::normalize(elementRelAngularVelocity);
-
+          
+            // Normalize relative angular velocity
             array_1d<double, 3> elementRelAngularVelocity_normalise = elementRelAngularVelocity;
+            GeometryFunctions::normalize(elementRelAngularVelocity_normalise);
 
-            Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
+            // Get rolling friction coefficient
+            Properties& r_properties = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
+            const double rolling_friction_coefficient = r_properties[ROLLING_FRICTION];
 
-            mContactMoment[0] -= elementRelAngularVelocity_normalise[0] * fabs(LocalContactForce[2]) * contact_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
+            // Get normal contact force
+            const double force = std::abs(LocalContactForce[2]);
 
-            mContactMoment[1] -= elementRelAngularVelocity_normalise[1] * fabs(LocalContactForce[2]) * contact_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
+            // Calculate arm length (particle radius discounted by identation)
+            const double my_young    = p_element->GetYoung();
+            const double other_young = p_neighbor->GetYoung();
+            const double arm_length  = p_element->GetRadius() - indentation * other_young / (other_young + my_young);
 
-            mContactMoment[2] -= elementRelAngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * contact_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
+            // Calculate rolling friction moment
+            array_1d<double, 3> rolling_friction_moment;
+            rolling_friction_moment[0] = -elementRelAngularVelocity_normalise[0] * rolling_friction_coefficient * force * arm_length;
+            rolling_friction_moment[1] = -elementRelAngularVelocity_normalise[1] * rolling_friction_coefficient * force * arm_length;
+            rolling_friction_moment[2] = -elementRelAngularVelocity_normalise[2] * rolling_friction_coefficient * force * arm_length;
 
-        } 
+            // Discount rolling friction moment from contact moment
+            mContactMoment[0] += rolling_friction_moment[0];
+            mContactMoment[1] += rolling_friction_moment[1];
+            mContactMoment[2] += rolling_friction_moment[2];
+
+            // Compute energy dissipation from rolling friction
+            double& inelastic_rollingresistance_energy = p_element->GetInelasticRollingResistanceEnergy();
+            CalculateInelasticRollingResistanceEnergy(inelastic_rollingresistance_energy, rolling_friction_moment, elementRelAngularVelocity, r_process_info[DELTA_TIME]);
+        }
     }
 
-    void DEMRollingFrictionModelConstantTorque::ComputeRollingFrictionWithWall(double LocalContactForce[3], SphericParticle* p_element, Condition* const wall, double indentation, array_1d<double, 3>& mContactMoment)
+    void DEMRollingFrictionModelConstantTorque::ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment)
     {
         array_1d<double, 3> element1AngularVelocity;
         noalias(element1AngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
-
-            const double my_young      = p_element->GetYoung(); 
-            const double walls_young   = wall->GetProperties()[YOUNG_MODULUS];
             
-            double arm_length = p_element->GetInteractionRadius() - indentation* walls_young / (walls_young + my_young); 
-            
-            GeometryFunctions::normalize(element1AngularVelocity);
-
+            // Normalize angular velocity
             array_1d<double, 3> element1AngularVelocity_normalise = element1AngularVelocity;
+            GeometryFunctions::normalize(element1AngularVelocity_normalise);
 
-            Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+            // Get rolling friction coefficient
+            Properties& r_properties = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+            const double rolling_friction_coefficient = r_properties[ROLLING_FRICTION];
 
-            mContactMoment[0] -= element1AngularVelocity_normalise[0] * fabs(LocalContactForce[2]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+            // Get normal contact force
+            const double force = std::abs(LocalContactForce[2]);
 
-            mContactMoment[1] -= element1AngularVelocity_normalise[1] * fabs(LocalContactForce[2]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+            // Calculate arm length (particle radius discounted by identation)
+            const double arm_length = p_element->GetRadius() - indentation;
 
-            mContactMoment[2] -= element1AngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+            // Calculate rolling friction moment
+            array_1d<double, 3> rolling_friction_moment;
+            rolling_friction_moment[0] = -element1AngularVelocity_normalise[0] * rolling_friction_coefficient * force * arm_length;
+            rolling_friction_moment[1] = -element1AngularVelocity_normalise[1] * rolling_friction_coefficient * force * arm_length;
+            rolling_friction_moment[2] = -element1AngularVelocity_normalise[2] * rolling_friction_coefficient * force * arm_length;
 
-        } 
+            // Discount rolling friction moment from contact moment
+            mContactMoment[0] += rolling_friction_moment[0];
+            mContactMoment[1] += rolling_friction_moment[1];
+            mContactMoment[2] += rolling_friction_moment[2];
+
+            // Compute energy dissipation from rolling friction
+            double& inelastic_rollingresistance_energy = p_element->GetInelasticRollingResistanceEnergy();
+            CalculateInelasticRollingResistanceEnergyWithWall(inelastic_rollingresistance_energy, rolling_friction_moment, element1AngularVelocity, r_process_info[DELTA_TIME]);
+        }
     }
 
+    void DEMRollingFrictionModelConstantTorque::CalculateInelasticRollingResistanceEnergy(double& inelastic_rollingresistance_energy, const array_1d<double, 3>& rolling_friction_moment, const array_1d<double, 3>& relative_angular_velocity, double dt)
+    {
+      // Each particle in a contact with another particle receives half the contact energy
+      const double rollingresistance_energy = std::abs(DEM_INNER_PRODUCT_3(rolling_friction_moment, relative_angular_velocity)) * dt;
+      inelastic_rollingresistance_energy += 0.50 * rollingresistance_energy;
+    }
+
+    void DEMRollingFrictionModelConstantTorque::CalculateInelasticRollingResistanceEnergyWithWall(double& inelastic_rollingresistance_energy, const array_1d<double, 3>& rolling_friction_moment, const array_1d<double, 3>& relative_angular_velocity, double dt)
+    {
+      // Each particle in a contact with a wall receives all the contact energy
+      const double rollingresistance_energy = std::abs(DEM_INNER_PRODUCT_3(rolling_friction_moment, relative_angular_velocity)) * dt;
+      inelastic_rollingresistance_energy += rollingresistance_energy;
+    }
 
 }//namespace Kratos

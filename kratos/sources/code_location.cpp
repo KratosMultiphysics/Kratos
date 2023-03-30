@@ -31,10 +31,6 @@ namespace Kratos
 	CodeLocation::CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber) :
 		mFileName(FileName), mFunctionName(FunctionName), mLineNumber(LineNumber) {}
 
-	CodeLocation::CodeLocation(CodeLocation const & Other) :
-		mFileName(Other.mFileName), mFunctionName(Other.mFunctionName), mLineNumber(Other.mLineNumber) {}
-
-
 	const std::string& CodeLocation::GetFileName() const	{
 		return mFileName;
 	}
@@ -179,7 +175,7 @@ namespace Kratos
 	std::ostream & operator <<(std::ostream& rOStream,
 		const CodeLocation& Location)
 	{
-		rOStream << Location.CleanFileName() << ":" << Location.GetLineNumber() << ":" << Location.CleanFunctionName();
+		rOStream << Location.CleanFileName() << ":" << Location.GetLineNumber() << ": " << Location.CleanFunctionName();
 		return rOStream;
 	}
 

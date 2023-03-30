@@ -40,6 +40,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             },
             "buffer_size": 2,
             "echo_level": 0,
+            "rebuild_level": 2,
             "reform_dofs_at_each_step": false,
             "clear_storage": false,
             "compute_reactions": false,
