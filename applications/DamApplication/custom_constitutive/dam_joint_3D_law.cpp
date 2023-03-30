@@ -19,6 +19,7 @@ namespace Kratos
 void DamJoint3DLaw::GetLawFeatures(Features& rFeatures)
 {
     KRATOS_TRY
+
     //Set the type of law
 	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
 	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
@@ -33,6 +34,7 @@ void DamJoint3DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set the strain size
 	rFeatures.mStrainSize = 3;
+
     KRATOS_CATCH("")
 }
 
@@ -41,6 +43,7 @@ void DamJoint3DLaw::GetLawFeatures(Features& rFeatures)
 int DamJoint3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
+
     // Verify Properties variables
     if(rMaterialProperties.Has(YOUNG_MODULUS)) {
         KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS has an invalid value " << std::endl;
@@ -55,6 +58,7 @@ int DamJoint3DLaw::Check(const Properties& rMaterialProperties,const GeometryTyp
     }
 
     return 0;
+
     KRATOS_CATCH("")
 }
 
@@ -63,7 +67,9 @@ int DamJoint3DLaw::Check(const Properties& rMaterialProperties,const GeometryTyp
 void DamJoint3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
     KRATOS_TRY
+
     mStateVariable = 0.0;
+
     KRATOS_CATCH("")
 }
 
@@ -72,6 +78,7 @@ void DamJoint3DLaw::InitializeMaterial( const Properties& rMaterialProperties,co
 void DamJoint3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     KRATOS_TRY
+
     //Check
     rValues.CheckAllParameters();
 
@@ -109,6 +116,7 @@ void DamJoint3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
         this->ComputeStressVector(rStressVector,Variables,rValues);
     }
+
     KRATOS_CATCH("")
 }
 
@@ -117,6 +125,7 @@ void DamJoint3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 void DamJoint3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
     KRATOS_TRY
+
     if(rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
     {
         rValues.CheckAllParameters();
@@ -134,6 +143,7 @@ void DamJoint3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
                 mStateVariable = 1.0;
         }
     }
+
     KRATOS_CATCH("")
 }
 
@@ -142,11 +152,13 @@ void DamJoint3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 double& DamJoint3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     KRATOS_TRY
+
     if( rThisVariable == DAMAGE_VARIABLE || rThisVariable == STATE_VARIABLE )
     {
         rValue = mStateVariable;
     }
     return rValue;
+
     KRATOS_CATCH("")
 }
 
@@ -156,10 +168,12 @@ void DamJoint3DLaw::SetValue( const Variable<double>& rThisVariable, const doubl
                                         const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+
     if (rThisVariable == STATE_VARIABLE)
     {
         mStateVariable = rValue;
     }
+
     KRATOS_CATCH("")
 }
 
@@ -170,9 +184,11 @@ void DamJoint3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLawVariables&
 
 {
     KRATOS_TRY
+
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
     rVariables.YieldStress = MaterialProperties[YIELD_STRESS];
     rVariables.YoungModulus = MaterialProperties[YOUNG_MODULUS];
+
     KRATOS_CATCH("")
 }
 
@@ -195,6 +211,7 @@ void DamJoint3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                                         Parameters& rValues)
 {
     KRATOS_TRY
+
     if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY)) // No contact between interfaces
     {
         rConstitutiveMatrix(0,0) = rVariables.YieldStress;
@@ -222,6 +239,7 @@ void DamJoint3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
         rConstitutiveMatrix(2,0) = 0.0;
         rConstitutiveMatrix(2,1) = 0.0;
     }
+
     KRATOS_CATCH("")
 }
 
@@ -232,6 +250,7 @@ void DamJoint3DLaw::ComputeStressVector(Vector& rStressVector,
                                                 Parameters& rValues)
 {
     KRATOS_TRY
+
     const Vector& StrainVector = rValues.GetStrainVector();
 
     if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY)) // No contact between interfaces
@@ -246,6 +265,7 @@ void DamJoint3DLaw::ComputeStressVector(Vector& rStressVector,
         rStressVector[1] = rVariables.YieldStress * StrainVector[1];
         rStressVector[2] = rVariables.YoungModulus * StrainVector[2];
     }
+
     KRATOS_CATCH("")
 }
 
