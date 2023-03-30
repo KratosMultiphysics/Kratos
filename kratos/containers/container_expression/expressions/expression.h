@@ -29,7 +29,7 @@ namespace Kratos {
 /**
  * @brief Base class or all the expression types.
  *
- * This is used to represent an expression for arithmatic evaluation
+ * This is used to represent an expression for arithmetic evaluation
  *
  */
 class KRATOS_API(KRATOS_CORE) Expression {

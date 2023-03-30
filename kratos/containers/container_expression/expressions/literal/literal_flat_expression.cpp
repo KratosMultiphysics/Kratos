@@ -76,7 +76,7 @@ const std::vector<std::size_t> LiteralFlatExpression::GetShape() const
 std::string LiteralFlatExpression::Info() const
 {
     std::stringstream msg;
-    msg << "V" << mShape;
+    msg << "Vec" << mShape;
     return msg.str();
 }
 

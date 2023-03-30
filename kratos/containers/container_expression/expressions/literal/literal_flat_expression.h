@@ -54,10 +54,6 @@ public:
         const IndexType NumberOfEntities,
         const std::vector<IndexType>& rShape);
 
-    LiteralFlatExpression(const LiteralFlatExpression& rOther) = delete;
-
-    ~LiteralFlatExpression() override = default;
-
     ///@}
     ///@name Public operations
     ///@{
@@ -69,8 +65,8 @@ public:
      * so that additional SetData method can be accessed to initialize
      * the vector data.
      *
-     * @param NumberOfEntities                  Number of entities in the container.
-     * @param rShape                            Shape of the data in each entitiy.
+     * @param NumberOfEntities                  Number of entities (eg. nodes, elements, etc.) in the container.
+     * @param rShape                            Shape of the data in each entity.
      * @return LiteralFlatExpression::Pointer   Returns an intrusive pointer to LiteralFlatExpression.
      */
     static LiteralFlatExpression::Pointer Create(
@@ -96,6 +92,21 @@ protected:
     ///@name Protected classes
     ///@{
 
+    /**
+     * @brief This class is used represent the flattened data array
+     *
+     * Instances of this class used to represent the data in the flat array.
+     * This representation can be done in two ways:
+     *
+     *      1) If the data is moved, then this instance will hold a pointer
+     *         to the double flattened data array. In this case it is important to
+     *         make sure that the double flattened data array lives until this expression
+     *         is destructed. In this case mIsManaged will be false.
+     *      2) If the data is copied, then a flattened array for the required size is
+     *         created at the construction in the heap, and will be destructed when the
+     *         @ref Data instance is destructed. Hence, the copy of the data is stored
+     *         and life time is managed by this instance.
+     */
     class Data
     {
     public:

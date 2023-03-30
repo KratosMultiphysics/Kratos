@@ -197,14 +197,11 @@ void VariableExpressionDataIO<Matrix>::Read(
     const IndexType EntityIndex,
     const Matrix& Value) const
 {
-    IndexType local_index = 0;
+    const IndexType flattened_size = rExpression.GetFlattenedSize();
+    const IndexType entity_data_begin_index = EntityIndex * flattened_size;
 
-    const IndexType entity_data_begin_index = EntityIndex * rExpression.GetFlattenedSize();
-
-    for (IndexType i = 0; i < Value.size1(); ++i) {
-        for (IndexType j = 0; j < Value.size2(); ++j) {
-            rExpression.SetData(entity_data_begin_index, local_index++, Value(i, j));
-        }
+    for (IndexType i = 0; i < flattened_size; ++i) {
+        rExpression.SetData(entity_data_begin_index, i, Value.data()[i]);
     }
 }
 

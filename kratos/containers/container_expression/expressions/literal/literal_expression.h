@@ -36,10 +36,6 @@ public:
 
     LiteralExpression(const TDataType& Value);
 
-    LiteralExpression(const LiteralExpression& rOther) = delete;
-
-    ~LiteralExpression() override = default;
-
     ///@}
     ///@name Public operations
     ///@{

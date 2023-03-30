@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <numeric>
 
 // Project includes
 
@@ -21,11 +22,11 @@ namespace Kratos {
 
 std::size_t Expression::GetFlattenedSize() const
 {
-    IndexType result = 1;
-    for (const auto v : this->GetShape()) {
-        result *= v;
-    }
-    return result;
+    const auto& r_shape = this->GetShape();
+    return std::accumulate(
+        r_shape.begin(),
+        r_shape.end(), 1UL,
+        [](const auto V1, const auto V2) { return V1 * V2; });
 }
 
 } // namespace Kratos

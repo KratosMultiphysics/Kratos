@@ -51,10 +51,6 @@ public:
         Expression::Pointer pLeft,
         Expression::Pointer pRight);
 
-    BinaryExpression(const BinaryExpression& rOther) = delete;
-
-    ~BinaryExpression() override = default;
-
     ///@}
     ///@name Public operations
     ///@{

@@ -107,9 +107,7 @@ void ContainerExpression<TContainerType>::MoveFrom(
         << ", local container size = " << this->GetContainer().size() << " ].\n";
 
     std::vector<IndexType> shape(ShapeSize);
-    for (int i = 0; i < ShapeSize; ++i) {
-        shape[i] = *(pShapeBegin++);
-    }
+    std::copy(pShapeBegin, pShapeBegin + ShapeSize, shape.begin());
 
     auto p_expression = LiteralFlatExpression::Create(pBegin, number_of_entities, shape);
     this->mpExpression = p_expression;
@@ -137,9 +135,7 @@ void ContainerExpression<TContainerType>::Evaluate(
     const auto& r_expression = this->GetExpression();
 
     std::vector<IndexType> shape(ShapeSize);
-    for (int i = 0; i < ShapeSize; ++i) {
-        shape[i] = *(pShapeBegin++);
-    }
+    std::copy(pShapeBegin, pShapeBegin + ShapeSize, shape.begin());
 
     KRATOS_ERROR_IF_NOT(shape == r_expression.GetShape())
         << "Shape mismatch. [ Requested shape  = " << shape
