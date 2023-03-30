@@ -25,7 +25,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -40,7 +39,6 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-
 
 ///@}
 ///@name Kratos Classes
@@ -144,8 +142,6 @@ private:
     static IteratorType msNull;
     static PointerType msNullPointer;
     static TreeNode msNullLeaf;
-
-
 };
 
 template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType, class TIteratorIteratorType>
@@ -156,11 +152,9 @@ template<std::size_t TDimension, class TPointType, class TPointerType, class TIt
 typename TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::PointerType
 TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::msNullPointer;
 
-
 template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType, class TIteratorIteratorType>
 TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>
 TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::msNullLeaf;
-
 
 /// Short class definition.
 /** Detail class definition.
@@ -242,7 +236,7 @@ public:
             //TODO: commenting the next line is plain wrong. it is just to try compiling without copy constructor
 //             KRATOS_THROW_ERROR(std::logic_error,"TODO: commenting the next line is plain wrong. it is just to try compiling without copy constructor - it completely breaks the code","")
             //CHAPUZA CHAPUZA CHAPUZA
-            
+
        mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, max_point, min_point, mBucketSize);
     }
 
@@ -277,11 +271,9 @@ public:
         delete mRoot;
     }
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -295,7 +287,7 @@ public:
         mRoot->SearchNearestPoint(ThisPoint,Result,ResultDistance);
         if (ResultDistance<Tolerance*Tolerance)
             return Result;
-        return this->NullPointer();
+        return NodeType::NullPointer();
     }
 
     PointerType SearchNearestPoint(PointType const& ThisPoint, CoordinateType& rResultDistance)
@@ -319,7 +311,7 @@ public:
 
         return Result;
     }
-    
+
     void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
     {
         IndexPartition<SizeType>(NumberOfPoints).for_each(
@@ -351,7 +343,7 @@ public:
         mRoot->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults);
         return NumberOfResults;
     }
-    
+
     void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, std::vector<CoordinateType> const& Radius, std::vector<IteratorType> Results,
                         std::vector<DistanceIteratorType> ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
     {
@@ -368,7 +360,6 @@ public:
         return NumberOfResults;
     }
 
-
     ///@}
     ///@name Access
     ///@{
@@ -383,11 +374,9 @@ public:
         return mBoundingBoxHighPoint;
     }
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -411,51 +400,40 @@ public:
         mRoot->PrintData(rOStream, "  ");
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -480,21 +458,17 @@ private:
     ///@name Private Operators:
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -506,24 +480,19 @@ private:
     /// Copy constructor.
     Tree(Tree const& rOther);
 
-
     ///@}
-
 }; // Class Tree
 
 template< class TPartitionType >
 typename Tree<TPartitionType>::LeafType Tree<TPartitionType>::msEmptyLeaf;
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<class TPartitionType>
@@ -541,7 +510,4 @@ inline std::ostream& operator << (std::ostream& rOStream, const Tree<TPartitionT
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-
