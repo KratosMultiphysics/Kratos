@@ -373,7 +373,7 @@ namespace Kratos
         for (int k = 0; k < dim; k++) {
           mConductivityTensor(j,k) += normal[j] * normal[k] * keff;
           if (has_inner_particle)
-            mConductivityTensorInner(j,k) += mConductivityTensor(j,k);
+            mConductivityTensorInner(j,k) = mConductivityTensor(j,k);
         }
       }
     }
