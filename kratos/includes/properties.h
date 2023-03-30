@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -74,25 +74,25 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Properties);
 
 #ifdef  _WIN32 // work around for windows int64_t error
-    typedef __int64 int64_t;
+    using int64_t = __int64;
 #endif
-    typedef IndexedObject BaseType;
+    using BaseType = IndexedObject;
 
-    typedef DataValueContainer ContainerType;
+    using ContainerType = DataValueContainer;
 
-    typedef Node<3> NodeType;
+    using NodeType = Node<3>;
 
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType> ;
 
-    typedef NodeType::IndexType IndexType;
+    using IndexType = std::size_t;
 
-    typedef Table<double> TableType;
+    using TableType = Table<double>;
 
-    typedef IndexType KeyType;
+    using KeyType = IndexType;
 
-    typedef Accessor::Pointer AccessorPointerType;
+    using AccessorPointerType = Accessor::Pointer;
 
-    typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implementation and should be changed to hash. Pooyan.
+    using TablesContainerType = std::unordered_map<std::size_t, TableType>; // This is a provisional implementation and should be changed to hash. Pooyan.
 
     /// Properties container. A vector set of properties with their Id's as key.
     typedef PointerVectorSet<Properties, IndexedObject> SubPropertiesContainerType;
