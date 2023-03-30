@@ -51,7 +51,7 @@ namespace Kratos {
  * @tparam TContainerDataIO         Container entity input/output type
  */
 template <class TContainerType, class TContainerDataIO>
-class SpecializedContainerVariableData : public ContainerVariableData<TContainerType> {
+class KRATOS_API(KRATOS_CORE) SpecializedContainerVariableData : public ContainerVariableData<TContainerType> {
 public:
     ///@name Type definitions
     ///@{
