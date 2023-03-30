@@ -133,9 +133,6 @@ class ReadFromSwInterfaceProcess(KM.Process):
                     zmax = node.Z
             self.z_top = zmax
             
-          
-            
-            
             
     def DistributeVelocityToPfem(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
