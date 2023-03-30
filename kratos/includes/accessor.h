@@ -11,7 +11,6 @@
 //                   Riccardo Rossi
 //                   Carlos Roig
 //
-//
 
 # pragma once
 
@@ -40,205 +39,205 @@ class Properties;
  */
 class KRATOS_API(KRATOS_CORE) Accessor
 {
-    public:
-        ///@name Type Definitions
-        ///@{
+public:
+    ///@name Type Definitions
+    ///@{
 
-        /// Node type definition
-        using NodeType = Node<3>;
+    /// Node type definition
+    using NodeType = Node<3>;
 
-        /// Geometry type definition
-        using GeometryType = Geometry<NodeType>;
+    /// Geometry type definition
+    using GeometryType = Geometry<NodeType>;
 
-        /// Pointer definition of NodeSearchUtility
-        KRATOS_CLASS_POINTER_DEFINITION(Accessor);
+    /// Pointer definition of NodeSearchUtility
+    KRATOS_CLASS_POINTER_DEFINITION(Accessor);
 
-        ///@}
-        ///@name Life Cycle
-        ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-        /// Default constructor.
-        Accessor(){};
+    /// Default constructor.
+    Accessor(){};
 
-        /// Destructor.
-        virtual ~Accessor() {}
+    /// Destructor.
+    virtual ~Accessor() {}
 
-        ///@}
-        ///@name Operations
-        ///@{
-        
-        /**
-         * @brief Custom method to retrieve double type properties
-         * @param rVariable The variable considered (double type properties)
-         * @param rProperties The properties considered
-         * @param rGeometry The geometry considered
-         * @param rShapeFunctionVector The shape function of the GP considered
-         * @param rProcessInfo The process info considered
-         * @return The double type properties
-         */
-        virtual double GetProperty(
-            const Variable<double>& rVariable,
-            const Properties& rProperties,
-            const GeometryType& rGeometry,
-            const Vector& rShapeFunctionVector,
-            const ProcessInfo& rProcessInfo
-            ) const;
+    ///@}
+    ///@name Operations
+    ///@{
+    
+    /**
+     * @brief Custom method to retrieve double type properties
+     * @param rVariable The variable considered (double type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The double type properties
+     */
+    virtual double GetProperty(
+        const Variable<double>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
 
-        /**
-         * @brief Custom method to retrieve Vector type properties
-         * @param rVariable The variable considered (Vector type properties)
-         * @param rProperties The properties considered
-         * @param rGeometry The geometry considered
-         * @param rShapeFunctionVector The shape function of the GP considered
-         * @param rProcessInfo The process info considered
-         * @return The Vector type properties
-         */
-        virtual Vector GetProperty(
-            const Variable<Vector>& rVariable,
-            const Properties& rProperties,
-            const GeometryType& rGeometry,
-            const Vector& rShapeFunctionVector,
-            const ProcessInfo& rProcessInfo
-            ) const;
+    /**
+     * @brief Custom method to retrieve Vector type properties
+     * @param rVariable The variable considered (Vector type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The Vector type properties
+     */
+    virtual Vector GetProperty(
+        const Variable<Vector>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
 
-        /**
-         * @brief Custom method to retrieve bool type properties
-         * @param rVariable The variable considered (bool type properties)
-         * @param rProperties The properties considered
-         * @param rGeometry The geometry considered
-         * @param rShapeFunctionVector The shape function of the GP considered
-         * @param rProcessInfo The process info considered
-         * @return The bool type properties
-         */
-        virtual bool GetProperty(
-            const Variable<bool>& rVariable,
-            const Properties& rProperties,
-            const GeometryType& rGeometry,
-            const Vector& rShapeFunctionVector,
-            const ProcessInfo& rProcessInfo
-            ) const;
+    /**
+     * @brief Custom method to retrieve bool type properties
+     * @param rVariable The variable considered (bool type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The bool type properties
+     */
+    virtual bool GetProperty(
+        const Variable<bool>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
 
-        /**
-         * @brief Custom method to retrieve int type properties
-         * @param rVariable The variable considered (int type properties)
-         * @param rProperties The properties considered
-         * @param rGeometry The geometry considered
-         * @param rShapeFunctionVector The shape function of the GP considered
-         * @param rProcessInfo The process info considered
-         * @return The int type properties
-         */
-        virtual int GetProperty(
-            const Variable<int>& rVariable,
-            const Properties& rProperties,
-            const GeometryType& rGeometry,
-            const Vector& rShapeFunctionVector,
-            const ProcessInfo& rProcessInfo
-            ) const;
+    /**
+     * @brief Custom method to retrieve int type properties
+     * @param rVariable The variable considered (int type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The int type properties
+     */
+    virtual int GetProperty(
+        const Variable<int>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
 
-        /**
-         * @brief Custom method to retrieve Matrix type properties
-         * @param rVariable The variable considered (Matrix type properties)
-         * @param rProperties The properties considered
-         * @param rGeometry The geometry considered
-         * @param rShapeFunctionVector The shape function of the GP considered
-         * @param rProcessInfo The process info considered
-         * @return The Matrix type properties
-         */
-        virtual Matrix GetProperty(
-            const Variable<Matrix>& rVariable,
-            const Properties& rProperties,
-            const GeometryType& rGeometry,
-            const Vector& rShapeFunctionVector,
-            const ProcessInfo& rProcessInfo
-            ) const;
+    /**
+     * @brief Custom method to retrieve Matrix type properties
+     * @param rVariable The variable considered (Matrix type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The Matrix type properties
+     */
+    virtual Matrix GetProperty(
+        const Variable<Matrix>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
 
-        /**
-         * @brief Custom method to retrieve array_1d<double, 3 > type properties
-         * @param rVariable The variable considered (array_1d<double, 3 > type properties)
-         * @param rProperties The properties considered
-         * @param rGeometry The geometry considered
-         * @param rShapeFunctionVector The shape function of the GP considered
-         * @param rProcessInfo The process info considered
-         * @return The array_1d<double, 3 > type properties
-         */
-        virtual array_1d<double, 3> GetProperty(
-            const Variable<array_1d<double, 3>>& rVariable,
-            const Properties& rProperties,
-            const GeometryType& rGeometry,
-            const Vector& rShapeFunctionVector,
-            const ProcessInfo& rProcessInfo
-            ) const;
+    /**
+     * @brief Custom method to retrieve array_1d<double, 3 > type properties
+     * @param rVariable The variable considered (array_1d<double, 3 > type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The array_1d<double, 3 > type properties
+     */
+    virtual array_1d<double, 3> GetProperty(
+        const Variable<array_1d<double, 3>>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
 
-        /**
-         * @brief Custom method to retrieve array_1d<double, 6 > type properties
-         * @param rVariable The variable considered (array_1d<double, 6 > type properties)
-         * @param rProperties The properties considered
-         * @param rGeometry The geometry considered
-         * @param rShapeFunctionVector The shape function of the GP considered
-         * @param rProcessInfo The process info considered
-         * @return The array_1d<double, 6 > type properties
-         */
-        virtual array_1d<double, 6> GetProperty(
-            const Variable<array_1d<double, 6>>& rVariable,
-            const Properties& rProperties,
-            const GeometryType& rGeometry,
-            const Vector& rShapeFunctionVector,
-            const ProcessInfo& rProcessInfo
-            ) const;
+    /**
+     * @brief Custom method to retrieve array_1d<double, 6 > type properties
+     * @param rVariable The variable considered (array_1d<double, 6 > type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The array_1d<double, 6 > type properties
+     */
+    virtual array_1d<double, 6> GetProperty(
+        const Variable<array_1d<double, 6>>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
 
-        /**
-         * @brief Custom method to retrieve string type properties
-         * @param rVariable The variable considered (string type properties)
-         * @param rProperties The properties considered
-         * @param rGeometry The geometry considered
-         * @param rShapeFunctionVector The shape function of the GP considered
-         * @param rProcessInfo The process info considered
-         * @return The string type properties
-         */
-        virtual std::string GetProperty(
-            const Variable<std::string>& rVariable,
-            const Properties& rProperties,
-            const GeometryType& rGeometry,
-            const Vector& rShapeFunctionVector,
-            const ProcessInfo& rProcessInfo
-            ) const;
+    /**
+     * @brief Custom method to retrieve string type properties
+     * @param rVariable The variable considered (string type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The string type properties
+     */
+    virtual std::string GetProperty(
+        const Variable<std::string>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
 
-        // Getting a pointer tot he class
-        virtual Accessor::Pointer Clone() const;
+    // Getting a pointer tot he class
+    virtual Accessor::Pointer Clone() const;
 
-        ///@}
-        ///@name Input and output
-        ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-        /// Turn back information as a string.
-        virtual std::string Info() const
-        {
-            std::stringstream buffer;
-            buffer << "Accessor" ;
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Accessor" ;
 
-            return buffer.str();
-        }
+        return buffer.str();
+    }
 
-        /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "Accessor";}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "Accessor";}
 
-        /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const {rOStream << "virtual method of the base Accessor class";}
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {rOStream << "virtual method of the base Accessor class";}
 
-        ///@}
+    ///@}
 
-    private:
+private:
 
-        ///@name Member Variables
-        ///@{
+    ///@name Member Variables
+    ///@{
 
-        friend class Serializer;
+    friend class Serializer;
 
-        void save(Serializer& rSerializer) const
-        {}
+    void save(Serializer& rSerializer) const
+    {}
 
-        void load(Serializer& rSerializer)
-        {}
+    void load(Serializer& rSerializer)
+    {}
 
 
 }; // class
