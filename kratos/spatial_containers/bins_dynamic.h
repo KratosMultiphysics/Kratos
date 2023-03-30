@@ -5,20 +5,22 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //                   Carlos Roig
 //
 
+#pragma once
 
-#if !defined(KRATOS_BINS_DYNAMIC_CONTAINER_H_INCLUDE)
-#define KRATOS_BINS_DYNAMIC_CONTAINER_H_INCLUDE
-
+// System includes
 #include <array>
 #include <cmath>
 #include <algorithm>
 
+// External includes
+
+// Project includes
 #include "tree.h"
 #include "utilities/parallel_utilities.h"
 
@@ -854,5 +856,3 @@ std::ostream & operator<<( std::ostream& rOStream,
 
 
 }
-
-#endif // KRATOS_BINS_DYNAMIC_CONTAINER_H_INCLUD

@@ -200,9 +200,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosFas
 
     result = bins.SearchNearestInRadius(near_point, cube_z + 1.e-4);
     KRATOS_CHECK_NEAR(result.GetDistance(), (cube_z - epsilon), tolerance);
-    
+
     std::size_t id = result.Get()->Id();
-    KRATOS_CHECK(id == 3); 
+    KRATOS_CHECK(id == 3);
 }
 
 /** Checks bins search nearest
