@@ -253,14 +253,14 @@ public:
 
         PointType max_point = **mPointsBegin;
         PointType min_point = **mPointsBegin;
-        for(IteratorType point_iterator = mPointsBegin ; point_iterator != mPointsEnd ; point_iterator++)
-            for(SizeType i = 0 ; i < Dimension ; i++)
-            {
+        for(IteratorType point_iterator = mPointsBegin ; point_iterator != mPointsEnd ; point_iterator++) {
+            for(SizeType i = 0 ; i < Dimension ; i++) {
                 if((**point_iterator)[i] > max_point[i])
                     max_point[i] = (**point_iterator)[i];
                 else if((**point_iterator)[i] < min_point[i])
                     min_point[i] = (**point_iterator)[i];
             }
+        }
 
         mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, max_point, min_point, mBucketSize);
     }
@@ -279,24 +279,30 @@ public:
     ///@name Operations
     ///@{
 
-    PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
+    PointerType ExistPoint(
+        PointerType const& ThisPoint,
+        CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) 
+        )
     {
         PointerType Result = *mPointsBegin;
         CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
-        // searching the tree
-        mRoot->SearchNearestPoint(ThisPoint,Result,ResultDistance);
+        // Searching the tree
+        mRoot->SearchNearestPoint(*ThisPoint, Result, ResultDistance);
         if (ResultDistance<Tolerance*Tolerance)
             return Result;
         return NodeType::NullPointer();
     }
 
-    PointerType SearchNearestPoint(PointType const& ThisPoint, CoordinateType& rResultDistance)
+    PointerType SearchNearestPoint(
+        PointType const& ThisPoint,
+        CoordinateType& rResultDistance
+        )
     {
         PointerType Result = *mPointsBegin;
         rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
 
-        // searching the tree
-        mRoot->SearchNearestPoint(ThisPoint,Result,rResultDistance);
+        // Searching the tree
+        mRoot->SearchNearestPoint(ThisPoint, Result, rResultDistance);
 
         return Result;
     }
@@ -306,54 +312,81 @@ public:
         PointerType Result = *mPointsBegin; // NULL ??
         CoordinateType rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
 
-        // searching the tree
-        mRoot->SearchNearestPoint(ThisPoint,Result,rResultDistance);
+        // Searching the tree
+        mRoot->SearchNearestPoint(ThisPoint, Result, rResultDistance);
 
         return Result;
     }
 
-    void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
+    void SearchNearestPoint(
+        PointerType const& ThisPoints,
+        SizeType const& NumberOfPoints,
+        IteratorType& Results,
+        std::vector<CoordinateType>& rResultsDistances
+        )
     {
         IndexPartition<SizeType>(NumberOfPoints).for_each(
             [&](SizeType iPoint)
-            { Results[iPoint] = SearchNearestPoint(ThisPoints[iPoint],ResultsDistances[iPoint]); }
+            { Results[iPoint] = SearchNearestPoint(ThisPoints[iPoint],rResultsDistances[iPoint]); }
         );
     }
 
-    SizeType SearchInRadius(PointType const& ThisPoint, CoordinateType Radius, IteratorType Results,
-                            DistanceIteratorType ResultsDistances, SizeType MaxNumberOfResults)
+    SizeType SearchInRadius(
+        PointType const& ThisPoint,
+        CoordinateType Radius,
+        IteratorType Results,
+        DistanceIteratorType ResultsDistances,
+        SizeType MaxNumberOfResults
+        )
     {
         // Using the square of radius for avoiding square root calculation during search
         CoordinateType Radius2 = Radius * Radius;
 
-        // searching the tree
+        // Searching the tree
         SizeType NumberOfResults = 0;
         mRoot->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults);
 
         return NumberOfResults;
     }
 
-    SizeType SearchInRadius(PointType const& ThisPoint, CoordinateType Radius, IteratorType Results, SizeType MaxNumberOfResults)
+    SizeType SearchInRadius(
+        PointType const& ThisPoint,
+        CoordinateType Radius,
+        IteratorType Results,
+        SizeType MaxNumberOfResults
+        )
     {
         // Using the square of radius for avoiding square root calculation during search
         CoordinateType Radius2 = Radius * Radius;
 
-        // searching the tree
+        // Searching the tree
         SizeType NumberOfResults = 0;
         mRoot->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults);
         return NumberOfResults;
     }
 
-    void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, std::vector<CoordinateType> const& Radius, std::vector<IteratorType> Results,
-                        std::vector<DistanceIteratorType> ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
+    void SearchInRadius(
+        PointerType const& ThisPoints,
+        SizeType const& NumberOfPoints,
+        std::vector<CoordinateType> const& Radius,
+        std::vector<IteratorType>& rResults,
+        std::vector<DistanceIteratorType>& rResultsDistances,
+        std::vector<SizeType>& NumberOfResults,
+        SizeType const& MaxNumberOfResults
+        )
     {
         IndexPartition<SizeType>(NumberOfPoints).for_each(
             [&](SizeType iPoint)
-            { NumberOfResults[iPoint] = SearchInRadius(ThisPoints[iPoint],Radius[iPoint],Results[iPoint],ResultsDistances[iPoint],MaxNumberOfResults); }
+            { NumberOfResults[iPoint] = SearchInRadius(ThisPoints[iPoint],Radius[iPoint],rResults[iPoint],rResultsDistances[iPoint],MaxNumberOfResults); }
         );
     }
 
-    SizeType SearchInBox(PointType const& MinPointBox, PointType const& MaxPointBox, IteratorType Results, SizeType MaxNumberOfResults )
+    SizeType SearchInBox(
+        PointType const& MinPointBox,
+        PointType const& MaxPointBox,
+        IteratorType Results,
+        SizeType MaxNumberOfResults
+        )
     {
         SizeType NumberOfResults = 0;
         mRoot->SearchInBox(MinPointBox,MaxPointBox,Results,NumberOfResults,MaxNumberOfResults);
