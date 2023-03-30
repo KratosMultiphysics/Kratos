@@ -4,21 +4,20 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    clabra
 //
 
-#if !defined(KRATOS_POINT_SEARCH_H_INCLUDED )
-#define  KRATOS_POINT_SEARCH_H_INCLUDED
+#pragma once
 
 // include kratos definitions
 #include "includes/define.h"
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // External includes
 #include "spatial_containers/spatial_search.h"
@@ -270,7 +269,5 @@ class PointSearch : public SpatialSearch
   ///@} addtogroup block
   
 }  // namespace Kratos.
-
-#endif // KRATOS_POINT_SEARCH_H_INCLUDED  defined 
 
 

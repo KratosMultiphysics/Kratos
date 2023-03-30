@@ -4,24 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Abel
 //
 
-
-#if !defined(KRATOS_OCTREE_BYNARY_CELL_H_INCLUDED )
-#define  KRATOS_OCTREE_BYNARY_CELL_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream> 
 
 // External includes 
-
 
 // Project includes
 #ifdef KRATOS_INDEPENDENT
@@ -662,7 +657,5 @@ namespace Kratos {
     ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_OCTREE_BYNARY_CELL_H_INCLUDED  defined
 
 
