@@ -79,13 +79,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
     for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
         const auto &rGeometryElement = itElem->GetGeometry();
-        auto rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
-
-		// for 1D elements, the edge geometry is the same as the element geometry 
-        if (rGeometryElement.LocalSpaceDimension() == 1)
-        {
-            rBoundaryGeometries = PointerVector(rGeometryElement.GenerateEdges());
-        }
+        const auto rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
         
         for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
             DenseVector<int> FaceIds(rBoundaryGeometries[iFace].size());
@@ -240,6 +234,26 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         }
     }
 
+
+    //check that all of the conditions belong to at least an element.
+    AllVisited = true;
+    for (auto& rCond : mrModelPart.Conditions()) {
+        if (rCond.IsNot(VISITED)) {
+            AllVisited = false;
+            break;
+        }
+    }
+
+    if (AllVisited) {
+        // if all conditions are found, no need for further checks:
+        return;
+    }
+
+    // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are alredy performed, such that 1D elements are only added
+    // as neighbours when the condition is not neighbouring 2D or 3D elements
+    this->CheckIf1DElementIsNeighbour(FacesMap);
+    
+    
     //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     AllVisited = true;
     for (auto& rCond : mrModelPart.Conditions()) {
@@ -252,6 +266,58 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     KRATOS_ERROR_IF_NOT(AllVisited) << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
+}
+
+void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashmap& rFacesMap)
+{
+    // Now loop over all elements and check if one of the faces is in the "FacesMap"
+    for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
+        const auto& r_geometry_element = itElem->GetGeometry();
+
+	    // for 1D elements, the edge geometry is the same as the element geometry 
+	    if (r_geometry_element.LocalSpaceDimension() == 1)
+	    {
+            const auto rBoundaryGeometries = PointerVector(r_geometry_element.GenerateEdges());
+
+            for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
+                DenseVector<int> FaceIds(rBoundaryGeometries[iFace].size());
+
+                // get edge ids
+                for (IndexType iNode = 0; iNode < FaceIds.size(); ++iNode) {
+                    FaceIds[iNode] = rBoundaryGeometries[iFace][iNode].Id();
+                }
+
+                hashmap::iterator itFace = rFacesMap.find(FaceIds);
+
+                if (itFace != rFacesMap.end()) {
+                    // condition is found!
+                    // but check if there are more than one condition on the element
+                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, itElem);
+
+                }
+            }
+        }
+    }
+}
+
+
+void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(hashmap& rFacesMap, hashmap::iterator& rItFace, 
+    PointerVector<Element>::iterator pItElem)
+{
+
+	const std::pair<hashmap::iterator, hashmap::iterator> face_pair = rFacesMap.equal_range(rItFace->first);
+    for (hashmap::iterator it = face_pair.first; it != face_pair.second; ++it) {
+        std::vector<Condition::Pointer>& r_conditions = it->second;
+
+        GlobalPointersVector< Element > vector_of_neighbours;
+        vector_of_neighbours.resize(1);
+        vector_of_neighbours(0) = Element::WeakPointer(*pItElem.base());
+
+        for (const Condition::Pointer p_condition : r_conditions) {
+            p_condition->Set(VISITED, true);
+            p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------------------

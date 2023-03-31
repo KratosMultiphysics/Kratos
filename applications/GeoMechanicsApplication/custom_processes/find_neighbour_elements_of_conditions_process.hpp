@@ -154,6 +154,11 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
+
+    static void CheckForMultipleConditionsOnElement(hashmap& rFacesMap, hashmap::iterator& rItFace,
+        PointerVector<Element>::iterator pItElem);
+
     ///@}
     ///@name Un accessible methods
     ///@{
