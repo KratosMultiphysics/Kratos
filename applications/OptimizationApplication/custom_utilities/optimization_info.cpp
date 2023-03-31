@@ -108,7 +108,7 @@ bool OptimizationInfo<TArgs...>::HasValue(
 
 template<class... TArgs>
 template<class TType>
-bool OptimizationInfo<TArgs...>::IsValue<TType>(
+bool OptimizationInfo<TArgs...>::IsValue(
         const std::string& rName,
         const IndexType StepIndex) const
 {
