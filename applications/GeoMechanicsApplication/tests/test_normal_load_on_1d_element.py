@@ -1,5 +1,8 @@
 import os
 
+import sys
+sys.path.append(r"D:\software_development\Kratos\bin\Debug")
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStruct
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -53,6 +56,38 @@ class KratosGeoMechanicsNormalLoad1DTests(KratosUnittest.TestCase):
         """
         # read test
         test_name = 'test_normal_load_on_beam'
+        file_path = test_helper.get_file_path(os.path.join(test_name + '.gid'))
+
+        # run calculation
+        simulation = test_helper.run_kratos(file_path)
+
+        # get results
+        nodes = simulation.model.GetModelPart("PorousDomain.beam").Nodes
+        y_displacements = [node.GetSolutionStepValue(Kratos.DISPLACEMENT_Y) for node in nodes]
+
+        # calculate expected result
+        properties = simulation.model.GetModelPart("PorousDomain.beam").Properties[1]
+        expected_result = self.calculate_analytical_deflection_simply_supported_beam_with_normal_load\
+            (properties, 3, len(y_displacements)-1, -10)
+
+        # calculate relative difference
+        relative_difference = [(y_displacement - expected) / expected for y_displacement, expected
+                               in zip(y_displacements, expected_result) if expected != 0]
+
+        # assert relative differences
+        for diff in relative_difference:
+            self.assertAlmostEqual(diff, 0, places=3)
+
+    @KratosUnittest.skip("unit test skipped due to problem in the core, remove skip statement after #10950 is solved")
+    def test_normal_load_on_beam_higher_order(self):
+        """
+        Tests the deflection of a beam following a normal load.
+        Returns
+        -------
+
+        """
+        # read test
+        test_name = 'test_normal_load_on_beam_higher_order'
         file_path = test_helper.get_file_path(os.path.join(test_name + '.gid'))
 
         # run calculation
