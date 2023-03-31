@@ -36,9 +36,9 @@ public:
     ///@name Type definitions
     ///@{
 
-    using OptimizationInfoType = OptimizationInfo<TArgs...>;
-
     using IndexType = std::size_t;
+
+    using OptimizationInfoType = OptimizationInfo<TArgs...>;
 
     using BufferedValueType = std::variant<TArgs...>;
 
@@ -97,29 +97,75 @@ public:
      * This checks whether the given @ref rName exists in current instance or sub items.
      * The @ref rName should always starts with "/". Path is seperated by "/" character.
      *
-     * When the lead name is found, then it checks whether the leaf name is present in the
+     * When the leaf name is found, then it checks whether the leaf name is present in the
      * respective container for the provided @ref StepIndex.
      *
      * An error is thrown if the leaf instance does not have the required buffer size.
      *
-     * @param rName
-     * @param StepIndex
-     * @return true
-     * @return false
+     * @param rName                     Path to the value. Should start with "/".
+     * @param StepIndex                 Step index of the cyclic buffer.
+     * @return true                     if a value is existing.
+     * @return false                    if a value is not existing.
      */
     bool HasValue(
         const std::string& rName,
         const IndexType StepIndex = 0) const;
 
+    /**
+     * @brief Checks the value is of the given type.
+     *
+     * This checks whether the value at @ref rName is of @ref TType.
+     * The @ref rName should always starts with "/". Path is seperated by "/" character.
+     *
+     * When the leaf name is found, then it checks whether the leaf name is present in the
+     * respective container for the provided @ref StepIndex.
+     *
+     * An error is thrown if the leaf instance does not have the required buffer size.
+     * An error is thrown if the path is not found.
+     *
+     * @tparam TType                    Type to be checked against in value.
+     * @param rName                     Path to the value. Should start with "/".
+     * @param StepIndex                 Step index of the cyclic buffer.
+     * @return true                     If the value is of @ref TType.
+     * @return false                    If the value is not of @ref TType.
+     */
     template<class TType>
     bool IsValue(
         const std::string& rName,
         const IndexType StepIndex = 0) const;
 
+    /**
+     * @brief Get the value corresponding to rName.
+     *
+     * This returns the value corresponding to @ref rName path.
+     * The @ref rName should always starts with "/". Path is seperated by "/" character.
+     *
+     * An error is thrown if the leaf instance does not have the required buffer size.
+     * An error is thrown if the path is not found.
+     *
+     * @param rName                     Path to the value. Should start with "/".
+     * @param StepIndex                 Step index of the cyclic buffer.
+     * @return ValueType                Return value.
+     */
     ValueType GetValue(
         const std::string& rName,
         const IndexType StepIndex = 0) const;
 
+    /**
+     * @brief Set the Value at the given path
+     *
+     * This sets the given @ref rValue at the @ref rName.
+     * Subitems will be created when reaching the leaf name from @ref rName.
+     * The @ref rName should always starts with "/". Path is seperated by "/" character.
+     *
+     * An error is thrown if a value already exists in the @ref rName path and Overwrite is false.
+     * An error is thrown if the leaf instance does not have the required buffer size.
+     *
+     * @param rName                     Path to the value. Should start with "/".
+     * @param rValue                    Value to be stored at rName path.
+     * @param StepIndex                 Step index of the cyclic buffer.
+     * @param Overwrite                 Whether to overwrite an existing value.
+     */
     void SetValue(
         const std::string& rName,
         const ValueType& rValue,
