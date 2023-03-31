@@ -36,20 +36,25 @@ OptimizationInfo<TArgs...>::OptimizationInfo(
 }
 
 template<class... TArgs>
+void OptimizationInfo<TArgs...>::AdvanceStep()
+{
+    mBufferIndex = (mBufferIndex + 1) % GetBufferSize();
+
+    for (auto& r_sub_item : mSubItems) {
+        r_sub_item.second.AdvanceStep();
+    }
+}
+
+template<class... TArgs>
 void OptimizationInfo<TArgs...>::SetBufferSize(
     const IndexType BufferSize,
     const bool ResizeSubItems)
 {
     if (mData.size() != BufferSize) {
-        KRATOS_WARNING_IF("OptimizationInfo", mData.size() != 0)
-            << "Changing the buffer size from " << mData.size() << " to "
-            << BufferSize << " may lose the data in the current buffer.\n";
-
-        // first reset its own buffer
+        // first sets its own buffer
         mBufferedData.resize(BufferSize);
-        mBufferIndex = 0;
 
-        // now reset the subitem buffers
+        // now sets the subitem buffers
         if (ResizeSubItems) {
             for (auto& r_sub_item : mSubItems) {
                 r_sub_item.second.SetBufferSize(BufferSize);
@@ -58,7 +63,6 @@ void OptimizationInfo<TArgs...>::SetBufferSize(
     }
 }
 
-
 template<class... TArgs>
 std::size_t OptimizationInfo<TArgs...>::GetBufferSize() const
 {
@@ -66,11 +70,13 @@ std::size_t OptimizationInfo<TArgs...>::GetBufferSize() const
 }
 
 template<class... TArgs>
-void OptimizationInfo<TArgs...>::CheckStepIndex(const IndexType StepIndex) const
+std::size_t OptimizationInfo<TArgs...>::GetBufferIndex(const IndexType StepIndex) const
 {
-    KRATOS_ERROR_IF(StepIndex >= mBufferedData.size())
+    KRATOS_ERROR_IF(StepIndex >= GetBufferSize())
         << "Invalid step index. Allowed step indices are < "
-        << mBufferedData.size() << " [ StepIndex = " << StepIndex << " ].\n";
+        << GetBufferSize() << " [ StepIndex = " << StepIndex << " ].\n";
+
+    return (mBufferIndex - StepIndex) % GetBufferSize();
 }
 
 template<class... TArgs>
@@ -85,8 +91,7 @@ bool OptimizationInfo<TArgs...>::HasValue(
         const auto& r_name = r_names[i];
         if (i == r_names.size() - 1) {
             // if the current index is the last, then it is the leaf
-            p_optimization_info->CheckStepIndex(StepIndex);
-            auto& r_buffered_data = p_optimization_info->mBufferedData[StepIndex];
+            auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
             return r_buffered_data.find(r_name) != r_buffered_data.end();
         } else {
             // it is not the last index, then this key should be present in the subitems
@@ -129,8 +134,7 @@ typename OptimizationInfo<TArgs...>::ValueType OptimizationInfo<TArgs...>::GetVa
         current_path << "/" << r_name;
         if (i == r_names.size() - 1) {
             // if the current index is the last, then it is the leaf
-            p_optimization_info->CheckStepIndex(StepIndex);
-            auto& r_buffered_data = p_optimization_info->mBufferedData[StepIndex];
+            auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
             auto sub_value = r_buffered_data.find(r_name);
             if (sub_value != r_buffered_data.end()) {
                 return sub_value.second;
@@ -189,8 +193,7 @@ void OptimizationInfo<TArgs...>::SetValue(
         const auto& r_name = r_names[i];
         if (i == r_names.size() - 1) {
             // if the current index is the last, then it is the leaf
-            p_optimization_info->CheckStepIndex(StepIndex);
-            auto& r_buffered_data = p_optimization_info->mBufferedData[StepIndex];
+            auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
             auto sub_value = r_buffered_data.find(r_name);
             KRATOS_ERROR_IF_NOT(Overwrite || sub_value != r_buffered_data.end()) << "A value at \"" << rName << "\" already exists.";
             r_buffered_data[r_name] = rValue;
