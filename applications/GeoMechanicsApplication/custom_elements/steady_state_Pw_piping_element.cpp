@@ -266,7 +266,7 @@ template< >
 double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
 {
     auto nodalHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<4>(Geom, Prop);
-	return abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1])/2) / dx;
+	return std::abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1])/2) / dx;
 }
 template< >
 double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
