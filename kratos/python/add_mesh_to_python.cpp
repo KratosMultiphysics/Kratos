@@ -530,6 +530,11 @@ void  AddMeshToPython(pybind11::module& m)
         self.EquationIdVector(ids,rProcessInfo);
         return ids;
     })
+    .def("GetDofList", [](const Element& self, const ProcessInfo& rProcessInfo){
+        std::vector<Dof<double>*> dofs_list;
+        self.GetDofList(dofs_list,rProcessInfo);
+        return dofs_list;
+    })
     .def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("GetSpecifications", &Element::GetSpecifications)
     .def("Info", &Element::Info)
