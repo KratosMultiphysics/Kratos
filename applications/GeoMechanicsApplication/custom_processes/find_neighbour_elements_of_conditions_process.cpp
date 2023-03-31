@@ -79,8 +79,14 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
     for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
         const auto &rGeometryElement = itElem->GetGeometry();
-        const auto rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
+        auto rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
 
+		// for 1D elements, the edge geometry is the same as the element geometry 
+        if (rGeometryElement.LocalSpaceDimension() == 1)
+        {
+            rBoundaryGeometries = PointerVector(rGeometryElement.GenerateEdges());
+        }
+        
         for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
             DenseVector<int> FaceIds(rBoundaryGeometries[iFace].size());
 
