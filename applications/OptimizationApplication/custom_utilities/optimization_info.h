@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/define.h"
-// #include "inclu"
 
 // Application includes
 
@@ -31,74 +30,80 @@ namespace Kratos
 ///@{
 
 template<class... TArgs>
-class KRATOS_API(OPTIMIZATION_APPLICATION) OptiimizationInfo
+class KRATOS_API(OPTIMIZATION_APPLICATION) OptimizationInfo
 {
-private:
-    ///@name Private class forward declarations
-    ///@{
-
-    class DataItem;
-
-    ///@}
 public:
     ///@name Type definitions
     ///@{
 
+    using OptimizationInfoType = OptimizationInfo<TArgs...>;
+
     using IndexType = std::size_t;
 
-    using ValueType = std::variant<std::shared_ptr<DataItem>, TArgs...>;
+    using BufferedValueType = std::variant<TArgs...>;
 
-    using MapType = std::unordered_map<std::string, ValueType>;
+    using BufferedMapType = std::unordered_map<std::string, BufferedValueType>;
+
+    using BufferedDataType = std::vector<BufferedMapType>;
+
+    using SubItemType = std::shared_ptr<OptimizationInfoType>;
+
+    using SubItemsMap = std::unordered_map<std::string, SubItemType>;
+
+    using ValueType = std::variant<SubItemType, TArgs...>;
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    OptiimizationInfo(const IndexType EchoLevel = 0);
+    OptimizationInfo(const IndexType BufferSize = 0);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    void SetBufferSize(const IndexType BufferSize);
+    void SetBufferSize(
+        const IndexType BufferSize,
+        const bool ResizeSubItems = false);
+
+    IndexType GetBufferSize() const;
+
+    bool HasValue(
+        const std::string& rName,
+        const IndexType StepIndex = 0) const;
+
+    template<class TType>
+    bool IsValue(
+        const std::string& rName,
+        const IndexType StepIndex = 0) const;
 
     ValueType GetValue(
         const std::string& rName,
         const IndexType StepIndex = 0) const;
 
+    void SetValue(
+        const std::string& rName,
+        const ValueType& rValue,
+        const IndexType StepIndex = 0,
+        const bool Overwrite = false);
+
     ///@}
 
 private:
-    ///@name Private class declaration
-    ///@{
-
-    class DataItem
-    {
-    public:
-        bool Has(const std::string& rName) const;
-
-        ValueType GetValue(
-            const std::string& rName) const;
-
-        void SetValue(
-            const std::string& rName,
-            const ValueType& rValue);
-
-    private:
-        MapType mData;
-    };
-
-    ///@}
     ///@name Private member variables
     ///@{
 
-    const IndexType mEchoLevel;
-
-    IndexType mBufferSize;
-
     IndexType mBufferIndex;
 
-    std::vector<DataItem> mRootDataItems;
+    BufferedDataType mBufferedData;
+
+    SubItemsMap mSubItems;
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    void CheckStepIndex(const IndexType StepIndex) const;
 
     ///@}
 };

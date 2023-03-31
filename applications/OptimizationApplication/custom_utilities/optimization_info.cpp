@@ -25,82 +25,193 @@
 namespace Kratos {
 
 template<class... TArgs>
-bool OptiimizationInfo<TArgs...>::DataItem::Has(const std::string& rName) const
+OptimizationInfo<TArgs...>::OptimizationInfo(
+    const IndexType BufferSize)
+    : mBufferIndex(0),
+      mBufferedData(),
+      mSubItems()
+
 {
-    return mData.find(rName) != mData.end();
+    this->SetBufferSize(BufferSize);
 }
 
 template<class... TArgs>
-typename OptiimizationInfo<TArgs...>::ValueType OptiimizationInfo<TArgs...>::DataItem::GetValue(const std::string& rName) const
+void OptimizationInfo<TArgs...>::SetBufferSize(
+    const IndexType BufferSize,
+    const bool ResizeSubItems)
 {
-    return mData.find(rName)->second;
-}
-
-template<class... TArgs>
-void OptiimizationInfo<TArgs...>::DataItem::SetValue(
-    const std::string& rName,
-    const ValueType& rValue)
-{
-    mData[rName] = rValue;
-}
-
-template<class... TArgs>
-OptiimizationInfo<TArgs...>::OptiimizationInfo(const IndexType EchoLevel)
-    : mEchoLevel(EchoLevel),
-      mBufferSize(0),
-      mBufferIndex(0),
-      mRootDataItems()
-{
-}
-
-template<class... TArgs>
-void OptiimizationInfo<TArgs...>::SetBufferSize(const IndexType BufferSize)
-{
-    if (mRootDataItems.size() != BufferSize) {
-        KRATOS_WARNING_IF("OptimizationInfo", mRootDataItems.size() != 0)
-            << "Changing the buffer size from " << mRootDataItems.size() << " to "
+    if (mData.size() != BufferSize) {
+        KRATOS_WARNING_IF("OptimizationInfo", mData.size() != 0)
+            << "Changing the buffer size from " << mData.size() << " to "
             << BufferSize << " may lose the data in the current buffer.\n";
 
-        mRootDataItems.resize(BufferSize);
+        // first reset its own buffer
+        mBufferedData.resize(BufferSize);
         mBufferIndex = 0;
 
-        KRATOS_INFO_IF("OptimizationInfo", mEchoLevel > 0)
-            << "Resized optimization info buffer to " << BufferSize << ".\n";
+        // now reset the subitem buffers
+        if (ResizeSubItems) {
+            for (auto& r_sub_item : mSubItems) {
+                r_sub_item.second.SetBufferSize(BufferSize);
+            }
+        }
+    }
+}
+
+
+template<class... TArgs>
+std::size_t OptimizationInfo<TArgs...>::GetBufferSize() const
+{
+    return mBufferedData.size();
+}
+
+template<class... TArgs>
+void OptimizationInfo<TArgs...>::CheckStepIndex(const IndexType StepIndex) const
+{
+    KRATOS_ERROR_IF(StepIndex >= mBufferedData.size())
+        << "Invalid step index. Allowed step indices are < "
+        << mBufferedData.size() << " [ StepIndex = " << StepIndex << " ].\n";
+}
+
+template<class... TArgs>
+bool OptimizationInfo<TArgs...>::HasValue(
+    const std::string& rName,
+    const IndexType StepIndex) const
+{
+    const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
+
+    OptimizationInfoType* p_optimization_info = this;
+    for (IndexType i = 1; i < r_names.size(); ++i) {
+        const auto& r_name = r_names[i];
+        if (i == r_names.size() - 1) {
+            // if the current index is the last, then it is the leaf
+            p_optimization_info->CheckStepIndex(StepIndex);
+            auto& r_buffered_data = p_optimization_info->mBufferedData[StepIndex];
+            return r_buffered_data.find(r_name) != r_buffered_data.end();
+        } else {
+            // it is not the last index, then this key should be present in the subitems
+            auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
+            if (sub_item_itr == p_optimization_info->mSubItems.end()) {
+                return false;
+            } else {
+                p_optimization_info  = &sub_item_itr->second;
+            }
+
+        }
     }
 }
 
 template<class... TArgs>
-typename OptiimizationInfo<TArgs...>::ValueType OptiimizationInfo<TArgs...>::GetValue(
+template<class TType>
+bool OptimizationInfo<TArgs...>::IsValue<TType>(
+        const std::string& rName,
+        const IndexType StepIndex) const
+{
+    return (std::get_if<TType>(this->GetValue(rName, StepIndex)) != nullptr);
+}
+
+template<class... TArgs>
+typename OptimizationInfo<TArgs...>::ValueType OptimizationInfo<TArgs...>::GetValue(
     const std::string& rName,
     const IndexType StepIndex) const
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(StepIndex >= mRootDataItems.size())
-        << "Invalid step index. Allowed step indices are < "
-        << mRootDataItems.size() << " [ StepIndex = " << StepIndex << " ].\n";
-
     const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
 
-    DataItem* p_data_item = &mRootDataItems[StepIndex];
+    bool is_found = true;
 
-    std::stringstream msg;
-    for (const auto& r_name : r_names) {
-        if (p_data_item->Has(r_name)) {
+    std::stringstream current_path;
 
+    OptimizationInfoType* p_optimization_info = this;
+    for (IndexType i = 1; i < r_names.size(); ++i) {
+        const auto& r_name = r_names[i];
+        current_path << "/" << r_name;
+        if (i == r_names.size() - 1) {
+            // if the current index is the last, then it is the leaf
+            p_optimization_info->CheckStepIndex(StepIndex);
+            auto& r_buffered_data = p_optimization_info->mBufferedData[StepIndex];
+            auto sub_value = r_buffered_data.find(r_name);
+            if (sub_value != r_buffered_data.end()) {
+                return sub_value.second;
+            } else {
+                is_found = false;
+            }
+        } else {
+            // it is not the last index, then this key should be present in the subitems
+            auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
+            if (sub_item_itr == p_optimization_info->mSubItems.end()) {
+                is_found = false;
+                break;
+            } else {
+                p_optimization_info  = &sub_item_itr->second;
+            }
 
-
-            std::visit([](auto Value) {
-                if ()
-            }, p_data_item->GetValue());
         }
     }
 
+    if (!is_found) {
+        // put a nice error
+        std::stringstream msg;
+        msg << "The path \"" << current_path.str() << "\" not found. Parent path has following keys:";
+
+        // first print the available buffered data
+        if (StepIndex < p_optimization_info->mBufferedData.size()) {
+            for (const auto& r_buffered_item : p_optimization_info->mBufferedData[StepIndex]) {
+                msg <<"\n\t" r_buffered_item.first;
+            }
+        }
+
+        // now print the available sub_items
+        for (const auto& r_sub_item : p_optimization_info->mSubItems) {
+            msg << "\n\t" << r_sub_item.first;
+        }
+
+        KRATOS_ERROR << msg.str();
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class... TArgs>
+void OptimizationInfo<TArgs...>::SetValue(
+    const std::string& rName,
+    const ValueType& rValue,
+    const IndexType StepIndex,
+    const bool Overwrite)
+{
+    KRATOS_TRY
+
+    const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
+
+    OptimizationInfoType* p_optimization_info = this;
+    for (IndexType i = 1; i < r_names.size(); ++i) {
+        const auto& r_name = r_names[i];
+        if (i == r_names.size() - 1) {
+            // if the current index is the last, then it is the leaf
+            p_optimization_info->CheckStepIndex(StepIndex);
+            auto& r_buffered_data = p_optimization_info->mBufferedData[StepIndex];
+            auto sub_value = r_buffered_data.find(r_name);
+            KRATOS_ERROR_IF_NOT(Overwrite || sub_value != r_buffered_data.end()) << "A value at \"" << rName << "\" already exists.";
+            r_buffered_data[r_name] = rValue;
+        } else {
+            // it is not the last index, then this key should be present in the subitems
+            auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
+            if (sub_item_itr == p_optimization_info->mSubItems.end()) {
+                auto p_sub_item = std::make_shared<OptimizationInfoType>(this->GetBufferSize());
+                p_optimization_info->mSubItems[r_name] = p_sub_item;
+                p_optimization_info = p_sub_item.get();
+            } else {
+                p_optimization_info  = &sub_item_itr->second;
+            }
+
+        }
+    }
 
     KRATOS_CATCH("");
 }
 
 // template instantiation
-template class OptiimizationInfo<bool, int, double, std::string>;
+template class OptimizationInfo<bool, int, double, std::string>;
 
 } // namespace Kratos
