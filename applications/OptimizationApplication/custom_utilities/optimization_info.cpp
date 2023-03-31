@@ -178,6 +178,86 @@ typename OptimizationInfo<TArgs...>::ValueType OptimizationInfo<TArgs...>::GetVa
 }
 
 template<class... TArgs>
+typename OptimizationInfo<TArgs...>::ValueType& OptimizationInfo<TArgs...>::GetValue(
+    const std::string& rName,
+    const IndexType StepIndex)
+{
+    KRATOS_TRY
+
+    const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
+
+    bool is_found = true;
+
+    std::stringstream current_path;
+
+    OptimizationInfoType* p_optimization_info = this;
+    for (IndexType i = 1; i < r_names.size(); ++i) {
+        const auto& r_name = r_names[i];
+        current_path << "/" << r_name;
+        if (i == r_names.size() - 1) {
+            // if the current index is the last, then it is the leaf
+            auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
+            auto sub_value = r_buffered_data.find(r_name);
+            if (sub_value != r_buffered_data.end()) {
+                return sub_value.second;
+            } else {
+                is_found = false;
+            }
+        } else {
+            // it is not the last index, then this key should be present in the subitems
+            auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
+            if (sub_item_itr == p_optimization_info->mSubItems.end()) {
+                is_found = false;
+                break;
+            } else {
+                p_optimization_info  = &sub_item_itr->second;
+            }
+
+        }
+    }
+
+    if (!is_found) {
+        // put a nice error
+        std::stringstream msg;
+        msg << "The path \"" << current_path.str() << "\" not found. Parent path has following keys:";
+
+        // first print the available buffered data
+        if (StepIndex < p_optimization_info->mBufferedData.size()) {
+            for (const auto& r_buffered_item : p_optimization_info->mBufferedData[StepIndex]) {
+                msg <<"\n\t" r_buffered_item.first;
+            }
+        }
+
+        // now print the available sub_items
+        for (const auto& r_sub_item : p_optimization_info->mSubItems) {
+            msg << "\n\t" << r_sub_item.first;
+        }
+
+        KRATOS_ERROR << msg.str();
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class... TArgs>
+template<class TType>
+TType OptimizationInfo<TArgs...>::GetValue<TType>(
+    const std::string& rName,
+    const IndexType StepIndex ) const
+{
+    return std::get<TType>(GetValue(rName, StepIndex));
+}
+
+template<class... TArgs>
+template<class TType>
+TType& OptimizationInfo<TArgs...>::GetValue<TType>(
+    const std::string& rName,
+    const IndexType StepIndex)
+{
+    return std::get<TType>(GetValue(rName, StepIndex));
+}
+
+template<class... TArgs>
 void OptimizationInfo<TArgs...>::SetValue(
     const std::string& rName,
     const ValueType& rValue,

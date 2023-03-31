@@ -152,6 +152,63 @@ public:
         const IndexType StepIndex = 0) const;
 
     /**
+     * @brief Get the reference value corresponding to rName.
+     *
+     * This returns the value reference corresponding to @ref rName path.
+     * The @ref rName should always starts with "/". Path is seperated by "/" character.
+     *
+     * An error is thrown if the leaf instance does not have the required buffer size.
+     * An error is thrown if the path is not found.
+     *
+     * @param rName                     Path to the value. Should start with "/".
+     * @param StepIndex                 Step index of the cyclic buffer.
+     * @return ValueType                Return value.
+     */
+    ValueType& GetValue(
+        const std::string& rName,
+        const IndexType StepIndex = 0);
+
+    /**
+     * @brief Get the value corresponding to rName.
+     *
+     * This returns the value corresponding to @ref rName path.
+     * The @ref rName should always starts with "/". Path is seperated by "/" character.
+     *
+     * An error is thrown if the leaf instance does not have the required buffer size.
+     * An error is thrown if the path is not found.
+     * An error is thrown if the value found is not of the @ref TType.
+     *
+     * @tparam TType                    Type to be checked against in value.
+     * @param rName                     Path to the value. Should start with "/".
+     * @param StepIndex                 Step index of the cyclic buffer.
+     * @return ValueType                Return value.
+     */
+    template<class TType>
+    TType GetValue(
+        const std::string& rName,
+        const IndexType StepIndex = 0) const;
+
+    /**
+     * @brief Get the value reference corresponding to rName.
+     *
+     * This returns the value reference corresponding to @ref rName path.
+     * The @ref rName should always starts with "/". Path is seperated by "/" character.
+     *
+     * An error is thrown if the leaf instance does not have the required buffer size.
+     * An error is thrown if the path is not found.
+     * An error is thrown if the value found is not of the @ref TType.
+     *
+     * @tparam TType                    Type to be checked against in value.
+     * @param rName                     Path to the value. Should start with "/".
+     * @param StepIndex                 Step index of the cyclic buffer.
+     * @return ValueType                Return value.
+     */
+    template<class TType>
+    TType& GetValue(
+        const std::string& rName,
+        const IndexType StepIndex = 0);
+
+    /**
      * @brief Set the Value at the given path
      *
      * This sets the given @ref rValue at the @ref rName.
