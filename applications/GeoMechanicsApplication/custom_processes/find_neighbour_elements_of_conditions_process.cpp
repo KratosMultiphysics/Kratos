@@ -313,7 +313,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
         vector_of_neighbours.resize(1);
         vector_of_neighbours(0) = Element::WeakPointer(*pItElem.base());
 
-        for (const Condition::Pointer p_condition : r_conditions) {
+        for (Condition::Pointer p_condition : r_conditions) {
             p_condition->Set(VISITED, true);
             p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
         }
