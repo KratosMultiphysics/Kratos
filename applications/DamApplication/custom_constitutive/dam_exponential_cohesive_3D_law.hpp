@@ -37,24 +37,18 @@ namespace Kratos
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         // Default Constructor
-        DamExponentialCohesive3DLaw()
-        {
-        }
+        DamExponentialCohesive3DLaw() : ExponentialCohesive3DLaw() {}
 
         ConstitutiveLaw::Pointer Clone() const override
         {
-            return Kratos::make_shared<DamExponentialCohesive3DLaw>(DamExponentialCohesive3DLaw(*this));
+            return Kratos::make_shared<DamExponentialCohesive3DLaw>(*this);
         }
 
         // Copy Constructor
-        DamExponentialCohesive3DLaw (const DamExponentialCohesive3DLaw& rOther) : ExponentialCohesive3DLaw(rOther)
-        {
-        }
+        DamExponentialCohesive3DLaw (DamExponentialCohesive3DLaw const& rOther) : ExponentialCohesive3DLaw(rOther) {}
 
         // Destructor
-        ~DamExponentialCohesive3DLaw() override
-        {
-        }
+        ~DamExponentialCohesive3DLaw() override {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
