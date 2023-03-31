@@ -59,10 +59,10 @@
 
 #include "custom_constitutive/dam_joint_3D_law.hpp"
 #include "custom_constitutive/dam_joint_2D_law.hpp"
-#include "custom_constitutive/dam_bilinear_cohesive_3D_law.cpp"
-#include "custom_constitutive/dam_bilinear_cohesive_2D_law.cpp"
-#include "custom_constitutive/dam_exponential_cohesive_3D_law.cpp"
-#include "custom_constitutive/dam_exponential_cohesive_2D_law.cpp"
+#include "custom_constitutive/dam_bilinear_cohesive_3D_law.hpp"
+#include "custom_constitutive/dam_bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/dam_exponential_cohesive_3D_law.hpp"
+#include "custom_constitutive/dam_exponential_cohesive_2D_law.hpp"
 
 namespace Kratos
 {
