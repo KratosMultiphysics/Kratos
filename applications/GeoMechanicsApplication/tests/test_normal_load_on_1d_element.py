@@ -1,8 +1,5 @@
 import os
 
-import sys
-sys.path.append(r"D:\software_development\Kratos\bin\Debug")
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStruct
 import KratosMultiphysics.KratosUnittest as KratosUnittest
