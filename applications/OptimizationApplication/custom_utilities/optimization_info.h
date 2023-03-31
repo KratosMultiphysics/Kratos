@@ -95,14 +95,13 @@ public:
      * @brief Checks whether given path is existing.
      *
      * This checks whether the given @ref rName exists in current instance or sub items.
-     * The @ref rName should always starts with "/". Path is seperated by "/" character.
      *
      * When the leaf name is found, then it checks whether the leaf name is present in the
      * respective container for the provided @ref StepIndex.
      *
      * An error is thrown if the leaf instance does not have the required buffer size.
      *
-     * @param rName                     Path to the value. Should start with "/".
+     * @param rName                     Relative path to the value w.r.t. current instance.
      * @param StepIndex                 Step index of the cyclic buffer.
      * @return true                     if a value is existing.
      * @return false                    if a value is not existing.
@@ -115,7 +114,6 @@ public:
      * @brief Checks the value is of the given type.
      *
      * This checks whether the value at @ref rName is of @ref TType.
-     * The @ref rName should always starts with "/". Path is seperated by "/" character.
      *
      * When the leaf name is found, then it checks whether the leaf name is present in the
      * respective container for the provided @ref StepIndex.
@@ -124,7 +122,7 @@ public:
      * An error is thrown if the path is not found.
      *
      * @tparam TType                    Type to be checked against in value.
-     * @param rName                     Path to the value. Should start with "/".
+     * @param rName                     Relative path to the value w.r.t. current instance.
      * @param StepIndex                 Step index of the cyclic buffer.
      * @return true                     If the value is of @ref TType.
      * @return false                    If the value is not of @ref TType.
@@ -138,12 +136,11 @@ public:
      * @brief Get the value corresponding to rName.
      *
      * This returns the value corresponding to @ref rName path.
-     * The @ref rName should always starts with "/". Path is seperated by "/" character.
      *
      * An error is thrown if the leaf instance does not have the required buffer size.
      * An error is thrown if the path is not found.
      *
-     * @param rName                     Path to the value. Should start with "/".
+     * @param rName                     Relative path to the value w.r.t. current instance.
      * @param StepIndex                 Step index of the cyclic buffer.
      * @return ValueType                Return value.
      */
@@ -155,12 +152,11 @@ public:
      * @brief Get the reference value corresponding to rName.
      *
      * This returns the value reference corresponding to @ref rName path.
-     * The @ref rName should always starts with "/". Path is seperated by "/" character.
      *
      * An error is thrown if the leaf instance does not have the required buffer size.
      * An error is thrown if the path is not found.
      *
-     * @param rName                     Path to the value. Should start with "/".
+     * @param rName                     Relative path to the value w.r.t. current instance.
      * @param StepIndex                 Step index of the cyclic buffer.
      * @return ValueType                Return value.
      */
@@ -172,14 +168,13 @@ public:
      * @brief Get the value corresponding to rName.
      *
      * This returns the value corresponding to @ref rName path.
-     * The @ref rName should always starts with "/". Path is seperated by "/" character.
      *
      * An error is thrown if the leaf instance does not have the required buffer size.
      * An error is thrown if the path is not found.
      * An error is thrown if the value found is not of the @ref TType.
      *
      * @tparam TType                    Type to be checked against in value.
-     * @param rName                     Path to the value. Should start with "/".
+     * @param rName                     Relative path to the value w.r.t. current instance.
      * @param StepIndex                 Step index of the cyclic buffer.
      * @return ValueType                Return value.
      */
@@ -192,14 +187,13 @@ public:
      * @brief Get the value reference corresponding to rName.
      *
      * This returns the value reference corresponding to @ref rName path.
-     * The @ref rName should always starts with "/". Path is seperated by "/" character.
      *
      * An error is thrown if the leaf instance does not have the required buffer size.
      * An error is thrown if the path is not found.
      * An error is thrown if the value found is not of the @ref TType.
      *
      * @tparam TType                    Type to be checked against in value.
-     * @param rName                     Path to the value. Should start with "/".
+     * @param rName                     Relative path to the value w.r.t. current instance.
      * @param StepIndex                 Step index of the cyclic buffer.
      * @return ValueType                Return value.
      */
@@ -213,12 +207,11 @@ public:
      *
      * This sets the given @ref rValue at the @ref rName.
      * Subitems will be created when reaching the leaf name from @ref rName.
-     * The @ref rName should always starts with "/". Path is seperated by "/" character.
      *
      * An error is thrown if a value already exists in the @ref rName path and Overwrite is false.
      * An error is thrown if the leaf instance does not have the required buffer size.
      *
-     * @param rName                     Path to the value. Should start with "/".
+     * @param rName                     Relative path to the value w.r.t. current instance.
      * @param rValue                    Value to be stored at rName path.
      * @param StepIndex                 Step index of the cyclic buffer.
      * @param Overwrite                 Whether to overwrite an existing value.

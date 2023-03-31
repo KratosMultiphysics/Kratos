@@ -87,7 +87,7 @@ bool OptimizationInfo<TArgs...>::HasValue(
     const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
 
     OptimizationInfoType* p_optimization_info = this;
-    for (IndexType i = 1; i < r_names.size(); ++i) {
+    for (IndexType i = 0; i < r_names.size(); ++i) {
         const auto& r_name = r_names[i];
         if (i == r_names.size() - 1) {
             // if the current index is the last, then it is the leaf
@@ -129,9 +129,9 @@ typename OptimizationInfo<TArgs...>::ValueType OptimizationInfo<TArgs...>::GetVa
     std::stringstream current_path;
 
     OptimizationInfoType* p_optimization_info = this;
-    for (IndexType i = 1; i < r_names.size(); ++i) {
+    for (IndexType i = 0; i < r_names.size(); ++i) {
         const auto& r_name = r_names[i];
-        current_path << "/" << r_name;
+        current_path << r_name << "/";
         if (i == r_names.size() - 1) {
             // if the current index is the last, then it is the leaf
             auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
@@ -160,6 +160,7 @@ typename OptimizationInfo<TArgs...>::ValueType OptimizationInfo<TArgs...>::GetVa
     }
 
     if (!is_found) {
+        current_path << "\b";
         // put a nice error
         std::stringstream msg;
         msg << "The path \"" << current_path.str() << "\" not found. Parent path has following keys:";
@@ -196,9 +197,9 @@ typename OptimizationInfo<TArgs...>::ValueType& OptimizationInfo<TArgs...>::GetV
     std::stringstream current_path;
 
     OptimizationInfoType* p_optimization_info = this;
-    for (IndexType i = 1; i < r_names.size(); ++i) {
+    for (IndexType i = 0; i < r_names.size(); ++i) {
         const auto& r_name = r_names[i];
-        current_path << "/" << r_name;
+        current_path << r_name << "/";
         if (i == r_names.size() - 1) {
             // if the current index is the last, then it is the leaf
             auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
@@ -227,6 +228,7 @@ typename OptimizationInfo<TArgs...>::ValueType& OptimizationInfo<TArgs...>::GetV
     }
 
     if (!is_found) {
+        current_path << "\b";
         // put a nice error
         std::stringstream msg;
         msg << "The path \"" << current_path.str() << "\" not found. Parent path has following keys:";
@@ -279,7 +281,7 @@ void OptimizationInfo<TArgs...>::SetValue(
     const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
 
     OptimizationInfoType* p_optimization_info = this;
-    for (IndexType i = 1; i < r_names.size(); ++i) {
+    for (IndexType i = 0; i < r_names.size(); ++i) {
         const auto& r_name = r_names[i];
         if (i == r_names.size() - 1) {
             // if the current index is the last, then it is the leaf
