@@ -24,28 +24,28 @@
 namespace Kratos
 {
 
-    class KRATOS_API(DAM_APPLICATION) DamBilinearCohesive2DLaw : public BilinearCohesive2DLaw
+    class KRATOS_API(DAM_APPLICATION) DamJointBilinearCohesive2DLaw : public BilinearCohesive2DLaw
     {
 
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DamBilinearCohesive2DLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(DamJointBilinearCohesive2DLaw);
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         // Default Constructor
-        DamBilinearCohesive2DLaw() : BilinearCohesive2DLaw() {}
+        DamJointBilinearCohesive2DLaw() : BilinearCohesive2DLaw() {}
 
         ConstitutiveLaw::Pointer Clone() const override
         {
-            return Kratos::make_shared<DamBilinearCohesive2DLaw>(*this);
+            return Kratos::make_shared<DamJointBilinearCohesive2DLaw>(*this);
         }
 
         // Copy Constructor
-        DamBilinearCohesive2DLaw (DamBilinearCohesive2DLaw const& rOther) : BilinearCohesive2DLaw(rOther) {}
+        DamJointBilinearCohesive2DLaw (DamJointBilinearCohesive2DLaw const& rOther) : BilinearCohesive2DLaw(rOther) {}
 
         // Destructor
-        ~DamBilinearCohesive2DLaw() override {}
+        ~DamJointBilinearCohesive2DLaw() override {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -84,5 +84,5 @@ namespace Kratos
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BilinearCohesive2DLaw )
         }
 
-    }; // Class DamBilinearCohesive2DLaw
+    }; // Class DamJointBilinearCohesive2DLaw
 }  // namespace Kratos.

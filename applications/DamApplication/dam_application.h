@@ -59,10 +59,10 @@
 
 #include "custom_constitutive/dam_joint_3D_law.hpp"
 #include "custom_constitutive/dam_joint_2D_law.hpp"
-#include "custom_constitutive/dam_bilinear_cohesive_3D_law.hpp"
-#include "custom_constitutive/dam_bilinear_cohesive_2D_law.hpp"
-#include "custom_constitutive/dam_exponential_cohesive_3D_law.hpp"
-#include "custom_constitutive/dam_exponential_cohesive_2D_law.hpp"
+#include "custom_constitutive/dam_joint_bilinear_cohesive_3D_law.hpp"
+#include "custom_constitutive/dam_joint_bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/dam_joint_exponential_cohesive_3D_law.hpp"
+#include "custom_constitutive/dam_joint_exponential_cohesive_2D_law.hpp"
 
 namespace Kratos
 {
@@ -193,10 +193,10 @@ const ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw mThermalModifiedMisesNo
 
 const DamJoint3DLaw mDamJoint3DLaw;
 const DamJoint2DLaw mDamJoint2DLaw;
-const DamBilinearCohesive3DLaw mDamBilinearCohesive3DLaw;
-// const DamBilinearCohesive2DLaw mDamBilinearCohesive2DLaw;
-const DamExponentialCohesive3DLaw mDamExponentialCohesive3DLaw;
-// const DamExponentialCohesive2DLaw mDamExponentialCohesive2DLaw;
+const DamJointBilinearCohesive3DLaw mDamJointBilinearCohesive3DLaw;
+const DamJointBilinearCohesive2DLaw mDamJointBilinearCohesive2DLaw;
+const DamJointExponentialCohesive3DLaw mDamJointExponentialCohesive3DLaw;
+const DamJointExponentialCohesive2DLaw mDamJointExponentialCohesive2DLaw;
 
 // Assignment operator.
 KratosDamApplication& operator=(KratosDamApplication const& rOther);

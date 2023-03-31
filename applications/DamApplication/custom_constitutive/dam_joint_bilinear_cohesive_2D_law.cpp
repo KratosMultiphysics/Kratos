@@ -11,12 +11,13 @@
 //
 
 // Application includes
-#include "custom_constitutive/dam_bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/dam_joint_bilinear_cohesive_2D_law.hpp"
 
 namespace Kratos
 {
 
-    double& DamBilinearCohesive2DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+    double& DamJointBilinearCohesive2DLaw::GetValue(const Variable<double>& rThisVariable,
+                                                    double& rValue )
     {
         KRATOS_TRY
 
@@ -36,8 +37,9 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 
-    void DamBilinearCohesive2DLaw::SetValue(const Variable<double>& rThisVariable, const double& rValue,
-                                const ProcessInfo& rCurrentProcessInfo )
+    void DamJointBilinearCohesive2DLaw::SetValue(const Variable<double>& rThisVariable,
+                                                 const double& rValue,
+                                                 const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
@@ -55,9 +57,9 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------------------------
 
-    void DamBilinearCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
-                                                        ConstitutiveLawVariables& rVariables,
-                                                        Parameters& rValues)
+    void DamJointBilinearCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
+                                                            ConstitutiveLawVariables& rVariables,
+                                                            Parameters& rValues)
     {
         BilinearCohesive2DLaw::ComputeStressVector(rStressVector, rVariables, rValues);
 

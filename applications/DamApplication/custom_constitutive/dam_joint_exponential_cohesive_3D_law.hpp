@@ -18,34 +18,37 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
+#include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-    class KRATOS_API(DAM_APPLICATION) DamBilinearCohesive3DLaw : public BilinearCohesive3DLaw
+    class KRATOS_API(DAM_APPLICATION) DamJointExponentialCohesive3DLaw : public ExponentialCohesive3DLaw
     {
 
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DamBilinearCohesive3DLaw);
+        /// Definition of the base class
+        typedef ExponentialCohesive3DLaw BaseType;
+
+        KRATOS_CLASS_POINTER_DEFINITION(DamJointExponentialCohesive3DLaw);
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         // Default Constructor
-        DamBilinearCohesive3DLaw() : BilinearCohesive3DLaw() {}
+        DamJointExponentialCohesive3DLaw() : ExponentialCohesive3DLaw() {}
 
         ConstitutiveLaw::Pointer Clone() const override
         {
-            return Kratos::make_shared<DamBilinearCohesive3DLaw>(*this);
+            return Kratos::make_shared<DamJointExponentialCohesive3DLaw>(*this);
         }
 
         // Copy Constructor
-        DamBilinearCohesive3DLaw (DamBilinearCohesive3DLaw const& rOther) : BilinearCohesive3DLaw(rOther) {}
+        DamJointExponentialCohesive3DLaw (DamJointExponentialCohesive3DLaw const& rOther) : ExponentialCohesive3DLaw(rOther) {}
 
         // Destructor
-        ~DamBilinearCohesive3DLaw() override {}
+        ~DamJointExponentialCohesive3DLaw() override {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -76,13 +79,13 @@ namespace Kratos
 
         void save(Serializer& rSerializer) const override
         {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BilinearCohesive3DLaw )
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ExponentialCohesive3DLaw )
         }
 
         void load(Serializer& rSerializer) override
         {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BilinearCohesive3DLaw )
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ExponentialCohesive3DLaw )
         }
 
-    }; // Class DamBilinearCohesive3DLaw
+    }; // Class DamJointExponentialCohesive3DLaw
 }  // namespace Kratos.

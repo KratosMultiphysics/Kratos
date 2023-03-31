@@ -24,31 +24,31 @@
 namespace Kratos
 {
 
-    class KRATOS_API(DAM_APPLICATION) DamExponentialCohesive2DLaw : public ExponentialCohesive2DLaw
+    class KRATOS_API(DAM_APPLICATION) DamJointExponentialCohesive2DLaw : public ExponentialCohesive2DLaw
     {
 
     public:
 
         /// Definition of the base class
-        typedef DamExponentialCohesive2DLaw BaseType;
+        typedef DamJointExponentialCohesive2DLaw BaseType;
 
-        KRATOS_CLASS_POINTER_DEFINITION(DamExponentialCohesive2DLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(DamJointExponentialCohesive2DLaw);
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         // Default Constructor
-        DamExponentialCohesive2DLaw() : ExponentialCohesive2DLaw() {}
+        DamJointExponentialCohesive2DLaw() : ExponentialCohesive2DLaw() {}
 
         ConstitutiveLaw::Pointer Clone() const override
         {
-            return Kratos::make_shared<DamExponentialCohesive2DLaw>(*this);
+            return Kratos::make_shared<DamJointExponentialCohesive2DLaw>(*this);
         }
 
         // Copy Constructor
-        DamExponentialCohesive2DLaw (DamExponentialCohesive2DLaw const& rOther) : ExponentialCohesive2DLaw(rOther) {}
+        DamJointExponentialCohesive2DLaw (DamJointExponentialCohesive2DLaw const& rOther) : ExponentialCohesive2DLaw(rOther) {}
 
         // Destructor
-        ~DamExponentialCohesive2DLaw() override {}
+        ~DamJointExponentialCohesive2DLaw() override {}
 
         //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -87,5 +87,5 @@ namespace Kratos
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ExponentialCohesive2DLaw )
         }
 
-    }; // Class DamExponentialCohesive2DLaw
+    }; // Class DamJointExponentialCohesive2DLaw
 }  // namespace Kratos.

@@ -182,10 +182,10 @@ void KratosDamApplication::Register()
 
     Serializer::Register("DamJoint3DLaw",mDamJoint3DLaw);
     Serializer::Register("DamJoint2DLaw",mDamJoint2DLaw);
-    Serializer::Register("DamBilinearCohesive3DLaw",mDamBilinearCohesive3DLaw);
-    // Serializer::Register("DamBilinearCohesive2DLaw",mDamBilinearCohesive2DLaw);
-    Serializer::Register("DamExponentialCohesive3DLaw",mDamExponentialCohesive3DLaw);
-    // Serializer::Register("DamExponentialCohesive2DLaw",mDamExponentialCohesive2DLaw);
+    Serializer::Register("DamJointBilinearCohesive3DLaw",mDamJointBilinearCohesive3DLaw);
+    Serializer::Register("DamJointBilinearCohesive2DLaw",mDamJointBilinearCohesive2DLaw);
+    Serializer::Register("DamJointExponentialCohesive3DLaw",mDamJointExponentialCohesive3DLaw);
+    Serializer::Register("DamJointExponentialCohesive2DLaw",mDamJointExponentialCohesive2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( TIME_UNIT_CONVERTER )

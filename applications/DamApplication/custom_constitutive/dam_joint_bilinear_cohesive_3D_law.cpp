@@ -11,20 +11,17 @@
 //
 
 // Application includes
-#include "custom_constitutive/dam_exponential_cohesive_3D_law.hpp"
+#include "custom_constitutive/dam_joint_bilinear_cohesive_3D_law.hpp"
 
 namespace Kratos
 {
 
-    double& DamExponentialCohesive3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
+    double& DamJointBilinearCohesive3DLaw::GetValue(const Variable<double>& rThisVariable,
+                                                    double& rValue)
     {
         KRATOS_TRY
 
-        if(rThisVariable == DAMAGE_VARIABLE)
-        {
-            rValue = mDamageVariable;
-        }
-        else if(rThisVariable == STATE_VARIABLE )
+        if(rThisVariable == STATE_VARIABLE)
         {
             rValue = mStateVariable;
         }
@@ -40,17 +37,13 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 
-    void DamExponentialCohesive3DLaw::SetValue(const Variable<double>& rThisVariable,
-                                               const double& rValue,
-                                               const ProcessInfo& rCurrentProcessInfo)
+    void DamJointBilinearCohesive3DLaw::SetValue(const Variable<double>& rThisVariable,
+                                                 const double& rValue,
+                                                 const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        if(rThisVariable == DAMAGE_VARIABLE)
-        {
-            mDamageVariable = rValue;
-        }
-        else if (rThisVariable == STATE_VARIABLE)
+        if (rThisVariable == STATE_VARIABLE)
         {
             mStateVariable = rValue;
         }
@@ -64,11 +57,11 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------------------------
 
-    void DamExponentialCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
-                                                          ConstitutiveLawVariables& rVariables,
-                                                          Parameters& rValues)
+    void DamJointBilinearCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
+                                                            ConstitutiveLawVariables& rVariables,
+                                                            Parameters& rValues)
     {
-        ExponentialCohesive3DLaw::ComputeStressVector(rStressVector, rVariables, rValues);
+        BilinearCohesive3DLaw::ComputeStressVector(rStressVector, rVariables, rValues);
 
         // Add Uplift Pressure
         rStressVector[2] -= mUpliftPressure;
