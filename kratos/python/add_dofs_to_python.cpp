@@ -84,7 +84,6 @@ void  AddDofsToPython(pybind11::module& m)
                 r_dof.GetSolutionStepValue() = values[counter++];
             }
         })
-        .def("__del__", [](){std::cout << "Attempting to call __del__ function from DofArrayType" << std::endl;})
         ;
 
 }
