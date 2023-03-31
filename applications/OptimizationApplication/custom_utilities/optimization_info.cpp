@@ -50,7 +50,7 @@ void OptimizationInfo<TArgs...>::SetBufferSize(
     const IndexType BufferSize,
     const bool ResizeSubItems)
 {
-    if (mData.size() != BufferSize) {
+    if (mBufferedData.size() != BufferSize) {
         // first sets its own buffer
         mBufferedData.resize(BufferSize);
 
