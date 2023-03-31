@@ -61,10 +61,10 @@ namespace Kratos
 
 /**
  * @class ResidualBasedBlockBuilderAndSolverWithMassAndDamping
- * @ingroup KratosCore
+ * @ingroup GeoMechanicsApplication
  * @brief Current class provides an implementation for builder and solving operations, while the global
  * mass and damping matrices are stored.
- * @details When the LHS is build, the global mass and damping matrices are build seperately. When building the RHS,
+ * @details When the LHS is build, the global mass and damping matrices are build separately. When building the RHS,
  * the mass and damping matrices are multiplied with respectively the second and first derivative vector to calculate
  * the mass and damping contribution.
  * The RHS is constituted by the unbalanced loads (residual)
@@ -81,8 +81,8 @@ namespace Kratos
  * @author Aron Noordam
  */
 template<class TSparseSpace,
-         class TDenseSpace, //= DenseSpace<double>,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+         class TDenseSpace, 
+         class TLinearSolver
          >
 class ResidualBasedBlockBuilderAndSolverWithMassAndDamping
     : public ResidualBasedBlockBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
@@ -122,12 +122,10 @@ public:
     /**
      * @brief Default constructor
      */
-    explicit ResidualBasedBlockBuilderAndSolverWithMassAndDamping() : BaseType()
-    {
-    }
+    ResidualBasedBlockBuilderAndSolverWithMassAndDamping() = default;
 
     /**
-     * @brief Default constructor. (with parameters)
+     * @brief Constructor. (with parameters)
      */
     explicit ResidualBasedBlockBuilderAndSolverWithMassAndDamping(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
@@ -140,7 +138,7 @@ public:
     }
 
     /**
-     * @brief Default constructor.
+     * @brief Constructor.
      */
     explicit ResidualBasedBlockBuilderAndSolverWithMassAndDamping(typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
@@ -149,9 +147,7 @@ public:
 
     /** Destructor.
      */
-    ~ResidualBasedBlockBuilderAndSolverWithMassAndDamping() override
-    {
-    }
+    ~ResidualBasedBlockBuilderAndSolverWithMassAndDamping() override = default;
 
     ///@}
     ///@name Operations
@@ -176,31 +172,24 @@ public:
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
         // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        const auto nelements = static_cast<int>(rModelPart.Elements().size());
 
         // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        const auto nconditions = static_cast<int>(rModelPart.Conditions().size());
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
         //contributions to the system
-        LocalSystemMatrixType lhs_contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemMatrixType mass_contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemMatrixType damping_contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType rhs_contribution = LocalSystemVectorType(0);
+        LocalSystemMatrixType lhs_contribution(0, 0);
+        LocalSystemMatrixType mass_contribution(0, 0);
+        LocalSystemMatrixType damping_contribution(0, 0);
+        LocalSystemVectorType rhs_contribution(0);
 
-        mMassMatrix.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-
-        BaseType::ConstructMatrixStructure(pScheme, mMassMatrix, rModelPart);
-
-        mDampingMatrix.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-        BaseType::ConstructMatrixStructure(pScheme, mDampingMatrix, rModelPart);
-
-        TSparseSpace::SetToZero(mMassMatrix);
-        TSparseSpace::SetToZero(mDampingMatrix);
-
+        InitializeDynamicMatrix(mMassMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);
+        InitializeDynamicMatrix(mDampingMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);
+      
 
         //vector containing the localization in the system of the different
         //terms
@@ -391,10 +380,12 @@ public:
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         block_for_each(BaseType::mDofSet, [&](Dof<double>& r_dof) {
-            const std::size_t i = r_dof.EquationId();
-
+            
             if (r_dof.IsFixed())
+            {
+                const std::size_t i = r_dof.EquationId();
                 rb[i] = 0.0;
+            }
             });
 
         Timer::Stop("BuildRHS");
@@ -493,7 +484,7 @@ protected:
     void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector, TSystemVectorType& rSecondDerivativeVector, ModelPart& rModelPart)
     {
         NodesArrayType& r_nodes = rModelPart.Nodes();
-        const int n_nodes = static_cast<int>(r_nodes.size());
+        const auto n_nodes = static_cast<int>(r_nodes.size());
 
         if (rFirstDerivativeVector.size() != BaseType::mEquationSystemSize) {
             rFirstDerivativeVector.resize(BaseType::mEquationSystemSize, false);
@@ -609,6 +600,13 @@ protected:
 
 
 private:
+
+    void InitializeDynamicMatrix(TSystemMatrixType& rMatrix, unsigned int MatrixSize, typename TSchemeType::Pointer pScheme, ModelPart& rModelPart)
+    {
+        rMatrix.resize(MatrixSize, MatrixSize, false);
+        BaseType::ConstructMatrixStructure(pScheme, rMatrix, rModelPart);
+        TSparseSpace::SetToZero(rMatrix);
+    }
 
     void CalculateAndAddDynamicContributionToRhs(TSystemVectorType& rSolutionVector,TSystemMatrixType& rGlobalMatrix, TSystemVectorType& rb)
     {

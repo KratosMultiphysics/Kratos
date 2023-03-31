@@ -109,7 +109,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
 
 
-    typedef ResidualBasedBlockBuilderAndSolverWithMassAndDamping< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithMassAndDampingType;
+    using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType = ResidualBasedBlockBuilderAndSolverWithMassAndDamping< SparseSpaceType, LocalSpaceType, LinearSolverType >;
     py::class_< ResidualBasedBlockBuilderAndSolverWithMassAndDampingType, ResidualBasedBlockBuilderAndSolverWithMassAndDampingType::Pointer, BuilderAndSolverType>(m, "ResidualBasedBlockBuilderAndSolverWithMassAndDamping")
         .def(py::init< LinearSolverType::Pointer >())
         .def(py::init< LinearSolverType::Pointer, Parameters >())
