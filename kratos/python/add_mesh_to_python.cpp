@@ -656,6 +656,11 @@ void  AddMeshToPython(pybind11::module& m)
         self.EquationIdVector(ids,rProcessInfo);
         return ids;
     })
+    .def("GetDofList", [](const Condition& self, const ProcessInfo& rProcessInfo){
+        std::vector<Dof<double>*> dofs_list;
+        self.GetDofList(dofs_list,rProcessInfo);
+        return dofs_list;
+    })
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
