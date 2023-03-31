@@ -112,34 +112,15 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             if (itFace != FacesMap.end()) {
                 // condition is found!
                 // but check if there are more than one condition on the element
-                std::pair <hashmap::iterator, hashmap::iterator> ret;
-                ret = FacesMap.equal_range(itFace->first);
-                for (hashmap::iterator it=ret.first; it!=ret.second; ++it) {
-                    std::vector<Condition::Pointer>& ListConditions = it->second;
-
-                    GlobalPointersVector< Element > VectorOfNeighbours;
-                    VectorOfNeighbours.resize(1);
-                    VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
-
-                    for (Condition::Pointer pCondition : ListConditions) {
-                        pCondition->Set(VISITED,true);
-                        pCondition->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
-                    }
-                }
+                CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
             }
         }
     }
 
-    //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
-    bool AllVisited = true;
-    for (auto& rCond : mrModelPart.Conditions()) {
-        if (rCond.IsNot(VISITED)) {
-            AllVisited = false;
-            break;
-        }
-    }
+    //check that all of the conditions belong to at least an element. 
+    bool all_conditions_visited = CheckIfAllConditionsAreVisited();
 
-    if (AllVisited) {
+    if (all_conditions_visited) {
         // if all conditions are found, no need for further checks:
         return;
     } else {
@@ -160,35 +141,16 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 if (itFace != FacesMap.end()) {
                     // condition is found!
                     // but check if there are more than one condition on the element
-                    std::pair <hashmap::iterator, hashmap::iterator> ret;
-                    ret = FacesMap.equal_range(PointIds);
-                    for (hashmap::iterator it=ret.first; it!=ret.second; ++it) {
-                        std::vector<Condition::Pointer>& ListConditions = it->second;
-
-                        GlobalPointersVector< Element > VectorOfNeighbours;
-                        VectorOfNeighbours.resize(1);
-                        VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
-
-                        for (Condition::Pointer pCondition : ListConditions) {
-                            pCondition->Set(VISITED,true);
-                            pCondition->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
-                        }
-                    }
+                    CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
                 }
             }
         }
     }
 
-    //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
-    AllVisited = true;
-    for (auto& rCond : mrModelPart.Conditions()) {
-        if (rCond.IsNot(VISITED)) {
-            AllVisited = false;
-            break;
-        }
-    }
+    //check that all of the conditions belong to at least an element.
+    all_conditions_visited = CheckIfAllConditionsAreVisited();
 
-    if (AllVisited) {
+    if (all_conditions_visited) {
         // if all conditions are found, no need for further checks:
         return;
     } else {
@@ -214,20 +176,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                     if (itFace != FacesMap.end()) {
                         // condition is found!
                         // but check if there are more than one condition on the element
-                        std::pair <hashmap::iterator, hashmap::iterator> ret;
-                        ret = FacesMap.equal_range(itFace->first);
-                        for (hashmap::iterator it=ret.first; it!=ret.second; ++it) {
-                            std::vector<Condition::Pointer>& ListConditions = it->second;
-
-                            GlobalPointersVector< Element > VectorOfNeighbours;
-                            VectorOfNeighbours.resize(1);
-                            VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
-
-                            for (Condition::Pointer pCondition : ListConditions) {
-                                pCondition->Set(VISITED,true);
-                                pCondition->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
-                            }
-                        }
+                        CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
                     }
                 }
             }
@@ -236,15 +185,9 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
 
     //check that all of the conditions belong to at least an element.
-    AllVisited = true;
-    for (auto& rCond : mrModelPart.Conditions()) {
-        if (rCond.IsNot(VISITED)) {
-            AllVisited = false;
-            break;
-        }
-    }
+    all_conditions_visited = CheckIfAllConditionsAreVisited();
 
-    if (AllVisited) {
+    if (all_conditions_visited) {
         // if all conditions are found, no need for further checks:
         return;
     }
@@ -255,17 +198,27 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     
     
     //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
-    AllVisited = true;
+    all_conditions_visited = true;
     for (auto& rCond : mrModelPart.Conditions()) {
         if (rCond.IsNot(VISITED)) {
-            AllVisited = false;
+            all_conditions_visited = false;
             KRATOS_INFO("Condition without any corresponding element, ID ") << rCond.Id() << std::endl;
         }
     }
 
-    KRATOS_ERROR_IF_NOT(AllVisited) << "Some conditions found without any corresponding element" << std::endl;
+    KRATOS_ERROR_IF_NOT(all_conditions_visited) << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
+}
+
+bool FindNeighbourElementsOfConditionsProcess::CheckIfAllConditionsAreVisited() const
+{
+    for (auto& r_cond : mrModelPart.Conditions()) {
+        if (r_cond.IsNot(VISITED)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashmap& rFacesMap)

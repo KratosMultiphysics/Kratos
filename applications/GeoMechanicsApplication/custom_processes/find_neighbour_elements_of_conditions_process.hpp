@@ -154,6 +154,8 @@ private:
     ///@name Private Operations
     ///@{
 
+    bool CheckIfAllConditionsAreVisited() const;
+
     void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
 
     static void CheckForMultipleConditionsOnElement(hashmap& rFacesMap, hashmap::iterator& rItFace,
