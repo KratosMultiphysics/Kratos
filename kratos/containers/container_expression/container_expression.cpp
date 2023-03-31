@@ -68,10 +68,11 @@ void ContainerExpression<TContainerType>::Read(
         << NumberOfEntities
         << ", local container size = " << this->GetContainer().size() << " ].\n";
 
+    // Convert int indices to IndexType
     std::vector<IndexType> shape(ShapeSize);
-    for (int i = 0; i < ShapeSize; ++i) {
-        shape[i] = *(pShapeBegin++);
-    }
+    std::copy(pShapeBegin,
+              pShapeBegin + ShapeSize,
+              shape.begin());
 
     auto p_expression = LiteralFlatExpression::Create(number_of_entities, shape);
     this->mpExpression = p_expression;
