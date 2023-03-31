@@ -139,6 +139,11 @@ typename OptimizationInfo<TArgs...>::ValueType OptimizationInfo<TArgs...>::GetVa
             if (sub_value != r_buffered_data.end()) {
                 return sub_value.second;
             } else {
+                // now check whether this is a OptimizationInfo
+                auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
+                if (sub_item_itr != p_optimization_info->mSubItems.end()) {
+                    return sub_item_itr.second;
+                }
                 is_found = false;
             }
         } else {
@@ -201,6 +206,11 @@ typename OptimizationInfo<TArgs...>::ValueType& OptimizationInfo<TArgs...>::GetV
             if (sub_value != r_buffered_data.end()) {
                 return sub_value.second;
             } else {
+                // now check whether this is a OptimizationInfo
+                auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
+                if (sub_item_itr != p_optimization_info->mSubItems.end()) {
+                    return sub_item_itr.second;
+                }
                 is_found = false;
             }
         } else {
