@@ -8,68 +8,63 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Joaquín Irazábal González
-//                   Ignasi de Pouplana
-//
 //
 
 #pragma once
 
+// System includes
+
+// Project includes
+#include "includes/serializer.h"
+
 // Application includes
-#include "custom_constitutive/dam_joint_3D_law.hpp"
+#include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-    class KRATOS_API(DAM_APPLICATION) DamJoint2DLaw : public DamJoint3DLaw
+    class KRATOS_API(DAM_APPLICATION) DamBilinearCohesive2DLaw : public BilinearCohesive2DLaw
     {
 
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DamJoint2DLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(DamBilinearCohesive2DLaw);
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         // Default Constructor
-        DamJoint2DLaw()
-        {
-        }
+        DamBilinearCohesive2DLaw() : BilinearCohesive2DLaw() {}
 
         ConstitutiveLaw::Pointer Clone() const override
         {
-            return Kratos::make_shared<DamJoint2DLaw>(DamJoint2DLaw(*this));
+            return Kratos::make_shared<DamBilinearCohesive2DLaw>(*this);
         }
 
         // Copy Constructor
-        DamJoint2DLaw (const DamJoint2DLaw& rOther) : DamJoint3DLaw(rOther)
-        {
-        }
+        DamBilinearCohesive2DLaw (DamBilinearCohesive2DLaw const& rOther) : BilinearCohesive2DLaw(rOther) {}
 
         // Destructor
-        ~DamJoint2DLaw() override
-        {
-        }
+        ~DamBilinearCohesive2DLaw() override {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        void GetLawFeatures(Features& rFeatures) override;
+        double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+
+        void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected:
 
         // Member Variables
+        double mUpliftPressure;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
-
-        void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                        ConstitutiveLawVariables& rVariables,
-                                        Parameters& rValues) override;
-
         void ComputeStressVector(Vector& rStressVector,
-                                    ConstitutiveLawVariables& rVariables,
-                                    Parameters& rValues) override;
+                                 ConstitutiveLawVariables& rVariables,
+                                 Parameters& rValues) override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -81,13 +76,13 @@ namespace Kratos
 
         void save(Serializer& rSerializer) const override
         {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BilinearCohesive2DLaw )
         }
 
         void load(Serializer& rSerializer) override
         {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BilinearCohesive2DLaw )
         }
 
-    }; // Class DamJoint2DLaw
+    }; // Class DamBilinearCohesive2DLaw
 }  // namespace Kratos.
