@@ -243,11 +243,8 @@ public:
                     
                     if((const_type=="equality") || (const_type=="initial_value_equality")){
                         //first check the oscill
-                        if((100 * std::abs(previous_violation)>1) && (100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0)))){
-                            double mult = std::abs(constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble());
-                            mult /= std::abs(constraint["prev_itr_value"].GetDouble()-constraint["value"].GetDouble());
+                        if((100 * std::abs(previous_violation)>1) && (100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0))))
                             weight *= 0.95; 
-                        }
                         else if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>0.5))
                             weight *= 1.25;
                         else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>0.5) && (100 * std::abs(relative_change)<1.0))
