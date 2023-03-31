@@ -1120,9 +1120,9 @@ CrBeamElement3D2N::CalculateElementForces() const
     const Vector phi_a = CalculateAntiSymmetricDeformationMode();
 
     deformation_modes_total_v[0] = phi_s[0];
-    deformation_modes_total_v[1] = phi_s[1] - initial_unit_rotation_2 * L;
-    deformation_modes_total_v[2] = phi_s[2] - initial_unit_rotation_3 * L;
-    deformation_modes_total_v[3] = l - L - initial_unit_elongation * L;
+    deformation_modes_total_v[1] = phi_s[1] - initial_unit_rotation_2 * L; // adding initial curvature contributions
+    deformation_modes_total_v[2] = phi_s[2] - initial_unit_rotation_3 * L; // adding initial curvature contributions
+    deformation_modes_total_v[3] = l - L - initial_unit_elongation * L; // adding initial strain contributions
     deformation_modes_total_v[4] = phi_a[1];
     deformation_modes_total_v[5] = phi_a[2];
 
