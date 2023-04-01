@@ -22,6 +22,7 @@
 #include "custom_utilities/geometrical/symmetry_utility.h"
 #include "custom_utilities/geometrical/model_part_utils.h"
 #include "custom_utilities/optimization_utils.h"
+#include "custom_utilities/optimization_info.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -95,6 +96,28 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetVariableDimension", &OptimizationUtils::GetVariableDimension<double>)
         .def_static("GetVariableDimension", &OptimizationUtils::GetVariableDimension<array_1d<double, 3>>)
         .def_static("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
+        ;
+
+    using OptimizationInfoType = OptimizationInfo<bool, int, double, std::string>;
+    py::class_<OptimizationInfoType, typename OptimizationInfoType::Pointer>(m, "OptimizationInfo")
+        .def(py::init<>())
+        .def(py::init<std::size_t>(), py::arg("buffer_size"))
+        .def("AdvanceStep", &OptimizationInfoType::AdvanceStep)
+        .def("SetBufferSize", &OptimizationInfoType::SetBufferSize, py::arg("buffer_size"), py::arg("resize_sub_items") = false)
+        .def("GetBufferSize", &OptimizationInfoType::GetBufferSize)
+        .def("HasValue", &OptimizationInfoType::HasValue, py::arg("name"), py::arg("step_index") = 0)
+        .def("IsSubItem", &OptimizationInfoType::IsValue<typename OptimizationInfoType::Pointer>, py::arg("name"), py::arg("step_index") = 0)
+        .def("IsBool", &OptimizationInfoType::IsValue<bool>, py::arg("name"), py::arg("step_index") = 0)
+        .def("IsInt", &OptimizationInfoType::IsValue<int>, py::arg("name"), py::arg("step_index") = 0)
+        .def("IsDouble", &OptimizationInfoType::IsValue<double>, py::arg("name"), py::arg("step_index") = 0)
+        .def("IsString", &OptimizationInfoType::IsValue<std::string>, py::arg("name"), py::arg("step_index") = 0)
+        .def("GetSubItem", &OptimizationInfoType::GetValue<typename OptimizationInfoType::Pointer>, py::arg("name"), py::arg("step_index") = 0)
+        .def("GetBool", &OptimizationInfoType::GetValue<bool>, py::arg("name"), py::arg("step_index") = 0)
+        .def("GetInt", &OptimizationInfoType::GetValue<int>, py::arg("name"), py::arg("step_index") = 0)
+        .def("GetDouble", &OptimizationInfoType::GetValue<double>, py::arg("name"), py::arg("step_index") = 0)
+        .def("GetString", &OptimizationInfoType::GetValue<std::string>, py::arg("name"), py::arg("step_index") = 0)
+        .def("SetValue", &OptimizationInfoType::SetValue, py::arg("name"), py::arg("value"), py::arg("step_index") = 0, py::arg("overwrite") = false)
+        .def("__str__", [](const OptimizationInfoType& rSelf) { return rSelf.Info(); })
         ;
 }
 

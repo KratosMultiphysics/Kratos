@@ -50,15 +50,15 @@ void OptimizationInfo<TArgs...>::SetBufferSize(
     const IndexType BufferSize,
     const bool ResizeSubItems)
 {
-    if (mBufferedData.size() != BufferSize) {
-        // first sets its own buffer
+    // first sets its own buffer
+    if (GetBufferSize() != BufferSize) {
         mBufferedData.resize(BufferSize);
+    }
 
-        // now sets the subitem buffers
-        if (ResizeSubItems) {
-            for (auto& r_sub_item : mSubItems) {
-                r_sub_item.second->SetBufferSize(BufferSize);
-            }
+    // now sets the subitem buffers
+    if (ResizeSubItems) {
+        for (auto& r_sub_item : mSubItems) {
+            r_sub_item.second->SetBufferSize(BufferSize, ResizeSubItems);
         }
     }
 }
@@ -74,9 +74,9 @@ std::size_t OptimizationInfo<TArgs...>::GetBufferIndex(const IndexType StepIndex
 {
     KRATOS_ERROR_IF(StepIndex >= GetBufferSize())
         << "Invalid step index. Allowed step indices are < "
-        << GetBufferSize() << " [ StepIndex = " << StepIndex << " ].\n";
+        << GetBufferSize() << " [ StepIndex = " << StepIndex << " ]. OptimizationInfo:\n" << *this;
 
-    return (mBufferIndex - StepIndex) % GetBufferSize();
+    return (mBufferIndex + StepIndex) % GetBufferSize();
 }
 
 template<class... TArgs>
@@ -88,11 +88,11 @@ bool OptimizationInfo<TArgs...>::HasValue(
 
     if (delim_pos == std::string::npos) {
         const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
-        return r_buffered_data.find(rName) != r_buffered_data.end();
+        return r_buffered_data.find(rName) != r_buffered_data.end() || mSubItems.find(rName) != mSubItems.end();
     } else {
         const auto sub_item_itr = mSubItems.find(rName.substr(0, delim_pos));
         if (sub_item_itr != mSubItems.end()) {
-            return sub_item_itr->second->HasValue(rName.substr(delim_pos + 1));
+            return sub_item_itr->second->HasValue(rName.substr(delim_pos + 1), StepIndex);
         } else {
             return false;
         }
@@ -102,69 +102,80 @@ bool OptimizationInfo<TArgs...>::HasValue(
 template<class... TArgs>
 template<class TValueType>
 bool OptimizationInfo<TArgs...>::IsValue(
-        const std::string& rName,
-        const IndexType StepIndex) const
+    const std::string& rName,
+    const IndexType StepIndex) const
 {
-    // return GetValue(rName, StepIndex).has_value();
+    KRATOS_TRY
+
+    const auto delim_pos = rName.find('/');
+
+    if (delim_pos == std::string::npos) {
+        if constexpr(std::is_same_v<TValueType, Pointer>) {
+            const auto sub_item_itr = mSubItems.find(rName);
+            return sub_item_itr != mSubItems.end();
+        } else {
+            const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+            const auto data_itr = r_buffered_data.find(rName);
+            if  (data_itr != r_buffered_data.end()) {
+                return std::get_if<TValueType>(&data_itr->second) != nullptr;
+            }
+        }
+    } else {
+        const auto sub_item_itr = mSubItems.find(rName.substr(0, delim_pos));
+        if (sub_item_itr != mSubItems.end()) {
+            return sub_item_itr->second->template IsValue<TValueType>(rName.substr(delim_pos + 1), StepIndex);
+        }
+    }
+
+    // throw an error if this block reaches this point, which means no value was returned.
+    KRATOS_ERROR << "No value found for path \"" << rName << "\". OptimizationInfo:\n" << *this;
+
+    return false;
+
+    KRATOS_CATCH("");
 }
 
 template<class... TArgs>
 template<class TValueType>
-std::optional<TValueType> OptimizationInfo<TArgs...>::GetValue(
+TValueType OptimizationInfo<TArgs...>::GetValue(
     const std::string& rName,
     const IndexType StepIndex) const
 {
-    // KRATOS_TRY
+    KRATOS_TRY
 
-    // const auto delim_pos = rName.find('/');
+    const auto delim_pos = rName.find('/');
 
-    // if (delim_pos == std::string::npos) {
-    //     const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
-    //     const auto data_itr = r_buffered_data.find(rName);
-    //     if  (data_itr != r_buffered_data.end()) {
-    //         const auto p_value = std::get_if<TValueType>(data_itr->second);
-    //         if (p_value != nullptr) {
-    //             return *p_value;
-    //         }
-    //     } else {
-    //         if constexpr(std::is_same_v<TValueType, OptimizationInfoPointer>) {
-    //             const auto sub_item_itr = mSubItems.find(rName);
-    //             if (sub_item_itr != mSubItems.end()) {
-    //                 return sub_item_itr->second;
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     const auto sub_item_itr = mSubItems.find(rName.substr(0, delim_pos));
-    //     if (sub_item_itr != mSubItems.end()) {
-    //         return sub_item_itr->second->GetValue<TValueType>(rName.substr(delim_pos + 1));
-    //     }
-    // }
+    if (delim_pos == std::string::npos) {
+        if constexpr(std::is_same_v<TValueType, Pointer>) {
+            const auto sub_item_itr = mSubItems.find(rName);
+            if (sub_item_itr != mSubItems.end()) {
+                return sub_item_itr->second;
+            }
+        } else {
+            const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+            const auto data_itr = r_buffered_data.find(rName);
+            if  (data_itr != r_buffered_data.end()) {
+                const auto p_value = std::get_if<TValueType>(&data_itr->second);
 
-    // if (!is_found) {
-    //     current_path << "\b";
-    //     // put a nice error
-    //     std::stringstream msg;
-    //     msg << "The path \"" << current_path.str() << "\" not found. Parent path has following keys:";
+                KRATOS_ERROR_IF(p_value == nullptr)
+                    << "Found value at \"" << rName << "\" is not of the requested type. OptimizationInfo:\n" << *this;
 
-    //     // first print the available buffered data
-    //     if (StepIndex < p_optimization_info->mBufferedData.size()) {
-    //         for (const auto& r_buffered_item : p_optimization_info->mBufferedData[StepIndex]) {
-    //             msg <<"\n\t" << r_buffered_item.first;
-    //         }
-    //     }
+                return *p_value;
+            }
+        }
+    } else {
+        const auto sub_item_itr = mSubItems.find(rName.substr(0, delim_pos));
+        if (sub_item_itr != mSubItems.end()) {
+            return sub_item_itr->second->template GetValue<TValueType>(rName.substr(delim_pos + 1), StepIndex);
+        }
+    }
 
-    //     // now print the available sub_items
-    //     for (const auto& r_sub_item : p_optimization_info->mSubItems) {
-    //         msg << "\n\t" << r_sub_item.first;
-    //     }
+    // throw an error if this block reaches this point, which means no value was returned.
+    KRATOS_ERROR << "No value found for path \"" << rName << "\". OptimizationInfo:\n" << *this;
 
-    //     KRATOS_ERROR << msg.str();
-    // }
+    return TValueType{};
 
-    // return std::nullopt;
-
-    // KRATOS_CATCH("");
+    KRATOS_CATCH("");
 }
 
 template<class... TArgs>
@@ -180,14 +191,22 @@ void OptimizationInfo<TArgs...>::SetValue(
 
     // check if this is a leaf value
     if (delim_pos == std::string::npos) {
+        KRATOS_ERROR_IF_NOT(Overwrite || !HasValue(rName, StepIndex))
+            << "A value already exists at \"" << rName << "\". OptimizationInfo:\n" << *this;
+
         auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
-        std::visit([&r_buffered_data](const auto& rV) {
-            // AssignValue(r_buffered_data, mSubItems, rName, rV);
+        auto& r_sub_items = this->mSubItems;
+
+        std::visit([&r_buffered_data, &r_sub_items, &rName](const auto& rV) {
+            OptimizationInfo<TArgs...>::AssignValue(r_buffered_data, r_sub_items, rName, rV);
         }, rValue);
     } else {
         const auto& r_name = rName.substr(0, delim_pos);
         auto sub_item_itr = mSubItems.find(r_name);
         if (sub_item_itr == mSubItems.end()) {
+            KRATOS_ERROR_IF_NOT(Overwrite || !HasValue(r_name, StepIndex))
+                << "A value already exists at \"" << r_name << "\". OptimizationInfo:\n" << *this;
+
             auto p_sub_item = std::make_shared<OptimizationInfoType>(this->GetBufferSize());
             mSubItems[r_name] = p_sub_item;
             p_sub_item->SetValue(rName.substr(delim_pos + 1), rValue, StepIndex, Overwrite);
@@ -199,7 +218,48 @@ void OptimizationInfo<TArgs...>::SetValue(
     KRATOS_CATCH("");
 }
 
+template<class... TArgs>
+std::string OptimizationInfo<TArgs...>::Info(const std::string& rTab) const
+{
+    std::stringstream info;
+
+    info << "{";
+
+    for (IndexType i = 0; i < GetBufferSize(); ++i) {
+        info << "\n" << rTab << "\t--- Step = " << i << " ---";
+        for (const auto& r_buffer_item : mBufferedData[GetBufferIndex(i)]) {
+            std::visit([&info, &rTab, &r_buffer_item](const auto& rValue) {
+                info << "\n" << rTab << "\t\"" << r_buffer_item.first << "\": " << rValue << ",";
+            }, r_buffer_item.second);
+        }
+    }
+
+    std::stringstream tabbing;
+    tabbing << rTab << "\t";
+    for (const auto& r_sub_item : mSubItems) {
+        info << "\n" << rTab << "\t\"" << r_sub_item.first << "\": " << r_sub_item.second->Info(tabbing.str()) << ",";
+    }
+
+    info << "\n" << rTab << "}";
+
+    return info.str();
+}
+
 // template instantiation
 template class OptimizationInfo<bool, int, double, std::string>;
+
+template bool OptimizationInfo<bool, int, double, std::string>::IsValue<typename OptimizationInfo<bool, int, double, std::string>::Pointer>(const std::string&, const IndexType) const;
+template typename OptimizationInfo<bool, int, double, std::string>::Pointer OptimizationInfo<bool, int, double, std::string>::GetValue<typename OptimizationInfo<bool, int, double, std::string>::Pointer>(const std::string&, const IndexType) const;
+
+#define KRATOS_OPTIMIZATION_INFO_METHODS_FOR_TYPE(VALUE_TYPE)                                                                        \
+    template bool OptimizationInfo<bool, int, double, std::string>::IsValue<VALUE_TYPE>(const std::string&, const IndexType) const;  \
+    template VALUE_TYPE OptimizationInfo<bool, int, double, std::string>::GetValue<VALUE_TYPE>(const std::string&, const IndexType) const;
+
+KRATOS_OPTIMIZATION_INFO_METHODS_FOR_TYPE(bool)
+KRATOS_OPTIMIZATION_INFO_METHODS_FOR_TYPE(int)
+KRATOS_OPTIMIZATION_INFO_METHODS_FOR_TYPE(double)
+KRATOS_OPTIMIZATION_INFO_METHODS_FOR_TYPE(std::string)
+
+#undef KRATOS_OPTIMIZATION_INFO_METHODS_FOR_TYPE
 
 } // namespace Kratos

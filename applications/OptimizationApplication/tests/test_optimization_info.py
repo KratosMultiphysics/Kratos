@@ -1,99 +1,136 @@
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class TestOptimizationInfo(kratos_unittest.TestCase):
-    class TestRoutine(Kratos.Process):
-        def __init__(self):
-            super().__init__()
+    def test_SetGetValue(self):
+        optimization_info = KratosOA.OptimizationInfo(1)
 
-    def test_AdvanceSolutionStepGet(self):
-        optimization_info = OptimizationInfo()
-        optimization_info.SetBufferSize(3)
+        optimization_info.SetValue("bool", True)
+        optimization_info.SetValue("int", 1)
+        optimization_info.SetValue("double", 2.0)
+        optimization_info.SetValue("string", "test")
 
-        optimization_info["step"] = 1
-        self.assertEqual(optimization_info["step"], 1)
+        sub_item = KratosOA.OptimizationInfo(3)
+        sub_item.SetValue("sub_int", 3)
+        sub_item.SetValue("sub_double", 4.0)
+        optimization_info.SetValue("sub_item", sub_item)
 
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 2
-        self.assertEqual(optimization_info["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 1)
-
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 3
-        self.assertEqual(optimization_info["step"], 3)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 1)
-
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 4
-        self.assertEqual(optimization_info["step"], 4)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
-        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
-        with self.assertRaises(RuntimeError):
-            optimization_info.GetSolutionStepData(3)["step"]
-
-    def test_AdvanceSolutionStepSet(self):
-        optimization_info = OptimizationInfo()
-        optimization_info.SetBufferSize(3)
-
-        optimization_info["step"] = 1
-        self.assertEqual(optimization_info["step"], 1)
-
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 2
-        optimization_info.GetSolutionStepData(1)["step"] = 10
-        self.assertEqual(optimization_info["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 10)
-
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 3
-        optimization_info.GetSolutionStepData(2)["step"] = 15
-        self.assertEqual(optimization_info["step"], 3)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 15)
-
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 4
-        self.assertEqual(optimization_info["step"], 4)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
-        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
+        optimization_info.SetValue("sub_item2/sub_sub_item/int", 5)
+        optimization_info.SetValue("sub_item2/double", 6.0)
 
         with self.assertRaises(RuntimeError):
-            optimization_info.GetSolutionStepData(3)["step"]
+            optimization_info.SetValue("sub_item2/double/double", 7.0)
 
-    def test_OptimizationProcess(self):
-        optimization_info = OptimizationInfo()
-        optimization_info.SetBufferSize(1)
-        temp = TestOptimizationInfo.TestRoutine()
-        optimization_info.AddOptimizationProcess(TestOptimizationInfo.TestRoutine, "temp", temp)
+        self.assertEqual(optimization_info.GetBool("bool"), True)
 
-        self.assertTrue(optimization_info.HasOptimizationProcess(TestOptimizationInfo.TestRoutine, "temp"))
-        self.assertTrue(optimization_info.HasOptimizationProcessType(TestOptimizationInfo.TestRoutine))
-        self.assertEqual(temp, optimization_info.GetOptimizationProcess(TestOptimizationInfo.TestRoutine, "temp"))
-        self.assertEqual([temp], optimization_info.GetOptimizationProcesses(TestOptimizationInfo.TestRoutine))
+        with self.assertRaises(RuntimeError):
+            optimization_info.GetString("bool")
 
-    def test_HasSetGetValue(self):
-        optimization_info = OptimizationInfo()
-        optimization_info.SetBufferSize(3)
+        self.assertEqual(optimization_info.GetInt("int"), 1)
+        self.assertEqual(optimization_info.GetDouble("double"), 2.0)
+        self.assertEqual(optimization_info.GetString("string"), "test")
+        self.assertEqual(optimization_info.GetInt("sub_item/sub_int"), 3)
+        self.assertEqual(optimization_info.GetDouble("sub_item2/double"), 6)
+        self.assertEqual(optimization_info.GetInt("sub_item2/sub_sub_item/int"), 5)
 
-        self.assertFalse(optimization_info.HasValue("test/hello/there/3"))
-        optimization_info.SetValue("test/hello/there/3", 20)
-        self.assertTrue(optimization_info.HasValue("test"))
-        self.assertTrue(optimization_info.HasValue("test/hello"))
-        self.assertTrue(optimization_info.HasValue("test/hello/there"))
-        self.assertTrue(optimization_info.HasValue("test/hello/there/3"))
-        self.assertEqual(optimization_info.GetValue("test/hello/there/3"), 20)
+    def test_SetBufferSize(self):
+        optimization_info = KratosOA.OptimizationInfo(1)
+        optimization_info.SetValue("int", 1)
+        optimization_info.SetValue("sub_item/int", 2)
 
-        optimization_info.SetValue("test/hello/there/3", 40, overwrite=True)
-        self.assertEqual(optimization_info.GetValue("test/hello/there/3"), 40)
+        sub_item = optimization_info.GetSubItem("sub_item")
+        self.assertEqual(sub_item.GetBufferSize(), 1)
 
-        optimization_info.SetValue("test/hello/there/8", 60, 1)
-        self.assertEqual(optimization_info.GetValue("test/hello/there/8", 1), 60)
+        optimization_info.SetBufferSize(2)
+        self.assertEqual(optimization_info.GetBufferSize(), 2)
+        self.assertEqual(sub_item.GetBufferSize(), 1)
+
+        optimization_info.SetBufferSize(2, True)
+        self.assertEqual(optimization_info.GetBufferSize(), 2)
+        self.assertEqual(sub_item.GetBufferSize(), 2)
+
+    def test_IsValue(self):
+        optimization_info = KratosOA.OptimizationInfo(1)
+
+        optimization_info.SetValue("bool", True)
+        optimization_info.SetValue("int", 1)
+        optimization_info.SetValue("double", 2.0)
+        optimization_info.SetValue("string", "test")
+
+        self.assertTrue(optimization_info.IsBool("bool"))
+        self.assertTrue(optimization_info.IsInt("int"))
+        self.assertTrue(optimization_info.IsDouble("double"))
+        self.assertTrue(optimization_info.IsString("string"))
+
+    def test_Buffer(self):
+        optimization_info = KratosOA.OptimizationInfo(2)
+
+        optimization_info.SetValue("bool", True)
+        optimization_info.SetValue("string", "test")
+        optimization_info.SetValue("string", "old", 1)
+
+        sub_item = KratosOA.OptimizationInfo(3)
+        optimization_info.SetValue("sub_item", sub_item)
+        optimization_info.SetValue("sub_item/int", 1)
+        optimization_info.SetValue("sub_item/int", 2, 1)
+        optimization_info.SetValue("sub_item/int", 3, 2)
+
+        self.assertEqual(optimization_info.GetBool("bool", 0), True)
+        self.assertEqual(optimization_info.GetString("string", 0), "test")
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 0), 1)
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 1), 2)
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 2), 3)
+
+        optimization_info.SetValue("bool", "old", 1)
+
+        self.assertTrue(optimization_info.IsBool("bool", 0))
+        self.assertTrue(optimization_info.IsString("bool", 1))
+
+        sub_item.SetValue("hello/hello/hello", "hello", 1)
+        sub_item.SetValue("hello/hello/step", "step", 2)
+        self.assertTrue(sub_item.HasValue("hello"))
+        self.assertTrue(sub_item.HasValue("hello/hello"))
+        self.assertFalse(sub_item.HasValue("hello/hello/hello"))
+        self.assertTrue(sub_item.HasValue("hello/hello/hello", 1))
+        self.assertFalse(sub_item.HasValue("hello/hello/step", 1))
+        self.assertTrue(sub_item.HasValue("hello/hello/step", 2))
+
+    def test_AdvanceStep(self):
+        optimization_info = KratosOA.OptimizationInfo(2)
+
+        optimization_info.SetValue("bool", True)
+        optimization_info.SetValue("bool", "old", 1)
+        optimization_info.SetValue("string", "test")
+        optimization_info.SetValue("string", "old", 1)
+
+        sub_item = KratosOA.OptimizationInfo(3)
+        optimization_info.SetValue("sub_item", sub_item)
+        optimization_info.SetValue("sub_item/int", 1)
+        optimization_info.SetValue("sub_item/int", 2, 1)
+        optimization_info.SetValue("sub_item/int", 3, 2)
+
+        optimization_info.AdvanceStep()
+        self.assertEqual(optimization_info.GetString("bool", 0), "old")
+        self.assertEqual(optimization_info.GetBool("bool", 1), True)
+        self.assertEqual(optimization_info.GetString("string", 0), "old")
+        self.assertEqual(optimization_info.GetString("string", 1), "test")
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 0), 2)
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 1), 3)
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 2), 1)
+
+        optimization_info.AdvanceStep()
+        self.assertEqual(optimization_info.GetString("bool", 1), "old")
+        self.assertEqual(optimization_info.GetBool("bool", 0), True)
+        self.assertEqual(optimization_info.GetString("string", 1), "old")
+        self.assertEqual(optimization_info.GetString("string", 0), "test")
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 0), 3)
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 1), 1)
+        self.assertEqual(optimization_info.GetInt("sub_item/int", 2), 2)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
+    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
     kratos_unittest.main()

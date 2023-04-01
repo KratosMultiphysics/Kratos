@@ -30,6 +30,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief A class to have cyclic buffer and dictionary type data holder.
+ *
+ * Instances of this class can hold data types given in @ref TArgs like in a
+ * map where sub items of the @ref OptimizationInfo is also allowed. Each
+ * OptimizationInfo and their sub items can have their own buffer sizes.
+ *
+ * All the TArgs should be copy constructible.
+ *
+ * @tparam TArgs                List of types to be supported in this dictionary.
+ */
 template<class... TArgs>
 class KRATOS_API(OPTIMIZATION_APPLICATION) OptimizationInfo
 {
@@ -43,17 +54,15 @@ public:
 
     using OptimizationInfoType = OptimizationInfo<TArgs...>;
 
-    using OptimizationInfoPointer = std::shared_ptr<OptimizationInfoType>;
-
     using BufferedValueType = std::variant<TArgs...>;
 
     using BufferedMapType = std::unordered_map<std::string, BufferedValueType>;
 
     using BufferedDataType = std::vector<BufferedMapType>;
 
-    using SubItemsMap = std::unordered_map<std::string, OptimizationInfoPointer>;
+    using SubItemsMap = std::unordered_map<std::string, Pointer>;
 
-    using ValueType = std::variant<OptimizationInfoPointer, TArgs...>;
+    using ValueType = std::variant<Pointer, TArgs...>;
 
     ///@}
     ///@name Life cycle
@@ -150,7 +159,7 @@ public:
      * @return ValueType                Return value.
      */
     template<class TValueType>
-    std::optional<TValueType> GetValue(
+    TValueType GetValue(
         const std::string& rName,
         const IndexType StepIndex = 0) const;
 
@@ -174,6 +183,14 @@ public:
         const IndexType StepIndex = 0,
         const bool Overwrite = false);
 
+    /**
+     * @brief Prints the values in the optimization info.
+     *
+     * @param rTab                      Tabbing to be used.
+     * @return std::string              String containing all the data fields.
+     */
+    std::string Info(const std::string& rTab = "") const;
+
     ///@}
 
 private:
@@ -192,27 +209,36 @@ private:
 
     IndexType GetBufferIndex(const IndexType StepIndex) const;
 
-    void AssignValue(
+    static void AssignValue(
         BufferedMapType& rBufferedMap,
         SubItemsMap& rSubItemMap,
         const std::string& rName,
-        const OptimizationInfoPointer& rValue) const
+        const Pointer& rValue)
     {
         rSubItemMap[rName] = rValue;
     }
 
     template<class TValueType>
-    void AssignValue(
+    static void AssignValue(
         BufferedMapType& rBufferedMap,
         SubItemsMap& rSubItemMap,
         const std::string& rName,
-        const TValueType& rValue) const
+        const TValueType& rValue)
     {
-        BufferedMapType[rName] = rValue;
+        rBufferedMap[rName] = rValue;
     }
 
     ///@}
 };
+
+/// output stream function
+template<class... TArgs>
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const OptimizationInfo<TArgs...>& rThis)
+{
+    return rOStream << rThis.Info();
+}
 
 ///@}
 }
