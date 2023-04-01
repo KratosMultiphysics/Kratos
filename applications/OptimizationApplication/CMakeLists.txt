@@ -7,6 +7,10 @@ include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
+# Add the NLOPT library as a subdirectory and include its headers
+add_subdirectory(custom_external_libraries/nlopt)
+include_directories(custom_external_libraries/nlopt/src/api)
+
 ## Optimization core sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/optimization_application.cpp
@@ -27,7 +31,7 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE})
-target_link_libraries(KratosOptimizationCore PUBLIC KratosCore)
+target_link_libraries(KratosOptimizationCore PUBLIC KratosCore nlopt) # Link NLOPT library
 set_target_properties(KratosOptimizationCore PROPERTIES COMPILE_DEFINITIONS "OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################

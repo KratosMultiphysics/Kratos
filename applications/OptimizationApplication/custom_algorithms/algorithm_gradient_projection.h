@@ -21,6 +21,11 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
+// External includes
+// ------------------------------------------------------------------------------
+#include "custom_external_libraries/nlopt/src/api/nlopt.h"
+
+// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
@@ -51,8 +56,22 @@ public:
 
     virtual ~AlgorithmGradientProjection() {};
 
+    double Rosenbrock(const std::vector<double> &x, std::vector<double> &grad, void *data) {
+        if (!grad.empty()) {
+            grad[0] = -400 * (x[1] - x[0] * x[0]) * x[0] - 2 * (1 - x[0]);
+            grad[1] = 200 * (x[1] - x[0] * x[0]);
+        }
+        return 100 * (x[1] - x[0] * x[0]) * (x[1] - x[0] * x[0]) + (1 - x[0]) * (1 - x[0]);
+    }    
+
     // --------------------------------------------------------------------------
     void Initialize() override {
+
+        // Set up the optimization problem
+        //nlopt::opt opt(nlopt::LD_LBFGS, 2);
+ 
+        unsigned int dimension = 2; // Set the dimension of your problem
+        nlopt_opt opt = nlopt_create(NLOPT_LD_LBFGS, dimension);
 
         mTotalNumControlVars = 0;
         for(auto& control : mrSettings["controls"]){
