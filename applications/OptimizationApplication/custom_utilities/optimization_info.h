@@ -15,6 +15,7 @@
 // System includes
 #include <string>
 #include <variant>
+#include <optional>
 #include <vector>
 #include <unordered_map>
 
@@ -36,9 +37,13 @@ public:
     ///@name Type definitions
     ///@{
 
+    KRATOS_CLASS_POINTER_DEFINITION(OptimizationInfo);
+
     using IndexType = std::size_t;
 
     using OptimizationInfoType = OptimizationInfo<TArgs...>;
+
+    using OptimizationInfoPointer = std::shared_ptr<OptimizationInfoType>;
 
     using BufferedValueType = std::variant<TArgs...>;
 
@@ -46,11 +51,9 @@ public:
 
     using BufferedDataType = std::vector<BufferedMapType>;
 
-    using SubItemType = std::shared_ptr<OptimizationInfoType>;
+    using SubItemsMap = std::unordered_map<std::string, OptimizationInfoPointer>;
 
-    using SubItemsMap = std::unordered_map<std::string, SubItemType>;
-
-    using ValueType = std::variant<SubItemType, TArgs...>;
+    using ValueType = std::variant<OptimizationInfoPointer, TArgs...>;
 
     ///@}
     ///@name Life cycle
@@ -139,68 +142,17 @@ public:
      *
      * An error is thrown if the leaf instance does not have the required buffer size.
      * An error is thrown if the path is not found.
+     * An error is thrown if the @ref TValueType does not match with the actual value type.
      *
+     * @tparam TValueType               Type of the value
      * @param rName                     Relative path to the value w.r.t. current instance.
      * @param StepIndex                 Step index of the cyclic buffer.
      * @return ValueType                Return value.
      */
-    ValueType GetValue(
+    template<class TValueType>
+    std::optional<TValueType> GetValue(
         const std::string& rName,
         const IndexType StepIndex = 0) const;
-
-    /**
-     * @brief Get the reference value corresponding to rName.
-     *
-     * This returns the value reference corresponding to @ref rName path.
-     *
-     * An error is thrown if the leaf instance does not have the required buffer size.
-     * An error is thrown if the path is not found.
-     *
-     * @param rName                     Relative path to the value w.r.t. current instance.
-     * @param StepIndex                 Step index of the cyclic buffer.
-     * @return ValueType                Return value.
-     */
-    ValueType& GetValue(
-        const std::string& rName,
-        const IndexType StepIndex = 0);
-
-    /**
-     * @brief Get the value corresponding to rName.
-     *
-     * This returns the value corresponding to @ref rName path.
-     *
-     * An error is thrown if the leaf instance does not have the required buffer size.
-     * An error is thrown if the path is not found.
-     * An error is thrown if the value found is not of the @ref TType.
-     *
-     * @tparam TType                    Type to be checked against in value.
-     * @param rName                     Relative path to the value w.r.t. current instance.
-     * @param StepIndex                 Step index of the cyclic buffer.
-     * @return ValueType                Return value.
-     */
-    template<class TType>
-    TType GetValue(
-        const std::string& rName,
-        const IndexType StepIndex = 0) const;
-
-    /**
-     * @brief Get the value reference corresponding to rName.
-     *
-     * This returns the value reference corresponding to @ref rName path.
-     *
-     * An error is thrown if the leaf instance does not have the required buffer size.
-     * An error is thrown if the path is not found.
-     * An error is thrown if the value found is not of the @ref TType.
-     *
-     * @tparam TType                    Type to be checked against in value.
-     * @param rName                     Relative path to the value w.r.t. current instance.
-     * @param StepIndex                 Step index of the cyclic buffer.
-     * @return ValueType                Return value.
-     */
-    template<class TType>
-    TType& GetValue(
-        const std::string& rName,
-        const IndexType StepIndex = 0);
 
     /**
      * @brief Set the Value at the given path
@@ -239,6 +191,25 @@ private:
     ///@{
 
     IndexType GetBufferIndex(const IndexType StepIndex) const;
+
+    void AssignValue(
+        BufferedMapType& rBufferedMap,
+        SubItemsMap& rSubItemMap,
+        const std::string& rName,
+        const OptimizationInfoPointer& rValue) const
+    {
+        rSubItemMap[rName] = rValue;
+    }
+
+    template<class TValueType>
+    void AssignValue(
+        BufferedMapType& rBufferedMap,
+        SubItemsMap& rSubItemMap,
+        const std::string& rName,
+        const TValueType& rValue) const
+    {
+        BufferedMapType[rName] = rValue;
+    }
 
     ///@}
 };

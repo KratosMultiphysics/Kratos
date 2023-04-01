@@ -41,7 +41,7 @@ void OptimizationInfo<TArgs...>::AdvanceStep()
     mBufferIndex = (mBufferIndex + 1) % GetBufferSize();
 
     for (auto& r_sub_item : mSubItems) {
-        r_sub_item.second.AdvanceStep();
+        r_sub_item.second->AdvanceStep();
     }
 }
 
@@ -57,7 +57,7 @@ void OptimizationInfo<TArgs...>::SetBufferSize(
         // now sets the subitem buffers
         if (ResizeSubItems) {
             for (auto& r_sub_item : mSubItems) {
-                r_sub_item.second.SetBufferSize(BufferSize);
+                r_sub_item.second->SetBufferSize(BufferSize);
             }
         }
     }
@@ -84,189 +84,87 @@ bool OptimizationInfo<TArgs...>::HasValue(
     const std::string& rName,
     const IndexType StepIndex) const
 {
-    const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
+    const auto delim_pos = rName.find('/');
 
-    OptimizationInfoType* p_optimization_info = this;
-    for (IndexType i = 0; i < r_names.size(); ++i) {
-        const auto& r_name = r_names[i];
-        if (i == r_names.size() - 1) {
-            // if the current index is the last, then it is the leaf
-            auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
-            return r_buffered_data.find(r_name) != r_buffered_data.end();
+    if (delim_pos == std::string::npos) {
+        const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+        return r_buffered_data.find(rName) != r_buffered_data.end();
+    } else {
+        const auto sub_item_itr = mSubItems.find(rName.substr(0, delim_pos));
+        if (sub_item_itr != mSubItems.end()) {
+            return sub_item_itr->second->HasValue(rName.substr(delim_pos + 1));
         } else {
-            // it is not the last index, then this key should be present in the subitems
-            auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
-            if (sub_item_itr == p_optimization_info->mSubItems.end()) {
-                return false;
-            } else {
-                p_optimization_info  = &sub_item_itr->second;
-            }
-
+            return false;
         }
     }
 }
 
 template<class... TArgs>
-template<class TType>
+template<class TValueType>
 bool OptimizationInfo<TArgs...>::IsValue(
         const std::string& rName,
         const IndexType StepIndex) const
 {
-    return (std::get_if<TType>(this->GetValue(rName, StepIndex)) != nullptr);
+    // return GetValue(rName, StepIndex).has_value();
 }
 
 template<class... TArgs>
-typename OptimizationInfo<TArgs...>::ValueType OptimizationInfo<TArgs...>::GetValue(
+template<class TValueType>
+std::optional<TValueType> OptimizationInfo<TArgs...>::GetValue(
     const std::string& rName,
     const IndexType StepIndex) const
 {
-    KRATOS_TRY
+    // KRATOS_TRY
 
-    const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
+    // const auto delim_pos = rName.find('/');
 
-    bool is_found = true;
+    // if (delim_pos == std::string::npos) {
+    //     const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+    //     const auto data_itr = r_buffered_data.find(rName);
+    //     if  (data_itr != r_buffered_data.end()) {
+    //         const auto p_value = std::get_if<TValueType>(data_itr->second);
+    //         if (p_value != nullptr) {
+    //             return *p_value;
+    //         }
+    //     } else {
+    //         if constexpr(std::is_same_v<TValueType, OptimizationInfoPointer>) {
+    //             const auto sub_item_itr = mSubItems.find(rName);
+    //             if (sub_item_itr != mSubItems.end()) {
+    //                 return sub_item_itr->second;
+    //             }
+    //         }
+    //     }
+    // } else {
+    //     const auto sub_item_itr = mSubItems.find(rName.substr(0, delim_pos));
+    //     if (sub_item_itr != mSubItems.end()) {
+    //         return sub_item_itr->second->GetValue<TValueType>(rName.substr(delim_pos + 1));
+    //     }
+    // }
 
-    std::stringstream current_path;
+    // if (!is_found) {
+    //     current_path << "\b";
+    //     // put a nice error
+    //     std::stringstream msg;
+    //     msg << "The path \"" << current_path.str() << "\" not found. Parent path has following keys:";
 
-    OptimizationInfoType* p_optimization_info = this;
-    for (IndexType i = 0; i < r_names.size(); ++i) {
-        const auto& r_name = r_names[i];
-        current_path << r_name << "/";
-        if (i == r_names.size() - 1) {
-            // if the current index is the last, then it is the leaf
-            auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
-            auto sub_value = r_buffered_data.find(r_name);
-            if (sub_value != r_buffered_data.end()) {
-                return sub_value.second;
-            } else {
-                // now check whether this is a OptimizationInfo
-                auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
-                if (sub_item_itr != p_optimization_info->mSubItems.end()) {
-                    return sub_item_itr.second;
-                }
-                is_found = false;
-            }
-        } else {
-            // it is not the last index, then this key should be present in the subitems
-            auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
-            if (sub_item_itr == p_optimization_info->mSubItems.end()) {
-                is_found = false;
-                break;
-            } else {
-                p_optimization_info  = &sub_item_itr->second;
-            }
+    //     // first print the available buffered data
+    //     if (StepIndex < p_optimization_info->mBufferedData.size()) {
+    //         for (const auto& r_buffered_item : p_optimization_info->mBufferedData[StepIndex]) {
+    //             msg <<"\n\t" << r_buffered_item.first;
+    //         }
+    //     }
 
-        }
-    }
+    //     // now print the available sub_items
+    //     for (const auto& r_sub_item : p_optimization_info->mSubItems) {
+    //         msg << "\n\t" << r_sub_item.first;
+    //     }
 
-    if (!is_found) {
-        current_path << "\b";
-        // put a nice error
-        std::stringstream msg;
-        msg << "The path \"" << current_path.str() << "\" not found. Parent path has following keys:";
+    //     KRATOS_ERROR << msg.str();
+    // }
 
-        // first print the available buffered data
-        if (StepIndex < p_optimization_info->mBufferedData.size()) {
-            for (const auto& r_buffered_item : p_optimization_info->mBufferedData[StepIndex]) {
-                msg <<"\n\t" r_buffered_item.first;
-            }
-        }
+    // return std::nullopt;
 
-        // now print the available sub_items
-        for (const auto& r_sub_item : p_optimization_info->mSubItems) {
-            msg << "\n\t" << r_sub_item.first;
-        }
-
-        KRATOS_ERROR << msg.str();
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class... TArgs>
-typename OptimizationInfo<TArgs...>::ValueType& OptimizationInfo<TArgs...>::GetValue(
-    const std::string& rName,
-    const IndexType StepIndex)
-{
-    KRATOS_TRY
-
-    const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
-
-    bool is_found = true;
-
-    std::stringstream current_path;
-
-    OptimizationInfoType* p_optimization_info = this;
-    for (IndexType i = 0; i < r_names.size(); ++i) {
-        const auto& r_name = r_names[i];
-        current_path << r_name << "/";
-        if (i == r_names.size() - 1) {
-            // if the current index is the last, then it is the leaf
-            auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
-            auto sub_value = r_buffered_data.find(r_name);
-            if (sub_value != r_buffered_data.end()) {
-                return sub_value.second;
-            } else {
-                // now check whether this is a OptimizationInfo
-                auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
-                if (sub_item_itr != p_optimization_info->mSubItems.end()) {
-                    return sub_item_itr.second;
-                }
-                is_found = false;
-            }
-        } else {
-            // it is not the last index, then this key should be present in the subitems
-            auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
-            if (sub_item_itr == p_optimization_info->mSubItems.end()) {
-                is_found = false;
-                break;
-            } else {
-                p_optimization_info  = &sub_item_itr->second;
-            }
-
-        }
-    }
-
-    if (!is_found) {
-        current_path << "\b";
-        // put a nice error
-        std::stringstream msg;
-        msg << "The path \"" << current_path.str() << "\" not found. Parent path has following keys:";
-
-        // first print the available buffered data
-        if (StepIndex < p_optimization_info->mBufferedData.size()) {
-            for (const auto& r_buffered_item : p_optimization_info->mBufferedData[StepIndex]) {
-                msg <<"\n\t" r_buffered_item.first;
-            }
-        }
-
-        // now print the available sub_items
-        for (const auto& r_sub_item : p_optimization_info->mSubItems) {
-            msg << "\n\t" << r_sub_item.first;
-        }
-
-        KRATOS_ERROR << msg.str();
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class... TArgs>
-template<class TType>
-TType OptimizationInfo<TArgs...>::GetValue<TType>(
-    const std::string& rName,
-    const IndexType StepIndex ) const
-{
-    return std::get<TType>(GetValue(rName, StepIndex));
-}
-
-template<class... TArgs>
-template<class TType>
-TType& OptimizationInfo<TArgs...>::GetValue<TType>(
-    const std::string& rName,
-    const IndexType StepIndex)
-{
-    return std::get<TType>(GetValue(rName, StepIndex));
+    // KRATOS_CATCH("");
 }
 
 template<class... TArgs>
@@ -278,28 +176,23 @@ void OptimizationInfo<TArgs...>::SetValue(
 {
     KRATOS_TRY
 
-    const auto& r_names = StringUtilities::SplitStringByDelimiter(rName, '/');
+    const auto delim_pos = rName.find('/');
 
-    OptimizationInfoType* p_optimization_info = this;
-    for (IndexType i = 0; i < r_names.size(); ++i) {
-        const auto& r_name = r_names[i];
-        if (i == r_names.size() - 1) {
-            // if the current index is the last, then it is the leaf
-            auto& r_buffered_data = p_optimization_info->mBufferedData[GetBufferIndex(StepIndex)];
-            auto sub_value = r_buffered_data.find(r_name);
-            KRATOS_ERROR_IF_NOT(Overwrite || sub_value != r_buffered_data.end()) << "A value at \"" << rName << "\" already exists.";
-            r_buffered_data[r_name] = rValue;
+    // check if this is a leaf value
+    if (delim_pos == std::string::npos) {
+        auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+        std::visit([&r_buffered_data](const auto& rV) {
+            // AssignValue(r_buffered_data, mSubItems, rName, rV);
+        }, rValue);
+    } else {
+        const auto& r_name = rName.substr(0, delim_pos);
+        auto sub_item_itr = mSubItems.find(r_name);
+        if (sub_item_itr == mSubItems.end()) {
+            auto p_sub_item = std::make_shared<OptimizationInfoType>(this->GetBufferSize());
+            mSubItems[r_name] = p_sub_item;
+            p_sub_item->SetValue(rName.substr(delim_pos + 1), rValue, StepIndex, Overwrite);
         } else {
-            // it is not the last index, then this key should be present in the subitems
-            auto sub_item_itr = p_optimization_info->mSubItems.find(r_name);
-            if (sub_item_itr == p_optimization_info->mSubItems.end()) {
-                auto p_sub_item = std::make_shared<OptimizationInfoType>(this->GetBufferSize());
-                p_optimization_info->mSubItems[r_name] = p_sub_item;
-                p_optimization_info = p_sub_item.get();
-            } else {
-                p_optimization_info  = &sub_item_itr->second;
-            }
-
+            sub_item_itr->second->SetValue(rName.substr(delim_pos + 1), rValue, StepIndex, Overwrite);
         }
     }
 
