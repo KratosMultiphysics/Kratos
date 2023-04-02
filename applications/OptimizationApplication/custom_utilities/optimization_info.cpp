@@ -290,7 +290,7 @@ void OptimizationInfo<TArgs...>::SetValue(
                 // It will be found in the Overwrite case only. Otherwise,
                 // an error is thrown before.
                 std::visit(
-                    [&r_buffered_data, &r_sub_items, &r_name, Overwrite](const auto& rV) {
+                    [&r_buffered_data, &r_sub_items, &r_name](const auto& rV) {
                         OptimizationInfo<TArgs...>::RemoveFromAlternateMap(
                             r_buffered_data, r_sub_items, r_name, rV);
                     }, rValue);
