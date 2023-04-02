@@ -293,8 +293,7 @@ void OptimizationInfo<TArgs...>::SetValue(
                     [&r_buffered_data, &r_sub_items, &r_name, Overwrite](const auto& rV) {
                         OptimizationInfo<TArgs...>::RemoveFromAlternateMap(
                             r_buffered_data, r_sub_items, r_name, rV);
-                    },
-                    rValue);
+                    }, rValue);
             }
 
             auto p_sub_item = std::make_shared<OptimizationInfoType>(this->GetBufferSize());
