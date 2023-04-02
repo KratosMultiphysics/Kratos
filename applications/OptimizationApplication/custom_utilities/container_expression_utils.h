@@ -18,9 +18,9 @@
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
 #include "spatial_containers/spatial_containers.h"
+#include "containers/container_expression/container_expression.h"
 
 // Application includes
-#include "custom_utilities/container_variable_data/container_variable_data.h"
 
 namespace Kratos
 {
@@ -28,7 +28,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerVariableDataUtils
+class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpressionUtils
 {
 public:
     ///@name Type definitions
@@ -45,56 +45,6 @@ public:
     ///@{
 
     /**
-     * @brief Raises input 1 to the input 2 entity wise. This does not evaluate
-     * the expression. It creates a BinaryPowerExpression, hence this is a
-     * light weight operation.
-     *
-     * @tparam TContainerType
-     * @param rOutputContainer          Output container to have the result.
-     * @param rInputContainer1          Input container 1
-     * @param rInputContainer2          Input container 2
-     */
-    template<class TContainerType>
-    static void Pow(
-        ContainerVariableData<TContainerType>& rOutputContainer,
-        const ContainerVariableData<TContainerType>& rInputContainer1,
-        const ContainerVariableData<TContainerType>& rInputContainer2);
-
-    /**
-     * @brief Raises input 1 to the Value wise. This does not evaluate
-     * the expression. It creates a BinaryPowerExpression, hence this is a
-     * light weight operation.
-     *
-     * @tparam TContainerType
-     * @param rOutputContainer          Output container to have the result.
-     * @param rInputContainer1          Input container 1
-     * @param Value                     Value of the power.
-     */
-    template<class TContainerType>
-    static void Pow(
-        ContainerVariableData<TContainerType>& rOutputContainer,
-        const ContainerVariableData<TContainerType>& rInputContainer1,
-        const double Value);
-
-    /**
-     * @brief Computes the weighted product
-     *
-     * This method computes entity wise weighted product between rInputContainer
-     * and rWeightsContainer. rWeightsContainer should be a vector with shape [1].
-     * This only creates a BinaryExpression, hence this is a light weight operation.
-     *
-     * @tparam TContainerType
-     * @param rOutputContainer          Output container containing weighted values
-     * @param rInputContainer           Input container
-     * @param rWeightsContainer         Weights container with shape [1]
-     */
-    template<class TContainerType>
-    static void WeightedProduct(
-        ContainerVariableData<TContainerType>& rOutputContainer,
-        const ContainerVariableData<TContainerType>& rInputContainer,
-        const ContainerVariableData<TContainerType>& rWeightsContainer);
-
-    /**
      * @brief Calculate infinity norm of the evaluated expression for each entitiy.
      *
      * This method calculates the infinity norm of the expression by evaluating
@@ -108,7 +58,7 @@ public:
      * @return double                   Infinity norm
      */
     template<class TContainerType>
-    static double NormInf(const ContainerVariableData<TContainerType>& rContainer);
+    static double NormInf(const ContainerExpression<TContainerType>& rContainer);
 
     /**
      * @brief Calculate L2 norm of the evaluated expression for each entitiy.
@@ -124,7 +74,7 @@ public:
      * @return double                   L2 norm
      */
     template<class TContainerType>
-    static double NormL2(const ContainerVariableData<TContainerType>& rContainer);
+    static double NormL2(const ContainerExpression<TContainerType>& rContainer);
 
     /**
      * @brief Calculate max L2 norm of the evaluated expression for each entitiy.
@@ -139,7 +89,7 @@ public:
      * @return double                   Max L2 norm
      */
     template<class TContainerType>
-    static double EntityMaxNormL2(const ContainerVariableData<TContainerType>& rContainer);
+    static double EntityMaxNormL2(const ContainerExpression<TContainerType>& rContainer);
 
     /**
      * @brief Computes inner product between two container expressions by evaluating
@@ -156,8 +106,8 @@ public:
      */
     template<class TContainerType>
     static double InnerProduct(
-        const ContainerVariableData<TContainerType>& rContainer1,
-        const ContainerVariableData<TContainerType>& rContainer2);
+        const ContainerExpression<TContainerType>& rContainer1,
+        const ContainerExpression<TContainerType>& rContainer2);
 
     /**
      * @brief Calculates matrix vector product for container variable data
@@ -175,9 +125,9 @@ public:
      */
     template<class TContainerType>
     static void ProductWithEntityMatrix(
-        ContainerVariableData<TContainerType>& rOutput,
+        ContainerExpression<TContainerType>& rOutput,
         const SparseMatrixType& rMatrix,
-        const ContainerVariableData<TContainerType>& rInput);
+        const ContainerExpression<TContainerType>& rInput);
 
     /**
      * @brief Calculates matrix vector product for container variable data
@@ -195,9 +145,9 @@ public:
      */
     template<class TContainerType>
     static void ProductWithEntityMatrix(
-        ContainerVariableData<TContainerType>& rOutput,
+        ContainerExpression<TContainerType>& rOutput,
         const Matrix& rMatrix,
-        const ContainerVariableData<TContainerType>& rInput);
+        const ContainerExpression<TContainerType>& rInput);
 
     /**
      * @brief Transposes a dense matrix.
@@ -236,7 +186,7 @@ public:
      */
     template<class TContainerType>
     static void ComputeNumberOfNeighbourEntities(
-        ContainerVariableData<ModelPart::NodesContainerType>& rOutput);
+        ContainerExpression<ModelPart::NodesContainerType>& rOutput);
 
     /**
      * @brief Maps container data to nodal data
@@ -255,9 +205,9 @@ public:
      */
     template<class TContainerType>
     static void MapContainerVariableToNodalVariable(
-        ContainerVariableData<ModelPart::NodesContainerType>& rOutput,
-        const ContainerVariableData<TContainerType>& rInput,
-        const ContainerVariableData<ModelPart::NodesContainerType>& rNeighbourEntities);
+        ContainerExpression<ModelPart::NodesContainerType>& rOutput,
+        const ContainerExpression<TContainerType>& rInput,
+        const ContainerExpression<ModelPart::NodesContainerType>& rNeighbourEntities);
 
     /**
      * @brief Maps nodal values to container variable data.
@@ -274,8 +224,8 @@ public:
      */
     template<class TContainerType>
     static void MapNodalVariableToContainerVariable(
-        ContainerVariableData<TContainerType>& rOutput,
-        const ContainerVariableData<ModelPart::NodesContainerType>& rInput);
+        ContainerExpression<TContainerType>& rOutput,
+        const ContainerExpression<ModelPart::NodesContainerType>& rInput);
 
     /**
      * @brief Computes nodal and entity wise matrix multiplication.
@@ -296,8 +246,8 @@ public:
      */
     template<class TContainerType>
     static void ComputeNodalVariableProductWithEntityMatrix(
-        ContainerVariableData<ModelPart::NodesContainerType>& rOutput,
-        const ContainerVariableData<ModelPart::NodesContainerType>& rNodalValues,
+        ContainerExpression<ModelPart::NodesContainerType>& rOutput,
+        const ContainerExpression<ModelPart::NodesContainerType>& rNodalValues,
         const Variable<Matrix>& rMatrixVariable,
         TContainerType& rEntities);
 

@@ -16,6 +16,7 @@
 
 // Project includes
 #include "containers/variable.h"
+#include "containers/container_expression/container_data_io.h"
 #include "includes/model_part.h"
 
 // Application includes
@@ -26,60 +27,14 @@ namespace Kratos {
 ///@{
 
 namespace ContainerDataIOTags {
-    struct Historical    {};
-    struct NonHistorical {};
     struct Properties    {};
 } // namespace Tags
-
-// Dummy generic class to be specialized later
-template <class TContainerDataIOTags>
-struct ContainerDataIO {};
-
-template <>
-struct ContainerDataIO<ContainerDataIOTags::Historical>
-{
-    template <class TDataType>
-    static const TDataType& GetValue(
-        const ModelPart::NodeType& rNode,
-        const Variable<TDataType>& rVariable)
-    {
-        return rNode.FastGetSolutionStepValue(rVariable);
-    }
-
-    template <class TDataType>
-    static void SetValue(
-        ModelPart::NodeType& rNode,
-        const Variable<TDataType>& rVariable,
-        const TDataType& rValue)
-    {
-        rNode.FastGetSolutionStepValue(rVariable) = rValue;
-    }
-};
-
-template <>
-struct ContainerDataIO<ContainerDataIOTags::NonHistorical>
-{
-    template<class TDataType, class TEntityType>
-    static const TDataType& GetValue(
-        const TEntityType& rEntity,
-        const Variable<TDataType>& rVariable)
-    {
-        return rEntity.GetValue(rVariable);
-    }
-
-    template<class TDataType, class TEntityType>
-    static void SetValue(
-        TEntityType& rEntity,
-        const Variable<TDataType>& rVariable,
-        const TDataType& rValue)
-    {
-        rEntity.SetValue(rVariable, rValue);
-    }
-};
 
 template <>
 struct ContainerDataIO<ContainerDataIOTags::Properties>
 {
+    static constexpr std::string_view mInfo = "Properties";
+
     template<class TDataType, class TEntityType>
     static const TDataType& GetValue(
         const TEntityType& rEntity,
