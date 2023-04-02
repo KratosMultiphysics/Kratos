@@ -18,11 +18,10 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_controls/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_responsess/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_algorithms/*.cpp
 )
 
 ## Optimization python interface sources
@@ -77,6 +76,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
 install(TARGETS KratosOptimizationCore DESTINATION libs )
+install(TARGETS nlopt DESTINATION libs)
 install(TARGETS KratosOptimizationApplication DESTINATION libs )
 
 # Define custom targets
