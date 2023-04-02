@@ -12,11 +12,15 @@
 //
 
 // System includes
+#include "sstream"
 
 // External includes
 #include <pybind11/stl.h>
 
 // Project includes
+#include "includes/model_part.h"
+#include "containers/container_expression/container_data_io.h"
+#include "containers/container_expression/specialized_container_expression.h"
 
 // Application includes
 #include "custom_utilities/geometrical/symmetry_utility.h"
@@ -29,6 +33,41 @@
 
 namespace Kratos {
 namespace Python {
+
+template<class TDataType>
+std::string GetDataTypeName(const std::string& rPrefix);
+
+template<> std::string GetDataTypeName<bool>(const std::string& rPrefix) { return std::string(rPrefix).append("Bool"); }
+template<> std::string GetDataTypeName<int>(const std::string& rPrefix) { return std::string(rPrefix).append("Int"); }
+template<> std::string GetDataTypeName<double>(const std::string& rPrefix) { return std::string(rPrefix).append("Double"); }
+template<> std::string GetDataTypeName<std::string>(const std::string& rPrefix) { return std::string(rPrefix).append("String"); }
+template<> std::string GetDataTypeName<SpecializedContainerExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>>::Pointer>(const std::string& rPrefix) { return std::string(rPrefix).append("HistoricalExpression"); }
+template<> std::string GetDataTypeName<SpecializedContainerExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>::Pointer>(const std::string& rPrefix) { return std::string(rPrefix).append("NodalNonHistoricalExpression"); }
+template<> std::string GetDataTypeName<SpecializedContainerExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>::Pointer>(const std::string& rPrefix) { return std::string(rPrefix).append("ConditionNonHistoricalExpression"); }
+template<> std::string GetDataTypeName<SpecializedContainerExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>::Pointer>(const std::string& rPrefix) { return std::string(rPrefix).append("ElementNonHistoricalExpression"); }
+
+template<class... TArgs>
+void AddOptimizationInfoToPython(pybind11::module m)
+{
+    namespace py = pybind11;
+
+    using OptimizationInfoType = OptimizationInfo<TArgs...>;
+    auto optimization_info_class = py::class_<OptimizationInfoType, typename OptimizationInfoType::Pointer>(m, "OptimizationInfo")
+        .def(py::init<>())
+        .def(py::init<std::size_t>(), py::arg("buffer_size"))
+        .def("AdvanceStep", &OptimizationInfoType::AdvanceStep)
+        .def("SetBufferSize", &OptimizationInfoType::SetBufferSize, py::arg("buffer_size"), py::arg("resize_sub_items") = false)
+        .def("GetBufferSize", &OptimizationInfoType::GetBufferSize)
+        .def("HasValue", &OptimizationInfoType::HasValue, py::arg("name"), py::arg("step_index") = 0)
+        .def("SetValue", &OptimizationInfoType::SetValue, py::arg("name"), py::arg("value"), py::arg("step_index") = 0, py::arg("overwrite") = false)
+        .def("IsSubItem", &OptimizationInfoType::template IsValue<typename OptimizationInfoType::Pointer>, py::arg("name"), py::arg("step_index") = 0)
+        .def("GetSubItem", &OptimizationInfoType::template GetValue<typename OptimizationInfoType::Pointer>, py::arg("name"), py::arg("step_index") = 0)
+        .def("__str__", [](const OptimizationInfoType& rSelf) { return rSelf.Info(); })
+        ;
+
+    (optimization_info_class.def(GetDataTypeName<TArgs>("Is").c_str(), &OptimizationInfoType::template IsValue<TArgs>, py::arg("name"), py::arg("step_index") = 0), ...);
+    (optimization_info_class.def(GetDataTypeName<TArgs>("Get").c_str(), &OptimizationInfoType::template GetValue<TArgs>, py::arg("name"), py::arg("step_index") = 0), ...);
+}
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -98,27 +137,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
         ;
 
-    using OptimizationInfoType = OptimizationInfo<bool, int, double, std::string>;
-    py::class_<OptimizationInfoType, typename OptimizationInfoType::Pointer>(m, "OptimizationInfo")
-        .def(py::init<>())
-        .def(py::init<std::size_t>(), py::arg("buffer_size"))
-        .def("AdvanceStep", &OptimizationInfoType::AdvanceStep)
-        .def("SetBufferSize", &OptimizationInfoType::SetBufferSize, py::arg("buffer_size"), py::arg("resize_sub_items") = false)
-        .def("GetBufferSize", &OptimizationInfoType::GetBufferSize)
-        .def("HasValue", &OptimizationInfoType::HasValue, py::arg("name"), py::arg("step_index") = 0)
-        .def("IsSubItem", &OptimizationInfoType::IsValue<typename OptimizationInfoType::Pointer>, py::arg("name"), py::arg("step_index") = 0)
-        .def("IsBool", &OptimizationInfoType::IsValue<bool>, py::arg("name"), py::arg("step_index") = 0)
-        .def("IsInt", &OptimizationInfoType::IsValue<int>, py::arg("name"), py::arg("step_index") = 0)
-        .def("IsDouble", &OptimizationInfoType::IsValue<double>, py::arg("name"), py::arg("step_index") = 0)
-        .def("IsString", &OptimizationInfoType::IsValue<std::string>, py::arg("name"), py::arg("step_index") = 0)
-        .def("GetSubItem", &OptimizationInfoType::GetValue<typename OptimizationInfoType::Pointer>, py::arg("name"), py::arg("step_index") = 0)
-        .def("GetBool", &OptimizationInfoType::GetValue<bool>, py::arg("name"), py::arg("step_index") = 0)
-        .def("GetInt", &OptimizationInfoType::GetValue<int>, py::arg("name"), py::arg("step_index") = 0)
-        .def("GetDouble", &OptimizationInfoType::GetValue<double>, py::arg("name"), py::arg("step_index") = 0)
-        .def("GetString", &OptimizationInfoType::GetValue<std::string>, py::arg("name"), py::arg("step_index") = 0)
-        .def("SetValue", &OptimizationInfoType::SetValue, py::arg("name"), py::arg("value"), py::arg("step_index") = 0, py::arg("overwrite") = false)
-        .def("__str__", [](const OptimizationInfoType& rSelf) { return rSelf.Info(); })
-        ;
+    AddOptimizationInfoToPython<bool,
+                                int,
+                                double,
+                                std::string,
+                                SpecializedContainerExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>>::Pointer,
+                                SpecializedContainerExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>::Pointer,
+                                SpecializedContainerExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>::Pointer,
+                                SpecializedContainerExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>::Pointer
+                                >(m);
 }
 
 }  // namespace Python.

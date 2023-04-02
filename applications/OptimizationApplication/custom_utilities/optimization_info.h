@@ -228,6 +228,37 @@ private:
         rBufferedMap[rName] = rValue;
     }
 
+    static void RemoveFromAlternateMap(
+        BufferedMapType& rBufferedMap,
+        SubItemsMap& rSubItemMap,
+        const std::string& rName,
+        const Pointer& rValue)
+    {
+        // this is a sub item. Hence check whether the same rName is there in
+        // the buffer items.
+        auto buffer_item_itr = rBufferedMap.find(rName);
+        if (buffer_item_itr != rBufferedMap.end()) {
+            // found the same name in buffer items. Remove it.
+            rBufferedMap.erase(rName);
+        }
+    }
+
+    template<class TValueType>
+    static void RemoveFromAlternateMap(
+        BufferedMapType& rBufferedMap,
+        SubItemsMap& rSubItemMap,
+        const std::string& rName,
+        const TValueType& rValue)
+    {
+        // this is not a sub item. Hence check whether the same rName is there in
+        // the sub items.
+        auto sub_item_itr = rSubItemMap.find(rName);
+        if (sub_item_itr != rSubItemMap.end()) {
+            // found the same name in sub items. Remove it.
+            rSubItemMap.erase(rName);
+        }
+    }
+
     ///@}
 };
 

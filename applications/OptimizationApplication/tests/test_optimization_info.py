@@ -131,6 +131,36 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertEqual(optimization_info.GetInt("sub_item/int", 1), 1)
         self.assertEqual(optimization_info.GetInt("sub_item/int", 2), 2)
 
+    def test_Misc(self):
+        optimization_info = KratosOA.OptimizationInfo(2)
+        optimization_info.SetValue("test/test1/int", 1)
+
+        with self.assertRaises(RuntimeError):
+            optimization_info.SetValue("test/test1", 10)
+
+        with self.assertRaises(RuntimeError):
+            optimization_info.SetValue("test/test1/int/hello", "hello")
+
+        self.assertFalse(optimization_info.IsInt("test/test1"))
+        optimization_info.SetValue("test/test1", 10, overwrite=True)
+        self.assertTrue(optimization_info.IsInt("test/test1"))
+
+        self.assertFalse(optimization_info.IsSubItem("test/test1"))
+        optimization_info.SetValue("test/test1", KratosOA.OptimizationInfo(3), overwrite=True)
+        self.assertTrue(optimization_info.IsSubItem("test/test1"))
+
+    def test_SetContainers(self):
+        optimization_info = KratosOA.OptimizationInfo(2)
+        optimization_info.SetValue("test/test1/int", 1)
+
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+
+        a = Kratos.ContainerExpression.HistoricalExpression(model_part)
+        optimization_info.SetValue("test/container", a)
+        self.assertTrue(optimization_info.IsHistoricalExpression("test/container"))
+        self.assertEqual(optimization_info.GetHistoricalExpression("test/container"), a)
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
     kratos_unittest.main()
