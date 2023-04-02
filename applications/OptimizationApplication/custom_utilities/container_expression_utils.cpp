@@ -266,7 +266,7 @@ void ContainerExpressionUtils::ProductWithEntityMatrix(
         for (IndexType d = 0; d < local_size; ++d) {
             double result = 0.0;
             for (IndexType j = col_begin; j < col_end; ++j) {
-                result += a_values[j] * r_input_expression.Evaluate(i, a_col_indices[j] * local_size, d);
+                result += a_values[j] * r_input_expression.Evaluate(a_col_indices[j], a_col_indices[j] * local_size, d);
             }
             r_output_expression.SetData(local_data_begin_index, d, result);
         }

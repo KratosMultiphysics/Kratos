@@ -25,14 +25,10 @@ from test_mass_response_function import TestMassResponseFunctionShells
 from test_mass_response_function import TestMassResponseFunctionSolids
 from test_linear_strain_energy_response_function import TestLinearStrainEnergyResponseFunction
 from test_model_part_utils import TestModelPartUtils
-from test_container_variable_data_holder import TestHistoricalContainerVariableDataHolder
-from test_container_variable_data_holder import TestNodalContainerVariableDataHolder
-from test_container_variable_data_holder import TestConditionContainerVariableDataHolder
-from test_container_variable_data_holder import TestElementContainerVariableDataHolder
-from test_container_variable_data_holder import TestConditionPropertiesContainerVariableDataHolder
-from test_container_variable_data_holder import TestElementPropertiesContainerVariableDataHolder
 from test_model_part_controllers import TestMdpaModelPartController
-from test_container_variable_data_holder_utils import TestContainerVariableDataUtils
+from test_container_expression_utils import TestContainerExpressionUtils
+from test_container_expression import TestConditionPropertiesExpression
+from test_container_expression import TestElementPropertiesExpression
 
 # Nightly tests
 
@@ -62,19 +58,15 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationInfo]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtils]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerVariableDataUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerExpressionUtils]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionBeams]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionShells]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionSolids]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLinearStrainEnergyResponseFunction]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHistoricalContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNodalContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionPropertiesContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementPropertiesContainerVariableDataHolder]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionPropertiesExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementPropertiesExpression]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMdpaModelPartController]))
 
