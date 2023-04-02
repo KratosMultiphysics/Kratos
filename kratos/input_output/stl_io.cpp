@@ -17,6 +17,8 @@
 // Project includes
 #include "includes/define.h"
 #include "input_output/stl_io.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -104,8 +106,8 @@ void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
 }
 
 
-void StlIO::WriteFacet(const GeometryType& rGeom) {
-    
+void StlIO::WriteFacet(const GeometryType& rGeom) 
+{
     const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
     (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
     (*mpInputStream) << "        outer loop\n";
@@ -206,15 +208,16 @@ void StlIO::ReadLoop(ModelPart & rThisModelPart)
     ReadKeyword("loop");
 
     *mpInputStream >> word; // Reading vertex or endloop
-    std::size_t node_id = rThisModelPart.GetRootModelPart().NumberOfNodes() + 1;
-    std::size_t element_id = rThisModelPart.GetRootModelPart().NumberOfElements() + 1;
-    Element::NodesArrayType temp_element_nodes;
+    std::size_t node_id = block_for_each<MaxReduction<std::size_t>>(
+        rThisModelPart.GetRootModelPart().Nodes(),
+        [](NodeType& rNode) { return rNode.Id();}) + 1;
+    Element::NodesArrayType temp_geom_nodes;
     while(word == "vertex"){
         Point coordinates = ReadPoint();
-        temp_element_nodes.push_back(rThisModelPart.CreateNewNode(node_id++, coordinates[0], coordinates[1], coordinates[2] ));
+        temp_geom_nodes.push_back(rThisModelPart.CreateNewNode(node_id++, coordinates[0], coordinates[1], coordinates[2] ));
         *mpInputStream >> word; // Reading vertex or endloop
     }
-    rThisModelPart.CreateNewElement("Element3D3N", element_id, temp_element_nodes, rThisModelPart.pGetProperties(0));
+    rThisModelPart.CreateNewGeometry("Triangle3D3", temp_geom_nodes);
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
