@@ -15,7 +15,6 @@
 // System includes
 #include <string>
 #include <variant>
-#include <optional>
 #include <vector>
 #include <unordered_map>
 
