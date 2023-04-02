@@ -12,7 +12,6 @@
 //
 
 // System includes
-#include "sstream"
 
 // External includes
 #include <pybind11/stl.h>
