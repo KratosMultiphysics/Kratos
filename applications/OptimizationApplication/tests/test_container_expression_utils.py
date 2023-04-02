@@ -15,8 +15,8 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
-        ReadModelPart("model_part_utils_test/quads", cls.model_part)
+        with kratos_unittest.WorkFolderScope(".", __file__, True):
+            ReadModelPart("model_part_utils_test/quads", cls.model_part)
 
         for node in cls.model_part.Nodes:
             id = node.Id
