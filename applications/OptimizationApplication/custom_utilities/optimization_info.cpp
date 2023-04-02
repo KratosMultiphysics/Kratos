@@ -356,6 +356,7 @@ std::string OptimizationInfo<TArgs...>::Info(const std::string& rTab) const
     template SpecializedContainerExpression<CONTAINER_TYPE, ContainerDataIO<CONTAINER_DATA_IO_TAG>>::Pointer OptimizationInfo<__VA_ARGS__>::GetValue<SpecializedContainerExpression<CONTAINER_TYPE, ContainerDataIO<CONTAINER_DATA_IO_TAG>>::Pointer>(const std::string&, const IndexType) const;
 
 #define KRATOS_OPTIMIZATION_INFO_SUPPORTED_TYPES                                                                                         \
+    ModelPart*,                                                                                                                          \
     bool,                                                                                                                                \
     int,                                                                                                                                 \
     double,                                                                                                                              \
@@ -371,6 +372,7 @@ KRATOS_OPTIMIZATION_INFO_METHODS_FOR_BASIC_TYPE(bool, KRATOS_OPTIMIZATION_INFO_S
 KRATOS_OPTIMIZATION_INFO_METHODS_FOR_BASIC_TYPE(int, KRATOS_OPTIMIZATION_INFO_SUPPORTED_TYPES)
 KRATOS_OPTIMIZATION_INFO_METHODS_FOR_BASIC_TYPE(double, KRATOS_OPTIMIZATION_INFO_SUPPORTED_TYPES)
 KRATOS_OPTIMIZATION_INFO_METHODS_FOR_BASIC_TYPE(std::string, KRATOS_OPTIMIZATION_INFO_SUPPORTED_TYPES)
+KRATOS_OPTIMIZATION_INFO_METHODS_FOR_BASIC_TYPE(ModelPart*, KRATOS_OPTIMIZATION_INFO_SUPPORTED_TYPES)
 KRATOS_OPTIMIZATION_INFO_METHODS_FOR_CONTAINER_TYPE(ModelPart::NodesContainerType, ContainerDataIOTags::Historical, KRATOS_OPTIMIZATION_INFO_SUPPORTED_TYPES)
 KRATOS_OPTIMIZATION_INFO_METHODS_FOR_CONTAINER_TYPE(ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical, KRATOS_OPTIMIZATION_INFO_SUPPORTED_TYPES)
 KRATOS_OPTIMIZATION_INFO_METHODS_FOR_CONTAINER_TYPE(ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical, KRATOS_OPTIMIZATION_INFO_SUPPORTED_TYPES)

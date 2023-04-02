@@ -161,6 +161,10 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertTrue(optimization_info.IsHistoricalExpression("test/container"))
         self.assertEqual(optimization_info.GetHistoricalExpression("test/container"), a)
 
+        optimization_info.SetValue("test/model_part", model_part)
+        self.assertTrue(optimization_info.IsModelPart("test/model_part"))
+        self.assertEqual(optimization_info.GetModelPart("test/model_part"), model_part)
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
     kratos_unittest.main()

@@ -50,7 +50,7 @@ void AddOptimizationInfoToPython(pybind11::module m)
 {
     namespace py = pybind11;
 
-    using OptimizationInfoType = OptimizationInfo<TArgs...>;
+    using OptimizationInfoType = OptimizationInfo<ModelPart*, TArgs...>;
     auto optimization_info_class = py::class_<OptimizationInfoType, typename OptimizationInfoType::Pointer>(m, "OptimizationInfo")
         .def(py::init<>())
         .def(py::init<std::size_t>(), py::arg("buffer_size"))
@@ -61,6 +61,8 @@ void AddOptimizationInfoToPython(pybind11::module m)
         .def("SetValue", &OptimizationInfoType::SetValue, py::arg("name"), py::arg("value"), py::arg("step_index") = 0, py::arg("overwrite") = false)
         .def("IsSubItem", &OptimizationInfoType::template IsValue<typename OptimizationInfoType::Pointer>, py::arg("name"), py::arg("step_index") = 0)
         .def("GetSubItem", &OptimizationInfoType::template GetValue<typename OptimizationInfoType::Pointer>, py::arg("name"), py::arg("step_index") = 0)
+        .def("IsModelPart", &OptimizationInfoType::template IsValue<ModelPart*>, py::arg("name"), py::arg("step_index") = 0)
+        .def("GetModelPart", &OptimizationInfoType::template GetValue<ModelPart*>, py::arg("name"), py::arg("step_index") = 0, py::return_value_policy::reference)
         .def("__str__", [](const OptimizationInfoType& rSelf) { return rSelf.Info(); })
         ;
 
