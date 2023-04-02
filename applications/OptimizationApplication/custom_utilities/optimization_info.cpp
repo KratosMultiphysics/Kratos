@@ -309,6 +309,28 @@ void OptimizationInfo<TArgs...>::SetValue(
 }
 
 template <class... TArgs>
+void OptimizationInfo<TArgs...>::GetKeys(
+    std::vector<std::string>& rKeys,
+    const IndexType StepIndex,
+    const std::string& rPrefix) const
+{
+    // first put the buffered data
+    if (StepIndex < GetBufferSize()) {
+        const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+        for (const auto& r_buffered_item_itr : r_buffered_data) {
+            rKeys.push_back(std::string(rPrefix).append(r_buffered_item_itr.first));
+        }
+    }
+
+    // now iterate through sub items and fill rKeys with leaves
+    for (const auto& r_sub_item_itr : mSubItems) {
+        r_sub_item_itr.second->GetKeys(
+            rKeys, StepIndex,
+            std::string(rPrefix).append(r_sub_item_itr.first).append("/"));
+    }
+}
+
+template <class... TArgs>
 std::string OptimizationInfo<TArgs...>::Info(const std::string& rTab) const
 {
     std::stringstream info;

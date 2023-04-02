@@ -183,6 +183,21 @@ public:
         const bool Overwrite = false);
 
     /**
+     * @brief Get the Keys recursively.
+     *
+     * This puts all the keys and subkeys into @ref rKeys recursivly. It
+     * will put only the keys available in @ref StepIndex for buffered data.
+     *
+     * @param rKeys                     Output containing all the keys.
+     * @param StepIndex                 Step index to look for in buffered data.
+     * @param rPrefix                   Prefix to append the keys with.
+     */
+    void GetKeys(
+        std::vector<std::string>& rKeys,
+        const IndexType StepIndex = 0,
+        const std::string& rPrefix = "") const;
+
+    /**
      * @brief Prints the values in the optimization info.
      *
      * @param rTab                      Tabbing to be used.

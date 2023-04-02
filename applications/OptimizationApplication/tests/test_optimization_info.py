@@ -167,6 +167,36 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         c = optimization_info.GetModelPart("test/model_part")
         self.assertEqual(c, model_part)
 
+    def test_GetKeys(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        a = Kratos.ContainerExpression.HistoricalExpression(model_part)
+
+        optimization_info = KratosOA.OptimizationInfo(2)
+
+        optimization_info.SetValue("bool", True)
+        optimization_info.SetValue("int", 1)
+        optimization_info.SetValue("double", 2.0)
+        optimization_info.SetValue("string", "test")
+
+        sub_item = KratosOA.OptimizationInfo(3)
+        sub_item.SetValue("sub_int", 3)
+        sub_item.SetValue("sub_double", 4.0)
+        optimization_info.SetValue("sub_item", sub_item)
+
+        optimization_info.SetValue("sub_item2/sub_sub_item/int", 5)
+        optimization_info.SetValue("sub_item2/double", 6.0)
+
+        sub_item.SetValue("sub_int", 3, 1)
+        sub_item.SetValue("sub_double", 4.0, 1)
+
+        optimization_info.SetValue("sub_item/sub_model_part/model_part", model_part, 2)
+        optimization_info.SetValue("sub_item/container/contaner", a, 2)
+
+        self.assertEqual(sorted(optimization_info.GetKeys()), sorted(["bool", "int", "double", "string", "sub_item/sub_int", "sub_item/sub_double", "sub_item2/sub_sub_item/int", "sub_item2/double"]))
+        self.assertEqual(sorted(optimization_info.GetKeys(1)), sorted(["sub_item/sub_int", "sub_item/sub_double"]))
+        self.assertEqual(sorted(optimization_info.GetKeys(2)), sorted(["sub_item/sub_model_part/model_part", "sub_item/container/contaner"]))
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
     kratos_unittest.main()
