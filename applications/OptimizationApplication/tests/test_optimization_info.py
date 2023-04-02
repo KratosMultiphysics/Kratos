@@ -193,6 +193,15 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         optimization_info.SetValue("sub_item/sub_model_part/model_part", model_part, 2)
         optimization_info.SetValue("sub_item/container/contaner", a, 2)
 
+        for k in optimization_info.GetKeys():
+            self.assertTrue(optimization_info.HasValue(k))
+
+        for k in optimization_info.GetKeys(1):
+            self.assertTrue(optimization_info.HasValue(k, 1))
+
+        for k in optimization_info.GetKeys(2):
+            self.assertTrue(optimization_info.HasValue(k, 2))
+
         self.assertEqual(sorted(optimization_info.GetKeys()), sorted(["bool", "int", "double", "string", "sub_item/sub_int", "sub_item/sub_double", "sub_item2/sub_sub_item/int", "sub_item2/double"]))
         self.assertEqual(sorted(optimization_info.GetKeys(1)), sorted(["sub_item/sub_int", "sub_item/sub_double"]))
         self.assertEqual(sorted(optimization_info.GetKeys(2)), sorted(["sub_item/sub_model_part/model_part", "sub_item/container/contaner"]))
