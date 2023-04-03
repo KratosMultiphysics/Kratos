@@ -95,10 +95,14 @@ public:
     ///@{
 
     /// Constructor with filename, and open option with default being read mode
-    StlIO(std::filesystem::path const& Filename, const Flags Options = IO::READ);
+    StlIO(
+        std::filesystem::path const& Filename,
+        Parameters ThisParameters = Parameters());
 
     /// Constructor with stream.
-    StlIO(Kratos::shared_ptr<std::iostream> pInputStream);
+    StlIO(
+        Kratos::shared_ptr<std::iostream> pInputStream,
+        Parameters ThisParameters = Parameters());
 
     /// Destructor.
     virtual ~StlIO(){}
@@ -110,6 +114,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    static Parameters GetDefaultParameters();
 
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
@@ -148,6 +154,12 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    Parameters mParameters;
+
+    std::size_t mNextNodeId = 0;
+    std::size_t mNextElementId = 0;
+    std::size_t mNextConditionId = 0;
 
     ///@}
     ///@name Protected Operators

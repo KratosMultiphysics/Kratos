@@ -23,47 +23,74 @@
 namespace Kratos
 {
 
-StlIO::StlIO(std::filesystem::path const& Filename, const Flags Options)
-    : mOptions(Options)
+StlIO::StlIO(std::filesystem::path const& Filename, Parameters ThisParameters):
+    mParameters(ThisParameters)
 {
-    Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
+    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    Kratos::shared_ptr<std::fstream> p_file = Kratos::make_shared<std::fstream>();
 
     // set default mode to read
-    std::fstream::openmode OpenMode;
+    std::fstream::openmode open_mode;
 
+    const std::string open_mode_str = mParameters["open_mode"].GetString();
     // handle other mode options
-    if (mOptions.Is(IO::READ)) {
-        OpenMode = std::fstream::in;
-    } else if (mOptions.Is(IO::APPEND)) {
-        OpenMode = std::fstream::in | std::fstream::app;
-    } else if (mOptions.Is(IO::WRITE)) {
-        OpenMode = std::fstream::out;
+    if (open_mode_str == "read") {
+        open_mode = std::fstream::in;
+    } else if (open_mode_str == "append") {
+        open_mode = std::fstream::in | std::fstream::app;
+    } else if (open_mode_str == "write") {
+        open_mode = std::fstream::out;
     } else {
-        KRATOS_ERROR << "Unsupported IO options: " << Options << std::endl;
+        KRATOS_ERROR << "Unsupported open mode: " << open_mode_str << std::endl;
     }
 
-    pFile->open(Filename.c_str(), OpenMode);
+    p_file->open(Filename.c_str(), open_mode);
 
-    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Could not open the input file  : " << Filename << std::endl;
+    KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the input file  : " << Filename << std::endl;
 
     // Store the pointer as a regular std::iostream
-    mpInputStream = pFile;
+    mpInputStream = p_file;
 }
 
-StlIO::StlIO(Kratos::shared_ptr<std::iostream> pInputStream) 
+StlIO::StlIO(
+    Kratos::shared_ptr<std::iostream> pInputStream,
+    Parameters ThisParameters) 
     : IO(), 
+      mParameters(ThisParameters),
       mpInputStream(pInputStream)
 {
+    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+}
 
+Parameters StlIO::GetDefaultParameters()
+{
+    return Parameters(R"({
+        "open_mode" : "read",
+        "new_entity_type" : "geometry"
+    })" );
 }
 
 void StlIO::ReadModelPart(ModelPart & rThisModelPart)
 {
-    if(!rThisModelPart.RecursivelyHasProperties(0))
+    if(!rThisModelPart.RecursivelyHasProperties(0)) {
         rThisModelPart.CreateNewProperties(0);
-        
-    while(!mpInputStream->eof())
+    }
+
+    mNextNodeId = block_for_each<MaxReduction<std::size_t>>(
+        rThisModelPart.GetRootModelPart().Nodes(),
+        [](NodeType& rNode) { return rNode.Id();}) + 1;
+
+    mNextElementId = block_for_each<MaxReduction<std::size_t>>(
+        rThisModelPart.GetRootModelPart().Elements(),
+        [](Element& rElement) { return rElement.Id();}) + 1;
+
+    mNextConditionId = block_for_each<MaxReduction<std::size_t>>(
+        rThisModelPart.GetRootModelPart().Conditions(),
+        [](Condition& rCondition) { return rCondition.Id();}) + 1;
+
+    while(!mpInputStream->eof()) {
         ReadSolid(rThisModelPart);
+    }
 }
 
 
@@ -172,8 +199,7 @@ void StlIO::ReadSolid(ModelPart & rThisModelPart)
     auto& sub_model_part = rThisModelPart.CreateSubModelPart(word);
 
     *mpInputStream >> word; // Reading facet or endsolid
-    
-    KRATOS_WATCH(word);
+
     while(word == "facet"){
         ReadFacet(sub_model_part);
         *mpInputStream >> word; // Reading facet or endsolid
@@ -208,16 +234,23 @@ void StlIO::ReadLoop(ModelPart & rThisModelPart)
     ReadKeyword("loop");
 
     *mpInputStream >> word; // Reading vertex or endloop
-    std::size_t node_id = block_for_each<MaxReduction<std::size_t>>(
-        rThisModelPart.GetRootModelPart().Nodes(),
-        [](NodeType& rNode) { return rNode.Id();}) + 1;
+
     Element::NodesArrayType temp_geom_nodes;
     while(word == "vertex"){
         Point coordinates = ReadPoint();
-        temp_geom_nodes.push_back(rThisModelPart.CreateNewNode(node_id++, coordinates[0], coordinates[1], coordinates[2] ));
+        temp_geom_nodes.push_back(rThisModelPart.CreateNewNode(mNextNodeId++, coordinates[0], coordinates[1], coordinates[2] ));
         *mpInputStream >> word; // Reading vertex or endloop
     }
-    rThisModelPart.CreateNewGeometry("Triangle3D3", temp_geom_nodes);
+    const std::string new_entity_type = mParameters["new_entity_type"].GetString();
+    if (new_entity_type == "geometry") {
+        rThisModelPart.CreateNewGeometry("Triangle3D3", temp_geom_nodes);
+    } else if (new_entity_type == "element") {
+        rThisModelPart.CreateNewElement("Element3D3N", mNextElementId++, temp_geom_nodes, rThisModelPart.pGetProperties(0));
+    } else if (new_entity_type == "condition") {
+        rThisModelPart.CreateNewCondition("SurfaceCondition3D3N", mNextConditionId++, temp_geom_nodes, rThisModelPart.pGetProperties(0));
+    } else  {
+        KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
+    }
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
