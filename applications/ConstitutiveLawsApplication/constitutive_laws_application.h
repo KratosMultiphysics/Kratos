@@ -71,6 +71,7 @@
 #include "custom_constitutive/multi_linear_isotropic_plane_stress_2d.h"
 #include "custom_constitutive/non_local_elastic_isotropic_damage.h"
 #include "custom_constitutive/elastic_local_anisotropic_damage_3d.h"
+#include "custom_constitutive/elastic_isotropic_damage_3d_nonlocal_equivalent_strain.h"
 
 
 // Integrators
@@ -282,6 +283,7 @@ private:
     const MultiLinearIsotropicPlaneStress2D mMultiLinearIsotropicPlaneStress2D;
     const NonLocalElasticIsotropicDamage mNonLocalElasticIsotropicDamage;
     const ElasticAnisotropicDamage mElasticAnisotropicDamage;
+    const ElasticIsotropicDamage3DNonLocalEquivalentStrain mElasticIsotropicDamage3DNonLocalEquivalentStrain;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
