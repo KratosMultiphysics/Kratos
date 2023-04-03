@@ -88,8 +88,32 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
         rThisModelPart.GetRootModelPart().Conditions(),
         [](Condition& rCondition) { return rCondition.Id();}) + 1;
 
+    std::function<void(ModelPart&, NodesArrayType&)> create_entity_func;
+    const std::string new_entity_type = mParameters["new_entity_type"].GetString();
+    if (new_entity_type == "geometry") {
+        create_entity_func = [this](
+            ModelPart& rThisModelPart,
+            NodesArrayType& rIndexes) {
+                rThisModelPart.CreateNewGeometry("Triangle3D3", rIndexes);
+            };
+    } else if (new_entity_type == "element") {
+        create_entity_func = [this](
+            ModelPart& rThisModelPart,
+            NodesArrayType& rIndexes) {
+                rThisModelPart.CreateNewElement("Element3D3N", this->mNextElementId++, rIndexes, rThisModelPart.pGetProperties(0));
+            };
+    } else if (new_entity_type == "condition") {
+        create_entity_func = [this](
+            ModelPart& rThisModelPart,
+            NodesArrayType& rIndexes) {
+                rThisModelPart.CreateNewCondition("SurfaceCondition3D3N", this->mNextConditionId++, rIndexes, rThisModelPart.pGetProperties(0));
+            };
+    } else  {
+        KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
+    }
+
     while(!mpInputStream->eof()) {
-        ReadSolid(rThisModelPart);
+        ReadSolid(rThisModelPart,create_entity_func);
     }
 }
 
@@ -180,7 +204,9 @@ bool StlIO::IsValidGeometry(
     return (is_triangle && area_greater_than_zero);
 }
 
-void StlIO::ReadSolid(ModelPart & rThisModelPart)
+void StlIO::ReadSolid(
+    ModelPart & rThisModelPart,
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
 {
     std::string word;
 
@@ -201,7 +227,7 @@ void StlIO::ReadSolid(ModelPart & rThisModelPart)
     *mpInputStream >> word; // Reading facet or endsolid
 
     while(word == "facet"){
-        ReadFacet(sub_model_part);
+        ReadFacet(sub_model_part, rCreateEntityFunctor);
         *mpInputStream >> word; // Reading facet or endsolid
     }
 
@@ -209,7 +235,9 @@ void StlIO::ReadSolid(ModelPart & rThisModelPart)
     std::getline(*mpInputStream, word); // Reading solid name 
 }
 
-void StlIO::ReadFacet(ModelPart & rThisModelPart)
+void StlIO::ReadFacet(
+    ModelPart & rThisModelPart,
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
 {
     std::string word;
 
@@ -220,14 +248,16 @@ void StlIO::ReadFacet(ModelPart & rThisModelPart)
     *mpInputStream >> word; // Reading outer or endfacet
 
     while(word == "outer"){
-        ReadLoop(rThisModelPart);
+        ReadLoop(rThisModelPart, rCreateEntityFunctor);
         *mpInputStream >> word; // Reading outer or endfacet
     }
 
     KRATOS_ERROR_IF(word != "endfacet") << "Invalid stl file. facet block should be closed with \"endfacet\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
-void StlIO::ReadLoop(ModelPart & rThisModelPart)
+void StlIO::ReadLoop(
+    ModelPart & rThisModelPart,
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
 {
     std::string word;
 
@@ -235,22 +265,14 @@ void StlIO::ReadLoop(ModelPart & rThisModelPart)
 
     *mpInputStream >> word; // Reading vertex or endloop
 
-    Element::NodesArrayType temp_geom_nodes;
+    NodesArrayType temp_geom_nodes;
     while(word == "vertex"){
         Point coordinates = ReadPoint();
         temp_geom_nodes.push_back(rThisModelPart.CreateNewNode(mNextNodeId++, coordinates[0], coordinates[1], coordinates[2] ));
         *mpInputStream >> word; // Reading vertex or endloop
     }
     const std::string new_entity_type = mParameters["new_entity_type"].GetString();
-    if (new_entity_type == "geometry") {
-        rThisModelPart.CreateNewGeometry("Triangle3D3", temp_geom_nodes);
-    } else if (new_entity_type == "element") {
-        rThisModelPart.CreateNewElement("Element3D3N", mNextElementId++, temp_geom_nodes, rThisModelPart.pGetProperties(0));
-    } else if (new_entity_type == "condition") {
-        rThisModelPart.CreateNewCondition("SurfaceCondition3D3N", mNextConditionId++, temp_geom_nodes, rThisModelPart.pGetProperties(0));
-    } else  {
-        KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
-    }
+    rCreateEntityFunctor(rThisModelPart,temp_geom_nodes);
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 

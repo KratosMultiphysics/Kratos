@@ -85,7 +85,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef ModelPart::GeometriesMapType GeometriesMapType;
+    using GeometriesMapType = ModelPart::GeometriesMapType;
+    using NodesArrayType = Element::NodesArrayType;
 
     /// Pointer definition of StlIO
     KRATOS_CLASS_POINTER_DEFINITION(StlIO);
@@ -201,11 +202,17 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ReadSolid(ModelPart & rThisModelPart);
-    
-    void ReadFacet(ModelPart & rThisModelPart);
+    void ReadSolid(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor );
 
-    void ReadLoop(ModelPart & rThisModelPart);
+    void ReadFacet(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor);
+
+    void ReadLoop(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor);
 
     Point ReadPoint();
 
