@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 ///@}
-///@name  Functions 
+///@name  Functions
 ///@{
 
 ///@}
