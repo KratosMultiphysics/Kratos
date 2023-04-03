@@ -44,7 +44,7 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
         }  )"
     );
     
-    // set default velocity as a string, if the input velocity is a string
+    // Set default velocity as a string, if the input velocity is a string
     if (mParameters.Has("velocity")){
         if (mParameters["velocity"].IsString()){
             default_parameters["velocity"].SetString("1");
