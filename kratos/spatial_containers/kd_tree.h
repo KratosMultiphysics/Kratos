@@ -4,17 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    clabra
 //
 
-
-#if !defined(KRATOS_KD_TREE_H_INCLUDED )
-#define  KRATOS_KD_TREE_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
@@ -22,14 +18,10 @@
 #include <cstddef>
 #include <vector>
 
-
 // External includes
 
-
 // Project includes
-//#include "includes/define.h"
 #include "tree.h"
-
 
 namespace Kratos
 {
@@ -888,7 +880,3 @@ public:
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_KD_TREE_H_INCLUDED  defined
-
-

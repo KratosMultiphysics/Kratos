@@ -34,44 +34,44 @@
 namespace Kratos
 {
 
-UpdatedLagrangianPQ::UpdatedLagrangianPQ( )
-    : UpdatedLagrangian( )
+MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( )
+    : MPMUpdatedLagrangian( )
 { }//DO NOT CALL IT: only needed for Register and Serialization!!!
 
-UpdatedLagrangianPQ::UpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry )
-    : UpdatedLagrangian( NewId, pGeometry )
+MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry )
+    : MPMUpdatedLagrangian( NewId, pGeometry )
 { }//DO NOT ADD DOFS HERE!!!
 
-UpdatedLagrangianPQ::UpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : UpdatedLagrangian( NewId, pGeometry, pProperties )
+MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    : MPMUpdatedLagrangian( NewId, pGeometry, pProperties )
 { mFinalizedStep = true; }
 
-UpdatedLagrangianPQ::UpdatedLagrangianPQ(UpdatedLagrangianPQ const& rOther)
-    :UpdatedLagrangian(rOther)
+MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ(MPMUpdatedLagrangianPQ const& rOther)
+    :MPMUpdatedLagrangian(rOther)
 { }
 
-UpdatedLagrangianPQ& UpdatedLagrangianPQ::operator=(UpdatedLagrangianPQ const& rOther)
+MPMUpdatedLagrangianPQ& MPMUpdatedLagrangianPQ::operator=(MPMUpdatedLagrangianPQ const& rOther)
 {
-    UpdatedLagrangian::operator=(rOther);
+    MPMUpdatedLagrangian::operator=(rOther);
     return *this;
 }
 
-Element::Pointer UpdatedLagrangianPQ::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
-{ return Element::Pointer( new UpdatedLagrangianPQ( NewId, GetGeometry().Create( ThisNodes ), pProperties ) ); }
+Element::Pointer MPMUpdatedLagrangianPQ::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+{ return Element::Pointer( new MPMUpdatedLagrangianPQ( NewId, GetGeometry().Create( ThisNodes ), pProperties ) ); }
 
-Element::Pointer UpdatedLagrangianPQ::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
-{ return Kratos::make_intrusive< UpdatedLagrangianPQ >(NewId, pGeom, pProperties); }
+Element::Pointer MPMUpdatedLagrangianPQ::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{ return Kratos::make_intrusive< MPMUpdatedLagrangianPQ >(NewId, pGeom, pProperties); }
 
-Element::Pointer UpdatedLagrangianPQ::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer MPMUpdatedLagrangianPQ::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-    UpdatedLagrangianPQ NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-    return Element::Pointer( new UpdatedLagrangianPQ(NewElement) );
+    MPMUpdatedLagrangianPQ NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    return Element::Pointer( new MPMUpdatedLagrangianPQ(NewElement) );
 }
 
-UpdatedLagrangianPQ::~UpdatedLagrangianPQ()
+MPMUpdatedLagrangianPQ::~MPMUpdatedLagrangianPQ()
 { }
 
-void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
+void MPMUpdatedLagrangianPQ::CalculateAndAddExternalForces(
     VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
@@ -100,7 +100,7 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
     KRATOS_CATCH( "" )
 }
 
-void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
+void MPMUpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
@@ -152,7 +152,7 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
 }
 
 
-void UpdatedLagrangianPQ::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
+void MPMUpdatedLagrangianPQ::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     GeneralVariables Variables;
@@ -178,24 +178,24 @@ void UpdatedLagrangianPQ::InitializeMaterial(const ProcessInfo& rCurrentProcessI
 }
 
 
-void UpdatedLagrangianPQ::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+void MPMUpdatedLagrangianPQ::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1) rValues.resize(1);
     if (rVariable == MP_SUB_POINTS) rValues[0] = GetGeometry().IntegrationPointsNumber();
-    else UpdatedLagrangian::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    else MPMUpdatedLagrangian::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 
-void UpdatedLagrangianPQ::save( Serializer& rSerializer ) const
+void MPMUpdatedLagrangianPQ::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangian )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
 }
 
-void UpdatedLagrangianPQ::load( Serializer& rSerializer )
+void MPMUpdatedLagrangianPQ::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangian )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
 }
 } // Namespace Kratos
 
