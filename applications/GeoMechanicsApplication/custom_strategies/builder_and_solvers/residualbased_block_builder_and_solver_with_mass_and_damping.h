@@ -469,9 +469,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TSystemMatrixType mMassMatrix;
-    TSystemMatrixType mDampingMatrix;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -600,6 +597,9 @@ protected:
 
 
 private:
+
+    TSystemMatrixType mMassMatrix;
+    TSystemMatrixType mDampingMatrix;
 
     void InitializeDynamicMatrix(TSystemMatrixType& rMatrix, unsigned int MatrixSize, typename TSchemeType::Pointer pScheme, ModelPart& rModelPart)
     {
