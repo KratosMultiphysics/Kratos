@@ -9,8 +9,7 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY)
-#define KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY
+#pragma once
 
 // System includes
 
@@ -122,4 +121,3 @@ private:
 
 ///@} addtogroup block
 }
-#endif /* KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY defined */

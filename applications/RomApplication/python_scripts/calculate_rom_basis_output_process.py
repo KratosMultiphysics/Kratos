@@ -154,15 +154,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         if self.rom_manager:
             rom_basis_dict["rom_manager"] = True
-        # Set a NumPy array with the snapshots data
-        n_nodes = self.model_part.NumberOfNodes()
         rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
-        n_data_cols = len(self.snapshots_data_list)
         n_nodal_unknowns = len(self.snapshot_variables_list)
-        snapshots_matrix = numpy.empty((n_nodal_unknowns*n_nodes,n_data_cols))
-        for i_col in range(n_data_cols):
-            aux_col = numpy.array(self.snapshots_data_list[i_col])
-            snapshots_matrix[:,i_col] = aux_col.transpose()
 
         # Calculate the randomized SVD of the snapshots matrix
         u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)

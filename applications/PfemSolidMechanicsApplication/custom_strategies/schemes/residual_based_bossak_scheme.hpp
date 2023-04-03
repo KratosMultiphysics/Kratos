@@ -10,12 +10,12 @@
 #if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_SCHEME )
 #define  KRATOS_RESIDUAL_BASED_BOSSAK_SCHEME
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 #include "boost/smart_ptr.hpp"
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
@@ -26,21 +26,9 @@
 
 namespace Kratos
 {
-/**@name Kratos Globals */
-/*@{ */
-/*@} */
-/**@name Type Definitions */
-/*@{ */
-/*@} */
-/**@name  Enum's */
-/*@{ */
-/*@} */
-/**@name  Functions */
-/*@{ */
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-/*@} */
+
+/// @name Kratos Classes
+/// @{
 
 template<class TSparseSpace,  class TDenseSpace >
 class ResidualBasedBossakScheme: public Scheme<TSparseSpace,TDenseSpace>
@@ -98,9 +86,8 @@ protected:
 public:
 
 
-    /**@name Type Definitions */
-
-    /*@{ */
+    /// @name Type Definitions
+    /// @{
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBossakScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
@@ -122,15 +109,11 @@ public:
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
 
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
-    
-    typedef typename BaseType::Pointer                     BaseTypePointer;
-  
-    /*@} */
 
-    /**
-     * Constructor.
-     * The bossak method
-     */
+    typedef typename BaseType::Pointer                     BaseTypePointer;
+
+    /// @}
+
     ResidualBasedBossakScheme(double rAlpham=0,double rDynamic=1)
         :Scheme<TSparseSpace,TDenseSpace>()
     {
@@ -160,8 +143,6 @@ public:
     }
 
 
-    /** Copy Constructor.
-     */
     ResidualBasedBossakScheme(ResidualBasedBossakScheme& rOther)
       :BaseType(rOther)
       ,mAlpha(rOther.mAlpha)
@@ -172,20 +153,14 @@ public:
     }
 
 
-    /** Destructor.
-     */
     virtual ~ResidualBasedBossakScheme
     () {}
 
-   /*@} */
-    /**@name Operators
-     */
-    /*@{ */
+    /// @}
+    /// @name Operators
+    /// @{
 
 
-    /**
-     * Clone 
-     */
     BaseTypePointer Clone() override
     {
       return BaseTypePointer( new ResidualBasedBossakScheme(*this) );
@@ -196,14 +171,14 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /**
-     * Performing the update of the solution
-     * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
-     * @param r_model_part
-     * @param rDofSet set of all primary variables
-     * @param A	LHS matrix
-     * @param Dx incremental update of primary variables
-     * @param b RHS Vector
+    /** @brief Update the solution within the newton iteration.
+     *  @details Update the state variables at the end of the time step:
+     *           @f[ u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u @f]
+     *  @param r_model_part @ref ModelPart to update.
+     *  @param rDofSet Set of all primary variables.
+     *  @param A Left hand side matrix.
+     *  @param Dx Incremental update of primary variables.
+     *  @param b Right hand side vector.
      */
     void Update(
         ModelPart& r_model_part,
@@ -252,9 +227,8 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    //predicts the solution for the current step:
-    // x = xold + vold * Dt
-
+    /// @brief Predict the solution for the current step.
+    /// @details @f[ x_{k+1} = x_{k} + v_{k} \cdot \Delta t @f]
     void Predict(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -352,9 +326,8 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /**
-    this is the place to initialize the elements.
-    This is intended to be called just once when the strategy is initialized
+    /** @brief Initialize all @ref Element s in the provided @ref ModelPart.
+     *  @note This should be called exactly once, when the strategy is initialized.
      */
     void InitializeElements(ModelPart& rModelPart) override
     {
@@ -387,10 +360,9 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /**
-    this is the place to initialize the conditions.
-    This is intended to be called just once when the strategy is initialized
-    */
+    /** @brief Initialize all @ref Condition s in the provided @ref ModelPart.
+     *  @note This should be called exactly once, when the strategy is initialized.
+     */
     void InitializeConditions(ModelPart& rModelPart) override
     {
         KRATOS_TRY
@@ -422,13 +394,11 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /**
-     * initializes time step solution
-     * only for reasons if the time step solution is restarted
-     * @param r_model_part
-     * @param A	LHS matrix
-     * @param Dx incremental update of primary variables
-     * @param b RHS Vector
+    /** @brief Prepare state variables for a new step.
+     *  @param r_model_part
+     *  @param A Left hand side matrix.
+     *  @param Dx Incremental update of primary variables.
+     *  @param b Right hand side vector.
      */
     void InitializeSolutionStep(
         ModelPart& r_model_part,
@@ -453,7 +423,7 @@ public:
 	  std::cout<<" WARNING: detected delta_time = 0 in the Solution Scheme "<<std::endl;
 	  std::cout<<" DELTA_TIME set to 1 considering a Quasistatic step with one step only "<<std::endl;
 	  std::cout<<" PLEASE : check if the time step is created correctly for the current model part "<<std::endl;
-	  
+
 	  CurrentProcessInfo[DELTA_TIME] = 1;
 	  DeltaTime = CurrentProcessInfo[DELTA_TIME];
 	}
@@ -476,10 +446,7 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /**
-    function called once at the end of a solution step, after convergence is reached if
-    an iterative process is needed
-     */
+    /// @brief Finish the current time step.
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -575,8 +542,8 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /** this function is designed to be called in the builder and solver to introduce*/
-
+    /// @brief Compute local contributions.
+    /// @note This function is meant to be called from @ref BuilderAndSolver.
     void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -660,9 +627,6 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /** functions totally analogous to the precedent but applied to
-          the "condition" objects
-    */
     void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -682,7 +646,7 @@ public:
         //basic operations for the element considered
         (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-	
+
         if(mNewmark.static_dynamic !=0)
         {
 
@@ -693,7 +657,7 @@ public:
         }
 
         (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
-	
+
         if(mNewmark.static_dynamic !=0)
         {
 
@@ -753,9 +717,7 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /** Function that returns the list of Degrees of freedom to be
-    assembled in the system for a Given Element
-     */
+    /// @brief Get the list of Degrees of freedom to be assembled in the system for a given @ref Element.
     void GetElementalDofList(
         Element::Pointer rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
@@ -767,9 +729,7 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /** Function that returns the list of Degrees of freedom to be
-    assembled in the system for a Given Element
-     */
+    /// Get the list of Degrees of freedom to be assembled in the system for a Given @ref Condition.
     void GetConditionDofList(
         Condition::Pointer rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
@@ -781,12 +741,12 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param r_model_part
-     * @return 0 all ok
+    /** @brief Check whether the scheme was configured correctly for the provided @ref ModelPart.
+     *  @details This function should be called once to perform all the checks needed
+     *           on the provided input.
+     *  @note Checks can be expensive as the function is designed to catch user errors.
+     *  @param r_model_part
+     *  @return 0 if ok, nonzero otherwise.
      */
     int Check(ModelPart& r_model_part) override
     {
@@ -843,35 +803,21 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
-    /*@} */
-    /**@name Access */
-    /*@{ */
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
-    /*@} */
-    /**@name Friends */
-    /*@{ */
+    /// @}
 
 protected:
-    /**@name Static Member Variables */
-    /*@{ */
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-    
+    /// @name Member Variables
+    /// @{
+
     GeneralAlphaMethod  mAlpha;
     NewmarkMethod       mNewmark;
 
     GeneralMatrices     mMatrix;
     GeneralVectors      mVector;
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    /// @}
+    /// @name Protected Operators
+    /// @{
 
     //*********************************************************************************
     //Updating first time Derivative
@@ -909,10 +855,7 @@ protected:
     //Elements:
     //****************************************************************************
 
-    /**
-    Atangent = M*c0 + D*c1 + K
-
-     */
+    /// @details @f[ A_{tangent} = M \cdot c_0 + D \cdot c_1 + K @f]
     void AddDynamicsToLHS(
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
@@ -940,10 +883,7 @@ protected:
     //Elements:
     //****************************************************************************
 
-    /**
-    bdyn = b - M*a - D*v
-
-     */
+    /// @details @f[ b_{dyn} = b - M \cdot a - D \cdot v @f]
     void AddDynamicsToRHS(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -1022,42 +962,13 @@ protected:
 
     }
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-private:
-    /**@name Static Member Variables */
-    /*@{ */
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-    /*@} */
-    /**@name Unaccessible methods */
-    /*@{ */
-}; /* Class ResidualBasedBossakScheme */
-}  /* namespace Kratos.*/
+    /// @}
+}; // Class ResidualBasedBossakScheme
 
-#endif /* KRATOS_RESIDUAL_BASED_BOSSAK_SCHEME defined */
+/// @}
+
+}  // namespace Kratos.
+
+#endif // KRATOS_RESIDUAL_BASED_BOSSAK_SCHEME defined
 
 
