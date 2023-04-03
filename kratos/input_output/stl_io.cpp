@@ -91,7 +91,7 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
     std::function<void(ModelPart&, NodesArrayType&)> create_entity_func;
     const std::string new_entity_type = mParameters["new_entity_type"].GetString();
     if (new_entity_type == "geometry") {
-        create_entity_func = [this](
+        create_entity_func = [](
             ModelPart& rThisModelPart,
             NodesArrayType& rIndexes) {
                 rThisModelPart.CreateNewGeometry("Triangle3D3", rIndexes);
