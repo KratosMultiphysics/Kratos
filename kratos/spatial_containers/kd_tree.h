@@ -940,10 +940,7 @@ public:
 
         return left;
     }
-
-    //
-    //
-
+    
 public:
     static TreeNodeType* Construct(
         IteratorType PointsBegin,
