@@ -20,7 +20,6 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
-#include "math.h"
 
 namespace Kratos
 {

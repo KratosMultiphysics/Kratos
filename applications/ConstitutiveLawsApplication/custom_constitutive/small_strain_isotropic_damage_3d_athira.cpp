@@ -19,7 +19,6 @@
 #include "constitutive_laws_application_variables.h"
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
-#include "math.h"
 
 namespace Kratos
 {

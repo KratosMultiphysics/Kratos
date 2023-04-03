@@ -20,7 +20,6 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
-#include "math.h"
 
 namespace Kratos
 {
@@ -234,7 +233,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         if(r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true){
             k0t = r_material_properties[DAMAGE_THRESHOLD_TENSION];
         }else{
-            k0t = fck/E;
+            k0t = ft/E;
         }
         if(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true){
             k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
@@ -248,7 +247,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
 
         GetEigenValues(principal_strains, Max_principal_strain, STRAIN, r_strain_vector);  //calculate prinicpal strains
         for(SizeType i = 0; i < Dimension; ++i) {
-            kappa[i]       = std::max(abs(principal_strains[i]),k0);
+            kappa[i]       = std::max(fabs(principal_strains[i]),k0);
             F[i]           = abs(principal_strains[i])-kappa[i];
         }
         //Compute damage in principal directions
