@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/updated_lagrangian_UP.hpp"
+#include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application_variables.h"
