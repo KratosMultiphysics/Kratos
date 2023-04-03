@@ -35,14 +35,18 @@ bool contains(
     return std::find(rVec.begin(), rVec.end(), rValue) != rVec.end();
 }
 
-bool have_same_node_ids(
+// check if the geometries have the same nodes
+// for this to be the case, two conditions need to be fulflled:
+// 1: geometries have same number of nodes
+// 2: nodes of both geometries are in same order and in same coords
+bool have_same_nodes(
     const GeometryType& rGeom1,
     const GeometryType& rGeom2)
 {
     if (rGeom1.PointsNumber() != rGeom2.PointsNumber()) return false;
 
     for (std::size_t i=0; i<rGeom1.PointsNumber(); ++i) {
-        if (rGeom1[i].Id() != rGeom2[i].Id()) return false;
+        if (rGeom1[i].Distance(rGeom2[i]) > 1e-12) return false;
     }
 
     return true;
@@ -54,7 +58,7 @@ void CheckEntitiesAreEqual(
 {
     KRATOS_TRY
 
-    KRATOS_CHECK_EQUAL(rNode1.Id(), rNode2.Id());
+    // KRATOS_CHECK_EQUAL(rNode1.Id(), rNode2.Id()); // the MEDApp deliberately does not care about IDs
 
     KRATOS_CHECK_DOUBLE_EQUAL(rNode1.X(),  rNode2.X());
     KRATOS_CHECK_DOUBLE_EQUAL(rNode1.X0(), rNode2.X0());
@@ -74,7 +78,7 @@ void CheckGeometriesAreEqual(
 {
     KRATOS_TRY
 
-    // KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id()); // those are not the same!
+    // KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id()); // the MEDApp deliberately does not care about IDs
 
     KRATOS_CHECK_EQUAL(rGeom1.PointsNumber(), rGeom2.PointsNumber());
 
@@ -117,7 +121,7 @@ void CheckGeometriesAreEqual(
     auto check_geoms = [](const ModelPart& rModelPart1, const ModelPart& rModelPart2){
         for (auto geom_1 : rModelPart1.Geometries()) {
             for (auto geom_2 : rModelPart2.Geometries()) {
-                if (have_same_node_ids(geom_1, geom_2)) {
+                if (have_same_nodes(geom_1, geom_2)) {
                     CheckGeometriesAreEqual(geom_1, geom_2);
                     goto here;
                 }

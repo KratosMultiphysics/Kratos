@@ -79,6 +79,21 @@ KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodes, KratosMedFastSuite)
     });
 }
 
+KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodesNonConsecutiveNodeIds, KratosMedFastSuite)
+{
+    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+        int node_id = 1;
+        for (int x=0; x<20; ++x) {
+            for (int y=0; y<10; ++y) {
+                for (int z=0; z<15; ++z) {
+                    rModelPart.CreateNewNode(node_id, x, y, z);
+                    node_id += 5;
+                }
+            }
+        }
+    });
+}
+
 KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMesh, KratosMedFastSuite)
 {
     MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
@@ -88,6 +103,19 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMesh, KratosMedFastSuite)
         }
         for (std::size_t i=0; i<num_nodes-1; ++i) {
             rModelPart.CreateNewGeometry("Line3D2", std::vector<ModelPart::IndexType>{i+1, i+2});
+        }
+    });
+}
+
+KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMeshNonConsecutiveNodeIds, KratosMedFastSuite)
+{
+    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+        constexpr std::size_t num_nodes = 10;
+        for (std::size_t i=0; i<num_nodes; ++i) {
+            rModelPart.CreateNewNode(i*10+1, i,0,0)->Id();
+        }
+        for (std::size_t i=0; i<num_nodes-1; ++i) {
+            rModelPart.CreateNewGeometry("Line3D2", std::vector<ModelPart::IndexType>{i*10+1, (i+1)*10+1});
         }
     });
 }

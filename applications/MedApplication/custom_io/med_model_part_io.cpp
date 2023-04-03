@@ -437,7 +437,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         for (std::size_t i=0; i<num_geometries; ++i) {
             for (int j=0; j<num_nodes_geo_type; ++j) {
                 const int node_idx = i*num_nodes_geo_type + j;
-                geom_node_ids[j] = connectivity[node_idx];
+                geom_node_ids[j] = connectivity[node_idx]+1; // +1 bcs node-ids start with 1, but connectivity is written with base 0
             }
             reorder_fct(geom_node_ids);
             const IndexType geom_id = i+1+num_geometries_total;
@@ -449,7 +449,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         KRATOS_INFO("MedModelPartIO") << "Read " << num_geometries << " geometries of type " << kratos_geo_name << std::endl;
     }
 
-    KRATOS_INFO("MedModelPartIO") << "Read " << num_geometries_total << " geometries in total" << std::endl;
+    KRATOS_INFO_IF("MedModelPartIO", num_geometries_total > 0) << "Read " << num_geometries_total << " geometries in total" << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -506,6 +506,13 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         nodal_coords.data());
 
     if (rThisModelPart.NumberOfGeometries() > 0) {
+        // we deliberately do not care about IDs
+        std::unordered_map<int, int> kratos_id_to_med_id;
+        int med_id = 0;
+        for (const auto& r_node : rThisModelPart.Nodes()) {
+            kratos_id_to_med_id[r_node.Id()] = med_id++;
+        }
+
         std::string geometry_name;
 
         auto it_geom_begin = rThisModelPart.GeometriesBegin();
@@ -574,8 +581,8 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
             }
 
             ConnectivitiesType conn;
-            for (const auto& r_point : it_geom_current->Points()) {
-                conn.push_back(r_point.Id());
+            for (const auto& r_node : it_geom_current->Points()) {
+                conn.push_back(kratos_id_to_med_id[r_node.Id()]);
             }
             connectivities.push_back(conn);
 
