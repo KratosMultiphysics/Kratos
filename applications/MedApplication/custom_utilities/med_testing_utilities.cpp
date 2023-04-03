@@ -151,6 +151,11 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
     // check nodes
     CheckEntitiesAreEqual(rModelPart1.Nodes(), rModelPart2.Nodes());
 
+    // no need to further check an empty ModelPart
+    if (rModelPart1.NumberOfNodes() == 0) {
+        return;
+    }
+
     // make sure the Ids of the Nodes start with one
     auto min_id = [](const ModelPart& rModelPart){
         return block_for_each<MinReduction<std::size_t>>(rModelPart.Nodes(), [](const auto& rNode){

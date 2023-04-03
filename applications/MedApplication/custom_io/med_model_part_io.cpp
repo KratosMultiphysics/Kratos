@@ -442,8 +442,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
                 geom_node_ids[j] = connectivity[node_idx];
             }
             reorder_fct(geom_node_ids);
-            const IndexType geom_id = i+1+num_geometries_total;
-            rThisModelPart.CreateNewGeometry(kratos_geo_name, geom_id, geom_node_ids);
+            rThisModelPart.CreateNewGeometry(kratos_geo_name, geom_node_ids);
         }
 
         num_geometries_total += num_geometries;
