@@ -64,7 +64,7 @@ namespace Kratos
     CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        Parameters& rParameters )
+        Parameters rParameters )
         : mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
         , mrSkinPart(rSkinPart)
         , mrVolumePart(rVolumePart)
