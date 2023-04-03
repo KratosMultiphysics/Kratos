@@ -165,4 +165,18 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DQuadrilateralMesh, KratosMedFastSuite)
     });
 }
 
+KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriAndQuadMesh, KratosMedFastSuite)
+{
+    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+        rModelPart.CreateNewNode(1, 0,0,0);
+        rModelPart.CreateNewNode(2, 1,0,0);
+        rModelPart.CreateNewNode(3, 1,1,0);
+        rModelPart.CreateNewNode(4, 0,1,0);
+        rModelPart.CreateNewNode(5, 1.5,0.5,0);
+
+        rModelPart.CreateNewGeometry("Quadrilateral2D4", std::vector<ModelPart::IndexType>{1,2,3,4});
+        rModelPart.CreateNewGeometry("Triangle2D3", std::vector<ModelPart::IndexType>{2,5,3});
+    });
+}
+
 } // Kratos::Testing
