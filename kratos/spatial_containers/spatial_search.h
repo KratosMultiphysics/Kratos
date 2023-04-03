@@ -478,6 +478,119 @@ public:
         VectorDistanceType& rResultsDistance
         );
 
+
+    //************************************************************************
+    // Nodal Exclusive search without distance calculation
+    //************************************************************************
+
+    /**
+    * @brief Search neighbours for every node in "rModelpart" excluding itself
+    * @param rModelPart          Input modelpart against which the neighbours are searched
+    * @param Radius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
+    virtual void SearchNodesInRadiusExclusive (
+        ModelPart& rModelPart,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every node in "InputNodes" excluding itself
+    * @param rModelPart          Input modelpart against which the neighbours are searched
+    * @param InputNodes          List of nodes to be searched
+    * @param Radius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
+    virtual void SearchNodesInRadiusExclusive (
+        ModelPart& rModelPart,
+        NodesContainerType const& InputNodes,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every node in "StructureNodes" excluding itself
+    * @param StructureNodes      Lis of nodes against which the neighbours are searched
+    * @param Radius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
+    virtual void SearchNodesInRadiusExclusive (
+        NodesContainerType const& StructureNodes,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every node in "InputNodes" excluding itself
+    * @param rModelPart          List of nodes against which the neighbours are searched
+    * @param InputNodes          List of nodes to be searched
+    * @param Radius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
+    virtual void SearchNodesInRadiusExclusive (
+        NodesContainerType const& StructureNodes,
+        NodesContainerType const& InputNodes,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    //************************************************************************
+    // Nodal Inclusive search without distance calculation
+    //************************************************************************
+
+    /**
+    * @brief Search neighbours for every node in "rModelpart" including itself
+    * @param rModelPart          Input modelpart against which the neighbours are searched
+    * @param Radius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
+    virtual void SearchNodesInRadiusInclusive (
+        ModelPart& rModelPart,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every node in "InputNodes" including itself
+    * @param rModelPart          Input modelpart against which the neighbours are searched
+    * @param InputNodes          List of nodes to be searched
+    * @param Radius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
+    virtual void SearchNodesInRadiusInclusive (
+        ModelPart& rModelPart,
+        NodesContainerType const& InputNodes,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every node in "StructureNodes" including itself
+    * @param StructureNodes      List of nodes against which the neighbours are searched
+    * @param Radius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
+    virtual void SearchNodesInRadiusInclusive (
+        NodesContainerType const& StructureNodes,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every node in "InputNodes" including itself
+    * @param StructureNodes      List of nodes against which the neighbours are searched
+    * @param InputNodes          List of nodes to be searched
+    * @param Radius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
+    virtual void SearchNodesInRadiusInclusive (
+        NodesContainerType const& StructureNodes,
+        NodesContainerType const& InputNodes,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
     //************************************************************************
     // Condition Exclusive search with distance calculation
     //************************************************************************
