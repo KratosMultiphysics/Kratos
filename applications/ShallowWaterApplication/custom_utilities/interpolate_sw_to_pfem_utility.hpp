@@ -63,10 +63,10 @@ public:
     void InterpolateVariables (ModelPart& rPfemModelPart, ModelPart& rSWModelPart)
     {
         
-        long unsigned int NNodesSW = static_cast<int>(rSWModelPart.Nodes().size());
+        const std::size_t NNodesSW = static_cast<int>(rSWModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator node_beginSW = rSWModelPart.NodesBegin();
         
-        long unsigned int NNodesPfem = static_cast<int>(rPfemModelPart.Nodes().size());
+        const std::size_t NNodesPfem = static_cast<int>(rPfemModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator node_beginPfem = rPfemModelPart.NodesBegin();
 
         double distance, distance_to_first_neigh_node, distance_to_second_neigh_node;
