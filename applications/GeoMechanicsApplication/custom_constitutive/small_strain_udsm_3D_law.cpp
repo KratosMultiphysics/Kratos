@@ -856,9 +856,9 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &r
     for ( unsigned int i=0;i<VOIGT_SIZE_3D;++i) 
       {mStressAndUnsatVector[i] = mStressVectorFinalized[i];}
    
-    mStressAndUnsatVector[6] = mDegreeOfSaturaion;
-    mStressAndUnsatVector[7] = mDerivativeOfSaturation; 
-    mStressAndUnsatVector[8] = mIncrementOfSuction;
+    mStressAndUnsatVector[6] = DEGREE_OF_SATURATION;
+    mStressAndUnsatVector[7] = DERIVATIVE_OF_SATURATION; 
+    mStressAndUnsatVector[8] = INCREMENT_OF_SUCTION;
       
 
 
