@@ -1064,11 +1064,11 @@ public:
 
     ///@}
 protected:
-    ///@name Protected static Member Variables 
+    ///@name Protected static Member Variables
     ///@{
 
     ///@}
-    ///@name Protected member Variables 
+    ///@name Protected member Variables
     ///@{
 
     ///@}
@@ -1080,24 +1080,24 @@ protected:
     ///@{
 
     ///@}
-    ///@name Protected  Access 
+    ///@name Protected  Access
     ///@{
 
     ///@}
-    ///@name Protected Inquiry 
+    ///@name Protected Inquiry
     ///@{
 
     ///@}
-    ///@name Protected LifeCycle 
+    ///@name Protected LifeCycle
     ///@{
 
     ///@}
 private:
-    ///@name Static Member Variables 
+    ///@name Static Member Variables
     ///@{
 
     ///@}
-    ///@name Member Variables 
+    ///@name Member Variables
     ///@{
 
     ///@}
@@ -1109,15 +1109,15 @@ private:
     ///@{
 
     ///@}
-    ///@name Private  Access 
+    ///@name Private  Access
     ///@{
 
     ///@}
-    ///@name Private Inquiry 
+    ///@name Private Inquiry
     ///@{
 
     ///@}
-    ///@name Un accessible methods 
+    ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
