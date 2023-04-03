@@ -50,7 +50,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class UpdatedLagrangian
+class MPMUpdatedLagrangian
     : public Element
 {
 public:
@@ -69,7 +69,7 @@ public:
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangian );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMUpdatedLagrangian );
     ///@}
 
 protected:
@@ -233,26 +233,26 @@ public:
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangian();
+    MPMUpdatedLagrangian();
 
 
     /// Default constructors
-    UpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMUpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMUpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangian(UpdatedLagrangian const& rOther);
+    MPMUpdatedLagrangian(MPMUpdatedLagrangian const& rOther);
 
     /// Destructor.
-    ~UpdatedLagrangian() override;
+    ~MPMUpdatedLagrangian() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangian& operator=(UpdatedLagrangian const& rOther);
+    MPMUpdatedLagrangian& operator=(MPMUpdatedLagrangian const& rOther);
 
     ///@}
     ///@name Operations
@@ -733,7 +733,7 @@ private:
     ///@{
     ///@}
 
-}; // Class UpdatedLagrangian
+}; // Class MPMUpdatedLagrangian
 
 ///@}
 ///@name Type Definitions
