@@ -487,12 +487,13 @@ void SpatialSearch::SearchNodesInRadiusInclusive (
 void SpatialSearch::SearchConditionsInRadiusExclusive (
     ModelPart& rModelPart,
     const RadiusArrayType& rRadius,
-    VectorResultNodesContainerType& rResults,
+    VectorResultConditionsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
-    this->SearchConditionsInRadiusExclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                            rRadius,rResults,rResultsDistance);
+    this->SearchConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
@@ -502,7 +503,38 @@ void SpatialSearch::SearchConditionsInRadiusExclusive (
     ModelPart& rModelPart,
     ConditionsContainerType const& InputConditions,
     const RadiusArrayType& rRadius,
-    VectorResultNodesContainerType& rResults,
+    VectorResultConditionsContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    this->SearchConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        InputConditions,
+                                        rRadius,rResults,rResultsDistance);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusExclusive (
+    ConditionsContainerType const& StructureConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultConditionsContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    this->SearchConditionsInRadiusExclusive(StructureConditions,
+                                        StructureConditions,
+                                        rRadius,rResults,rResultsDistance);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusExclusive (
+    ConditionsContainerType const& StructureConditions,
+    ConditionsContainerType const& InputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultConditionsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
@@ -519,8 +551,9 @@ void SpatialSearch::SearchConditionsInRadiusInclusive (
     VectorDistanceType& rResultsDistance
     )
 {
-    this->SearchConditionsInRadiusInclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().Conditions(), 
-                                            rRadius,rResults,rResultsDistance);
+    this->SearchConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
@@ -532,6 +565,149 @@ void SpatialSearch::SearchConditionsInRadiusInclusive (
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
+    )
+{
+    this->SearchConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        InputConditions,
+                                        rRadius,rResults,rResultsDistance);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusInclusive (
+    ConditionsContainerType const& StructureConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    this->SearchConditionsInRadiusInclusive(StructureConditions,
+                                        StructureConditions,
+                                        rRadius,rResults,rResultsDistance);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusInclusive (
+    ConditionsContainerType const& StructureConditions,
+    ConditionsContainerType const& InputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusExclusive (
+    ModelPart& rModelPart,
+    const RadiusArrayType& rRadius,
+    VectorResultConditionsContainerType& rResults
+    )
+{
+    this->SearchConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        rRadius,rResults);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusExclusive (
+    ModelPart& rModelPart,
+    ConditionsContainerType const& InputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultConditionsContainerType& rResults
+    )
+{
+    this->SearchConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        InputConditions,
+                                        rRadius,rResults);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusExclusive (
+    ConditionsContainerType const& StructureConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultConditionsContainerType& rResults
+    )
+{
+    this->SearchConditionsInRadiusExclusive(StructureConditions,
+                                        StructureConditions,
+                                        rRadius,rResults);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusExclusive (
+    ConditionsContainerType const& StructureConditions,
+    ConditionsContainerType const& InputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultConditionsContainerType& rResults
+    )
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusInclusive (
+    ModelPart& rModelPart,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults
+    )
+{
+    this->SearchConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        rRadius,rResults);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusInclusive (
+    ModelPart& rModelPart,
+    ConditionsContainerType const& InputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults
+    )
+{
+    this->SearchConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                        InputConditions,
+                                        rRadius,rResults);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusInclusive (
+    ConditionsContainerType const& StructureConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults
+    )
+{
+    this->SearchConditionsInRadiusInclusive(StructureConditions,
+                                        StructureConditions,
+                                        rRadius,rResults);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::SearchConditionsInRadiusInclusive (
+    ConditionsContainerType const& StructureConditions,
+    ConditionsContainerType const& InputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;

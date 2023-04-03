@@ -592,49 +592,79 @@ public:
         );
 
     //************************************************************************
-    // Condition Exclusive search with distance calculation
+    // Conditional Exclusive search with distance calculation
     //************************************************************************
 
     /**
-    * @brief Search neighbours for every condition in "rModelpart" excluding itself
+    * @brief Search neighbours for every Condition in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every condition
-    * @param rResults            Array of results for each condition
-    * @param rResultDistance     Array of distances for each result of each condition
+    * @param Radius              List of search radius for every Condition
+    * @param rResults            Array of results for each Condition
+    * @param rResultDistance     Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
         ModelPart& rModelPart,
         const RadiusArrayType& rRadius,
-        VectorResultNodesContainerType& rResults,
+        VectorResultConditionsContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
 
     /**
-    * @brief Search neighbours for every condition in "InputConditions" excluding itself
+    * @brief Search neighbours for every Condition in "InputConditions" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputConditions     List of conditions to be searched
-    * @param Radius              List of search radius for every condition
-    * @param rResults            Array of results for each condition
-    * @param rResultDistance     Array of distances for each result of each condition
+    * @param InputConditions     List of Conditions to be searched
+    * @param Radius              List of search radius for every Condition
+    * @param rResults            Array of results for each Condition
+    * @param rResultDistance     Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
         ModelPart& rModelPart,
         ConditionsContainerType const& InputConditions,
         const RadiusArrayType& rRadius,
-        VectorResultNodesContainerType& rResults,
+        VectorResultConditionsContainerType& rResults,
+        VectorDistanceType& rResultsDistance
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "StructureConditions" excluding itself
+    * @param StructureConditions   List of Conditions modelpart against which the neighbours are searched
+    * @param Radius                List of search radius for every Condition
+    * @param rResults              Array of results for each Condition
+    * @param rResultDistance       Array of distances for each result of each Condition
+    */
+    virtual void SearchConditionsInRadiusExclusive (
+        ConditionsContainerType const& StructureConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultConditionsContainerType& rResults,
+        VectorDistanceType& rResultsDistance
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "InputConditions" excluding itself
+    * @param StructureConditions   List of Conditions against which the neighbours are searched
+    * @param InputConditions       List of Conditions to be searched
+    * @param Radius                List of search radius for every Condition
+    * @param rResults              Array of results for each Condition
+    * @param rResultDistance       Array of distances for each result of each Condition
+    */
+    virtual void SearchConditionsInRadiusExclusive (
+        ConditionsContainerType const& StructureConditions,
+        ConditionsContainerType const& InputConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultConditionsContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
 
     //************************************************************************
-    // Condition Inclusive search with distance calculation
+    // Conditional Inclusive search with distance calculation
     //************************************************************************
 
     /**
-    * @brief Search neighbours for every condition in "rModelpart" including itself
+    * @brief Search neighbours for every Condition in "rModelpart" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every condition
-    * @param rResults            Array of results for each condition
-    * @param rResultDistance     Array of distances for each result of each condition
+    * @param Radius              List of search radius for every Condition
+    * @param rResults            Array of results for each Condition
+    * @param rResultDistance     Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
         ModelPart& rModelPart,
@@ -644,12 +674,12 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every condition in "InputConditions" including itself
+    * @brief Search neighbours for every Condition in "InputConditions" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputConditions     List of conditions to be searched
-    * @param Radius              List of search radius for every condition
-    * @param rResults            Array of results for each condition
-    * @param rResultDistance     Array of distances for each result of each condition
+    * @param InputConditions     List of Conditions to be searched
+    * @param Radius              List of search radius for every Condition
+    * @param rResults            Array of results for each Condition
+    * @param rResultDistance     Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
         ModelPart& rModelPart,
@@ -657,6 +687,148 @@ public:
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "StructureConditions" including itself
+    * @param StructureConditions   List of Conditions against which the neighbours are searched
+    * @param Radius                List of search radius for every Condition
+    * @param rResults              Array of results for each Condition
+    * @param rResultDistance       Array of distances for each result of each Condition
+    */
+    virtual void SearchConditionsInRadiusInclusive (
+        ConditionsContainerType const& StructureConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults,
+        VectorDistanceType& rResultsDistance
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "InputConditions" including itself
+    * @param StructureConditions   List of Conditions against which the neighbours are searched
+    * @param InputConditions       List of Conditions to be searched
+    * @param Radius                List of search radius for every Condition
+    * @param rResults              Array of results for each Condition
+    * @param rResultDistance       Array of distances for each result of each Condition
+    */
+    virtual void SearchConditionsInRadiusInclusive (
+        ConditionsContainerType const& StructureConditions,
+        ConditionsContainerType const& InputConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults,
+        VectorDistanceType& rResultsDistance
+        );
+
+    //************************************************************************
+    // Conditional Exclusive search without distance calculation
+    //************************************************************************
+
+    /**
+    * @brief Search neighbours for every Condition in "rModelpart" excluding itself
+    * @param rModelPart          Input modelpart against which the neighbours are searched
+    * @param Radius              List of search radius for every Condition
+    * @param rResults            Array of results for each Condition
+    */
+    virtual void SearchConditionsInRadiusExclusive (
+        ModelPart& rModelPart,
+        const RadiusArrayType& rRadius,
+        VectorResultConditionsContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "InputConditions" excluding itself
+    * @param rModelPart          Input modelpart against which the neighbours are searched
+    * @param InputConditions     List of Conditions to be searched
+    * @param Radius              List of search radius for every Condition
+    * @param rResults            Array of results for each Condition
+    */
+    virtual void SearchConditionsInRadiusExclusive (
+        ModelPart& rModelPart,
+        ConditionsContainerType const& InputConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultConditionsContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "StructureConditions" excluding itself
+    * @param StructureConditions   List of nodes against which the neighbours are searched
+    * @param Radius                List of search radius for every Condition
+    * @param rResults              Array of results for each Condition
+    */
+    virtual void SearchConditionsInRadiusExclusive (
+        ConditionsContainerType const& StructureConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultConditionsContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "InputConditions" excluding itself
+    * @param StructureConditions   List of Conditions against which the neighbours are searched
+    * @param InputConditions       List of Conditions to be searched
+    * @param Radius                List of search radius for every Condition
+    * @param rResults              Array of results for each Condition
+    */
+    virtual void SearchConditionsInRadiusExclusive (
+        ConditionsContainerType const& StructureConditions,
+        ConditionsContainerType const& InputConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultConditionsContainerType& rResults
+        );
+
+    //************************************************************************
+    // Conditional Inclusive search without distance calculation
+    //************************************************************************
+
+    /**
+    * @brief Search neighbours for every Condition in "rModelpart" including itself
+    * @param rModelPart          Input modelpart against which the neighbours are searched
+    * @param Radius              List of search radius for every Condition
+    * @param rResults            Array of results for each Condition
+    */
+    virtual void SearchConditionsInRadiusInclusive (
+        ModelPart& rModelPart,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "InputConditions" including itself
+    * @param rModelPart          Input modelpart against which the neighbours are searched
+    * @param InputConditions     List of Conditions to be searched
+    * @param Radius              List of search radius for every Condition
+    * @param rResults            Array of results for each Condition
+    */
+    virtual void SearchConditionsInRadiusInclusive (
+        ModelPart& rModelPart,
+        ConditionsContainerType const& InputConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "StructureConditions" including itself
+    * @param StructureConditions   List of Conditions against which the neighbours are searched
+    * @param Radius                List of search radius for every Condition
+    * @param rResults              Array of results for each Condition
+    */
+    virtual void SearchConditionsInRadiusInclusive (
+        ConditionsContainerType const& StructureConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
+        );
+
+    /**
+    * @brief Search neighbours for every Condition in "InputConditions" including itself
+    * @param StructureConditions   List of Conditions against which the neighbours are searched
+    * @param InputConditions       List of Conditions to be searched
+    * @param Radius                List of search radius for every Condition
+    * @param rResults              Array of results for each Condition
+    */
+    virtual void SearchConditionsInRadiusInclusive (
+        ConditionsContainerType const& StructureConditions,
+        ConditionsContainerType const& InputConditions,
+        const RadiusArrayType& rRadius,
+        VectorResultNodesContainerType& rResults
         );
 
     //************************************************************************
