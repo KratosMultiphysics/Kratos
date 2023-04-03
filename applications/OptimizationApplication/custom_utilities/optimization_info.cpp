@@ -93,11 +93,14 @@ bool OptimizationInfo<TArgs...>::HasValue(
         // if the leaf name is found
 
         // get the buffer corresponding to StepIndex
-        const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+        bool has_buffered_value = false;
+        if (StepIndex < GetBufferSize()) {
+            const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+            has_buffered_value = r_buffered_data.find(rName) != r_buffered_data.end();
+        }
 
         // check the value in buffered data nd sub items
-        return r_buffered_data.find(rName) != r_buffered_data.end() ||
-               mSubItems.find(rName) != mSubItems.end();
+        return has_buffered_value || mSubItems.find(rName) != mSubItems.end();
     } else {
         // if not the leaf name, then check if it exists in sub items
         const auto sub_item_itr = mSubItems.find(rName.substr(0, delim_pos));
@@ -312,6 +315,7 @@ template <class... TArgs>
 void OptimizationInfo<TArgs...>::GetKeys(
     std::vector<std::string>& rKeys,
     const IndexType StepIndex,
+    const bool SearchSubItems,
     const std::string& rPrefix) const
 {
     // first put the buffered data
@@ -324,9 +328,42 @@ void OptimizationInfo<TArgs...>::GetKeys(
 
     // now iterate through sub items and fill rKeys with leaves
     for (const auto& r_sub_item_itr : mSubItems) {
-        r_sub_item_itr.second->GetKeys(
-            rKeys, StepIndex,
-            std::string(rPrefix).append(r_sub_item_itr.first).append("/"));
+        rKeys.push_back(std::string(rPrefix).append(r_sub_item_itr.first));
+
+        if (SearchSubItems) {
+            r_sub_item_itr.second->GetKeys(
+                rKeys, StepIndex, SearchSubItems,
+                std::string(rPrefix).append(r_sub_item_itr.first).append("/"));
+        }
+    }
+}
+
+template <class... TArgs>
+void OptimizationInfo<TArgs...>::GetKeysDataMap(
+    std::unordered_map<std::string, ValueType>& rData,
+    const IndexType StepIndex,
+    const bool SearchSubItems,
+    const std::string& rPrefix) const
+{
+    // first put the buffered data
+    if (StepIndex < GetBufferSize()) {
+        const auto& r_buffered_data = mBufferedData[GetBufferIndex(StepIndex)];
+        for (const auto& r_buffered_item_itr : r_buffered_data) {
+            std::visit([&rData, &r_buffered_item_itr, &rPrefix](const auto& rValue) {
+                rData[std::string(rPrefix).append(r_buffered_item_itr.first)] = rValue;
+            }, r_buffered_item_itr.second);
+        }
+    }
+
+    // now iterate through sub items and fill rKeys with leaves
+    for (const auto& r_sub_item_itr : mSubItems) {
+        rData[std::string(rPrefix).append(r_sub_item_itr.first)] = r_sub_item_itr.second;
+
+        if (SearchSubItems) {
+            r_sub_item_itr.second->GetKeysDataMap(
+                rData, StepIndex, SearchSubItems,
+                std::string(rPrefix).append(r_sub_item_itr.first).append("/"));
+        }
     }
 }
 

@@ -191,7 +191,7 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         sub_item.SetValue("sub_double", 4.0, 1)
 
         optimization_info.SetValue("sub_item/sub_model_part/model_part", model_part, 2)
-        optimization_info.SetValue("sub_item/container/contaner", a, 2)
+        optimization_info.SetValue("sub_item/container/container", a, 2)
 
         for k in optimization_info.GetKeys():
             self.assertTrue(optimization_info.HasValue(k))
@@ -202,9 +202,92 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         for k in optimization_info.GetKeys(2):
             self.assertTrue(optimization_info.HasValue(k, 2))
 
-        self.assertEqual(sorted(optimization_info.GetKeys()), sorted(["bool", "int", "double", "string", "sub_item/sub_int", "sub_item/sub_double", "sub_item2/sub_sub_item/int", "sub_item2/double"]))
-        self.assertEqual(sorted(optimization_info.GetKeys(1)), sorted(["sub_item/sub_int", "sub_item/sub_double"]))
-        self.assertEqual(sorted(optimization_info.GetKeys(2)), sorted(["sub_item/sub_model_part/model_part", "sub_item/container/contaner"]))
+        for k in optimization_info.GetKeys(search_sub_items=True):
+            self.assertTrue(optimization_info.HasValue(k))
+
+        for k in optimization_info.GetKeys(1, search_sub_items=True):
+            self.assertTrue(optimization_info.HasValue(k, 1))
+
+        for k in optimization_info.GetKeys(2, search_sub_items=True):
+            self.assertTrue(optimization_info.HasValue(k, 2))
+
+        self.assertEqual(
+            sorted(optimization_info.GetKeys()),
+            sorted(["bool", "int", "double", "string", "sub_item", "sub_item2"]))
+
+        self.assertEqual(
+            sorted(optimization_info.GetKeys(search_sub_items=True)),
+            sorted(["bool", "int", "double", "string", "sub_item2", "sub_item2/double", "sub_item2/sub_sub_item", "sub_item2/sub_sub_item/int", "sub_item", "sub_item/sub_double", "sub_item/sub_int", "sub_item/container", "sub_item/sub_model_part"]))
+
+        self.assertEqual(
+            sorted(optimization_info.GetKeys(1)),
+            sorted(["sub_item2", "sub_item"]))
+
+        self.assertEqual(
+            sorted(optimization_info.GetKeys(1, search_sub_items=True)),
+            sorted(["sub_item2", "sub_item2/sub_sub_item", "sub_item", "sub_item/sub_double", "sub_item/sub_int", "sub_item/container", "sub_item/sub_model_part"]))
+
+        self.assertEqual(
+            sorted(optimization_info.GetKeys(2)),
+            sorted(["sub_item", "sub_item2"]))
+
+        self.assertEqual(
+            sorted(optimization_info.GetKeys(2, search_sub_items=True)),
+            sorted(["sub_item", "sub_item2", "sub_item2/sub_sub_item", "sub_item/container", "sub_item/container/container", "sub_item/sub_model_part", "sub_item/sub_model_part/model_part"]))
+
+    def test_GetKeysDataMap(self):
+        optimization_info = KratosOA.OptimizationInfo(2)
+
+        optimization_info.SetValue("bool", True)
+        optimization_info.SetValue("int", 1)
+        optimization_info.SetValue("double", 2.0)
+        optimization_info.SetValue("string", "test")
+        optimization_info.SetValue("string", "old", 1)
+        optimization_info.SetValue("sub_item/string", "sub_test")
+        optimization_info.SetValue("sub_item/int", 19)
+        optimization_info.SetValue("sub_item/sub_sub/int", 21)
+        optimization_info.SetValue("sub_item/sub_sub/int", 22, 1)
+
+        self.assertEqual(
+            optimization_info.GetKeysDataMap(),
+            {
+                "bool": True,
+                "int": 1,
+                "double": 2.0,
+                "string": "test",
+                "sub_item": optimization_info.GetSubItem("sub_item")
+            })
+
+        self.assertEqual(
+            optimization_info.GetKeysDataMap(search_sub_items=True),
+            {
+                "bool": True,
+                "int": 1,
+                "double": 2.0,
+                "string": "test",
+                "sub_item": optimization_info.GetSubItem("sub_item"),
+                "sub_item/string": "sub_test",
+                "sub_item/int": 19,
+                "sub_item/sub_sub": optimization_info.GetSubItem("sub_item/sub_sub"),
+                "sub_item/sub_sub/int": 21
+            })
+
+        self.assertEqual(
+            optimization_info.GetKeysDataMap(1),
+            {
+                "string": "old",
+                "sub_item": optimization_info.GetSubItem("sub_item")
+            })
+
+        self.assertEqual(
+            optimization_info.GetKeysDataMap(1, search_sub_items=True),
+            {
+                "string": "old",
+                "sub_item": optimization_info.GetSubItem("sub_item"),
+                "sub_item/sub_sub": optimization_info.GetSubItem("sub_item/sub_sub"),
+                "sub_item/sub_sub/int": 22
+            })
+
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS

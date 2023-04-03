@@ -190,11 +190,32 @@ public:
      *
      * @param rKeys                     Output containing all the keys.
      * @param StepIndex                 Step index to look for in buffered data.
+     * @param SearchSubItems            Recursively search subitems for keys.
      * @param rPrefix                   Prefix to append the keys with.
      */
     void GetKeys(
         std::vector<std::string>& rKeys,
         const IndexType StepIndex = 0,
+        const bool SearchSubItems = false,
+        const std::string& rPrefix = "") const;
+
+
+    /**
+     * @brief Get the Keys Data Map
+     *
+     * This fills the @ref rData map with the keys from @ref StepIndex and
+     * sub items names. If @ref SearchSubItems is set to True, then this
+     * will populate the map with values recursively going through sub items.
+     *
+     * @param rData                     Output map.
+     * @param StepIndex                 Step index to be looked in.
+     * @param SearchSubItems            Recursively search subitems for keys.
+     * @param rPrefix                   Prefix to append the keys with.
+     */
+    void GetKeysDataMap(
+        std::unordered_map<std::string, ValueType>& rData,
+        const IndexType StepIndex = 0,
+        const bool SearchSubItems = false,
         const std::string& rPrefix = "") const;
 
     /**
