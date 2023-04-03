@@ -4,14 +4,12 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-
-
 
 // System includes
 
@@ -20,24 +18,96 @@
 // Project includes
 #include "includes/define_python.h"
 #include "python/add_search_strategies_to_python.h"
+#include "utilities/parallel_utilities.h"
 #include "spatial_containers/spatial_search.h"
 
-namespace Kratos
+namespace Kratos::Python
 {
 
-namespace Python
+/**
+ * @brief Generates a list of lists from a vector of vectors
+ * @param rList The list to be filled
+ * @param rVector The vector of vectors to be copied
+ * @tparam TClass The type of the vector of vectors
+ */
+template<class TClass>
+void GenerateListFromVectorOfVector(
+    pybind11::list& rList,
+    const TClass& rVector
+    )
 {
+    // Clear the result list
+    rList.attr("clear")();
 
-void  AddSearchStrategiesToPython(pybind11::module& m)
+    // Copy to the result list
+    for (std::size_t i = 0; i < rVector.size(); ++i) {
+        pybind11::list results_list_i;
+        for (auto& result : rVector[i]) {
+            results_list_i.append(result);
+        }
+        rList.append(results_list_i);
+    }
+}
+
+void AddSearchStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
+    /// The variables of the spatial search
+    using RadiusArrayType = SpatialSearch::RadiusArrayType;
+    using VectorResultElementsContainerType = SpatialSearch::VectorResultElementsContainerType;
+    using VectorDistanceType = SpatialSearch::VectorDistanceType;
+    using ElementsContainerType = SpatialSearch::ElementsContainerType;
+
     py::class_<SpatialSearch, SpatialSearch::Pointer>(m, "SpatialSearch")
-        .def(py::init< >())
-        ;
+    .def(py::init< >())
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+        // Get the size of the radius array
+        const std::size_t size_array = rListOfRadius.size();
+
+        // Create the radius array
+        RadiusArrayType radius_array(size_array);
+        IndexPartition<std::size_t>(size_array).for_each([&](std::size_t i) {
+            radius_array[i] = rListOfRadius[i].cast<double>();
+            //radius_array[i] = rListOfRadius[i];
+        });
+
+        // Create the results and distances arrays
+        VectorResultElementsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+
+        // Perform the search
+        self.SearchElementsInRadiusExclusive(rModelPart, radius_array, results, distances);
+
+        // Copy the results to the python list
+        GenerateListFromVectorOfVector(rResultsList, results);
+        GenerateListFromVectorOfVector(rDistancesList, distances);
+    })
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
+    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+        // Get the size of the radius array
+        const std::size_t size_array = rListOfRadius.size();
+
+        // Create the radius array
+        RadiusArrayType radius_array(size_array);
+        IndexPartition<std::size_t>(size_array).for_each([&](std::size_t i) {
+            radius_array[i] = rListOfRadius[i].cast<double>();
+            //radius_array[i] = rListOfRadius[i];
+        });
+
+        // Create the results and distances arrays
+        VectorResultElementsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+
+        // Perform the search
+        self.SearchElementsInRadiusExclusive(rModelPart, rInputElements, radius_array, results, distances);
+
+        // Copy the results to the python list
+        GenerateListFromVectorOfVector(rResultsList, results);
+        GenerateListFromVectorOfVector(rDistancesList, distances);
+    })
+    ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 
