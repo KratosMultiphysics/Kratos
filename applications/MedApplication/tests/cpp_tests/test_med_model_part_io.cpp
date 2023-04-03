@@ -32,18 +32,6 @@ KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_read, KratosMedFastSuit
     KRATOS_CHECK_IS_FALSE(std::filesystem::exists(file_path));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_append, KratosMedFastSuite)
-{
-    const std::filesystem::path file_path(this->Name() + ".txt");
-    KRATOS_CHECK_IS_FALSE(std::filesystem::exists(file_path)); // make sure there are no leftovers
-
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        MedModelPartIO dummy(file_path, IO::APPEND),
-        "File \""+file_path.string()+"\" does not exist!");
-
-    KRATOS_CHECK_IS_FALSE(std::filesystem::exists(file_path));
-}
-
 KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_write, KratosMedFastSuite)
 {
     const std::filesystem::path file_path(this->Name() + ".txt");

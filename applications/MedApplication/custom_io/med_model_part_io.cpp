@@ -351,6 +351,12 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     // reading nodes
     const int num_nodes = GetNumberOfNodes(mpFileHandler->GetFileHandle(), mpFileHandler->GetMeshName());
+
+    if (num_nodes == 0) {
+        KRATOS_WARNING("MedModelPartIO") << "Med file " << mFileName << " does not contain any entities!" << std::endl;
+        return;
+    }
+
     const int dimension = mpFileHandler->GetDimension();
 
     const std::vector<double> node_coords = GetNodeCoordinates(
