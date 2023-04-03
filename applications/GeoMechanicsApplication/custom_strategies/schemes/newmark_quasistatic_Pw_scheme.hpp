@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -20,14 +19,14 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
-#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/geo_base_scheme.hpp"
 
 namespace Kratos
 {
 
 template<class TSparseSpace, class TDenseSpace>
 
-class NewmarkQuasistaticPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
+class NewmarkQuasistaticPwScheme : public GeoBaseScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
@@ -35,22 +34,18 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticPwScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
+    // typedef typename BaseType::DofsArrayType                 DofsArrayType;
     typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace> MotherType;
-    using MotherType::mDeltaTime;
-    using MotherType::mBeta;
-    using MotherType::mGamma;
-    using MotherType::mTheta;
+    // typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    // typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef GeoBaseScheme<TSparseSpace,TDenseSpace>             MotherType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
     NewmarkQuasistaticPwScheme(double theta) : 
-        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
+        GeoBaseScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
     { }
 
     //------------------------------------------------------------------------------------
@@ -142,5 +137,3 @@ protected:
 
 }; // Class NewmarkQuasistaticPwScheme
 }  // namespace Kratos
-
-#endif // KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME defined

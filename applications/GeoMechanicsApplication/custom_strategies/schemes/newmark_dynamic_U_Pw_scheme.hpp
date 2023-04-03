@@ -11,13 +11,12 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME )
-#define  KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME
+#pragma once
 
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/geo_base_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -25,7 +24,7 @@ namespace Kratos
 
 template<class TSparseSpace, class TDenseSpace>
 
-class NewmarkDynamicUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
+class NewmarkDynamicUPwScheme : public GeoBaseScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
@@ -38,16 +37,16 @@ public:
     typedef typename BaseType::TSystemVectorType         TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
+    // using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
+    // using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
+    // using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
+    // using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
     NewmarkDynamicUPwScheme(double beta, double gamma, double theta)
-        : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
+        : GeoBaseScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
         //Allocate auxiliary memory
         int NumThreads = ParallelUtilities::GetNumThreads();
@@ -453,5 +452,3 @@ protected:
 
 }; // Class NewmarkDynamicUPwScheme
 }  // namespace Kratos
-
-#endif // KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME defined

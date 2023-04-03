@@ -11,11 +11,10 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_DAMPED_U_PW_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_DAMPED_U_PW_SCHEME
+#pragma once
 
 // Application includes
-#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/geo_base_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -23,7 +22,7 @@ namespace Kratos
 
 template<class TSparseSpace, class TDenseSpace>
 
-class NewmarkQuasistaticDampedUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
+class NewmarkQuasistaticDampedUPwScheme : public GeoBaseScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
@@ -33,15 +32,15 @@ public:
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
+    // using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
+    // using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
+    // using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
     NewmarkQuasistaticDampedUPwScheme(double beta, double gamma, double theta)
-        : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
+        : GeoBaseScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
         //Allocate auxiliary memory
         int NumThreads = ParallelUtilities::GetNumThreads();
@@ -172,5 +171,3 @@ protected:
 
 }; // Class NewmarkQuasistaticDampedUPwScheme
 }  // namespace Kratos
-
-#endif // KRATOS_NEWMARK_QUASISTATIC_DAMPED_U_PW_SCHEME defined

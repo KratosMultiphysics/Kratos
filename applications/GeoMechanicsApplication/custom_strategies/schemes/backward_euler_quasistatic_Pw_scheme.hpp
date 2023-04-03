@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_BACKWARD_EULER_QUASISTATIC_PW_SCHEME )
-#define  KRATOS_BACKWARD_EULER_QUASISTATIC_PW_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -22,13 +21,14 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
+#include "custom_strategies/schemes/geo_base_scheme.hpp"
 
 namespace Kratos
 {
 
 template<class TSparseSpace, class TDenseSpace>
 
-class BackwardEulerQuasistaticPwScheme : public NewmarkQuasistaticPwScheme<TSparseSpace,TDenseSpace>
+class BackwardEulerQuasistaticPwScheme : public GeoBaseScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
@@ -36,18 +36,18 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( BackwardEulerQuasistaticPwScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>          BaseType;
-    typedef typename BaseType::DofsArrayType          DofsArrayType;
+    // typedef typename BaseType::DofsArrayType          DofsArrayType;
     typedef typename BaseType::TSystemMatrixType      TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType      TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType  LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType  LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
+    // typedef typename BaseType::LocalSystemVectorType  LocalSystemVectorType;
+    // typedef typename BaseType::LocalSystemMatrixType  LocalSystemMatrixType;
+    typedef GeoBaseScheme<TSparseSpace,TDenseSpace>             MotherType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
     BackwardEulerQuasistaticPwScheme() :
-        NewmarkQuasistaticPwScheme<TSparseSpace,TDenseSpace>(1.0)
+        GeoBaseScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, 1.0)
     {}
 
     //------------------------------------------------------------------------------------
@@ -56,13 +56,67 @@ public:
     ~BackwardEulerQuasistaticPwScheme() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    int Check(const ModelPart& rModelPart) const override
+    {
+        KRATOS_TRY
 
+        BaseType::Check(rModelPart);
+
+        //check that variables are correctly allocated
+        for (const auto& rNode : rModelPart.Nodes())
+        {
+            if (rNode.SolutionStepsDataHas(WATER_PRESSURE) == false)
+                KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
+                             << rNode.Id()
+                             << std::endl;
+
+            if (rNode.SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
+                KRATOS_ERROR << "DT_WATER_PRESSURE variable is not allocated for node "
+                             << rNode.Id()
+                             << std::endl;
+
+            if (rNode.HasDofFor(WATER_PRESSURE) == false)
+                KRATOS_ERROR << "missing WATER_PRESSURE dof on node "
+                             << rNode.Id()
+                             << std::endl;
+        }
+
+        //check for minimum value of the buffer index.
+        if (rModelPart.GetBufferSize() < 2)
+            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
+                         << rModelPart.GetBufferSize()
+                         << std::endl;
+
+        // Check beta, gamma and theta
+        if (mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
+            KRATOS_ERROR << "Some of the scheme variables: beta, gamma or theta has an invalid value "
+                         << std::endl;
+
+        return 0;
+
+        KRATOS_CATCH( "" )
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        MotherType::FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+
+        KRATOS_CATCH("")
+    }
 protected:
 
     /// Member Variables
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -79,5 +133,3 @@ protected:
 
 }; // Class BackwardEulerQuasistaticPwScheme
 }  // namespace Kratos
-
-#endif // KRATOS_BACKWARD_EULER_QUASISTATIC_PW_SCHEME defined

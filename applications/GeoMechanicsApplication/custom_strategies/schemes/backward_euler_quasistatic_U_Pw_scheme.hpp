@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_BACKWARD_EULER_QUASISTATIC_U_PW_SCHEME )
-#define  KRATOS_BACKWARD_EULER_QUASISTATIC_U_PW_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -21,13 +20,14 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
+#include "custom_strategies/schemes/geo_base_scheme.hpp"
 
 namespace Kratos
 {
 
 template<class TSparseSpace, class TDenseSpace>
 
-class BackwardEulerQuasistaticUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
+class BackwardEulerQuasistaticUPwScheme : public GeoBaseScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
@@ -40,16 +40,12 @@ public:
     typedef typename BaseType::TSystemVectorType      TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType  LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType  LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
     BackwardEulerQuasistaticUPwScheme() :
-        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(1.0, 1.0, 1.0)
+        GeoBaseScheme<TSparseSpace,TDenseSpace>(1.0, 1.0, 1.0)
     {
     }
 
@@ -97,5 +93,3 @@ protected:
 
 }; // Class BackwardEulerQuasistaticUPwScheme
 }  // namespace Kratos
-
-#endif // KRATOS_BACKWARD_EULER_QUASISTATIC_U_PW_SCHEME defined
