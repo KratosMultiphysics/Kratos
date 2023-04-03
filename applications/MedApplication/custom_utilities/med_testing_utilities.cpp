@@ -16,6 +16,8 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "med_testing_utilities.h"
 
 
@@ -148,6 +150,16 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
 
     // check nodes
     CheckEntitiesAreEqual(rModelPart1.Nodes(), rModelPart2.Nodes());
+
+    // make sure the Ids of the Nodes start with one
+    auto min_id = [](const ModelPart& rModelPart){
+        return block_for_each<MinReduction<std::size_t>>(rModelPart.Nodes(), [](const auto& rNode){
+            return rNode.Id();
+        });
+    };
+
+    KRATOS_CHECK_EQUAL(min_id(rModelPart1), 1);
+    KRATOS_CHECK_EQUAL(min_id(rModelPart2), 1);
 
     // check geometries
     CheckGeometriesAreEqual(rModelPart1, rModelPart2);
