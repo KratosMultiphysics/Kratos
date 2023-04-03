@@ -44,8 +44,6 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
     StlIO stl_io(p_input);
     stl_io.ReadModelPart(r_model_part);
 
-    std::cout << r_model_part << std::endl;
-
     KRATOS_CHECK(r_model_part.HasSubModelPart("1 triangle"));
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfGeometries(), 1);
@@ -73,8 +71,6 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTLAsElement, KratosCoreFastSuite)
     })");
     StlIO stl_io(p_input,settings);
     stl_io.ReadModelPart(r_model_part);
-
-    std::cout << r_model_part << std::endl;
 
     KRATOS_CHECK(r_model_part.HasSubModelPart("1 triangle"));
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfNodes(), 3);
@@ -115,8 +111,6 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
 
     StlIO stl_io(p_input);
     stl_io.ReadModelPart(r_model_part);
-
-    std::cout << r_model_part << std::endl;
 
     KRATOS_CHECK(r_model_part.HasSubModelPart("3 triangles"));
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfNodes(), 9);
