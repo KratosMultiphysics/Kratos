@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian.hpp"
+#include "custom_elements/mpm_updated_lagrangian.hpp"
 
 namespace Kratos
 {
