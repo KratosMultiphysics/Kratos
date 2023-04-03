@@ -21,6 +21,7 @@
 #include "includes/model_part_io.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos {
 
@@ -398,6 +399,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         med_geometry_type geo_type;
 
         std::string geotypename;
+        geotypename.resize(MED_NAME_SIZE +1);
 
         /* get geometry type */
         med_err err = MEDmeshEntityInfo(
@@ -437,7 +439,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         for (std::size_t i=0; i<num_geometries; ++i) {
             for (int j=0; j<num_nodes_geo_type; ++j) {
                 const int node_idx = i*num_nodes_geo_type + j;
-                geom_node_ids[j] = connectivity[node_idx]+1; // +1 bcs node-ids start with 1, but connectivity is written with base 0
+                geom_node_ids[j] = connectivity[node_idx];
             }
             reorder_fct(geom_node_ids);
             const IndexType geom_id = i+1+num_geometries_total;
@@ -505,93 +507,97 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         rThisModelPart.NumberOfNodes(),
         nodal_coords.data());
 
-    if (rThisModelPart.NumberOfGeometries() > 0) {
-        // we deliberately do not care about IDs
-        std::unordered_map<int, int> kratos_id_to_med_id;
-        int med_id = 0;
-        for (const auto& r_node : rThisModelPart.Nodes()) {
-            kratos_id_to_med_id[r_node.Id()] = med_id++;
-        }
-
-        std::string geometry_name;
-
-        auto it_geom_begin = rThisModelPart.GeometriesBegin();
-
-        auto geom_type_current = it_geom_begin->GetGeometryType();
-        auto it_geom_current = it_geom_begin;
-        std::size_t n_points_current = it_geom_current->PointsNumber();
-
-
-        using ConnectivitiesType = std::vector<med_int>;
-        using ConnectivitiesVector = std::vector<ConnectivitiesType>;
-
-        ConnectivitiesVector connectivities;
-        connectivities.reserve(rThisModelPart.NumberOfGeometries()/3); // assuming that three different types of geometries exist
-
-        auto write_geometries = [this](
-            const GeometryData::KratosGeometryType GeomType,
-            const std::size_t NumberOfPoints,
-            ConnectivitiesVector& Connectivities) {
-
-                const auto med_geom_type = KratosToMedGeometryType.at(GeomType);
-                const auto reorder_fct = GetReorderFunction<ConnectivitiesType::value_type>(med_geom_type);
-
-                auto GetMedConnectivities = [&reorder_fct](
-                    const std::size_t NumberOfPoints,
-                    ConnectivitiesVector& Connectivities) {
-
-                    std::vector<med_int> med_conn(Connectivities.size() * NumberOfPoints);
-
-                    // flatten an reorder the connectivities
-                    IndexPartition(Connectivities.size()).for_each([&](const std::size_t i) {
-                        reorder_fct(Connectivities[i]);
-                        // for (std::size_t p=0; p<NumberOfPoints; ++p) {
-                        //     med_conn[i*NumberOfPoints+p] = Connectivities[i][p];
-                        // }
-
-                        std::copy(Connectivities[i].begin(), Connectivities[i].end(), med_conn.begin()+(i*NumberOfPoints));
-                    });
-
-                    return med_conn;
-                };
-
-            const std::vector<med_int> med_conn = GetMedConnectivities(NumberOfPoints, Connectivities);
-
-            if (MEDmeshElementConnectivityWr (
-                mpFileHandler->GetFileHandle(),
-                mpFileHandler->GetMeshName(),
-                MED_NO_DT, MED_NO_IT , 0.0,
-                MED_CELL, med_geom_type ,
-                MED_NODAL, MED_FULL_INTERLACE,
-                Connectivities.size(), med_conn.data()) < 0) {
-                    KRATOS_ERROR << "Writing failed!" << std::endl;
-            }
-        };
-
-        for (std::size_t i=0; i<rThisModelPart.NumberOfGeometries(); ++i) {
-            auto this_geom_type = it_geom_current->GetGeometryType();
-            if (this_geom_type != geom_type_current) {
-                // write the previously collected geometries
-                write_geometries(geom_type_current, n_points_current, connectivities);
-
-                connectivities.clear();
-
-                geom_type_current = this_geom_type;
-                n_points_current = it_geom_current->PointsNumber();
-            }
-
-            ConnectivitiesType conn;
-            for (const auto& r_node : it_geom_current->Points()) {
-                conn.push_back(kratos_id_to_med_id[r_node.Id()]);
-            }
-            connectivities.push_back(conn);
-
-            ++it_geom_current;
-        }
-
-        // write the last batch of geometries
-        write_geometries(geom_type_current, n_points_current, connectivities);
+    if (rThisModelPart.NumberOfGeometries() == 0) {
+        return;
     }
+
+    // we deliberately do not care about IDs
+    std::unordered_map<int, int> kratos_id_to_med_id;
+    int med_id = 1; // starting from 1, since salome cannot parse 0 as node ids
+    for (const auto& r_node : rThisModelPart.Nodes()) {
+        kratos_id_to_med_id[r_node.Id()] = med_id++;
+    }
+
+    std::string geometry_name;
+
+    auto it_geom_begin = rThisModelPart.GeometriesBegin();
+
+    auto geom_type_current = it_geom_begin->GetGeometryType();
+    auto it_geom_current = it_geom_begin;
+    std::size_t n_points_current = it_geom_current->PointsNumber();
+
+
+    using ConnectivitiesType = std::vector<med_int>;
+    using ConnectivitiesVector = std::vector<ConnectivitiesType>;
+
+    ConnectivitiesVector connectivities;
+    connectivities.reserve(rThisModelPart.NumberOfGeometries()/3); // assuming that three different types of geometries exist
+
+    auto write_geometries = [this](
+        const GeometryData::KratosGeometryType GeomType,
+        const std::size_t NumberOfPoints,
+        ConnectivitiesVector& Connectivities) {
+
+
+            const auto med_geom_type = KratosToMedGeometryType.at(GeomType);
+            const auto reorder_fct = GetReorderFunction<ConnectivitiesType::value_type>(med_geom_type);
+            std::cout << "\nWriting geoetries of type " << GeometryUtils::GetGeometryName(GeomType) << " | " << med_geom_type << " | " << Connectivities.size() << std::endl;
+
+            auto GetMedConnectivities = [&reorder_fct](
+                const std::size_t NumberOfPoints,
+                ConnectivitiesVector& Connectivities) {
+
+                std::vector<med_int> med_conn(Connectivities.size() * NumberOfPoints);
+
+                // flatten an reorder the connectivities
+                IndexPartition(Connectivities.size()).for_each([&](const std::size_t i) {
+                    reorder_fct(Connectivities[i]);
+                    // for (std::size_t p=0; p<NumberOfPoints; ++p) {
+                    //     med_conn[i*NumberOfPoints+p] = Connectivities[i][p];
+                    // }
+
+                    std::copy(Connectivities[i].begin(), Connectivities[i].end(), med_conn.begin()+(i*NumberOfPoints));
+                });
+
+                return med_conn;
+            };
+
+        const std::vector<med_int> med_conn = GetMedConnectivities(NumberOfPoints, Connectivities);
+
+        if (MEDmeshElementConnectivityWr (
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            MED_NO_DT, MED_NO_IT , 0.0,
+            MED_CELL, med_geom_type ,
+            MED_NODAL, MED_FULL_INTERLACE,
+            Connectivities.size(), med_conn.data()) < 0) {
+                KRATOS_ERROR << "Writing failed!" << std::endl;
+        }
+    };
+
+    for (std::size_t i=0; i<rThisModelPart.NumberOfGeometries(); ++i) {
+        auto this_geom_type = it_geom_current->GetGeometryType();
+        if (this_geom_type != geom_type_current) {
+            // write the previously collected geometries
+            write_geometries(geom_type_current, n_points_current, connectivities);
+
+            connectivities.clear();
+
+            geom_type_current = this_geom_type;
+            n_points_current = it_geom_current->PointsNumber();
+        }
+
+        ConnectivitiesType conn;
+        for (const auto& r_node : it_geom_current->Points()) {
+            conn.push_back(kratos_id_to_med_id[r_node.Id()]);
+        }
+        connectivities.push_back(conn);
+
+        it_geom_current++;
+    }
+
+    // write the last batch of geometries
+    write_geometries(geom_type_current, n_points_current, connectivities);
 
     KRATOS_CATCH("")
 }
