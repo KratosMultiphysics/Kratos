@@ -35,6 +35,13 @@ class DamUpliftConditionLoadProcess : public Process
 
     typedef Table<double, double> TableType;
 
+    /// Structs for mapping model parts -------------------------------------------------------------------------------------------------------------------------------------------
+
+    struct GaussPoint
+    {
+        array_1d<double,3> Coordinates;
+        double StateVariable;
+    };
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
@@ -132,109 +139,9 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        BoundedMatrix<double, 3, 3> RotationMatrix;
-
-        // Computing the rotation matrix accoding with the introduced points by the user
-        this->CalculateRotationMatrix(RotationMatrix);
-        array_1d<double, 3> newCoordinate;
-        array_1d<double, 3> auxiliar_vector;
-        array_1d<double, 3> reference_vector;
-
-        // Gravity direction for computing the hydrostatic pressure
-        int direction;
-
-        if (mGravityDirection == "X")
-            direction = 0;
-        else if (mGravityDirection == "Y")
-            direction = 1;
-        else
-            direction = 2;
-
-        // Computing the reference vector (coordinates)
-        reference_vector = prod(RotationMatrix, mX0);
-
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            if (mDrain == true)
-            {
-                double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-                double aux_drain = coefficient_effectiveness * ((mWaterLevel - mReferenceCoordinate) - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
-
-#pragma omp parallel for
-                for (int i = 0; i < nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    auxiliar_vector.resize(3, false);
-                    const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = r_coordinates;
-
-                    // Computing the new coordinates
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
-
-                    // We compute the first part of the uplift law
-                    mUpliftPressure = (mSpecific * ((mWaterLevel - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
-
-                    // If uplift pressure is greater than the limit we compute the second part and we update the value
-                    if (mUpliftPressure <= mSpecific * aux_drain)
-                    {
-                        mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
-                    }
-
-                    if (mUpliftPressure < 0.0)
-                    {
-                        it->FastGetSolutionStepValue(var) = 0.0;
-                    }
-                    else
-                    {
-                        it->FastGetSolutionStepValue(var) = mUpliftPressure;
-                    }
-                }
-            }
-            else
-            {
-#pragma omp parallel for
-                for (int i = 0; i < nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    auxiliar_vector.resize(3, false);
-                    const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = r_coordinates;
-
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
-
-                    mUpliftPressure = (mSpecific * (mWaterLevel - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
-
-                    if (mUpliftPressure < 0.0)
-                    {
-                        it->FastGetSolutionStepValue(var) = 0.0;
-                    }
-                    else
-                    {
-                        it->FastGetSolutionStepValue(var) = mUpliftPressure;
-                    }
-                }
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void ExecuteInitializeSolutionStep() override
-    {
-
-        KRATOS_TRY;
-
-        //Defining necessary variables
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        // const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const int nelems = mrModelPart.GetMesh(0).Elements().size();
+        // const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Getting the values of table in case that it exist
@@ -266,72 +173,428 @@ class DamUpliftConditionLoadProcess : public Process
         // Computing the reference vector (coordinates)
         reference_vector = prod(RotationMatrix, mX0);
 
-        if (nnodes != 0)
+        // Locate Old Gauss Points in cells
+        GaussPoint MyGaussPoint;
+        GeometryData::IntegrationMethod MyIntegrationMethod;
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        array_1d<double,3> AuxLocalCoordinates;
+
+        double JointPosition = 0.0;
+        double ref_coord = mReferenceCoordinate + mWaterLevel;
+
+        if (nelems != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+            ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();
 
-            if (mDrain == true)
+            for(int j = 0; j < nelems; j++)
             {
-                double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-                double aux_drain = coefficient_effectiveness * ((mWaterLevel - mReferenceCoordinate) - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
+                ModelPart::ElementsContainerType::iterator it_elem = el_begin + j;
 
-#pragma omp parallel for
-                for (int i = 0; i < nnodes; i++)
+                Element::GeometryType& rGeom = it_elem->GetGeometry();
+                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+                unsigned int NumGPoints = IntegrationPoints.size();
+                Vector detJContainer(NumGPoints);
+                rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
+                std::vector<double> StateVariableVector(NumGPoints);
+                it_elem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfo);
+
+                // Loop through GaussPoints
+                for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
                 {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    // GaussPoint Coordinates
+                    AuxLocalCoordinates[0] = IntegrationPoints[GPoint][0];
+                    AuxLocalCoordinates[1] = IntegrationPoints[GPoint][1];
+                    AuxLocalCoordinates[2] = IntegrationPoints[GPoint][2];
+                    rGeom.GlobalCoordinates(MyGaussPoint.Coordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
 
-                    auxiliar_vector.resize(3, false);
-                    const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = r_coordinates;
+                    // GaussPoint StateVariable (1 broken, !=1 not broken)
+                    if (StateVariableVector.empty()) MyGaussPoint.StateVariable = 0.0;
+                    else MyGaussPoint.StateVariable = StateVariableVector[GPoint];
 
-                    // Computing the new coordinates
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
-
-                    // We compute the first part of the uplift law
-                    mUpliftPressure = (mSpecific * ((mWaterLevel - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
-
-                    // If uplift pressure is greater than the limit we compute the second part and we update the value
-                    if (mUpliftPressure <= mSpecific * aux_drain)
+                    if (MyGaussPoint.StateVariable == 1.0) // Broken part
                     {
-                        mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
-                    }
-
-                    if (mUpliftPressure < 0.0)
-                    {
-                        it->FastGetSolutionStepValue(var) = 0.0;
-                    }
-                    else
-                    {
-                        it->FastGetSolutionStepValue(var) = mUpliftPressure;
+                        if (MyGaussPoint.Coordinates[0] > JointPosition)
+                        {
+                            JointPosition = MyGaussPoint.Coordinates[0];
+                        }
                     }
                 }
             }
-            else
-            {
-#pragma omp parallel for
-                for (int i = 0; i < nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
-                    const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = r_coordinates;
+            for(int j = 0; j < nelems; j++)
+            {
+                ModelPart::ElementsContainerType::iterator it_elem = el_begin + j;
+
+                Element::GeometryType& rGeom = it_elem->GetGeometry();
+                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+                unsigned int NumGPoints = IntegrationPoints.size();
+                Vector detJContainer(NumGPoints);
+                rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
+                std::vector<double> StateVariableVector(NumGPoints);
+                it_elem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfo);
+
+                std::vector<double> UpliftPressureVector(NumGPoints);
+
+                // Loop through GaussPoints
+                for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+                {
+                    // GaussPointOld Coordinates
+                    AuxLocalCoordinates[0] = IntegrationPoints[GPoint][0];
+                    AuxLocalCoordinates[1] = IntegrationPoints[GPoint][1];
+                    AuxLocalCoordinates[2] = IntegrationPoints[GPoint][2];
+                    rGeom.GlobalCoordinates(MyGaussPoint.Coordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
+
+                    // GaussPoint StateVariable (1 broken, !=1 not broken)
+                    if (StateVariableVector.empty()) MyGaussPoint.StateVariable = 0.0;
+                    else MyGaussPoint.StateVariable = StateVariableVector[GPoint];
+
+                    // GaussPoint Global Coordinates
+                    noalias(auxiliar_vector) = MyGaussPoint.Coordinates;
 
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
-                    mUpliftPressure = (mSpecific * (mWaterLevel - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
+                    double UpliftPressure = 0.0;
 
-                    if (mUpliftPressure < 0.0)
+                    if (MyGaussPoint.StateVariable == 1.0) // Broken part
                     {
-                        it->FastGetSolutionStepValue(var) = 0.0;
+                        UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction]));
                     }
-                    else
+                    else // Not broken part
                     {
-                        it->FastGetSolutionStepValue(var) = mUpliftPressure;
+                        if (mDrain == true && JointPosition < (reference_vector(0) + mDistanceDrain)) // If Drain and Joint broken less than the Drain
+                        {
+                            if (newCoordinate(0) < (reference_vector(0) + mDistanceDrain)) // UpliftPressure before the Drain
+                            {
+                                UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - 0.8 * ((1.0 / ((reference_vector(0) + mDistanceDrain) - JointPosition)) * (fabs(newCoordinate(0) - JointPosition))));
+                            }
+                            else // UpliftPressure after the Drain
+                            {
+                                UpliftPressure = 0.2 * mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs(newCoordinate(0) - (reference_vector(0) + mDistanceDrain)))));
+                            }
+                        }
+                        else // If Not Drain or Joint broken more than the Drain
+                        {
+                            UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - ((1.0 / (mBaseDam - (JointPosition - reference_vector(0)))) * (fabs(newCoordinate(0) - JointPosition))));
+                        }
                     }
+
+                    if (UpliftPressure < 0.0)
+                    {
+                        UpliftPressure = 0.0;
+                    }
+
+                    // GaussPoint UpliftPressure
+                    UpliftPressureVector[GPoint] = 2.0 * UpliftPressure;
                 }
+                it_elem->SetValuesOnIntegrationPoints(UPLIFT_PRESSURE,UpliftPressureVector,CurrentProcessInfo);
             }
+            KRATOS_WATCH(JointPosition)
         }
+
+        // if (nnodes != 0)
+        // {
+        //     ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+
+        //     double ref_coord = mReferenceCoordinate + mWaterLevel;
+
+        //     if (mDrain == true)
+        //     {
+        //         double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
+        //         double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
+
+        //         #pragma omp parallel for
+        //         for (int i = 0; i < nnodes; i++)
+        //         {
+        //             ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+        //             auxiliar_vector.resize(3, false);
+        //             const array_1d<double,3>& r_coordinates = it->Coordinates();
+        //             noalias(auxiliar_vector) = r_coordinates;
+
+        //             // Computing the new coordinates
+        //             newCoordinate = prod(RotationMatrix, auxiliar_vector);
+
+        //             // We compute the first part of the uplift law
+        //             mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
+
+        //             // If uplift pressure is greater than the limit we compute the second part and we update the value
+        //             if (mUpliftPressure <= mSpecific * aux_drain)
+        //             {
+        //                 mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
+        //             }
+
+        //             if (mUpliftPressure < 0.0)
+        //             {
+        //                 it->FastGetSolutionStepValue(var) = 0.0;
+        //             }
+        //             else
+        //             {
+        //                 it->FastGetSolutionStepValue(var) = mUpliftPressure;
+        //             }
+        //         }
+        //     }
+        //     else
+        //     {
+        //         #pragma omp parallel for
+        //         for (int i = 0; i < nnodes; i++)
+        //         {
+        //             ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+        //             auxiliar_vector.resize(3, false);
+        //             const array_1d<double,3>& r_coordinates = it->Coordinates();
+        //             noalias(auxiliar_vector) = r_coordinates;
+
+        //             newCoordinate = prod(RotationMatrix, auxiliar_vector);
+
+        //             mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
+
+        //             if (mUpliftPressure < 0.0)
+        //             {
+        //                 it->FastGetSolutionStepValue(var) = 0.0;
+        //             }
+        //             else
+        //             {
+        //                 it->FastGetSolutionStepValue(var) = mUpliftPressure;
+        //             }
+        //         }
+        //     }
+        // }
+
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteInitializeSolutionStep() override
+    {
+
+        KRATOS_TRY;
+
+        //Defining necessary variables
+        // const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const int nelems = mrModelPart.GetMesh(0).Elements().size();
+        // const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        BoundedMatrix<double, 3, 3> RotationMatrix;
+
+        // Getting the values of table in case that it exist
+        if (mTableId != 0)
+        {
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time / mTimeUnitConverter;
+            mWaterLevel = mpTable->GetValue(time);
+        }
+
+        // && mrModelPart.GetProcessInfo()[TIME] >= 1.0
+
+        // Computing the rotation matrix accoding with the introduced points by the user
+        this->CalculateRotationMatrix(RotationMatrix);
+        array_1d<double, 3> newCoordinate;
+        array_1d<double, 3> auxiliar_vector;
+        array_1d<double, 3> reference_vector;
+
+        // Gravity direction for computing the hydrostatic pressure
+        int direction;
+
+        if (mGravityDirection == "X")
+            direction = 0;
+        else if (mGravityDirection == "Y")
+            direction = 1;
+        else
+            direction = 2;
+
+        // Computing the reference vector (coordinates)
+        reference_vector = prod(RotationMatrix, mX0);
+
+        // Locate Old Gauss Points in cells
+        GaussPoint MyGaussPoint;
+        GeometryData::IntegrationMethod MyIntegrationMethod;
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        array_1d<double,3> AuxLocalCoordinates;
+
+        double JointPosition = 0.0;
+        double ref_coord = mReferenceCoordinate + mWaterLevel;
+
+        if (nelems != 0)
+        {
+            ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();
+
+            for(int j = 0; j < nelems; j++)
+            {
+                ModelPart::ElementsContainerType::iterator it_elem = el_begin + j;
+
+                Element::GeometryType& rGeom = it_elem->GetGeometry();
+                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+                unsigned int NumGPoints = IntegrationPoints.size();
+                Vector detJContainer(NumGPoints);
+                rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
+                std::vector<double> StateVariableVector(NumGPoints);
+                it_elem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfo);
+
+                // Loop through GaussPoints
+                for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+                {
+                    // GaussPoint Coordinates
+                    AuxLocalCoordinates[0] = IntegrationPoints[GPoint][0];
+                    AuxLocalCoordinates[1] = IntegrationPoints[GPoint][1];
+                    AuxLocalCoordinates[2] = IntegrationPoints[GPoint][2];
+                    rGeom.GlobalCoordinates(MyGaussPoint.Coordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
+
+                    // GaussPoint StateVariable (1 broken, !=1 not broken)
+                    if (StateVariableVector.empty()) MyGaussPoint.StateVariable = 0.0;
+                    else MyGaussPoint.StateVariable = StateVariableVector[GPoint];
+
+                    if (MyGaussPoint.StateVariable == 1.0) // Broken part
+                    {
+                        if (MyGaussPoint.Coordinates[0] > JointPosition)
+                        {
+                            JointPosition = MyGaussPoint.Coordinates[0];
+                        }
+                    }
+                }
+            }
+
+            for(int j = 0; j < nelems; j++)
+            {
+                ModelPart::ElementsContainerType::iterator it_elem = el_begin + j;
+
+                Element::GeometryType& rGeom = it_elem->GetGeometry();
+                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+                unsigned int NumGPoints = IntegrationPoints.size();
+                Vector detJContainer(NumGPoints);
+                rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
+                std::vector<double> StateVariableVector(NumGPoints);
+                it_elem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfo);
+
+                std::vector<double> UpliftPressureVector(NumGPoints);
+
+                // Loop through GaussPoints
+                for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+                {
+                    // GaussPointOld Coordinates
+                    AuxLocalCoordinates[0] = IntegrationPoints[GPoint][0];
+                    AuxLocalCoordinates[1] = IntegrationPoints[GPoint][1];
+                    AuxLocalCoordinates[2] = IntegrationPoints[GPoint][2];
+                    rGeom.GlobalCoordinates(MyGaussPoint.Coordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
+
+                    // GaussPoint StateVariable (1 broken, !=1 not broken)
+                    if (StateVariableVector.empty()) MyGaussPoint.StateVariable = 0.0;
+                    else MyGaussPoint.StateVariable = StateVariableVector[GPoint];
+
+                    // GaussPoint Global Coordinates
+                    noalias(auxiliar_vector) = MyGaussPoint.Coordinates;
+
+                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
+
+                    double UpliftPressure = 0.0;
+
+                    if (MyGaussPoint.StateVariable == 1.0) // Broken part
+                    {
+                        UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction]));
+                    }
+                    else // Not broken part
+                    {
+                        if (mDrain == true && JointPosition < (reference_vector(0) + mDistanceDrain)) // If Drain and Joint broken less than the Drain
+                        {
+                            if (newCoordinate(0) < (reference_vector(0) + mDistanceDrain)) // UpliftPressure before the Drain
+                            {
+                                UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - 0.8 * ((1.0 / ((reference_vector(0) + mDistanceDrain) - JointPosition)) * (fabs(newCoordinate(0) - JointPosition))));
+                            }
+                            else // UpliftPressure after the Drain
+                            {
+                                UpliftPressure = 0.2 * mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs(newCoordinate(0) - (reference_vector(0) + mDistanceDrain)))));
+                            }
+                        }
+                        else // If Not Drain or Joint broken more than the Drain
+                        {
+                            UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - ((1.0 / (mBaseDam - (JointPosition - reference_vector(0)))) * (fabs(newCoordinate(0) - JointPosition))));
+                        }
+                    }
+
+                    if (UpliftPressure < 0.0)
+                    {
+                        UpliftPressure = 0.0;
+                    }
+
+                    // GaussPoint UpliftPressure
+                    UpliftPressureVector[GPoint] = 2.0 * UpliftPressure;
+                }
+                it_elem->SetValuesOnIntegrationPoints(UPLIFT_PRESSURE,UpliftPressureVector,CurrentProcessInfo);
+            }
+            KRATOS_WATCH(JointPosition)
+        }
+
+        // if (nnodes != 0)
+        // {
+        //     ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+
+        //     double ref_coord = mReferenceCoordinate + mWaterLevel;
+
+        //     if (mDrain == true)
+        //     {
+        //         double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
+        //         double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
+
+        //         #pragma omp parallel for
+        //         for (int i = 0; i < nnodes; i++)
+        //         {
+        //             ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+        //             auxiliar_vector.resize(3, false);
+        //             const array_1d<double,3>& r_coordinates = it->Coordinates();
+        //             noalias(auxiliar_vector) = r_coordinates;
+
+        //             // Computing the new coordinates
+        //             newCoordinate = prod(RotationMatrix, auxiliar_vector);
+
+        //             // We compute the first part of the uplift law
+        //             mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
+
+        //             // If uplift pressure is greater than the limit we compute the second part and we update the value
+        //             if (mUpliftPressure <= mSpecific * aux_drain)
+        //             {
+        //                 mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
+        //             }
+
+        //             if (mUpliftPressure < 0.0)
+        //             {
+        //                 it->FastGetSolutionStepValue(var) = 0.0;
+        //             }
+        //             else
+        //             {
+        //                 it->FastGetSolutionStepValue(var) = mUpliftPressure;
+        //             }
+        //         }
+        //     }
+        //     else
+        //     {
+        //         #pragma omp parallel for
+        //         for (int i = 0; i < nnodes; i++)
+        //         {
+        //             ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+        //             auxiliar_vector.resize(3, false);
+        //             const array_1d<double,3>& r_coordinates = it->Coordinates();
+        //             noalias(auxiliar_vector) = r_coordinates;
+
+        //             newCoordinate = prod(RotationMatrix, auxiliar_vector);
+
+        //             mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
+
+        //             if (mUpliftPressure < 0.0)
+        //             {
+        //                 it->FastGetSolutionStepValue(var) = 0.0;
+        //             }
+        //             else
+        //             {
+        //                 it->FastGetSolutionStepValue(var) = mUpliftPressure;
+        //             }
+        //         }
+        //     }
+        // }
 
         KRATOS_CATCH("");
     }
