@@ -14,9 +14,9 @@
 #include <optional>
 
 // External includes
-#include "med.h"
 
 // Project includes
+#include "med_inc.h"
 #include "med_model_part_io.h"
 #include "includes/model_part_io.h"
 #include "utilities/parallel_utilities.h"
@@ -248,7 +248,7 @@ public:
             KRATOS_ERROR_IF(med_ok != MED_TRUE) << "A problem with MED occured while trying to open file " << rFileName << "!" << std::endl;
         } else {
             open_mode = MED_ACC_CREAT;
-            mMeshName = "Kratos_Mesh";
+            mMeshName = "Kratos_Mesh"; // Maybe could use the name of the ModelPart (this is what is displayed in Salome)
         }
 
         mFileHandle = MEDfileOpen(rFileName.c_str(), open_mode);
@@ -474,7 +474,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     med_err err = MEDmeshCr(
         mpFileHandler->GetFileHandle(),
-        mpFileHandler->GetMeshName(),
+        mpFileHandler->GetMeshName(), // TODO use name of ModelPart? See comment above, this is what is displayed in Salome
         dimension , //spacedim
         dimension , //meshdim
         MED_UNSTRUCTURED_MESH,
@@ -494,6 +494,11 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 //     KRATOS_TRY
 
     const std::vector<double> nodal_coords = VariableUtils().GetCurrentPositionsVector<std::vector<double>>(rThisModelPart.Nodes(), dimension);
+
+    if (rThisModelPart.NumberOfNodes() == 0) {
+        // TODO warning? like in read
+        return;
+    }
 
     // add check and warning if ModelPart is empty
     err = MEDmeshNodeCoordinateWr(
