@@ -86,7 +86,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     py::class_<SpatialSearch, SpatialSearch::Pointer>(m, "SpatialSearch")
     .def(py::init< >())
-    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -102,11 +102,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchElementsInRadiusExclusive(rModelPart, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -122,11 +124,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchElementsInRadiusExclusive(rModelPart, rInputElements, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ElementsContainerType& rStructureElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -142,12 +146,14 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchElementsInRadiusExclusive(rStructureElements, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self,
     const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -163,10 +169,12 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchElementsInRadiusExclusive(rStructureElements, rInputElements, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
-    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -182,11 +190,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchElementsInRadiusInclusive(rModelPart, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -202,11 +212,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchElementsInRadiusInclusive(rModelPart, rInputElements, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ElementsContainerType& rStructureElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -222,12 +234,14 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchElementsInRadiusInclusive(rStructureElements, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self,
     const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -243,154 +257,12 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchElementsInRadiusInclusive(rStructureElements, rInputElements, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
-    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultElementsContainerType results(size_array);
-
-        // Perform the search
-        self.SearchElementsInRadiusExclusive(rModelPart, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultElementsContainerType results(size_array);
-
-        // Perform the search
-        self.SearchElementsInRadiusExclusive(rModelPart, rInputElements, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultElementsContainerType results(size_array);
-
-        // Perform the search
-        self.SearchElementsInRadiusExclusive(rStructureElements, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultElementsContainerType results(size_array);
-
-        // Perform the search
-        self.SearchElementsInRadiusExclusive(rStructureElements, rInputElements, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchElementsInRadiusInclusive(rModelPart, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchElementsInRadiusInclusive(rModelPart, rInputElements, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchElementsInRadiusInclusive(rStructureElements, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchElementsInRadiusInclusive(rStructureElements, rInputElements, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -406,11 +278,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchNodesInRadiusExclusive(rModelPart, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -426,11 +300,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchNodesInRadiusExclusive(rModelPart, rInputNodes, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const NodesContainerType& rStructureNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -446,12 +322,14 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchNodesInRadiusExclusive(rStructureNodes, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self,
     const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -467,10 +345,12 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
-    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -486,11 +366,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchNodesInRadiusInclusive(rModelPart, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -506,11 +388,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchNodesInRadiusInclusive(rModelPart, rInputNodes, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const NodesContainerType& rStructureNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -526,12 +410,14 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchNodesInRadiusInclusive(rStructureNodes, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self,
     const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -547,154 +433,12 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
-    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchNodesInRadiusExclusive(rModelPart, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchNodesInRadiusExclusive(rModelPart, rInputNodes, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchNodesInRadiusExclusive(rStructureNodes, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchNodesInRadiusInclusive(rModelPart, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchNodesInRadiusInclusive(rModelPart, rInputNodes, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchNodesInRadiusInclusive(rStructureNodes, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -710,11 +454,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchConditionsInRadiusExclusive(rModelPart, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -730,11 +476,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchConditionsInRadiusExclusive(rModelPart, rInputConditions, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -750,12 +498,14 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchConditionsInRadiusExclusive(rStructureConditions, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self,
     const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -771,10 +521,12 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
-    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -790,11 +542,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchConditionsInRadiusInclusive(rModelPart, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -810,11 +564,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchConditionsInRadiusInclusive(rModelPart, rInputConditions, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -830,12 +586,14 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchConditionsInRadiusInclusive(rStructureConditions, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self,
     const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, py::list& rResultsList, py::list& rDistancesList) {
+    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
 
@@ -851,152 +609,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         self.SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, radius_array, results, distances);
 
         // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-        GenerateListFromVectorOfVector(rDistancesList, distances);
-    })
-    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultConditionsContainerType results(size_array);
-
-        // Perform the search
-        self.SearchConditionsInRadiusExclusive(rModelPart, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultConditionsContainerType results(size_array);
-
-        // Perform the search
-        self.SearchConditionsInRadiusExclusive(rModelPart, rInputConditions, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultConditionsContainerType results(size_array);
-
-        // Perform the search
-        self.SearchConditionsInRadiusExclusive(rStructureConditions, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultConditionsContainerType results(size_array);
-
-        // Perform the search
-        self.SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchConditionsInRadiusInclusive(rModelPart, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchConditionsInRadiusInclusive(rModelPart, rInputConditions, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchConditionsInRadiusInclusive(rStructureConditions, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
-    })
-    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, py::list& rResultsList) {
-        // Get the size of the radius array
-        const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-
-        // Perform the search
-        self.SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, radius_array, results);
-
-        // Copy the results to the python list
-        GenerateListFromVectorOfVector(rResultsList, results);
+        std::tuple<py::list, py::list> results_tuple;
+        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
+        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
+        return results_tuple;
     })
     ;
 }
