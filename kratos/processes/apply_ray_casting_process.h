@@ -41,12 +41,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Nodal databases auxiliary enum
-    enum class DistanceDatabase {
-        NodeHistorical,
-        NodeNonHistorical
-    };
-
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
@@ -76,20 +70,8 @@ public:
      */
     ApplyRayCastingProcess(
         ModelPart& rVolumePart,
-        ModelPart& rSkinPart);
-
-    /**
-     * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
-     *
-     * @param rVolumePart model part containing the volume elements
-     * @param rSkinPart model part containing the skin to compute
-     * the distance to as conditions
-     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
-     */
-    ApplyRayCastingProcess(
-        ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const double RelativeTolerance);
+        Parameters ThisParameters = Parameters());
 
     /**
      * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
@@ -99,21 +81,7 @@ public:
      */
     ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-        const double RelativeTolerance);
-
-    /**
-     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
-     *
-     * @param TheFindIntersectedObjectsProcess reference to the already created search structure
-     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
-     * @param pDistanceVariable user-defined variabe to be used to read and store the distance to the skin
-     * @param rDistanceDatabase enum value specifying the database from which the distance variable is retrieved (see DistanceDatabase)
-     */
-    ApplyRayCastingProcess(
-        FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-        const double RelativeTolerance,
-        const Variable<double>* pDistanceVariable,
-        const DistanceDatabase& rDistanceDatabase);
+        Parameters ThisParameters = Parameters());
 
     /// Destructor.
     ~ApplyRayCastingProcess() override;
@@ -134,6 +102,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    const Parameters GetDefaultParameters() const override;
 
     /**
      * @brief Computes the raycasting distance for a node
@@ -209,6 +179,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    Parameters mSettings;
     double mEpsilon = 1.0e-12;
     double mExtraRayOffset = 1.0e-8;
     double mRelativeTolerance = 1.0e-12;
@@ -218,7 +189,6 @@ private:
 
     const Variable<double>* mpDistanceVariable = &DISTANCE;
 
-    const DistanceDatabase mDistanceDatabase = DistanceDatabase::NodeHistorical;
 
     ///@}
     ///@name Private Operators

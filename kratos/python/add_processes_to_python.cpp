@@ -462,12 +462,12 @@ void  AddProcessesToPython(pybind11::module& m)
     // Continuous distance computation methods
     py::class_<ApplyRayCastingProcess<2>, ApplyRayCastingProcess<2>::Pointer, Process>(m,"ApplyRayCastingProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
     py::class_<ApplyRayCastingProcess<3>, ApplyRayCastingProcess<3>::Pointer, Process>(m,"ApplyRayCastingProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
 //     // Calculate embedded variable from skin processes
