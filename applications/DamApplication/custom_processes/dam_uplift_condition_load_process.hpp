@@ -491,7 +491,6 @@ class DamUpliftConditionLoadProcess : public Process
     double mHeightDrain;
     double mDistanceDrain;
     double mEffectivenessDrain;
-    double uplift_pressure;
     Vector mX0;
     Vector mX1;
     Vector mX2;
