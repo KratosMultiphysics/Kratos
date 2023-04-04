@@ -8,7 +8,9 @@ if not KM.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
-from test_model_part_utils import TestModelPartUtils
+import test_model_part_utils
+import test_container_expression_utils
+import test_container_expression
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -28,7 +30,11 @@ def AssembleTestSuites():
     smallMPISuite = suites['mpi_small']
 
     # adding custom process tests
-    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtils]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtils]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
+
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
@@ -42,4 +48,5 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    KM.Tester.SetVerbosity(KM.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     KratosUnittest.runTests(AssembleTestSuites())
