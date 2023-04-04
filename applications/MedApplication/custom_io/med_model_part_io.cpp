@@ -522,15 +522,6 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         kratos_id_to_med_id[r_node.Id()] = med_id++;
     }
 
-    std::string geometry_name;
-
-    auto it_geom_begin = rThisModelPart.GeometriesBegin();
-
-    auto geom_type_current = it_geom_begin->GetGeometryType();
-    auto it_geom_current = it_geom_begin;
-    std::size_t n_points_current = it_geom_current->PointsNumber();
-
-
     using ConnectivitiesType = std::vector<med_int>;
     using ConnectivitiesVector = std::vector<ConnectivitiesType>;
 
@@ -579,29 +570,25 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         }
     };
 
-    for (std::size_t i=0; i<rThisModelPart.NumberOfGeometries(); ++i) {
-        auto this_geom_type = it_geom_current->GetGeometryType();
-        if (this_geom_type != geom_type_current) {
-            // write the previously collected geometries
-            write_geometries(geom_type_current, n_points_current, connectivities);
+    std::unordered_map<GeometryData::KratosGeometryType, ConnectivitiesVector> conn_map;
+    std::unordered_map<GeometryData::KratosGeometryType, int> np_map; // TODO this can be solved better
 
-            connectivities.clear();
-
-            geom_type_current = this_geom_type;
-            n_points_current = it_geom_current->PointsNumber();
-        }
+    for (const auto& r_geom : rThisModelPart.Geometries()) {
+        auto this_geom_type = r_geom.GetGeometryType();
 
         ConnectivitiesType conn;
-        for (const auto& r_node : it_geom_current->Points()) {
+        for (const auto& r_node : r_geom.Points()) {
             conn.push_back(kratos_id_to_med_id[r_node.Id()]);
         }
-        connectivities.push_back(conn);
-
-        it_geom_current++;
+        conn_map[this_geom_type].push_back(conn);
+        np_map[this_geom_type] = r_geom.PointsNumber();
     }
 
-    // write the last batch of geometries
-    write_geometries(geom_type_current, n_points_current, connectivities);
+    // entities of a type have to be written at the same time
+    // maybe if opening in append mode it would also work without
+    for (auto& [geom_type, conn] : conn_map) {
+        write_geometries(geom_type, np_map[geom_type], conn);
+    }
 
     KRATOS_CATCH("")
 }

@@ -168,14 +168,32 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DQuadrilateralMesh, KratosMedFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriAndQuadMesh, KratosMedFastSuite)
 {
     MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
-        rModelPart.CreateNewNode(1, 0,0,0);
-        rModelPart.CreateNewNode(2, 1,0,0);
-        rModelPart.CreateNewNode(3, 1,1,0);
-        rModelPart.CreateNewNode(4, 0,1,0);
-        rModelPart.CreateNewNode(5, 1.5,0.5,0);
+        constexpr std::size_t num_quads = 10;
+        int node_id = 0;
+        for (std::size_t i=0; i<num_quads+1; ++i) {
+            rModelPart.CreateNewNode(++node_id, i*1,0,0);
+            rModelPart.CreateNewNode(++node_id, i*1,0.5,0);
+        }
 
-        rModelPart.CreateNewGeometry("Quadrilateral2D4", std::vector<ModelPart::IndexType>{1,2,3,4});
-        rModelPart.CreateNewGeometry("Triangle2D3", std::vector<ModelPart::IndexType>{2,5,3});
+        // first writing all quads
+        for (std::size_t i=0; i<num_quads; ++i) {
+            rModelPart.CreateNewGeometry("Quadrilateral2D4", std::vector<ModelPart::IndexType>{
+                (i*2)+1,
+                (i*2)+3,
+                (i*2)+4,
+                (i*2)+2
+            });
+        }
+
+        // then writing all triangles
+        for (std::size_t i=0; i<num_quads; ++i) {
+            rModelPart.CreateNewNode(++node_id, i*1+0.5,1,0);
+            rModelPart.CreateNewGeometry("Triangle2D3", std::vector<ModelPart::IndexType>{
+                (i*2)+4,
+                static_cast<ModelPart::IndexType>(node_id),
+                (i*2)+2
+            });
+        }
     });
 }
 
