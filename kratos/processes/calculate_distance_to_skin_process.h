@@ -104,7 +104,7 @@ public:
     CalculateDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        Parameters& rParameters);
+        Parameters rParameters);
 
     /// Destructor.
     ~CalculateDistanceToSkinProcess() override;

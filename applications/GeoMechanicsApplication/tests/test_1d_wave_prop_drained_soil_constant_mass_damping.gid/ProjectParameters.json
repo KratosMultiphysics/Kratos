@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_1d_wave_prop_drained_soil",
+        "problem_name":         "test_1d_wave_prop_drained_soil_constant_mass_damping",
         "start_time":           0.0,
         "end_time":             0.15,
         "echo_level":           1,
@@ -14,7 +14,7 @@
         "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_1d_wave_prop_drained_soil"
+            "input_filename":   "test_1d_wave_prop_drained_soil_constant_mass_damping"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -32,6 +32,7 @@
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
+		"prebuild_dynamics":				  true,
         "solution_type":                      "Dynamic",
         "scheme_type":                        "Newmark",
         "reset_displacements":                false,
