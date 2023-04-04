@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Quirin Aumann
+//  Main authors:    Quirin Aumann, Aron Noordam
 //
 
 #pragma once
@@ -36,16 +36,16 @@ namespace Kratos
 ///@{
 
 /// Concentrated nodal for 3D and 2D points
-
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SpringDamperElement3D2N 
+template<std::size_t TDim, std::size_t TNumNodes>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SpringDamperElement
     : public Element
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of SpringDamperElement3D2N
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SpringDamperElement3D2N);
+    /// Counted pointer of SpringDamperElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SpringDamperElement);
     ///@}
 
 public:
@@ -54,22 +54,22 @@ public:
     ///@{
 
     /// Default constructors
-    SpringDamperElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
+    SpringDamperElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpringDamperElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SpringDamperElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpringDamperElement3D2N(SpringDamperElement3D2N const& rOther);
+    SpringDamperElement(SpringDamperElement const& rOther);
 
     /// Destructor.
-    ~SpringDamperElement3D2N() override;
+    ~SpringDamperElement() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpringDamperElement3D2N& operator=(SpringDamperElement3D2N const& rOther);
+    SpringDamperElement& operator=(SpringDamperElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -214,10 +214,11 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    static constexpr int msNumberOfNodes = 2;
-    static constexpr int msDimension = 3;
-    static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
-    static constexpr unsigned int msElementSize = msLocalSize * 2;
+
+    static constexpr unsigned int msLocalSize2D = 3;
+    static constexpr unsigned int msLocalSize3D = 6;
+    static constexpr unsigned int msElementSize2D = msLocalSize2D * 2;
+    static constexpr unsigned int msElementSize3D = msLocalSize3D * 2;
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -225,7 +226,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    SpringDamperElement3D2N() : Element()
+    SpringDamperElement() : Element()
     {
     }
 
@@ -279,7 +280,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SpringDamperElement3D2N
+}; // Class SpringDamperElement
 
 ///@}
 ///@name Type Definitions

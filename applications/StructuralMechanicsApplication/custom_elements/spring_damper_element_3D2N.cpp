@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Quirin Aumann
+//  Main authors:    Quirin Aumann, Aron Noordam
 //
 
 // System includes
@@ -24,8 +24,8 @@ namespace Kratos
 {
 //***********************DEFAULT CONSTRUCTOR******************************************
 //************************************************************************************
-
-SpringDamperElement3D2N::SpringDamperElement3D2N( IndexType NewId, GeometryType::Pointer pGeometry )
+    template<std::size_t TDim, std::size_t TNumNodes>
+    SpringDamperElement<TDim, TNumNodes>::SpringDamperElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -34,8 +34,8 @@ SpringDamperElement3D2N::SpringDamperElement3D2N( IndexType NewId, GeometryType:
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
-
-SpringDamperElement3D2N::SpringDamperElement3D2N( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    template<std::size_t TDim, std::size_t TNumNodes>
+    SpringDamperElement<TDim, TNumNodes>::SpringDamperElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
 {
 
@@ -43,8 +43,8 @@ SpringDamperElement3D2N::SpringDamperElement3D2N( IndexType NewId, GeometryType:
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
-
-SpringDamperElement3D2N::SpringDamperElement3D2N( SpringDamperElement3D2N const& rOther)
+template<std::size_t TDim, std::size_t TNumNodes>
+SpringDamperElement<TDim, TNumNodes>::SpringDamperElement(SpringDamperElement const& rOther)
     :Element(rOther)
 {
 
@@ -52,8 +52,8 @@ SpringDamperElement3D2N::SpringDamperElement3D2N( SpringDamperElement3D2N const&
 
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
-
-SpringDamperElement3D2N&  SpringDamperElement3D2N::operator=(SpringDamperElement3D2N const& rOther)
+template<std::size_t TDim, std::size_t TNumNodes>
+SpringDamperElement<TDim, TNumNodes>& SpringDamperElement<TDim, TNumNodes>::operator=(SpringDamperElement const& rOther)
 {
     //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
 
@@ -64,70 +64,90 @@ SpringDamperElement3D2N&  SpringDamperElement3D2N::operator=(SpringDamperElement
 
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
-
-Element::Pointer SpringDamperElement3D2N::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+Element::Pointer SpringDamperElement<TDim, TNumNodes>::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     //NEEDED TO CREATE AN ELEMENT
-    return Kratos::make_intrusive<SpringDamperElement3D2N>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive<SpringDamperElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 //************************************************************************************
 //************************************************************************************
-
-Element::Pointer SpringDamperElement3D2N::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+Element::Pointer SpringDamperElement<TDim, TNumNodes>::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
     //NEEDED TO CREATE AN ELEMENT
-    return Kratos::make_intrusive<SpringDamperElement3D2N>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<SpringDamperElement>( NewId, pGeom, pProperties );
 }
 
 //************************************CLONE*******************************************
 //************************************************************************************
-
-Element::Pointer SpringDamperElement3D2N::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+Element::Pointer SpringDamperElement<TDim, TNumNodes>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
     //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
     //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
 
-    SpringDamperElement3D2N NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    SpringDamperElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
-    return Kratos::make_intrusive<SpringDamperElement3D2N>(NewElement);
+    return Kratos::make_intrusive<SpringDamperElement>(NewElement);
 }
 
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
-
-SpringDamperElement3D2N::~SpringDamperElement3D2N()
+template<std::size_t TDim, std::size_t TNumNodes>
+SpringDamperElement<TDim, TNumNodes>::~SpringDamperElement()
 {
 }
 
 //************* GETTING METHODS
 //************************************************************************************
 //************************************************************************************
-
-void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
 
     // Resizing as needed
-    if ( rElementalDofList.size() != msElementSize )
-        rElementalDofList.resize( msElementSize );
+    if constexpr (TDim == 2) {
+        if (rElementalDofList.size() != msElementSize2D)
+        {
+            rElementalDofList.resize(msElementSize2D);
+        }
+    }
+    else if constexpr (TDim == 3)
+    {
+        if (rElementalDofList.size() != msElementSize3D)
+        {
+            rElementalDofList.resize(msElementSize3D);
+        }
+    }
+    for ( SizeType i = 0; i < TNumNodes; ++i ) {
 
-    for ( SizeType i = 0; i < msNumberOfNodes; ++i ) {
-        const SizeType index = i * msNumberOfNodes * msDimension;
-        rElementalDofList[index] = GetGeometry()[i].pGetDof( DISPLACEMENT_X);
-        rElementalDofList[index + 1] = GetGeometry()[i].pGetDof( DISPLACEMENT_Y);
-        rElementalDofList[index + 2] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z);
-        rElementalDofList[index + 3] = GetGeometry()[i].pGetDof( ROTATION_X);
-        rElementalDofList[index + 4] = GetGeometry()[i].pGetDof( ROTATION_Y);
-        rElementalDofList[index + 5] = GetGeometry()[i].pGetDof( ROTATION_Z);
+        if constexpr (TDim == 2){
+            const SizeType index = i * msLocalSize2D;
+            rElementalDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ROTATION_Z);
+        }
+        else if constexpr (TDim == 3){
+            const SizeType index = i * msLocalSize3D;
+            rElementalDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
+            rElementalDofList[index + 3] = GetGeometry()[i].pGetDof(ROTATION_X);
+            rElementalDofList[index + 4] = GetGeometry()[i].pGetDof(ROTATION_Y);
+            rElementalDofList[index + 5] = GetGeometry()[i].pGetDof(ROTATION_Z);
+        }
     }
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     if ( rResult.size() != msElementSize )
@@ -150,7 +170,8 @@ void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, c
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     if ( rValues.size() != msElementSize )
@@ -177,7 +198,8 @@ void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step ) const
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int Step ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     if ( rValues.size() != msElementSize )
@@ -202,7 +224,8 @@ void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int St
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int Step ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     if ( rValues.size() != msElementSize )
@@ -229,7 +252,8 @@ void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int S
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::CalculateLocalSystem(
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
@@ -251,7 +275,8 @@ void SpringDamperElement3D2N::CalculateLocalSystem(
 //***********************************************************************************
 //***********************************************************************************
 
-void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
 
     if ( rRightHandSideVector.size() != msElementSize ) {
@@ -308,7 +333,8 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
 //***********************************************************************************
 //***********************************************************************************
 
-void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     // Resizing the LHS
     std::size_t system_size = msElementSize;
@@ -345,7 +371,8 @@ void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMa
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -365,7 +392,8 @@ void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, cons
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -403,7 +431,8 @@ void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix
 //************************************************************************************
 //************************************************************************************
 
-int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+int SpringDamperElement<TDim, TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -436,16 +465,20 @@ int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo ) con
 
 //************************************************************************************
 //************************************************************************************
-
-void SpringDamperElement3D2N::save( Serializer& rSerializer ) const
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
 }
 
-void SpringDamperElement3D2N::load( Serializer& rSerializer )
+template<std::size_t TDim, std::size_t TNumNodes>
+void SpringDamperElement<TDim, TNumNodes>::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
 }
+
+template class SpringDamperElement<2,2>;
+template class SpringDamperElement<3,2>;
 
 
 } // Namespace Kratos

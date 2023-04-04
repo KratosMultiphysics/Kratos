@@ -660,7 +660,7 @@ template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
-template class AdjointFiniteDifferencingBaseElement<SpringDamperElement3D2N>;
+template class AdjointFiniteDifferencingBaseElement<SpringDamperElement<3,2>>;
 
 } // namespace Kratos
 
