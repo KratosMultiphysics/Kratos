@@ -47,7 +47,7 @@ namespace Kratos
 * @brief This class is used to search for elements, conditions and nodes in a given model part
 * @author Carlos Roig
 */
-class SpatialSearch
+class KRATOS_API(KRATOS_CORE) SpatialSearch
 {
 public:
     ///@name Type Definitions
