@@ -186,7 +186,7 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<StlIO, StlIO::Pointer, IO>(m, "StlIO")
         .def(py::init<std::filesystem::path const& >())
-        .def(py::init<const std::filesystem::path&, const Flags>())
+        .def(py::init<std::filesystem::path const&, Parameters>())
         ;
 
 
