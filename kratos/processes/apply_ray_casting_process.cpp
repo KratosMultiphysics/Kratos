@@ -89,6 +89,8 @@ namespace Kratos
             KRATOS_ERROR << "Unrecognized database " <<  database << std::endl;
         }
 
+        const Variable<double>* mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+
         block_for_each(ModelPart1.Nodes(), [&](Node<3>& rNode){
             double& r_node_distance = node_distance_getter(rNode, *mpDistanceVariable);
             const double ray_distance = this->DistancePositionInSpace(rNode);

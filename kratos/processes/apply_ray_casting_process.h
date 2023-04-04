@@ -187,8 +187,6 @@ private:
     bool mIsSearchStructureAllocated;
     double mCharacteristicLength = 1.0;
 
-    const Variable<double>* mpDistanceVariable = &DISTANCE;
-
 
     ///@}
     ///@name Private Operators
