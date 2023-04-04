@@ -63,7 +63,7 @@ namespace Kratos {
         ///@{
 
         /// Pointer definition of Octree
-        //KRATOS_CLASS_POINTER_DEFINITION(OctreeBinary);
+        KRATOS_CLASS_POINTER_DEFINITION(OctreeBinary);
 
         typedef TCellType cell_type;
 
@@ -77,13 +77,11 @@ namespace Kratos {
 
         typedef Geometry<NodeType> GeometryType;
 
-        enum {
-            CHILDREN_NUMBER = cell_type::CHILDREN_NUMBER,
-            DIMENSION = cell_type::DIMENSION,
-            MAX_LEVEL = cell_type::MAX_LEVEL,
-            ROOT_LEVEL = cell_type::ROOT_LEVEL,
-            MIN_LEVEL = cell_type::MIN_LEVEL // must be greater iqual to 2
-        };
+        static constexpr std::size_t CHILDREN_NUMBER = cell_type::CHILDREN_NUMBER;
+        static constexpr std::size_t DIMENSION = cell_type::DIMENSION;
+        static constexpr std::size_t MAX_LEVEL = cell_type::MAX_LEVEL;
+        static constexpr std::size_t ROOT_LEVEL = cell_type::ROOT_LEVEL;
+        static constexpr std::size_t MIN_LEVEL = cell_type::MIN_LEVEL; // must be greater iqual to 2
 
         ///@}
         ///@name Life Cycle
@@ -93,16 +91,14 @@ namespace Kratos {
 
         OctreeBinary() : root_(new cell_type), number_of_cells_(CHILDREN_NUMBER + 1), number_of_leaves_(1), levels_(0) {
 
-            for(int i = 0 ; i < DIMENSION ; i++)
-            {
+            for(unsigned int i = 0 ; i < DIMENSION ; i++){
                 mScaleFactor[i] = 1.00;
                 mOffset[i] = 0.00;
             }
         }
 
         OctreeBinary(const double*  NewScaleFactor, const double* NewOffset) : root_(new cell_type), number_of_cells_(CHILDREN_NUMBER + 1), number_of_leaves_(1), levels_(0) {
-            for(int i = 0 ; i < DIMENSION ; i++)
-            {
+            for(unsigned int i = 0 ; i < DIMENSION ; i++){
                 mScaleFactor[i] = NewScaleFactor[i];
                 mOffset[i] = NewOffset[i];
             }
@@ -125,8 +121,7 @@ namespace Kratos {
 
         void SetBoundingBox(const coordinate_type * Low, const coordinate_type * High)
         {
-            for(int i = 0 ; i < DIMENSION ; i++)
-            {
+            for(unsigned int i = 0 ; i < DIMENSION ; i++){
                 mScaleFactor[i] = 1/(High[i] - Low[i]);
                 mOffset[i] = -Low[i];
             }
@@ -145,8 +140,7 @@ namespace Kratos {
 
         void NormalizeCoordinates(coordinate_type* Coordinates) const
         {
-            for(int i = 0 ; i < DIMENSION ; i++)
-            {
+            for(unsigned int i = 0 ; i < DIMENSION ; i++){
                 Coordinates[i] += mOffset[i];
                 Coordinates[i] *= mScaleFactor[i];
             }
@@ -168,20 +162,19 @@ namespace Kratos {
 
         void CalculateCoordinatesNormalized(const key_type* keys, coordinate_type * NormalizedCoordinates) const {
             const double scale = 1.00 / (1 << ROOT_LEVEL);
-            for(int i = 0 ; i < DIMENSION ; i++)
+            for(unsigned int i = 0 ; i < DIMENSION ; i++)
                 NormalizedCoordinates[i] = static_cast<double>(keys[i] * scale);
         }
 
         void CalculateCoordinates(key_type* keys, coordinate_type * ResultCoordinates) const {
             const double scale = 1.00 / (1 << ROOT_LEVEL);
-            for(int i = 0 ; i < DIMENSION ; i++)
+            for(unsigned int i = 0 ; i < DIMENSION ; i++)
                 ResultCoordinates[i] = (static_cast<double>(keys[i] * scale) / mScaleFactor[i]) - mOffset[i];
         }
 
         void ScaleBackToOriginalCoordinate(coordinate_type * ThisCoordinates) const
         {
-            for(int i = 0 ; i < DIMENSION ; i++)
-            {
+            for(unsigned int i = 0 ; i < DIMENSION ; i++){
                 ThisCoordinates[i] /=  mScaleFactor[i];
                 ThisCoordinates[i] -= mOffset[i];
             }
@@ -190,8 +183,7 @@ namespace Kratos {
 
         void ScaleBackToOriginalCoordinate(const coordinate_type * ThisCoordinates, coordinate_type * ResultCoordinates) const
         {
-            for(int i = 0 ; i < DIMENSION ; i++)
-            {
+            for(unsigned int i = 0 ; i < DIMENSION ; i++){
                 ResultCoordinates[i] = ThisCoordinates[i] /  mScaleFactor[i];
                 ResultCoordinates[i] -= mOffset[i];
             }
