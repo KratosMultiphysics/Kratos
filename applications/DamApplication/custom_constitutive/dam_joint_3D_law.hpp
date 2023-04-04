@@ -93,23 +93,25 @@ namespace Kratos
         // Member Variables
 
         double mStateVariable;
-        double mUpliftPressure;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+        virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables,
+                                                        Parameters& rValues);
 
-        virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+        virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
+                                             Parameters& rValues);
 
-        virtual void CheckLoadingFunction(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+        virtual void CheckLoadingFunction(ConstitutiveLawVariables& rVariables,
+                                          Parameters& rValues);
 
         virtual void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                                ConstitutiveLawVariables& rVariables,
-                                                Parameters& rValues);
+                                               ConstitutiveLawVariables& rVariables,
+                                               Parameters& rValues);
 
         virtual void ComputeStressVector(Vector& rStressVector,
-                                            ConstitutiveLawVariables& rVariables,
-                                            Parameters& rValues);
+                                         ConstitutiveLawVariables& rVariables,
+                                         Parameters& rValues);
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

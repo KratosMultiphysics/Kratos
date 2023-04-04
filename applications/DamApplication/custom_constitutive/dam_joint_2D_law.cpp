@@ -94,9 +94,6 @@ void DamJoint2DLaw::ComputeStressVector(Vector& rStressVector,
         rStressVector[1] = rVariables.YoungModulus * StrainVector[1];
     }
 
-    // Add Uplift Pressure
-    rStressVector[1] -= mUpliftPressure;
-
     KRATOS_CATCH("")
 }
 

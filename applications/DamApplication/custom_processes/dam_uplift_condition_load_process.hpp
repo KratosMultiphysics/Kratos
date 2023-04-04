@@ -139,9 +139,9 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        // const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nelems = mrModelPart.GetMesh(0).Elements().size();
-        // const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Getting the values of table in case that it exist
@@ -180,7 +180,7 @@ class DamUpliftConditionLoadProcess : public Process
         array_1d<double,3> AuxLocalCoordinates;
 
         double JointPosition = 0.0;
-        double ref_coord = mReferenceCoordinate + mWaterLevel;
+        double ref_water_level = mReferenceCoordinate + mWaterLevel;
 
         if (nelems != 0)
         {
@@ -221,146 +221,55 @@ class DamUpliftConditionLoadProcess : public Process
                     }
                 }
             }
-
-            for(int j = 0; j < nelems; j++)
-            {
-                ModelPart::ElementsContainerType::iterator it_elem = el_begin + j;
-
-                Element::GeometryType& rGeom = it_elem->GetGeometry();
-                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
-                unsigned int NumGPoints = IntegrationPoints.size();
-                Vector detJContainer(NumGPoints);
-                rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
-                std::vector<double> StateVariableVector(NumGPoints);
-                it_elem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfo);
-
-                std::vector<double> UpliftPressureVector(NumGPoints);
-
-                // Loop through GaussPoints
-                for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-                {
-                    // GaussPointOld Coordinates
-                    AuxLocalCoordinates[0] = IntegrationPoints[GPoint][0];
-                    AuxLocalCoordinates[1] = IntegrationPoints[GPoint][1];
-                    AuxLocalCoordinates[2] = IntegrationPoints[GPoint][2];
-                    rGeom.GlobalCoordinates(MyGaussPoint.Coordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
-
-                    // GaussPoint StateVariable (1 broken, !=1 not broken)
-                    if (StateVariableVector.empty()) MyGaussPoint.StateVariable = 0.0;
-                    else MyGaussPoint.StateVariable = StateVariableVector[GPoint];
-
-                    // GaussPoint Global Coordinates
-                    noalias(auxiliar_vector) = MyGaussPoint.Coordinates;
-
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
-
-                    double UpliftPressure = 0.0;
-
-                    if (MyGaussPoint.StateVariable == 1.0) // Broken part
-                    {
-                        UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction]));
-                    }
-                    else // Not broken part
-                    {
-                        if (mDrain == true && JointPosition < (reference_vector(0) + mDistanceDrain)) // If Drain and Joint broken less than the Drain
-                        {
-                            if (newCoordinate(0) < (reference_vector(0) + mDistanceDrain)) // UpliftPressure before the Drain
-                            {
-                                UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - 0.8 * ((1.0 / ((reference_vector(0) + mDistanceDrain) - JointPosition)) * (fabs(newCoordinate(0) - JointPosition))));
-                            }
-                            else // UpliftPressure after the Drain
-                            {
-                                UpliftPressure = 0.2 * mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs(newCoordinate(0) - (reference_vector(0) + mDistanceDrain)))));
-                            }
-                        }
-                        else // If Not Drain or Joint broken more than the Drain
-                        {
-                            UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - ((1.0 / (mBaseDam - (JointPosition - reference_vector(0)))) * (fabs(newCoordinate(0) - JointPosition))));
-                        }
-                    }
-
-                    if (UpliftPressure < 0.0)
-                    {
-                        UpliftPressure = 0.0;
-                    }
-
-                    // GaussPoint UpliftPressure
-                    UpliftPressureVector[GPoint] = 2.0 * UpliftPressure;
-                }
-                it_elem->SetValuesOnIntegrationPoints(UPLIFT_PRESSURE,UpliftPressureVector,CurrentProcessInfo);
-            }
-            KRATOS_WATCH(JointPosition)
         }
 
-        // if (nnodes != 0)
-        // {
-        //     ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+        KRATOS_WATCH(JointPosition)
 
-        //     double ref_coord = mReferenceCoordinate + mWaterLevel;
+        if (nnodes != 0)
+        {
 
-        //     if (mDrain == true)
-        //     {
-        //         double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-        //         double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
+            block_for_each(mrModelPart.GetMesh(0).Nodes(), [&](auto& rNode){
 
-        //         #pragma omp parallel for
-        //         for (int i = 0; i < nnodes; i++)
-        //         {
-        //             ModelPart::NodesContainerType::iterator it = it_begin + i;
+                // Node Global Coordinates
+                noalias(auxiliar_vector) = rNode.Coordinates();
 
-        //             auxiliar_vector.resize(3, false);
-        //             const array_1d<double,3>& r_coordinates = it->Coordinates();
-        //             noalias(auxiliar_vector) = r_coordinates;
+                newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
-        //             // Computing the new coordinates
-        //             newCoordinate = prod(RotationMatrix, auxiliar_vector);
+                double uplift_pressure = 0.0;
 
-        //             // We compute the first part of the uplift law
-        //             mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
+                if (newCoordinate(0) < (reference_vector(0) + JointPosition)) // Broken part
+                {
+                    uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction]));
+                }
+                else // Not broken part
+                {
+                    if (mDrain == true && JointPosition < (reference_vector(0) + mDistanceDrain)) // If Drain and Joint broken less than the Drain
+                    {
+                        if (newCoordinate(0) < (reference_vector(0) + mDistanceDrain)) // UpliftPressure before the Drain
+                        {
+                            uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - 0.8 * ((1.0 / ((reference_vector(0) + mDistanceDrain) - JointPosition)) * (fabs(newCoordinate(0) - JointPosition))));
+                        }
+                        else // UpliftPressure after the Drain
+                        {
+                            uplift_pressure = 0.2 * mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs(newCoordinate(0) - (reference_vector(0) + mDistanceDrain)))));
+                        }
+                    }
+                    else // If Not Drain or Joint broken more than the Drain
+                    {
+                        uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - ((1.0 / (mBaseDam - (JointPosition - reference_vector(0)))) * (fabs(newCoordinate(0) - JointPosition))));
+                    }
+                }
 
-        //             // If uplift pressure is greater than the limit we compute the second part and we update the value
-        //             if (mUpliftPressure <= mSpecific * aux_drain)
-        //             {
-        //                 mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
-        //             }
-
-        //             if (mUpliftPressure < 0.0)
-        //             {
-        //                 it->FastGetSolutionStepValue(var) = 0.0;
-        //             }
-        //             else
-        //             {
-        //                 it->FastGetSolutionStepValue(var) = mUpliftPressure;
-        //             }
-        //         }
-        //     }
-        //     else
-        //     {
-        //         #pragma omp parallel for
-        //         for (int i = 0; i < nnodes; i++)
-        //         {
-        //             ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-        //             auxiliar_vector.resize(3, false);
-        //             const array_1d<double,3>& r_coordinates = it->Coordinates();
-        //             noalias(auxiliar_vector) = r_coordinates;
-
-        //             newCoordinate = prod(RotationMatrix, auxiliar_vector);
-
-        //             mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
-
-        //             if (mUpliftPressure < 0.0)
-        //             {
-        //                 it->FastGetSolutionStepValue(var) = 0.0;
-        //             }
-        //             else
-        //             {
-        //                 it->FastGetSolutionStepValue(var) = mUpliftPressure;
-        //             }
-        //         }
-        //     }
-        // }
+                if (uplift_pressure < 0.0)
+                {
+                    rNode.FastGetSolutionStepValue(var) = 0.0;
+                }
+                else
+                {
+                    rNode.FastGetSolutionStepValue(var) = uplift_pressure;
+                }
+            });
+        }
 
         KRATOS_CATCH("");
     }
@@ -373,9 +282,9 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        // const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nelems = mrModelPart.GetMesh(0).Elements().size();
-        // const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Getting the values of table in case that it exist
@@ -414,7 +323,7 @@ class DamUpliftConditionLoadProcess : public Process
         array_1d<double,3> AuxLocalCoordinates;
 
         double JointPosition = 0.0;
-        double ref_coord = mReferenceCoordinate + mWaterLevel;
+        double ref_water_level = mReferenceCoordinate + mWaterLevel;
 
         if (nelems != 0)
         {
@@ -455,146 +364,56 @@ class DamUpliftConditionLoadProcess : public Process
                     }
                 }
             }
-
-            for(int j = 0; j < nelems; j++)
-            {
-                ModelPart::ElementsContainerType::iterator it_elem = el_begin + j;
-
-                Element::GeometryType& rGeom = it_elem->GetGeometry();
-                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
-                unsigned int NumGPoints = IntegrationPoints.size();
-                Vector detJContainer(NumGPoints);
-                rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
-                std::vector<double> StateVariableVector(NumGPoints);
-                it_elem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfo);
-
-                std::vector<double> UpliftPressureVector(NumGPoints);
-
-                // Loop through GaussPoints
-                for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-                {
-                    // GaussPointOld Coordinates
-                    AuxLocalCoordinates[0] = IntegrationPoints[GPoint][0];
-                    AuxLocalCoordinates[1] = IntegrationPoints[GPoint][1];
-                    AuxLocalCoordinates[2] = IntegrationPoints[GPoint][2];
-                    rGeom.GlobalCoordinates(MyGaussPoint.Coordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
-
-                    // GaussPoint StateVariable (1 broken, !=1 not broken)
-                    if (StateVariableVector.empty()) MyGaussPoint.StateVariable = 0.0;
-                    else MyGaussPoint.StateVariable = StateVariableVector[GPoint];
-
-                    // GaussPoint Global Coordinates
-                    noalias(auxiliar_vector) = MyGaussPoint.Coordinates;
-
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
-
-                    double UpliftPressure = 0.0;
-
-                    if (MyGaussPoint.StateVariable == 1.0) // Broken part
-                    {
-                        UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction]));
-                    }
-                    else // Not broken part
-                    {
-                        if (mDrain == true && JointPosition < (reference_vector(0) + mDistanceDrain)) // If Drain and Joint broken less than the Drain
-                        {
-                            if (newCoordinate(0) < (reference_vector(0) + mDistanceDrain)) // UpliftPressure before the Drain
-                            {
-                                UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - 0.8 * ((1.0 / ((reference_vector(0) + mDistanceDrain) - JointPosition)) * (fabs(newCoordinate(0) - JointPosition))));
-                            }
-                            else // UpliftPressure after the Drain
-                            {
-                                UpliftPressure = 0.2 * mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs(newCoordinate(0) - (reference_vector(0) + mDistanceDrain)))));
-                            }
-                        }
-                        else // If Not Drain or Joint broken more than the Drain
-                        {
-                            UpliftPressure = mSpecific * (ref_coord - (MyGaussPoint.Coordinates[direction])) * (1.0 - ((1.0 / (mBaseDam - (JointPosition - reference_vector(0)))) * (fabs(newCoordinate(0) - JointPosition))));
-                        }
-                    }
-
-                    if (UpliftPressure < 0.0)
-                    {
-                        UpliftPressure = 0.0;
-                    }
-
-                    // GaussPoint UpliftPressure
-                    UpliftPressureVector[GPoint] = 2.0 * UpliftPressure;
-                }
-                it_elem->SetValuesOnIntegrationPoints(UPLIFT_PRESSURE,UpliftPressureVector,CurrentProcessInfo);
-            }
-            KRATOS_WATCH(JointPosition)
         }
 
-        // if (nnodes != 0)
-        // {
-        //     ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+        KRATOS_WATCH(JointPosition)
 
-        //     double ref_coord = mReferenceCoordinate + mWaterLevel;
+        if (nnodes != 0)
+        {
 
-        //     if (mDrain == true)
-        //     {
-        //         double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-        //         double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((mBaseDam - mDistanceDrain) / mBaseDam) + mHeightDrain;
+            block_for_each(mrModelPart.GetMesh(0).Nodes(), [&](auto& rNode){
 
-        //         #pragma omp parallel for
-        //         for (int i = 0; i < nnodes; i++)
-        //         {
-        //             ModelPart::NodesContainerType::iterator it = it_begin + i;
+                // Node Global Coordinates
+                noalias(auxiliar_vector) = rNode.Coordinates();
 
-        //             auxiliar_vector.resize(3, false);
-        //             const array_1d<double,3>& r_coordinates = it->Coordinates();
-        //             noalias(auxiliar_vector) = r_coordinates;
+                newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
-        //             // Computing the new coordinates
-        //             newCoordinate = prod(RotationMatrix, auxiliar_vector);
+                double uplift_pressure = 0.0;
 
-        //             // We compute the first part of the uplift law
-        //             mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
+                if (newCoordinate(0) < (reference_vector(0) + JointPosition)) // Broken part
+                {
+                    uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction]));
+                }
+                else // Not broken part
+                {
+                    if (mDrain == true && JointPosition < (reference_vector(0) + mDistanceDrain)) // If Drain and Joint broken less than the Drain
+                    {
+                        if (newCoordinate(0) < (reference_vector(0) + mDistanceDrain)) // UpliftPressure before the Drain
+                        {
+                            uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - 0.8 * ((1.0 / ((reference_vector(0) + mDistanceDrain) - JointPosition)) * (fabs(newCoordinate(0) - JointPosition))));
+                        }
+                        else // UpliftPressure after the Drain
+                        {
+                            uplift_pressure = 0.2 * mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs(newCoordinate(0) - (reference_vector(0) + mDistanceDrain)))));
+                        }
+                    }
+                    else // If Not Drain or Joint broken more than the Drain
+                    {
+                        uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - ((1.0 / (mBaseDam - (JointPosition - reference_vector(0)))) * (fabs(newCoordinate(0) - JointPosition))));
+                    }
+                }
 
-        //             // If uplift pressure is greater than the limit we compute the second part and we update the value
-        //             if (mUpliftPressure <= mSpecific * aux_drain)
-        //             {
-        //                 mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
-        //             }
-
-        //             if (mUpliftPressure < 0.0)
-        //             {
-        //                 it->FastGetSolutionStepValue(var) = 0.0;
-        //             }
-        //             else
-        //             {
-        //                 it->FastGetSolutionStepValue(var) = mUpliftPressure;
-        //             }
-        //         }
-        //     }
-        //     else
-        //     {
-        //         #pragma omp parallel for
-        //         for (int i = 0; i < nnodes; i++)
-        //         {
-        //             ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-        //             auxiliar_vector.resize(3, false);
-        //             const array_1d<double,3>& r_coordinates = it->Coordinates();
-        //             noalias(auxiliar_vector) = r_coordinates;
-
-        //             newCoordinate = prod(RotationMatrix, auxiliar_vector);
-
-        //             mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
-
-        //             if (mUpliftPressure < 0.0)
-        //             {
-        //                 it->FastGetSolutionStepValue(var) = 0.0;
-        //             }
-        //             else
-        //             {
-        //                 it->FastGetSolutionStepValue(var) = mUpliftPressure;
-        //             }
-        //         }
-        //     }
-        // }
+                if (uplift_pressure < 0.0)
+                {
+                    rNode.FastGetSolutionStepValue(var) = 0.0;
+                }
+                else
+                {
+                    rNode.FastGetSolutionStepValue(var) = uplift_pressure;
+                }
+                KRATOS_WATCH(uplift_pressure)
+            });
+        }
 
         KRATOS_CATCH("");
     }
@@ -673,7 +492,7 @@ class DamUpliftConditionLoadProcess : public Process
     double mHeightDrain;
     double mDistanceDrain;
     double mEffectivenessDrain;
-    double mUpliftPressure;
+    double uplift_pressure;
     Vector mX0;
     Vector mX1;
     Vector mX2;

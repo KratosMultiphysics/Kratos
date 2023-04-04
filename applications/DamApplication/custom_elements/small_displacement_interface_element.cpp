@@ -598,14 +598,6 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
         for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
             rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rOutput[i] );
     }
-    else if(rVariable == UPLIFT_PRESSURE)
-    {
-        if ( rOutput.size() != mConstitutiveLawVector.size() )
-            rOutput.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rOutput[i] );
-    }
 
     KRATOS_CATCH( "" )
 }

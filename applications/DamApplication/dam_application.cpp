@@ -182,10 +182,6 @@ void KratosDamApplication::Register()
 
     Serializer::Register("DamJoint3DLaw",mDamJoint3DLaw);
     Serializer::Register("DamJoint2DLaw",mDamJoint2DLaw);
-    Serializer::Register("DamJointBilinearCohesive3DLaw",mDamJointBilinearCohesive3DLaw);
-    Serializer::Register("DamJointBilinearCohesive2DLaw",mDamJointBilinearCohesive2DLaw);
-    Serializer::Register("DamJointExponentialCohesive3DLaw",mDamJointExponentialCohesive3DLaw);
-    Serializer::Register("DamJointExponentialCohesive2DLaw",mDamJointExponentialCohesive2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( TIME_UNIT_CONVERTER )
@@ -223,10 +219,6 @@ void KratosDamApplication::Register()
 
     //From Solid
     KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)
-
-    // Uplift
-    KRATOS_REGISTER_VARIABLE( UPLIFT_PRESSURE )
-
 }
 
 }// namespace Kratos.

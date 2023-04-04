@@ -69,7 +69,6 @@ void DamJoint3DLaw::InitializeMaterial( const Properties& rMaterialProperties,co
     KRATOS_TRY
 
     mStateVariable = 0.0;
-    mUpliftPressure = 0.0;
 
     KRATOS_CATCH("")
 }
@@ -158,10 +157,7 @@ double& DamJoint3DLaw::GetValue( const Variable<double>& rThisVariable, double& 
     {
         rValue = mStateVariable;
     }
-    else if( rThisVariable == UPLIFT_PRESSURE )
-    {
-        rValue = mUpliftPressure;
-    }
+
     return rValue;
 
     KRATOS_CATCH("")
@@ -177,10 +173,6 @@ void DamJoint3DLaw::SetValue(const Variable<double>& rThisVariable, const double
     if (rThisVariable == STATE_VARIABLE)
     {
         mStateVariable = rValue;
-    }
-    if (rThisVariable == UPLIFT_PRESSURE)
-    {
-        mUpliftPressure = rValue;
     }
 
     KRATOS_CATCH("")
@@ -274,9 +266,6 @@ void DamJoint3DLaw::ComputeStressVector(Vector& rStressVector,
         rStressVector[1] = rVariables.YieldStress * StrainVector[1];
         rStressVector[2] = rVariables.YoungModulus * StrainVector[2];
     }
-
-    // Add Uplift Pressure
-    rStressVector[2] -= mUpliftPressure;
 
     KRATOS_CATCH("")
 }

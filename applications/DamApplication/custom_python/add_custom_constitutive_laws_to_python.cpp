@@ -40,10 +40,6 @@
 
 #include "custom_constitutive/dam_joint_3D_law.hpp"
 #include "custom_constitutive/dam_joint_2D_law.hpp"
-#include "custom_constitutive/dam_joint_bilinear_cohesive_3D_law.hpp"
-#include "custom_constitutive/dam_joint_bilinear_cohesive_2D_law.hpp"
-#include "custom_constitutive/dam_joint_exponential_cohesive_3D_law.hpp"
-#include "custom_constitutive/dam_joint_exponential_cohesive_2D_law.hpp"
 
 namespace Kratos
 {
@@ -120,18 +116,6 @@ namespace Kratos
             .def( py::init<>() );
             py::class_< DamJoint2DLaw, DamJoint2DLaw::Pointer, ConstitutiveLaw >
             (m, "DamJoint2DLaw")
-            .def( py::init<>() );
-            py::class_< DamJointBilinearCohesive3DLaw, DamJointBilinearCohesive3DLaw::Pointer, ConstitutiveLaw >
-            (m, "DamJointBilinearCohesive3DLaw")
-            .def( py::init<>() );
-            py::class_< DamJointBilinearCohesive2DLaw, DamJointBilinearCohesive2DLaw::Pointer, ConstitutiveLaw >
-            (m, "DamJointBilinearCohesive2DLaw")
-            .def( py::init<>() );
-            py::class_< DamJointExponentialCohesive3DLaw, DamJointExponentialCohesive3DLaw::Pointer, ConstitutiveLaw >
-            (m, "DamJointExponentialCohesive3DLaw")
-            .def( py::init<>() );
-            py::class_< DamJointExponentialCohesive2DLaw, DamJointExponentialCohesive2DLaw::Pointer, ConstitutiveLaw >
-            (m, "DamJointExponentialCohesive2DLaw")
             .def( py::init<>() );
         }
 

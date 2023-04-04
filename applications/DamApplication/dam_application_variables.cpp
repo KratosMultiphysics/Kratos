@@ -50,7 +50,4 @@ namespace Kratos
     // From Solid
     KRATOS_CREATE_VARIABLE(bool, COMPUTE_CONSISTENT_MASS_MATRIX)
 
-    // Uplift
-    KRATOS_CREATE_VARIABLE( double, UPLIFT_PRESSURE )
-
 }// namespace Kratos.
