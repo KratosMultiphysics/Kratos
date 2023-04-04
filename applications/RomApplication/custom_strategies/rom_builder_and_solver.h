@@ -708,6 +708,41 @@ protected:
         KRATOS_CATCH("")
     }
 
+    void CalculateReactions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        KRATOS_TRY
+        // Get ProcessInfo from main model part
+        const auto& r_current_process_info = rModelPart.GetProcessInfo();
+
+        struct my_tls {
+            Kratos::Vector rhs_elem;
+        };
+
+        auto& r_elements = rModelPart.Elements();
+        if(!r_elements.empty())
+        {
+            block_for_each(r_elements, my_tls(), [&](Element& r_element, my_tls& rTLS)
+            {
+                Element::GeometryType& geom = r_element.GetGeometry();
+                DofsVectorType dofs = {};
+                r_element.CalculateRightHandSide(rTLS.rhs_elem, r_current_process_info);
+                r_element.GetDofList(dofs, r_current_process_info);
+                for (IndexType i = 0; i < dofs.size(); ++i){
+                    if (dofs[i]->IsFixed()){
+                        rb[dofs[i]->EquationId()] += rTLS.rhs_elem[i]; // Building RHS.
+                        dofs[i]->GetSolutionStepReactionValue() = -rb[dofs[i]->EquationId()]; // Reactions are not Zero in the next step for ROMs. Reaction will be overwritten if dof is repeated in other elements, nontheless, it avoids to double loop.
+                    }
+                }
+
+            });
+        }   
+        KRATOS_CATCH("")
+    }
     ///@}
     ///@name Protected access
     ///@{
