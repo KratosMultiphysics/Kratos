@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian.hpp"
+#include "custom_elements/mpm_updated_lagrangian.hpp"
 
 namespace Kratos
 {
@@ -45,8 +45,8 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class UpdatedLagrangianUP
-    : public UpdatedLagrangian
+class MPMUpdatedLagrangianUP
+    : public MPMUpdatedLagrangian
 {
 public:
 
@@ -62,7 +62,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUP );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMUpdatedLagrangianUP );
     ///@}
 
 
@@ -75,26 +75,26 @@ public:
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangianUP();
+    MPMUpdatedLagrangianUP();
 
 
     /// Default constructors
-    UpdatedLagrangianUP(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMUpdatedLagrangianUP(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangianUP(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMUpdatedLagrangianUP(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangianUP(UpdatedLagrangianUP const& rOther);
+    MPMUpdatedLagrangianUP(MPMUpdatedLagrangianUP const& rOther);
 
     /// Destructor.
-    ~UpdatedLagrangianUP() override;
+    ~MPMUpdatedLagrangianUP() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangianUP& operator=(UpdatedLagrangianUP const& rOther);
+    MPMUpdatedLagrangianUP& operator=(MPMUpdatedLagrangianUP const& rOther);
 
     ///@}
     ///@name Operations
@@ -386,7 +386,7 @@ protected:
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    using UpdatedLagrangian::CalculateDeformationMatrix;
+    using MPMUpdatedLagrangian::CalculateDeformationMatrix;
     void CalculateDeformationMatrix(Matrix& rB,
                                     Matrix& rF,
                                     Matrix& rDN_DX);
@@ -451,7 +451,7 @@ private:
     ///@{
     ///@}
 
-}; // Class UpdatedLagrangian
+}; // Class MPMUpdatedLagrangian
 
 ///@}
 ///@name Type Definitions
