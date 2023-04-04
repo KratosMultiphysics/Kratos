@@ -411,7 +411,6 @@ class DamUpliftConditionLoadProcess : public Process
                 {
                     rNode.FastGetSolutionStepValue(var) = uplift_pressure;
                 }
-                KRATOS_WATCH(uplift_pressure)
             });
         }
 
