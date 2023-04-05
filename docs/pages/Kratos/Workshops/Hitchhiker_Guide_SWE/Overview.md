@@ -8,15 +8,15 @@ summary:
 # Hitchhikers Guide to the Structural Wind Engineering Course
 ## Table of content
 
-[1. Installation Guides](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md)
+[1. Installation Guides](Installation_Guides.html)
 
-[2. Preprocessing](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/2_Preprocessing.md)
+[2. Preprocessing](Preprocessing.html)
 
-[3. Remote Computing](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/3_Remote_Computing.md)
+[3. Remote Computing](Remote_Computing.html)
 
-[4. Postprocessing](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/4_Postprocessing.md)
+[4. Postprocessing](Postprocessing.html)
 
-[5. ParOptBeam Guide](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/5_ParOptBeam_Guide.md)
+[5. ParOptBeam Guide](ParOptBeam_Guide.html)
 
 
 ## Overview
