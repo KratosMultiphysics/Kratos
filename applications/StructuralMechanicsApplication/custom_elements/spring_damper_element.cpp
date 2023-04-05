@@ -176,7 +176,7 @@ void SpringDamperElement<TDim, TNumNodes>::GetValuesVector( Vector& rValues, int
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     if ( rValues.size() != msElementSize )
     {
-	    rValues.resize( msElementSize, false );
+        rValues.resize( msElementSize, false );
     }
 
     for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
@@ -212,7 +212,7 @@ void SpringDamperElement<TDim, TNumNodes>::GetFirstDerivativesVector( Vector& rV
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     if ( rValues.size() != msElementSize )
     {
-	    rValues.resize( msElementSize, false );
+        rValues.resize( msElementSize, false );
     }
 
     for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
@@ -247,7 +247,7 @@ void SpringDamperElement<TDim, TNumNodes>::GetSecondDerivativesVector( Vector& r
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     if ( rValues.size() != msElementSize )
     {
-	    rValues.resize( msElementSize, false );
+        rValues.resize( msElementSize, false );
     }
 
     for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
@@ -313,12 +313,9 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rR
     array_1d<double, msElementSize > current_displacement = ZeroVector( msElementSize );
     array_1d<double, msLocalSize> elemental_stiffness = ZeroVector( msLocalSize );
 
-    // We get the reference
-    const auto& rconst_this = *this;
-
     // Getting actual values
-    const array_1d<double, 3>& r_nodal_stiffness = rconst_this.GetValue( NODAL_DISPLACEMENT_STIFFNESS );
-    const array_1d<double, 3>& r_nodal_rot_stiffness = rconst_this.GetValue(NODAL_ROTATIONAL_STIFFNESS);
+    const array_1d<double, 3>& r_nodal_stiffness = this->GetValue( NODAL_DISPLACEMENT_STIFFNESS );
+    const array_1d<double, 3>& r_nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
 
     if constexpr (TDim == 2) {
         elemental_stiffness[0] = r_nodal_stiffness[0];
@@ -389,9 +386,6 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateLeftHandSide( MatrixType& rL
     }
 
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
-
-    // We get the reference
-    const auto& rconst_this = *this;
 
     // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
     array_1d<double, msLocalSize > elemental_stiffness = ZeroVector( msLocalSize );
@@ -465,8 +459,8 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateDampingMatrix( MatrixType& r
             elemental_damping_ratio[0] = nodal_damping[0];
             elemental_damping_ratio[1] = nodal_damping[1];
             
-        	if constexpr (TDim == 3) {
-        	    elemental_damping_ratio[2] = nodal_damping[2];
+            if constexpr (TDim == 3) {
+                elemental_damping_ratio[2] = nodal_damping[2];
             }
         }
 
@@ -520,7 +514,7 @@ int SpringDamperElement<TDim, TNumNodes>::Check( const ProcessInfo& rCurrentProc
 
         if constexpr (TDim == 3) {
             KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, rnode)
-        	KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, rnode)
         }
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z,rnode)
     }
