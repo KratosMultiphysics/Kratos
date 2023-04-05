@@ -37,6 +37,19 @@ namespace Kratos
         mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
     }
 
+    template<std::size_t TDim>
+    ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+		const double RelativeTolerance)
+		: mRelativeTolerance(RelativeTolerance),
+          mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
+          mIsSearchStructureAllocated(true)
+    {
+        mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
+        mSettings["relative_tolerance"].SetDouble(mRelativeTolerance);
+    }
+
     template <std::size_t TDim>
     ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
@@ -47,6 +60,31 @@ namespace Kratos
     {
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
         mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
+    }
+
+    template<std::size_t TDim>
+	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+		FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
+		const double RelativeTolerance,
+		const Variable<double>* pDistanceVariable,
+		const DistanceDatabase& rDistanceDatabase)
+		: mRelativeTolerance(RelativeTolerance),
+		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
+		  mIsSearchStructureAllocated(false)
+    {
+        mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
+        mSettings["relative_tolerance"].SetDouble(mRelativeTolerance);
+        std::string distance_database;
+        if (rDistanceDatabase == DistanceDatabase::NodeHistorical) {
+            distance_database = "nodal_historical";
+        } else if (rDistanceDatabase == DistanceDatabase::NodeNonHistorical) {
+            distance_database = "nodal_non_historical";
+        } else {
+            KRATOS_ERROR << "Provided 'distance_database' is '" << distance_database <<
+             "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
+        }
+        mSettings["distance_database"].SetString(distance_database);
+        mSettings["distance_database"].SetString(pDistanceVariable->Name());
     }
 
     template<std::size_t TDim>

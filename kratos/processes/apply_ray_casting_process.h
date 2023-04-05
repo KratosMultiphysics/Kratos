@@ -41,6 +41,13 @@ public:
     ///@name Type Definitions
     ///@{
 
+    //TODO: delete after deprecated constructor are removed.
+    /// Nodal databases auxiliary enum
+    enum class DistanceDatabase {
+        NodeHistorical,
+        NodeNonHistorical
+    };
+
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
@@ -74,6 +81,20 @@ public:
         Parameters ThisParameters = Parameters());
 
     /**
+     * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
+     *
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute
+     * the distance to as conditions
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
+     */
+    KRATOS_DEPRECATED_MESSAGE("Deprecated constructor, please use the one with Parameters.")
+    ApplyRayCastingProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        const double RelativeTolerance);
+
+    /**
      * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
@@ -82,6 +103,21 @@ public:
     ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
         Parameters ThisParameters = Parameters());
+
+	/**
+     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     *
+     * @param TheFindIntersectedObjectsProcess reference to the already created search structure
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
+     * @param pDistanceVariable user-defined variabe to be used to read and store the distance to the skin
+     * @param rDistanceDatabase enum value specifying the database from which the distance variable is retrieved (see DistanceDatabase)
+     */
+    KRATOS_DEPRECATED_MESSAGE("Deprecated constructor, please use the one with Parameters.")
+    ApplyRayCastingProcess(
+        FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
+        const double RelativeTolerance,
+        const Variable<double>* pDistanceVariable,
+        const DistanceDatabase& rDistanceDatabase);
 
     /// Destructor.
     ~ApplyRayCastingProcess() override;
