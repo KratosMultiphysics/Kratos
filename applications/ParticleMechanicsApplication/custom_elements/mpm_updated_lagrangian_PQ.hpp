@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian.hpp"
+#include "custom_elements/mpm_updated_lagrangian.hpp"
 
 namespace Kratos
 {
@@ -31,8 +31,8 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class UpdatedLagrangianPQ
-    : public UpdatedLagrangian
+class MPMUpdatedLagrangianPQ
+    : public MPMUpdatedLagrangian
 {
 public:
 
@@ -50,7 +50,7 @@ public:
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianPQ );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMUpdatedLagrangianPQ );
     ///@}
 
 public:
@@ -59,26 +59,26 @@ public:
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangianPQ();
+    MPMUpdatedLagrangianPQ();
 
 
     /// Default constructors
-    UpdatedLagrangianPQ(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMUpdatedLagrangianPQ(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangianPQ(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMUpdatedLagrangianPQ(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangianPQ(UpdatedLagrangianPQ const& rOther);
+    MPMUpdatedLagrangianPQ(MPMUpdatedLagrangianPQ const& rOther);
 
     /// Destructor.
-    ~UpdatedLagrangianPQ() override;
+    ~MPMUpdatedLagrangianPQ() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangianPQ& operator=(UpdatedLagrangianPQ const& rOther);
+    MPMUpdatedLagrangianPQ& operator=(MPMUpdatedLagrangianPQ const& rOther);
 
     ///@}
     ///@name Operations
@@ -143,6 +143,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // Class UpdatedLagrangianPQ
+}; // Class MPMUpdatedLagrangianPQ
 } // namespace Kratos.
 #endif // KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED  defined
