@@ -50,4 +50,3 @@ def OptimizationProcessFactory(
         raise RuntimeError(f"The retrieved object is of type \"{retrieved_object.__class__.__name__}\" which is not derived from the \"{required_object_type.__name__}\".")
     else:
         return retrieved_object
-
