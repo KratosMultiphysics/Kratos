@@ -26,14 +26,14 @@ This part of the guide will help you with setting up the model and running the d
 
 ___
 ## 1. ParOptBeam Master Structure
-You can download ParOptBeam under this [link](https://github.com/mpentek/ParOptBeam). Click on *Code -> Download zip* to download the master file of ParOptBeam. The structure of the master folder you download is explained in this chapter.
+You can download ParOptBeam under this [link](https://github.com/mpentek/ParOptBeam). Click on *Code &rarr; Download zip* to download the master file of ParOptBeam. The structure of the master folder you download is explained in this chapter.
 
 ### 1.1. Input
 For the analysis to run, the program requires user input. The input required from the user are the **ProjectParameters** and the **Forces**.
 
-- ProjectParameters: Under *input -> parameters* you can find three different files with the project parameters. You will also have to create one file for your own building, which will be explained in chapter 2 of this guide. The parameters consist of the Material, Geometry, Boundary Conditions, Optimization Parameters and types of Analysis (together with the respective output options of analysis).
+- ProjectParameters: Under *input &rarr; parameters* you can find three different files with the project parameters. You will also have to create one file for your own building, which will be explained in chapter 2 of this guide. The parameters consist of the Material, Geometry, Boundary Conditions, Optimization Parameters and types of Analysis (together with the respective output options of analysis).
 
-- Force: Under *input -> force -> generic_building/generic_pylon* you can find three different files with with the dynamic forces in an .npy format. For your project you will also have to import your dynamic forces, which will be produced from the *convert_kratos_to_paroptbeam* script (reminder: Postprocessing). Depending on how many level forces you have, it is advised that dynamic force should be named after the number (i.E. 15 nodes -> dynamic_force_15 nodes). When modelling your beam model, make sure that the beam has the same amount of nodes as the dynamic force!
+- Force: Under *input &rarr; force &rarr; generic_building/generic_pylon* you can find three different files with with the dynamic forces in an .npy format. For your project you will also have to import your dynamic forces, which will be produced from the *convert_kratos_to_paroptbeam* script (reminder: Postprocessing). Depending on how many level forces you have, it is advised that dynamic force should be named after the number (i.E. 15 nodes &rarr; dynamic_force_15 nodes). When modelling your beam model, make sure that the beam has the same amount of nodes as the dynamic force!
 
 ### 1.2. Source
 The source folder is interesting for you to see and read, in order to understand the processes going on, however probably not necessary to work with during your project. It contains the different types of analysis definitions, beam elements, structure model and postprocessing as well as preprocessing settings.
@@ -127,7 +127,7 @@ Here we select for which modes we want to print and/or plot the mode shapes and 
  - Plot/Write Step and/or Time: Print or plot the results of a certain step or time.
  - Animate: True or false, depending if you are interested in the animation of the dynamic analysis (can be helpful to understand if the load input/direction is correct).
  - Skin Model Animation Parameters: Select start, end time as well as steps of the animation.
- - Dof_List: List of degrees of freedom considered, which are input as numbers. You can see the available dofs under "*source-> global_definitions*". The following degrees of freedom are represented by these numbers (for a fixed-free boundary condition):
+ - Dof_List: List of degrees of freedom considered, which are input as numbers. You can see the available dofs under "*source&rarr; global_definitions*". The following degrees of freedom are represented by these numbers (for a fixed-free boundary condition):
     - Translation x (longitudinal): Dof 0
     - Translation y: Dof 1
     - Translation z: Dof 2
@@ -141,7 +141,7 @@ Here we select for which modes we want to print and/or plot the mode shapes and 
  - Plot/Write result: For the corresponding dofs and respective results of interest, you should input True/False if you want the results printed as .dat files or plotted in the report pdf.
 
 - Remark:
-The results of the dynamic analysis are written and plotted in the original ParOptBeam script for the base of the of the cantilever beam. This is correct when extracting reactions, however when extracting accelerations, velocities or displacements, other positions, possibly at the top of the building, are of interest.  In this case, go to *analysis -> dynamic_analysis* to the definition of write_result_at_dof (same goes for plot_result_at_dof). Under selected_result = "displacement", "velocity" and "acceleration", dof represents the degree of freedom of the first node of the cantilever, so the base of the structure. Multiply the element number of interest with 6 (6 dofs per node) and add the dof, to extract the result of interest. For example, if you are interested in the acceleration at the top of the building and your model has 6 segments, write:
+The results of the dynamic analysis are written and plotted in the original ParOptBeam script for the base of the of the cantilever beam. This is correct when extracting reactions, however when extracting accelerations, velocities or displacements, other positions, possibly at the top of the building, are of interest.  In this case, go to *analysis &rarr; dynamic_analysis* to the definition of write_result_at_dof (same goes for plot_result_at_dof). Under selected_result = "displacement", "velocity" and "acceleration", dof represents the degree of freedom of the first node of the cantilever, so the base of the structure. Multiply the element number of interest with 6 (6 dofs per node) and add the dof, to extract the result of interest. For example, if you are interested in the acceleration at the top of the building and your model has 6 segments, write:
 
 
     result_data = self.solver.acceleration[6*6 + dof, :] 

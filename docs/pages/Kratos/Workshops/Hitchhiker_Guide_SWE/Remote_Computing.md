@@ -64,12 +64,12 @@ ___
   
 The file structure in the cluster is divided in the following folders:
 - Software:
-  - Kratos --> Folder where Kratos is compiled. You should not touch it.
-  -setup_kratos.sh --> File to add Kratos to the path. You should not touch it.
+  - Kratos &rarr; Folder where Kratos is compiled. You should not touch it.
+  -setup_kratos.sh &rarr; File to add Kratos to the path. You should not touch it.
 - Documents:
-  - Tests --> Folder with some examples and tests.
-  - Templates --> Here are saved some important files you will need to copy.
-  - Group`<group-data>` --> Multiple folders, each for one group. Here you can save all your documents and simulations.
+  - Tests &rarr; Folder with some examples and tests.
+  - Templates &rarr; Here are saved some important files you will need to copy.
+  - Group`<group-data>` &rarr; Multiple folders, each for one group. Here you can save all your documents and simulations.
   
 The next step is to transfer your simulation file to your group folder in the cluster. To transfer files from your personal computer to the remote computers (or the other way around) we use the secure copy ("scp") command:
   

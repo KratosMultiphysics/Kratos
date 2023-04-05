@@ -67,7 +67,7 @@ The videos under https://code.visualstudio.com/docs/getstarted/introvideos are h
 #### 2. Add Python Path to Visual Studio Code
 Make sure to **add Python to your path** if not already available in visual studio code integrated terminal. For Windows, the process will be as the following:
 
-"**Start -> Edit the system environment variables**". Click on **"Environment Variables"**. Under **"System variables"** find **"Path"** and click on **Edit**. Press **"New"** to add the python location to the path. In case you installed python via the anaconda package, go to the install location of anaconda (typically in the users file) and copy its path. 
+"**Start &rarr; Edit the system environment variables**". Click on **"Environment Variables"**. Under **"System variables"** find **"Path"** and click on **Edit**. Press **"New"** to add the python location to the path. In case you installed python via the anaconda package, go to the install location of anaconda (typically in the users file) and copy its path. 
 
 Also add the anaconda script path, which has the same path as anaconda, but with \Scripts added to it. For example:
 
@@ -81,17 +81,17 @@ The window of Visual Studio Code is split into:
 - Code editor (*center*): Located in the center of the window. The code of your file will be displayed here. In case you install extensions, you can also open different files, such as pdf, excel, word, etc.
 
 - Terminal (*below code editor*): Located in the bottom part of the window, the terminal (also "command prompt" on windows), is used to run your code. 
-  In case the terminal is not displayed, you can go to View -> Terminal to open it.
+  In case the terminal is not displayed, you can go to View &rarr; Terminal to open it.
 
 
 #### 4. Useful tips
-To open the terminal, you can go to View -> Terminal command.
+To open the terminal, you can go to View &rarr; Terminal command.
 
-To open a File/Folder, go to **File -> Open File / Open Folder**. This will add it to the File Explorer, while removing the old folder from your File Explorer. In order to add a folder you should go to **File -> Add Folder to Workspace"**.
+To open a File/Folder, go to **File &rarr; Open File / Open Folder**. This will add it to the File Explorer, while removing the old folder from your File Explorer. In order to add a folder you should go to **File &rarr; Add Folder to Workspace"**.
 
-You can run the python scripts directly by **right-click on script -> "Run Python File in Terminal"** or type **"python.exe file_name.py"** in the terminal.
+You can run the python scripts directly by **right-click on script &rarr; "Run Python File in Terminal"** or type **"python.exe file_name.py"** in the terminal.
 
-Save the updated scripts by clicking on script and then going to **"File -> Save"**. You can also save all files by going to **"File -> Save all"**
+Save the updated scripts by clicking on script and then going to **"File &rarr; Save"**. You can also save all files by going to **"File &rarr; Save all"**
 
 #### 5. Useful Extensions
 In order to unlock some functions on Visual Studio Code and make the user experience easier, you can install extensions. 
@@ -125,15 +125,15 @@ Jupyter Notebook is a web-based interactive computing platform. Its biggest adva
 #### 1. Getting started with Jupyter Notebook
 Jupyter Notebook is installed together with the anaconda package. In case it is not installed due to reasons, you can write and run **"pip install notebook"** in the terminal. 
 
-After installing Jupyter Notebook, you can open it either from the Anaconda Navigator, or by using the shortcut **"Start -> Jupyter Notebook"**. In Linux you need to navigate to the required folder in the terminal window and then type **"jupyter notebook"**.
+After installing Jupyter Notebook, you can open it either from the Anaconda Navigator, or by using the shortcut **"Start &rarr; Jupyter Notebook"**. In Linux you need to navigate to the required folder in the terminal window and then type **"jupyter notebook"**.
 
 #### 2. Adding Jupyter shortcut to the desired directory
-In order to add the Jupyter shortcut to the desired directory, you can open the file location **"Start -> right-click Jupyter Notebook -> Open file location"**. When in the file location, go to **"right-click Jupyter Notebook Shortcut -> Properties"**. Under the properties you can go to "Shortcut -> Target". Replace **%USERPROFILE%** with the desired directory (C:\..). Now you have a shortcut of Jupyter Notebook in your desired directory.
+In order to add the Jupyter shortcut to the desired directory, you can open the file location **"Start &rarr; right-click Jupyter Notebook &rarr; Open file location"**. When in the file location, go to **"right-click Jupyter Notebook Shortcut &rarr; Properties"**. Under the properties you can go to "Shortcut &rarr; Target". Replace **%USERPROFILE%** with the desired directory (C:\..). Now you have a shortcut of Jupyter Notebook in your desired directory.
 
 #### 3. Jupyter Notebook Interface
 The Jupyter Notebook Interface consists of the **Code Cell**, where the code is written and will run, and the **Markdown Cell** in which comments and explanations are written in markdown, which is a simple markup language. 
 
-You can run the full script by going to **"Kernel -> Restart & Run All"**. In case you want to run only one block of script, left-click to select the script, then click on **"Run"**. 
+You can run the full script by going to **"Kernel &rarr; Restart & Run All"**. In case you want to run only one block of script, left-click to select the script, then click on **"Run"**. 
 
 #### 4. Keyboard Shortcuts for Jupyter Notebook
 For an efficient way of working, some keyboard shortcuts are presented:
@@ -153,7 +153,7 @@ Once in command mode, you can (**case sensitive**):
 
 #### 5. Using Jupyter in the browser
 
-Under **"https://jupyter.org/try -> JupyterLab"** you can open Jupyter in the browser, without having to install the application. You can upload your Jupyter Notebooks (.ipynb files) and then view, edit and run your scripts via the browser. 
+Under **"https://jupyter.org/try &rarr; JupyterLab"** you can open Jupyter in the browser, without having to install the application. You can upload your Jupyter Notebooks (.ipynb files) and then view, edit and run your scripts via the browser. 
 
 ___
 ### 1.4. FFMPEG 
@@ -168,7 +168,7 @@ Hover your mouse on the Windows symbol. Click on **"Windows builds from gyan.dev
 
 When located in the new website, select **"ffmpeg-git-full.7z"**. Make sure to have a program to extract the contents of ffmpeg. After extracting the content of ffmpeg, rename it to FFmpeg. Save ffmpeg in a directory of your choice, for example under local disk C:\ .
 
-Next step is to add ffmpeg to your path. Go to Start -> Edit the system environment variables. Click on "Environment Variables". Under "User variables for ..." find "Path" and click on Edit. Add a new path which would be the path in which your FFmpeg is plus \bin. For example, if your FFmpeg folder is saved as FFMPEG under local disk C:\ the path would be **C:\FFMPEG\bin**.
+Next step is to add ffmpeg to your path. Go to Start &rarr; Edit the system environment variables. Click on "Environment Variables". Under "User variables for ..." find "Path" and click on Edit. Add a new path which would be the path in which your FFmpeg is plus \bin. For example, if your FFmpeg folder is saved as FFMPEG under local disk C:\ the path would be **C:\FFMPEG\bin**.
 
 #### 2. For Linux:
 In ubuntu, use $ sudo apt-get install ffmpeg.
@@ -206,9 +206,9 @@ To download GiD, visit https://www.gidsimulation.com/gid-for-science/downloads/.
 
 Download the recommended version during the course. The scripts of the course are frequently tested with the newest GiD versions. In this case you are recommended to use GiD 16.1.3.
 
-**For Windows** -> Download the file and go through the installation. 
+**For Windows** &rarr; Download the file and go through the installation. 
 
-**For Linux** -> Install using the graphical way or through console:
+**For Linux** &rarr; Install using the graphical way or through console:
 - Enable executable: chmod +x gid16.0.1-linux-x64-Install, then double click to use the graphical install.
 
 **or**
@@ -216,24 +216,24 @@ Download the recommended version during the course. The scripts of the course ar
 
 In order to use GiD, you will need to activate a professional license, as the free license is limited. You will be provided with access to this license during the course.
 
-After registering, open GiD and go to **" Help -> Register GiD -> Named user -> sign in"**. To sign in, put your TUM email adress and password you used during registration.
+After registering, open GiD and go to **" Help &rarr; Register GiD &rarr; Named user &rarr; sign in"**. To sign in, put your TUM email adress and password you used during registration.
 
 ___
 ### 2.2. Download and Install Kratos
 
 #### 1. Option: Install Kratos from GiD
-You can install Kratos directly from GiD, by going to **"Data -> Problemtype -> Internet Retrieve"**. A window will then open. In the offered modules, select **Kratos (9.2.2) -> Retrieve Module**. 
+You can install Kratos directly from GiD, by going to **"Data &rarr; Problemtype &rarr; Internet Retrieve"**. A window will then open. In the offered modules, select **Kratos (9.2.2) &rarr; Retrieve Module**. 
 
 #### 2. Option: Install Kratos from GiD archive files
 In a more manual way, you can also install Kratos from GiD archive files.
 
-Visit ftp://www.gidhome.com/pub/gidmodules/ *or* www.gidhome.com. Go to Download section -> Other downloads -> "Download a GiD Problem Type". Download the latest version of Kratos (9.2.2) for your respective operating system. The x64 version is recommended as further exercises have been created and tested using this one.
+Visit ftp://www.gidhome.com/pub/gidmodules/ *or* www.gidhome.com. Go to Download section &rarr; Other downloads &rarr; "Download a GiD Problem Type". Download the latest version of Kratos (9.2.2) for your respective operating system. The x64 version is recommended as further exercises have been created and tested using this one.
 
 After downloading the folder, unzip it and move the "kratos.gid" folder into the “problemtypes“ directory in the installation directory of GiD (overwriting the existing folder):
 
 e.g. move to “C:\Program Files\GiD\GiD 16.1.3\problemtypes“.
 
-The next time GiD is started, the kratos problemtype can be found under *Data -> Problem type -> kratos*.
+The next time GiD is started, the kratos problemtype can be found under *Data &rarr; Problem type &rarr; kratos*.
 
 ___
 ## 3. Paraview

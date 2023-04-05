@@ -31,7 +31,7 @@ After the files are ready to be read in Paraview, here are some helpful commands
 - Paraview → Edit → Settings → General: search for “Cache” and tick “Cache Geometry For Animation” 
 to speed up picture creation for animation.
 - Import flow domain: Velocity in model part “FluidModelPart.fluid_computational_model_part”:
-  - Create slices -> define a plane by its origin (coordinates) and the normal (coordinates or select 
+  - Create slices &rarr; define a plane by its origin (coordinates) and the normal (coordinates or select 
 normal).
   - Use stream tracer to visualize velocity (one of the symbols above the pipeline browser).
   - Set opacity of the flow domain so that slices, stream tracer and structure can be seen. Adjust lighting 
