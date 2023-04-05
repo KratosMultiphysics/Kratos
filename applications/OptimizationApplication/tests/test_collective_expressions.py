@@ -39,7 +39,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             element.SetValue(Kratos.PRESSURE, id+5)
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
 
-    def test_ContaienrDataAdd(self):
+    def test_CollectiveExpressionsAdd(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
@@ -68,7 +68,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         for element in self.model_part.Elements:
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 13 + 14, 12)
 
-    def test_ContaienrDataSub(self):
+    def test_CollectiveExpressionsSub(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
@@ -97,7 +97,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         for element in self.model_part.Elements:
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 7 - 14, 12)
 
-    def test_ContaienrDataMul(self):
+    def test_CollectiveExpressionsMul(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
@@ -123,7 +123,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         for element in self.model_part.Elements:
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 20, 12)
 
-    def test_ContaienrDataDiv(self):
+    def test_CollectiveExpressionsDiv(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
@@ -149,7 +149,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         for element in self.model_part.Elements:
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] / 8, 12)
 
-    def test_ContaienrDataPow(self):
+    def test_CollectiveExpressionsPow(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
@@ -176,7 +176,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         for element in self.model_part.Elements:
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] ** 4, 12)
 
-    def test_ContaienrDataNeg(self):
+    def test_CollectiveExpressionsNeg(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
