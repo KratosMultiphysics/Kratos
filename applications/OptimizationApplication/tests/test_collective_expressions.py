@@ -11,7 +11,6 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 
         number_of_nodes = 10
         for id in range(1, number_of_nodes + 1):
@@ -204,7 +203,6 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
 
     def test_IsCompatibleWith(self):
         additional_model_part = self.model.CreateModelPart("additional_model_part")
-        additional_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
 
         diff_size_model_part = self.model.CreateModelPart("diff_size_model_part")
 
