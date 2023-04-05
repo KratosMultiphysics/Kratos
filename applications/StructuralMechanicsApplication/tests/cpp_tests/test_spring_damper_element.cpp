@@ -73,11 +73,14 @@ namespace Testing
         p_element->SetValue(NODAL_DISPLACEMENT_STIFFNESS, array_1d<double, 3>{ 2.0, 3.0, 0 });
         p_element->SetValue(NODAL_ROTATIONAL_STIFFNESS, array_1d<double, 3>{ 0.0, 0.0, 4.0 });
 
+        p_element->SetValue(NODAL_DAMPING_RATIO, array_1d<double, 3>{ 8.0, 9.0, 0 });
+        p_element->SetValue(NODAL_ROTATIONAL_DAMPING_RATIO, array_1d<double, 3>{ 0.0, 0.0, 10.0 });
+
         return p_element;
     }
 
     // Tests the lhs matrix and the rhs vector of the SpringDamperElement2D2N
-    KRATOS_TEST_CASE_IN_SUITE(SpringDamperLocalSystem, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SpringDamperLocalSystem2D2N, KratosStructuralMechanicsFastSuite)
     {
         // create model part
         Model current_model;
@@ -102,6 +105,7 @@ namespace Testing
         Vector calculated_rhs = ZeroVector(number_of_dofs);
         p_element->CalculateLocalSystem(calculated_lhs, calculated_rhs, r_process_info);
 
+        // Set expected damping matrix
         Matrix expected_lhs = ZeroMatrix(number_of_dofs);
         expected_lhs(0, 0) = 2.0;
         expected_lhs(0, 3) = -2.0;
@@ -117,9 +121,10 @@ namespace Testing
         expected_lhs(5, 2) = -4.0;
         expected_lhs(5, 5) = 4.0;
 
-
+        // Assert Lhs
         KRATOS_CHECK_MATRIX_NEAR(expected_lhs, calculated_lhs, 1e-10);
 
+        // Set expected rhs
         Vector expected_rhs = ZeroVector(number_of_dofs);
         expected_rhs(0) = - 2.0 * 5.0;
         expected_rhs(1) = - 3.0 * 6.0;
@@ -128,9 +133,54 @@ namespace Testing
         expected_rhs(4) = 3.0 * 6.0;
         expected_rhs(5) = 4.0 * 7.0;
 
+        // Assert rhs
         KRATOS_CHECK_VECTOR_NEAR(expected_rhs, calculated_rhs, 1e-10);
     }
-   
 
+
+    // Tests the lhs matrix and the rhs vector of the SpringDamperElement2D2N
+    KRATOS_TEST_CASE_IN_SUITE(SpringDamperDampingMatrix2D2N, KratosStructuralMechanicsFastSuite)
+    {
+        // create model part
+        Model current_model;
+        auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
+
+        // set up 2d element
+        auto p_element = SetUpElement2D(r_model_part);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        // initialize element
+        p_element->Initialize(r_process_info);
+
+        // check element
+        p_element->Check(r_process_info);
+
+        // Run test
+        const unsigned int number_of_nodes = p_element->GetGeometry().size();
+        const unsigned int number_of_dofs = number_of_nodes * 3;
+        Matrix calculated_damping_matrix = ZeroMatrix(number_of_dofs, number_of_dofs);
+        p_element->CalculateDampingMatrix(calculated_damping_matrix,  r_process_info);
+
+        // Set expected damping matrix
+        Matrix expected_damping_matrix = ZeroMatrix(number_of_dofs);
+        expected_damping_matrix(0, 0) = 8.0;
+        expected_damping_matrix(0, 3) = -8.0;
+        expected_damping_matrix(1, 1) = 9.0;
+        expected_damping_matrix(1, 4) = -9.0;
+        expected_damping_matrix(2, 2) = 10.0;
+        expected_damping_matrix(2, 5) = -10.0;
+
+        expected_damping_matrix(3, 0) = -8.0;
+        expected_damping_matrix(3, 3) = 8.0;
+        expected_damping_matrix(4, 1) = -9.0;
+        expected_damping_matrix(4, 4) = 9.0;
+        expected_damping_matrix(5, 2) = -10.0;
+        expected_damping_matrix(5, 5) = 10.0;
+
+        // Assert
+        KRATOS_CHECK_MATRIX_NEAR(expected_damping_matrix, calculated_damping_matrix, 1e-10);
+
+    }
 }
 }
