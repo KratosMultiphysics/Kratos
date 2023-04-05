@@ -395,8 +395,8 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateLeftHandSide( MatrixType& rL
 
     // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
     array_1d<double, msLocalSize > elemental_stiffness = ZeroVector( msLocalSize );
-    const array_1d<double, 3>& r_nodal_stiffness = rconst_this.GetValue( NODAL_DISPLACEMENT_STIFFNESS );
-    const array_1d<double, 3>& r_nodal_rot_stiffness = rconst_this.GetValue(NODAL_ROTATIONAL_STIFFNESS);
+    const array_1d<double, 3>& r_nodal_stiffness = this->GetValue( NODAL_DISPLACEMENT_STIFFNESS );
+    const array_1d<double, 3>& r_nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
 
     if constexpr (TDim == 2) {
 
@@ -508,7 +508,6 @@ int SpringDamperElement<TDim, TNumNodes>::Check( const ProcessInfo& rCurrentProc
 
         // The displacement terms
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rnode)
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rnode)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
@@ -528,7 +527,7 @@ int SpringDamperElement<TDim, TNumNodes>::Check( const ProcessInfo& rCurrentProc
 
     return 0;
 
-    KRATOS_CATCH( "Problem in the Check in the SpringDamperElement3D2N" )
+    KRATOS_CATCH( "Problem in the Check in the SpringDamperElement" )
 }
 
 
