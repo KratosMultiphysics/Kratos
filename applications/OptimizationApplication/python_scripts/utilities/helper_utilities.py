@@ -1,6 +1,5 @@
 from pathlib import Path
 from importlib import import_module
-from typing import Union
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
