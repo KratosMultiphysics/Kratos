@@ -206,6 +206,8 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         additional_model_part = self.model.CreateModelPart("additional_model_part")
         additional_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
 
+        diff_size_model_part = self.model.CreateModelPart("diff_size_model_part")
+
         for properties in self.model_part.GetProperties():
             additional_model_part.AddProperties(properties)
 
@@ -221,16 +223,19 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
         c = Kratos.ContainerExpression.HistoricalExpression(additional_model_part)
+        d = Kratos.ContainerExpression.HistoricalExpression(diff_size_model_part)
 
         a.Read(Kratos.VELOCITY)
         b.Read(Kratos.PRESSURE)
         c.Read(Kratos.VELOCITY)
+        d.Read(Kratos.VELOCITY)
 
         collective_1 = KratosOA.ContainerExpression.CollectiveExpressions([a, b])
         self.assertTrue(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([a, b])))
         self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([a])))
         self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([b, a])))
-        self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([c, b])))
+        self.assertTrue(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([c, b])))
+        self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([c, d])))
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

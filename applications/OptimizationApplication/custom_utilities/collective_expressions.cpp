@@ -50,7 +50,7 @@ CollectiveExpressions CollectiveExpressions::Clone()  const
 {
     CollectiveExpressions result;
     for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
-        std::visit([&](const auto& v) {
+        std::visit([&result](const auto& v) {
             result.Add(v->Clone());
         }, p_container_variable_data_holder);
     }
@@ -60,7 +60,7 @@ CollectiveExpressions CollectiveExpressions::Clone()  const
 void CollectiveExpressions::SetToZero()
 {
     for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
-        std::visit([&](const auto& v) {
+        std::visit([](const auto& v) {
             v->SetDataToZero();
         }, p_container_variable_data_holder);
     }
@@ -106,10 +106,11 @@ bool CollectiveExpressions::IsCompatibleWith(const CollectiveExpressions& rOther
     bool is_compatible = true;
 
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression, &is_compatible](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            auto* ptr = std::get_if<v_type>(&(rOther.mExpressionPointersList[i]));
-            is_compatible = is_compatible && (ptr != nullptr) && (&((*ptr)->GetModelPart()) == &(v->GetModelPart()));
+            auto* ptr = std::get_if<v_type>(&r_other_expression);
+            is_compatible = is_compatible && (ptr != nullptr) && ((*ptr)->GetContainer().size() == v->GetContainer().size());
         }, mExpressionPointersList[i]);
     }
 
@@ -123,7 +124,7 @@ std::string CollectiveExpressions::Info() const
     msg << "CollectiveExpressions contains following data holders:\n";
 
     for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
-        std::visit([&msg](auto&& v) { msg << "\t" << *v; }, p_container_variable_data_holder);
+        std::visit([&msg](const auto& v) { msg << "\t" << *v; }, p_container_variable_data_holder);
     }
 
     return msg.str();
@@ -135,11 +136,12 @@ CollectiveExpressions CollectiveExpressions::operator+(const CollectiveExpressio
         << "Unsupported collective variable data holders provided for \"+\" operation."
         << "\nLeft operand : " << *this << "\nRight operand: " << rOther << std::endl;
 
-    CollectiveExpressions result(rOther);
+    CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            v->operator+=(*(std::get<v_type>(mExpressionPointersList[i])));
+            v->operator+=(*(std::get<v_type>(r_other_expression)));
         }, result.mExpressionPointersList[i]);
     }
 
@@ -153,32 +155,33 @@ CollectiveExpressions& CollectiveExpressions::operator+=(const CollectiveExpress
         << "\nLeft operand : " << *this << "\nRight operand: " << rOther << std::endl;
 
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            v->operator+=(*(std::get<v_type>(rOther.mExpressionPointersList[i])));
+            v->operator+=(*(std::get<v_type>(r_other_expression)));
         }, mExpressionPointersList[i]);
     }
 
     return *this;
 }
 
-CollectiveExpressions CollectiveExpressions::operator+(const double rOther) const
+CollectiveExpressions CollectiveExpressions::operator+(const double Value) const
 {
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
-            v->operator+=(rOther);
+        std::visit([Value](const auto& v) {
+            v->operator+=(Value);
         }, result.mExpressionPointersList[i]);
     }
 
     return result;
 }
 
-CollectiveExpressions& CollectiveExpressions::operator+=(const double rOther)
+CollectiveExpressions& CollectiveExpressions::operator+=(const double Value)
 {
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
-            v->operator+=(rOther);
+        std::visit([Value](const auto& v) {
+            v->operator+=(Value);
         }, mExpressionPointersList[i]);
     }
 
@@ -193,9 +196,10 @@ CollectiveExpressions CollectiveExpressions::operator-(const CollectiveExpressio
 
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            v->operator-=(*(std::get<v_type>(rOther.mExpressionPointersList[i])));
+            v->operator-=(*(std::get<v_type>(r_other_expression)));
         }, result.mExpressionPointersList[i]);
     }
 
@@ -209,32 +213,33 @@ CollectiveExpressions& CollectiveExpressions::operator-=(const CollectiveExpress
         << "\nLeft operand : " << *this << "\nRight operand: " << rOther << std::endl;
 
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            v->operator-=(*(std::get<v_type>(rOther.mExpressionPointersList[i])));
+            v->operator-=(*(std::get<v_type>(r_other_expression)));
         }, mExpressionPointersList[i]);
     }
 
     return *this;
 }
 
-CollectiveExpressions CollectiveExpressions::operator-(const double rOther) const
+CollectiveExpressions CollectiveExpressions::operator-(const double Value) const
 {
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
-            v->operator-=(rOther);
+        std::visit([Value](const auto& v) {
+            v->operator-=(Value);
         }, result.mExpressionPointersList[i]);
     }
 
     return result;
 }
 
-CollectiveExpressions& CollectiveExpressions::operator-=(const double rOther)
+CollectiveExpressions& CollectiveExpressions::operator-=(const double Value)
 {
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
-            v->operator-=(rOther);
+        std::visit([Value](const auto& v) {
+            v->operator-=(Value);
         }, mExpressionPointersList[i]);
     }
 
@@ -249,9 +254,10 @@ CollectiveExpressions CollectiveExpressions::operator*(const CollectiveExpressio
 
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            v->operator*=(*(std::get<v_type>(rOther.mExpressionPointersList[i])));
+            v->operator*=(*(std::get<v_type>(r_other_expression)));
         }, result.mExpressionPointersList[i]);
     }
 
@@ -265,32 +271,33 @@ CollectiveExpressions& CollectiveExpressions::operator*=(const CollectiveExpress
         << "\nLeft operand : " << *this << "\nRight operand: " << rOther << std::endl;
 
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            v->operator*=(*(std::get<v_type>(rOther.mExpressionPointersList[i])));
+            v->operator*=(*(std::get<v_type>(r_other_expression)));
         }, mExpressionPointersList[i]);
     }
 
     return *this;
 }
 
-CollectiveExpressions CollectiveExpressions::operator*(const double rOther) const
+CollectiveExpressions CollectiveExpressions::operator*(const double Value) const
 {
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
-            v->operator*=(rOther);
+        std::visit([Value](const auto& v) {
+            v->operator*=(Value);
         }, result.mExpressionPointersList[i]);
     }
 
     return result;
 }
 
-CollectiveExpressions& CollectiveExpressions::operator*=(const double rOther)
+CollectiveExpressions& CollectiveExpressions::operator*=(const double Value)
 {
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
-            v->operator*=(rOther);
+        std::visit([Value](const auto& v) {
+            v->operator*=(Value);
         }, mExpressionPointersList[i]);
     }
 
@@ -305,9 +312,10 @@ CollectiveExpressions CollectiveExpressions::operator/(const CollectiveExpressio
 
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            v->operator/=(*(std::get<v_type>(rOther.mExpressionPointersList[i])));
+            v->operator/=(*(std::get<v_type>(r_other_expression)));
         }, result.mExpressionPointersList[i]);
     }
 
@@ -321,32 +329,33 @@ CollectiveExpressions& CollectiveExpressions::operator/=(const CollectiveExpress
         << "\nLeft operand : " << *this << "\nRight operand: " << rOther << std::endl;
 
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
-            v->operator/=(*(std::get<v_type>(rOther.mExpressionPointersList[i])));
+            v->operator/=(*(std::get<v_type>(r_other_expression)));
         }, mExpressionPointersList[i]);
     }
 
     return *this;
 }
 
-CollectiveExpressions CollectiveExpressions::operator/(const double rOther) const
+CollectiveExpressions CollectiveExpressions::operator/(const double Value) const
 {
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
-            v->operator/=(rOther);
+        std::visit([Value](const auto& v) {
+            v->operator/=(Value);
         }, result.mExpressionPointersList[i]);
     }
 
     return result;
 }
 
-CollectiveExpressions& CollectiveExpressions::operator/=(const double rOther)
+CollectiveExpressions& CollectiveExpressions::operator/=(const double Value)
 {
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
-            v->operator/=(rOther);
+        std::visit([Value](const auto& v) {
+            v->operator/=(Value);
         }, mExpressionPointersList[i]);
     }
 
@@ -361,12 +370,13 @@ CollectiveExpressions CollectiveExpressions::Pow(const CollectiveExpressions& rO
 
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto& v) {
+        const auto& r_other_expression = rOther.mExpressionPointersList[i];
+        std::visit([&r_other_expression](const auto& v) {
             using v_type = std::decay_t<decltype(v)>;
             v->SetExpression(
                 BinaryExpression<BinaryOperations::Power>::Create(
                     v->pGetExpression(),
-                    std::get<v_type>(rOther.mExpressionPointersList[i])->pGetExpression()));
+                    std::get<v_type>(r_other_expression)->pGetExpression()));
         }, result.mExpressionPointersList[i]);
     }
 
@@ -377,7 +387,7 @@ CollectiveExpressions CollectiveExpressions::Pow(const double Value) const
 {
     CollectiveExpressions result(*this);
     for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit([&](auto&& v) {
+        std::visit([Value](const auto& v) {
             v->SetExpression(
                 BinaryExpression<BinaryOperations::Power>::Create(
                     v->pGetExpression(),
