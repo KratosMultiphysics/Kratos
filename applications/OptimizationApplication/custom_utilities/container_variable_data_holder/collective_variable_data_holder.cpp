@@ -38,7 +38,7 @@ CollectiveVariableDataHolder::CollectiveVariableDataHolder(const std::vector<Con
 CollectiveVariableDataHolder::CollectiveVariableDataHolder(const CollectiveVariableDataHolder& rOther)
 {
     for (const auto& p_container_variable_data_holder : rOther.mContainerVariableDataHolderPointersList) {
-        std::visit([&](auto&& v) {
+        std::visit([&](const auto& v) {
             mContainerVariableDataHolderPointersList.push_back(v->Clone());
         }, p_container_variable_data_holder);
     }
