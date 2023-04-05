@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <vector>
 
 // Project includes
 #include "includes/define.h"

@@ -10,8 +10,7 @@
 //
 //
 
-#if !defined(KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED )
-#define  KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "utilities/math_utils.h"
@@ -433,6 +432,3 @@ public:
 };
 
 }
-
-
-#endif // KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED

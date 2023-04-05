@@ -11,16 +11,13 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME
+#pragma once
 
-// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/parallel_utilities.h"
 
-// Application includes
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -45,11 +42,12 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
+    NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
+        : Scheme<TSparseSpace,TDenseSpace>()
+        , mBeta(beta)
+        , mGamma(gamma)
+        , mTheta(theta)
     {
-        mBeta = beta;
-        mGamma = gamma;
-        mTheta = theta;
     }
 
     //------------------------------------------------------------------------------------
@@ -514,21 +512,10 @@ public:
 
 protected:
 
-    /// Member Variables
-
-    double mBeta;
-    double mGamma;
-    double mTheta;
-    double mDeltaTime;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    NewmarkQuasistaticUPwScheme() : Scheme<TSparseSpace,TDenseSpace>()
-    {
-        mBeta = 0.25;
-        mGamma = 0.5;
-        mTheta = 0.5;
-        mDeltaTime = 0.0;
-    }
+    double mBeta = 0.25;
+    double mGamma = 0.5;
+    double mTheta = 0.5;
+    double mDeltaTime = 0.0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual inline void SetTimeFactors(ModelPart& rModelPart)
@@ -576,5 +563,3 @@ protected:
 
 }; // Class NewmarkQuasistaticUPwScheme
 }  // namespace Kratos
-
-#endif // KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME defined

@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_ENTITIES_UTILITIES)
-#define KRATOS_ENTITIES_UTILITIES
+#pragma once
 
 // System includes
 
@@ -88,12 +87,9 @@ namespace EntitiesUtilities
         // Initialize
         block_for_each(
             r_entities_array,
-            [&r_current_process_info](TEntityType& rEntity)
-            {
-                // Detect if the entity is active or not. If the user did not make any choice the entity
-                // It is active by default
-                const bool entity_is_active = (rEntity.IsDefined(ACTIVE)) ? rEntity.Is(ACTIVE) : true;
-                if (entity_is_active) {
+            [&r_current_process_info](TEntityType& rEntity) {
+                // If the entity is active
+                if (rEntity.IsActive()) {
                     rEntity.Initialize(r_current_process_info);
                 }
             }
@@ -198,4 +194,3 @@ namespace EntitiesUtilities
 
 }; // namespace EntitiesUtilities
 }  // namespace Kratos
-#endif /* KRATOS_ENTITIES_UTILITIES defined */

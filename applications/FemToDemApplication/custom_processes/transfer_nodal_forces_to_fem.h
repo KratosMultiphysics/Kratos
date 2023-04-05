@@ -28,7 +28,7 @@ typedef std::size_t SizeType;
 typedef Node<3> NodeType;
 typedef ModelPart::NodesContainerType::iterator NodeIteratorType;
 
-class TransferNodalForcesToFem : public Process 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) TransferNodalForcesToFem : public Process 
 {
  public:
 

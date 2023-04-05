@@ -12,26 +12,17 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # ==============================================================================
 
 # Small tests
-from optimization_test_factory import top_opt_test
-from optimization_test_factory import mat_opt_test
-from optimization_test_factory import shell_shape_opt_test
-from optimization_test_factory import shell_thick_opt_test
-from test_execution_policies import TestExecutionPolicies
-from test_optimization_info import TestOptimizationInfo
-from test_optimization_utils import TestOptimizationUtils
-from test_mass_response_function import TestMassResponseFunctionBeams
-from test_mass_response_function import TestMassResponseFunctionShells
-from test_mass_response_function import TestMassResponseFunctionSolids
-from test_linear_strain_energy_response_function import TestLinearStrainEnergyResponseFunction
-from test_container_variable_data_holder import TestHistoricalContainerVariableDataHolder
-from test_container_variable_data_holder import TestNodalContainerVariableDataHolder
-from test_container_variable_data_holder import TestConditionContainerVariableDataHolder
-from test_container_variable_data_holder import TestElementContainerVariableDataHolder
-from test_container_variable_data_holder import TestConditionPropertiesContainerVariableDataHolder
-from test_container_variable_data_holder import TestElementPropertiesContainerVariableDataHolder
-from test_collective_variable_data_holder import TestCollectiveVariableDataHolder
-from test_model_part_controllers import TestMdpaModelPartController
-from test_container_variable_data_holder_utils import TestContainerVariableDataHolderUtils
+import optimization_test_factory
+import symmetry_utilities_tests.symmetry_tests
+import test_execution_policies
+import test_optimization_info
+import test_optimization_utils
+import test_mass_response_function
+import test_linear_strain_energy_response_function
+import test_model_part_utils
+import test_model_part_controllers
+import test_container_expression_utils
+import test_container_expression
 
 # Nightly tests
 
@@ -56,25 +47,22 @@ def AssembleTestSuites():
 
     # Adding small tests (tests that take < 1s)
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExecutionPolicies]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationInfo]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationUtils]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestContainerVariableDataHolderUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_execution_policies.TestExecutionPolicies]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([symmetry_utilities_tests.symmetry_tests.SymmetryUtilitiesTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_info.TestOptimizationInfo]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_utils.TestOptimizationUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionBeams]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionShells]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionSolids]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLinearStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionBeams]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionShells]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionSolids]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHistoricalContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNodalContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionPropertiesContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementPropertiesContainerVariableDataHolder]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCollectiveVariableDataHolder]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMdpaModelPartController]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_controllers.TestMdpaModelPartController]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
@@ -85,10 +73,10 @@ def AssembleTestSuites():
     # Adding validation tests
     validationSuite = suites['validation']
     validationSuite.addTests(nightSuite)
-    validationSuite.addTest(top_opt_test('test_execution'))
-    validationSuite.addTest(mat_opt_test('test_execution'))
-    validationSuite.addTest(shell_shape_opt_test('test_execution'))
-    validationSuite.addTest(shell_thick_opt_test('test_execution'))
+    validationSuite.addTest(optimization_test_factory.top_opt_test('test_execution'))
+    validationSuite.addTest(optimization_test_factory.mat_opt_test('test_execution'))
+    validationSuite.addTest(optimization_test_factory.shell_shape_opt_test('test_execution'))
+    validationSuite.addTest(optimization_test_factory.shell_thick_opt_test('test_execution'))
 
     # Creating a test suit that contains all tests:
     allSuite = suites['all']
@@ -100,6 +88,7 @@ def AssembleTestSuites():
 # Main
 # ==============================================================================
 if __name__ == '__main__':
+    km.Tester.SetVerbosity(km.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     KratosUnittest.runTests(AssembleTestSuites())
 
 # ==============================================================================

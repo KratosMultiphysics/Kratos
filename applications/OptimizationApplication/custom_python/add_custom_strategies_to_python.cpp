@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: OptimizationApplication/license.txt
 //
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
@@ -44,13 +44,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 
     py::class_<HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
         HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
         BaseSolvingStrategyType>(m,"HelmholtzStrategy")
-        .def(py::init<ModelPart &, LinearSolverType::Pointer, bool, bool, int, double>());        
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, bool, bool, int, double>());
 }
 
 } // namespace Python.

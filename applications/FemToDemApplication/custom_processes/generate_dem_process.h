@@ -27,7 +27,7 @@ typedef std::size_t SizeType;
 typedef Node<3> NodeType;
 typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
 
-class GenerateDemProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) GenerateDemProcess : public Process
 {
  public:
 

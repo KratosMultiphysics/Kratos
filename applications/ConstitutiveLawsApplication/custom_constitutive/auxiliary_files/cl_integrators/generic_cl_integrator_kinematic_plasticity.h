@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_KINEMATIC_PLASTICITY_H_INCLUDED)
-#define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_KINEMATIC_PLASTICITY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -842,4 +841,3 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 ///@}
 
 } // namespace Kratos.
-#endif

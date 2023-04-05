@@ -10,8 +10,7 @@
 //                   Riccardo Rossi
 //
 
-#if !defined (KRATOS_USER_PROVIDED_LINEAR_ELASTIC_LAW_H_INCLUDED)
-#define  KRATOS_USER_PROVIDED_LINEAR_ELASTIC_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -427,4 +426,3 @@ private:
 
 }; // Class UserProvidedLinearElasticLaw
 }  // namespace Kratos.
-#endif // KRATOS_USER_PROVIDED_LINEAR_ELASTIC_LAW_H_INCLUDED  defined
