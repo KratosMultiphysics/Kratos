@@ -46,6 +46,7 @@ namespace Kratos
           mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
           mIsSearchStructureAllocated(true)
     {
+        KRATOS_WARNING("ApplyRayCastingProcess") << "Using deprecated constructor. Please use the one with Parameters.\n";
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
         mSettings["relative_tolerance"].SetDouble(mRelativeTolerance);
     }
@@ -72,6 +73,7 @@ namespace Kratos
 		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
 		  mIsSearchStructureAllocated(false)
     {
+        KRATOS_WARNING("ApplyRayCastingProcess") << "Using deprecated constructor. Please use the one with Parameters.\n";
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
         mSettings["relative_tolerance"].SetDouble(mRelativeTolerance);
         std::string distance_database;
