@@ -10,16 +10,6 @@ This section of the guide outlines the most important procedures necessary to pr
 
 An example file is available in Moodle, which can be downloaded under chapter *5-Computational Wind Engineering (CWE) → Example simulation of a Highrise with simulation results*. This download link contains the folder *CFD_HighRiseExampleFine*, which shows a prototype of a CFD simulation done in GiD + Kratos. It is very helpful to inspect this file and notice how the processes are implemented there.
 
-## Content
-### [1. Checklist](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/2_Preprocessing.md#1-checklist) 
-- [1.1. Preparatory Work](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/2_Preprocessing.md#11-preparatory-work) 
-- [1.2. GiD Model](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/2_Preprocessing.md#12-gid-model) 
-
-### [2. Processes](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/2_Preprocessing.md#2-processes-1) 
-- [2.1. Point output process](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/2_Preprocessing.md#21-point-output-process) 
-- [2.2. Line output process](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/2_Preprocessing.md#22-line-output-process) 
-- [2.3. Force output process](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/2_Preprocessing.md#23-force-output-process) 
-
 ___
 ## 1. Checklist
 

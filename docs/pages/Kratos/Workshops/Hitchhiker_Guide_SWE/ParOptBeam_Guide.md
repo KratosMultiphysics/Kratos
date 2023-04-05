@@ -10,20 +10,6 @@ ParOptBeam (Parametrical Optimizable Beam) is a useful program from the Chair of
 
 This part of the guide will help you with setting up the model and running the dynamic analysis of the building as well as postprocessing the output .
 
-## Content
-### [1. ParOptBeam Master Structure](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#1-paroptbeam-master-structure-1)
-- [1.1. Input](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#11-input)
-- [1.2. Source](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#12-source)
-- [1.3. Run file](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#13-run-file)
-- [1.4. Output](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#14-output)
-
-### [2. Setting up the Model Project Parameters](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#2-setting-up-the-model-project-parameters-1)
-- [2.1. Model  Parameters](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#21-model-parameters)
-- [2.2. Optimization Parameters](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#22-optimization-parameters)
-- [2.3. Analyses Parameters](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#23-analyses-parameters)
-
-### [3. Postprocessing](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/5_ParOptBeam_Guide.md#3-postprocessing-1)
-
 ___
 ## 1. ParOptBeam Master Structure
 You can download ParOptBeam under this [link](https://github.com/mpentek/ParOptBeam). Click on *Code &rarr; Download zip* to download the master file of ParOptBeam. The structure of the master folder you download is explained in this chapter.

@@ -15,14 +15,6 @@ Before continuing further with the remote computing, make sure the following has
 Now you are prepared for the full simulation on the chairs cluster.
 
 ___
-## Content
-### [1. Useful Linux Commands](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/3_Remote_Computing.md#1-useful-linux-commands-1) 
-### [2. Login to cluster](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/3_Remote_Computing.md#2-login-to-cluster-1) 
-### [3. Transfer files](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/3_Remote_Computing.md#3-transfer-files-1) 
-### [4. Running in the cluster](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/3_Remote_Computing.md#4-running-in-the-cluster-1)
-
-
-___
 ## 1. Useful Linux Commands
 As a start, it is useful to get to know a couple of linux commands. The angle brackets "< >" are used to indicate a placeholder value, which you should replace with your own input.
 

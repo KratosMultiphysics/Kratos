@@ -8,12 +8,6 @@ summary:
 # Postprocessing
 Upon finishing the simulation, the results should be processed in order to be comprehensibly displayed in the final report. This part of the guide will help you with the technicalities of the postprocessing.
 
-## Content
-### [1. Postprocessing in Paraview](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/4_Postprocessing.md#1-postprocessing-in-paraview-1) 
-
-### [2. Point and line ASCII data](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/4_Postprocessing.md#2-point-and-line-ascii-data-1) 
-
-### [3. Converting level forces to ParOptBeam](https://github.com/enisalite/Hitchhiker-Guide-SWE/edit/main/4_Postprocessing.md#3-converting-level-forces-to-paroptbeam-1)
 ___
 ## 1. Postprocessing in Paraview
 For the ".h5" files, you need to create an ".xdmf" file, so Paraview can understand the results. For that follow these steps:

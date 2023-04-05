@@ -10,26 +10,6 @@ The following part of the guide will show you all the necessary tools to be prep
 
 It is important to note that, given the annual organization of the Structural Wind Engineering (SWE) course, the mandatory program versions may be subject to modification. As such, participants will be clarified regarding the specific versions required during the course.
 
-## Content
-### [1. Python](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#1-python-1) 
-- [1.1. Anaconda](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#11-anaconda) 
-- [1.2. Visual Studio Code](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#12-visual-studio-code) 
-- [1.3. Jupyter Notebook](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#13-jupyter-notebook) 
-- [1.4. FFmpeg](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#14-ffmpeg) 
-- [1.5. Useful links](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#15-more-useful-links-for-python-optional) 
-
-### [2. GiD & Kratos](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#2-installation-guide-for-gid--kratos) 
-- [2.1. GiD](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#21-download-and-install-gid) 
-- [2.2. Kratos](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#22-download-and-install-kratos) 
-
-### [3. Paraview](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#3-paraview-1)
-
-- [3.1. Download and Install Paraview](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#31-download-and-install-paraview)
-
-### [4. Remote Computing](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#4-remote-computing-1) 
-- [4.1. VPN](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#41-vpn) 
-- [4.2. Secure Shell (SSH) Client](https://github.com/enisalite/Hitchhiker-Guide-SWE/blob/main/1_Installation_Guides.md#42-secure-shell-ssh-client) 
-
 ___
 ## 1. Python
 Most of the tools necessary for the course and project require to use python. The version necessary for the course is Python 3.10, together with the following modules:
