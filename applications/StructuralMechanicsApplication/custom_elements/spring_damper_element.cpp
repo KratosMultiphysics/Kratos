@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/define.h"
-#include "custom_elements/spring_damper_element_3D2N.hpp"
+#include "custom_elements/spring_damper_element.hpp"
 
 #include "structural_mechanics_application_variables.h"
 

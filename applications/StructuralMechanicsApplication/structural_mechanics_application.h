@@ -59,7 +59,7 @@
 #include "custom_elements/shell_thick_element_3D3N.hpp"
 
 /* Adding the spring damper element */
-#include "custom_elements/spring_damper_element_3D2N.hpp"
+#include "custom_elements/spring_damper_element.hpp"
 
 /* Adding the SPRISM element */
 #include "custom_elements/solid_shell_element_sprism_3D6N.h"
