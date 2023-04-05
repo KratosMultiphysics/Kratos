@@ -259,7 +259,8 @@ public:
             rWohlerStress = (Sth + (ultimate_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
         }
         if (MaxStress > Sth) {
-            rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
+            const double aux_fred = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
+            rFatigueReductionFactor = (std::isnan(aux_fred)) ? 1.0 : aux_fred;
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
         }
     }
