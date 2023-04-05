@@ -304,5 +304,64 @@ namespace Testing
         KRATOS_CHECK_VECTOR_NEAR(expected_rhs, calculated_rhs, 1e-10);
     }
 
+
+
+    // Tests the damping matrix of the SpringDamperElement3D2N
+    KRATOS_TEST_CASE_IN_SUITE(SpringDamperDampingMatrix3D2N, KratosStructuralMechanicsFastSuite)
+    {
+        // create model part
+        Model current_model;
+        auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
+
+        // set up 2d element
+        auto p_element = SetUpElement3D(r_model_part);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        // initialize element
+        p_element->Initialize(r_process_info);
+
+        // check element
+        p_element->Check(r_process_info);
+
+
+        // Run test
+        const unsigned int number_of_nodes = p_element->GetGeometry().size();
+        const unsigned int number_of_dofs = number_of_nodes * 6;
+        Matrix calculated_damping_matrix = ZeroMatrix(number_of_dofs, number_of_dofs);
+        p_element->CalculateDampingMatrix(calculated_damping_matrix, r_process_info);
+
+        // Set expected damping matrix
+        Matrix expected_damping_matrix = ZeroMatrix(number_of_dofs);
+        expected_damping_matrix(0, 0) = 14.0;
+        expected_damping_matrix(0, 6) = -14.0;
+        expected_damping_matrix(1, 1) = 15.0;
+        expected_damping_matrix(1, 7) = -15.0;
+        expected_damping_matrix(2, 2) = 16.0;
+        expected_damping_matrix(2, 8) = -16.0;
+        expected_damping_matrix(3, 3) = 17.0;
+        expected_damping_matrix(3, 9) = -17.0;
+        expected_damping_matrix(4, 4) = 18.0;
+        expected_damping_matrix(4, 10) = -18.0;
+        expected_damping_matrix(5, 5) = 19.0;
+        expected_damping_matrix(5, 11) = -19.0;
+
+        expected_damping_matrix(6, 6) = 14.0;
+        expected_damping_matrix(6, 0) = -14.0;
+        expected_damping_matrix(7, 7) = 15.0;
+        expected_damping_matrix(7, 1) = -15.0;
+        expected_damping_matrix(8, 8) = 16.0;
+        expected_damping_matrix(8, 2) = -16.0;
+        expected_damping_matrix(9, 9) = 17.0;
+        expected_damping_matrix(9, 3) = -17.0;
+        expected_damping_matrix(10, 10) = 18.0;
+        expected_damping_matrix(10, 4) = -18.0;
+        expected_damping_matrix(11, 11) = 19.0;
+        expected_damping_matrix(11, 5) = -19.0;
+
+        // Assert damping matrix
+        KRATOS_CHECK_MATRIX_NEAR(expected_damping_matrix, calculated_damping_matrix, 1e-10);
+
+    }
 }
 }
