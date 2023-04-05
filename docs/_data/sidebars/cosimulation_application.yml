@@ -126,11 +126,11 @@ entries:
     - title: Overview
       url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/Overview.html
       output: web
-    - title: JSON Structure
-      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/copy_single_to_distributed_vectorial.html
-      output: web
     - title: copy
       url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/copy.html
+      output: web
+    - title: copy single to distributed vectorial
+      url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/copy_single_to_distributed_vectorial.html
       output: web
     - title: copy with empty ranks
       url: /pages/Applications/CoSimulation_Application/Data_Transfer_Operators/copy_with_empty_ranks.html

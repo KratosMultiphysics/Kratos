@@ -1,0 +1,10 @@
+{
+    "custom_entries": [
+        "Overview.md",
+        "Installation_Guides.md",
+        "Preprocessing.md",
+        "Remote_Computing.md",
+        "Postprocessing.md",
+        "ParOptBeam_Guide.md"
+    ]
+}

@@ -34,6 +34,9 @@ topnav_dropdowns:
     - title: Documentation Guide
       url: /pages/Kratos/Documentation_Guide/General/Overview.html
       output: web
+    - title: Workshops
+      url: /pages/Kratos/Workshops/2019/running_an_example_from_GiD.html
+      output: web
   - title: Applications
     output: web
     folderitems:
