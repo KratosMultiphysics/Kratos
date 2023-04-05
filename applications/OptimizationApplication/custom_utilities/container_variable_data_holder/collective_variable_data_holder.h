@@ -63,7 +63,7 @@ public:
     ///#{
 
     // Default constructor
-    CollectiveVariableDataHolder() = default;
+    CollectiveVariableDataHolder() noexcept = default;
 
 
     // Constructor with list
