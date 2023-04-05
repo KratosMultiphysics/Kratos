@@ -12,7 +12,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
 
-        number_of_nodes = 10
+        number_of_nodes = 3
         for id in range(1, number_of_nodes + 1):
             node = cls.model_part.CreateNewNode(id, id, id+1, id+2)
             node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
@@ -20,7 +20,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             node.SetValue(Kratos.PRESSURE, id+3)
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
 
-        number_of_conditions = 11
+        number_of_conditions = 4
         for id in range(1, number_of_conditions + 1):
             properties = cls.model_part.CreateNewProperties(id)
             properties.SetValue(Kratos.PRESSURE, id+400)
@@ -29,7 +29,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             condition.SetValue(Kratos.PRESSURE, id+4)
             condition.SetValue(Kratos.VELOCITY, Kratos.Array3([id+5, id+6, id+7]))
 
-        number_of_elements = 12
+        number_of_elements = 5
         for id in range(1, number_of_elements + 1):
             properties = cls.model_part.CreateNewProperties(id + number_of_conditions)
             properties.SetValue(Kratos.PRESSURE, id+500)
@@ -163,17 +163,17 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         collective_2.Add(a)
         collective_2.Add(b)
 
-        collective_3 = collective_1 ** 2
+        collective_3 = collective_1 ** (collective_1 / 1e+3)
         collective_3 **= 2
 
         collective_3.GetContainerExpressions()[0].Evaluate(Kratos.ACCELERATION)
         collective_3.GetContainerExpressions()[1].Evaluate(Kratos.DENSITY)
 
-        # for node in self.model_part.Nodes:
-        #     v = node.GetSolutionStepValue(Kratos.VELOCITY)
-        #     self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), Kratos.Array3([v[0]**4, v[1]**4, v[2]**4]) , 12)
+        for node in self.model_part.Nodes:
+            v = node.GetSolutionStepValue(Kratos.VELOCITY)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), Kratos.Array3([v[0]**(2*v[0]/1e+3), v[1]**(2*v[1]/1e+3), v[2]**(2*v[2]/1e+3)]) , 12)
         for element in self.model_part.Elements:
-            self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] ** 4, 12)
+            self.assertAlmostEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] ** (2 * element.Properties[Kratos.PRESSURE] / 1e+3), 12)
 
     def test_CollectiveExpressionsNeg(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
