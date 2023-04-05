@@ -110,29 +110,22 @@ void SpringDamperElement<TDim, TNumNodes>::GetDofList( DofsVectorType& rElementa
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
 
     // Resizing as needed
-    if constexpr (TDim == 2) {
-        if (rElementalDofList.size() != msElementSize2D)
-        {
-            rElementalDofList.resize(msElementSize2D);
-        }
-    }
-    else if constexpr (TDim == 3)
-    {
-        if (rElementalDofList.size() != msElementSize3D)
-        {
-            rElementalDofList.resize(msElementSize3D);
-        }
-    }
-    for ( SizeType i = 0; i < TNumNodes; ++i ) {
 
+    if (rElementalDofList.size() != msElementSize)
+    {
+        rElementalDofList.resize(msElementSize);
+    }
+
+
+    for ( SizeType i = 0; i < TNumNodes; ++i ) {
+        const SizeType index = i * msLocalSize;
         if constexpr (TDim == 2){
-            const SizeType index = i * msLocalSize2D;
+            
             rElementalDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ROTATION_Z);
         }
         else if constexpr (TDim == 3){
-            const SizeType index = i * msLocalSize3D;
             rElementalDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
@@ -157,13 +150,20 @@ void SpringDamperElement<TDim, TNumNodes>::EquationIdVector( EquationIdVectorTyp
 
     for ( std::size_t i = 0; i < GetGeometry().size(); ++i)
     {
-        const std::size_t index = i * 6;
-        rResult[index]   = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index+1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-        rResult[index+2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-        rResult[index+3] = GetGeometry()[i].GetDof( ROTATION_X ).EquationId();
-        rResult[index+4] = GetGeometry()[i].GetDof( ROTATION_Y ).EquationId();
-        rResult[index+5] = GetGeometry()[i].GetDof( ROTATION_Z ).EquationId();
+        const SizeType index = i * msLocalSize;
+        if constexpr (TDim == 2) {
+            rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index + 2] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
+        }
+        else if constexpr (TDim == 3) {
+            rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+            rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
+            rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
+            rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
+        }
     }
 }
 
@@ -184,13 +184,21 @@ void SpringDamperElement<TDim, TNumNodes>::GetValuesVector( Vector& rValues, int
         const array_1d<double, 3>& disp = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT, Step );
         const array_1d<double, 3>& rot  = GetGeometry()[i].FastGetSolutionStepValue( ROTATION, Step );
 
-        const std::size_t index = i * 6;
-        rValues[index]   = disp[0];
-        rValues[index+1] = disp[1];
-        rValues[index+2] = disp[2];
-        rValues[index+3] = rot[0];
-        rValues[index+4] = rot[1];
-        rValues[index+5] = rot[2];
+        const SizeType index = i * msLocalSize;
+        if constexpr (TDim == 2) {
+            rValues[index] = disp[0];
+            rValues[index + 1] = disp[1];
+            rValues[index + 2] = rot[2];
+        }
+        else if constexpr (TDim == 3){
+            rValues[index] = disp[0];
+            rValues[index + 1] = disp[1];
+            rValues[index + 2] = disp[2];
+            rValues[index + 3] = rot[0];
+            rValues[index + 4] = rot[1];
+            rValues[index + 5] = rot[2];
+        }
+
     }
 }
 
@@ -211,13 +219,22 @@ void SpringDamperElement<TDim, TNumNodes>::GetFirstDerivativesVector( Vector& rV
     {
         const array_1d<double, 3>& vel = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY, Step );
         const array_1d<double, 3>& avel = GetGeometry()[i].FastGetSolutionStepValue( ANGULAR_VELOCITY, Step );
-        std::size_t index = i * 6;
-        rValues[index]   = vel[0];
-        rValues[index+1] = vel[1];
-        rValues[index+2] = vel[2];
-        rValues[index+3] = avel[0];
-        rValues[index+4] = avel[1];
-        rValues[index+5] = avel[2];
+        std::size_t index = i * msLocalSize;
+
+        if constexpr (TDim == 2) {
+            rValues[index] = vel[0];
+            rValues[index + 1] = vel[1];
+            rValues[index + 2] = avel[2];
+        }
+        else if constexpr (TDim == 3) {
+            rValues[index] = vel[0];
+            rValues[index + 1] = vel[1];
+            rValues[index + 2] = vel[2];
+            rValues[index + 3] = avel[0];
+            rValues[index + 4] = avel[1];
+            rValues[index + 5] = avel[2];
+        }
+
     }
 }
 
@@ -237,13 +254,21 @@ void SpringDamperElement<TDim, TNumNodes>::GetSecondDerivativesVector( Vector& r
     {
         const array_1d<double, 3>& acc = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION, Step );
         const array_1d<double, 3>& aacc = GetGeometry()[i].FastGetSolutionStepValue( ANGULAR_ACCELERATION, Step );
-        std::size_t index = i * 6;
-        rValues[index]   = acc[0];
-        rValues[index+1] = acc[1];
-        rValues[index+2] = acc[2];
-        rValues[index+3] = aacc[0];
-        rValues[index+4] = aacc[1];
-        rValues[index+5] = aacc[2];
+        std::size_t index = i * msLocalSize;
+
+        if constexpr (TDim == 2) {
+            rValues[index] = acc[0];
+            rValues[index + 1] = acc[1];
+            rValues[index + 2] = aacc[2];
+        }
+        else if constexpr (TDim == 3) {
+            rValues[index] = acc[0];
+            rValues[index + 1] = acc[1];
+            rValues[index + 2] = acc[2];
+            rValues[index + 3] = aacc[0];
+            rValues[index + 4] = aacc[1];
+            rValues[index + 5] = aacc[2];
+        }
     }
 }
 
@@ -286,20 +311,30 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rR
     rRightHandSideVector = ZeroVector( msElementSize ); //resetting RHS
 
     array_1d<double, msElementSize > current_displacement = ZeroVector( msElementSize );
-    array_1d<double, msLocalSize > elemental_stiffness = ZeroVector( msLocalSize );
+    array_1d<double, msLocalSize> elemental_stiffness = ZeroVector( msLocalSize );
 
     // We get the reference
     const auto& rconst_this = *this;
 
     // Getting actual values
     const array_1d<double, 3>& r_nodal_stiffness = rconst_this.GetValue( NODAL_DISPLACEMENT_STIFFNESS );
-    elemental_stiffness[0] = r_nodal_stiffness[0];
-    elemental_stiffness[1] = r_nodal_stiffness[1];
-    elemental_stiffness[2] = r_nodal_stiffness[2];
-    const array_1d<double, 3>& r_nodal_rot_stiffness = rconst_this.GetValue( NODAL_ROTATIONAL_STIFFNESS );
-    elemental_stiffness[3] = r_nodal_rot_stiffness[0];
-    elemental_stiffness[4] = r_nodal_rot_stiffness[1];
-    elemental_stiffness[5] = r_nodal_rot_stiffness[2];
+    const array_1d<double, 3>& r_nodal_rot_stiffness = rconst_this.GetValue(NODAL_ROTATIONAL_STIFFNESS);
+
+    if constexpr (TDim == 2) {
+        elemental_stiffness[0] = r_nodal_stiffness[0];
+        elemental_stiffness[1] = r_nodal_stiffness[1];
+
+        elemental_stiffness[2] = r_nodal_rot_stiffness[2];
+    }
+    else if constexpr (TDim == 3) {
+        elemental_stiffness[0] = r_nodal_stiffness[0];
+        elemental_stiffness[1] = r_nodal_stiffness[1];
+        elemental_stiffness[2] = r_nodal_stiffness[2];
+
+        elemental_stiffness[3] = r_nodal_rot_stiffness[0];
+        elemental_stiffness[4] = r_nodal_rot_stiffness[1];
+        elemental_stiffness[5] = r_nodal_rot_stiffness[2];
+    }
 
     // Getting geometry
     auto& r_geometry = this->GetGeometry();
@@ -311,21 +346,31 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rR
     const array_1d<double, 3> drot = r_geometry[1].FastGetSolutionStepValue(ROTATION)
                                    - r_geometry[0].FastGetSolutionStepValue(ROTATION);
 
-    current_displacement[0] = -ddisp[0];
-    current_displacement[1] = -ddisp[1];
-    current_displacement[2] = -ddisp[2];
-    current_displacement[3] = -drot[0];
-    current_displacement[4] = -drot[1];
-    current_displacement[5] = -drot[2];
-    current_displacement[6] = ddisp[0];
-    current_displacement[7] = ddisp[1];
-    current_displacement[8] = ddisp[2];
-    current_displacement[9] = drot[0];
-    current_displacement[10] = drot[1];
-    current_displacement[11] = drot[2];
+    if constexpr (TDim == 2) {
+        current_displacement[0] = -ddisp[0];
+        current_displacement[1] = -ddisp[1];
+        current_displacement[2] = -drot[2];
+        current_displacement[3] = ddisp[0];
+        current_displacement[4] = ddisp[1];
+        current_displacement[5] = drot[2];
+    }
+    else if constexpr (TDim == 3) {
+        current_displacement[0] = -ddisp[0];
+        current_displacement[1] = -ddisp[1];
+        current_displacement[2] = -ddisp[2];
+        current_displacement[3] = -drot[0];
+        current_displacement[4] = -drot[1];
+        current_displacement[5] = -drot[2];
+        current_displacement[6] = ddisp[0];
+        current_displacement[7] = ddisp[1];
+        current_displacement[8] = ddisp[2];
+        current_displacement[9] = drot[0];
+        current_displacement[10] = drot[1];
+        current_displacement[11] = drot[2];
+    }
 
     for ( std::size_t i = 0; i < msElementSize; ++i ) {
-        rRightHandSideVector[i]  -= elemental_stiffness[i % 6] * current_displacement[i];
+        rRightHandSideVector[i]  -= elemental_stiffness[i % msLocalSize] * current_displacement[i];
     }
 
 }
@@ -351,19 +396,30 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateLeftHandSide( MatrixType& rL
     // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
     array_1d<double, msLocalSize > elemental_stiffness = ZeroVector( msLocalSize );
     const array_1d<double, 3>& r_nodal_stiffness = rconst_this.GetValue( NODAL_DISPLACEMENT_STIFFNESS );
-    elemental_stiffness[0] = r_nodal_stiffness[0];
-    elemental_stiffness[1] = r_nodal_stiffness[1];
-    elemental_stiffness[2] = r_nodal_stiffness[2];
-    const array_1d<double, 3>& r_nodal_rot_stiffness = rconst_this.GetValue( NODAL_ROTATIONAL_STIFFNESS );
-    elemental_stiffness[3] = r_nodal_rot_stiffness[0];
-    elemental_stiffness[4] = r_nodal_rot_stiffness[1];
-    elemental_stiffness[5] = r_nodal_rot_stiffness[2];
+    const array_1d<double, 3>& r_nodal_rot_stiffness = rconst_this.GetValue(NODAL_ROTATIONAL_STIFFNESS);
+
+    if constexpr (TDim == 2) {
+
+        elemental_stiffness[0] = r_nodal_stiffness[0];
+        elemental_stiffness[1] = r_nodal_stiffness[1];
+        elemental_stiffness[2] = r_nodal_rot_stiffness[2];
+
+    }
+    else if constexpr (TDim == 3) {
+        elemental_stiffness[0] = r_nodal_stiffness[0];
+        elemental_stiffness[1] = r_nodal_stiffness[1];
+        elemental_stiffness[2] = r_nodal_stiffness[2];
+
+        elemental_stiffness[3] = r_nodal_rot_stiffness[0];
+        elemental_stiffness[4] = r_nodal_rot_stiffness[1];
+        elemental_stiffness[5] = r_nodal_rot_stiffness[2];
+    }
 
     for ( std::size_t i = 0; i < msLocalSize; ++i ) {
         rLeftHandSideMatrix(i    ,i    ) += elemental_stiffness[i];
-        rLeftHandSideMatrix(i + 6,i + 6) += elemental_stiffness[i];
-        rLeftHandSideMatrix(i    ,i + 6) -= elemental_stiffness[i];
-        rLeftHandSideMatrix(i + 6,i    ) -= elemental_stiffness[i];
+        rLeftHandSideMatrix(i + msLocalSize,i + msLocalSize) += elemental_stiffness[i];
+        rLeftHandSideMatrix(i    ,i + msLocalSize) -= elemental_stiffness[i];
+        rLeftHandSideMatrix(i + msLocalSize,i    ) -= elemental_stiffness[i];
     }
 
 }
@@ -405,23 +461,32 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateDampingMatrix( MatrixType& r
         array_1d<double, msLocalSize> elemental_damping_ratio = ZeroVector( msLocalSize );
         if (this->Has( NODAL_DAMPING_RATIO )) {
             const array_1d<double, 3>& nodal_damping = this->GetValue( NODAL_DAMPING_RATIO );
+
             elemental_damping_ratio[0] = nodal_damping[0];
             elemental_damping_ratio[1] = nodal_damping[1];
-            elemental_damping_ratio[2] = nodal_damping[2];
+            
+        	if constexpr (TDim == 3) {
+        	    elemental_damping_ratio[2] = nodal_damping[2];
+            }
         }
 
         if (this->Has( NODAL_ROTATIONAL_DAMPING_RATIO )) {
             const array_1d<double, 3>& nodal_rotational_damping = this->GetValue( NODAL_ROTATIONAL_DAMPING_RATIO );
-            elemental_damping_ratio[3] = nodal_rotational_damping[0];
-            elemental_damping_ratio[4] = nodal_rotational_damping[1];
-            elemental_damping_ratio[5] = nodal_rotational_damping[2];
+            if constexpr (TDim == 2) {
+                elemental_damping_ratio[2] = nodal_rotational_damping[2];
+            }
+            else if constexpr (TDim == 3) {
+                elemental_damping_ratio[3] = nodal_rotational_damping[0];
+                elemental_damping_ratio[4] = nodal_rotational_damping[1];
+                elemental_damping_ratio[5] = nodal_rotational_damping[2];
+            }
         }
 
         for ( std::size_t i = 0; i < msLocalSize; ++i ) {
             rDampingMatrix(i    , i   ) += elemental_damping_ratio[i];
-            rDampingMatrix(i + 6,i + 6) += elemental_damping_ratio[i];
-            rDampingMatrix(i    ,i + 6) -= elemental_damping_ratio[i];
-            rDampingMatrix(i + 6,i    ) -= elemental_damping_ratio[i];
+            rDampingMatrix(i + msLocalSize,i + msLocalSize) += elemental_damping_ratio[i];
+            rDampingMatrix(i    ,i + msLocalSize) -= elemental_damping_ratio[i];
+            rDampingMatrix(i + msLocalSize,i    ) -= elemental_damping_ratio[i];
         }
     }
 
@@ -447,13 +512,17 @@ int SpringDamperElement<TDim, TNumNodes>::Check( const ProcessInfo& rCurrentProc
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rnode)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
+        if constexpr (TDim == 3) {
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        }
 
         // The rotational terms
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rnode)
 
-        KRATOS_CHECK_DOF_IN_NODE(ROTATION_X,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y,rnode)
+        if constexpr (TDim == 3) {
+            KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, rnode)
+        	KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, rnode)
+        }
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z,rnode)
     }
 

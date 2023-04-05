@@ -215,10 +215,9 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    static constexpr unsigned int msLocalSize2D = 3;
-    static constexpr unsigned int msLocalSize3D = 6;
-    static constexpr unsigned int msElementSize2D = msLocalSize2D * 2;
-    static constexpr unsigned int msElementSize3D = msLocalSize3D * 2;
+    static constexpr unsigned int msLocalSize = ( constexpr(TDim == 2) ? 3 : constexpr(TDim == 3) ? 6 : 0 );
+    static constexpr unsigned int msElementSize = msLocalSize * TNumNodes;
+
     ///@}
     ///@name Protected member Variables
     ///@{
