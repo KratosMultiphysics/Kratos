@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Klaus B. Sautter
+//  Main authors:    Aron Noordam
 //
 
 // Project includes
