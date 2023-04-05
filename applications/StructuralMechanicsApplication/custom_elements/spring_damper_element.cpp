@@ -314,23 +314,32 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rR
     array_1d<double, msLocalSize> elemental_stiffness = ZeroVector( msLocalSize );
 
     // Getting actual values
-    const array_1d<double, 3>& r_nodal_stiffness = this->GetValue( NODAL_DISPLACEMENT_STIFFNESS );
-    const array_1d<double, 3>& r_nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
+    array_1d<double, 3> nodal_stiffness = ZeroVector(3);
+    array_1d<double, 3> nodal_rot_stiffness = ZeroVector(3);
+
+    if (this->Has(NODAL_DISPLACEMENT_STIFFNESS))
+    {
+        nodal_stiffness = this->GetValue(NODAL_DISPLACEMENT_STIFFNESS);
+    }
+    if (this->Has(NODAL_ROTATIONAL_STIFFNESS))
+    {
+        nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
+    }
 
     if constexpr (TDim == 2) {
-        elemental_stiffness[0] = r_nodal_stiffness[0];
-        elemental_stiffness[1] = r_nodal_stiffness[1];
+        elemental_stiffness[0] = nodal_stiffness[0];
+        elemental_stiffness[1] = nodal_stiffness[1];
 
-        elemental_stiffness[2] = r_nodal_rot_stiffness[2];
+        elemental_stiffness[2] = nodal_rot_stiffness[2];
     }
     else if constexpr (TDim == 3) {
-        elemental_stiffness[0] = r_nodal_stiffness[0];
-        elemental_stiffness[1] = r_nodal_stiffness[1];
-        elemental_stiffness[2] = r_nodal_stiffness[2];
+        elemental_stiffness[0] = nodal_stiffness[0];
+        elemental_stiffness[1] = nodal_stiffness[1];
+        elemental_stiffness[2] = nodal_stiffness[2];
 
-        elemental_stiffness[3] = r_nodal_rot_stiffness[0];
-        elemental_stiffness[4] = r_nodal_rot_stiffness[1];
-        elemental_stiffness[5] = r_nodal_rot_stiffness[2];
+        elemental_stiffness[3] = nodal_rot_stiffness[0];
+        elemental_stiffness[4] = nodal_rot_stiffness[1];
+        elemental_stiffness[5] = nodal_rot_stiffness[2];
     }
 
     // Getting geometry
@@ -389,24 +398,33 @@ void SpringDamperElement<TDim, TNumNodes>::CalculateLeftHandSide( MatrixType& rL
 
     // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
     array_1d<double, msLocalSize > elemental_stiffness = ZeroVector( msLocalSize );
-    const array_1d<double, 3>& r_nodal_stiffness = this->GetValue( NODAL_DISPLACEMENT_STIFFNESS );
-    const array_1d<double, 3>& r_nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
+    array_1d<double, 3> nodal_stiffness = ZeroVector(3);
+    array_1d<double, 3> nodal_rot_stiffness = ZeroVector(3);
+
+    if (this->Has(NODAL_DISPLACEMENT_STIFFNESS))
+    {
+        nodal_stiffness = this->GetValue(NODAL_DISPLACEMENT_STIFFNESS);
+    }
+    if (this->Has(NODAL_ROTATIONAL_STIFFNESS))
+    {
+        nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
+    }
 
     if constexpr (TDim == 2) {
 
-        elemental_stiffness[0] = r_nodal_stiffness[0];
-        elemental_stiffness[1] = r_nodal_stiffness[1];
-        elemental_stiffness[2] = r_nodal_rot_stiffness[2];
+        elemental_stiffness[0] = nodal_stiffness[0];
+        elemental_stiffness[1] = nodal_stiffness[1];
+        elemental_stiffness[2] = nodal_rot_stiffness[2];
 
     }
     else if constexpr (TDim == 3) {
-        elemental_stiffness[0] = r_nodal_stiffness[0];
-        elemental_stiffness[1] = r_nodal_stiffness[1];
-        elemental_stiffness[2] = r_nodal_stiffness[2];
+        elemental_stiffness[0] = nodal_stiffness[0];
+        elemental_stiffness[1] = nodal_stiffness[1];
+        elemental_stiffness[2] = nodal_stiffness[2];
 
-        elemental_stiffness[3] = r_nodal_rot_stiffness[0];
-        elemental_stiffness[4] = r_nodal_rot_stiffness[1];
-        elemental_stiffness[5] = r_nodal_rot_stiffness[2];
+        elemental_stiffness[3] = nodal_rot_stiffness[0];
+        elemental_stiffness[4] = nodal_rot_stiffness[1];
+        elemental_stiffness[5] = nodal_rot_stiffness[2];
     }
 
     for ( std::size_t i = 0; i < msLocalSize; ++i ) {
