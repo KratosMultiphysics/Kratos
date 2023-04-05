@@ -213,12 +213,11 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
 bool FindNeighbourElementsOfConditionsProcess::CheckIfAllConditionsAreVisited() const
 {
-    for (auto& r_cond : mrModelPart.Conditions()) {
-        if (r_cond.IsNot(VISITED)) {
-            return false;
-        }
-    }
-    return true;
+    const auto& r_conditions = mrModelPart.Conditions();
+
+    // Check if all conditions are visited
+    return std::all_of(r_conditions.begin(), r_conditions.end(),
+        [](const auto& r_cond) {return r_cond.Is(VISITED); });
 }
 
 void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashmap& rFacesMap)
@@ -227,19 +226,21 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
     for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
         const auto& r_geometry_element = itElem->GetGeometry();
 
-	    // for 1D elements, the edge geometry is the same as the element geometry 
-	    if (r_geometry_element.LocalSpaceDimension() == 1)
-	    {
+        // for 1D elements, the edge geometry is the same as the element geometry 
+        if (r_geometry_element.LocalSpaceDimension() == 1)
+        {
             const auto rBoundaryGeometries = PointerVector(r_geometry_element.GenerateEdges());
 
             for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
                 DenseVector<int> FaceIds(rBoundaryGeometries[iFace].size());
 
-                // get edge ids
-                for (IndexType iNode = 0; iNode < FaceIds.size(); ++iNode) {
-                    FaceIds[iNode] = rBoundaryGeometries[iFace][iNode].Id();
-                }
 
+                const auto& r_nodes = rBoundaryGeometries[iFace];
+
+                // get face node IDs
+                std::transform(r_nodes.begin(), r_nodes.end(), FaceIds.begin(),
+                    [](const auto& r_node) { return r_node.Id(); });
+                
                 hashmap::iterator itFace = rFacesMap.find(FaceIds);
 
                 if (itFace != rFacesMap.end()) {
@@ -258,7 +259,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
     PointerVector<Element>::iterator pItElem)
 {
 
-	const std::pair<hashmap::iterator, hashmap::iterator> face_pair = rFacesMap.equal_range(rItFace->first);
+    const std::pair<hashmap::iterator, hashmap::iterator> face_pair = rFacesMap.equal_range(rItFace->first);
     for (hashmap::iterator it = face_pair.first; it != face_pair.second; ++it) {
         std::vector<Condition::Pointer>& r_conditions = it->second;
 
