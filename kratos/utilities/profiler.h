@@ -14,6 +14,7 @@
 
 // Project includes
 #include "includes/code_location.h"
+#include "includes/kratos_export_api.h"
 
 // System includes
 #include <unordered_map>
@@ -29,7 +30,7 @@ namespace Kratos::Internals {
 
 
 template <class TTimeUnit>
-class Profiler
+class KRATOS_API(KRATOS_CORE) Profiler
 {
 private:
     using TimeUnit = TTimeUnit;
