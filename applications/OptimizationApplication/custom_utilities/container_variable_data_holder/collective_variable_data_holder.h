@@ -28,7 +28,14 @@ namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
-
+/**
+ * @brief Construct a new CollectiveVariableDataHolder instance
+ * @details This constructs a CollectiveVariableHolderInstance which can hold list of ContainerExpresions of different types.
+ *          The list within the instance can be treated as a single value, therefore all the binary operations present in the ContainerExpressions
+ *          are also available with this container. This uses std::variant to store different types of containers. Since these containers memeory footprint
+ *          is the same, the memory footprint of the std::variant will be almost equal to the memory footprint of a single container for all the container types.
+ *
+ */
 class KRATOS_API(OPTIMIZATION_APPLICATION) CollectiveVariableDataHolder {
 public:
     ///@name Type definitions

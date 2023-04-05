@@ -48,7 +48,7 @@ CollectiveVariableDataHolder CollectiveVariableDataHolder::Clone()  const
 {
     CollectiveVariableDataHolder result;
     for (const auto& p_container_variable_data_holder : mContainerVariableDataHolderPointersList) {
-        std::visit([&](auto&& v) {
+        std::visit([&](const auto& v) {
             result.AddVariableDataHolder(v->Clone());
         }, p_container_variable_data_holder);
     }
@@ -59,7 +59,7 @@ CollectiveVariableDataHolder CollectiveVariableDataHolder::CloneWithDataInitiali
 {
     CollectiveVariableDataHolder result;
     for (const auto& p_container_variable_data_holder : mContainerVariableDataHolderPointersList) {
-        std::visit([&](auto&& v) {
+        std::visit([&](const auto& v) {
             result.AddVariableDataHolder(v->CloneWithDataInitializedToZero());
         }, p_container_variable_data_holder);
     }
@@ -68,7 +68,7 @@ CollectiveVariableDataHolder CollectiveVariableDataHolder::CloneWithDataInitiali
 
 void CollectiveVariableDataHolder::AddVariableDataHolder(const ContainerVariableDataHolderPointerVariantType& pVariableDataHolder)
 {
-    std::visit([&](auto&& v) {
+    std::visit([&](const auto& v) {
         mContainerVariableDataHolderPointersList.push_back(v);
     }, pVariableDataHolder);
 }
@@ -76,7 +76,7 @@ void CollectiveVariableDataHolder::AddVariableDataHolder(const ContainerVariable
 void CollectiveVariableDataHolder::AddCollectiveVariableDataHolder(const CollectiveVariableDataHolder& rCollectiveVariableDataHolder)
 {
     for (const auto& p_container_variable_data_holder : rCollectiveVariableDataHolder.mContainerVariableDataHolderPointersList) {
-        std::visit([&](auto&& v) {
+        std::visit([&](const auto& v) {
             mContainerVariableDataHolderPointersList.push_back(v);
         }, p_container_variable_data_holder);
     }
