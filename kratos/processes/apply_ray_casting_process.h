@@ -180,12 +180,12 @@ private:
     ///@{
 
     Parameters mSettings;
-    double mEpsilon = 1.0e-12;
-    double mExtraRayOffset = 1.0e-8;
-    double mRelativeTolerance = 1.0e-12;
+    double mEpsilon;
+    double mExtraRayOffset;
+    double mRelativeTolerance;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
-    double mCharacteristicLength = 1.0;
+    double mCharacteristicLength;
 
 
     ///@}

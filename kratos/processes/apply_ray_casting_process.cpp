@@ -86,7 +86,7 @@ namespace Kratos
         } else if (database == "nodal_non_historical") {
             node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.GetValue(rDistanceVariable);};
         } else {
-            KRATOS_ERROR << "Unrecognized database " <<  database << std::endl;
+            KRATOS_ERROR << "Provided 'distance_database' is '" << database << "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
         }
 
         const Variable<double>* mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
