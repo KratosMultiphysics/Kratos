@@ -23,6 +23,7 @@ import test_model_part_utils
 import test_model_part_controllers
 import test_container_expression_utils
 import test_container_expression
+import test_collective_expressions
 
 # Nightly tests
 
@@ -61,6 +62,7 @@ def AssembleTestSuites():
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_collective_expressions.TestCollectiveExpressions]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_controllers.TestMdpaModelPartController]))
 
