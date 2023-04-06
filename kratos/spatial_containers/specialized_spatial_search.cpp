@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
+//    . \  |  (   | |  (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
@@ -19,6 +19,184 @@
 
 namespace Kratos
 {
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusExclusive(
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    VectorResultElementsContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusInclusive(
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusExclusive(
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    VectorResultElementsContainerType& rResults
+    )
+{
+    VectorDistanceType distances;
+    SearchElementsInRadiusExclusive(rStructureElements, rInputElements, rRadius, rResults, distances);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusInclusive(
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults
+    )
+{
+    VectorDistanceType distances;
+    SearchElementsInRadiusInclusive(rStructureElements, rInputElements, rRadius, rResults, distances);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusExclusive(
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusInclusive(
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusExclusive(
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults
+    )
+{
+    VectorDistanceType distances;
+    SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, rRadius, rResults, distances);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusInclusive(
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults
+    )
+{
+    VectorDistanceType distances;
+    SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, rRadius, rResults, distances);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusExclusive(
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultConditionsContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusInclusive(
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults,
+    VectorDistanceType& rResultsDistance
+    )
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusExclusive(
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultConditionsContainerType& rResults
+    )
+{
+    VectorDistanceType distances;
+    SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, rRadius, rResults, distances);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearhcBackend>
+void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusInclusive(
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    VectorResultNodesContainerType& rResults
+    )
+{
+    VectorDistanceType distances;
+    SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, rRadius, rResults, distances);
+}
+
+
 template class SpecializedSpatialSearch<SpatialContainer::KDTree>;
 template class SpecializedSpatialSearch<SpatialContainer::Octree>;
 template class SpecializedSpatialSearch<SpatialContainer::BinsStatic>;
