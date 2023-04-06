@@ -116,7 +116,7 @@ void GeometryUtilities::ExtractBoundaryNodes( std::string const& rBoundarySubMod
     // Fill map that counts number of faces for given set of nodes
     for (auto& elem_i : mrModelPart.Elements())
     {
-        KRATOS_ERROR_IF(elem_i.GetGeometry().Dimension() < domain_size) << "ExtractBoundaryNodes: This function does only work"
+        KRATOS_ERROR_IF(elem_i.GetGeometry().WorkingSpaceDimension() < domain_size) << "ExtractBoundaryNodes: This function does only work"
             <<" for solid elements in 3D and surface elements in 2D!" << std::endl;
 
         Element::GeometryType::GeometriesArrayType boundaries = elem_i.GetGeometry().GenerateBoundariesEntities();
@@ -294,7 +294,7 @@ void GeometryUtilities::ComputeVolumeShapeDerivatives(
     block_for_each(mrModelPart.Elements(), VolumeDerivativeMethodType(), [&](ModelPart::ElementType& rElement, VolumeDerivativeMethodType& rVolumeDerivativeMethodType){
         auto& r_geometry = rElement.GetGeometry();
         const auto& geometry_type = r_geometry.GetGeometryType();
-        const SizeType dimension = r_geometry.Dimension();
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
         switch (geometry_type) {
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
