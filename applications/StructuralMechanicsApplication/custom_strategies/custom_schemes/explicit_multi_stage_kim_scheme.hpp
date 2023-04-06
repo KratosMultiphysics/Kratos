@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter
 //  Based on : "An accurate two‐stage explicit time integration scheme for structural dynamics and various dynamic problems" - Wooram Kim

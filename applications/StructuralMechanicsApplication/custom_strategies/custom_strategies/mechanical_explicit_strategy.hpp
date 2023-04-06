@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter (based on the work of JMCarbonel)
 //
@@ -12,11 +12,11 @@
 
 #pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
