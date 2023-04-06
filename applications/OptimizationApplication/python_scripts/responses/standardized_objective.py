@@ -55,8 +55,8 @@ class StandardizedObjective:
         msg = "\tObjective info:"
         msg += f"\n\t\t name          : {self.GetName()}"
         msg += f"\n\t\t type          : {self.GetResponseType()}"
-        msg += f"\n\t\t value         : {self.__response_function_data_retriever.GetScaledValue()}"
-        msg += f"\n\t\t rel_change [%]: {self.__response_function_data_retriever.GetRelativeChange() * 100.0}"
-        msg += f"\n\t\t abs_change [%]: {self.__response_function_data_retriever.GetAbsoluteChange(self.GetInitialValue()) * 100.0}"
+        msg += f"\n\t\t value         : {self.__response_function_data_retriever.GetScaledValue():0.6e}"
+        msg += f"\n\t\t rel_change [%]: {self.__response_function_data_retriever.GetRelativeChange() * 100.0:0.6e}"
+        msg += f"\n\t\t abs_change [%]: {self.__response_function_data_retriever.GetAbsoluteChange(self.GetInitialValue()) * 100.0:0.6e}"
 
         return msg

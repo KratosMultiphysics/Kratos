@@ -72,12 +72,12 @@ class StandardizedConstraint:
     def GetResponseInfo(self) -> str:
         msg = "\tConstraint info:"
         msg += f"\n\t\t name          : {self.GetName()}"
-        msg += f"\n\t\t value         : {self.GetValue()}"
+        msg += f"\n\t\t value         : {self.__response_function_data_retriever.GetScaledValue():0.6e}"
         msg += f"\n\t\t type          : {self.GetResponseType()}"
-        msg += f"\n\t\t ref_value     : {self.GetReferenceValue()}"
+        msg += f"\n\t\t ref_value     : {self.GetReferenceValue():0.6e}"
         msg += f"\n\t\t is_active     : {self.IsActive()}"
-        msg += f"\n\t\t rel_change [%]: {self.__response_function_data_retriever.GetRelativeChange() * 100.0}"
-        msg += f"\n\t\t abs_change [%]: {self.__response_function_data_retriever.GetAbsoluteChange(self.GetReferenceValue()) * 100.0}"
-        msg += f"\n\t\t violation  [%]: {abs(self.GetViolationRatio()) * 100.0}"
+        msg += f"\n\t\t rel_change [%]: {self.__response_function_data_retriever.GetRelativeChange() * 100.0:0.6e}"
+        msg += f"\n\t\t abs_change [%]: {self.__response_function_data_retriever.GetAbsoluteChange(self.GetReferenceValue()) * 100.0:0.6e}"
+        msg += f"\n\t\t violation  [%]: {abs(self.GetViolationRatio()) * 100.0:0.6e}"
 
         return msg
