@@ -5,7 +5,7 @@
 //
 //  License:         BSD License
 //                     license:
-// structural_mechanics_application/license.txt
+// StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
