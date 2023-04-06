@@ -5,8 +5,8 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
-from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policy_decorator import ExecutionPolicyDecorator
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.linear_strain_energy_response_function import LinearStrainEnergyResponseFunction
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
@@ -19,13 +19,13 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 
        # create the primal analysis execution policy wrapper
-        with kratos_unittest.WorkFolderScope("linear_element_test", __file__):
+        with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             # creating the execution policy wrapper
             execution_policy_wrapper_settings = Kratos.Parameters("""{
-                "execution_policy_name"    : "primal",
-                "execution_policy_module"  : "KratosMultiphysics.OptimizationApplication.execution_policies",
-                "execution_policy_type"    : "SteppingAnalysisExecutionPolicy",
-                "execution_policy_settings": {
+                "name"    : "primal",
+                "module"  : "KratosMultiphysics.OptimizationApplication.execution_policies",
+                "type"    : "SteppingAnalysisExecutionPolicy",
+                "settings": {
                     "model_part_names" : ["Structure"],
                     "analysis_module"  : "KratosMultiphysics.StructuralMechanicsApplication",
                     "analysis_type"    : "StructuralMechanicsAnalysis",
@@ -38,42 +38,42 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
                 "log_in_file"              : false,
                 "log_file_name"            : "structure.log"
             }""")
-            cls.execution_policy_wrapper = ExecutionPolicyDecorator(cls.model, execution_policy_wrapper_settings)
+            cls.execution_policy_wrapper = ExecutionPolicyDecorator(cls.model, execution_policy_wrapper_settings, OptimizationInfo())
             cls.optimization_info.AddOptimizationProcess(ExecutionPolicyDecorator, "primal", cls.execution_policy_wrapper)
 
             Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 
             # creating the response function wrapper
             response_function_settings = Kratos.Parameters("""{
-                "evaluated_model_part_name": "Structure.structure",
-                "primal_analysis_name"     : "primal",
-                "perturbation_size"        : 1e-8
+                "evaluated_model_part_names": ["Structure"],
+                "primal_analysis_name"      : "primal",
+                "perturbation_size"         : 1e-8
             }""")
             cls.response_function: LinearStrainEnergyResponseFunction = LinearStrainEnergyResponseFunction(cls.model, response_function_settings, cls.optimization_info)
 
             cls.execution_policy_wrapper.ExecuteInitialize()
-            cls.response_function.ExecuteInitialize()
+            cls.response_function.Initialize()
 
             # now replace the properties
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model["Structure.structure"], cls.model_part.Elements)
 
             cls.execution_policy_wrapper.ExecuteInitializeSolutionStep()
-            cls.response_function.ExecuteInitializeSolutionStep()
+            cls.execution_policy_wrapper.Execute()
             cls.ref_value = cls.response_function.CalculateValue()
 
     @classmethod
     def tearDownClass(cls):
-        with kratos_unittest.WorkFolderScope("linear_element_test", __file__):
+        with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             DeleteFileIfExisting("Structure.time")
 
     def _CalculateSensitivity(self, sensitivity_variable):
-        self.response_function.CalculateSensitivity(sensitivity_variable, self.model_part)
+        self.response_function.CalculateSensitivity({sensitivity_variable: [self.model_part]})
 
     def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, rel_tol, abs_tol):
         for entity in entities:
             adjoint_sensitivity = sensitivity_method(entity)
             update_method(entity, delta)
-            response_function.ExecuteInitializeSolutionStep()
+            self.execution_policy_wrapper.Execute()
             value = response_function.CalculateValue()
             fd_sensitivity = (value - self.ref_value)/delta
             update_method(entity, -delta)

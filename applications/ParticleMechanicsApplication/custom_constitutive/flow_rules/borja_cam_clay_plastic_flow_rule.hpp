@@ -91,6 +91,25 @@ public:
             KRATOS_INFO("ParticleFlowRule.MaterialParameters") << "ConsistencyParameter     = " <<  ConsistencyParameter      << std::endl;
         }
 
+    private:
+
+        friend class Serializer;
+
+        // A private default constructor necessary for serialization
+        void save(Serializer& rSerializer) const
+        {
+            rSerializer.save("PreconsolidationPressure",PreconsolidationPressure);
+            rSerializer.save("PlasticHardeningModulus",PlasticHardeningModulus);
+            rSerializer.save("ConsistencyParameter",ConsistencyParameter);
+        };
+
+        void load(Serializer& rSerializer)
+        {
+            rSerializer.load("PreconsolidationPressure",PreconsolidationPressure);
+            rSerializer.load("PlasticHardeningModulus",PlasticHardeningModulus);
+            rSerializer.load("ConsistencyParameter",ConsistencyParameter);
+        };
+
     };
 
     ///@}
@@ -115,17 +134,17 @@ public:
     /// Destructor.
     ~BorjaCamClayPlasticFlowRule() override;
 
-    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
+    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen, const Properties& rProp) override;
 
-    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables, const Properties& rProp ) override;
 
     Matrix GetElasticLeftCauchyGreen(RadialReturnVariables& rReturnMappingVariables) override;
 
     unsigned int GetPlasticRegion() override;
 
-    void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
+    void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix, const Properties& rProp) override;
 
-    void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
+    void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix, const Properties& rProp) override;
 
     ///@}
     ///@name Operators
@@ -204,33 +223,33 @@ protected:
     ///@{
     void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rProp) override;
 
-    void InitializeMaterialParameters();
+    void InitializeMaterialParameters(const Properties& rProp);
 
-    void CalculatePrincipalStressVector(const BoundedVector<double,3>& rPrincipalStrain, BoundedVector<double,3>& rPrincipalStress);
+    void CalculatePrincipalStressVector(const BoundedVector<double,3>& rPrincipalStrain, BoundedVector<double,3>& rPrincipalStress, const Properties& rProp);
 
-    void CalculateMeanStress(const double& rVolumetricStrain, const double& rDeviatoricStrain, double& rMeanStress);
+    void CalculateMeanStress(const double& rVolumetricStrain, const double& rDeviatoricStrain, double& rMeanStress, const Properties& rProp);
 
-    void CalculateDeviatoricStress(const double& rVolumetricStrain, const BoundedVector<double,3>& rDeviatoricStrainVector, BoundedVector<double,3>& rDeviatoricStress);
+    void CalculateDeviatoricStress(const double& rVolumetricStrain, const BoundedVector<double,3>& rDeviatoricStrainVector, BoundedVector<double,3>& rDeviatoricStress, const Properties& rProp);
 
     void CalculatePrincipalStrainFromStrainInvariants(BoundedVector<double,3>& rPrincipalStrain, const double& rVolumetricStrain, const double& rDeviatoricStrain, const BoundedVector<double,3>& rDirectionVector);
 
     void CalculateStrainInvariantsFromPrincipalStrain(const BoundedVector<double,3>& rPrincipalStrain, double& rVolumetricStrain, double& rDeviatoricStrain, BoundedVector<double,3>& rDeviatoricStrainVector);
 
-    bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, const BoundedVector<double,3>& rPrincipalStress, BoundedVector<double,3>& rPrincipalStrain, unsigned int& region, BoundedVector<double,3>& rPrincipalStressUpdated);
+    bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, const BoundedVector<double,3>& rPrincipalStress, BoundedVector<double,3>& rPrincipalStrain, unsigned int& region, BoundedVector<double,3>& rPrincipalStressUpdated, const Properties& rProp);
 
-    void CalculateLHSMatrix(Matrix& rLHSMatrix, const BoundedVector<double,3>& rPrincipalStressVector, const BoundedVector<double,3>& rUnknownVector, const double& rK_p);
+    void CalculateLHSMatrix(Matrix& rLHSMatrix, const BoundedVector<double,3>& rPrincipalStressVector, const BoundedVector<double,3>& rUnknownVector, const double& rK_p, const Properties& rProp);
 
-    void CalculateHessianMatrix_2x2(BoundedMatrix<double,2,2>& rHessianMatrix);
+    void CalculateHessianMatrix_2x2(BoundedMatrix<double,2,2>& rHessianMatrix, const Properties& rProp);
 
-    void ComputeElasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, BoundedMatrix<double,2,2>& rElasticMatrix);
+    void ComputeElasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, BoundedMatrix<double,2,2>& rElasticMatrix, const Properties& rProp);
 
-    void ComputePlasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, const BoundedMatrix<double,2,2>& rElasticMatrix, BoundedMatrix<double,2,2>& rPlasticMatrix);
+    void ComputePlasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, const BoundedMatrix<double,2,2>& rElasticMatrix, BoundedMatrix<double,2,2>& rPlasticMatrix, const Properties& rProp);
 
     void ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const BoundedVector<double,3>& rPrincipalStress, Matrix& rStressMatrix);
 
     void CalculateTransformationMatrix(const BoundedMatrix<double,3,3>& rMainDirection, BoundedMatrix<double,6,6>& rA);
 
-    void UpdateStateVariables(const BoundedVector<double,3> rPrincipalStress, const double rAlpha = 0.0, const double rConsistencyParameter = 0.0);
+    void UpdateStateVariables(const BoundedVector<double,3> rPrincipalStress, const Properties& rProp, const double rAlpha = 0.0, const double rConsistencyParameter = 0.0);
 
     ///@}
     ///@name Protected  Access

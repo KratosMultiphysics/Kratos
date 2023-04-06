@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosShapeOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: ShapeOptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
-//  Main authors:    Reza Najian Asl
+//  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// ==============================================================================
 // System includes
 
 // External includes
@@ -211,8 +213,6 @@ void HelmholtzSurfShapeCondition::Calculate(const Variable<double>& rVariable, d
         CalculateSurfaceStiffnessMatrix(K,rCurrentProcessInfo);
 
         auto& r_geometry = this->GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
         const unsigned int number_of_points = r_geometry.size();
         Vector nodal_vals(number_of_points*3);

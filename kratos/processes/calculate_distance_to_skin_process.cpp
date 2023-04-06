@@ -46,7 +46,7 @@ namespace Kratos
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
 		ModelPart& rVolumePart,
 		ModelPart& rSkinPart,
-		Parameters& rParameters)
+		Parameters rParameters)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
 	{
 		rParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
