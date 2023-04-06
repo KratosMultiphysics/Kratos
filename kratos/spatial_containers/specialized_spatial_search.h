@@ -114,12 +114,10 @@ public:
     ///@{
 
     /// Default constructor.
-    SpecializedSpatialSearch()
-    {
-    }
+    SpecializedSpatialSearch() = default;
 
     /// Destructor.
-    virtual ~SpecializedSpatialSearch(){}
+    ~SpecializedSpatialSearch() override = default;
 
     ///@}
     ///@name Operators
