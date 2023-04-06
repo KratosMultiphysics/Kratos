@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
     p_prop->SetValue(YOUNG_MODULUS, 2.1e11);
 
     const double initial_E = ((*p_prop)[YOUNG_MODULUS]);
-    KRATOS_CHECK_LESS_EQUAL(2.1e11 - initial_E, 1.0e-8);
+    KRATOS_CHECK_NEAR(2.1e11, initial_E, 1.0e-8);
 
     // custom accessor that returns 2.0
     class CustomAccessor
@@ -64,8 +64,6 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
     };
 
     auto& r_process_info = this_model_part.GetProcessInfo();
-    TestConstitutiveLaw r_clone_cl = TestConstitutiveLaw();
-    p_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
     auto p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
     auto p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
@@ -80,15 +78,13 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
     auto pgeom = Kratos::make_shared<Quadrilateral2D4<NodeType>>(PointerVector<NodeType>{geom});
 
     auto p_elem = Kratos::make_intrusive<TestElement>(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
-    p_elem->Initialize(r_process_info);
-    this_model_part.AddElement(p_elem);
 
     CustomAccessor custom_accessor = CustomAccessor();
     p_prop->SetAccessor(YOUNG_MODULUS, custom_accessor.Clone());
 
     Vector N;
     const double modified_E = p_prop->GetValue(YOUNG_MODULUS, *pgeom, N, r_process_info);
-    KRATOS_CHECK_LESS_EQUAL(2.1e11 * 2.0 - modified_E, 1.0e-8);
+    KRATOS_CHECK_NEAR(2.1e11 * 2.0,  modified_E, 1.0e-8);
 }
 
 
