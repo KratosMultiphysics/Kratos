@@ -534,8 +534,8 @@ public:
         }
         if (mAccessors.size() > 0) {
             rOStream << "\nThis properties contains the following " << mAccessors.size() << " accessors" << std::endl;
-            for (auto entry : mAccessors) {
-                (entry.second)->PrintData(rOStream);
+            for (auto& r_entry : mAccessors) {
+                (r_entry.second)->PrintData(rOStream);
             }
         }
     }
