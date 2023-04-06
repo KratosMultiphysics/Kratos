@@ -47,8 +47,7 @@ Vector Accessor::GetValue(
     ) const
 {
     KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
-    Vector aux(0);
-    return aux;
+    return Vector();
 }
 
 /***********************************************************************************/
@@ -93,8 +92,7 @@ Matrix Accessor::GetValue(
     ) const
 {
     KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
-    Matrix mat(0, 0);
-    return mat;
+    return Matrix();
 }
 
 /***********************************************************************************/
@@ -109,8 +107,7 @@ array_1d<double, 3> Accessor::GetValue(
     ) const
 {
     KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
-    array_1d<double, 3> mat;
-    return mat;
+    return array_1d<double, 3>();
 }
 
 /***********************************************************************************/
@@ -125,8 +122,37 @@ array_1d<double, 6> Accessor::GetValue(
     ) const
 {
     KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
-    array_1d<double, 6> mat;
-    return mat;
+    return array_1d<double, 6>();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+array_1d<double, 4> Accessor::GetValue(
+    const Variable<array_1d<double, 4>>& rVariable,
+    const Properties& rProperties,
+    const GeometryType& rGeometry,
+    const Vector& rShapeFunctionVector,
+    const ProcessInfo& rProcessInfo
+    ) const
+{
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
+    return array_1d<double, 4>();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+array_1d<double, 9> Accessor::GetValue(
+    const Variable<array_1d<double, 9>>& rVariable,
+    const Properties& rProperties,
+    const GeometryType& rGeometry,
+    const Vector& rShapeFunctionVector,
+    const ProcessInfo& rProcessInfo
+    ) const
+{
+    KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
+    return array_1d<double, 9>();
 }
 
 /***********************************************************************************/

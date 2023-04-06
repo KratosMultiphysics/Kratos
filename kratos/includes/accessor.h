@@ -183,6 +183,40 @@ public:
         ) const;
 
     /**
+     * @brief Custom method to retrieve array_1d<double, 6 > type properties
+     * @param rVariable The variable considered (array_1d<double, 6 > type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The array_1d<double, 6 > type properties
+     */
+    virtual array_1d<double, 4> GetValue(
+        const Variable<array_1d<double, 4>>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
+
+    /**
+     * @brief Custom method to retrieve array_1d<double, 6 > type properties
+     * @param rVariable The variable considered (array_1d<double, 6 > type properties)
+     * @param rProperties The properties considered
+     * @param rGeometry The geometry considered
+     * @param rShapeFunctionVector The shape function of the GP considered
+     * @param rProcessInfo The process info considered
+     * @return The array_1d<double, 6 > type properties
+     */
+    virtual array_1d<double, 9> GetValue(
+        const Variable<array_1d<double, 9>>& rVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo
+        ) const;
+
+    /**
      * @brief Custom method to retrieve string type properties
      * @param rVariable The variable considered (string type properties)
      * @param rProperties The properties considered
