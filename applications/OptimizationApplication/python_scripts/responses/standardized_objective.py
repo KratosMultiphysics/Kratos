@@ -13,13 +13,11 @@ class StandardizedObjective:
         }""")
         parameters.ValidateAndAssignDefaults(default_parameters)
 
-        self.__scaling = parameters["scaling"].GetDouble()
-
         self.__objective_type = parameters["type"].GetString()
         if self.__objective_type == "minimization":
-            self.__scaling *= 1.0
+            self.__scaling = parameters["scaling"].GetDouble()
         elif self.__objective_type == "maximization":
-            self.__scaling *= -1.0
+            self.__scaling = -parameters["scaling"].GetDouble()
         else:
             raise RuntimeError(f"Requesting unsupported type {self.__objective_type} for objective response function. Supported types are: \n\tminimization\n\tmaximization")
 
