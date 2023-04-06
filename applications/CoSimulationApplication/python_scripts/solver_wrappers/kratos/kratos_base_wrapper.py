@@ -72,7 +72,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def AdvanceInTime(self, current_time):
         with self.thread_manager:
-            new_time = self._analysis_stage.AdvanceInTime(current_time)
+            new_time = self._analysis_stage._AdvanceTime(current_time)
         self._analysis_stage.time = new_time # only needed to print the time correctly
         return new_time
 
