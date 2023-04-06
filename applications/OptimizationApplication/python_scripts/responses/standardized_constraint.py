@@ -9,21 +9,22 @@ class StandardizedConstraint:
         default_parameters = Kratos.Parameters("""{
             "response_name": "",
             "type"         : "",
-            "scaling"      : 1.0,
-            "ref_type"     : "",
             "ref_value"    : 0.0
         }""")
+
+        if parameters.Has("ref_value") and parameters.IsString("ref_value"):
+            default_parameters["ref_value"].SetString("")
+
         parameters.ValidateAndAssignDefaults(default_parameters)
 
-        self.__scaling = parameters["scaling"].GetDouble()
-
-        self.__ref_type = parameters["ref_type"].GetString()
-        if self.__ref_type == "initial_value":
-            self.__reference_value = None
-        elif self.__ref_type == "specified_value":
+        if parameters["ref_value"].IsDouble():
+            self.__ref_type = "specified_value"
             self.__reference_value = parameters["ref_value"].GetDouble()
+        elif parameters["ref_value"].IsString() and parameters["ref_value"].GetString() == "initial_value":
+            self.__ref_type = "initial_value"
+            self.__reference_value = None
         else:
-            raise RuntimeError(f"Provided \"reference_type\" = {self.__ref_type} is not supported for constraint response functions. Followings are supported options: \n\tinitial_value\n\tspecified_value")
+            raise RuntimeError(f"Provided \"reference_type\" = {self.__ref_type} is not supported for constraint response functions. Followings are supported options: \n\tinitial_value\n\tfloat value")
 
         self.__constraint_type = parameters["type"].GetString()
         if self.__constraint_type in ["<", "<=", "="]:
@@ -45,12 +46,11 @@ class StandardizedConstraint:
 
     def GetReferenceValue(self):
         if self.__reference_value is None:
-            self.__reference_value = self.GetValue()
-
+            self.__reference_value = self.__response_function_data_retriever.GetScaledValue()
         return self.__reference_value
 
     def GetStandardizedValue(self, step_index: int = 0) -> float:
-        return self.__response_function_data_retriever.GetScaledValue(step_index, self.__standardization_value * self.__scaling) - self.__standardization_value * self.GetReferenceValue()
+        return self.__response_function_data_retriever.GetScaledValue(step_index, self.__standardization_value) - self.__standardization_value * self.GetReferenceValue()
 
     def IsActive(self, step_index: int = 0) -> bool:
         return (self.__constraint_type == "=") or self.GetStandardizedValue(step_index) >= 0.0
@@ -59,7 +59,7 @@ class StandardizedConstraint:
         return (self.GetStandardizedValue(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetStandardizedValue(step_index)) * self.IsActive()
 
     def CalculateStandardizedSensitivity(self, sensitivity_variable_collective_expression_info: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]'):
-        self.__response_function_data_retriever.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__standardization_value * self.__scaling)
+        self.__response_function_data_retriever.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__standardization_value)
 
     def UpdateOptimizationInfo(self) -> None:
         self.__optimization_info.SetValue(f"{self.__response_function_data_retriever.GetPrefix()}/relative_change", self.__response_function_data_retriever.GetRelativeChange())
