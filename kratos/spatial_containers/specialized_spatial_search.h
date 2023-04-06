@@ -32,6 +32,26 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+/**
+ * @brief This enum defines the different spatial containers available
+ * @details The different spatial containers available are:
+ * - KDTree: This is a tree based on the k-d tree algorithm
+ * - Octree: This is a tree based on the octree algorithm
+ * - BinsStatic: This is a bin based on the static bins algorithm
+ * - BinsDynamic: This is a bin based on the dynamic bins algorithm
+ * - BinsStaticObjects: This is a bin based on the static bins algorithm, but with objects
+ * - BinsDynamicObjects: This is a bin based on the dynamic bins algorithm, but with objects
+ */
+enum class SpatialContainer
+{
+    KDTree,
+    Octree,
+    BinsStatic,
+    BinsDynamic,
+    BinsStaticObjects,
+    BinsDynamicObjects
+};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -45,10 +65,12 @@ namespace Kratos
 * @ingroup KratosCore
 * @brief This class is used to search for elements, conditions and nodes in a given model part
 * @details In order to perform the search it uses as backend some of the the spatial containers defined `spatial_containers` folder
+* @tparam TSearhcBackend The spatial container to be used as backend
 * @author Vicente Mataix Ferrandiz
 */
-template<class TSearhcBackend>
+template<SpatialContainer TSearhcBackend>
 class KRATOS_API(KRATOS_CORE) SpecializedSpatialSearch
+    : public SpatialSearch
 {
 public:
     ///@name Type Definitions
@@ -56,6 +78,36 @@ public:
 
     /// Pointer definition of SpecializedSpatialSearch
     KRATOS_CLASS_POINTER_DEFINITION(SpecializedSpatialSearch);
+
+    /// The base type
+    using BaseType = SpatialSearch;
+
+    /// Common Defines
+    using PointType = BaseType::PointType;
+
+    using ElementsContainerType = BaseType::ElementsContainerType;
+    using ElementType = BaseType::ElementType;
+    using ElementPointerType = BaseType::ElementPointerType;
+    using ResultElementsContainerType = BaseType::ResultElementsContainerType;
+    using VectorResultElementsContainerType = BaseType::VectorResultElementsContainerType;
+
+    using NodesContainerType = BaseType::NodesContainerType;
+    using NodeType = BaseType::NodeType;
+    using NodePointerType = BaseType::NodePointerType;
+    using ResultNodesContainerType = BaseType::ResultNodesContainerType;
+    using VectorResultNodesContainerType = BaseType::VectorResultNodesContainerType;
+
+    using ConditionsContainerType = BaseType::ConditionsContainerType;
+    using ConditionType = BaseType::ConditionType;
+    using ConditionPointerType = BaseType::ConditionPointerType;
+    using ResultConditionsContainerType = BaseType::ResultConditionsContainerType;
+    using VectorResultConditionsContainerType = BaseType::VectorResultConditionsContainerType;
+
+    using RadiusArrayType = BaseType::RadiusArrayType;
+    using DistanceType = BaseType::DistanceType;
+    using VectorDistanceType = BaseType::VectorDistanceType;
+
+    using ResultIteratorType = BaseType::ResultIteratorType;
 
     ///@}
     ///@name Life Cycle
@@ -78,16 +130,16 @@ public:
     ///@{
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
-    * @param rResults            Array of results for each element
-    * @param rResultDistance     Array of distances for each result of each element
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
+    * @param rStructureElements   List of elements against which the neighbours are searched
+    * @param rInputElements       List of elements to be searched
+    * @param rRadius              List of search radius for every element
+    * @param rResults             Array of results for each element
+    * @param rResultDistance      Array of distances for each result of each element
     */
     void SearchElementsInRadiusExclusive (
-        ElementsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -96,9 +148,17 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every element in "rInputElements" including itself
+    * @param rStructureElements   List of elements against which the neighbours are searched
+    * @param rInputElements       List of elements to be searched
+    * @param rRadius              List of search radius for every element
+    * @param rResults             Array of results for each element
+    * @param rResultDistance      Array of distances for each result of each element
+    */
     void SearchElementsInRadiusInclusive (
-        ElementsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -107,9 +167,16 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
+    * @param rStructureElements   List of elements against which the neighbours are searched
+    * @param rInputElements       List of elements to be searched
+    * @param rRadius              List of search radius for every element
+    * @param rResults             Array of results for each element
+    */
     void SearchElementsInRadiusExclusive (
-        ElementsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults
         ) override
@@ -117,9 +184,16 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every element in "InputElements" including itself
+    * @param StructureElements   List of elements against which the neighbours are searched
+    * @param InputElements       List of elements to be searched
+    * @param rRadius              List of search radius for every element
+    * @param rResults            Array of results for each element
+    */
     void SearchElementsInRadiusInclusive (
-        ElementsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         ) override
@@ -127,9 +201,17 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every node in "rInputNodes" excluding itself
+    * @param rModelPart          List of nodes against which the neighbours are searched
+    * @param rInputNodes          List of nodes to be searched
+    * @param rRadius             List of search radius for every node
+    * @param rResults            Array of results for each node
+    * @param rResultDistance     Array of distances for each result of each node
+    */
     void SearchNodesInRadiusExclusive (
-        NodesContainerType const& StructureNodes,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -138,9 +220,17 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every node in "rInputNodes" including itself
+    * @param rStructureNodes      List of nodes against which the neighbours are searched
+    * @param rInputNodes          List of nodes to be searched
+    * @param rRadius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    * @param rResultDistance     Array of distances for each result of each node
+    */
     void SearchNodesInRadiusInclusive (
-        NodesContainerType const& StructureNodes,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -149,9 +239,16 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every node in "rInputNodes" excluding itself
+    * @param rModelPart          List of nodes against which the neighbours are searched
+    * @param rInputNodes          List of nodes to be searched
+    * @param rRadius              List of search radius for every node
+    * @param rResults            Array of results for each node
+    */
     void SearchNodesInRadiusExclusive (
-        NodesContainerType const& StructureNodes,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         ) override
@@ -159,9 +256,16 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every node in "rInputNodes" including itself
+    * @param rStructureNodes      List of nodes against which the neighbours are searched
+    * @param rInputNodes          List of nodes to be searched
+    * @param rRadius              List of search radius for every node
+    * @param rResults             Array of results for each node
+    */
     void SearchNodesInRadiusInclusive (
-        NodesContainerType const& StructureNodes,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         ) override
@@ -169,9 +273,17 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every Condition in "rInputConditions" excluding itself
+    * @param rStructureConditions   List of Conditions against which the neighbours are searched
+    * @param rInputConditions       List of Conditions to be searched
+    * @param rRadius                List of search radius for every Condition
+    * @param rResults               Array of results for each Condition
+    * @param rResultDistance        Array of distances for each result of each Condition
+    */
     void SearchConditionsInRadiusExclusive (
-        ConditionsContainerType const& StructureConditions,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -180,9 +292,17 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every Condition in "rInputConditions" including itself
+    * @param rStructureConditions   List of Conditions against which the neighbours are searched
+    * @param rInputConditions       List of Conditions to be searched
+    * @param rRadius                List of search radius for every Condition
+    * @param rResults               Array of results for each Condition
+    * @param rResultDistance        Array of distances for each result of each Condition
+    */
     void SearchConditionsInRadiusInclusive (
-        ConditionsContainerType const& StructureConditions,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -191,9 +311,16 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every Condition in "rInputConditions" excluding itself
+    * @param rStructureConditions   List of Conditions against which the neighbours are searched
+    * @param rInputConditions       List of Conditions to be searched
+    * @param rRadius                List of search radius for every Condition
+    * @param rResults               Array of results for each Condition
+    */
     void SearchConditionsInRadiusExclusive (
-        ConditionsContainerType const& StructureConditions,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults
         ) override
@@ -201,9 +328,16 @@ public:
         KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
     }
 
+    /**
+    * @brief Search neighbours for every Condition in "rInputConditions" including itself
+    * @param rStructureConditions   List of Conditions against which the neighbours are searched
+    * @param rInputConditions       List of Conditions to be searched
+    * @param rRadius                List of search radius for every Condition
+    * @param rResults               Array of results for each Condition
+    */
     void SearchConditionsInRadiusInclusive (
-        ConditionsContainerType const& StructureConditions,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         ) override
@@ -280,8 +414,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    TSearhcBackend mSearchStructure; /// The search structure
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -326,8 +458,9 @@ private:
 ///@{
 
 /// output stream function
+template<SpatialContainer TSearhcBackend>
 inline std::ostream& operator << (std::ostream& rOStream, 
-                const SpecializedSpatialSearch& rThis)
+                const SpecializedSpatialSearch<TSearhcBackend>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
