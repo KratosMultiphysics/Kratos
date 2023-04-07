@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -72,11 +72,9 @@
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
 #include "add_registry_to_python.h"
+#include "add_container_expression_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 std::string Hello()
@@ -150,11 +148,9 @@ PYBIND11_MODULE(Kratos, m)
     AddMapperToPython(m);
     AddSparseMatricesToPython(m);
     AddRegistryToPython(m);
+    AddContainerExpressionToPython(m);
 
     m.def("Hello", Hello);
 }
 
-
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

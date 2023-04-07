@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                     license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //    Co-authors:    Vicente Mataix Ferrandiz
@@ -312,6 +312,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(I22)
     KRATOS_REGISTER_VARIABLE(I33)
     KRATOS_REGISTER_VARIABLE(LUMPED_MASS_ROTATION_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(BEAM_INITIAL_STRAIN_VECTOR)
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE(STENBERG_SHEAR_STABILIZATION_SUITABLE)

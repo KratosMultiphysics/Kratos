@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -24,10 +24,9 @@
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
-void  AddCustomUtilitiesToPython(pybind11::module& m)
+void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
@@ -63,6 +62,5 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 
