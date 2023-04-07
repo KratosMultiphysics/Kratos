@@ -138,7 +138,7 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::load(Serializer
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 
-template class AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement<3,2>>;
+template class AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement<3>>;
 
 } // namespace Kratos.
 

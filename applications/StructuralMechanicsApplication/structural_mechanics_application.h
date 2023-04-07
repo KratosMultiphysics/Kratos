@@ -401,8 +401,8 @@ private:
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
 
     // Adding the spring damper element
-    const SpringDamperElement<2, 2> mSpringDamperElement2D2N;
-    const SpringDamperElement<3, 2> mSpringDamperElement3D2N;
+    const SpringDamperElement<2> mSpringDamperElement2D2N;
+    const SpringDamperElement<3> mSpringDamperElement3D2N;
 
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<ShellKinematics::LINEAR>> mAdjointFiniteDifferencingShellThinElement3D3N;
@@ -417,7 +417,7 @@ private:
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D4N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
-    const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement<3, 2>>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
+    const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement<3>>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
 
     /* CONDITIONS*/
     // Point load

@@ -36,7 +36,7 @@ namespace Kratos
 ///@{
 
 /// Concentrated nodal for 3D and 2D points
-template<std::size_t TDim, std::size_t TNumNodes>
+template<std::size_t TDim>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SpringDamperElement
     : public Element
 {
@@ -215,8 +215,9 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    static constexpr unsigned int msNumNodes = 2;
     static constexpr unsigned int msLocalSize = (TDim == 2) ? 3 : (TDim == 3) ? 6 : 0;
-    static constexpr unsigned int msElementSize = msLocalSize * TNumNodes;
+    static constexpr unsigned int msElementSize = msLocalSize * msNumNodes;
 
     ///@}
     ///@name Protected member Variables
