@@ -21,7 +21,6 @@
 #include "includes/model_part_io.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
-#include "utilities/geometry_utilities.h"
 
 namespace Kratos {
 
@@ -162,6 +161,96 @@ std::string GetKratosGeometryName(
             return "Hexahedra3D27";
         default:
             KRATOS_ERROR << "MED geometry type " << MedGeomType << " is not available!" << std::endl;
+    }
+}
+
+typedef std::vector<std::string> StringVectorType;
+
+/// The map containing the id for each component and the corresponding tag
+typedef std::unordered_map<IndexType, IndexType> IndexIndexMapType;
+
+/// The map containing the tags and the names of the related submodelparts
+typedef std::unordered_map<IndexType, StringVectorType> IndexStringMapType;
+
+/// Auxiliary map
+typedef std::unordered_map<IndexType, std::set<IndexType>> IndexIndexSetMapType;
+
+/// Auxiliary map
+typedef std::unordered_map<std::set<IndexType>, IndexType, KeyHasherRange<std::set<IndexType>>, KeyComparorRange<std::set<IndexType>> >  IndexSetIndexMapType;
+
+/// Copmutes the collections and assign the tags
+void ComputeFamilies(
+    const ModelPart& rModelPart,
+    IndexIndexMapType& rNodeFamilies,
+    IndexIndexMapType& rGeomFamilies,
+    IndexStringMapType& rFamilySubModelPartNames
+    )
+{
+    // Initialize and create the auxiliary maps
+    IndexIndexSetMapType aux_node_tags, aux_geom_tags;
+
+    // Initialize the collections
+    auto insert_tags = [](const auto& rEntities, auto& rAuxTags, const IndexType Tag){
+        for(const auto& r_entity : rEntities) {
+            rAuxTags[r_entity.Id()].insert(Tag);
+        }
+    };
+
+    IndexType tag = 1;
+    for (const auto& r_smp : rModelPart.SubModelParts()) {
+        rFamilySubModelPartNames[tag].push_back(r_smp.Name());
+
+        insert_tags(r_smp.Nodes(), aux_node_tags);
+        insert_tags(r_smp.Geometries(), aux_geom_tags);
+
+        ++tag;
+    }
+
+    // Now detect all the cases in which an entity belongs to more than one part simultaneously
+    IndexSetIndexMapType combinations;
+
+    auto detect_combinations = [&combinations](const auto& rAuxTags){
+        for(const auto& r_aux_tag : rAuxTags) {
+            const auto& r_value = r_aux_tag.second;
+            if (r_value.size() > 1) combinations[r_value] = 0;
+        }
+    };
+
+   detect_combinations(aux_node_tags);
+   detect_combinations(aux_geom_tags);
+
+    // Combinations
+    for(auto& combination : combinations) {
+        const auto& r_key_set = combination.first;
+        for(IndexType it : r_key_set)
+            rFamilySubModelPartNames[tag].push_back(rFamilySubModelPartNames[it][0]);
+        combinations[r_key_set] = tag;
+        ++tag;
+    }
+
+    // The final maps are created
+    auto assign_families = [&combinations](const auto& rAuxTags, auto& rFamilies){
+        for(const auto& [key, r_value] : rAuxTags) {
+            if (r_value.size() == 0)
+                rFamilies[key] = 0; // Main Model Part
+            else if (r_value.size() == 1) // A Sub Model Part
+                rFamilies[key] = *r_value.begin();
+            else // There is a combination
+                rFamilies[key] = combinations[r_value];
+        }
+    };
+
+    assign_families(aux_node_tags, rNodeFamilies);
+    assign_families(aux_geom_tags, rGeomFamilies);
+
+    // Clean up the rFamilySubModelPartNames
+    auto uniquify = [](StringVectorType& rVec){
+        std::set<std::string> aux_set(rVec.begin(), rVec.end());
+        rVec.assign(aux_set.begin(), aux_set.end());
+    };
+
+    for (auto& r_smp_names : rFamilySubModelPartNames) {
+        uniquify(r_smp_names.second);
     }
 }
 
@@ -420,7 +509,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
         /* read cells connectivity in the mesh */
         const int num_nodes_geo_type = geo_type%100;
-        std::vector<med_int> connectivity(num_geometries * num_nodes_geo_type);
+        std::vector<med_int> connectivity(num_geometries * num_nodes_geo_type); // TODO use typedef
 
         err = MEDmeshElementConnectivityRd(
             mpFileHandler->GetFileHandle(),
@@ -474,7 +563,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     med_err err = MEDmeshCr(
         mpFileHandler->GetFileHandle(),
-        mpFileHandler->GetMeshName(), // TODO use name of ModelPart? See comment above, this is what is displayed in Salome
+        mpFileHandler->GetMeshName(), // TODO use name of ModelPart? See comment above, this is what is displayed in Salome TODO check length!
         dimension , //spacedim
         dimension , //meshdim
         MED_UNSTRUCTURED_MESH,
@@ -484,14 +573,6 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         MED_CARTESIAN,
         axisname,
         unitname);
-
-
-//     KRATOS_CATCH("")
-// }
-
-// void MedModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
-// {
-//     KRATOS_TRY
 
     const std::vector<double> nodal_coords = VariableUtils().GetCurrentPositionsVector<std::vector<double>>(rThisModelPart.Nodes(), dimension);
 
@@ -524,6 +605,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     using ConnectivitiesType = std::vector<med_int>;
     using ConnectivitiesVector = std::vector<ConnectivitiesType>;
+    using FamilyNumbersVector = std::vector<med_int>;
 
     ConnectivitiesVector connectivities;
     connectivities.reserve(rThisModelPart.NumberOfGeometries()/3); // assuming that three different types of geometries exist
@@ -534,9 +616,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         ConnectivitiesVector& Connectivities) {
 
 
-            const auto med_geom_type = KratosToMedGeometryType.at(GeomType);
             const auto reorder_fct = GetReorderFunction<ConnectivitiesType::value_type>(med_geom_type);
-            std::cout << "\nWriting geoetries of type " << GeometryUtils::GetGeometryName(GeomType) << " | " << med_geom_type << " | " << Connectivities.size() << std::endl;
 
             auto GetMedConnectivities = [&reorder_fct](
                 const std::size_t NumberOfPoints,
@@ -544,7 +624,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
                 std::vector<med_int> med_conn(Connectivities.size() * NumberOfPoints);
 
-                // flatten an reorder the connectivities
+                // flatten and reorder the connectivities
                 IndexPartition(Connectivities.size()).for_each([&](const std::size_t i) {
                     reorder_fct(Connectivities[i]);
                     // for (std::size_t p=0; p<NumberOfPoints; ++p) {
@@ -570,7 +650,45 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         }
     };
 
+    auto write_family_numbers = [](const med_entity_type med_type, const FamilyNumbersVector& rFamilyNumbers){
+        if (MEDmeshEntityFamilyNumberWr(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            MED_NO_DT, MED_NO_IT,
+            med_type, MED_NONE,
+            rFamilyNumbers.size(), rFamilyNumbers.data())<0){
+                KRATOS_ERROR << "Writing failed!" << std::endl;
+            }
+    };
+
+    ComputeFamilies(rThisModelPart, node_family_numbers_map, geom_family_numbers_map, fam_groups);
+
+    for (const auto& [fam_id, smp_names] : fam_groups) {
+        MEDfamilyCr(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            fam_id,
+            smp_names.size(),
+            smp_names.data_consecutive);
+    }
+
+    FamilyNumbersVector node_family_numbers(rThisModelPart.NumberOfNodes(), 0); // zero unless otherwise defined
+
+    const auto nodes_begin = rThisModelPart.NodesBegin();
+    IndexPartition(rThisModelPart.NumberOfNodes()).for_each([
+        &node_family_numbers_map,
+        &node_family_numbers,
+        nodes_begin](const std::size_t i) {
+            const it = node_family_numbers_map.find((nodes_begin+i)->Id());
+            if it != node_family_numbers_map.end() {
+                node_family_numbers[i] = it->second;
+            }
+    });
+
+    write_family_numbers(MED_NODE, node_family_numbers);
+
     std::unordered_map<GeometryData::KratosGeometryType, ConnectivitiesVector> conn_map;
+    std::unordered_map<GeometryData::KratosGeometryType, FamilyNumbersVector> fam_map;
     std::unordered_map<GeometryData::KratosGeometryType, int> np_map; // TODO this can be solved better
 
     for (const auto& r_geom : rThisModelPart.Geometries()) {
@@ -582,22 +700,20 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         }
         conn_map[this_geom_type].push_back(conn);
         np_map[this_geom_type] = r_geom.PointsNumber();
+
+        const fam_it = geom_family_numbers_map.find(r_geom.Id());
+        const int fam_id = (fam_it != geom_family_numbers_map.end()) ? fam_it->second : 0;
+        fam_map[this_geom_type].push_back(-fam_id); // groups have negative family ids
     }
 
     // entities of a type have to be written at the same time
     // maybe if opening in append mode it would also work without
     for (auto& [geom_type, conn] : conn_map) {
-        write_geometries(geom_type, np_map[geom_type], conn);
+        const auto med_geom_type = KratosToMedGeometryType.at(geom_type);
+        write_geometries(med_geom_type, np_map[geom_type], conn);
+        write_family_numbers(med_geom_type, fam_map[geom_type]);
     }
 
-    KRATOS_CATCH("")
-}
-
-
-void MedModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
-{
-    KRATOS_TRY
-    KRATOS_ERROR << "MedModelPartIO::WriteGeometries is not yet implemented!" << std::endl;
     KRATOS_CATCH("")
 }
 
