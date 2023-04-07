@@ -67,7 +67,7 @@ public:
     /// Default constructor.
     MassOptResponse(std::string ResponseName, Model& rModel, Parameters& ResponseSettings )
         : Response(ResponseName,"mass",rModel, ResponseSettings){
-            for(int i=0;i<mrResponseSettings["control_types"].size();i++){
+            for(long unsigned int i=0;i<mrResponseSettings["control_types"].size();i++){
                 auto control_type = mrResponseSettings["control_types"][i].GetString();
                 if(control_type=="shape"){
                     std::string gradient_mode = mrResponseSettings["gradient_settings"]["gradient_mode"].GetString();
@@ -98,7 +98,7 @@ public:
 
     // --------------------------------------------------------------------------
     void Initialize() override {
-        for(int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
             auto eval_obj = mrResponseSettings["evaluated_objects"][i].GetString();
             ModelPart& eval_model_part = mrModel.GetModelPart(eval_obj);
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
@@ -163,7 +163,7 @@ public:
 
 		KRATOS_TRY;
 
-        for(int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const std::size_t domain_size = controlled_model_part.GetProcessInfo()[DOMAIN_SIZE];

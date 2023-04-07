@@ -1,0 +1,84 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+
+// PROPERTIES
+
+// Dummy property #0 (Properties will be assigned according to StructuralMaterials.json)
+Begin Properties 0
+End Properties
+
+
+// NODES
+
+Begin Nodes
+   1    0.0   0.0   0.0 
+   2    1.0   0.0   0.0
+   3    2.0   0.0   0.0
+End Nodes
+
+// ELEMENTS
+
+// Beam Elements
+
+Begin Elements CrBeamElement3D2N // GUI group identifier: Span
+   1     0    1    2
+   2     0    2    3
+End Elements
+
+
+// ELEMENTAL DATA
+
+// Local axis definition for beam elements
+Begin ElementalData LOCAL_AXIS_2 // Groups: Span
+   1  [3](  0.000,  1.000,   0.000)
+   2  [3](  0.000,  1.000,   0.000)
+End ElementalData
+
+Begin ElementalData BEAM_INITIAL_STRAIN_VECTOR // Groups: Span
+   1  [3]( 1.0e-4,  0.5e-4,  2.0e-4)
+   2  [3]( 1.0e-4,  0.5e-4,  2.0e-4)
+End ElementalData
+
+
+// SUB MODEL PARTS
+
+// SubModelParts for beam elements
+Begin SubModelPart Parts_Beam_Span // Group Span // Subtree Parts_Beam
+    Begin SubModelPartNodes
+         1
+         2
+         3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+
+// SubModelParts for prescribing kinematic (Dirichlet) boundary conditions
+// Restrained DOFs are defined in ProjectParameters.json
+Begin SubModelPart DISPLACEMENT_Support_L // Group Support_L // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+          1
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart ROTATION_Support_L // Group Support_L // Subtree ROTATION
+    Begin SubModelPartNodes
+          1
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Support_R // Group Support_R // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+          3
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart ROTATION_Support_R // Group Support_R // Subtree ROTATION
+    Begin SubModelPartNodes
+          3
+    End SubModelPartNodes
+End SubModelPart
