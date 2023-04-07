@@ -153,35 +153,21 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     if (all_conditions_visited) {
         // if all conditions are found, no need for further checks:
         return;
-    } else {
-        // check edges of 3D geometries:
-        // Now loop over all elements and check if one of the faces is in the "FacesMap"
-        for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-            const auto &rGeometryElement = itElem->GetGeometry();
-            if (rGeometryElement.LocalSpaceDimension() == 3) {
-                const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
-
-                for (IndexType iEdge = 0; iEdge < rBoundaryGeometries.size(); ++iEdge) {
-                    DenseVector<int> EdgeIds(rBoundaryGeometries[iEdge].size());
-
-                    // edges for 3D elements
-                    for (IndexType iNode = 0; iNode < EdgeIds.size(); ++iNode) {
-                        EdgeIds[iNode] = rBoundaryGeometries[iEdge][iNode].Id();
-                    }
-
-                    hashmap::iterator itFace = FacesMap.find(EdgeIds);
-                    // There might be a need to check this for different types of 3D elements
-                    // as the ordering numbers might be inconsistent
-
-                    if (itFace != FacesMap.end()) {
-                        // condition is found!
-                        // but check if there are more than one condition on the element
-                        CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
-                    }
-                }
-            }
-        }
     }
+
+    // check edges of 3D geometries:
+    this->CheckEdgesOf3DGeometry(FacesMap, false);
+
+    //check that all of the conditions belong to at least an element.
+    all_conditions_visited = CheckIfAllConditionsAreVisited();
+
+    if (all_conditions_visited) {
+        // if all conditions are found, no need for further checks:
+        return;
+    }
+
+    // check reversed edges of 3D geometries:
+    this->CheckEdgesOf3DGeometry(FacesMap, true);
 
 
     //check that all of the conditions belong to at least an element.
@@ -209,6 +195,54 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     KRATOS_ERROR_IF_NOT(all_conditions_visited) << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
+}
+
+void FindNeighbourElementsOfConditionsProcess::CheckEdgesOf3DGeometry(hashmap& rFacesMap, bool ReverseEdge)
+{
+    for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
+        const auto& rGeometryElement = itElem->GetGeometry();
+        if (rGeometryElement.LocalSpaceDimension() == 3) {
+            const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
+
+            for (IndexType iEdge = 0; iEdge < rBoundaryGeometries.size(); ++iEdge) {
+                DenseVector<int> EdgeIds(rBoundaryGeometries[iEdge].size());
+
+                // edges for 3D elements
+                const auto& r_nodes = rBoundaryGeometries[iEdge];
+
+                // Get edge node IDs
+                std::transform(r_nodes.begin(), r_nodes.end(), EdgeIds.begin(),
+                    [](const auto& r_node) { return r_node.Id(); });
+
+                // reverse end nodes of Edge Ids
+                if (ReverseEdge)
+                {
+
+                    std::swap(EdgeIds[0], EdgeIds[1]);
+
+                    if (EdgeIds.size() == 4 )
+                    {
+                        std::swap(EdgeIds[2], EdgeIds[3]);
+                    }
+                    else if (EdgeIds.size() == 5)
+                    {
+                        std::swap(EdgeIds[2], EdgeIds[3]);
+                        std::swap(EdgeIds[3], EdgeIds[4]);
+                    }
+                }
+                
+                hashmap::iterator itFace = rFacesMap.find(EdgeIds);
+                // There might be a need to check this for different types of 3D elements
+                // as the ordering numbers might be inconsistent
+
+                if (itFace != rFacesMap.end()) {
+                    // condition is found!
+                    // but check if there are more than one condition on the element
+                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, itElem);
+                }
+            }
+        }
+    }
 }
 
 bool FindNeighbourElementsOfConditionsProcess::CheckIfAllConditionsAreVisited() const
