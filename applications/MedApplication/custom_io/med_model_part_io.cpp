@@ -200,8 +200,8 @@ void ComputeFamilies(
     for (const auto& r_smp : rModelPart.SubModelParts()) {
         rFamilySubModelPartNames[tag].push_back(r_smp.Name());
 
-        insert_tags(r_smp.Nodes(), aux_node_tags);
-        insert_tags(r_smp.Geometries(), aux_geom_tags);
+        insert_tags(r_smp.Nodes(), aux_node_tags, tag);
+        insert_tags(r_smp.Geometries(), aux_geom_tags, tag);
 
         ++tag;
     }
@@ -275,7 +275,7 @@ int GetNumberOfNodes(
     KRATOS_CATCH("")
 }
 
-std::vector<double> GetNodeCoordinates(
+auto GetNodeCoordinates(
     const med_idt FileHandle,
 	const char* pMeshName,
     const int NumberOfNodes,
@@ -283,9 +283,7 @@ std::vector<double> GetNodeCoordinates(
 {
     KRATOS_TRY
 
-    static_assert(sizeof(double) == sizeof(med_float), "mismatch between double and med_float!");
-
-    std::vector<double> coords(NumberOfNodes*Dimension);
+    std::vector<med_float> coords(NumberOfNodes*Dimension);
 
     const auto err = MEDmeshNodeCoordinateRd(
         FileHandle, pMeshName,
@@ -449,7 +447,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     const int dimension = mpFileHandler->GetDimension();
 
-    const std::vector<double> node_coords = GetNodeCoordinates(
+    const auto node_coords = GetNodeCoordinates(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName(),
         num_nodes,
@@ -611,12 +609,12 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
     connectivities.reserve(rThisModelPart.NumberOfGeometries()/3); // assuming that three different types of geometries exist
 
     auto write_geometries = [this](
-        const GeometryData::KratosGeometryType GeomType,
+        const med_geometry_type MedGeomType,
         const std::size_t NumberOfPoints,
         ConnectivitiesVector& Connectivities) {
 
 
-            const auto reorder_fct = GetReorderFunction<ConnectivitiesType::value_type>(med_geom_type);
+            const auto reorder_fct = GetReorderFunction<ConnectivitiesType::value_type>(MedGeomType);
 
             auto GetMedConnectivities = [&reorder_fct](
                 const std::size_t NumberOfPoints,
@@ -643,33 +641,40 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
             mpFileHandler->GetFileHandle(),
             mpFileHandler->GetMeshName(),
             MED_NO_DT, MED_NO_IT , 0.0,
-            MED_CELL, med_geom_type ,
+            MED_CELL, MedGeomType ,
             MED_NODAL, MED_FULL_INTERLACE,
             Connectivities.size(), med_conn.data()) < 0) {
                 KRATOS_ERROR << "Writing failed!" << std::endl;
         }
     };
 
-    auto write_family_numbers = [](const med_entity_type med_type, const FamilyNumbersVector& rFamilyNumbers){
-        if (MEDmeshEntityFamilyNumberWr(
-            mpFileHandler->GetFileHandle(),
-            mpFileHandler->GetMeshName(),
-            MED_NO_DT, MED_NO_IT,
-            med_type, MED_NONE,
-            rFamilyNumbers.size(), rFamilyNumbers.data())<0){
-                KRATOS_ERROR << "Writing failed!" << std::endl;
-            }
+    auto write_family_numbers = [this](
+        const med_entity_type med_type,
+        const med_geometry_type med_geom,
+        const FamilyNumbersVector& rFamilyNumbers){
+            if (MEDmeshEntityFamilyNumberWr(
+                mpFileHandler->GetFileHandle(),
+                mpFileHandler->GetMeshName(),
+                MED_NO_DT, MED_NO_IT,
+                med_type, med_geom,
+                rFamilyNumbers.size(), rFamilyNumbers.data())<0){
+                    KRATOS_ERROR << "Writing failed!" << std::endl;
+                }
     };
 
+    IndexIndexMapType node_family_numbers_map;
+    IndexIndexMapType geom_family_numbers_map;
+    IndexStringMapType fam_groups;
     ComputeFamilies(rThisModelPart, node_family_numbers_map, geom_family_numbers_map, fam_groups);
 
     for (const auto& [fam_id, smp_names] : fam_groups) {
         MEDfamilyCr(
             mpFileHandler->GetFileHandle(),
             mpFileHandler->GetMeshName(),
+            "asdf", // TODO what to put here???
             fam_id,
             smp_names.size(),
-            smp_names.data_consecutive);
+            "smp_names.data()"/*smp_names.data_consecutive*/); // TODO this is wrong!!!
     }
 
     FamilyNumbersVector node_family_numbers(rThisModelPart.NumberOfNodes(), 0); // zero unless otherwise defined
@@ -679,13 +684,13 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         &node_family_numbers_map,
         &node_family_numbers,
         nodes_begin](const std::size_t i) {
-            const it = node_family_numbers_map.find((nodes_begin+i)->Id());
-            if it != node_family_numbers_map.end() {
+            const auto it = node_family_numbers_map.find((nodes_begin+i)->Id());
+            if (it != node_family_numbers_map.end()) {
                 node_family_numbers[i] = it->second;
             }
     });
 
-    write_family_numbers(MED_NODE, node_family_numbers);
+    write_family_numbers(MED_NODE, MED_NONE, node_family_numbers);
 
     std::unordered_map<GeometryData::KratosGeometryType, ConnectivitiesVector> conn_map;
     std::unordered_map<GeometryData::KratosGeometryType, FamilyNumbersVector> fam_map;
@@ -701,7 +706,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         conn_map[this_geom_type].push_back(conn);
         np_map[this_geom_type] = r_geom.PointsNumber();
 
-        const fam_it = geom_family_numbers_map.find(r_geom.Id());
+        const auto fam_it = geom_family_numbers_map.find(r_geom.Id());
         const int fam_id = (fam_it != geom_family_numbers_map.end()) ? fam_it->second : 0;
         fam_map[this_geom_type].push_back(-fam_id); // groups have negative family ids
     }
@@ -711,7 +716,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
     for (auto& [geom_type, conn] : conn_map) {
         const auto med_geom_type = KratosToMedGeometryType.at(geom_type);
         write_geometries(med_geom_type, np_map[geom_type], conn);
-        write_family_numbers(med_geom_type, fam_map[geom_type]);
+        write_family_numbers(MED_CELL, med_geom_type, fam_map[geom_type]);
     }
 
     KRATOS_CATCH("")
