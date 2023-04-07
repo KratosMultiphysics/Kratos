@@ -180,11 +180,9 @@ class DEMSearch : public SpatialSearch
         delete searchPoints;
       }
 
-
       ///@}
       ///@name Operators
       ///@{
-
 
       ///@}
       ///@name Operations
@@ -252,7 +250,7 @@ class DEMSearch : public SpatialSearch
           NodesContainerType const& StructureNodes,
           NodesContainerType const& InputNodes,
           const RadiusArrayType & Radius,
-          VectorResultNodesContainerType& rResults )
+          VectorResultNodesContainerType& rResults ) override
       {
           static_cast<TDerived*>(this)->SearchNodesInRadiusExclusiveImplementation(StructureNodes,InputNodes,Radius,rResults);
       }
@@ -261,7 +259,7 @@ class DEMSearch : public SpatialSearch
           NodesContainerType const& StructureNodes,
           NodesContainerType const& InputNodes,
           const RadiusArrayType & Radius,
-          VectorResultNodesContainerType& rResults )
+          VectorResultNodesContainerType& rResults ) override
       {
           static_cast<TDerived*>(this)->SearchNodesInRadiusInclusiveImplementation(StructureNodes,InputNodes,Radius,rResults);
       }
