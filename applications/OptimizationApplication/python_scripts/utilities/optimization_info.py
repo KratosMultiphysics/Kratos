@@ -267,7 +267,7 @@ class OptimizationInfo:
         self.__AddKeyValuePairsToMap("", key_value_pair_map, step_index)
         return key_value_pair_map
 
-    def GetParent(self) -> Any:
+    def GetParent(self) -> OptimizationInfo:
         """Get the parent of the current optimization info
 
         Returns:
@@ -283,8 +283,8 @@ class OptimizationInfo:
         Returns:
             OptimizationInfo: Root parent of the current optimization info.
         """
-        if self.__parent is not None:
-            return self.__parent.GetRoot()
+        if self.GetParent() is not None:
+            return self.GetParent().GetRoot()
         else:
             return self
 
