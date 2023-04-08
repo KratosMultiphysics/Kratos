@@ -1,8 +1,8 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.responses.response_function_data_retriever import ResponseFunctionDataRetriever
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.communicators.response_function_communicator import ResponseFunctionCommunicator
 
 class StandardizedObjective:
     def __init__(self, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
@@ -21,40 +21,37 @@ class StandardizedObjective:
         else:
             raise RuntimeError(f"Requesting unsupported type {self.__objective_type} for objective response function. Supported types are: \n\tminimization\n\tmaximization")
 
-        self.__name = parameters["response_name"].GetString()
-        self.__response_function_data_retriever = ResponseFunctionDataRetriever(self.GetName(), optimization_info)
-
+        self.__communicator = ResponseFunctionCommunicator(parameters["response_name"].GetString(), optimization_info)
         self.__initial_response_value = None
-        self.__optimization_info = optimization_info
 
-    def GetName(self) -> str:
-        return self.__name
+    def GetResponseFunctionName(self) -> str:
+        return self.__communicator.GetName()
 
-    def GetInitialValue(self):
+    def GetInitialValue(self) -> float:
         if self.__initial_response_value is None:
-            self.__initial_response_value = self.GetValue()
+            self.__initial_response_value = self.__communicator.GetScaledValue()
         return self.__initial_response_value
 
     def GetResponseType(self) -> str:
         return self.__objective_type
 
     def GetStandardizedValue(self, step_index: int = 0) -> float:
-        return self.__response_function_data_retriever.GetScaledValue(step_index, self.__scaling)
+        return self.__communicator.GetScaledValue(step_index, self.__scaling)
 
     def CalculateStandardizedSensitivity(self, sensitivity_variable_collective_expression_info: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]'):
-        self.__response_function_data_retriever.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__scaling)
+        self.__communicator.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__scaling)
 
-    def UpdateOptimizationInfo(self) -> None:
-        self.__optimization_info.SetValue(f"{self.__response_function_data_retriever.GetPrefix()}/type", self.GetResponseType())
-        self.__optimization_info.SetValue(f"{self.__response_function_data_retriever.GetPrefix()}/relative_change", self.__response_function_data_retriever.GetRelativeChange())
-        self.__optimization_info.SetValue(f"{self.__response_function_data_retriever.GetPrefix()}/absolute_change", self.__response_function_data_retriever.GetAbsoluteChange(self.GetInitialValue()))
+    def UpdateObjectiveData(self) -> None:
+        response_problem_data = self.__communicator.GetResponseProblemData()
+        response_problem_data["type"] = self.GetResponseType()
+        response_problem_data["rel_change"] = self.__communicator.GetRelativeChange()
+        response_problem_data["abs_change"] = self.__communicator.GetAbsoluteChange(self.GetInitialValue())
 
-    def GetResponseInfo(self) -> str:
+    def GetObjectiveInfo(self) -> str:
         msg = "\tObjective info:"
-        msg += f"\n\t\t name          : {self.GetName()}"
+        msg += f"\n\t\t name          : {self.GetResponseFunctionName()}"
         msg += f"\n\t\t type          : {self.GetResponseType()}"
-        msg += f"\n\t\t value         : {self.__response_function_data_retriever.GetScaledValue():0.6e}"
-        msg += f"\n\t\t rel_change [%]: {self.__response_function_data_retriever.GetRelativeChange() * 100.0:0.6e}"
-        msg += f"\n\t\t abs_change [%]: {self.__response_function_data_retriever.GetAbsoluteChange(self.GetInitialValue()) * 100.0:0.6e}"
-
+        msg += f"\n\t\t value         : {self.__communicator.GetScaledValue():0.6e}"
+        msg += f"\n\t\t rel_change [%]: {self.__communicator.GetRelativeChange() * 100.0:0.6e}"
+        msg += f"\n\t\t abs_change [%]: {self.__communicator.GetAbsoluteChange(self.GetInitialValue()) * 100.0:0.6e}"
         return msg
