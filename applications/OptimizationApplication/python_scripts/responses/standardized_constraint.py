@@ -12,7 +12,7 @@ class StandardizedConstraint:
             "ref_value"    : "initial_value"
         }""")
 
-        if parameters.Has("ref_value") and parameters.IsDouble("ref_value"):
+        if parameters.Has("ref_value") and parameters["ref_value"].IsDouble():
             default_parameters["ref_value"].SetDouble(0.0)
 
         parameters.ValidateAndAssignDefaults(default_parameters)
@@ -60,13 +60,13 @@ class StandardizedConstraint:
         self.__communicator.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__standardization_value)
 
     def UpdateConstraintData(self) -> None:
-        response_problem_data = self.__communicator.GetResponseProblemData()
-        response_problem_data["relative_change"] = self.__communicator.GetRelativeChange()
-        response_problem_data["absolute_change"] = self.__communicator.GetAbsoluteChange(self.GetReferenceValue())
-        response_problem_data["reference_value"] = self.GetReferenceValue()
+        response_problem_data = self.__communicator.GetBufferedDataContainer()
+        response_problem_data["rel_change"] = self.__communicator.GetRelativeChange()
+        response_problem_data["abs_change"] = self.__communicator.GetAbsoluteChange(self.GetReferenceValue())
+        response_problem_data["ref_value"] = self.GetReferenceValue()
         response_problem_data["is_active"] = self.IsActive()
         response_problem_data["type"] = self.GetResponseType()
-        response_problem_data["violation_ratio"] = abs(self.GetViolationRatio())
+        response_problem_data["violation"] = abs(self.GetViolationRatio())
 
     def GetConstraintInfo(self) -> str:
         msg = "\tConstraint info:"

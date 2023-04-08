@@ -42,7 +42,7 @@ class StandardizedObjective:
         self.__communicator.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__scaling)
 
     def UpdateObjectiveData(self) -> None:
-        response_problem_data = self.__communicator.GetResponseProblemData()
+        response_problem_data = self.__communicator.GetBufferedDataContainer()
         response_problem_data["type"] = self.GetResponseType()
         response_problem_data["rel_change"] = self.__communicator.GetRelativeChange()
         response_problem_data["abs_change"] = self.__communicator.GetAbsoluteChange(self.GetInitialValue())
