@@ -128,6 +128,42 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         with self.assertRaises(RuntimeError):
             optimization_info["data"] = 2
 
+    def test_GetMap(self):
+        optimization_info = OptimizationInfo(3)
+        optimization_info["data/test/int"] = 1
+        optimization_info["data/test/float"] = 3.0
+        optimization_info["data/test/float", 1] = 4.0
+        optimization_info["data/test/str", 1] = "test"
+        optimization_info["data/str", 2] = "old"
+        optimization_info["data/int"] = 10
+
+        self.assertEqual(
+            optimization_info.GetMap(),
+            {
+                "data": optimization_info["data"],
+                "data/int": 10,
+                "data/test": optimization_info["data/test"],
+                "data/test/int": 1,
+                "data/test/float": 3.0
+            })
+
+        self.assertEqual(
+            optimization_info.GetMap(1),
+            {
+                "data": optimization_info["data"],
+                "data/test": optimization_info["data/test"],
+                "data/test/str": "test",
+                "data/test/float": 4.0
+            })
+
+        self.assertEqual(
+            optimization_info.GetMap(2),
+            {
+                "data": optimization_info["data"],
+                "data/str": "old",
+                "data/test": optimization_info["data/test"]
+            })
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

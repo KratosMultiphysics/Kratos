@@ -245,6 +245,22 @@ class OptimizationInfo:
             else:
                 raise RuntimeError(f"\"{key}\" is not found. OptimizationInfo:\n{self}")
 
+    def GetMap(self, step_index: int = 0) -> 'dict[str, Any]':
+        """Generates (str, Any) pair map with recursively collecting all items in the OptimizationInfo
+
+        This method recursively collects all items in the optimization info and returns a dict
+        with (str, Any) pairs. All the sub_items are also added as (str, OptimizationInfo) pairs.
+
+        Args:
+            step_index (int, optional):  Step index the value should be looked at. Defaults to 0.
+
+        Returns:
+            dict[str, Any]: (str, Any) map of all the items.
+        """
+        key_value_pair_map = {}
+        self.__AddKeyValuePairsToMap("", key_value_pair_map, step_index)
+        return key_value_pair_map
+
     def PrintData(self, step_index: int = -1, tabbing = "") -> str:
         """Prints containing data in a json like structure.
 
@@ -266,6 +282,18 @@ class OptimizationInfo:
         info = self.__Info(step_index, tabbing)
         info = f"{tabbing}{info}"
         return info
+
+    def __AddKeyValuePairsToMap(self, current_path: str, key_value_pair_map: 'dict[str, Any]', step_index: int) -> None:
+        # first add the buffered data
+        if step_index >= 0 and step_index < self.GetBufferSize():
+            buffer_data = self.__buffered_data[self.__GetBufferIndex(step_index)]
+            for k, v in buffer_data.items():
+                key_value_pair_map[f"{current_path}{k}"] = v
+
+        # now add the sub item data recursively
+        for k, v in self.__sub_items.items():
+            key_value_pair_map[f"{current_path}{k}"] = v
+            v.__AddKeyValuePairsToMap(f"{current_path}{k}/", key_value_pair_map, step_index)
 
     def __AddBufferedValue(self, key: str, value: Any, step_index: int) -> None:
         # first check whether this key exists in the specified step_index
@@ -293,15 +321,11 @@ class OptimizationInfo:
         # now add the sub_item
         self.__sub_items[key] = value
 
-    def __SetBufferSize(self, buffer_size: int, recursive = False) -> None:
+    def __SetBufferSize(self, buffer_size: int) -> None:
         self.__buffer_index = 0
         self.__buffered_data.clear()
         for _ in range(buffer_size):
             self.__buffered_data.append({})
-
-        if recursive:
-            for sub_item in self.__sub_items.values():
-                sub_item.__SetBufferSize(buffer_size, recursive)
 
     def __GetBufferIndex(self, step_index: int) -> int:
         if step_index >= self.GetBufferSize() or step_index < 0:
@@ -309,7 +333,7 @@ class OptimizationInfo:
 
         return (self.__buffer_index - step_index) % self.GetBufferSize()
 
-    def __Info(self, step_index: int = -1, tabbing = "") -> str:
+    def __Info(self, step_index: int, tabbing: str) -> str:
         info = "{"
 
         if step_index == -1:
@@ -356,5 +380,5 @@ class OptimizationInfo:
             raise RuntimeError(f"The key should be either a string (representing the key path) or (string, int) tuple (representing key path and step index) [ key = {key}].")
 
     def __str__(self) -> str:
-        return self.__Info()
+        return self.__Info(-1, "")
 
