@@ -1,3 +1,4 @@
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
@@ -100,3 +101,34 @@ class OptimizationComponentCommunicator:
             ResponseFunction: Response function matching the given name.
         """
         return self.__components[f"responses/{name}"]
+
+    def AddExecutionPolicyDecorator(self, execution_policy_decorator: ExecutionPolicyDecorator) -> None:
+        """Adds execution policy decorator under the name
+
+        This method adds the provided execution policy decorator under the name. The name must be
+        unique.
+
+        Args:
+            name (str): Name of the execution policy decorator.
+            execution_policy_decorator (ExecutionPolicyDecorator): execution policy decorator to assign to the name.
+
+        Raises:
+            RuntimeError: If an existing execution policy decorator is found with the given name.
+        """
+        self.__components[f"execution_policy_decorators/{execution_policy_decorator.GetExecutionPolicyName()}"] = execution_policy_decorator
+
+    def GetExecutionPolicyDecorator(self, name: str) -> ExecutionPolicyDecorator:
+        """Gets the execution policy decorator for given name.
+
+        This method returns a execution policy decorator matching the given name.
+
+        Args:
+            name (str): Name of the execution policy decorator.
+
+        Raises:
+            RuntimeError: If a execution policy decorator is not found with the given name.
+
+        Returns:
+            ResponseFunction: execution policy decorator matching the given name.
+        """
+        return self.__components[f"execution_policy_decorators/{name}"]
