@@ -92,6 +92,7 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         self.assertTrue(optimization_info.HasValue("data/sub_3", 0))
         self.assertTrue(optimization_info.HasValue("data/sub_3", 1))
         self.assertFalse(optimization_info.HasValue("data/sub_2"))
+        self.assertFalse(optimization_info.HasValue("data_2/sub_2"))
 
     def test_RemoveValue(self):
         optimization_info = OptimizationInfo(3)
