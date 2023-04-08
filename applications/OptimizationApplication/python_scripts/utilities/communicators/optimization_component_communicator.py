@@ -59,9 +59,10 @@ class OptimizationComponentCommunicator:
         This also increases the step value by one.
 
         """
+        current_step = self.__problem_data["step"]
         self.__problem_data.AdvanceStep()
         self.__problem_data.ClearStep()
-        self.__problem_data["step"] = self.__problem_data["step", 1] + 1
+        self.__problem_data["step"] = current_step + 1
 
     def GetStep(self) -> int:
         """Get the current step
