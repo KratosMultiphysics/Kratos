@@ -205,7 +205,7 @@ class TestStandardizedConstraint(TestStandardizedComponent):
     def test_GetResponseType(self):
         self.assertEqual(self.standardized_constraint.GetResponseType(), ">=")
 
-    def test_UpdateObjectiveData(self):
+    def test_UpdateConstraintData(self):
         self.standardized_constraint.UpdateConstraintData()
         response_data = ResponseFunctionCommunicator("mass", self.optimization_info).GetBufferedDataContainer()
         self.assertEqual(response_data["type"], self.standardized_constraint.GetResponseType())
