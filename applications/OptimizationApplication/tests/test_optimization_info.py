@@ -137,8 +137,11 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         optimization_info["data/str", 2] = "old"
         optimization_info["data/int"] = 10
 
+        result = optimization_info.GetMap()
+        for k, v in result.items():
+            self.assertEqual(optimization_info[k], v)
         self.assertEqual(
-            optimization_info.GetMap(),
+            result,
             {
                 "data": optimization_info["data"],
                 "data/int": 10,
@@ -147,8 +150,11 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
                 "data/test/float": 3.0
             })
 
+        result = optimization_info.GetMap(1)
+        for k, v in result.items():
+            self.assertEqual(optimization_info[k, 1], v)
         self.assertEqual(
-            optimization_info.GetMap(1),
+            result,
             {
                 "data": optimization_info["data"],
                 "data/test": optimization_info["data/test"],
@@ -156,8 +162,11 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
                 "data/test/float": 4.0
             })
 
+        result = optimization_info.GetMap(2)
+        for k, v in result.items():
+            self.assertEqual(optimization_info[k, 2], v)
         self.assertEqual(
-            optimization_info.GetMap(2),
+            result,
             {
                 "data": optimization_info["data"],
                 "data/str": "old",
