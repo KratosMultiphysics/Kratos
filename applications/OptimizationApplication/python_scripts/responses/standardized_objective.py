@@ -5,6 +5,14 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.communicators.response_function_communicator import ResponseFunctionCommunicator
 
 class StandardizedObjective:
+    """Standardized objective response function
+
+    This class creates instances to standardize any response function (make it a minimization problem).
+    Supported objective types:
+        "minimization",
+        "maximization"
+
+    """
     def __init__(self, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_parameters = Kratos.Parameters("""{
             "response_name": "",

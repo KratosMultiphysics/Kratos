@@ -5,6 +5,19 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.communicators.response_function_communicator import ResponseFunctionCommunicator
 
 class StandardizedConstraint:
+    """Standardized constraint response function
+
+    This class creates instances to standardize any response function for the specified type of the contraint.
+    Supported contraint types:
+        "=",
+        "<",
+        "<=,
+        ">",
+        ">="
+
+    The reference value for the constraint either can be the "initial_value" or a specified value.
+
+    """
     def __init__(self, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_parameters = Kratos.Parameters("""{
             "response_name": "",
