@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Any
 
 class OptimizationInfo:
@@ -28,6 +29,7 @@ class OptimizationInfo:
         Args:
             buffer_size (int, optional): Cyclic buffer size. Defaults to 1.
         """
+        self.__parent = None
         self.__buffer_index = 0
         self.__buffered_data: 'list[dict[str, Any]]' = []
         self.__sub_items: 'dict[str, OptimizationInfo]' = {}
@@ -177,6 +179,7 @@ class OptimizationInfo:
                 # if the given value is a dict, then convert the structure
                 # to OptimizationInfo while keeping the sub_item structure.
                 sub_item = OptimizationInfo(self.GetBufferSize())
+                sub_item.__parent = self
                 self.__AddSubItem(key, sub_item)
 
                 # now iterate through all the sub_keys and values of the dictionary and
@@ -184,6 +187,7 @@ class OptimizationInfo:
                 for sub_key, sub_value in value.items():
                     sub_item.SetValue(f"{sub_key}", sub_value, step_index)
             elif isinstance(value, OptimizationInfo):
+                value.__parent = self
                 # if the given value is of type OptimizationInfo, then put it to sub_items.
                 self.__AddSubItem(key, value)
             else:
@@ -195,7 +199,9 @@ class OptimizationInfo:
             current_key = key[:pos]
             if not current_key in self.__sub_items.keys():
                 # no existing key found then create it.
-                self.__AddSubItem(current_key, OptimizationInfo(self.GetBufferSize()))
+                sub_item = OptimizationInfo(self.GetBufferSize())
+                sub_item.__parent = self
+                self.__AddSubItem(current_key, sub_item)
 
             self.__sub_items[current_key].SetValue(key[pos+1:], value, step_index)
 
@@ -260,6 +266,27 @@ class OptimizationInfo:
         key_value_pair_map = {}
         self.__AddKeyValuePairsToMap("", key_value_pair_map, step_index)
         return key_value_pair_map
+
+    def GetParent(self) -> Any:
+        """Get the parent of the current optimization info
+
+        Returns:
+            OptimizationInfo: Returns parent of the current instance.
+        """
+        return self.__parent
+
+    def GetRoot(self) -> OptimizationInfo:
+        """Get the root parent of the current optimization info
+
+        Get the root parent of the current optimization info by recursive calls.
+
+        Returns:
+            OptimizationInfo: Root parent of the current optimization info.
+        """
+        if self.__parent is not None:
+            return self.__parent.GetRoot()
+        else:
+            return self
 
     def PrintData(self, step_index: int = -1, tabbing = "") -> str:
         """Prints containing data in a json like structure.

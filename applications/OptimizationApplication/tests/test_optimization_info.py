@@ -173,6 +173,37 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
                 "data/test": optimization_info["data/test"]
             })
 
+    def test_Buffers(self):
+        optimization_info = OptimizationInfo(3)
+        optimization_info["data/sub_1/sub_sub"] = OptimizationInfo(4)
+        optimization_info["data/sub_2"] = OptimizationInfo(5)
+
+        self.assertEqual(optimization_info.GetBufferSize(), 3)
+        self.assertEqual(optimization_info["data"].GetBufferSize(), 3)
+        self.assertEqual(optimization_info["data/sub_1"].GetBufferSize(), 3)
+        self.assertEqual(optimization_info["data/sub_1/sub_sub"].GetBufferSize(), 4)
+        self.assertEqual(optimization_info["data/sub_2"].GetBufferSize(), 5)
+
+    def test_GetParent(self):
+        optimization_info = OptimizationInfo(3)
+        optimization_info["data/sub_1/sub_sub"] = OptimizationInfo(4)
+        optimization_info["data/sub_2"] = OptimizationInfo(5)
+
+        self.assertEqual(optimization_info["data/sub_1/sub_sub"].GetParent(), optimization_info["data/sub_1"])
+        self.assertEqual(optimization_info["data/sub_1"].GetParent(), optimization_info["data"])
+        self.assertEqual(optimization_info["data/sub_2"].GetParent(), optimization_info["data"])
+
+    def test_GetRoot(self):
+        optimization_info = OptimizationInfo(3)
+        optimization_info["data/sub_1/sub_sub"] = OptimizationInfo(4)
+        optimization_info["data/sub_2"] = OptimizationInfo(5)
+
+        self.assertEqual(optimization_info["data/sub_1/sub_sub"].GetRoot(), optimization_info)
+        self.assertEqual(optimization_info["data/sub_1"].GetRoot(), optimization_info)
+        self.assertEqual(optimization_info["data/sub_2"].GetRoot(), optimization_info)
+        self.assertEqual(optimization_info["data"].GetRoot(), optimization_info)
+        self.assertEqual(optimization_info.GetRoot(), optimization_info)
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
