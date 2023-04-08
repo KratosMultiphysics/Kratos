@@ -2,7 +2,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 
 class OptimizationComponentCommunicator:
-    """Communicator class to unify communication between OptimizationInfo
+    """Communicator class to unify communication between components and OptimizationInfo
 
     Instances of this class unifies communication between OptimizationInfo
     and optimization components. Otherwise, a component of optimization info
