@@ -1,3 +1,4 @@
+from typing import Any
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
@@ -85,7 +86,7 @@ class OptimizationComponentCommunicator:
         Raises:
             RuntimeError: If an existing response function is found with the given name.
         """
-        self.__components[f"responses/{name}"] = response_function
+        self.__CheckAndAddComponent(f"responses/{name}",  response_function)
 
     def GetResponseFunction(self, name: str) -> ResponseFunction:
         """Gets the response function for given name.
@@ -101,7 +102,7 @@ class OptimizationComponentCommunicator:
         Returns:
             ResponseFunction: Response function matching the given name.
         """
-        return self.__components[f"responses/{name}"]
+        return self.__CheckAndGetComponent(f"responses/{name}")
 
     def AddExecutionPolicyDecorator(self, execution_policy_decorator: ExecutionPolicyDecorator) -> None:
         """Adds execution policy decorator under the name
@@ -116,7 +117,7 @@ class OptimizationComponentCommunicator:
         Raises:
             RuntimeError: If an existing execution policy decorator is found with the given name.
         """
-        self.__components[f"execution_policy_decorators/{execution_policy_decorator.GetExecutionPolicyName()}"] = execution_policy_decorator
+        self.__CheckAndAddComponent(f"execution_policy_decorators/{execution_policy_decorator.GetExecutionPolicyName()}", execution_policy_decorator)
 
     def GetExecutionPolicyDecorator(self, name: str) -> ExecutionPolicyDecorator:
         """Gets the execution policy decorator for given name.
@@ -132,4 +133,27 @@ class OptimizationComponentCommunicator:
         Returns:
             ResponseFunction: execution policy decorator matching the given name.
         """
-        return self.__components[f"execution_policy_decorators/{name}"]
+        return self.__CheckAndGetComponent(f"execution_policy_decorators/{name}")
+
+    def __GetCurrentAvailableComponents(self, key: str) -> 'tuple[str, str, list[str]]':
+        pos = key.rfind("/")
+        parent_key = key[:pos]
+        current_component = key[pos+1:]
+
+        component_map = self.__components.GetMap()
+        valid_components = [k[len(parent_key)+1:] for k in component_map.keys() if k.startswith(f"{parent_key}/")]
+        return parent_key, current_component, valid_components
+
+    def __CheckAndAddComponent(self, key: str, component: Any) -> None:
+        if self.__components.HasValue(key):
+            parent_key, current_component, valid_components = self.__GetCurrentAvailableComponents(key)
+            raise RuntimeError(f"A component named \"{current_component}\" already exists in the component directory at \"{parent_key}\". Followings are the available components:\n\t" + "\n\t".join(valid_components))
+
+        self.__components[key] = component
+
+    def __CheckAndGetComponent(self, key: str) -> Any:
+        if self.__components.HasValue(key):
+            return self.__components[key]
+        else:
+            parent_key, current_component, valid_components = self.__GetCurrentAvailableComponents(key)
+            raise RuntimeError(f"No component named \"{current_component}\" found in the component directory at \"{parent_key}\". Followings are the available options:\n\t" + "\n\t".join(valid_components))
