@@ -51,8 +51,8 @@ template class PointObject<Element>;
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusExclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     const ElementsContainerType& rStructureElements,
     const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
@@ -66,8 +66,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusExclusive(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusInclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusInclusive(
     const ElementsContainerType& rStructureElements,
     const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
@@ -81,8 +81,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusInclusive(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusExclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     const ElementsContainerType& rStructureElements,
     const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
@@ -96,8 +96,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusExclusive(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusInclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusInclusive(
     const ElementsContainerType& rStructureElements,
     const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
@@ -111,8 +111,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusInclusive(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusExclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
@@ -126,8 +126,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusExclusive(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusInclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusInclusive(
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
@@ -141,8 +141,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusInclusive(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusExclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
@@ -156,8 +156,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusExclusive(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusInclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusInclusive(
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
@@ -171,8 +171,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchNodesInRadiusInclusive(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusExclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive(
     const ConditionsContainerType& rStructureConditions,
     const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
@@ -186,8 +186,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusExclusive
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusInclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusInclusive(
     const ConditionsContainerType& rStructureConditions,
     const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
@@ -201,8 +201,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusInclusive
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusExclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive(
     const ConditionsContainerType& rStructureConditions,
     const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
@@ -216,8 +216,8 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusExclusive
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SpatialContainer TSearhcBackend>
-void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusInclusive(
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusInclusive(
     const ConditionsContainerType& rStructureConditions,
     const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
@@ -226,6 +226,22 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusInclusive
 {
     VectorDistanceType distances;
     SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, rRadius, rResults, distances);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearchBackend>
+Parameters SpecializedSpatialSearch<TSearchBackend>::GetDefaultParameters() const
+{
+    Parameters default_parameters = Parameters(R"(
+    {
+        "allocation_size" : 1000,
+        "bucket_size"     : 4,
+        "search_factor"   : 2.0
+    })" );
+
+    return default_parameters;
 }
 
 template class SpecializedSpatialSearch<SpatialContainer::KDTree>;

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "geometries/point.h"
+#include "includes/kratos_parameters.h"
 #include "spatial_containers/spatial_search.h"
 
 namespace Kratos
@@ -148,10 +149,10 @@ private:
 * @ingroup KratosCore
 * @brief This class is used to search for elements, conditions and nodes in a given model part
 * @details In order to perform the search it uses as backend some of the the spatial containers defined `spatial_containers` folder
-* @tparam TSearhcBackend The spatial container to be used as backend
+* @tparam TSearchBackend The spatial container to be used as backend
 * @author Vicente Mataix Ferrandiz
 */
-template<SpatialContainer TSearhcBackend>
+template<SpatialContainer TSearchBackend>
 class KRATOS_API(KRATOS_CORE) SpecializedSpatialSearch
     : public SpatialSearch
 {
@@ -196,8 +197,28 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    SpecializedSpatialSearch() = default;
+    /**
+     * @brief Default constructor.
+     */
+    SpecializedSpatialSearch()
+    {
+        // We asssign default parameters
+        mParameters = GetDefaultParameters();
+    }
+
+    /**
+     * @brief Constructor with parameters
+     * @param ThisParameters The parameters to be considered
+     */
+    SpecializedSpatialSearch(Parameters ThisParameters)
+        : mParameters(ThisParameters)
+    {
+        // We asssign default parameters
+        const Parameters default_parameters = GetDefaultParameters();
+
+        // We update the parameters
+        mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    }
 
     /// Destructor.
     ~SpecializedSpatialSearch() override = default;
@@ -436,6 +457,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    Parameters mParameters; /// The configuration parameters
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -443,6 +466,8 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    Parameters GetDefaultParameters() const;
 
     ///@}
     ///@name Protected  Access
@@ -509,9 +534,9 @@ private:
 ///@{
 
 /// output stream function
-template<SpatialContainer TSearhcBackend>
+template<SpatialContainer TSearchBackend>
 inline std::ostream& operator << (std::ostream& rOStream, 
-                const SpecializedSpatialSearch<TSearhcBackend>& rThis)
+                const SpecializedSpatialSearch<TSearchBackend>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

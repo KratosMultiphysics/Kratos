@@ -619,26 +619,32 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     py::class_<SpecializedSpatialSearch<SpatialContainer::KDTree>, SpecializedSpatialSearch<SpatialContainer::KDTree>::Pointer>(m, "SpatialSearchKDTree")
     .def(py::init< >())
+    .def(py::init<Parameters>())
     ;
 
     py::class_<SpecializedSpatialSearch<SpatialContainer::Octree>, SpecializedSpatialSearch<SpatialContainer::Octree>::Pointer>(m, "SpatialSearchOctree")
     .def(py::init< >())
+    .def(py::init<Parameters>())
     ;
 
     py::class_<SpecializedSpatialSearch<SpatialContainer::BinsStatic>, SpecializedSpatialSearch<SpatialContainer::BinsStatic>::Pointer>(m, "SpatialSearchBinsStatic")
     .def(py::init< >())
+    .def(py::init<Parameters>())
     ;
 
     py::class_<SpecializedSpatialSearch<SpatialContainer::BinsDynamic>, SpecializedSpatialSearch<SpatialContainer::BinsDynamic>::Pointer>(m, "SpatialSearchBinsDynamic")
     .def(py::init< >())
+    .def(py::init<Parameters>())
     ;
 
     py::class_<SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>, SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>::Pointer>(m, "SpatialSearchBinsStaticObjects")
     .def(py::init< >())
+    .def(py::init<Parameters>())
     ;
 
     py::class_<SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>, SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>::Pointer>(m, "SpatialSearchBinsDynamicObjects")
     .def(py::init< >())
+    .def(py::init<Parameters>())
     ;
 }
 
