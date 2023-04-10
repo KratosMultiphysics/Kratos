@@ -107,7 +107,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
             auto it_elem = rInputElements.begin() + i;
             PointType aux_point(*(it_elem.base()));
             PointVector results;
-            const std::size_t number_of_results = kd_tree.SearchInRadius(aux_point, rRadius[i], results.begin(), allocation_size);
+            DistanceVector results_distances;
+            const std::size_t number_of_results = kd_tree.SearchInRadius(aux_point, rRadius[i], results.begin(), results_distances.begin(), allocation_size);
             if (number_of_results > 0) {
                 auto& r_results = rResults[i];
                 auto& r_results_distance = rResultsDistance[i];
@@ -116,7 +117,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
                 for (std::size_t j = 0; j < number_of_results; ++j) {
                     PointType::Pointer p_point = results[j];
                     r_results.push_back(p_point->pGetObject());
-                    r_results_distance.push_back(p_point->Distance(aux_point));
+                    r_results_distance.push_back(results_distances[j]);
                 }
             }
         });
