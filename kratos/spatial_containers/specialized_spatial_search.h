@@ -51,7 +51,7 @@ enum class SpatialContainer
     Octree,
     BinsStatic,
     BinsDynamic//,
-    // BinsStaticObjects,
+    // BinsStaticObjects, // NOTE: These can be considered in the future for the Inclusive methods
     // BinsDynamicObjects
 };
 
