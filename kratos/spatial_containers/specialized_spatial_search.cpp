@@ -19,6 +19,38 @@
 
 namespace Kratos
 {
+
+template<>
+void PointObject<Node<3>>::UpdatePoint()
+{
+    noalias(this->Coordinates()) = mpObject->Coordinates();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void PointObject<Condition>::UpdatePoint()
+{
+    noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void PointObject<Element>::UpdatePoint()
+{
+    noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
+}
+
+template class PointObject<Node<3>>;
+template class PointObject<Condition>;
+template class PointObject<Element>;
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<SpatialContainer TSearhcBackend>
 void SpecializedSpatialSearch<TSearhcBackend>::SearchElementsInRadiusExclusive(
     const ElementsContainerType& rStructureElements,
@@ -195,7 +227,6 @@ void SpecializedSpatialSearch<TSearhcBackend>::SearchConditionsInRadiusInclusive
     VectorDistanceType distances;
     SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, rRadius, rResults, distances);
 }
-
 
 template class SpecializedSpatialSearch<SpatialContainer::KDTree>;
 template class SpecializedSpatialSearch<SpatialContainer::Octree>;

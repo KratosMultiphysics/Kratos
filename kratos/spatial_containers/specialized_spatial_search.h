@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "geometries/point.h"
 #include "spatial_containers/spatial_search.h"
 
 namespace Kratos
@@ -59,6 +60,88 @@ enum class SpatialContainer
 ///@}
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @class PointObject
+ * @ingroup KratosCore
+ * @brief Custom Point container to be used by the search
+ * @details It stores the pointer of a certain object
+ * @author Vicente Mataix Ferrandiz
+ */
+template<class TObject>
+class PointObject
+    : public Point
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+
+    /// Base class definition
+    typedef Point BaseType;
+
+    /// Counted pointer of PointObject
+    KRATOS_CLASS_POINTER_DEFINITION( PointObject );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructors
+    PointObject():
+        BaseType()
+    {}
+
+    PointObject(const double X, const double Y, const double Z)
+        : BaseType(X, Y, Z)
+    {
+
+    }
+
+    PointObject(typename TObject::Pointer pObject):
+        mpObject(pObject)
+    {
+        UpdatePoint();
+    }
+
+    ///Copy constructor  (not really required)
+    PointObject(const PointObject& rRHS):
+        BaseType(rRHS),
+        mpObject(rRHS.mpObject)
+    {
+    }
+
+    /// Destructor.
+    ~PointObject() override= default;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Returns the geometry associated to the point
+     * @return mrGeometry The reference to the geometry associated to the point
+     */
+    typename TObject::Pointer pGetObject()
+    {
+        return mpObject;
+    }
+
+    /**
+     * @brief This function updates the database, using as base for the coordinates the condition center
+     */
+    void UpdatePoint();
+
+private:
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    typename TObject::Pointer mpObject = nullptr;
+
+    ///@}
+
+}; // Class PointObject
 
 /**
 * @class SpecializedSpatialSearch
