@@ -143,52 +143,6 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
 /***********************************************************************************/
 
 template<SpatialContainer TSearchBackend>
-void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusInclusive(
-    const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements,
-    const RadiusArrayType& rRadius,
-    VectorResultNodesContainerType& rResults,
-    VectorDistanceType& rResultsDistance
-    )
-{
-    // Defining the point type for the search
-    using PointType = PointObject<Element>;
-    using PointTypePointer = PointType::Pointer;
-    using PointVector = std::vector<PointType::Pointer>;
-    using PointIterator = std::vector<PointType::Pointer>::iterator;
-    using DistanceVector = std::vector<double>;
-    using DistanceIterator = std::vector<double>::iterator;
-
-    // Retrieving parameters
-    const int allocation_size = mParameters["allocation_size"].GetInt();
-    const int bucket_size = mParameters["bucket_size"].GetInt();
-
-    // Defining the search structure
-    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
-        /// KDtree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using KDTree = Tree<KDTreePartition<BucketType>>;
-    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
-        /// Octree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using Octree = Tree<OCTreePartition<BucketType>>;
-    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
-        /// StaticBins definitions
-        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
-        /// BinsDynamic definitions
-        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
-    } else {
-        KRATOS_ERROR << "Unknown search backend" << std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
 void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     const ElementsContainerType& rStructureElements,
     const ElementsContainerType& rInputElements,
@@ -204,68 +158,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
 /***********************************************************************************/
 
 template<SpatialContainer TSearchBackend>
-void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusInclusive(
-    const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements,
-    const RadiusArrayType& rRadius,
-    VectorResultNodesContainerType& rResults
-    )
-{
-    VectorDistanceType distances;
-    SearchElementsInRadiusInclusive(rStructureElements, rInputElements, rRadius, rResults, distances);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
 void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
-    const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes,
-    const RadiusArrayType& rRadius,
-    VectorResultNodesContainerType& rResults,
-    VectorDistanceType& rResultsDistance
-    )
-{
-    // Defining the point type for the search
-    using PointType = PointObject<Node<3>>;
-    using PointTypePointer = PointType::Pointer;
-    using PointVector = std::vector<PointType::Pointer>;
-    using PointIterator = std::vector<PointType::Pointer>::iterator;
-    using DistanceVector = std::vector<double>;
-    using DistanceIterator = std::vector<double>::iterator;
-
-    // Retrieving parameters
-    const int allocation_size = mParameters["allocation_size"].GetInt();
-    const int bucket_size = mParameters["bucket_size"].GetInt();
-
-    // Defining the search structure
-    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
-        /// KDtree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using KDTree = Tree<KDTreePartition<BucketType>>;
-    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
-        /// Octree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using Octree = Tree<OCTreePartition<BucketType>>;
-    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
-        /// StaticBins definitions
-        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
-        /// BinsDynamic definitions
-        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
-    } else {
-        KRATOS_ERROR << "Unknown search backend" << std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
-void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusInclusive(
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
@@ -326,72 +219,11 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
 /***********************************************************************************/
 
 template<SpatialContainer TSearchBackend>
-void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusInclusive(
-    const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes,
-    const RadiusArrayType& rRadius,
-    VectorResultNodesContainerType& rResults
-    )
-{
-    VectorDistanceType distances;
-    SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, rRadius, rResults, distances);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
 void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive(
     const ConditionsContainerType& rStructureConditions,
     const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultConditionsContainerType& rResults,
-    VectorDistanceType& rResultsDistance
-    )
-{
-    // Defining the point type for the search
-    using PointType = PointObject<Condition>;
-    using PointTypePointer = PointType::Pointer;
-    using PointVector = std::vector<PointType::Pointer>;
-    using PointIterator = std::vector<PointType::Pointer>::iterator;
-    using DistanceVector = std::vector<double>;
-    using DistanceIterator = std::vector<double>::iterator;
-
-    // Retrieving parameters
-    const int allocation_size = mParameters["allocation_size"].GetInt();
-    const int bucket_size = mParameters["bucket_size"].GetInt();
-
-    // Defining the search structure
-    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
-        /// KDtree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using KDTree = Tree<KDTreePartition<BucketType>>;
-    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
-        /// Octree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using Octree = Tree<OCTreePartition<BucketType>>;
-    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
-        /// StaticBins definitions
-        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
-        /// BinsDynamic definitions
-        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
-    } else {
-        KRATOS_ERROR << "Unknown search backend" << std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
-void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusInclusive(
-    const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions,
-    const RadiusArrayType& rRadius,
-    VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
@@ -442,21 +274,6 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
 {
     VectorDistanceType distances;
     SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, rRadius, rResults, distances);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
-void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusInclusive(
-    const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions,
-    const RadiusArrayType& rRadius,
-    VectorResultNodesContainerType& rResults
-    )
-{
-    VectorDistanceType distances;
-    SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, rRadius, rResults, distances);
 }
 
 /***********************************************************************************/

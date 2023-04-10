@@ -248,22 +248,6 @@ public:
         ) override;
 
     /**
-    * @brief Search neighbours for every element in "rInputElements" including itself
-    * @param rStructureElements   List of elements against which the neighbours are searched
-    * @param rInputElements       List of elements to be searched
-    * @param rRadius              List of search radius for every element
-    * @param rResults             Array of results for each element
-    * @param rResultDistance      Array of distances for each result of each element
-    */
-    void SearchElementsInRadiusInclusive(
-        const ElementsContainerType& rStructureElements,
-        const ElementsContainerType& rInputElements,
-        const RadiusArrayType& rRadius,
-        VectorResultNodesContainerType& rResults,
-        VectorDistanceType& rResultsDistance
-        ) override;
-
-    /**
     * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rStructureElements   List of elements against which the neighbours are searched
     * @param rInputElements       List of elements to be searched
@@ -275,20 +259,6 @@ public:
         const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults
-        ) override;
-
-    /**
-    * @brief Search neighbours for every element in "InputElements" including itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param rRadius              List of search radius for every element
-    * @param rResults            Array of results for each element
-    */
-    void SearchElementsInRadiusInclusive(
-        const ElementsContainerType& rStructureElements,
-        const ElementsContainerType& rInputElements,
-        const RadiusArrayType& rRadius,
-        VectorResultNodesContainerType& rResults
         ) override;
 
     /**
@@ -308,22 +278,6 @@ public:
         ) override;
 
     /**
-    * @brief Search neighbours for every node in "rInputNodes" including itself
-    * @param rStructureNodes      List of nodes against which the neighbours are searched
-    * @param rInputNodes          List of nodes to be searched
-    * @param rRadius              List of search radius for every node
-    * @param rResults            Array of results for each node
-    * @param rResultDistance     Array of distances for each result of each node
-    */
-    void SearchNodesInRadiusInclusive(
-        const NodesContainerType& rStructureNodes,
-        const NodesContainerType& rInputNodes,
-        const RadiusArrayType& rRadius,
-        VectorResultNodesContainerType& rResults,
-        VectorDistanceType& rResultsDistance
-        ) override;
-
-    /**
     * @brief Search neighbours for every node in "rInputNodes" excluding itself
     * @param rModelPart          List of nodes against which the neighbours are searched
     * @param rInputNodes          List of nodes to be searched
@@ -331,20 +285,6 @@ public:
     * @param rResults            Array of results for each node
     */
     void SearchNodesInRadiusExclusive(
-        const NodesContainerType& rStructureNodes,
-        const NodesContainerType& rInputNodes,
-        const RadiusArrayType& rRadius,
-        VectorResultNodesContainerType& rResults
-        ) override;
-
-    /**
-    * @brief Search neighbours for every node in "rInputNodes" including itself
-    * @param rStructureNodes      List of nodes against which the neighbours are searched
-    * @param rInputNodes          List of nodes to be searched
-    * @param rRadius              List of search radius for every node
-    * @param rResults             Array of results for each node
-    */
-    void SearchNodesInRadiusInclusive(
         const NodesContainerType& rStructureNodes,
         const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
@@ -368,22 +308,6 @@ public:
         ) override;
 
     /**
-    * @brief Search neighbours for every Condition in "rInputConditions" including itself
-    * @param rStructureConditions   List of Conditions against which the neighbours are searched
-    * @param rInputConditions       List of Conditions to be searched
-    * @param rRadius                List of search radius for every Condition
-    * @param rResults               Array of results for each Condition
-    * @param rResultDistance        Array of distances for each result of each Condition
-    */
-    void SearchConditionsInRadiusInclusive(
-        const ConditionsContainerType& rStructureConditions,
-        const ConditionsContainerType& rInputConditions,
-        const RadiusArrayType& rRadius,
-        VectorResultNodesContainerType& rResults,
-        VectorDistanceType& rResultsDistance
-        ) override;
-
-    /**
     * @brief Search neighbours for every Condition in "rInputConditions" excluding itself
     * @param rStructureConditions   List of Conditions against which the neighbours are searched
     * @param rInputConditions       List of Conditions to be searched
@@ -395,20 +319,6 @@ public:
         const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults
-        ) override;
-
-    /**
-    * @brief Search neighbours for every Condition in "rInputConditions" including itself
-    * @param rStructureConditions   List of Conditions against which the neighbours are searched
-    * @param rInputConditions       List of Conditions to be searched
-    * @param rRadius                List of search radius for every Condition
-    * @param rResults               Array of results for each Condition
-    */
-    void SearchConditionsInRadiusInclusive(
-        const ConditionsContainerType& rStructureConditions,
-        const ConditionsContainerType& rInputConditions,
-        const RadiusArrayType& rRadius,
-        VectorResultNodesContainerType& rResults
         ) override;
 
     ///@}
