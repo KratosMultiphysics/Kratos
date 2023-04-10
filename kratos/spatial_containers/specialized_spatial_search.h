@@ -92,14 +92,13 @@ public:
     /// Default constructors
     PointObject():
         BaseType()
-    {}
-
-    PointObject(const double X, const double Y, const double Z)
-        : BaseType(X, Y, Z)
     {
-
     }
 
+    /**
+     * @brief Constructor with object
+     * @param pObject The pointer to the object
+     */
     PointObject(typename TObject::Pointer pObject):
         mpObject(pObject)
     {
@@ -121,6 +120,15 @@ public:
     ///@{
 
     /**
+     * @brief This function updates the database, using as base for the coordinates the condition center
+     */
+    void UpdatePoint();
+
+    ///@}
+    ///@name Acess
+    ///@{
+
+    /**
      * @brief Returns the geometry associated to the point
      * @return mrGeometry The reference to the geometry associated to the point
      */
@@ -130,10 +138,16 @@ public:
     }
 
     /**
-     * @brief This function updates the database, using as base for the coordinates the condition center
+     * @brief Sets the object associated to the point
+     * @param pObject The pointer to the object
      */
-    void UpdatePoint();
+    void pSetObject(typename TObject::Pointer pObject)
+    {
+        mpObject = pObject;
+        UpdatePoint();
+    }
 
+    ///@}
 private:
     ///@}
     ///@name Member Variables
