@@ -20,6 +20,7 @@
 #include "python/add_search_strategies_to_python.h"
 #include "utilities/parallel_utilities.h"
 #include "spatial_containers/spatial_search.h"
+#include "spatial_containers/specialized_spatial_search.h"
 
 namespace Kratos::Python
 {
@@ -614,6 +615,30 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
         return results_tuple;
     })
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::KDTree>, SpecializedSpatialSearch<SpatialContainer::KDTree>::Pointer>(m, "SpatialSearchKDTree")
+    .def(py::init< >())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::Octree>, SpecializedSpatialSearch<SpatialContainer::Octree>::Pointer>(m, "SpatialSearchOctree")
+    .def(py::init< >())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsStatic>, SpecializedSpatialSearch<SpatialContainer::BinsStatic>::Pointer>(m, "SpatialSearchBinsStatic")
+    .def(py::init< >())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsDynamic>, SpecializedSpatialSearch<SpatialContainer::BinsDynamic>::Pointer>(m, "SpatialSearchBinsDynamic")
+    .def(py::init< >())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>, SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>::Pointer>(m, "SpatialSearchBinsStaticObjects")
+    .def(py::init< >())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>, SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>::Pointer>(m, "SpatialSearchBinsDynamicObjects")
+    .def(py::init< >())
     ;
 }
 
