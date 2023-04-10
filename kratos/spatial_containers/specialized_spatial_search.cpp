@@ -16,6 +16,7 @@
 
 // Project includes
 #include "spatial_containers/specialized_spatial_search.h"
+#include "spatial_containers/spatial_containers.h"
 
 namespace Kratos
 {
@@ -60,7 +61,35 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     VectorDistanceType& rResultsDistance
     )
 {
-    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+    // Defining the point type for the search
+    using PointType = PointObject<Element>;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+
+    // Defining the search structure
+    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        /// KDtree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using KDTree = Tree<KDTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        /// Octree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using Octree = Tree<OCTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        /// StaticBins definitions
+        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
+        /// BinsDynamic definitions
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
+    } else {
+        KRATOS_ERROR << "Unknown search backend" << std::endl;
+    }
+
 }
 
 /***********************************************************************************/
@@ -75,7 +104,34 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusInclusive(
     VectorDistanceType& rResultsDistance
     )
 {
-    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+    // Defining the point type for the search
+    using PointType = PointObject<Element>;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+
+    // Defining the search structure
+    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        /// KDtree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using KDTree = Tree<KDTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        /// Octree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using Octree = Tree<OCTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        /// StaticBins definitions
+        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
+        /// BinsDynamic definitions
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
+    } else {
+        KRATOS_ERROR << "Unknown search backend" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -120,7 +176,34 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     VectorDistanceType& rResultsDistance
     )
 {
-    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+    // Defining the point type for the search
+    using PointType = PointObject<Node<3>>;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+
+    // Defining the search structure
+    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        /// KDtree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using KDTree = Tree<KDTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        /// Octree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using Octree = Tree<OCTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        /// StaticBins definitions
+        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
+        /// BinsDynamic definitions
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
+    } else {
+        KRATOS_ERROR << "Unknown search backend" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -135,7 +218,34 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusInclusive(
     VectorDistanceType& rResultsDistance
     )
 {
-    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+    // Defining the point type for the search
+    using PointType = PointObject<Node<3>>;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+
+    // Defining the search structure
+    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        /// KDtree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using KDTree = Tree<KDTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        /// Octree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using Octree = Tree<OCTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        /// StaticBins definitions
+        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
+        /// BinsDynamic definitions
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
+    } else {
+        KRATOS_ERROR << "Unknown search backend" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -180,7 +290,34 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
     VectorDistanceType& rResultsDistance
     )
 {
-    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+    // Defining the point type for the search
+    using PointType = PointObject<Condition>;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+
+    // Defining the search structure
+    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        /// KDtree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using KDTree = Tree<KDTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        /// Octree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using Octree = Tree<OCTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        /// StaticBins definitions
+        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
+        /// BinsDynamic definitions
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
+    } else {
+        KRATOS_ERROR << "Unknown search backend" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -195,7 +332,34 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusInclusive
     VectorDistanceType& rResultsDistance
     )
 {
-    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+    // Defining the point type for the search
+    using PointType = PointObject<Condition>;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+
+    // Defining the search structure
+    if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        /// KDtree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using KDTree = Tree<KDTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        /// Octree definitions
+        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using Octree = Tree<OCTreePartition<BucketType>>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        /// StaticBins definitions
+        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
+        /// BinsDynamic definitions
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
+    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
+    } else {
+        KRATOS_ERROR << "Unknown search backend" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -248,6 +412,6 @@ template class SpecializedSpatialSearch<SpatialContainer::KDTree>;
 template class SpecializedSpatialSearch<SpatialContainer::Octree>;
 template class SpecializedSpatialSearch<SpatialContainer::BinsStatic>;
 template class SpecializedSpatialSearch<SpatialContainer::BinsDynamic>;
-template class SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>;
-template class SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>;
+// template class SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>;
+// template class SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>;
 } // namespace Kratos.

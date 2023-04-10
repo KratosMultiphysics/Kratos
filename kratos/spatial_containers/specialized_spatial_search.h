@@ -49,9 +49,9 @@ enum class SpatialContainer
     KDTree,
     Octree,
     BinsStatic,
-    BinsDynamic,
-    BinsStaticObjects,
-    BinsDynamicObjects
+    BinsDynamic//,
+    // BinsStaticObjects,
+    // BinsDynamicObjects
 };
 
 ///@}

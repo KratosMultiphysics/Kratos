@@ -637,15 +637,15 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def(py::init<Parameters>())
     ;
 
-    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>, SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>::Pointer>(m, "SpatialSearchBinsStaticObjects")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
+    // py::class_<SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>, SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>::Pointer>(m, "SpatialSearchBinsStaticObjects")
+    // .def(py::init< >())
+    // .def(py::init<Parameters>())
+    // ;
 
-    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>, SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>::Pointer>(m, "SpatialSearchBinsDynamicObjects")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
+    // py::class_<SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>, SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>::Pointer>(m, "SpatialSearchBinsDynamicObjects")
+    // .def(py::init< >())
+    // .def(py::init<Parameters>())
+    // ;
 }
 
 }  // namespace Kratos::Python.
