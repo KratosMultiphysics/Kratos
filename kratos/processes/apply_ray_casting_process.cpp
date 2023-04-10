@@ -103,7 +103,8 @@ namespace Kratos
         return Parameters(R"({
             "distance_database" : "nodal_historical",
             "distance_variable" : "DISTANCE",
-            "relative_tolerance" : 1e-12
+            "relative_tolerance" : 1e-12,
+            "set_distance_on_interface_to_zero" : false
         })");
 
     }
@@ -131,13 +132,35 @@ namespace Kratos
 
         const Variable<double>* mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
 
+        auto set_distance_function = CreateSetNodalDistanceFunction();
+
         block_for_each(ModelPart1.Nodes(), [&](Node<3>& rNode){
             double& r_node_distance = node_distance_getter(rNode, *mpDistanceVariable);
             const double ray_distance = this->DistancePositionInSpace(rNode);
-            if (ray_distance * r_node_distance < 0.0) {
-                r_node_distance = -r_node_distance;
-            }
+            set_distance_function(ray_distance, r_node_distance);
         });
+    }
+
+    template<std::size_t TDim>
+    std::function<void(const double,double&)> ApplyRayCastingProcess<TDim>::CreateSetNodalDistanceFunction()
+    {
+        std::function<void(const double,double&)> set_distance_function;
+        if (mSettings["set_distance_on_interface_to_zero"].GetBool()) {
+            set_distance_function = [this](const double RayDistance, double& rNodeDistance) {
+                if (std::abs(RayDistance) < this->mEpsilon) {
+                    rNodeDistance = 0.0;
+                } else if (RayDistance * rNodeDistance < 0.0) {
+                    rNodeDistance = -rNodeDistance;
+                }
+            };
+        } else {
+            set_distance_function = [](const double RayDistance, double& rNodeDistance) {
+                if (RayDistance * rNodeDistance < 0.0) {
+                    rNodeDistance = -rNodeDistance;
+                }
+            };
+        }
+        return set_distance_function;
     }
 
     template<std::size_t TDim>

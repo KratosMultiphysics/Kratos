@@ -80,7 +80,7 @@ public:
         ModelPart& rSkinPart,
         Parameters ThisParameters = Parameters());
 
-    /**
+        /**
      * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
      *
      * @param rVolumePart model part containing the volume elements
@@ -104,7 +104,7 @@ public:
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
         Parameters ThisParameters = Parameters());
 
-	/**
+    /**
      * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
@@ -291,6 +291,12 @@ private:
      * This method sets the ray casting tolerances values according to the domain bounding box size
      */
     void SetRayCastingTolerances();
+
+    /**
+     * @brief This method returns the function that sets nodal distances after
+     * ray distances have been computed
+     */
+    std::function<void(const double,double&)> CreateSetNodalDistanceFunction();
 
     ///@}
     ///@name Private  Access
