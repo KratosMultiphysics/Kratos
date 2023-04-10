@@ -207,6 +207,8 @@ public:
      * @brief This method computes internal variables (B0, Sth and ALPHAT) of the CL
      * @param MaxStress Signed maximum stress in the current cycle.
      * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
+     * @param ReferenceDamage 
+     * @param ReferenceNumberOfCycles
      * @param MaterialParameters Material properties.
      * @param rB0 Internal variable of the fatigue model.
      * @param rSth Endurance limit of the fatigue model.
@@ -215,6 +217,8 @@ public:
     static void CalculateFatigueParameters(const double MaxStress,
                                             double Threshold,
                                             double ReversionFactor,
+                                            double ReferenceDamage,
+                                            unsigned int ReferenceNumberOfCycles,
                                             const Properties& rMaterialParameters,
                                             double& rB0,
                                             double& rSth,
@@ -263,20 +267,21 @@ public:
           if(std::abs(ReversionFactor) < 1.0){
                 rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
                 rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
-              
-                const double stress_relative_error =  std::abs(MaxStress - ultimate_stress) / ultimate_stress;         
-                if (stress_relative_error < 1.0e-6){
-                    rN_f = 1.0;
+
+                const double stress_relative_error = std::abs(MaxStress - ultimate_stress) / ultimate_stress;         
+                if (stress_relative_error <= 1.0e-3){
+                    rN_f = ReferenceNumberOfCycles;
                     if (ReversionFactor > 0.1){
-                        rB0 = (ReversionFactor / 1.0);
+                        rB0 = (ReversionFactor / (1.0 * (1 - ReferenceDamage)));
                     } else {
-                        rB0 = (0.1 / 1.0);
+                        rB0 = (0.1 / (1.0 * (1 - ReferenceDamage)));
                     }
                 }
                 
                 if (std::isnan(rN_f)) {
                     rN_f = 1.0e15;
                 }
+
                 // if (softening_type == curve_by_points) {
                 //     rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / ultimate_stress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));           
                 // }      
@@ -305,7 +310,6 @@ public:
                                                                 const double MaxStress,
                                                                 double ReversionFactor,
                                                                 unsigned int LocalNumberOfCycles,
-                                                                unsigned int ReferenceNumberOfCycles,
                                                                 unsigned int GlobalNumberOfCycles,
                                                                 const double B0,
                                                                 const double Sth,
@@ -342,19 +346,12 @@ public:
         if (MaxStress > Sth) {
             // const double N_f = std::pow(10.0,std::pow(-std::log((MaxStress - Sth) / (ultimate_stress - Sth))/Alphat,(1.0/BETAF)));
             const double stress_relative_error =  std::abs(MaxStress - ultimate_stress) / ultimate_stress;
-            if (stress_relative_error < 1.0e-6) {
-                rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * (LocalNumberOfCycles - ReferenceNumberOfCycles)));
+            if (stress_relative_error <= 1.0e-3) {
+                rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * (LocalNumberOfCycles)));
             } else {
                 rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
             }
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
-
-            // if(std::abs(ReversionFactor) < 1.001){
-            //     rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
-            //     rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
-            // }else{
-            //     rFatigueReductionFactor = 1.0;
-            // }
         } 
     }
 

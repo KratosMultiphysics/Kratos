@@ -422,8 +422,9 @@ private:
     unsigned int mNumberOfLoadIncrements = 1;
     unsigned int mNumberOfCyclesGlobal = 1; // Total number of cycles in the whole analysis
     unsigned int mNumberOfCyclesLocal = 1; // Equivalent number of cycles for the current cyclic load
-    unsigned int mReferenceNumberOfCycles = 0.0; // Equivalent number of cycles for the current cyclic load
-    bool mUpdateNumberOfCyclesLocal = false;
+    unsigned int mReferenceNumberOfCycles = 1e15; // Equivalent number of cycles for the current cyclic load
+    bool mExponentialPhaseDetected = false;
+    bool mRegularPhaseDetected = false;
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
     bool mFirstMaxDetected = true; // Maximum's indicator in the current cycle
