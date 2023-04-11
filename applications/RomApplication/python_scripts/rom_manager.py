@@ -230,6 +230,7 @@ class RomManager(object):
         RedidualsSnapshotsMatrix = []
         for mu in mu_train:
             parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreNoResults(parameters)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
@@ -354,7 +355,8 @@ class RomManager(object):
         """
         #other options: "trainHROM", "runHROM"
         #taken from code by Philipa & Catharina
-        parameters_file_name = './RomParameters.json'
+        parameters_file_name = self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()
+        parameters_file_name = f"{parameters_file_name}.json"
         with open(parameters_file_name, 'r+') as parameter_file:
             f=json.load(parameter_file)
             if simulation_to_run=='GalerkinROM':
@@ -512,15 +514,6 @@ class RomManager(object):
                 "create_hrom_visualization_model_part" : true
             }""")
         return hrom_training_parameters
-
-
-
-
-
-
-
-
-
 
 
 
