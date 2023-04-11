@@ -95,6 +95,11 @@ Element::Pointer SpringDamperElement<TDim>::Clone( IndexType NewId, NodesArrayTy
 }
 
 
+template<std::size_t TDim>
+SpringDamperElement<TDim>::~SpringDamperElement()
+{
+}
+
 //************* GETTING METHODS
 //************************************************************************************
 //************************************************************************************
