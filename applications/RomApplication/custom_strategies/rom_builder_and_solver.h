@@ -433,7 +433,8 @@ protected:
                 r_element.GetDofList(dofs, r_current_process_info);
                 for (IndexType i = 0; i < dofs.size(); ++i){
                     if (dofs[i]->IsFixed()){
-                        rb[dofs[i]->EquationId()] += rhs_elem[i]; // Building RHS.
+                        double& r_bi = rb[dofs[i]->EquationId()];
+                        AtomicAdd(r_bi, rhs_elem[i]); // Building RHS.
                     }
                 }
 
@@ -450,7 +451,8 @@ protected:
                 r_condition.GetDofList(dofs, r_current_process_info);
                 for (IndexType i = 0; i < dofs.size(); ++i){
                     if (dofs[i]->IsFixed()){
-                        rb[dofs[i]->EquationId()] += rhs_cond[i]; // Building RHS.
+                        double& r_bi = rb[dofs[i]->EquationId()];
+                        AtomicAdd(r_bi, rhs_cond[i]); // Building RHS.
                     }
                 }
 
