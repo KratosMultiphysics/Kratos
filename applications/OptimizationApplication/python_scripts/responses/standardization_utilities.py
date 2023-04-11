@@ -2,7 +2,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationData
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class StandardizationUtilities:
@@ -46,20 +45,20 @@ class StandardizationUtilities:
         if not response_data.HasValue("buffered"):
             # first create the buffered data containers to store light objects
             # such as primitive variables
-            self.__response_buffered_data = OptimizationData(required_buffer_size)
+            self.__response_buffered_data = OptimizationInfo.OptimizationData(required_buffer_size)
             response_data["buffered"] = self.__response_buffered_data
 
             # now create the sensitivities data container without buffer because
             # they store heavy objects containing sensitivities, and buffer
             # is not required.
-            self.__response_unbuffered_data = OptimizationData(1)
+            self.__response_unbuffered_data = OptimizationInfo.OptimizationData(1)
             response_data["unbuffered"] = self.__response_unbuffered_data
         else:
-            self.__response_buffered_data: OptimizationData = response_data["buffered"]
+            self.__response_buffered_data: OptimizationInfo.OptimizationData = response_data["buffered"]
             if self.__response_buffered_data.GetBufferSize() < required_buffer_size:
                 raise RuntimeError(f"The required buffer size is not satisfied with the existing problem data container. [ response data container buffer size = {self.__response_buffered_data.GetBufferSize()}, required buffer size = {required_buffer_size}")
 
-            self.__response_unbuffered_data: OptimizationData = response_data["unbuffered"]
+            self.__response_unbuffered_data: OptimizationInfo.OptimizationData = response_data["unbuffered"]
 
     def GetName(self) -> str:
         """Get the name of the response function
