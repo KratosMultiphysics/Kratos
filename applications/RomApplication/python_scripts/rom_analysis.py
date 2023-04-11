@@ -19,9 +19,17 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
         def _CreateSolver(self):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+            self.rom_basis_output_name = 'RomParameters.json' #Default
+            if self.project_parameters.Has("output_processes"):
+                for name, _ in self.project_parameters["output_processes"].items():
+                    if name=="rom_output":
+                        rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
+                        rom_basis_output_format = rom_output_paramaters[0]["Parameters"]["rom_basis_output_format"].GetString()
+                        rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
+                        self.rom_basis_output_name = rom_basis_output_name + "." + rom_basis_output_format
 
             # Get the ROM settings from the RomParameters.json input file
-            with open('RomParameters.json') as rom_parameters:
+            with open(self.rom_basis_output_name) as rom_parameters:
                 self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
 
             # Set the ROM settings in the "solver_settings" of the solver introducing the physics
@@ -156,10 +164,14 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             # Check for HROM stages
             if self.train_hrom:
+                # Pass the name of the Rom Parameters file
+                self.rom_parameters.AddString("rom_basis_output_name", self.rom_basis_output_name)
                 # Create the training utility to calculate the HROM weights
                 self.__hrom_training_utility = HRomTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)
+                # Remove the name of the Rom Parameters file
+                self.rom_parameters.RemoveValue("rom_basis_output_name")
             elif self.run_hrom:
                 if self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "json":
                     # Set the HROM weights in elements and conditions
