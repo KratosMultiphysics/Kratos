@@ -11,31 +11,24 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_KRATOS_APPLICATION_H_INCLUDED)
-#define KRATOS_KRATOS_APPLICATION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/kratos_components.h"
 #include "includes/element.h"
-#include "elements/mesh_element.h"
-#include "elements/distance_calculation_element_simplex.h"
-#include "elements/edge_based_gradient_recovery_element.h"
-#include "elements/levelset_convection_element_simplex.h"
-#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "includes/condition.h"
-#include "conditions/mesh_condition.h"
-#include "includes/periodic_condition.h"
-#include "utilities/quaternion.h"
-#include "includes/master_slave_constraint.h"
-#include "constraints/linear_master_slave_constraint.h"
+#include "includes/kratos_components.h"
 #include "includes/geometrical_object.h"
+#include "includes/periodic_condition.h"
+#include "includes/master_slave_constraint.h"
+#include "input_output/logger.h"
+#include "utilities/quaternion.h"
+#include "constraints/linear_master_slave_constraint.h"
 
-/* Geometries definition */
+// Geometries definition
 #include "geometries/register_kratos_components_for_geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -65,6 +58,16 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
+
+// Elements
+#include "elements/mesh_element.h"
+#include "elements/distance_calculation_element_simplex.h"
+#include "elements/edge_based_gradient_recovery_element.h"
+#include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
+
+// Conditions
+#include "conditions/mesh_condition.h"
 
 // Modelers
 #include "modeler/modeler.h"
@@ -653,5 +656,3 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif  // KRATOS_KRATOS_APPLICATION_H_INCLUDED  defined

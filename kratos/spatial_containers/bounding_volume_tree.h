@@ -4,17 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    hbui
 //
 
-
-#if !defined(KRATOS_BOUNDING_VOLUME_TREE_H_INCLUDED )
-#define  KRATOS_BOUNDING_VOLUME_TREE_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -23,9 +19,7 @@
 #include <vector>
 #include <set>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -34,7 +28,6 @@
 #include "includes/model_part.h"
 #include "geometries/point.h"
 #include "geometries/geometry.h"
-
 
 namespace Kratos
 {
@@ -609,6 +602,4 @@ private:
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_BOUNDING_VOLUME_TREE_H_INCLUDED  defined 
 

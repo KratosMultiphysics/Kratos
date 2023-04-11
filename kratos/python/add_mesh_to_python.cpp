@@ -532,9 +532,9 @@ void  AddMeshToPython(pybind11::module& m)
         return ids;
     })
     .def("GetDofList", [](const Element& self, const ProcessInfo& rProcessInfo){
-        Element::DofsVectorType dofs;
-        self.GetDofList(dofs, rProcessInfo);
-        return dofs;
+        std::vector<Dof<double>*> dofs_list;
+        self.GetDofList(dofs_list,rProcessInfo);
+        return dofs_list;
     })
     .def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("GetSpecifications", &Element::GetSpecifications)
@@ -658,9 +658,9 @@ void  AddMeshToPython(pybind11::module& m)
         return ids;
     })
     .def("GetDofList", [](const Condition& self, const ProcessInfo& rProcessInfo){
-        Condition::DofsVectorType dofs;
-        self.GetDofList(dofs, rProcessInfo);
-        return dofs;
+        std::vector<Dof<double>*> dofs_list;
+        self.GetDofList(dofs_list,rProcessInfo);
+        return dofs_list;
     })
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
