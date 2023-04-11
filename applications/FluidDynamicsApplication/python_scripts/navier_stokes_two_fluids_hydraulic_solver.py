@@ -75,7 +75,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 "limiter_coefficient": 1000
             },
 
-            "bad_computation_option":false,
             "eulerian_fm_ale": true,
             "eulerian_fm_ale_settings":{
                 "max_CFL" : 1.0,
@@ -84,7 +83,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 "eulerian_error_compensation" : false,
                 "element_type" : "levelset_convection_supg",
                 "element_settings" : {
-                    "dynamic_tau" : 0.0,
+                    "dynamic_tau" : 1.0,
                     "tau_nodal":true
                 }
             },
@@ -95,7 +94,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 "eulerian_error_compensation" : false,
                 "element_type" : "levelset_convection_supg",
                 "element_settings" : {
-                    "dynamic_tau" : 0.0,
+                    "dynamic_tau" : 1.0,
                     "tau_nodal":true
                 }
             },
@@ -152,6 +151,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("DISTANCE_GRADIENT")
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("VELOCITY")
 
+
         self.eulerian_fm_ale = self.settings["eulerian_fm_ale"].GetBool()
         if self.eulerian_fm_ale:
             self.fm_ale_variable = KratosMultiphysics.NODAL_PAUX
@@ -161,7 +161,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("VELOCITY_LAPLACIAN")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("NODAL_VAUX")
 
-        self.bad_computation_option = self.settings["bad_computation_option"].GetBool()
 
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
@@ -194,24 +193,14 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE) # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
+        
         if self.eulerian_fm_ale:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
-            self.main_model_part.AddNodalSolutionStepVariable(
-            KratosMultiphysics.VELOCITY_LAPLACIAN)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN)
 
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
-
-
-        if self.bad_computation_option:
-        # VELOCITY_X VELOCITY_Y VELOCITY_Z
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AIR_SOUND_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.WATER_SOUND_VELOCITY)
-
-            self.main_model_part.AddNodalSolutionStepVariable(
-            KratosMultiphysics.VELOCITY_LAPLACIAN)
 
     def PrepareModelPart(self):
         # Call the base solver PrepareModelPart()
@@ -249,144 +238,25 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         #Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
         self.initial_system_volume=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-        print("ANTES DE HACER NADA NUEVO 1")
-        for node in self.main_model_part.Nodes:
-            if node.Id ==38:
-                print("DISTANCE FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-                print("VELOCITY FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-
-                print("MESH VELOCITY FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 2))
 
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
+        
+        # FIXME: The order that works OK
+        self._GetLevelSetConvectionProcess()
         if self.eulerian_fm_ale:
             self._GetEulerianFmAleProcess()
 
-        print("CONTRUIMOS EL EULERIAN FM ALE NUEVO ")
-        for node in self.main_model_part.Nodes:
-            if node.Id ==38:
-                print("DISTANCE FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-                print("VELOCITY FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-
-                print("MESH VELOCITY FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1))
-
-        #FIXME:
-        if self.bad_computation_option:
-            domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-            computing_model_part = self.GetComputingModelPart()
-            linear_solver = self._GetLevelsetLinearSolver()
-            levelset_convection_settings_1 = KratosMultiphysics.Parameters(
-                """{
-                    "max_CFL": 1.0,
-                    "max_substeps": 0,
-                    "levelset_variable_name":"SOUND_VELOCITY",
-                    "levelset_gradient_variable_name":"VELOCITY_LAPLACIAN",
-                    "levelset_convection_variable_name":"VELOCITY",
-                    "eulerian_error_compensation": false,
-                    "element_type": "levelset_convection_supg",
-                    "element_settings": {
-                        "dynamic_tau": 0.0,
-                        "cross_wind_stabilization_factor": 0.7
-                    }
-            }""")
-            if domain_size == 2:
-                self.level_set_convection_process_VX = KratosMultiphysics.LevelSetConvectionProcess2D(
-                    computing_model_part,
-                    linear_solver,
-                    levelset_convection_settings_1)
-            else:
-                self.level_set_convection_process_VX = KratosMultiphysics.LevelSetConvectionProcess3D(
-                    computing_model_part,
-                    linear_solver,
-                    levelset_convection_settings_1)
-
-            levelset_convection_settings_2 = KratosMultiphysics.Parameters("""
-            {
-                "max_CFL": 1.0,
-                "max_substeps": 0,
-                "levelset_variable_name": "WATER_SOUND_VELOCITY",
-                "levelset_gradient_variable_name": "VELOCITY_LAPLACIAN",
-                "levelset_convection_variable_name": "VELOCITY",
-                "eulerian_error_compensation": false,
-                "element_type": "levelset_convection_supg",
-                "element_settings": {
-                    "dynamic_tau": 0.0,
-                    "cross_wind_stabilization_factor": 0.7
-                }
-            }""")
-            if domain_size == 2:
-                self.level_set_convection_process_VY = KratosMultiphysics.LevelSetConvectionProcess2D(
-                    computing_model_part,
-                    linear_solver,
-                    levelset_convection_settings_2)
-            else:
-                self.level_set_convection_process_VY = KratosMultiphysics.LevelSetConvectionProcess3D(
-                    computing_model_part,
-                    linear_solver,
-                    levelset_convection_settings_2)
-
-            levelset_convection_settings_3 = KratosMultiphysics.Parameters("""
-            {
-                "max_CFL": 1.0,
-                "max_substeps": 0,
-                "levelset_variable_name": "AIR_SOUND_VELOCITY",
-                "levelset_gradient_variable_name": "VELOCITY_LAPLACIAN",
-                "levelset_convection_variable_name": "VELOCITY",
-                "eulerian_error_compensation": false,
-                "element_type": "levelset_convection_supg",
-                "element_settings": {
-                    "dynamic_tau": 0.0,
-                    "cross_wind_stabilization_factor": 0.7
-                }
-            }""")
-            if domain_size == 2:
-                self.level_set_convection_process_VZ = KratosMultiphysics.LevelSetConvectionProcess2D(
-                    computing_model_part,
-                    linear_solver,
-                    levelset_convection_settings_3)
-            else:
-                self.level_set_convection_process_VZ = KratosMultiphysics.LevelSetConvectionProcess3D(
-                    computing_model_part,
-                    linear_solver,
-                    levelset_convection_settings_3)
 
 
-        print("CONTRUIMOS EL EULERIAN FM ALE VIEJO ")
-        for node in self.main_model_part.Nodes:
-            if node.Id ==38:
-                print("DISTANCE FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-                print("VELOCITY FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
+        # FIXME: The order that does NOT work OK
+        
+        # if self.eulerian_fm_ale:
+        #     self._GetEulerianFmAleProcess()
+        # self._GetLevelSetConvectionProcess()
+            
 
-                print("MESH VELOCITY FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1))
-
-
-        self._GetLevelSetConvectionProcess()
         self.mass_source = False
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
@@ -409,11 +279,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
-        # if self.eulerian_fm_ale:
-        #     KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(self.eulerian_gradient, self.main_model_part.Nodes)
-        #     KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(self.fm_ale_variable, self.main_model_part.Nodes)
-        #     KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(self.eulerian_convection_var, self.main_model_part.Nodes)
-
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.OUTLET)
@@ -427,214 +292,24 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Perform the level-set convection according to the previous step velocity
 
-        proces_info = self.main_model_part.ProcessInfo
-        print("###############################")
-        print("###############################")
-        print(" STEP: ", proces_info[KratosMultiphysics.STEP])
-        print("###############################")
-        print("###############################")
         for node in self.main_model_part.Nodes:
-            if node.Id == 38:
-                print("Before phi convection")
-                print("v_0", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
-                print("v_1", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                print("v_2", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-                print("vm_0", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0))
-                print("vm_1", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,1))
-                print("vm_2", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,2))
-                print("phi_0", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print("phi_1", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print("phi_2", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-                break
+            if node.Id ==38:
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
+
+
+
         self._PerformLevelSetConvection()
 
         for node in self.main_model_part.Nodes:
-            if node.Id == 38:
-                print("After phi convection - Before eulerian FM-ALE")
-                print("v_0", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
-                print("v_1", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                print("v_2", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-                print("vm_0", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0))
-                print("vm_1", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,1))
-                print("vm_2", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,2))
-                print("phi_0", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print("phi_1", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print("phi_2", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-                break
+            if node.Id ==38:
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
+
         if self.eulerian_fm_ale:
             self._PerformEulerianFmAleVelocity()
-
-
-        for node in self.main_model_part.Nodes:
-            if node.Id == 38:
-                print("After eulerian FM-ALE")
-                print("v_0", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
-                print("v_1", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                print("v_2", node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-                print("vm_0", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0))
-                print("vm_1", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,1))
-                print("vm_2", node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,2))
-                print("phi_0", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print("phi_1", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print("phi_2", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-                break
-
-        if proces_info[KratosMultiphysics.STEP] > 1:
-            raise Exception("")
-
-        # FIXME:
-        if self.bad_computation_option:
-
-
-            for node in self.main_model_part.Nodes:
-                if node.Id == 38:
-                    print("pre hacer nada")
-                    print("BUFFER 0")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN))
-
-
-                    print("BUFFER 1")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN,1))
-
-
-                    print("BUFFER 2")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN,2))
-
-            for node in self.GetComputingModelPart().Nodes:
-                v_x = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                v_y = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-                v_z = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-                node.SetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,  v_x)
-                node.SetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,  v_y)
-                node.SetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY, v_z)
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN, [0.0, 0.0,0.0])
-
-                if node.Id == 38:
-                    print("setear las variables  a convectar")
-                    print("BUFFER 0")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN))
-
-
-                    print("BUFFER 1")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN,1))
-
-
-                    print("BUFFER 2")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN,2))
-
-
-            self.level_set_convection_process_VX.Execute()
-            self.level_set_convection_process_VZ.Execute()
-            self.level_set_convection_process_VY.Execute()
-
-
-            if node.Id == 38:
-                print("trans convectar")
-                print("BUFFER 0")
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
-                print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY))
-                print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY))
-                print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN))
-                print("BUFFER 1")
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                print(node.SetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN,1))
-                print("BUFFER 2")
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-                print(node.SetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,2))
-                print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,2))
-                print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY,2))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN,2))
-            for node in self.GetComputingModelPart().Nodes:
-
-                v_x_convected = node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY)
-                v_y_convected = node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY)
-                v_z_convected = node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY)
-
-                if not node.IsFixed(KratosMultiphysics.VELOCITY_X):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, v_x_convected)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 1, v_x_convected)
-                    node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_X, v_x_convected)
-                if not node.IsFixed(KratosMultiphysics.VELOCITY_Y):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, v_y_convected)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 1, v_y_convected)
-                    node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_Y, v_y_convected)
-                if not node.IsFixed(KratosMultiphysics.VELOCITY_Z):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, v_z_convected)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 1, v_z_convected)
-                    node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_Z, v_z_convected)
-
-                if node.Id == 38:
-                    print("trans convectar")
-                    print("BUFFER 0")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN))
-
-
-                    print("BUFFER 1")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN,1))
-
-
-                    print("BUFFER 2")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.WATER_SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.AIR_SOUND_VELOCITY,2))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_LAPLACIAN,2))
-
-
-                    print("DISTANCIA")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-
-
-
-                    print("VELOCIDADES")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-
-                    print("velocidad de la malla")
-                    print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,1))
-                    print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,2))
-
-
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -659,6 +334,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # We set this value at every time step as other processes/solvers also use them
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
 
@@ -683,22 +359,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Artificial viscosity for shock capturing.
         if self.artificial_viscosity:
             self.__CalculateArtificialViscosity()
-
-        for node in self.main_model_part.Nodes:
-            if node.Id ==38:
-                print("DISTANCE FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-                print("VELOCITY FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2))
-
-                print("MESH VELOCITY FINAL TIME STEP")
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 2))
 
 
 
@@ -756,12 +416,15 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(self.eulerian_gradient, self.main_model_part.Nodes)
 
         for i in range(domain_size):
+
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 0, 0)
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 1, 1)
-
+ 
             self._GetEulerianFmAleProcess().Execute()
-
             self.__CorrectVelocityHistory(velocity_components[i], mesh_var[i])
+
+
+
 
     def __CorrectVelocityHistory(self,velocity_components, mesh_variable):
         for node in self.GetComputingModelPart().Nodes:
