@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, Union
+from inspect import getmro
 
-class OptimizationInfo:
-    """Optimization info data container with buffered data ability
+class OptimizationData:
+    """Optimization data container with buffered data ability
 
     Instances of this can hold (str, Any) data pairs in hierachychal data
     structure where each sub item can have their own buffer sizes. Hence,
@@ -22,9 +23,9 @@ class OptimizationInfo:
     The buffered data is stored in a cyclic buffer.
     """
     def __init__(self, buffer_size: int = 1):
-        """Creates an instance of OptimizationInfo with specified buffer size
+        """Creates an instance of OptimizationData with specified buffer size
 
-        This creates an instance of Optimization info with given buffer size.
+        This creates an instance of Optimization data with given buffer size.
 
         Args:
             buffer_size (int, optional): Cyclic buffer size. Defaults to 1.
@@ -32,7 +33,7 @@ class OptimizationInfo:
         self.__parent = None
         self.__buffer_index = 0
         self.__buffered_data: 'list[dict[str, Any]]' = []
-        self.__sub_items: 'dict[str, OptimizationInfo]' = {}
+        self.__sub_items: 'dict[str, OptimizationData]' = {}
 
         # sets the buffer
         self.__SetBufferSize(buffer_size)
@@ -74,7 +75,7 @@ class OptimizationInfo:
                 sub_item.ClearStep(step_index, recursive)
 
     def GetBufferSize(self) -> int:
-        """Returns the buffer size of current isntance of optimization info
+        """Returns the buffer size of current isntance of optimization data
 
         Returns:
             int: Buffer size of the cyclic buffer
@@ -119,7 +120,7 @@ class OptimizationInfo:
         """Get the value given by the key at the specified step_index.
 
         This method retrieves the value given by the key at the specified step_index.
-        The key must be the relative path w.r.t. current instance of the OptimizationInfo.
+        The key must be the relative path w.r.t. current instance of the OptimizationData.
         It can include "/" seperators to get a value which is in sub items. In this case,
         it will be retrieved by recursive calls.
 
@@ -139,7 +140,7 @@ class OptimizationInfo:
         if pos == -1:
             # this is a leaf key, then look for the value
             if not self.HasValue(key, step_index):
-                raise RuntimeError(f"The key \"{key}\" not found in the optimization info [ step_index = {step_index} ]. OptimizationInfo:\n{self}")
+                raise RuntimeError(f"The key \"{key}\" not found in the optimization data [ step_index = {step_index} ]. OptimizationData:\n{self}")
 
             # first in the value container
             if step_index < self.GetBufferSize() and step_index >= 0:
@@ -154,13 +155,13 @@ class OptimizationInfo:
             if current_key in self.__sub_items.keys():
                 return self.__sub_items[current_key].GetValue(key[pos+1:], step_index)
             else:
-                raise RuntimeError(f"The key \"{current_key}\" not found in the optimization info which is a parent key for \"{key}\". OptimizationInfo:\n{self}")
+                raise RuntimeError(f"The key \"{current_key}\" not found in the optimization data which is a parent key for \"{key}\". OptimizationData:\n{self}")
 
     def SetValue(self, key: str, value: Any, step_index: int = 0) -> None:
         """Sets a value for specified key at specified step_index.
 
         This method sets the value at the key at the specified step_index.
-        The key must be the relative path w.r.t. current instance of the OptimizationInfo.
+        The key must be the relative path w.r.t. current instance of the OptimizationData.
         It can include "/" seperators to set a value which is in sub items. In this case,
         it will be set by recursive calls.
 
@@ -177,8 +178,8 @@ class OptimizationInfo:
             # this is a leaf, then we check the type of the value and add appropriately
             if isinstance(value, dict):
                 # if the given value is a dict, then convert the structure
-                # to OptimizationInfo while keeping the sub_item structure.
-                sub_item = OptimizationInfo(self.GetBufferSize())
+                # to OptimizationData while keeping the sub_item structure.
+                sub_item = OptimizationData(self.GetBufferSize())
                 sub_item.__parent = self
                 self.__AddSubItem(key, sub_item)
 
@@ -186,9 +187,9 @@ class OptimizationInfo:
                 # add them to sub_item
                 for sub_key, sub_value in value.items():
                     sub_item.SetValue(f"{sub_key}", sub_value, step_index)
-            elif isinstance(value, OptimizationInfo):
+            elif isinstance(value, OptimizationData):
                 value.__parent = self
-                # if the given value is of type OptimizationInfo, then put it to sub_items.
+                # if the given value is of type OptimizationData, then put it to sub_items.
                 self.__AddSubItem(key, value)
             else:
                 # if not any of the above, it is a normal value. Then put it to buffer.
@@ -199,7 +200,7 @@ class OptimizationInfo:
             current_key = key[:pos]
             if not current_key in self.__sub_items.keys():
                 # no existing key found then create it.
-                sub_item = OptimizationInfo(self.GetBufferSize())
+                sub_item = OptimizationData(self.GetBufferSize())
                 sub_item.__parent = self
                 self.__AddSubItem(current_key, sub_item)
 
@@ -209,7 +210,7 @@ class OptimizationInfo:
         """Remove value at the key in the specified step_index
 
         This method removes value at the key specified at the step_index.
-        The key must be the relative path w.r.t. current instance of the OptimizationInfo.
+        The key must be the relative path w.r.t. current instance of the OptimizationData.
         It can include "/" seperators to remove a value which is in sub items. In this case,
         it will be removed by recursive calls.
 
@@ -241,7 +242,7 @@ class OptimizationInfo:
                     del self.__sub_items[key]
 
             if not is_reomved:
-                raise RuntimeError(f"\"{key}\" is not found. OptimizationInfo:\n{self}")
+                raise RuntimeError(f"\"{key}\" is not found. OptimizationData:\n{self}")
         else:
             # it is not a leaf key
             current_key = key[:pos]
@@ -249,13 +250,13 @@ class OptimizationInfo:
                 # call recursively the sub_items remove value
                 self.__sub_items[current_key].RemoveValue(key[pos+1:], step_index)
             else:
-                raise RuntimeError(f"\"{key}\" is not found. OptimizationInfo:\n{self}")
+                raise RuntimeError(f"\"{key}\" is not found. OptimizationData:\n{self}")
 
     def GetMap(self, step_index: int = 0) -> 'dict[str, Any]':
-        """Generates (str, Any) pair map with recursively collecting all items in the OptimizationInfo
+        """Generates (str, Any) pair map with recursively collecting all items in the OptimizationData
 
-        This method recursively collects all items in the optimization info and returns a dict
-        with (str, Any) pairs. All the sub_items are also added as (str, OptimizationInfo) pairs.
+        This method recursively collects all items in the optimization data and returns a dict
+        with (str, Any) pairs. All the sub_items are also added as (str, OptimizationData) pairs.
 
         Args:
             step_index (int, optional):  Step index the value should be looked at. Defaults to 0.
@@ -267,21 +268,21 @@ class OptimizationInfo:
         self.__AddKeyValuePairsToMap("", key_value_pair_map, step_index)
         return key_value_pair_map
 
-    def GetParent(self) -> OptimizationInfo:
-        """Get the parent of the current optimization info
+    def GetParent(self) -> OptimizationData:
+        """Get the parent of the current optimization data
 
         Returns:
-            OptimizationInfo: Returns parent of the current instance.
+            OptimizationData: Returns parent of the current instance.
         """
         return self.__parent
 
-    def GetRoot(self) -> OptimizationInfo:
-        """Get the root parent of the current optimization info
+    def GetRoot(self) -> OptimizationData:
+        """Get the root parent of the current optimization data
 
-        Get the root parent of the current optimization info by recursive calls.
+        Get the root parent of the current optimization data by recursive calls.
 
         Returns:
-            OptimizationInfo: Root parent of the current optimization info.
+            OptimizationData: Root parent of the current optimization data.
         """
         if self.GetParent() is not None:
             return self.GetParent().GetRoot()
@@ -326,11 +327,11 @@ class OptimizationInfo:
         # first check whether this key exists in the specified step_index
         buffer_data = self.__buffered_data[self.__GetBufferIndex(step_index)]
         if key in buffer_data.keys():
-            raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when already value exists for the key [ Existing value = {buffer_data[key]}]. OptimizationInfo:\n{self}")
+            raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when already value exists for the key [ Existing value = {buffer_data[key]}]. OptimizationData:\n{self}")
 
         # now check whether a sub item exists
         if key in self.__sub_items.keys():
-            raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when a subitem exists with the same key. OptimizationInfo:\n{self}")
+            raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when a subitem exists with the same key. OptimizationData:\n{self}")
 
         # now add the buffer value
         buffer_data[key] = value
@@ -339,11 +340,11 @@ class OptimizationInfo:
         # first check if any of the buffered data has the same key.
         # this is because, sub_items are valid for all step_indices.
         if any([key in buffer_data.keys() for buffer_data in self.__buffered_data]):
-            raise RuntimeError(f"Trying to add a new a sub item with key = \"{key}\" when a value with the same key exists in buffered data. OptimizationInfo:\n{self}")
+            raise RuntimeError(f"Trying to add a new a sub item with key = \"{key}\" when a value with the same key exists in buffered data. OptimizationData:\n{self}")
 
         # now check if the item exists in the sub_items
         if key in self.__sub_items.keys():
-            raise RuntimeError(f"Trying to add a new sub_item with key = \"{key}\" when already a sub item exists. OptimizationInfo:\n{self}")
+            raise RuntimeError(f"Trying to add a new sub_item with key = \"{key}\" when already a sub item exists. OptimizationData:\n{self}")
 
         # now add the sub_item
         self.__sub_items[key] = value
@@ -356,7 +357,7 @@ class OptimizationInfo:
 
     def __GetBufferIndex(self, step_index: int) -> int:
         if step_index >= self.GetBufferSize() or step_index < 0:
-            raise RuntimeError(f"Invalid step index. Allowed step indices are in [0, {self.GetBufferSize()}) [ StepIndex = {step_index} ]. OptimizationInfo:\n{self}")
+            raise RuntimeError(f"Invalid step index. Allowed step indices are in [0, {self.GetBufferSize()}) [ StepIndex = {step_index} ]. OptimizationData:\n{self}")
 
         return (self.__buffer_index - step_index) % self.GetBufferSize()
 
@@ -409,3 +410,185 @@ class OptimizationInfo:
     def __str__(self) -> str:
         return self.__Info(-1, "")
 
+
+class OptimizationInfo:
+    """This is the main data holder for optimization problems
+
+    This class holds one private @ref OptimizationData container
+    which is used to hold components of the optimization problem being solved,
+    and the problem data generated while solving the optimization problem.
+
+    """
+    def __init__(self) -> None:
+        """Creates an instance of Optimization info
+
+        Creates an instance of optimization info with most basic structure
+        for the OptimizationData container.
+
+        """
+        self.__optimization_data = OptimizationData(1)
+
+        # create the unbuffered optimization components data container
+        self.__optimization_data["components"] = {}
+        self.__components: OptimizationData = self.__optimization_data["components"]
+
+        # create the unbufferd optimization problem data container
+        self.__optimization_data["problem_data"] = {}
+        self.__problem_data: OptimizationData = self.__optimization_data["problem_data"]
+
+        # initialize the step
+        self.__problem_data["step"] = 0
+
+    def AddComponent(self, name: str, component: Any) -> None:
+        """Adds a component to optimization info.
+
+        Args:
+            name (str): Name of the component.
+            component (Any): Component to be added.
+
+        Raises:
+            RuntimeError: If a component exists with the specified name.
+        """
+        if self.__components.HasValue(name):
+            raise RuntimeError(f"A component with name = \"{name}\" already exists in the components. Followings are the available components:\n{self.GetAvailableComponents()}")
+
+        self.__components[name] = component
+
+    def GetComponent(self, name: str) -> Any:
+        """Get the component specified by the name
+
+        Args:
+            name (str): Name of the component.
+
+        Raises:
+            RuntimeError: If a component does not exist for the given name.
+
+        Returns:
+            Any: Component for the specified name.
+        """
+        if self.__components.HasValue(name):
+            return self.__components[name]
+        else:
+            raise RuntimeError(f"No component with name = \"{name}\" exists in the components. Followings are the available components:\n{self.GetAvailableComponents()}")
+
+    def RemoveComponent(self, name: str) -> None:
+        """Removes a component from the optimization info.
+
+        This does not delete the original component. It merely removes it from
+        the optimization info.
+
+        Args:
+            name (str): Name of the component to be removed.
+
+        Raises:
+            RuntimeError: If a component does not exist for the given name.
+        """
+        if self.__components.HasValue(name):
+            del self.__components[name]
+        else:
+            raise RuntimeError(f"No component with name = \"{name}\" exists in the components. Followings are the available components:\n{self.GetAvailableComponents()}")
+
+    def GetAvailableComponents(self, reference_type: Any = object) -> str:
+        """Gives formatted string with grouped components.
+
+        This gives back a string with all the components available in optimization info
+        grouped by their inheritance hierarchy.
+
+        If reference_type is specified, then it will give only available components of that type.
+
+        Args:
+            reference_type (Any, optional): Reference type. Defaults to object.
+
+        Returns:
+            str: Formatted string with available components.
+        """
+        component_type_name_dict: 'dict[str, list[str]]' = {}
+        for name, component in self.__components.GetMap().items():
+            if isinstance(component, reference_type):
+                component_type =  ".".join([c.__name__ for c in reversed(getmro(type(component))[1:-1])])
+                if component_type not in component_type_name_dict.keys():
+                    component_type_name_dict[component_type] = []
+
+                component_type_name_dict[component_type].append(name)
+
+        msg = ""
+        for component_type, names_list in component_type_name_dict.items():
+            msg += f"\t{component_type} ->\n\t\t"
+            msg += "\n\t\t".join(names_list)
+            msg += "\n"
+
+        return msg
+
+    def GetComponentsContainer(self) -> OptimizationData:
+        """Gets the components container
+
+        Returns:
+            OptimizationData: Components container.
+        """
+        return self.__components
+
+    def GetStep(self) -> int:
+        """Gets the current step of the optimization info
+
+        Returns:
+            int: Current step of the optimization info.
+        """
+        return self.__problem_data["step"]
+
+    def AdvanceStep(self) -> None:
+        """Advances the problem data by one step.
+
+        This method advances problem data by one step and
+        clears all the data in the advanced step.
+
+        """
+        current_step = self.__problem_data["step"]
+        self.__problem_data.AdvanceStep()
+        self.__problem_data.ClearStep()
+        self.__problem_data["step"] = current_step + 1
+
+    def GetProblemDataContainer(self) -> OptimizationData:
+        """Gets the global problem data container.
+
+        Returns:
+            OptimizationData: Global problem data container.
+        """
+        return self.__problem_data
+
+    def GetComponentProblemDataContainer(self, component: Union[str, Any]) -> OptimizationData:
+        """Get component specific problem data container.
+
+        This method retrieves problem data container specific for the component provided. The component
+        can be specified as either the component name (str) or the actual component.
+
+        Args:
+            component (Union[str, Any]): Component name or the component.
+
+        Raises:
+            RuntimeError: If the component name is not found in the added components list.
+            RuntimeError: If the component is not found in the added components list.
+
+        Returns:
+            OptimizationData: Optimization data for the specified component.
+        """
+        if isinstance(component, str):
+            # component is given as a name
+            if self.__components.HasValue(component):
+                data_name = component
+            else:
+                raise RuntimeError(f"No component found with name = \"{component}\" to retrieve data for. Followings are available components:\n{self.GetAvailableComponents()}")
+        else:
+            # component is given as an object
+            data_name = None
+            for name, available_component in self.__components.GetMap().items():
+                if id(component) == id(available_component):
+                    data_name = name
+                    break
+
+            if data_name == None:
+                raise RuntimeError(f"No component for reffered \"{component}\" is found in components to retrieve data for. Followings are available components:\n{self.GetAvailableComponents()}")
+
+        if not self.__problem_data.HasValue(data_name):
+            self.__problem_data[data_name] = {}
+
+        return self.__problem_data[data_name]

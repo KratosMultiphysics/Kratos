@@ -4,7 +4,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_info impo
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.communicators.optimization_component_communicator import OptimizationComponentCommunicator
 
 
 class LinearStrainEnergyResponseFunction(ResponseFunction):
@@ -23,7 +22,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
-        self.primal_analysis_execution_policy_wrapper = OptimizationComponentCommunicator(optimization_info).GetExecutionPolicyDecorator(parameters["primal_analysis_name"].GetString())
+        self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_info.GetComponent(parameters["primal_analysis_name"].GetString())
 
         self.model_parts: 'list[Kratos.ModelPart]' = []
         for model_part_name in parameters["evaluated_model_part_names"].GetStringArray():
@@ -40,7 +39,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
 
     def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[SupportedSensitivityFieldVariableTypes, list[Kratos.ModelPart]]') -> None:
         # get the evaluated model part
-        analysis_model_part = self.primal_analysis_execution_policy_wrapper.GetExecutionPolicy().GetAnalysisModelPart()
+        analysis_model_part = self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().GetAnalysisModelPart()
         KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateSensitivity(analysis_model_part, self.model_parts, sensitivity_model_part_variable_info, self.perturbation_size)
 
 

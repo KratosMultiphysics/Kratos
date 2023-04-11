@@ -8,7 +8,6 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.linear_strain_energy_response_function import LinearStrainEnergyResponseFunction
-from KratosMultiphysics.OptimizationApplication.utilities.communicators.optimization_component_communicator import OptimizationComponentCommunicator
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
@@ -40,8 +39,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
                 "log_file_name"            : "structure.log"
             }""")
             cls.execution_policy_decorator = ExecutionPolicyDecorator(cls.model, execution_policy_wrapper_settings, cls.optimization_info)
-            cls.component_communicator = OptimizationComponentCommunicator(cls.optimization_info)
-            cls.component_communicator.AddExecutionPolicyDecorator(cls.execution_policy_decorator)
+            cls.optimization_info.AddComponent(cls.execution_policy_decorator.GetExecutionPolicyName(), cls.execution_policy_decorator)
 
             Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 

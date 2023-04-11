@@ -2,23 +2,20 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.communicators.optimization_component_communicator import OptimizationComponentCommunicator
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationData
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
-class ResponseFunctionCommunicator:
-    """Communicator class to unify communication between responses and OptimizationInfo
+class StandardizationUtilities:
+    """Communicator class to simplify standardization between responses and OptimizationInfo
 
-    Instances of this class unifies communication between OptimizationInfo
-    and responses. Otherwise, a response functioncan create the string "key" with arbitary names
-    which is difficult for tracking. This class creates all the necessary basic
-    data structure within proper places of OptimizationInfo and gives access to them
-    via defined methods such as GetBufferedDataContainer and GetUnbufferedDataContainer
+    Instances of this class simplifies between OptimizationInfo
+    and responses.
 
     """
     def __init__(self, name: str, optimization_info: OptimizationInfo, required_buffer_size: int = 2):
-        """Creates an instance of ResponseFunctionCommunicator.
+        """Creates an instance of StandardizationUtilities.
 
-        This creates an instance of response function communicator. If it finds an already existing
+        This creates an instance of response function utility. If it finds an already existing
         response function problem data, then this communicator links to it. Otherwise, it creates
         respective response function problem data containers in OptimizationInfo
 
@@ -37,33 +34,32 @@ class ResponseFunctionCommunicator:
             RuntimeError: If the given name is not found in responses.
             RuntimeError: If the required buffer size does not match the existing buffer size.
         """
+        self.__optimization_info = optimization_info
+
         # minimum buffer size of 2 is required for the communicator
         # algorithm can request higher buffer sizes if required.
         required_buffer_size = max(required_buffer_size, 2)
+        response_data = optimization_info.GetComponentProblemDataContainer(name)
+        self.__response_function: ResponseFunction = optimization_info.GetComponent(name)
+        self.__name = name
 
-        self.__optimization_component_communicator = OptimizationComponentCommunicator(optimization_info)
-        problem_data = self.__optimization_component_communicator.GetProblemData()
-
-        if not problem_data.HasValue(f"responses/{name}"):
+        if not response_data.HasValue("buffered"):
             # first create the buffered data containers to store light objects
             # such as primitive variables
-            self.__response_buffered_data = OptimizationInfo(required_buffer_size)
-            problem_data[f"responses/{name}"] = self.__response_buffered_data
+            self.__response_buffered_data = OptimizationData(required_buffer_size)
+            response_data["buffered"] = self.__response_buffered_data
 
             # now create the sensitivities data container without buffer because
             # they store heavy objects containing sensitivities, and buffer
             # is not required.
-            self.__response_unbuffered_data = OptimizationInfo(1)
-            problem_data[f"responses/{name}/sensitivities"] = self.__response_unbuffered_data
+            self.__response_unbuffered_data = OptimizationData(1)
+            response_data["unbuffered"] = self.__response_unbuffered_data
         else:
-            self.__response_buffered_data: OptimizationInfo = problem_data[f"responses/{name}"]
+            self.__response_buffered_data: OptimizationData = response_data["buffered"]
             if self.__response_buffered_data.GetBufferSize() < required_buffer_size:
                 raise RuntimeError(f"The required buffer size is not satisfied with the existing problem data container. [ response data container buffer size = {self.__response_buffered_data.GetBufferSize()}, required buffer size = {required_buffer_size}")
 
-            self.__response_unbuffered_data: OptimizationInfo = problem_data[f"responses/{name}/sensitivities"]
-
-        self.__response_function = self.__optimization_component_communicator.GetResponseFunction(name)
-        self.__name = name
+            self.__response_unbuffered_data: OptimizationData = response_data["unbuffered"]
 
     def GetName(self) -> str:
         """Get the name of the response function
@@ -104,7 +100,7 @@ class ResponseFunctionCommunicator:
         """Gets or calculates scaled response value.
 
         If step__index == 0, then this method first checks whether the response value is
-        alread calculated, if not calculates and gets the scaled response function value
+        already calculated, if not calculates and gets the scaled response function value
 
         Otherwise, it only returns the response function value by scaling it.
 
@@ -131,7 +127,7 @@ class ResponseFunctionCommunicator:
         Returns:
             float: Relative change ratio of the response value.
         """
-        if self.__optimization_component_communicator.GetStep() > 1:
+        if self.__optimization_info.GetStep() > 1:
             return self.GetScaledValue() / self.GetScaledValue(1) - 1.0 if abs(self.GetScaledValue(1)) > 1e-12 else self.GetScaledValue()
         else:
             return 0.0

@@ -9,8 +9,6 @@ from KratosMultiphysics.OptimizationApplication.responses.mass_response_function
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.responses.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.responses.standardized_constraint import StandardizedConstraint
-from KratosMultiphysics.OptimizationApplication.utilities.communicators.response_function_communicator import ResponseFunctionCommunicator
-from KratosMultiphysics.OptimizationApplication.utilities.communicators.optimization_component_communicator import OptimizationComponentCommunicator
 
 class TestStandardizedComponent(kratos_unittest.TestCase):
     @classmethod
@@ -20,8 +18,7 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
         cls.optimization_info = OptimizationInfo()
 
         cls.response_function = MassResponseFunction(cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""), cls.optimization_info)
-        cls.communicator = OptimizationComponentCommunicator(cls.optimization_info)
-        cls.communicator.AddResponseFunction("mass", cls.response_function)
+        cls.optimization_info.AddComponent("mass", cls.response_function)
 
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
@@ -42,7 +39,7 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
         cls.response_function.Check()
 
     def _CheckSensitivity(self, standardized_component: Union[StandardizedObjective, StandardizedConstraint], delta: float, precision: int):
-        self.communicator.AdvanceStep()
+        self.optimization_info.AdvanceStep()
         container_expression = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
         collective_expression = KratosOA.ContainerExpression.CollectiveExpressions([container_expression])
         sensitivities = {KratosOA.DENSITY_SENSITIVITY: collective_expression}
@@ -52,7 +49,7 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
         ref_value = standardized_component.GetStandardizedValue()
         for element in self.model_part.Elements:
             element.Properties[Kratos.DENSITY] += delta
-            self.communicator.AdvanceStep()
+            self.optimization_info.AdvanceStep()
             value = standardized_component.GetStandardizedValue()
             sensitivity = (value - ref_value)/delta
             element.Properties[Kratos.DENSITY] -= delta
@@ -102,12 +99,12 @@ class TestStandardizedObjective(TestStandardizedComponent):
         self.assertEqual(self.standardized_objective.GetResponseFunctionName(), "mass")
 
     def test_GetResponseType(self):
-        self.assertEqual(self.standardized_objective.GetResponseType(), "maximization")
+        self.assertEqual(self.standardized_objective.GetType(), "maximization")
 
     def test_UpdateObjectiveData(self):
         self.standardized_objective.UpdateObjectiveData()
-        response_data = ResponseFunctionCommunicator("mass", self.optimization_info).GetBufferedDataContainer()
-        self.assertEqual(response_data["type"], self.standardized_objective.GetResponseType())
+        response_data = self.optimization_info.GetComponentProblemDataContainer("mass")["buffered"]
+        self.assertEqual(response_data["type"], self.standardized_objective.GetType())
         self.assertTrue(response_data.HasValue("rel_change"))
         self.assertTrue(response_data.HasValue("abs_change"))
 
@@ -203,12 +200,12 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         self.assertEqual(self.standardized_constraint.GetResponseFunctionName(), "mass")
 
     def test_GetResponseType(self):
-        self.assertEqual(self.standardized_constraint.GetResponseType(), ">=")
+        self.assertEqual(self.standardized_constraint.GetType(), ">=")
 
     def test_UpdateConstraintData(self):
         self.standardized_constraint.UpdateConstraintData()
-        response_data = ResponseFunctionCommunicator("mass", self.optimization_info).GetBufferedDataContainer()
-        self.assertEqual(response_data["type"], self.standardized_constraint.GetResponseType())
+        response_data = self.optimization_info.GetComponentProblemDataContainer("mass")["buffered"]
+        self.assertEqual(response_data["type"], self.standardized_constraint.GetType())
         self.assertTrue(response_data.HasValue("rel_change"))
         self.assertTrue(response_data.HasValue("abs_change"))
         self.assertTrue(response_data.HasValue("violation"))

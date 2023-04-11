@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.communicators.response_function_communicator import ResponseFunctionCommunicator
+from KratosMultiphysics.OptimizationApplication.responses.standardization_utilities import StandardizationUtilities
 
 class StandardizedObjective:
     """Standardized objective response function
@@ -29,37 +29,64 @@ class StandardizedObjective:
         else:
             raise RuntimeError(f"Requesting unsupported type {self.__objective_type} for objective response function. Supported types are: \n\tminimization\n\tmaximization")
 
-        self.__communicator = ResponseFunctionCommunicator(parameters["response_name"].GetString(), optimization_info)
+        self.__utility = StandardizationUtilities(parameters["response_name"].GetString(), optimization_info)
         self.__initial_response_value = None
 
     def GetResponseFunctionName(self) -> str:
-        return self.__communicator.GetName()
+        return self.__utility.GetName()
+
+    def GetType(self) -> str:
+        return self.__objective_type
 
     def GetInitialValue(self) -> float:
         if self.__initial_response_value is None:
-            self.__initial_response_value = self.__communicator.GetScaledValue()
+            self.__initial_response_value = self.__utility.GetScaledValue()
         return self.__initial_response_value
 
-    def GetResponseType(self) -> str:
-        return self.__objective_type
-
     def GetStandardizedValue(self, step_index: int = 0) -> float:
-        return self.__communicator.GetScaledValue(step_index, self.__scaling)
+        """Returns the standardized objective value.
+
+        This method returns the standardized objective value which turns all the objective types
+        to minimization problems.
+
+        If this is called with a minimization problem, then it only does the scaling.
+        If this is called with a maximization problem, then it does scaling as well as negation
+        to make it a minimization problem.
+
+        Args:
+            step_index (int, optional): Step index to calculate standardized value. Defaults to 0.
+
+        Returns:
+            float: Standardized resposne value.
+        """
+        return self.__utility.GetScaledValue(step_index, self.__scaling)
 
     def CalculateStandardizedSensitivity(self, sensitivity_variable_collective_expression_info: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]'):
-        self.__communicator.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__scaling)
+        """Returns the standardized objective sensitivity.
+
+        This method returns the standardized objective sensitivity which turns all the objective types
+        to minimization problems.
+
+        If this is called with a minimization problem, then it only does the scaling.
+        If this is called with a maximization problem, then it does scaling as well as negation
+        to make it a minimization problem.
+
+        Args:
+            sensitivity_variable_collective_expression_info (dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]): Collective expression containing sensitivities.
+        """
+        self.__utility.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__scaling)
 
     def UpdateObjectiveData(self) -> None:
-        response_problem_data = self.__communicator.GetBufferedDataContainer()
-        response_problem_data["type"] = self.GetResponseType()
-        response_problem_data["rel_change"] = self.__communicator.GetRelativeChange()
-        response_problem_data["abs_change"] = self.__communicator.GetAbsoluteChange(self.GetInitialValue())
+        response_problem_data = self.__utility.GetBufferedDataContainer()
+        response_problem_data["type"] = self.GetType()
+        response_problem_data["rel_change"] = self.__utility.GetRelativeChange()
+        response_problem_data["abs_change"] = self.__utility.GetAbsoluteChange(self.GetInitialValue())
 
     def GetObjectiveInfo(self) -> str:
         msg = "\tObjective info:"
         msg += f"\n\t\t name          : {self.GetResponseFunctionName()}"
-        msg += f"\n\t\t type          : {self.GetResponseType()}"
-        msg += f"\n\t\t value         : {self.__communicator.GetScaledValue():0.6e}"
-        msg += f"\n\t\t rel_change [%]: {self.__communicator.GetRelativeChange() * 100.0:0.6e}"
-        msg += f"\n\t\t abs_change [%]: {self.__communicator.GetAbsoluteChange(self.GetInitialValue()) * 100.0:0.6e}"
+        msg += f"\n\t\t type          : {self.GetType()}"
+        msg += f"\n\t\t value         : {self.__utility.GetScaledValue():0.6e}"
+        msg += f"\n\t\t rel_change [%]: {self.__utility.GetRelativeChange() * 100.0:0.6e}"
+        msg += f"\n\t\t abs_change [%]: {self.__utility.GetAbsoluteChange(self.GetInitialValue()) * 100.0:0.6e}"
         return msg

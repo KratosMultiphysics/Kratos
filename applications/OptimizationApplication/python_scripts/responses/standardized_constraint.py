@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.communicators.response_function_communicator import ResponseFunctionCommunicator
+from KratosMultiphysics.OptimizationApplication.responses.standardization_utilities import StandardizationUtilities
 
 class StandardizedConstraint:
     """Standardized constraint response function
@@ -47,21 +47,21 @@ class StandardizedConstraint:
         else:
             raise RuntimeError(f"Provided \"type\" = {self.__constraint_type} is not supported in constraint response functions. Followings are supported options: \n\t=\n\t<=\n\t<\n\t>=\n\t>")
 
-        self.__communicator = ResponseFunctionCommunicator(parameters["response_name"].GetString(), optimization_info)
+        self.__utility = StandardizationUtilities(parameters["response_name"].GetString(), optimization_info)
 
     def GetResponseFunctionName(self) -> str:
-        return self.__communicator.GetName()
+        return self.__utility.GetName()
 
-    def GetResponseType(self) -> str:
+    def GetType(self) -> str:
         return self.__constraint_type
 
     def GetReferenceValue(self):
         if self.__reference_value is None:
-            self.__reference_value = self.__communicator.GetScaledValue()
+            self.__reference_value = self.__utility.GetScaledValue()
         return self.__reference_value
 
     def GetStandardizedValue(self, step_index: int = 0) -> float:
-        return self.__communicator.GetScaledValue(step_index, self.__standardization_value) - self.__standardization_value * self.GetReferenceValue()
+        return self.__utility.GetScaledValue(step_index, self.__standardization_value) - self.__standardization_value * self.GetReferenceValue()
 
     def IsActive(self, step_index: int = 0) -> bool:
         return (self.__constraint_type == "=") or self.GetStandardizedValue(step_index) >= 0.0
@@ -70,25 +70,25 @@ class StandardizedConstraint:
         return (self.GetStandardizedValue(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetStandardizedValue(step_index)) * self.IsActive()
 
     def CalculateStandardizedSensitivity(self, sensitivity_variable_collective_expression_info: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]'):
-        self.__communicator.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__standardization_value)
+        self.__utility.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__standardization_value)
 
     def UpdateConstraintData(self) -> None:
-        response_problem_data = self.__communicator.GetBufferedDataContainer()
-        response_problem_data["rel_change"] = self.__communicator.GetRelativeChange()
-        response_problem_data["abs_change"] = self.__communicator.GetAbsoluteChange(self.GetReferenceValue())
+        response_problem_data = self.__utility.GetBufferedDataContainer()
+        response_problem_data["rel_change"] = self.__utility.GetRelativeChange()
+        response_problem_data["abs_change"] = self.__utility.GetAbsoluteChange(self.GetReferenceValue())
         response_problem_data["ref_value"] = self.GetReferenceValue()
         response_problem_data["is_active"] = self.IsActive()
-        response_problem_data["type"] = self.GetResponseType()
+        response_problem_data["type"] = self.GetType()
         response_problem_data["violation"] = abs(self.GetViolationRatio())
 
     def GetConstraintInfo(self) -> str:
         msg = "\tConstraint info:"
         msg += f"\n\t\t name          : {self.GetResponseFunctionName()}"
-        msg += f"\n\t\t value         : {self.__communicator.GetScaledValue():0.6e}"
-        msg += f"\n\t\t type          : {self.GetResponseType()}"
+        msg += f"\n\t\t value         : {self.__utility.GetScaledValue():0.6e}"
+        msg += f"\n\t\t type          : {self.GetType()}"
         msg += f"\n\t\t ref_value     : {self.GetReferenceValue():0.6e}"
         msg += f"\n\t\t is_active     : {self.IsActive()}"
-        msg += f"\n\t\t rel_change [%]: {self.__communicator.GetRelativeChange() * 100.0:0.6e}"
-        msg += f"\n\t\t abs_change [%]: {self.__communicator.GetAbsoluteChange(self.GetReferenceValue()) * 100.0:0.6e}"
+        msg += f"\n\t\t rel_change [%]: {self.__utility.GetRelativeChange() * 100.0:0.6e}"
+        msg += f"\n\t\t abs_change [%]: {self.__utility.GetAbsoluteChange(self.GetReferenceValue()) * 100.0:0.6e}"
         msg += f"\n\t\t violation  [%]: {abs(self.GetViolationRatio()) * 100.0:0.6e}"
         return msg
