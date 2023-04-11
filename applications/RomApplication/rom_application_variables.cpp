@@ -22,7 +22,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( TMapPhiType, MAP_PHI )
 
     // Modal derivative variables
-    KRATOS_CREATE_VARIABLE(unsigned int, BUILD_LEVEL)
+    KRATOS_CREATE_VARIABLE(unsigned int, BUILD_LEVEL_ROM)
     KRATOS_CREATE_VARIABLE(Vector, EIGENVALUE_VECTOR)
     KRATOS_CREATE_VARIABLE(std::size_t, BASIS_I)
     KRATOS_CREATE_VARIABLE(std::size_t, BASIS_J)

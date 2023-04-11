@@ -171,7 +171,7 @@ public:
             rLHS_Contribution.resize(num_element_dofs, num_element_dofs);
         rLHS_Contribution.clear();
 
-        switch(rCurrentProcessInfo[BUILD_LEVEL])
+        switch(rCurrentProcessInfo[BUILD_LEVEL_ROM])
         {
         case 1: // Mass matrix
             rElement.CalculateMassMatrix(rLHS_Contribution, rCurrentProcessInfo);
@@ -183,7 +183,7 @@ public:
             rLHS_Contribution *= 0.5;
             break;
         default:
-            KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+            KRATOS_ERROR << "Invalid BUILD_LEVEL_ROM: " << rCurrentProcessInfo[BUILD_LEVEL_ROM] << std::endl;
         }
 
         rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);

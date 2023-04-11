@@ -440,8 +440,8 @@ public:
         const bool master_slave_constraints_defined = r_model_part.MasterSlaveConstraints().size() != 0;
 
         /*
-            BUILD_LEVEL = 1 : Scheme builds M
-            BUILD_LEVEL = 2 : Scheme builds K
+            BUILD_LEVEL_ROM = 1 : Scheme builds M
+            BUILD_LEVEL_ROM = 2 : Scheme builds K
         */
 
         // Build system matrices
@@ -450,14 +450,14 @@ public:
         {
             BuiltinTimer time_mass_matrix;
             auto& rMassMatrix = *mpMassMatrix;        
-            r_current_process_info[BUILD_LEVEL] = 1;
+            r_current_process_info[BUILD_LEVEL_ROM] = 1;
             p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rMassMatrix);
             KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time MassMatrix: " << time_mass_matrix.ElapsedSeconds() << std::endl;
         }
 
         // Build stiffness matrix directly into the system matrix
         BuiltinTimer time_system_matrix;
-        r_current_process_info[BUILD_LEVEL] = 2;
+        r_current_process_info[BUILD_LEVEL_ROM] = 2;
         p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rA);
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time SystemMatrix: " << time_system_matrix.ElapsedSeconds() << std::endl;
 
@@ -565,20 +565,20 @@ public:
         const bool master_slave_constraints_defined = r_model_part.MasterSlaveConstraints().size() != 0;
         
         /*
-            BUILD_LEVEL = 1 : Scheme builds M
-            BUILD_LEVEL = 2 : Scheme builds K
+            BUILD_LEVEL_ROM = 1 : Scheme builds M
+            BUILD_LEVEL_ROM = 2 : Scheme builds K
         */
 
         // Build system matrices
         // Build mass matrix
         BuiltinTimer time_mass_matrix;
-        r_current_process_info[BUILD_LEVEL] = 1;
+        r_current_process_info[BUILD_LEVEL_ROM] = 1;
         p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rMassMatrix);
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time MassMatrix: " << time_mass_matrix.ElapsedSeconds() << std::endl;
 
         // Build stiffness matrix separately
         BuiltinTimer time_stiffness_matrix;
-        r_current_process_info[BUILD_LEVEL] = 2;
+        r_current_process_info[BUILD_LEVEL_ROM] = 2;
         p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time StiffnessMatrix: " << time_stiffness_matrix.ElapsedSeconds() << std::endl;
         
@@ -710,20 +710,20 @@ public:
         const bool master_slave_constraints_defined = r_model_part.MasterSlaveConstraints().size() != 0;
         
         /*
-            BUILD_LEVEL = 1 : Scheme builds M
-            BUILD_LEVEL = 2 : Scheme builds K
+            BUILD_LEVEL_ROM = 1 : Scheme builds M
+            BUILD_LEVEL_ROM = 2 : Scheme builds K
         */
 
         // Build system matrices
         // Build mass matrix
         BuiltinTimer time_mass_matrix;
-        r_current_process_info[BUILD_LEVEL] = 1;
+        r_current_process_info[BUILD_LEVEL_ROM] = 1;
         p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rMassMatrix);
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time MassMatrix: " << time_mass_matrix.ElapsedSeconds() << std::endl;
 
         // Build stiffness matrix separately
         BuiltinTimer time_stiffness_matrix;
-        r_current_process_info[BUILD_LEVEL] = 2;
+        r_current_process_info[BUILD_LEVEL_ROM] = 2;
         p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time StiffnessMatrix: " << time_stiffness_matrix.ElapsedSeconds() << std::endl;
         
@@ -856,20 +856,20 @@ public:
         const bool master_slave_constraints_defined = r_model_part.MasterSlaveConstraints().size() != 0;
         
         /*
-            BUILD_LEVEL = 1 : Scheme builds M
-            BUILD_LEVEL = 2 : Scheme builds K
+            BUILD_LEVEL_ROM = 1 : Scheme builds M
+            BUILD_LEVEL_ROM = 2 : Scheme builds K
         */
 
         // Build system matrices
         // Build mass matrix
         BuiltinTimer time_mass_matrix;
-        r_current_process_info[BUILD_LEVEL] = 1;
+        r_current_process_info[BUILD_LEVEL_ROM] = 1;
         p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rMassMatrix);
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time MassMatrix: " << time_mass_matrix.ElapsedSeconds() << std::endl;
 
         // Build stiffness matrix separately
         BuiltinTimer time_stiffness_matrix;
-        r_current_process_info[BUILD_LEVEL] = 2;
+        r_current_process_info[BUILD_LEVEL_ROM] = 2;
         p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time StiffnessMatrix: " << time_stiffness_matrix.ElapsedSeconds() << std::endl;
         
@@ -879,7 +879,7 @@ public:
         TSystemVectorType adj_b(system_size);
         TSystemMatrixType adj_A(rStiffnessMatrix);
         TSparseSpace::SetToZero(adj_A);
-        r_current_process_info[BUILD_LEVEL] = 3;
+        r_current_process_info[BUILD_LEVEL_ROM] = 3;
         p_builder_and_solver->BuildLHS(p_scheme,r_model_part,adj_A);
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time Adjoint LHS: " << time_adjoint_LHS.ElapsedSeconds() << std::endl;
         
@@ -929,7 +929,7 @@ public:
             {
                 // Build adjoint RHS
                 BuiltinTimer time_adjoint_RHS;
-                r_current_process_info[BUILD_LEVEL] = 4;
+                r_current_process_info[BUILD_LEVEL_ROM] = 4;
                 TSparseSpace::SetToZero(adj_b);
                 p_builder_and_solver->BuildRHS(p_scheme, r_model_part, adj_b);
 
@@ -965,7 +965,7 @@ public:
                 BuiltinTimer time_build_rhs;
                 
                 // Build RHS partially : -(-lambda * dM/dp + dK/dp) . basis
-                r_current_process_info[BUILD_LEVEL] = 5;
+                r_current_process_info[BUILD_LEVEL_ROM] = 5;
                 p_builder_and_solver->BuildRHS(p_scheme, r_sub_model_part, rb);
 
                 // Compute the derivative of the eigenvalue : basis^T . (-lambda * dM/dp + dK/dp) . basis
@@ -976,7 +976,7 @@ public:
                 {
                     // Build adjoint sensitivity contribution
                     BuiltinTimer time_adjoint_sensitivity;
-                    r_current_process_info[BUILD_LEVEL] = 6;
+                    r_current_process_info[BUILD_LEVEL_ROM] = 6;
                     TSparseSpace::SetToZero(adj_b);
                     p_builder_and_solver->BuildRHS(p_scheme, r_sub_model_part, adj_b);
                     

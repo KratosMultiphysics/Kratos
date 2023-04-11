@@ -122,7 +122,7 @@ public:
     {
         KRATOS_TRY
 
-        switch(rCurrentProcessInfo[BUILD_LEVEL])
+        switch(rCurrentProcessInfo[BUILD_LEVEL_ROM])
         {
         case 1: // Mass matrix
             rElement.CalculateMassMatrix(rLHS_Contribution, rCurrentProcessInfo);
@@ -137,7 +137,7 @@ public:
             break;
         }
         default:
-            KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+            KRATOS_ERROR << "Invalid BUILD_LEVEL_ROM: " << rCurrentProcessInfo[BUILD_LEVEL_ROM] << std::endl;
         }
 
         // Symmetrization due to corotational elements
@@ -165,7 +165,7 @@ public:
     {
         KRATOS_TRY
 
-        if (rCurrentProcessInfo[BUILD_LEVEL] == 4 || rCurrentProcessInfo[BUILD_LEVEL] == 6)
+        if (rCurrentProcessInfo[BUILD_LEVEL_ROM] == 4 || rCurrentProcessInfo[BUILD_LEVEL_ROM] == 6)
         {
             rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
             const std::size_t element_dofs_size = rEquationIdVector.size();
@@ -175,24 +175,24 @@ public:
                 rRHS_Contribution.resize(element_dofs_size, false);
             rRHS_Contribution.clear();
 
-            if (rCurrentProcessInfo[BUILD_LEVEL] == 4)
+            if (rCurrentProcessInfo[BUILD_LEVEL_ROM] == 4)
             {
                 // Adjoint eigenvalue derivative RHS
                 CalculateAdjointRHSContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
             }
-            else if (rCurrentProcessInfo[BUILD_LEVEL] == 6)
+            else if (rCurrentProcessInfo[BUILD_LEVEL_ROM] == 6)
             {
                 // Adjoint sensitivity contribution
                 CalculateAdjointSensitivityContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
             }
         }
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 5)
+        else if (rCurrentProcessInfo[BUILD_LEVEL_ROM] == 5)
         {
             // Basis derivative RHS
             BaseType::CalculateRHSContribution(rElement, rRHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
         }
         else
-            KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+            KRATOS_ERROR << "Invalid BUILD_LEVEL_ROM: " << rCurrentProcessInfo[BUILD_LEVEL_ROM] << std::endl;
 
         KRATOS_CATCH("")
     }

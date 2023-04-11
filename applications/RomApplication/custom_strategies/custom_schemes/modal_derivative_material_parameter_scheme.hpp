@@ -25,6 +25,8 @@
 #include "utilities/entities_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
 
+#include "../../../StructuralMechanicsApplication/structural_mechanics_application_variables.h"
+
 /* Application includes */
 #include "rom_application_variables.h"
 #include "modal_derivative_scheme.hpp"
