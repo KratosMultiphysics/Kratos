@@ -392,6 +392,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method returns the default parameters
+     * @return The default parameters
+     */
     Parameters GetDefaultParameters() const;
 
     ///@}
