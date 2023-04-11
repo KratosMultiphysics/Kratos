@@ -41,7 +41,7 @@ namespace Testing
         auto p_quad = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
             rBackgroundModelPart.GetElement(1).pGetGeometry(), rMPCoords, IntWeight);
 
-        const Element& new_element = KratosComponents<Element>::Get("UpdatedLagrangian2D4N");
+        const Element& new_element = KratosComponents<Element>::Get("MPMUpdatedLagrangian2D4N");
         Element::Pointer p_element = new_element.Create(
             2, p_quad, p_elem_prop);
 
