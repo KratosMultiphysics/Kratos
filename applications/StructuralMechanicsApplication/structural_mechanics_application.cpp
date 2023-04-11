@@ -628,7 +628,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D9N", mAxisymUpdatedLagrangian2D9N)
 
     // Register the spring damper element
-    KRATOS_REGISTER_ELEMENT("SpringDamperElement2D2N", mSpringDamperElement2D2N);
+    KRATOS_REGISTER_ELEMENT("SpringDamperElement2D", mSpringDamperElement2D);
+    KRATOS_REGISTER_ELEMENT("SpringDamperElement3D", mSpringDamperElement3D);
     KRATOS_REGISTER_ELEMENT("SpringDamperElement3D2N", mSpringDamperElement3D2N);
 
     //Register the adjoint elements
