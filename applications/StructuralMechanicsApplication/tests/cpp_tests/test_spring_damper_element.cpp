@@ -46,7 +46,7 @@ namespace Testing
      * \param  rModelPart Current model part
      * \return SpringDamper2D2N element
      */
-    intrusive_ptr<Element> SetUpElement2D(ModelPart& rModelPart)
+    auto SetUpElement2D(ModelPart& rModelPart)
     {
 
         rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
@@ -87,7 +87,7 @@ namespace Testing
      * \param  rModelPart Current model part 
      * \return SpringDamper3D2N element
      */
-    intrusive_ptr<Element> SetUpElement3D(ModelPart& rModelPart)
+    auto SetUpElement3D(ModelPart& rModelPart)
     {
 
         rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);

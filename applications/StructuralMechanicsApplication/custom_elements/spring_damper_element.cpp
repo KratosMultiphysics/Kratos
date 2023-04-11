@@ -6,7 +6,8 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Quirin Aumann, Aron Noordam
+//  Main authors:    Quirin Aumann,
+//                   Aron Noordam
 //
 
 // System includes
@@ -93,13 +94,6 @@ Element::Pointer SpringDamperElement<TDim>::Clone( IndexType NewId, NodesArrayTy
     return Kratos::make_intrusive<SpringDamperElement>(NewElement);
 }
 
-
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
-template<std::size_t TDim>
-SpringDamperElement<TDim>::~SpringDamperElement()
-{
-}
 
 //************* GETTING METHODS
 //************************************************************************************
@@ -287,12 +281,7 @@ void SpringDamperElement<TDim>::CalculateLocalSystem(
 
     KRATOS_TRY;
 
-    /* Calculate elemental system */
-    // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
-    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-
-    // Compute LHS
-    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    this->ConstCalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector);
 
     KRATOS_CATCH( "" );
 }
@@ -303,15 +292,180 @@ void SpringDamperElement<TDim>::CalculateLocalSystem(
 template<std::size_t TDim>
 void SpringDamperElement<TDim>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
+    this->ConstCalculateRightHandSide(rRightHandSideVector);
+}
 
-    if ( rRightHandSideVector.size() != msElementSize ) {
-        rRightHandSideVector.resize( msElementSize, false );
+//***********************************************************************************
+//***********************************************************************************
+
+template<std::size_t TDim>
+void SpringDamperElement<TDim>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    this->ConstCalculateLeftHandSide(rLeftHandSideMatrix);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+template<std::size_t TDim>
+void SpringDamperElement<TDim>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    //this is a massless element
+    std::size_t system_size = msElementSize;
+
+    if ( rMassMatrix.size1() != system_size )
+    {
+        rMassMatrix.resize( system_size, system_size, false );
     }
 
-    rRightHandSideVector = ZeroVector( msElementSize ); //resetting RHS
+    rMassMatrix = ZeroMatrix( system_size, system_size );
 
-    array_1d<double, msElementSize > current_displacement = ZeroVector( msElementSize );
-    array_1d<double, msLocalSize> elemental_stiffness = ZeroVector( msLocalSize );
+    KRATOS_CATCH( "" );
+}
+
+//************************************************************************************
+//************************************************************************************
+
+template<std::size_t TDim>
+void SpringDamperElement<TDim>::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY;
+
+    this->ConstCalculateDampingMatrix(rDampingMatrix);
+
+    KRATOS_CATCH( "" );
+}
+
+template<std::size_t TDim>
+void SpringDamperElement<TDim>::ConstCalculateDampingMatrix(MatrixType& rDampingMatrix) const
+{
+    KRATOS_TRY;
+
+    const std::size_t system_size = msElementSize;
+
+    rDampingMatrix = ZeroMatrix(system_size, system_size);
+
+    if (this->Has(NODAL_DAMPING_RATIO) || this->Has(NODAL_ROTATIONAL_DAMPING_RATIO)) {
+        array_1d<double, msLocalSize> elemental_damping_ratio = ZeroVector(msLocalSize);
+        if (this->Has(NODAL_DAMPING_RATIO)) {
+            const array_1d<double, 3>& nodal_damping = this->GetValue(NODAL_DAMPING_RATIO);
+
+            elemental_damping_ratio[0] = nodal_damping[0];
+            elemental_damping_ratio[1] = nodal_damping[1];
+
+            if constexpr (TDim == 3) {
+                elemental_damping_ratio[2] = nodal_damping[2];
+            }
+        }
+
+        if (this->Has(NODAL_ROTATIONAL_DAMPING_RATIO)) {
+            const array_1d<double, 3>& nodal_rotational_damping = this->GetValue(NODAL_ROTATIONAL_DAMPING_RATIO);
+            if constexpr (TDim == 2) {
+                elemental_damping_ratio[2] = nodal_rotational_damping[2];
+            }
+            else if constexpr (TDim == 3) {
+                elemental_damping_ratio[3] = nodal_rotational_damping[0];
+                elemental_damping_ratio[4] = nodal_rotational_damping[1];
+                elemental_damping_ratio[5] = nodal_rotational_damping[2];
+            }
+        }
+
+        for (std::size_t i = 0; i < msLocalSize; ++i) {
+            rDampingMatrix(i, i) += elemental_damping_ratio[i];
+            rDampingMatrix(i + msLocalSize, i + msLocalSize) += elemental_damping_ratio[i];
+            rDampingMatrix(i, i + msLocalSize) -= elemental_damping_ratio[i];
+            rDampingMatrix(i + msLocalSize, i) -= elemental_damping_ratio[i];
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+
+template<std::size_t TDim>
+void SpringDamperElement<TDim>::ConstCalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector) const
+{
+    KRATOS_TRY;
+
+    /* Calculate elemental system */
+    // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
+    this->ConstCalculateRightHandSide(rRightHandSideVector);
+
+    // Compute LHS
+    this->ConstCalculateLeftHandSide(rLeftHandSideMatrix);
+
+    KRATOS_CATCH("");
+}
+
+
+template<std::size_t TDim>
+void SpringDamperElement<TDim>::ConstCalculateLeftHandSide(MatrixType& rLeftHandSideMatrix) const
+{
+    KRATOS_TRY;
+    // Resizing the LHS
+    std::size_t system_size = msElementSize;
+
+    if (rLeftHandSideMatrix.size1() != system_size) {
+        rLeftHandSideMatrix.resize(system_size, system_size, false);
+    }
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(system_size, system_size); //resetting LHS
+
+    // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
+    array_1d<double, msLocalSize > elemental_stiffness = ZeroVector(msLocalSize);
+    array_1d<double, 3> nodal_stiffness = ZeroVector(3);
+    array_1d<double, 3> nodal_rot_stiffness = ZeroVector(3);
+
+    if (this->Has(NODAL_DISPLACEMENT_STIFFNESS))
+    {
+        nodal_stiffness = this->GetValue(NODAL_DISPLACEMENT_STIFFNESS);
+    }
+    if (this->Has(NODAL_ROTATIONAL_STIFFNESS))
+    {
+        nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
+    }
+
+    if constexpr (TDim == 2) {
+
+        elemental_stiffness[0] = nodal_stiffness[0];
+        elemental_stiffness[1] = nodal_stiffness[1];
+        elemental_stiffness[2] = nodal_rot_stiffness[2];
+
+    }
+    else if constexpr (TDim == 3) {
+        elemental_stiffness[0] = nodal_stiffness[0];
+        elemental_stiffness[1] = nodal_stiffness[1];
+        elemental_stiffness[2] = nodal_stiffness[2];
+
+        elemental_stiffness[3] = nodal_rot_stiffness[0];
+        elemental_stiffness[4] = nodal_rot_stiffness[1];
+        elemental_stiffness[5] = nodal_rot_stiffness[2];
+    }
+
+    for (std::size_t i = 0; i < msLocalSize; ++i) {
+        rLeftHandSideMatrix(i, i) += elemental_stiffness[i];
+        rLeftHandSideMatrix(i + msLocalSize, i + msLocalSize) += elemental_stiffness[i];
+        rLeftHandSideMatrix(i, i + msLocalSize) -= elemental_stiffness[i];
+        rLeftHandSideMatrix(i + msLocalSize, i) -= elemental_stiffness[i];
+    }
+    KRATOS_CATCH("");
+}
+
+template<std::size_t TDim>
+void SpringDamperElement<TDim>::ConstCalculateRightHandSide(VectorType& rRightHandSideVector) const
+{
+    KRATOS_TRY
+
+    if (rRightHandSideVector.size() != msElementSize) {
+        rRightHandSideVector.resize(msElementSize, false);
+    }
+
+    rRightHandSideVector = ZeroVector(msElementSize); //resetting RHS
+
+    array_1d<double, msElementSize > current_displacement = ZeroVector(msElementSize);
+    array_1d<double, msLocalSize> elemental_stiffness = ZeroVector(msLocalSize);
 
     // Getting actual values
     array_1d<double, 3> nodal_stiffness = ZeroVector(3);
@@ -347,10 +501,10 @@ void SpringDamperElement<TDim>::CalculateRightHandSide(VectorType& rRightHandSid
 
     // Getting values
     const array_1d<double, 3> ddisp = r_geometry[1].FastGetSolutionStepValue(DISPLACEMENT)
-                                    - r_geometry[0].FastGetSolutionStepValue(DISPLACEMENT);
+        - r_geometry[0].FastGetSolutionStepValue(DISPLACEMENT);
 
     const array_1d<double, 3> drot = r_geometry[1].FastGetSolutionStepValue(ROTATION)
-                                   - r_geometry[0].FastGetSolutionStepValue(ROTATION);
+        - r_geometry[0].FastGetSolutionStepValue(ROTATION);
 
     if constexpr (TDim == 2) {
         current_displacement[0] = -ddisp[0];
@@ -375,134 +529,10 @@ void SpringDamperElement<TDim>::CalculateRightHandSide(VectorType& rRightHandSid
         current_displacement[11] = drot[2];
     }
 
-    for ( std::size_t i = 0; i < msElementSize; ++i ) {
-        rRightHandSideVector[i]  -= elemental_stiffness[i % msLocalSize] * current_displacement[i];
+    for (std::size_t i = 0; i < msElementSize; ++i) {
+        rRightHandSideVector[i] -= elemental_stiffness[i % msLocalSize] * current_displacement[i];
     }
-
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-template<std::size_t TDim>
-void SpringDamperElement<TDim>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
-{
-    // Resizing the LHS
-    std::size_t system_size = msElementSize;
-
-    if ( rLeftHandSideMatrix.size1() != system_size ) {
-        rLeftHandSideMatrix.resize( system_size, system_size, false );
-    }
-
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
-
-    // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
-    array_1d<double, msLocalSize > elemental_stiffness = ZeroVector( msLocalSize );
-    array_1d<double, 3> nodal_stiffness = ZeroVector(3);
-    array_1d<double, 3> nodal_rot_stiffness = ZeroVector(3);
-
-    if (this->Has(NODAL_DISPLACEMENT_STIFFNESS))
-    {
-        nodal_stiffness = this->GetValue(NODAL_DISPLACEMENT_STIFFNESS);
-    }
-    if (this->Has(NODAL_ROTATIONAL_STIFFNESS))
-    {
-        nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
-    }
-
-    if constexpr (TDim == 2) {
-
-        elemental_stiffness[0] = nodal_stiffness[0];
-        elemental_stiffness[1] = nodal_stiffness[1];
-        elemental_stiffness[2] = nodal_rot_stiffness[2];
-
-    }
-    else if constexpr (TDim == 3) {
-        elemental_stiffness[0] = nodal_stiffness[0];
-        elemental_stiffness[1] = nodal_stiffness[1];
-        elemental_stiffness[2] = nodal_stiffness[2];
-
-        elemental_stiffness[3] = nodal_rot_stiffness[0];
-        elemental_stiffness[4] = nodal_rot_stiffness[1];
-        elemental_stiffness[5] = nodal_rot_stiffness[2];
-    }
-
-    for ( std::size_t i = 0; i < msLocalSize; ++i ) {
-        rLeftHandSideMatrix(i    ,i    ) += elemental_stiffness[i];
-        rLeftHandSideMatrix(i + msLocalSize,i + msLocalSize) += elemental_stiffness[i];
-        rLeftHandSideMatrix(i    ,i + msLocalSize) -= elemental_stiffness[i];
-        rLeftHandSideMatrix(i + msLocalSize,i    ) -= elemental_stiffness[i];
-    }
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-template<std::size_t TDim>
-void SpringDamperElement<TDim>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    //this is a massless element
-    std::size_t system_size = msElementSize;
-
-    if ( rMassMatrix.size1() != system_size )
-    {
-        rMassMatrix.resize( system_size, system_size, false );
-    }
-
-    rMassMatrix = ZeroMatrix( system_size, system_size );
-
-    KRATOS_CATCH( "" );
-}
-
-//************************************************************************************
-//************************************************************************************
-
-template<std::size_t TDim>
-void SpringDamperElement<TDim>::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-
-    const std::size_t system_size = msElementSize;
-
-    rDampingMatrix = ZeroMatrix( system_size, system_size );
-
-    if ( this->Has( NODAL_DAMPING_RATIO ) || this->Has( NODAL_ROTATIONAL_DAMPING_RATIO )) {
-        array_1d<double, msLocalSize> elemental_damping_ratio = ZeroVector( msLocalSize );
-        if (this->Has( NODAL_DAMPING_RATIO )) {
-            const array_1d<double, 3>& nodal_damping = this->GetValue( NODAL_DAMPING_RATIO );
-
-            elemental_damping_ratio[0] = nodal_damping[0];
-            elemental_damping_ratio[1] = nodal_damping[1];
-            
-            if constexpr (TDim == 3) {
-                elemental_damping_ratio[2] = nodal_damping[2];
-            }
-        }
-
-        if (this->Has( NODAL_ROTATIONAL_DAMPING_RATIO )) {
-            const array_1d<double, 3>& nodal_rotational_damping = this->GetValue( NODAL_ROTATIONAL_DAMPING_RATIO );
-            if constexpr (TDim == 2) {
-                elemental_damping_ratio[2] = nodal_rotational_damping[2];
-            }
-            else if constexpr (TDim == 3) {
-                elemental_damping_ratio[3] = nodal_rotational_damping[0];
-                elemental_damping_ratio[4] = nodal_rotational_damping[1];
-                elemental_damping_ratio[5] = nodal_rotational_damping[2];
-            }
-        }
-
-        for ( std::size_t i = 0; i < msLocalSize; ++i ) {
-            rDampingMatrix(i    , i   ) += elemental_damping_ratio[i];
-            rDampingMatrix(i + msLocalSize,i + msLocalSize) += elemental_damping_ratio[i];
-            rDampingMatrix(i    ,i + msLocalSize) -= elemental_damping_ratio[i];
-            rDampingMatrix(i + msLocalSize,i    ) -= elemental_damping_ratio[i];
-        }
-    }
-
-    KRATOS_CATCH( "" );
+    KRATOS_CATCH("");
 }
 
 //************************************************************************************

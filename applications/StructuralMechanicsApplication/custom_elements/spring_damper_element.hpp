@@ -6,7 +6,8 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Quirin Aumann, Aron Noordam
+//  Main authors:    Quirin Aumann,
+//                   Aron Noordam
 //
 
 #pragma once
@@ -257,6 +258,16 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void ConstCalculateDampingMatrix(MatrixType& rDampingMatrix) const;
+
+    void ConstCalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector) const;
+
+    void ConstCalculateLeftHandSide(MatrixType& rLeftHandSideMatrix) const;
+
+    void ConstCalculateRightHandSide(VectorType& rRightHandSideVector) const;
+
+    
     ///@}
     ///@name Private  Access
     ///@{
