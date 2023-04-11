@@ -196,6 +196,11 @@ private:
     static std::mutex mMutex;
 }; // class ProfilerSingleton
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) Profiler<std::chrono::milliseconds>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) Profiler<std::chrono::microseconds>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) Profiler<std::chrono::nanoseconds>;
+
+
 
 } // namespace Kratos::Internals
 
