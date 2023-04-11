@@ -41,7 +41,7 @@ namespace Kratos::Testing {
     /**
      * \brief Sets up a 2D spring damper element
      * \param  rModelPart Current model part
-     * \return SpringDamper2D2N element
+     * \return SpringDamper2D element
      */
     auto SetUpElement2D(ModelPart& rModelPart)
     {
@@ -68,7 +68,7 @@ namespace Kratos::Testing {
         AddDofsElement2D(rModelPart);
 
         const std::vector<ModelPart::IndexType> element_nodes{ 1,2 };
-        const auto p_element = rModelPart.CreateNewElement("SpringDamperElement2D2N", 1, element_nodes, p_elem_prop);
+        const auto p_element = rModelPart.CreateNewElement("SpringDamperElement2D", 1, element_nodes, p_elem_prop);
 
         p_element->SetValue(NODAL_DISPLACEMENT_STIFFNESS, array_1d<double, 3>{ 2.0, 3.0, 0 });
         p_element->SetValue(NODAL_ROTATIONAL_STIFFNESS, array_1d<double, 3>{ 0.0, 0.0, 4.0 });
@@ -82,7 +82,7 @@ namespace Kratos::Testing {
     /**
      * \brief Sets up a 3D spring damper element
      * \param  rModelPart Current model part 
-     * \return SpringDamper3D2N element
+     * \return SpringDamper3D element
      */
     auto SetUpElement3D(ModelPart& rModelPart)
     {
@@ -109,7 +109,7 @@ namespace Kratos::Testing {
         AddDofsElement3D(rModelPart);
 
         const std::vector<ModelPart::IndexType> element_nodes{ 1,2 };
-        const auto p_element = rModelPart.CreateNewElement("SpringDamperElement3D2N", 1, element_nodes, p_elem_prop);
+        const auto p_element = rModelPart.CreateNewElement("SpringDamperElement3D", 1, element_nodes, p_elem_prop);
 
         p_element->SetValue(NODAL_DISPLACEMENT_STIFFNESS, array_1d<double, 3>{ 2.0, 3.0, 4.0 });
         p_element->SetValue(NODAL_ROTATIONAL_STIFFNESS, array_1d<double, 3>{ 11.0, 12.0, 13.0 });
@@ -120,8 +120,8 @@ namespace Kratos::Testing {
         return p_element;
     }
 
-    // Tests the lhs matrix and the rhs vector of the SpringDamperElement2D2N
-    KRATOS_TEST_CASE_IN_SUITE(SpringDamperLocalSystem2D2N, KratosStructuralMechanicsFastSuite)
+    // Tests the lhs matrix and the rhs vector of the SpringDamperElement2D
+    KRATOS_TEST_CASE_IN_SUITE(SpringDamperLocalSystem2D, KratosStructuralMechanicsFastSuite)
     {
         // create model part
         Model current_model;
@@ -179,8 +179,8 @@ namespace Kratos::Testing {
     }
 
 
-    // Tests the lhs matrix and the rhs vector of the SpringDamperElement2D2N
-    KRATOS_TEST_CASE_IN_SUITE(SpringDamperDampingMatrix2D2N, KratosStructuralMechanicsFastSuite)
+    // Tests the lhs matrix and the rhs vector of the SpringDamperElement2D
+    KRATOS_TEST_CASE_IN_SUITE(SpringDamperDampingMatrix2D, KratosStructuralMechanicsFastSuite)
     {
         // create model part
         Model current_model;
@@ -225,8 +225,8 @@ namespace Kratos::Testing {
     }
 
 
-    // Tests the lhs matrix and the rhs vector of the SpringDamperElement3D2N
-    KRATOS_TEST_CASE_IN_SUITE(SpringDamperLocalSystem3D2N, KratosStructuralMechanicsFastSuite)
+    // Tests the lhs matrix and the rhs vector of the SpringDamperElement3D
+    KRATOS_TEST_CASE_IN_SUITE(SpringDamperLocalSystem3D, KratosStructuralMechanicsFastSuite)
     {
         // create model part
         Model current_model;
@@ -303,8 +303,8 @@ namespace Kratos::Testing {
 
 
 
-    // Tests the damping matrix of the SpringDamperElement3D2N
-    KRATOS_TEST_CASE_IN_SUITE(SpringDamperDampingMatrix3D2N, KratosStructuralMechanicsFastSuite)
+    // Tests the damping matrix of the SpringDamperElement3D
+    KRATOS_TEST_CASE_IN_SUITE(SpringDamperDampingMatrix3D, KratosStructuralMechanicsFastSuite)
     {
         // create model part
         Model current_model;
