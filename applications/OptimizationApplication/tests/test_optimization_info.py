@@ -5,7 +5,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationData
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 
 class TestOptimizationData(kratos_unittest.TestCase):
@@ -35,7 +34,7 @@ class TestOptimizationData(kratos_unittest.TestCase):
         self.assertEqual(optimization_info["step", 1], 3)
         self.assertEqual(optimization_info["step", 2], 2)
         with self.assertRaises(RuntimeError):
-            optimization_info["step", 3]
+            _ = optimization_info["step", 3]
 
     def test_AdvanceStepSet(self):
         optimization_info = OptimizationData(3)
@@ -81,7 +80,7 @@ class TestOptimizationData(kratos_unittest.TestCase):
         self.assertEqual(optimization_info["test_1/test_sub_1/int", 0], 12)
         self.assertEqual(optimization_info["test_1/test_sub_1/int", 1], 10)
         with self.assertRaises(RuntimeError):
-            optimization_info["test_1/test_sub_1/int", 3]
+            _ = optimization_info["test_1/test_sub_1/int", 3]
 
     def test_HasValue(self):
         optimization_info = OptimizationData(2)
@@ -127,10 +126,10 @@ class TestOptimizationData(kratos_unittest.TestCase):
         optimization_info = OptimizationData(3)
         optimization_info["data/sub_1", 1] = 1
         with self.assertRaises(RuntimeError):
-            optimization_info["data/sub_1/int"]
+            _ = optimization_info["data/sub_1/int"]
 
         with self.assertRaises(RuntimeError):
-            optimization_info["data"] = 2
+            _ = optimization_info["data"] = 2
 
     def test_GetMap(self):
         optimization_info = OptimizationData(3)
