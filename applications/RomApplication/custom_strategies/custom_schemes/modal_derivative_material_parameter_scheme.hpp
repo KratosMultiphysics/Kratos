@@ -111,6 +111,11 @@ public:
             mpDerivativeParameter = &YOUNG_MODULUS;
             mDerivativeMatrixType = DerivativeMatrixType::Stiffness;
         }
+        else if (derivative_parameter == "truss_prestress_pk2")
+        {
+            mpDerivativeParameter = &TRUSS_PRESTRESS_PK2;
+            mDerivativeMatrixType = DerivativeMatrixType::Stiffness;
+        }
         else
             KRATOS_ERROR << "Unknown derivative parameter : " << derivative_parameter << std::endl;
         
@@ -233,7 +238,7 @@ protected:
             element_matrix_derivative *= 0.5;
             element_matrix_derivative *= (-rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i] / rElement.GetProperties()(DENSITY));
         }
-        else if (*mpDerivativeParameter == YOUNG_MODULUS  || *mpDerivativeParameter == POISSON_RATIO)
+        else if (*mpDerivativeParameter == YOUNG_MODULUS  || *mpDerivativeParameter == POISSON_RATIO || *mpDerivativeParameter == TRUSS_PRESTRESS_PK2)
         {
             this->FiniteDifferencingWithMaterialParameter_LHS(rElement, element_matrix_derivative, rCurrentProcessInfo);
         }

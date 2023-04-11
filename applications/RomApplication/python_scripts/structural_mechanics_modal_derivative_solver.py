@@ -44,7 +44,7 @@ class ModalDerivativeSolver(MechanicalSolver):
 
     def _create_solution_scheme(self):
         # Possible derivative parameters
-        derivative_parameters = ["modal_coordinate", "density", "poisson_ratio", "young_modulus"]
+        derivative_parameters = ["modal_coordinate", "density", "poisson_ratio", "young_modulus", "truss_prestress_pk2"]
         finite_difference_types = ["forward", "central"]
         # Check scheme related input
         derivative_parameter = self.settings["derivative_parameter"].GetString()
