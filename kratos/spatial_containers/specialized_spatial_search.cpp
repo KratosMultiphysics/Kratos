@@ -98,9 +98,23 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
         /// StaticBins definitions
         using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using StaticBinsTree = Tree<StaticBins>;
+
+        // Creating the tree
+        StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
+
+        // Performing search
+        ParallelSearch(rInputElements, rRadius, static_bins_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
         using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using DynamicBinsTree = Tree<DynamicBins>;
+
+        // // Creating the tree
+        // DynamicBinsTree dynamic_bins_tree(points.begin(), points.end(), bucket_size);
+
+        // // Performing search
+        // ParallelSearch(rInputElements, rRadius, dynamic_bins_tree, rResults, rResultsDistance);
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
     } else {
@@ -172,9 +186,23 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
         /// StaticBins definitions
         using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using StaticBinsTree = Tree<StaticBins>;
+
+        // Creating the tree
+        StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
+
+        // Performing search
+        ParallelSearch(rInputNodes, rRadius, static_bins_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
         using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using DynamicBinsTree = Tree<DynamicBins>;
+
+        // // Creating the tree
+        // DynamicBinsTree dynamic_bins_tree(points.begin(), points.end(), bucket_size);
+
+        // // Performing search
+        // ParallelSearch(rInputNodes, rRadius, dynamic_bins_tree, rResults, rResultsDistance);
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
     } else {
@@ -246,9 +274,23 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
         /// StaticBins definitions
         using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using StaticBinsTree = Tree<StaticBins>;
+
+        // Creating the tree
+        StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
+
+        // Performing search
+        ParallelSearch(rInputConditions, rRadius, static_bins_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
         using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using DynamicBinsTree = Tree<DynamicBins>;
+
+        // // Creating the tree
+        // DynamicBinsTree dynamic_bins_tree(points.begin(), points.end(), bucket_size);
+
+        // // Performing search
+        // ParallelSearch(rInputConditions, rRadius, dynamic_bins_tree, rResults, rResultsDistance);
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
     } else {
