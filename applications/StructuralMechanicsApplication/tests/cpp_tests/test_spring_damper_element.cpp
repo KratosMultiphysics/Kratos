@@ -16,10 +16,7 @@
 
 #include "custom_elements/spring_damper_element.hpp"
 
-namespace Kratos
-{
-namespace Testing
-{
+namespace Kratos::Testing {
 
     void AddDofsElement2D(ModelPart& rModelPart){
         for (auto& r_node : rModelPart.Nodes()){

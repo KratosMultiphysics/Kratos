@@ -401,8 +401,8 @@ private:
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
 
     // Adding the spring damper element
-    const SpringDamperElement<2> mSpringDamperElement2D2N;
-    const SpringDamperElement<3> mSpringDamperElement3D2N;
+    const SpringDamperElement<2> mSpringDamperElement2D;
+    const SpringDamperElement<3> mSpringDamperElement3D;
 
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<ShellKinematics::LINEAR>> mAdjointFiniteDifferencingShellThinElement3D3N;
