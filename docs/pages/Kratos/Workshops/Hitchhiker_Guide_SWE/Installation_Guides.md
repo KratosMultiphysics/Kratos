@@ -33,7 +33,7 @@ Anaconda is available for [download under this page](https://www.anaconda.com/di
 
 Choose the Python 3.10 version with 64-bit, if possible. After the download is finished, run the .exe file and go through each step of the setup. Typically, your install location should be in your "Users" file in the local disk. 
 
-Example: ```C:\Users\maxmustermann\anaconda3```
+Example: `C:\Users\maxmustermann\anaconda3`
 
 ___
 ### 1.2. Visual Studio Code
@@ -108,7 +108,7 @@ Jupyter Notebook is installed together with the anaconda package. In case it is 
 After installing Jupyter Notebook, you can open it either from the Anaconda Navigator, or directly from the start menu **"Start &rarr; Jupyter Notebook"**. In Linux you need to navigate to the required folder in the terminal window and then type **"jupyter notebook"**. This is also applicable in windows. The drive of which the jupyter notebook will operate depends on the directory it is launched from the terminal. 
 
 #### 2. Adding Jupyter shortcut to the desired directory
-In order to add the Jupyter shortcut to the desired directory, you can open the file location **"Start &rarr; right-click Jupyter Notebook &rarr; Open file location"**. When in the file location, go to **"right-click Jupyter Notebook Shortcut &rarr; Properties"**. Under the properties you can go to "Shortcut &rarr; Target". Replace **%USERPROFILE%** with the desired directory (```D:\..```). Now you have a shortcut of Jupyter Notebook in your desired directory.
+In order to add the Jupyter shortcut to the desired directory, you can open the file location **"Start &rarr; right-click Jupyter Notebook &rarr; Open file location"**. When in the file location, go to **"right-click Jupyter Notebook Shortcut &rarr; Properties"**. Under the properties you can go **to "Shortcut &rarr; Target"**. Replace **%USERPROFILE%** with the desired directory (```D:\..```). Now you have a shortcut of Jupyter Notebook in your desired directory.
 
 #### 3. Jupyter Notebook Interface
 The Jupyter Notebook Interface consists of the **Code Cell**, where the code is written and will run, and the **Markdown Cell** in which comments and explanations are written in markdown, which is a simple markup language. 
@@ -162,15 +162,21 @@ You can also visit [this website](https://www.wikihow.com/Install-FFmpeg-on-Wind
 #### 2. For Linux:
 In ubuntu, start by updating the packages list:
 
-```$ sudo apt update```
+```shell
+$ sudo apt update
+```
 
 Next, install FFmpeg by typing the following command:
 
-```$ sudo apt-get install ffmpeg```
+```shell
+$ sudo apt-get install ffmpeg
+```
 
 Verify your installation using:
 
-```$ ffmpeg -version```
+```shell
+$ ffmpeg -version
+```
 
 #### 3. For Mac OS:
 Download and install FFmpeg from [the website](https://www.ffmpeg.org/download.html){:target="_blank"} and follow the installation steps.
