@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 class StandardizationUtilities:
     """Communicator class to simplify standardization between responses and OptimizationInfo
 
-    Instances of this class simplifies between OptimizationInfo
+    Instances of this class simplifies interaction between OptimizationInfo
     and responses.
 
     """
