@@ -42,6 +42,7 @@ class HRomTrainingUtility(object):
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
+        self.rom_basis_output_name = custom_settings["rom_basis_output_name"].GetString()
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -97,7 +98,7 @@ class HRomTrainingUtility(object):
         if  self.hrom_output_format == "numpy":
             hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
         elif self.hrom_output_format == "json":
-            with open('RomParameters.json','r') as f:
+            with open(self.rom_basis_output_name,'r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
                 hrom_info = rom_parameters["elements_and_weights"]
 
@@ -143,7 +144,8 @@ class HRomTrainingUtility(object):
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
             "create_hrom_visualization_model_part" : true,
-            "projection_strategy": "galerkin"
+            "projection_strategy": "galerkin",
+            "rom_basis_output_name": "RomParameters.json"
         }""")
         return default_settings
 
@@ -218,10 +220,10 @@ class HRomTrainingUtility(object):
             np.save('HROM_ConditionIds.npy',indexes[condition_indexes]-number_of_elements) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
 
         elif self.hrom_output_format=="json":
-            with open('RomParameters.json','r') as f:
+            with open(self.rom_basis_output_name,'r') as f:
                 updated_rom_parameters = json.load(f)
                 updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
-            with open('RomParameters.json','w') as f:
+            with open(self.rom_basis_output_name,'w') as f:
                 json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
