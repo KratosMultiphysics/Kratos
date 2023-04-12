@@ -11,7 +11,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
@@ -19,13 +18,11 @@
 // Project includes
 #include "python/add_variable_utils_to_python.h"
 #include "includes/define_python.h"
-#include "processes/process.h"
 
 // Variable utilities
 #include "utilities/variable_utils.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 template<class TDataType>
 void AddCopyModelPartFlaggedInterface(pybind11::class_<VariableUtils>& rPythonVariableUtils)
@@ -553,5 +550,4 @@ void AddVariableUtilsToPython(pybind11::module &m)
     AddCopyModelPartFlaggedInterface<Matrix>(python_variable_utils);
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.
