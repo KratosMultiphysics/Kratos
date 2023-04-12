@@ -205,10 +205,10 @@ public:
     {
         TSparseSpace::SetToZero(rb);
 
-        //refresh RHS to have the correct reactions
+        //refresh RHS to have the correct reactions (with contributions on Dirichlet BCs)
         BuildRHSNoDirichlet(rModelPart, rb);
 
-        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        //NOTE: dofs are assumed to be numbered consecutively in the BuilderAndSolver
         block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
             const std::size_t i = rDof.EquationId();
 
@@ -442,7 +442,7 @@ protected:
         }
 
         auto& r_conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
-        if(!r_elements.empty())
+        if(!r_conditions.empty())
         {
             block_for_each(r_conditions, Kratos::Vector(), [&](Condition& r_condition, Kratos::Vector& rhs_cond)
             {
