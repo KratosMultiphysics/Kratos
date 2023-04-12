@@ -35,6 +35,7 @@ class PetrovGalerkinTrainingUtility(object):
         self.basis_strategy = settings["basis_strategy"].GetString()
         self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
+        self.rom_basis_output_name = custom_settings["rom_basis_output_name"].GetString()
 
         self.rom_format =  custom_settings["rom_format"].GetString()
         available_rom_format = ["json", "numpy"]
@@ -128,15 +129,15 @@ class PetrovGalerkinTrainingUtility(object):
             # Storing Petrov-Galerkin modes in Numpy format
             np.save('LeftBasisMatrix.npy', u)
 
-        with open('RomParameters.json','r') as f:
+        with open(self.rom_basis_output_name,'r') as f:
             updated_rom_parameters = json.load(f)
             updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
             updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
 
-        with open('RomParameters.json','w') as f:
+        with open(self.rom_basis_output_name,'w') as f:
             json.dump(updated_rom_parameters, f, indent = 4)
 
-        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
+        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo(f"PetrovGalerkinTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"
@@ -144,7 +145,7 @@ class PetrovGalerkinTrainingUtility(object):
         return pretty_number
 
     def __GetGalerkinBasis(self):
-        with open('RomParameters.json','r') as f:
+        with open(self.rom_basis_output_name,'r') as f:
             galerkin_rom_parameters = json.load(f)
             N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
             N_nodes = len(galerkin_rom_parameters["nodal_modes"])

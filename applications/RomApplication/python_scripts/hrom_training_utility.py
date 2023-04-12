@@ -144,8 +144,7 @@ class HRomTrainingUtility(object):
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
             "create_hrom_visualization_model_part" : true,
-            "projection_strategy": "galerkin",
-            "rom_basis_output_name": "RomParameters.json"
+            "projection_strategy": "galerkin"
         }""")
         return default_settings
 

@@ -195,9 +195,13 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:
+                # Pass the name of the Rom Parameters file
+                self.rom_parameters.AddString("rom_basis_output_name", self.rom_basis_output_name)
                 self.__petrov_galerkin_training_utility = PetrovGalerkinTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)
+                # Remove the name of the Rom Parameters file
+                self.rom_parameters.RemoveValue("rom_basis_output_name")
 
         def FinalizeSolutionStep(self):
             if self.train_petrov_galerkin:
