@@ -178,7 +178,6 @@ class BufferedDict:
                 # if the given value is a dict, then convert the structure
                 # to BufferedDict while keeping the sub_item structure.
                 sub_item = BufferedDict(self.GetBufferSize())
-                sub_item.__parent = self
                 self.__AddSubItem(key, sub_item)
 
                 # now iterate through all the sub_keys and values of the dictionary and
@@ -186,7 +185,6 @@ class BufferedDict:
                 for sub_key, sub_value in value.items():
                     sub_item.SetValue(f"{sub_key}", sub_value, step_index)
             elif isinstance(value, BufferedDict):
-                value.__parent = self
                 # if the given value is of type BufferedDict, then put it to sub_items.
                 self.__AddSubItem(key, value)
             else:
@@ -198,9 +196,7 @@ class BufferedDict:
             current_key = key[:pos]
             if not current_key in self.__sub_items.keys():
                 # no existing key found then create it.
-                sub_item = BufferedDict(self.GetBufferSize())
-                sub_item.__parent = self
-                self.__AddSubItem(current_key, sub_item)
+                self.__AddSubItem(current_key, BufferedDict(self.GetBufferSize()))
 
             self.__sub_items[current_key].SetValue(key[pos+1:], value, step_index)
 
@@ -334,7 +330,7 @@ class BufferedDict:
         # now add the buffer value
         buffer_data[key] = value
 
-    def __AddSubItem(self, key: str, value: Any) -> None:
+    def __AddSubItem(self, key: str, value: BufferedDict) -> None:
         # first check if any of the buffered data has the same key.
         # this is because, sub_items are valid for all step_indices.
         if any([key in buffer_data.keys() for buffer_data in self.__buffered_data]):
@@ -345,6 +341,7 @@ class BufferedDict:
             raise RuntimeError(f"Trying to add a new sub_item with key = \"{key}\" when already a sub item exists. BufferedDict:\n{self}")
 
         # now add the sub_item
+        value.__parent = self
         self.__sub_items[key] = value
 
     def __SetBufferSize(self, buffer_size: int) -> None:

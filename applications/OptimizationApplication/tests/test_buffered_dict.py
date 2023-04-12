@@ -73,7 +73,7 @@ class TestBufferedDict(kratos_unittest.TestCase):
         self.assertEqual(buffered_data["test_1/int", 1], 9)
         self.assertEqual(buffered_data["test_1/int", 2], 7)
         with self.assertRaises(RuntimeError):
-            buffered_data["test_1/int", 3]
+            _ = buffered_data["test_1/int", 3]
 
         self.assertEqual(buffered_data["test_1/test_sub_1/int", 0], 12)
         self.assertEqual(buffered_data["test_1/test_sub_1/int", 1], 10)

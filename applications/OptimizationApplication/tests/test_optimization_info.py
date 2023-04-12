@@ -19,6 +19,7 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
     def test_GetReponseData(self):
         mass_problem_data = self.optimization_info.GetReponseData("mass")
         self.assertEqual(mass_problem_data, self.optimization_info.GetReponseData("mass"))
+        self.assertEqual(self.optimization_info.GetProblemDataContainer(), self.optimization_info.GetReponseData("mass").GetRoot())
 
     def test_AdvanceStep(self):
         mass_problem_data = self.optimization_info.GetReponseData("mass")
