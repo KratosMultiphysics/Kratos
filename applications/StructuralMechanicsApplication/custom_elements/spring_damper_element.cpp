@@ -420,8 +420,6 @@ void SpringDamperElement<TDim>::ConstCalculateLeftHandSide(MatrixType& rLeftHand
 
     // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
     array_1d<double, msLocalSize > elemental_stiffness = ZeroVector(msLocalSize);
-    array_1d<double, 3> nodal_stiffness = ZeroVector(3);
-    array_1d<double, 3> nodal_rot_stiffness = ZeroVector(3);
 
     const array_1d<double, 3>& nodal_stiffness = this->GetValue(NODAL_DISPLACEMENT_STIFFNESS);
     const array_1d<double, 3>& nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
