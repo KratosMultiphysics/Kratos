@@ -150,7 +150,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
         #create elements
         e01 = mp.CreateNewElement("NodalConcentratedElement3D1N",1,[1],mp.GetProperties()[1])
-        e02 = mp.CreateNewElement("SpringDamperElement3D",2,[1,2],mp.GetProperties()[1])
+        e02 = mp.CreateNewElement("SpringDamperElement3D2N",2,[1,2],mp.GetProperties()[1]) # using old name for backward compatibility
 
         e01.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[0.0,0.0,0.0])
         e01.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
