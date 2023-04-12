@@ -127,7 +127,7 @@ class PetrovGalerkinTrainingUtility(object):
 
         elif self.rom_format == "numpy":
             # Storing Petrov-Galerkin modes in Numpy format
-            np.save(f'{self.rom_basis_output_name}/LeftBasisMatrix.npy', u)
+            np.save(f'Numpy_Rom_Data_{self.rom_basis_output_name}/LeftBasisMatrix.npy', u)
 
         with open(self.rom_basis_output_name + ".json",'r') as f:
             updated_rom_parameters = json.load(f)

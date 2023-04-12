@@ -177,18 +177,18 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                 i += n_nodal_unknowns
 
         elif self.rom_basis_output_format == "numpy":
-            # Set the path of the folder where the numpy basis are going to be stored (Same name as rom_basis_output_name).
-            folder_path = self.rom_basis_output_name
+            # Set the name of the folder where the numpy basis are going to be stored (Same name as rom_basis_output_name).
+            folder_name = f"Numpy_Rom_Data_{self.rom_basis_output_name}"
 
             # Create the folder if it doesn't already exist
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
+            if not os.path.exists(folder_name):
+                os.makedirs(folder_name)
                 print("Folder created successfully!")
             else:
                 print("Folder already exists.")
             # Storing modes in Numpy format
-            numpy.save(f'{self.rom_basis_output_name}/RightBasisMatrix.npy', u)
-            numpy.save(f'{self.rom_basis_output_name}/NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
+            numpy.save(f'Numpy_Rom_Data_{self.rom_basis_output_name}/RightBasisMatrix.npy', u)
+            numpy.save(f'Numpy_Rom_Data_{self.rom_basis_output_name}/NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
