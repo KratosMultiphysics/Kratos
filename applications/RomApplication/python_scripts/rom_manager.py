@@ -211,6 +211,7 @@ class RomManager(object):
         PetrovGalerkinTrainMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreResultsByName(parameters,'ROM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
@@ -514,6 +515,7 @@ class RomManager(object):
                 "create_hrom_visualization_model_part" : true
             }""")
         return hrom_training_parameters
+
 
 
 
