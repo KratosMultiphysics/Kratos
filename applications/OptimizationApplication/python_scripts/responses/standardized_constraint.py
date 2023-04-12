@@ -49,7 +49,7 @@ class StandardizedConstraint:
 
         self.__utility = StandardizationUtilities(parameters["response_name"].GetString(), optimization_info)
 
-    def GetResponseFunctionName(self) -> str:
+    def GetName(self) -> str:
         return self.__utility.GetName()
 
     def GetType(self) -> str:
@@ -83,7 +83,7 @@ class StandardizedConstraint:
 
     def GetConstraintInfo(self) -> str:
         msg = "\tConstraint info:"
-        msg += f"\n\t\t name          : {self.GetResponseFunctionName()}"
+        msg += f"\n\t\t name          : {self.GetName()}"
         msg += f"\n\t\t value         : {self.__utility.GetScaledValue():0.6e}"
         msg += f"\n\t\t type          : {self.GetType()}"
         msg += f"\n\t\t ref_value     : {self.GetReferenceValue():0.6e}"

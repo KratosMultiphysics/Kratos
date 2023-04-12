@@ -32,7 +32,7 @@ class StandardizedObjective:
         self.__utility = StandardizationUtilities(parameters["response_name"].GetString(), optimization_info)
         self.__initial_response_value = None
 
-    def GetResponseFunctionName(self) -> str:
+    def GetName(self) -> str:
         return self.__utility.GetName()
 
     def GetType(self) -> str:
@@ -84,7 +84,7 @@ class StandardizedObjective:
 
     def GetObjectiveInfo(self) -> str:
         msg = "\tObjective info:"
-        msg += f"\n\t\t name          : {self.GetResponseFunctionName()}"
+        msg += f"\n\t\t name          : {self.GetName()}"
         msg += f"\n\t\t type          : {self.GetType()}"
         msg += f"\n\t\t value         : {self.__utility.GetScaledValue():0.6e}"
         msg += f"\n\t\t rel_change [%]: {self.__utility.GetRelativeChange() * 100.0:0.6e}"

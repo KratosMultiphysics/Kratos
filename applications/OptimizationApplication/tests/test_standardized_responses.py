@@ -96,7 +96,7 @@ class TestStandardizedObjective(TestStandardizedComponent):
         self.assertEqual(self.standardized_objective.GetInitialValue(), self.response_function.CalculateValue())
 
     def test_GetResponseFunctionName(self):
-        self.assertEqual(self.standardized_objective.GetResponseFunctionName(), "mass")
+        self.assertEqual(self.standardized_objective.GetName(), "mass")
 
     def test_GetResponseType(self):
         self.assertEqual(self.standardized_objective.GetType(), "maximization")
@@ -197,7 +197,7 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         self.assertEqual(self.standardized_constraint.GetReferenceValue(), 4.0)
 
     def test_GetResponseFunctionName(self):
-        self.assertEqual(self.standardized_constraint.GetResponseFunctionName(), "mass")
+        self.assertEqual(self.standardized_constraint.GetName(), "mass")
 
     def test_GetResponseType(self):
         self.assertEqual(self.standardized_constraint.GetType(), ">=")
