@@ -585,13 +585,13 @@ public:
         ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
         const std::string& r_container_type = ThisParameters["container_type"].GetString();
         Parameters search_parameters(ThisParameters["search_parameters"].WriteJsonString());
-        if (r_container_type == "KDTree") {
+        if (r_container_type == "KDTree" || r_container_type == "kd_tree") {
             mpSpatialSearch = SpatialSearch::Pointer(new SpecializedSpatialSearch<SpatialContainer::KDTree>(search_parameters));
-        } else if (r_container_type == "Octree") {
+        } else if (r_container_type == "Octree" || r_container_type == "octree") {
             mpSpatialSearch = SpatialSearch::Pointer(new SpecializedSpatialSearch<SpatialContainer::Octree>(search_parameters));
-        } else if (r_container_type == "BinsStatic") {
+        } else if (r_container_type == "BinsStatic" || r_container_type == "bins_static") {
             mpSpatialSearch = SpatialSearch::Pointer(new SpecializedSpatialSearch<SpatialContainer::BinsStatic>(search_parameters));
-        } else if (r_container_type == "BinsDynamic") {
+        } else if (r_container_type == "BinsDynamic" || r_container_type == "bins_dynamic") {
             mpSpatialSearch = SpatialSearch::Pointer(new SpecializedSpatialSearch<SpatialContainer::BinsDynamic>(search_parameters));
         } else {
             KRATOS_ERROR << "Unknown container type: " << r_container_type << std::endl;
