@@ -22,7 +22,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
-        self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_info.GetComponent(parameters["primal_analysis_name"].GetString())
+        self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_info.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
 
         self.model_parts: 'list[Kratos.ModelPart]' = []
         for model_part_name in parameters["evaluated_model_part_names"].GetStringArray():
