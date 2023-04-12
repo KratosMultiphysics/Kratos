@@ -6,6 +6,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.responses.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.responses.standardized_constraint import StandardizedConstraint
@@ -18,7 +19,7 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
         cls.optimization_info = OptimizationInfo()
 
         cls.response_function = MassResponseFunction(cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""), cls.optimization_info)
-        cls.optimization_info.AddComponent("mass", cls.response_function)
+        cls.optimization_info.AddResponse("mass", cls.response_function)
 
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
@@ -103,7 +104,7 @@ class TestStandardizedObjective(TestStandardizedComponent):
 
     def test_UpdateObjectiveData(self):
         self.standardized_objective.UpdateObjectiveData()
-        response_data = self.optimization_info.GetComponentProblemDataContainer("mass")["buffered"]
+        response_data: BufferedDict = self.optimization_info.GetReponseData("mass")["buffered"]
         self.assertEqual(response_data["type"], self.standardized_objective.GetType())
         self.assertTrue(response_data.HasValue("rel_change"))
         self.assertTrue(response_data.HasValue("abs_change"))
@@ -204,7 +205,7 @@ class TestStandardizedConstraint(TestStandardizedComponent):
 
     def test_UpdateConstraintData(self):
         self.standardized_constraint.UpdateConstraintData()
-        response_data = self.optimization_info.GetComponentProblemDataContainer("mass")["buffered"]
+        response_data: BufferedDict = self.optimization_info.GetReponseData("mass")["buffered"]
         self.assertEqual(response_data["type"], self.standardized_constraint.GetType())
         self.assertTrue(response_data.HasValue("rel_change"))
         self.assertTrue(response_data.HasValue("abs_change"))
