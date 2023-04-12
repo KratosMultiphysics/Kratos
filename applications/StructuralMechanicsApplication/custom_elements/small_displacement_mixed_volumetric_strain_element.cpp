@@ -1438,10 +1438,11 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateTau1(
         noalias(aux) += prod(trans(B_i), Matrix(prod(rThisConstitutiveVariables.D, B_i)));
     }
     double det;
+    const double c_1 = 1.0;
     Matrix tau_1_mat(dim, dim);
     MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
     const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
-    const double m_T_tau_1 = inner_prod(rVoigtIdAnysotropyMatrixProd, tau_1_vect);
+    const double m_T_tau_1 = c_1*inner_prod(rVoigtIdAnysotropyMatrixProd, tau_1_vect);
 
     double tau_1;
     if (mIsDynamic) {
@@ -1460,7 +1461,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateTau1(
 
 double SmallDisplacementMixedVolumetricStrainElement::CalculateTau2(const ConstitutiveVariables& rThisConstitutiveVariables) const
 {
-    const double c_2 = 4.0;
+    const double c_2 = 2.0;
     const double max_tau_2 = 1.0e-2;
     const double bulk_modulus = CalculateBulkModulus(rThisConstitutiveVariables.D);
     const double shear_modulus = CalculateShearModulus(rThisConstitutiveVariables.D);
