@@ -42,6 +42,7 @@ class HRomTrainingUtility(object):
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
+        self.rom_basis_output_name = custom_settings["rom_basis_output_name"].GetString()
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -97,21 +98,11 @@ class HRomTrainingUtility(object):
         if  self.hrom_output_format == "numpy":
             hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
         elif self.hrom_output_format == "json":
-            if self.solver.settings["model_part_name"].GetString()=="FluidModelPart":
-                with open('RomParameters_fluid.json','r') as f:
-                    rom_parameters = KratosMultiphysics.Parameters(f.read())
-            else:
-                with open('RomParameters_thermal.json','r') as f:
-                    rom_parameters = KratosMultiphysics.Parameters(f.read())
-            hrom_info = rom_parameters["elements_and_weights"]
+            with open(self.rom_basis_output_name,'r') as f:
+                rom_parameters = KratosMultiphysics.Parameters(f.read())
+                hrom_info = rom_parameters["elements_and_weights"]
 
         # Get the weights and fill the HROM computing model part
-        if self.solver.settings["model_part_name"].GetString()=="FluidModelPart":
-            with open('RomParameters_fluid.json','r') as f:
-                rom_parameters = KratosMultiphysics.Parameters(f.read())
-        else:
-            with open('RomParameters_thermal.json','r') as f:
-                rom_parameters = KratosMultiphysics.Parameters(f.read())
         KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
@@ -219,24 +210,19 @@ class HRomTrainingUtility(object):
                 hrom_weights["Elements"][parent_id] = 0.0
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
-        # Append weights to RomParameters.json
-        # We first parse the current RomParameters.json to then append and edit the data
-        if self.solver.settings["model_part_name"].GetString()=="FluidModelPart":
-            with open('RomParameters_fluid.json','r') as f:
+        if self.hrom_output_format=="numpy":
+            element_indexes = np.where( indexes < number_of_elements )[0]
+            condition_indexes = np.where( indexes >= number_of_elements )[0]
+            np.save(f'Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ElementWeights.npy',weights[element_indexes])
+            np.save(f'Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ConditionWeights.npy',weights[condition_indexes])
+            np.save(f'Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ElementIds.npy',indexes[element_indexes]) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
+            np.save(f'Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ConditionIds.npy',indexes[condition_indexes]-number_of_elements) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
+
+        elif self.hrom_output_format=="json":
+            with open(self.rom_basis_output_name,'r') as f:
                 updated_rom_parameters = json.load(f)
-                #FIXME: I don't really like to automatically change things without the user realizing...
-                #FIXME: However, this leaves the settings ready for the HROM postprocess... something that is cool
-                #FIXME: Decide about this
-                # updated_rom_parameters["train_hrom"] = False
-                # updated_rom_parameters["run_hrom"] = True
                 updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
-            with open('RomParameters_fluid.json','w') as f:
-                json.dump(updated_rom_parameters, f, indent = 4)
-        else:
-            with open('RomParameters_thermal.json','r') as f:
-                updated_rom_parameters = json.load(f)
-                updated_rom_parameters["elements_and_weights"] = hrom_weights
-            with open('RomParameters_thermal.json','w') as f:
+            with open(self.rom_basis_output_name,'w') as f:
                 json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
@@ -260,9 +246,9 @@ class HRomTrainingUtility(object):
     def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
         if weights is None:
-            weights = np.r_[np.load('HROM_ElementWeights.npy'),np.load('HROM_ConditionWeights.npy')]
+            weights = np.r_[np.load(f'Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ElementWeights.npy'),np.load(f'Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ConditionWeights.npy')]
         if indexes is None:
-            indexes = np.r_[np.load('HROM_ElementIds.npy'),np.load('HROM_ConditionIds.npy')]
+            indexes = np.r_[np.load(f'Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ElementIds.npy'),np.load(f'Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ConditionIds.npy')]
         if number_of_elements is None:
             number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
 
