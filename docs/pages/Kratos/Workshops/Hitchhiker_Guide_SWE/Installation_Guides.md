@@ -76,7 +76,7 @@ Save the updated scripts by clicking on script and then going to **"File &rarr; 
 #### 5. Useful Extensions
 In order to unlock some functions on Visual Studio Code and make the user experience easier, you can install extensions. 
 
-To search for extensions, you can either click on the **Extensions** button on th eleft sidebar, or **(Ctrl + Shift + X)**.
+To search for extensions, you can either click on the **Extensions** button on the left sidebar, or **(Ctrl + Shift + X)**.
 
 There are plenty of them in the Extensions: Marketplace. Sometimes, when you have a file which you cannot open due to the missing extension, Visual Studio Code will recommend an extension which you can install in order to open the file. 
 
