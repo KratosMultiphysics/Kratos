@@ -385,7 +385,7 @@ public:
     }
 
     /**
-     * @brief This method allows to set the Local System in case is not computed on tunning time (internal variable)
+     * @brief This method allows to set the Local System in case is not computed on running time (internal variable)
      * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
      * @param rConstant The constant vector (one entry for each slave)
      * @param rCurrentProcessInfo The current process info instance
@@ -404,7 +404,7 @@ public:
     }
 
     /**
-     * @brief This method allows to get the Local System in case is not computed on tunning time (internal variable)
+     * @brief This method allows to get the Local System in case is not computed on running time (internal variable)
      * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
      * @param rConstant The constant vector (one entry for each slave)
      * @param rCurrentProcessInfo The current process info instance
@@ -469,7 +469,7 @@ public:
 
     /**
      * @brief Returns the string containing a detailed description of this object.
-     * @return the string with informations
+     * @return the string with information
      */
     virtual std::string GetInfo() const
     {
@@ -635,7 +635,7 @@ private:
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<MasterSlaveConstraint>;
 
-///@name Input/Output funcitons
+///@name Input/Output functions
 ///@{
 
 /// input stream function

@@ -48,7 +48,7 @@ namespace Kratos
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM
+class KRATOS_API(FEM_TO_DEM_APPLICATION) HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM
     : public HyperElasticIsotropicNeoHookean3DFEMDEM
 {
 public:
