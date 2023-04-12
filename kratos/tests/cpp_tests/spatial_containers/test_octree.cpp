@@ -24,14 +24,14 @@
 namespace Kratos::Testing {
 
 using OTPointType = Point;
-using OTPointTypePointer = typename OTPointType::Pointer;
+using OTPointPointerType = typename OTPointType::Pointer;
 using OTPointVectorType = std::vector<OTPointType::Pointer>;
 using OTPointIteratorType = std::vector<OTPointType::Pointer>::iterator;
 using OTDistanceVectorType = std::vector<double>;
 using OTDistanceIteratorType = std::vector<double>::iterator;
 
 /// Octree definitions
-using OTBucketType = Bucket< 3ul, OTPointType, OTPointVectorType, OTPointTypePointer, OTPointIteratorType, OTDistanceIteratorType>;
+using OTBucketType = Bucket< 3ul, OTPointType, OTPointVectorType, OTPointPointerType, OTPointIteratorType, OTDistanceIteratorType>;
 using Octree = Tree<OCTreePartition<OTBucketType>>;
 
 /**
@@ -42,13 +42,13 @@ KRATOS_TEST_CASE_IN_SUITE(OctreeExistPoint, KratosCoreFastSuite)
     OTPointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(OTPointTypePointer(new OTPointType(i, i, i)));
+        points.push_back(OTPointPointerType(new OTPointType(i, i, i)));
     }
 
     Octree testOctree(points.begin(), points.end(), 100);
 
-    KRATOS_CHECK_EQUAL(testOctree.ExistPoint(OTPointTypePointer(new OTPointType(10.0, 10.0, 10.0))), nullptr);
-    KRATOS_CHECK_EQUAL(testOctree.ExistPoint(OTPointTypePointer(new OTPointType(9.0, 9.0, 9.0))), points[9]);
+    KRATOS_CHECK_EQUAL(testOctree.ExistPoint(OTPointPointerType(new OTPointType(10.0, 10.0, 10.0))), nullptr);
+    KRATOS_CHECK_EQUAL(testOctree.ExistPoint(OTPointPointerType(new OTPointType(9.0, 9.0, 9.0))), points[9]);
 }
 
 /**
@@ -59,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(OctreeSearchNearestPoint, KratosCoreFastSuite)
     OTPointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(OTPointTypePointer(new OTPointType(i, i, i)));
+        points.push_back(OTPointPointerType(new OTPointType(i, i, i)));
     }
 
     Octree testOctree(points.begin(), points.end(), 100);
@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(OctreeSearchInRadius, KratosCoreFastSuite)
     OTPointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(OTPointTypePointer(new OTPointType(i, i, i)));
+        points.push_back(OTPointPointerType(new OTPointType(i, i, i)));
     }
 
     Octree testOctree(points.begin(), points.end(), 100);
@@ -106,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(OctreeSearchInBox, KratosCoreFastSuite)
     OTPointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(OTPointTypePointer(new OTPointType(i, i, i)));
+        points.push_back(OTPointPointerType(new OTPointType(i, i, i)));
     }
 
     Octree testOctree(points.begin(), points.end(), 100);
@@ -130,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(OctreeBB, KratosCoreFastSuite)
     OTPointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(OTPointTypePointer(new OTPointType(i, i, i)));
+        points.push_back(OTPointPointerType(new OTPointType(i, i, i)));
     }
 
     Octree testOctree(points.begin(), points.end(), 100);
