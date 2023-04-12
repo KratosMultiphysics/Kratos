@@ -1461,7 +1461,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateTau1(
 
 double SmallDisplacementMixedVolumetricStrainElement::CalculateTau2(const ConstitutiveVariables& rThisConstitutiveVariables) const
 {
-    const double c_2 = 2.0;
+    const double c_2 = 4.0;
     const double max_tau_2 = 1.0e-2;
     const double bulk_modulus = CalculateBulkModulus(rThisConstitutiveVariables.D);
     const double shear_modulus = CalculateShearModulus(rThisConstitutiveVariables.D);
