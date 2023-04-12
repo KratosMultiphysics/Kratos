@@ -403,6 +403,7 @@ private:
     // Adding the spring damper element
     const SpringDamperElement<2> mSpringDamperElement2D;
     const SpringDamperElement<3> mSpringDamperElement3D;
+    const SpringDamperElement<3> mSpringDamperElement3D2N; // DEPRECATED, only here for backward compatibility, should be removed after some time
 
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<ShellKinematics::LINEAR>> mAdjointFiniteDifferencingShellThinElement3D3N;
