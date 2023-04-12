@@ -26,7 +26,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
                         rom_basis_output_format = rom_output_paramaters[0]["Parameters"]["rom_basis_output_format"].GetString()
                         rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
-                        self.rom_basis_output_name = rom_basis_output_name + "." + rom_basis_output_format
+                        self.rom_basis_output_name = rom_basis_output_name + ".json"
 
             # Get the ROM settings from the RomParameters.json input file
             with open(self.rom_basis_output_name) as rom_parameters:

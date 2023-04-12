@@ -212,6 +212,9 @@ class RomManager(object):
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
+            parameters["output_processes"]["rom_output"][0]["Parameters"]["snapshots_interval"].SetDouble(1e30)  # To avoid storing snapshots during training,
+            # we set the value to 1e30. This ensures that the snapshot storage mechanism is not triggered,
+            # and the memory usage remains optimized.
             parameters = self._StoreResultsByName(parameters,'ROM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
@@ -232,6 +235,9 @@ class RomManager(object):
         for mu in mu_train:
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
+            parameters["output_processes"]["rom_output"][0]["Parameters"]["snapshots_interval"].SetDouble(1e30)  # To avoid storing snapshots during training,
+            # we set the value to 1e30. This ensures that the snapshot storage mechanism is not triggered,
+            # and the memory usage remains optimized.
             parameters = self._StoreNoResults(parameters)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
