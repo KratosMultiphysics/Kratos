@@ -25,11 +25,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     if name=="rom_output":
                         rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
                         rom_basis_output_format = rom_output_paramaters[0]["Parameters"]["rom_basis_output_format"].GetString()
-                        rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
-                        self.rom_basis_output_name = rom_basis_output_name + ".json"
+                        self.rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
 
             # Get the ROM settings from the RomParameters.json input file
-            with open(self.rom_basis_output_name) as rom_parameters:
+            with open(self.rom_basis_output_name + ".json") as rom_parameters:
                 self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
 
             # Set the ROM settings in the "solver_settings" of the solver introducing the physics
@@ -144,14 +143,14 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             elif self.rom_parameters["rom_format"].GetString() == "numpy":
                 #### Set the nodal ROM basis ####
-                node_ids = np.load("NodeIds.npy")
-                right_modes = np.load("RightBasisMatrix.npy")
+                node_ids = np.load(f"{self.rom_basis_output_name}/NodeIds.npy")
+                right_modes = np.load(f"{self.rom_basis_output_name}/RightBasisMatrix.npy")
                 if right_modes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
                     right_modes.reshape(-1,1)
                 right_modes = right_modes[:,:rom_dofs]
                 if (self.solving_strategy == "petrov_galerkin"):
                     petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
-                    left_modes = np.load("LeftBasisMatrix.npy")
+                    left_modes = np.load(f"{self.rom_basis_output_name}/LeftBasisMatrix.npy")
                     if left_modes.ndim ==1:
                         left_modes.reshape(-1,1)
                     left_modes = left_modes[:,:petrov_galerkin_rom_dofs]
@@ -183,10 +182,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
                 elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
                     # Set the HROM weights in elements and conditions
-                    element_indexes = np.load("HROM_ElementIds.npy")
-                    element_weights = np.load("HROM_ElementWeights.npy")
-                    condition_indexes = np.load("HROM_ConditionIds.npy")
-                    conditon_weights = np.load("HROM_ConditionWeights.npy")
+                    element_indexes = np.load(f"{self.rom_basis_output_name}/HROM_ElementIds.npy")
+                    element_weights = np.load(f"{self.rom_basis_output_name}/HROM_ElementWeights.npy")
+                    condition_indexes = np.load(f"{self.rom_basis_output_name}/HROM_ConditionIds.npy")
+                    conditon_weights = np.load(f"{self.rom_basis_output_name}/HROM_ConditionWeights.npy")
                     for i in range(np.size(element_indexes)):
                         computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
                     for i in range(np.size(condition_indexes)):

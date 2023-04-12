@@ -213,10 +213,10 @@ class HRomTrainingUtility(object):
         if self.hrom_output_format=="numpy":
             element_indexes = np.where( indexes < number_of_elements )[0]
             condition_indexes = np.where( indexes >= number_of_elements )[0]
-            np.save('HROM_ElementWeights.npy',weights[element_indexes])
-            np.save('HROM_ConditionWeights.npy',weights[condition_indexes])
-            np.save('HROM_ElementIds.npy',indexes[element_indexes]) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
-            np.save('HROM_ConditionIds.npy',indexes[condition_indexes]-number_of_elements) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
+            np.save(f'{self.rom_basis_output_name}/HROM_ElementWeights.npy',weights[element_indexes])
+            np.save(f'{self.rom_basis_output_name}/HROM_ConditionWeights.npy',weights[condition_indexes])
+            np.save(f'{self.rom_basis_output_name}/HROM_ElementIds.npy',indexes[element_indexes]) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
+            np.save(f'{self.rom_basis_output_name}/HROM_ConditionIds.npy',indexes[condition_indexes]-number_of_elements) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
 
         elif self.hrom_output_format=="json":
             with open(self.rom_basis_output_name,'r') as f:
@@ -246,9 +246,9 @@ class HRomTrainingUtility(object):
     def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
         if weights is None:
-            weights = np.r_[np.load('HROM_ElementWeights.npy'),np.load('HROM_ConditionWeights.npy')]
+            weights = np.r_[np.load(f'{self.rom_basis_output_name}/HROM_ElementWeights.npy'),np.load(f'{self.rom_basis_output_name}/HROM_ConditionWeights.npy')]
         if indexes is None:
-            indexes = np.r_[np.load('HROM_ElementIds.npy'),np.load('HROM_ConditionIds.npy')]
+            indexes = np.r_[np.load(f'{self.rom_basis_output_name}/HROM_ElementIds.npy'),np.load(f'{self.rom_basis_output_name}/HROM_ConditionIds.npy')]
         if number_of_elements is None:
             number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
 
