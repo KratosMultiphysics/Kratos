@@ -143,14 +143,14 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             elif self.rom_parameters["rom_format"].GetString() == "numpy":
                 #### Set the nodal ROM basis ####
-                node_ids = np.load(f"Numpy_Rom_Data_{self.rom_basis_output_name}/NodeIds.npy")
-                right_modes = np.load(f"Numpy_Rom_Data_{self.rom_basis_output_name}/RightBasisMatrix.npy")
+                node_ids = np.load(f"numpy_rom_data_{self.rom_basis_output_name}/NodeIds.npy")
+                right_modes = np.load(f"numpy_rom_data_{self.rom_basis_output_name}/RightBasisMatrix.npy")
                 if right_modes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
                     right_modes.reshape(-1,1)
                 right_modes = right_modes[:,:rom_dofs]
                 if (self.solving_strategy == "petrov_galerkin"):
                     petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
-                    left_modes = np.load(f"Numpy_Rom_Data_{self.rom_basis_output_name}/LeftBasisMatrix.npy")
+                    left_modes = np.load(f"numpy_rom_data_{self.rom_basis_output_name}/LeftBasisMatrix.npy")
                     if left_modes.ndim ==1:
                         left_modes.reshape(-1,1)
                     left_modes = left_modes[:,:petrov_galerkin_rom_dofs]
@@ -182,10 +182,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
                 elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
                     # Set the HROM weights in elements and conditions
-                    element_indexes = np.load(f"Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ElementIds.npy")
-                    element_weights = np.load(f"Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ElementWeights.npy")
-                    condition_indexes = np.load(f"Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ConditionIds.npy")
-                    conditon_weights = np.load(f"Numpy_Rom_Data_{self.rom_basis_output_name}/HROM_ConditionWeights.npy")
+                    element_indexes = np.load(f"numpy_rom_data_{self.rom_basis_output_name}/HROM_ElementIds.npy")
+                    element_weights = np.load(f"numpy_rom_data_{self.rom_basis_output_name}/HROM_ElementWeights.npy")
+                    condition_indexes = np.load(f"numpy_rom_data_{self.rom_basis_output_name}/HROM_ConditionIds.npy")
+                    conditon_weights = np.load(f"numpy_rom_data_{self.rom_basis_output_name}/HROM_ConditionWeights.npy")
                     for i in range(np.size(element_indexes)):
                         computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
                     for i in range(np.size(condition_indexes)):
