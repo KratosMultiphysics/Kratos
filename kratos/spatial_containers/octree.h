@@ -215,7 +215,7 @@ public:
 
     }
 
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
+    void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
     {
         rOStream << Perfix << "Partition at point (" << mPosition[0];
         for(IndexType j = 0 ; j < Dimension - 1 ; j++)
