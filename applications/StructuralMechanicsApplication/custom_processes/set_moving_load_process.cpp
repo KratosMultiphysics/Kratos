@@ -40,7 +40,8 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
             "velocity"        : 1,
-            "origin"          : [0.0, 0.0, 0.0]
+            "origin"          : [0.0, 0.0, 0.0],
+			"offset"          : 0.0
         }  )"
     );
     
@@ -74,7 +75,6 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     KRATOS_ERROR_IF(!is_all_string && !is_all_number) << "'load' has to be a vector of numbers, or an array with strings" << std::endl;
 
 }
-
 
 std::vector<IndexType> SetMovingLoadProcess::FindNonRepeatingIndices(const std::vector<IndexType> IndicesVector)
 {
@@ -280,9 +280,15 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
 
             if (mIsCondReversedVector[i]){
                 mCurrentDistance = global_distance + element_length - local_to_global_distance;
+                mCurrentDistance -= mParameters["offset"].GetDouble();
+                
             } else {
                 mCurrentDistance = global_distance + local_to_global_distance;
+                mCurrentDistance += mParameters["offset"].GetDouble();
             }
+            
+            KRATOS_INFO("DISTANCE") << mCurrentDistance << std::endl;
+            return;
         }
 
         // add element length of current condition to the global distance
@@ -391,6 +397,8 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         }
         distance_cond += element_length;
     }
+    KRATOS_INFO("DISTANCE") << mCurrentDistance << std::endl;
+    
 }
 
 
@@ -413,6 +421,7 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 
     // move the load
     mCurrentDistance = mCurrentDistance + mrModelPart.GetProcessInfo().GetValue(DELTA_TIME) * load_velocity;
+    KRATOS_INFO("DISTANCE") << mCurrentDistance << std::endl;
 }
 
 void SetMovingLoadProcess::save(Serializer& rSerializer) const

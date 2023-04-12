@@ -46,6 +46,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetMovingLoadProcess : public
 public:
     ///@name Type Definitions
     ///@{
+    ///
+    
 
     ///@}
     ///@name Pointer Definitions
@@ -84,7 +86,8 @@ public:
      */
     void ExecuteFinalizeSolutionStep() override;
 
-    ///@}
+
+	///@}
     ///@name Input and output
     ///@{
 
