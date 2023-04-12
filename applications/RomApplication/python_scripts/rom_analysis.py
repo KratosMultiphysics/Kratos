@@ -19,7 +19,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
         def _CreateSolver(self):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
-            self.rom_basis_output_name = 'RomParameters.json' #Default
+            self.rom_basis_output_name = 'RomParameters' #Default
             if self.project_parameters.Has("output_processes"):
                 for name, _ in self.project_parameters["output_processes"].items():
                     if name=="rom_output":
