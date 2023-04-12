@@ -145,7 +145,7 @@ class PetrovGalerkinTrainingUtility(object):
         return pretty_number
 
     def __GetGalerkinBasis(self):
-        with open(self.rom_basis_output_name,'r') as f:
+        with open(self.rom_basis_output_name + ".json",'r') as f:
             galerkin_rom_parameters = json.load(f)
             N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
             N_nodes = len(galerkin_rom_parameters["nodal_modes"])
