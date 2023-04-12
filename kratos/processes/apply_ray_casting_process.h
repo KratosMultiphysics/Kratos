@@ -206,7 +206,7 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-private:
+protected:
     ///@name Static Member Variables
     ///@{
 
@@ -291,6 +291,12 @@ private:
      * This method sets the ray casting tolerances values according to the domain bounding box size
      */
     void SetRayCastingTolerances();
+
+    /**
+     * @brief This method returns the function that sets nodal distances after
+     * ray distances have been computed
+     */
+    virtual std::function<void(const double,double&)> CreateSetNodalDistanceFunction() const;
 
     ///@}
     ///@name Private  Access

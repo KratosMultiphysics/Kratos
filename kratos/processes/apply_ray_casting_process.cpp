@@ -129,14 +129,14 @@ namespace Kratos
             KRATOS_ERROR << "Provided 'distance_database' is '" << database << "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
         }
 
-        const Variable<double>* mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        const Variable<double>* pDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+
+        auto set_distance_function = CreateSetNodalDistanceFunction();
 
         block_for_each(ModelPart1.Nodes(), [&](Node<3>& rNode){
-            double& r_node_distance = node_distance_getter(rNode, *mpDistanceVariable);
+            double& r_node_distance = node_distance_getter(rNode, *pDistanceVariable);
             const double ray_distance = this->DistancePositionInSpace(rNode);
-            if (ray_distance * r_node_distance < 0.0) {
-                r_node_distance = -r_node_distance;
-            }
+            set_distance_function(ray_distance, r_node_distance);
         });
     }
 
@@ -490,6 +490,16 @@ namespace Kratos
         }
 
         return is_intersected;
+    }
+
+    template<std::size_t TDim>
+    std::function<void(const double,double&)> ApplyRayCastingProcess<TDim>::CreateSetNodalDistanceFunction() const
+    {
+        return [](const double RayDistance, double& rNodeDistance) {
+            if (RayDistance * rNodeDistance < 0.0) {
+                rNodeDistance = -rNodeDistance;
+            }
+        };
     }
 
     /// Turn back information as a string.
