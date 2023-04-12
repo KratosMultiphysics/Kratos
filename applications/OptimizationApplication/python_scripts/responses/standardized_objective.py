@@ -77,7 +77,7 @@ class StandardizedObjective:
         self.__utility.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__scaling)
 
     def UpdateObjectiveData(self) -> None:
-        response_problem_data = self.__utility.GetBufferedDataContainer()
+        response_problem_data = self.__utility.GetBufferedData()
         response_problem_data["type"] = self.GetType()
         response_problem_data["rel_change"] = self.__utility.GetRelativeChange()
         response_problem_data["abs_change"] = self.__utility.GetAbsoluteChange(self.GetInitialValue())

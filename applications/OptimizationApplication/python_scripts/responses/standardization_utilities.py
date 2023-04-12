@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class StandardizationUtilities:
@@ -19,8 +20,8 @@ class StandardizationUtilities:
         respective response function problem data containers in OptimizationInfo
 
         In the event, this creates the response function problem data, then a buffered data container with
-        required_buffer_size is created (given by GetBufferedDataContainer). Another unbuffered data container is
-        created for sensitivitiy data given by GetUnbufferedDataContainer
+        required_buffer_size is created (given by GetBufferedData). Another unbuffered data container is
+        created for sensitivitiy data given by GetUnbufferedData
 
         The response function should be present in the optimization_info.
 
@@ -38,27 +39,27 @@ class StandardizationUtilities:
         # minimum buffer size of 2 is required for the communicator
         # algorithm can request higher buffer sizes if required.
         required_buffer_size = max(required_buffer_size, 2)
-        response_data = optimization_info.GetComponentProblemDataContainer(name)
-        self.__response_function: ResponseFunction = optimization_info.GetComponent(name)
+        response_data = optimization_info.GetReponseData(name)
+        self.__response_function: ResponseFunction = optimization_info.GetResponse(name)
         self.__name = name
 
         if not response_data.HasValue("buffered"):
             # first create the buffered data containers to store light objects
             # such as primitive variables
-            self.__response_buffered_data = OptimizationInfo.OptimizationData(required_buffer_size)
+            self.__response_buffered_data = BufferedDict(required_buffer_size)
             response_data["buffered"] = self.__response_buffered_data
 
             # now create the sensitivities data container without buffer because
             # they store heavy objects containing sensitivities, and buffer
             # is not required.
-            self.__response_unbuffered_data = OptimizationInfo.OptimizationData(1)
+            self.__response_unbuffered_data = BufferedDict(1)
             response_data["unbuffered"] = self.__response_unbuffered_data
         else:
-            self.__response_buffered_data: OptimizationInfo.OptimizationData = response_data["buffered"]
+            self.__response_buffered_data: BufferedDict = response_data["buffered"]
             if self.__response_buffered_data.GetBufferSize() < required_buffer_size:
                 raise RuntimeError(f"The required buffer size is not satisfied with the existing problem data container. [ response data container buffer size = {self.__response_buffered_data.GetBufferSize()}, required buffer size = {required_buffer_size}")
 
-            self.__response_unbuffered_data: OptimizationInfo.OptimizationData = response_data["unbuffered"]
+            self.__response_unbuffered_data: BufferedDict = response_data["unbuffered"]
 
     def GetName(self) -> str:
         """Get the name of the response function
@@ -76,7 +77,7 @@ class StandardizationUtilities:
         """
         return self.__response_function
 
-    def GetBufferedDataContainer(self) -> OptimizationInfo:
+    def GetBufferedData(self) -> OptimizationInfo:
         """Get the buffered data container for response function.
 
         Returns:
@@ -84,7 +85,7 @@ class StandardizationUtilities:
         """
         return self.__response_buffered_data
 
-    def GetUnbufferedDataContainer(self) -> OptimizationInfo:
+    def GetUnbufferedData(self) -> OptimizationInfo:
         """Get the unbuffered data container for the response function.
 
         This method returns the unbuffered data container for response functions which
@@ -110,7 +111,7 @@ class StandardizationUtilities:
         Returns:
             float: Scaled response value for specified step_index.
         """
-        response_problem_data = self.GetBufferedDataContainer()
+        response_problem_data = self.GetBufferedData()
         if step_index == 0 and not response_problem_data.HasValue("value"):
             response_problem_data["value"] = self.__response_function.CalculateValue()
 
@@ -159,7 +160,7 @@ class StandardizationUtilities:
             sensitivity_variable_collective_expression_info (dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]): Sensitivity variable and CollectiveExpressions pairs
             scaling (float, optional): Scaling to be used on the computed response sensitivities. Defaults to 1.0.
         """
-        response_sensitivity_data = self.GetUnbufferedDataContainer()
+        response_sensitivity_data = self.GetUnbufferedData()
 
         # check whether the same sensitivity is computed for each sensitivity model part w.r.t. same sensitivity variable for the same response function.
         required_sensitivity_model_part_variable_info: 'dict[SupportedSensitivityFieldVariableTypes, list[Kratos.ModelPart]]' = {}

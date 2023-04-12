@@ -73,7 +73,7 @@ class StandardizedConstraint:
         self.__utility.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__standardization_value)
 
     def UpdateConstraintData(self) -> None:
-        response_problem_data = self.__utility.GetBufferedDataContainer()
+        response_problem_data = self.__utility.GetBufferedData()
         response_problem_data["rel_change"] = self.__utility.GetRelativeChange()
         response_problem_data["abs_change"] = self.__utility.GetAbsoluteChange(self.GetReferenceValue())
         response_problem_data["ref_value"] = self.GetReferenceValue()
