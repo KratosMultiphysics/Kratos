@@ -424,10 +424,7 @@ void SpringDamperElement<TDim>::ConstCalculateLeftHandSide(MatrixType& rLeftHand
     array_1d<double, 3> nodal_rot_stiffness = ZeroVector(3);
 
     const array_1d<double, 3>& nodal_stiffness = this->GetValue(NODAL_DISPLACEMENT_STIFFNESS);
-    if (this->Has(NODAL_ROTATIONAL_STIFFNESS))
-    {
-        nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
-    }
+    const array_1d<double, 3>& nodal_rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
 
     if constexpr (TDim == 2) {
 
