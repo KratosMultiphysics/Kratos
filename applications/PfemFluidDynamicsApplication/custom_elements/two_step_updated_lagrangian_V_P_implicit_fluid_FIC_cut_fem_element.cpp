@@ -942,7 +942,44 @@ namespace Kratos
           CalculateIntersectionGeometryData(interface_DN_DX, interface_N, interface_gauss_weights, interface_unit_normals);
 
           // Add the boundary terms
-          //TODO
+          const double penalty_parameter = 1.0e8; //TODO: Make this dimensionally consistent
+
+          const auto& r_geom = this->GetGeometry();
+          const std::size_t n_nodes = r_geom.PointsNumber();
+          const unsigned int n_int_gauss_pts = interface_gauss_weights.size();
+          for (unsigned int g = 0; g < n_int_gauss_pts; g++) {
+              const double g_weight = interface_gauss_weights[g];
+              const auto g_shape_functions = row(interface_N,g);
+              const auto& r_g_unit_normal = interface_unit_normals[g];
+
+              double p_gauss = 0.0;
+              for (std::size_t j = 0; j < n_nodes; ++j) {
+                  p_gauss += g_shape_functions[j] * r_geom[j].FastGetSolutionStepValue(PRESSURE);
+              }
+
+              // Navier-Stokes traction boundary term
+              // TODO: Add viscous component
+              for (std::size_t i = 0; i < n_nodes; ++i) {
+                  const double aux = g_weight * g_shape_functions[i] * p_gauss;
+                  for (std::size_t d = 0; d < TDim; ++d) {
+                      // Pressure contribution (only to the RHS as this is the momentum step)
+                      rRightHandSideVector(i*TDim + d) += aux * r_g_unit_normal[d];
+                  }
+              }
+
+              // Cut-FEM boundary condition imposition (penalty) -> TODO: To be enhanced by a Nitsche BC
+              for (std::size_t i = 0; i < n_nodes; ++i) {
+                  for (std::size_t j = 0; j < n_nodes; ++j) {
+                      const auto& r_vel_j = r_geom[j].FastGetSolutionStepValue(VELOCITY);
+                      const array_1d<double,3> bc_vel = ZeroVector(3); //TODO: This should be the "structure" velocity in the future
+                      const double aux = g_weight* penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
+                      for (std::size_t d = 0; d < TDim; ++d) {
+                          rLeftHandSideMatrix(i*TDim + d, j*TDim + d) += aux;
+                          rRightHandSideVector(i*TDim + d) -= aux*(r_vel_j[d] - bc_vel[d]);
+                      }
+                  }
+              }
+          }
       }
   }
 
@@ -1041,6 +1078,51 @@ namespace Kratos
           rDNDX,
           rGaussWeights,
           GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+      //TODO: Remove this after developing
+      // Matrix pos_rN;
+      // Vector pos_rGaussWeights;
+      // ShapeFunctionDerivativesArrayType pos_rDNDX;
+      // p_mod_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
+      //     pos_rN,
+      //     pos_rDNDX,
+      //     pos_rGaussWeights,
+      //     GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+      // Matrix neg_rN;
+      // Vector neg_rGaussWeights;
+      // ShapeFunctionDerivativesArrayType neg_rDNDX;
+      // p_mod_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+      //     neg_rN,
+      //     neg_rDNDX,
+      //     neg_rGaussWeights,
+      //     GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+      // std::size_t n_pos_gauss = pos_rGaussWeights.size();
+      // std::size_t n_neg_gauss = neg_rGaussWeights.size();
+      // std::size_t n_tot_gauss = n_pos_gauss + n_neg_gauss;
+      // KRATOS_WATCH(this->Id())
+      // KRATOS_WATCH(n_tot_gauss)
+      // rDNDX.resize(n_tot_gauss);
+      // rN = ZeroMatrix(n_tot_gauss, NumNodes);
+      // rGaussWeights = ZeroVector(n_tot_gauss);
+      // std::size_t i_gauss = 0;
+      // for (std::size_t gpos = 0; gpos < n_pos_gauss; ++gpos) {
+      //     rDNDX[i_gauss] = pos_rDNDX[gpos];
+      //     for (std::size_t i = 0; i < NumNodes; ++i) {
+      //         rN(i_gauss, i) = pos_rN(gpos, i);
+      //     }
+      //     rGaussWeights(i_gauss) = pos_rGaussWeights(gpos);
+      //     i_gauss++;
+      // }
+      // for (std::size_t gneg = 0; gneg < n_neg_gauss; ++gneg) {
+      //     rDNDX[i_gauss] = neg_rDNDX[gneg];
+      //     for (std::size_t i = 0; i < NumNodes; ++i) {
+      //         rN(i_gauss, i) = neg_rN(gneg, i);
+      //     }
+      //     rGaussWeights(i_gauss) = neg_rGaussWeights(gneg);
+      //     i_gauss++;
+      // }
   }
 
   template <unsigned int TDim>
