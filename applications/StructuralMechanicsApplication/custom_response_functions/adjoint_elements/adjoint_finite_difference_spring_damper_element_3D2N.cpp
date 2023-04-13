@@ -11,7 +11,7 @@
 
 
 #include "adjoint_finite_difference_spring_damper_element_3D2N.h"
-#include "custom_elements/spring_damper_element_3D2N.hpp"
+#include "custom_elements/spring_damper_element.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
 
@@ -138,7 +138,7 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::load(Serializer
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 
-template class AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement3D2N>;
+template class AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement<3>>;
 
 } // namespace Kratos.
 
