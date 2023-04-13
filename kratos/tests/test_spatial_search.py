@@ -37,19 +37,19 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         RemoveFiles(cls.mdpa_name)
 
     def setUp(self):
-        pass
-
-    def test_KDTree_nodes(self):
-        # Create search
         self.settings = KM.Parameters("""
         {
-            "container_type"  : "KDTree",
+            "container_type"  : "",
             "search_parameters" : {
                 "bucket_size"     : 4,
                 "allocation_size" : 1000
             }
         }
         """)
+
+    def test_KDTree_nodes(self):
+        # Create search
+        self.settings["container_type"].SetString("KDTree")
         self.search = KM.SpecializedSpatialSearch(self.settings)
 
         # Create node for search
