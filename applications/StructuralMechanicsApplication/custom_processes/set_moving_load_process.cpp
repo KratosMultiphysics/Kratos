@@ -277,17 +277,12 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
         // if origin point is within the current condition, set the global distance of the load, else continue the loop
         if (r_geom.IsInside(origin_point, local_point)){
             const double local_to_global_distance = (local_point[0] + 1) / 2 * element_length;
-
             if (mIsCondReversedVector[i]){
                 mCurrentDistance = global_distance + element_length - local_to_global_distance;
-                mCurrentDistance -= mParameters["offset"].GetDouble();
-                
             } else {
                 mCurrentDistance = global_distance + local_to_global_distance;
-                mCurrentDistance += mParameters["offset"].GetDouble();
             }
-            
-            KRATOS_INFO("DISTANCE") << mCurrentDistance << std::endl;
+            mCurrentDistance += mParameters["offset"].GetDouble();
             return;
         }
 
@@ -378,7 +373,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
-        if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added){
+    	if (distance_cond + element_length >= mCurrentDistance && distance_cond <= mCurrentDistance && !is_moving_load_added){
             double local_distance;
             if (mIsCondReversedVector[i]){
                 local_distance = distance_cond + element_length - mCurrentDistance;
@@ -396,9 +391,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
             r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, 0);
         }
         distance_cond += element_length;
-    }
-    KRATOS_INFO("DISTANCE") << mCurrentDistance << std::endl;
-    
+    }    
 }
 
 
@@ -421,7 +414,6 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 
     // move the load
     mCurrentDistance = mCurrentDistance + mrModelPart.GetProcessInfo().GetValue(DELTA_TIME) * load_velocity;
-    KRATOS_INFO("DISTANCE") << mCurrentDistance << std::endl;
 }
 
 void SetMovingLoadProcess::save(Serializer& rSerializer) const

@@ -24,7 +24,7 @@ def Factory(settings, Model):
                 "direction"       : [1,1,1],
                 "velocity"        : 1,
                 "origin"          : [0.0,0.0,0.0],
-		"offset"          : 0.0
+                "offset"          : 0.0
             }
             """
                                                      )
