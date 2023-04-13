@@ -53,7 +53,27 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         self.search = KM.SpecializedSpatialSearch(self.settings)
 
         # Create node for search
-        second_model_part = self.current_model.CreateModelPart("Secondary")
+        second_model_part = self.current_model.CreateModelPart("KDTree")
+        second_model_part.CreateNewNode(100000, 0.0, 0.0, 0.0)
+        radius_list = [0.3]
+        [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, second_model_part.Nodes, radius_list)
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(len(results[0]), 7)
+        distance_ref = [0.077385615, 0.0008331217999999999, 0.0899807529, 0.0627019979, 0.07703137859999999, 0.0789991779, 0.0708403121]
+        node_id_ref = [7, 17, 18, 23, 33, 39, 44, 56]
+        for distance in distances[0]:
+            self.assertTrue(distance in distance_ref)
+        for node in results[0]:
+            self.assertTrue(node.Id in node_id_ref)
+
+    def test_Octree_nodes(self):
+        # Create search
+        self.settings["container_type"].SetString("Octree")
+        self.search = KM.SpecializedSpatialSearch(self.settings)
+
+        # Create node for search
+        second_model_part = self.current_model.CreateModelPart("Octree")
         second_model_part.CreateNewNode(100000, 0.0, 0.0, 0.0)
         radius_list = [0.3]
         [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, second_model_part.Nodes, radius_list)
