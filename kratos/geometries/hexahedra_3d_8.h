@@ -664,6 +664,60 @@ public:
         return faces;
     }
 
+    //Connectivities of faces required
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
+    {
+        NumberNodesInFaces.resize(4, false);
+        // Linear Tetrahedra have elements of 3 nodes as faces
+        NumberNodesInFaces[0]=4;
+        NumberNodesInFaces[1]=4;
+        NumberNodesInFaces[2]=4;
+        NumberNodesInFaces[3]=4;
+        NumberNodesInFaces[4]=4;
+        NumberNodesInFaces[5]=4;
+
+    }
+
+    //NodesInFaces(i,j) contains the node i of the face j, with the same order as in GenerateFaces()
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
+    {
+        // faces in columns
+      if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 6)
+        NodesInFaces.resize(4, 6, false);
+
+      //face 1
+      NodesInFaces(0,0)=3;
+      NodesInFaces(1,0)=2;
+      NodesInFaces(2,0)=1;
+      NodesInFaces(3,0)=0;
+      //face 2
+      NodesInFaces(0,1)=0;
+      NodesInFaces(1,1)=1;
+      NodesInFaces(2,1)=5;
+      NodesInFaces(3,1)=4;
+      //face 3
+      NodesInFaces(0,2)=2;
+      NodesInFaces(1,2)=6;
+      NodesInFaces(2,2)=5;
+      NodesInFaces(3,2)=1;
+      //face 4
+      NodesInFaces(0,3)=7;
+      NodesInFaces(1,3)=6;
+      NodesInFaces(2,3)=2;
+      NodesInFaces(3,3)=3;
+      //face 4
+      NodesInFaces(0,4)=7;
+      NodesInFaces(1,4)=3;
+      NodesInFaces(2,4)=0;
+      NodesInFaces(3,4)=4;
+      //face 5
+      NodesInFaces(0,5)=4;
+      NodesInFaces(1,5)=5;
+      NodesInFaces(2,5)=6;
+      NodesInFaces(3,5)=7;
+
+    }
+
 
     bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
