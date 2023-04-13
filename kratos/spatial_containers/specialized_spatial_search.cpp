@@ -68,14 +68,14 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     using PointIterator = PointVector::iterator;
     using DistanceIterator = std::vector<double>::iterator;
 
-    // Retrieving parameters
-    const int bucket_size = mParameters["bucket_size"].GetInt();
-
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureElements, rInputElements, rResults, rResultsDistance);
 
     // Defining the search structure
     if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+
         /// KDtree definitions
         using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using KDTree = Tree<KDTreePartition<BucketType>>;
@@ -86,6 +86,9 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         // Performing search
         ParallelSearch(rInputElements, rRadius, kd_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+
         /// Octree definitions
         using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using Octree = Tree<OCTreePartition<BucketType>>;
@@ -96,6 +99,9 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         // Performing search
         ParallelSearch(rInputElements, rRadius, octree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+
         /// StaticBins definitions
         using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using StaticBinsTree = Tree<StaticBins>;
@@ -155,14 +161,14 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     using PointIterator = PointVector::iterator;
     using DistanceIterator = std::vector<double>::iterator;
 
-    // Retrieving parameters
-    const int bucket_size = mParameters["bucket_size"].GetInt();
-
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureNodes, rInputNodes, rResults, rResultsDistance);
 
     // Defining the search structure
     if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+
         /// KDtree definitions
         using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using KDTree = Tree<KDTreePartition<BucketType>>;
@@ -173,6 +179,9 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         // Performing search
         ParallelSearch(rInputNodes, rRadius, kd_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+
         /// Octree definitions
         using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using Octree = Tree<OCTreePartition<BucketType>>;
@@ -183,6 +192,9 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         // Performing search
         ParallelSearch(rInputNodes, rRadius, octree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+
         /// StaticBins definitions
         using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using StaticBinsTree = Tree<StaticBins>;
@@ -242,14 +254,14 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
     using PointIterator = PointVector::iterator;
     using DistanceIterator = std::vector<double>::iterator;
 
-    // Retrieving parameters
-    const int bucket_size = mParameters["bucket_size"].GetInt();
-
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureConditions, rInputConditions, rResults, rResultsDistance);
 
     // Defining the search structure
     if constexpr (TSearchBackend == SpatialContainer::KDTree) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+
         /// KDtree definitions
         using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using KDTree = Tree<KDTreePartition<BucketType>>;
@@ -260,6 +272,9 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         // Performing search
         ParallelSearch(rInputConditions, rRadius, kd_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::Octree) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+
         /// Octree definitions
         using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using Octree = Tree<OCTreePartition<BucketType>>;
@@ -270,6 +285,9 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         // Performing search
         ParallelSearch(rInputConditions, rRadius, octree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
+        // Retrieving parameters
+        const int bucket_size = mParameters["bucket_size"].GetInt();
+        
         /// StaticBins definitions
         using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using StaticBinsTree = Tree<StaticBins>;
