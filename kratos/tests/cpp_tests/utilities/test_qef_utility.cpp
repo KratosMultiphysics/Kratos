@@ -77,10 +77,10 @@ namespace {
         Element::Pointer pElement = r_voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
         GeometryPtrType p_voxel = pElement->pGetGeometry();
 
-        //Add the distances
+        // Add the distances
         PointsArrayType nodes = p_voxel->Points();   
         
-        for (int i = 0; i < 8; i++) {
+        for (unsigned int i = 0; i < 8; i++) {
             nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
         }
         return p_voxel;  
