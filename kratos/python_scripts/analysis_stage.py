@@ -151,7 +151,7 @@ class AnalysisStage(object):
             process.ExecuteFinalizeSolutionStep()
 
         self.main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
-        for element in self._GetSolver().GetComputingModelPart().Elements:
+        for element in self._GetSolver().GetComputingModelPart().GetSubModelPart("Parts_Solid_MainPartDamage").Elements:
             damage = element.CalculateOnIntegrationPoints(CLA.DELAMINATION_DAMAGE_VECTOR_MODE_ONE,self.main_model_part.ProcessInfo)
             NUM_OF_FAILED_INTEGRATION_POINTS = 0
             for x in damage:
