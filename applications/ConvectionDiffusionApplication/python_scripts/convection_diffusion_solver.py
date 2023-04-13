@@ -153,7 +153,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
-            "assign_neighbour_elements_to_conditions" : false
+            "assign_neighbour_elements_to_conditions" : true
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
