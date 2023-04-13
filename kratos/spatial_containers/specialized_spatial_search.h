@@ -507,8 +507,8 @@ private:
         IndexPartition<std::size_t>(input_size).for_each([&](std::size_t i) {
             auto it = rInput.begin() + i;
             PointType aux_point(*(it.base()));
-            PointVector results;
-            DistanceVector results_distances;
+            PointVector results(allocation_size);
+            DistanceVector results_distances(allocation_size);
             const std::size_t number_of_results = rSearch.SearchInRadius(aux_point, rRadius[i], results.begin(), results_distances.begin(), allocation_size);
             if (number_of_results > 0) {
                 auto& r_results = rResults[i];
