@@ -136,9 +136,9 @@ class TestBufferedDict(kratos_unittest.TestCase):
         self.assertEqual(
             result,
             {
-                "data": buffered_data["data"],
+                "data": buffered_data.GetValue("data"),
                 "data/int": 10,
-                "data/test": buffered_data["data/test"],
+                "data/test": buffered_data.GetValue("data/test"),
                 "data/test/int": 1,
                 "data/test/float": 3.0
             })
@@ -149,8 +149,8 @@ class TestBufferedDict(kratos_unittest.TestCase):
         self.assertEqual(
             result,
             {
-                "data": buffered_data["data"],
-                "data/test": buffered_data["data/test"],
+                "data": buffered_data.GetValue("data"),
+                "data/test": buffered_data.GetValue("data/test"),
                 "data/test/str": "test",
                 "data/test/float": 4.0
             })
@@ -161,9 +161,9 @@ class TestBufferedDict(kratos_unittest.TestCase):
         self.assertEqual(
             result,
             {
-                "data": buffered_data["data"],
+                "data": buffered_data.GetValue("data"),
                 "data/str": "old",
-                "data/test": buffered_data["data/test"]
+                "data/test": buffered_data.GetValue("data/test")
             })
 
     def test_Buffers(self):
@@ -182,9 +182,9 @@ class TestBufferedDict(kratos_unittest.TestCase):
         buffered_data.SetValue("data/sub_1/sub_sub", BufferedDict(4))
         buffered_data.SetValue("data/sub_2", BufferedDict(5))
 
-        self.assertEqual(buffered_data["data/sub_1/sub_sub"].GetParent(), buffered_data["data/sub_1"])
-        self.assertEqual(buffered_data["data/sub_1"].GetParent(), buffered_data["data"])
-        self.assertEqual(buffered_data["data/sub_2"].GetParent(), buffered_data["data"])
+        self.assertEqual(buffered_data.GetValue("data/sub_1/sub_sub").GetParent(), buffered_data.GetValue("data/sub_1"))
+        self.assertEqual(buffered_data.GetValue("data/sub_1").GetParent(), buffered_data.GetValue("data"))
+        self.assertEqual(buffered_data.GetValue("data/sub_2").GetParent(), buffered_data.GetValue("data"))
 
     def test_GetRoot(self):
         buffered_data = BufferedDict(3)
