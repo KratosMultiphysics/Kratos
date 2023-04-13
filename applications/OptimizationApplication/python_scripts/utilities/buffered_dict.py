@@ -17,8 +17,6 @@ class BufferedDict:
     of the instance to not to allow re sizing because then it is not
     clear how to handle the connected steps.
 
-    ClearStep can be used to clear all the data in the specified step_index.
-
     The buffered data is stored in a cyclic buffer.
     """
     def __init__(self, buffer_size: int = 1):
@@ -51,34 +49,19 @@ class BufferedDict:
         Advances to the next index of the buffer in the cyclic buffer
         making the current index accesible as a past value indes (step_index = 1)
 
+        Clears the values in the current step after advancement.
+
         Args:
             recursive (bool, optional): Advance step recursively in sub items. Defaults to True.
         """
         # first advance the current instance
         self.__buffer_index = (self.__buffer_index + 1) % self.GetBufferSize()
+        self.__buffered_data[self.__GetBufferIndex(0)] = {}
 
         if recursive:
             # now advance the sub items
             for sub_item in self.__sub_items.values():
                 sub_item.AdvanceStep(recursive)
-
-    def ClearStep(self, step_index: int = 0, recursive = True) -> None:
-        """Clear the given step index data holders.
-
-        This makes current instances (and sub items) given step_index data
-        holders to be empty.
-
-        Args:
-            step_index (int, optional): Step index to be cleared. Defaults to 0.
-            recursive (bool, optional): Clear sub_items same step_index. Defaults to True.
-        """
-        # first clear the current data
-        self.__buffered_data[self.__GetBufferIndex(step_index)] = {}
-
-        if recursive:
-            # now clear the sub items
-            for sub_item in self.__sub_items.values():
-                sub_item.ClearStep(step_index, recursive)
 
     def HasValue(self, key: str, step_index: int = 0) -> bool:
         """Checks whether key exists in the given step_index
