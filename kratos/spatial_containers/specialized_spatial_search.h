@@ -456,8 +456,8 @@ private:
         points.reserve(structure_size);
         const auto it_begin = rStructure.begin();
         for (std::size_t i = 0; i < structure_size; ++i) {
-            auto it_elem = it_begin + i;
-            points.push_back(PointTypePointer(new PointType(*(it_elem.base()))));
+            auto it = it_begin + i;
+            points.push_back(PointTypePointer(new PointType(*(it.base()))));
         }
 
         // Resizing the results
@@ -505,8 +505,8 @@ private:
 
         // Performing search
         IndexPartition<std::size_t>(input_size).for_each([&](std::size_t i) {
-            auto it_elem = rInput.begin() + i;
-            PointType aux_point(*(it_elem.base()));
+            auto it = rInput.begin() + i;
+            PointType aux_point(*(it.base()));
             PointVector results;
             DistanceVector results_distances;
             const std::size_t number_of_results = rSearch.SearchInRadius(aux_point, rRadius[i], results.begin(), results_distances.begin(), allocation_size);
