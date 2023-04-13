@@ -17,11 +17,11 @@
 // Project includes
 #include "includes/checks.h"
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "utilities/qef_utility.h"
 
 namespace Kratos::Testing {
 namespace {
-
     using NodeType = Node<3>;
     using NodePtrType = Node<3>::Pointer;
     using GeometryType = Geometry<NodeType>;
