@@ -4,6 +4,7 @@ from typing import Any
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
+from KratosMultiphysics.OptimizationApplication.controls.control import Control
 
 class OptimizationInfo:
     """This is the main data holder for optimization problems
@@ -32,6 +33,19 @@ class OptimizationInfo:
         # initialize the step
         self.__problem_data["step"] = 0
 
+    def AddExecutionPolicy(self, name: str, execution_policy: ExecutionPolicy) -> None:
+        self.__AddComponent(name, execution_policy, ExecutionPolicy)
+
+    def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
+        return self.__GetComponent(name, ExecutionPolicy)
+
+    def GetExecutionPolicyData(self, name: str) -> BufferedDict:
+        return self.__GetComponentDataContainer(name, ExecutionPolicy)
+
+    def RemoveExecutionPolicy(self, name: str) -> None:
+        self.__RemoveComponent(name, ExecutionPolicy)
+        self.__RemoveComponentDataContainer(name, ExecutionPolicy)
+
     def AddResponse(self, name: str, response_function: ResponseFunction) -> None:
         self.__AddComponent(name, response_function, ResponseFunction)
 
@@ -45,18 +59,18 @@ class OptimizationInfo:
         self.__RemoveComponent(name, ResponseFunction)
         self.__RemoveComponentDataContainer(name, ResponseFunction)
 
-    def AddExecutionPolicy(self, name: str, response_function: ExecutionPolicy) -> None:
-        self.__AddComponent(name, response_function, ExecutionPolicy)
+    def AddControl(self, name: str, control: Control) -> None:
+        self.__AddComponent(name, control, Control)
 
-    def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
-        return self.__GetComponent(name, ExecutionPolicy)
+    def GetControl(self, name: str) -> Control:
+        return self.__GetComponent(name, Control)
 
-    def GetExecutionPolicyData(self, name: str) -> BufferedDict:
-        return self.__GetComponentDataContainer(name, ExecutionPolicy)
+    def GetControlData(self, name: str) -> BufferedDict:
+        return self.__GetComponentDataContainer(name, Control)
 
-    def RemoveExecutionPolicy(self, name: str) -> None:
-        self.__RemoveComponent(name, ExecutionPolicy)
-        self.__RemoveComponentDataContainer(name, ExecutionPolicy)
+    def RemoveControl(self, name: str) -> None:
+        self.__RemoveComponent(name, Control)
+        self.__RemoveComponentDataContainer(name, Control)
 
     def GetStep(self) -> int:
         """Gets the current step of the optimization info
