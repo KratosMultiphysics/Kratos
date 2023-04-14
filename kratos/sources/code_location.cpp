@@ -48,9 +48,11 @@ namespace Kratos
 		std::string clean_file_name(mFileName);
 		ReplaceAll(clean_file_name, "\\", "/");
 
-		std::size_t kratos_root_position = clean_file_name.rfind("/application/");
-		if (kratos_root_position != std::string::npos)
-			clean_file_name.erase(0, kratos_root_position);
+		std::size_t kratos_root_position = clean_file_name.rfind("/applications/");
+		if (kratos_root_position != std::string::npos) {
+			clean_file_name.erase(0, kratos_root_position+1);
+			return clean_file_name;
+		}
 
 
 		if (kratos_root_position == std::string::npos)

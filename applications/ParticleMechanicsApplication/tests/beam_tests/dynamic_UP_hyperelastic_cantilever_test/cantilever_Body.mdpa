@@ -70,7 +70,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangianUP2D3N// GUI group identifier: Material_domain Auto3
+Begin Elements MPMUpdatedLagrangianUP2D3N// GUI group identifier: Material_domain Auto3
         1          0   406   396   409 
         2          0   132   116   140 
         3          0   261   277   260 
