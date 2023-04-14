@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
-    def checkRHS(self, rhs: list[float], expected_res: list[float]):
+    def checkRHS(self, rhs, expected_res):
         """
         routine to check calculation of rhs side within context of testing SetMovingLoad
         Returns
