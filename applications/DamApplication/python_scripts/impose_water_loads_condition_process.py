@@ -23,11 +23,13 @@ class ImposeWaterLoadsConditionProcess(Process):
 
         if ("StraightUpliftLinePressure2D" in settings["model_part_name"].GetString()) or ("StraightUpliftSurfacePressure3D" in settings["model_part_name"].GetString()):
 
-            self.components_process_list.append(DamUpliftConditionLoadProcess(model_part, settings))
+            joint_model_part = Model["MainModelPart.Parts_" + settings["joint_group_name"].GetString()]
+            self.components_process_list.append(DamUpliftConditionLoadProcess(model_part, joint_model_part, settings))
 
         if "CircularUpliftSurfacePressure3D" in settings["model_part_name"].GetString():
 
-            self.components_process_list.append(DamUpliftCircularConditionLoadProcess(model_part, settings))
+            joint_model_part = Model["MainModelPart.Parts_" + settings["joint_group_name"].GetString()]
+            self.components_process_list.append(DamUpliftCircularConditionLoadProcess(model_part, joint_model_part, settings))
 
         if ("HydroDynamicLinePressure2D" in settings["model_part_name"].GetString()) or ("HydroDynamicSurfacePressure3D" in settings["model_part_name"].GetString()):
 

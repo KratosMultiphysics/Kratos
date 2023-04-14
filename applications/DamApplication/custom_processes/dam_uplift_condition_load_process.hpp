@@ -46,7 +46,8 @@ class DamUpliftConditionLoadProcess : public Process
 
     /// Constructor
     DamUpliftConditionLoadProcess(ModelPart &rModelPart,
-                                  Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
+                                  ModelPart &rJointModelPart,
+                                  Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart), mrJointModelPart(rJointModelPart)
     {
         KRATOS_TRY
 
@@ -55,19 +56,20 @@ class DamUpliftConditionLoadProcess : public Process
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "Modify"                                                : true,
-                "Gravity_Direction"                                     : "Y",
-                "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
-                "Upstream_Coordinate"                                   : [0.0,0.0,0.0],
-                "Downstream_Coordinate"                                 : [0.0,0.0,0.0],
-                "Upstream_Longitudinal_Coordinate"                      : [0.0,0.0,0.0],
-                "Spe_weight"                                            : 0.0,
-                "Water_level"                                           : 10.0,
-                "Water_Table"                                           : 0,
-                "Drains"                                                : false,
-                "Height_drain"                                          : 0.0,
-                "Distance"                                              : 0.0,
-                "Effectiveness"                                         : 0.0,
+                "Modify"                                           : true,
+                "joint_group_name"                                 : "PLEASE_CHOOSE_JOINT_GROUP_NAME",
+                "Gravity_Direction"                                : "Y",
+                "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
+                "Upstream_Coordinate"                              : [0.0,0.0,0.0],
+                "Downstream_Coordinate"                            : [0.0,0.0,0.0],
+                "Upstream_Longitudinal_Coordinate"                 : [0.0,0.0,0.0],
+                "Spe_weight"                                       : 0.0,
+                "Water_level"                                      : 10.0,
+                "Water_Table"                                      : 0,
+                "Drains"                                           : false,
+                "Height_drain"                                     : 0.0,
+                "Distance"                                         : 0.0,
+                "Effectiveness"                                    : 0.0,
                 "interval":[
                 0.0,
                 0.0
@@ -140,7 +142,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         //Defining necessary variables
         const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nelems = mrModelPart.GetMesh(0).Elements().size();
+        const int nelems = mrJointModelPart.GetMesh(0).Elements().size();
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         BoundedMatrix<double, 3, 3> RotationMatrix;
 
@@ -184,7 +186,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         if (nelems != 0)
         {
-            ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();
+            ModelPart::ElementsContainerType::iterator el_begin = mrJointModelPart.ElementsBegin();
 
             for(int j = 0; j < nelems; j++)
             {
@@ -283,7 +285,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         //Defining necessary variables
         const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nelems = mrModelPart.GetMesh(0).Elements().size();
+        const int nelems = mrJointModelPart.GetMesh(0).Elements().size();
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         BoundedMatrix<double, 3, 3> RotationMatrix;
 
@@ -327,7 +329,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         if (nelems != 0)
         {
-            ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();
+            ModelPart::ElementsContainerType::iterator el_begin = mrJointModelPart.ElementsBegin();
 
             for(int j = 0; j < nelems; j++)
             {
@@ -481,6 +483,7 @@ class DamUpliftConditionLoadProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
+    ModelPart &mrJointModelPart;
     std::string mVariableName;
     std::string mGravityDirection;
     double mReferenceCoordinate;
