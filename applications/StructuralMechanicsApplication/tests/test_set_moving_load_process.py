@@ -75,7 +75,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
-        
+
     def _TestSetMovingLoadOffsetPositive(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
@@ -135,7 +135,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
-        
+
     def _TestSetMovingLoadOffsetNegative(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
@@ -383,7 +383,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, 0.0, 0.0, -2.0])
-        
+
     def _TestSetMovingLoadMultipleConditions(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -481,7 +481,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
-        
+
     def _TestSetMovingLoadMultipleConditionsOffSetPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -580,7 +580,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
-    
+
     def _TestSetMovingLoadMultipleConditionsOffSetNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -679,7 +679,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
-        
+
         # move load to next element
         process.ExecuteFinalizeSolutionStep()
         process.ExecuteInitializeSolutionStep()
@@ -691,7 +691,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
-    
+
     def _TestSetMovingLoadMultipleConditionsReversed(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is reversed compared to the moving
@@ -888,7 +888,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
-        
+
     def _TestSetMovingLoadMultipleConditionsReversedOffsetNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is reversed compared to the moving
@@ -1100,7 +1100,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
-    
+
     def _TestSetMovingLoadMultipleConditionsDifferentOriginOffsetNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -1156,8 +1156,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
-    
-    
+
+
     def _TestSetMovingLoadMultipleConditionsDifferentOriginReversed(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -1212,8 +1212,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
         self.checkRHS(all_rhs[0], [0.0, -0.5, 0.0, -1.5])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
-        
-        
+
+
     def _TestSetMovingLoadMultipleConditionsDifferentOriginReversedOffsetPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -1269,7 +1269,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
         self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
-        
+
     def _TestSetMovingLoadMultipleConditionsDifferentOriginReversedOffsetNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -1383,7 +1383,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -0.5, 0.0, -0.5])
-        
+
     def _TestSetMovingLoadWithLoadFunctionOffsetPositive(self):
         """
        Tests a moving load on a condition element, where the load is a function of time, including a positive offset along line condition direction in velocity direction.
@@ -1501,7 +1501,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -0.75, 0.0, -0.25])
-   
+
     def _TestSetMovingLoadWithVelocityFunction(self):
         """
        Tests a moving load on a condition element, where the load velocity is a function of time.
@@ -1570,7 +1570,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
-        
+
     def _TestSetMovingLoadWithVelocityFunctionOffsetPositive(self):
         """
        Tests a moving load on a condition element, where the load velocity is a function of time, including a positive offset along line condition direction in velocity direction.
@@ -1621,7 +1621,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
-        
+
         # change time and recalculate load
         process.ExecuteFinalizeSolutionStep()
         process.ExecuteInitializeSolutionStep()
@@ -1640,7 +1640,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
-        
+
     def _TestSetMovingLoadWithVelocityFunctionOffsetNegative(self):
         """
        Tests a moving load on a condition element, where the load velocity is a function of time, including a negative offset along line condition direction in velocity direction.
@@ -1714,52 +1714,52 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
     def test_SetMovingLoad(self):
         self._TestSetMovingLoad()
-        
+
     def test_SetMovingLoadOffsetPositive(self):
         self._TestSetMovingLoadOffsetPositive()
-        
+
     def test_SetMovingLoadOffsetNegative(self):
         self._TestSetMovingLoadOffsetNegative()
 
     def test_SetMovingLoadReverseGeom(self):
         self._TestSetMovingLoadReverseGeom()
-        
+
     def test_SetMovingLoadReverseGeomOffsetPositive(self):
         self._TestSetMovingLoadReverseGeomOffsetPositive()
-    
+
     def test_SetMovingLoadReverseGeomOffsetNegative(self):
         self._TestSetMovingLoadReverseGeomOffsetNegative()
 
     def test_SetMovingLoadMultipleConditions(self):
         self._TestSetMovingLoadMultipleConditions()
-        
+
     def test_SetMovingLoadMultipleConditionsOffsetPositive(self):
         self._TestSetMovingLoadMultipleConditionsOffSetPositive()
 
     def test_SetMovingLoadMultipleConditionsOffsetNegative(self):
         self._TestSetMovingLoadMultipleConditionsOffSetNegative()
-        
+
     def test_SetMovingLoadMultipleConditionsReversed(self):
         self._TestSetMovingLoadMultipleConditionsReversed()
 
     def test_SetMovingLoadMultipleConditionsReversedOffsetPositive(self):
         self._TestSetMovingLoadMultipleConditionsReversedOffsetPositive()
-        
+
     def test_SetMovingLoadMultipleConditionsReversedOffsetNegative(self):
         self._TestSetMovingLoadMultipleConditionsReversedOffsetNegative()
-        
+
     def test_SetMovingLoadMultipleConditionsDifferentOrigin(self):
         self._TestSetMovingLoadMultipleConditionsDifferentOrigin()
-        
+
     def test_SetMovingLoadMultipleConditionsDifferentOriginOffsetPositive(self):
         self._TestSetMovingLoadMultipleConditionsDifferentOriginOffsetPositive()
-        
+
     def test_SetMovingLoadMultipleConditionsDifferentOriginOffsetNegative(self):
         self._TestSetMovingLoadMultipleConditionsDifferentOriginOffsetNegative()
 
     def test_SetMovingLoadMultipleConditionsDifferentOriginReversed(self):
         self._TestSetMovingLoadMultipleConditionsDifferentOriginReversed()
-        
+
     def test_SetMovingLoadMultipleConditionsDifferentOriginReversedOffsetPositive(self):
         self._TestSetMovingLoadMultipleConditionsDifferentOriginReversedOffsetPositive()
 
@@ -1768,19 +1768,19 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
     def test_SetMovingLoadWithLoadFunction(self):
         self._TestSetMovingLoadWithLoadFunction()
-        
+
     def test_SetMovingLoadWithLoadFunctionOffsetPositive(self):
         self._TestSetMovingLoadWithLoadFunctionOffsetPositive()
-        
+
     def test_SetMovingLoadWithLoadFunctionOffsetNegative(self):
         self._TestSetMovingLoadWithLoadFunctionOffsetNegative()
 
     def test_SetMovingLoadWithVelocityFunction(self):
         self._TestSetMovingLoadWithVelocityFunction()
-        
+
     def test_SetMovingLoadWithVelocityFunctionOffsetPositive(self):
         self._TestSetMovingLoadWithVelocityFunctionOffsetPositive()
-        
+
     def test_SetMovingLoadWithVelocityFunctionOffsetNegative(self):
         self._TestSetMovingLoadWithVelocityFunctionOffsetNegative()
 
