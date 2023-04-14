@@ -6,21 +6,19 @@ import KratosMultiphysics.StructuralMechanicsApplication
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
-from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.controls.material_properties_control import MaterialPropertiesControl
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
 
 class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.optimization_info = OptimizationInfo()
-        cls.optimization_info.SetBufferSize(1)
-        cls.optimization_info["step"] = 0
         cls.model_part = cls.model.CreateModelPart("Structure")
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
-        Kratos.ModelPartIO("linear_element_test/Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
+        Kratos.ModelPartIO("linear_strain_energy_test/Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 
-        material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": "linear_element_test/StructuralMaterials.json"}} """)
+        material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": "linear_strain_energy_test/StructuralMaterials.json"}} """)
         Kratos.ReadMaterialsUtility(material_settings, cls.model)
 
         parameters = Kratos.Parameters("""{
@@ -32,17 +30,15 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        with kratos_unittest.WorkFolderScope("linear_element_test", __file__):
+        with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             DeleteFileIfExisting("Structure.time")
-
-    def setUp(self):
-        self.optimization_info["step"] = 0
 
     def test_PropertiesControlInitialize(self):
         # running it twice to check whether the it only does the creation of specific properties once.
-        self.properties_control.ExecuteInitialize()
+        self.properties_control.Initialize()
 
-        self.assertEqual(self.optimization_info["model_parts_with_element_specific_properties"], ["Structure.structure.Elements"])
+        problem_data = self.optimization_info.GetProblemDataContainer()
+        self.assertEqual(problem_data["model_parts_with_element_specific_properties"], ["Structure.structure.Elements"])
 
         for element_i in self.model_part.Elements:
             for element_j in self.model_part.Elements:
@@ -50,33 +46,31 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
                     self.assertNotEqual(element_i.Properties, element_j.Properties)
 
     def test_PropertiesControl(self):
-        self.properties_control.ExecuteInitialize()
+        self.properties_control.Initialize()
 
         model_part = self.model_part.GetSubModelPart("structure")
 
         for element in model_part.Elements:
             element.Properties[Kratos.DENSITY] = element.Id
 
-        update_vector = KratosOA.ElementPropertiesContainerVariableDataHolder(model_part)
-        update_vector.ReadDataFromContainerVariable(Kratos.DENSITY)
+        update_vector = KratosOA.ContainerExpression.ElementPropertiesExpression(model_part)
+        update_vector.Read(Kratos.DENSITY)
 
-        collective_update = KratosOA.CollectiveVariableDataHolder([update_vector])
+        collective_update = KratosOA.ContainerExpression.CollectiveExpressions([update_vector])
 
         # run for 3 iterations
         for i in range(1, 4, 1):
-            self.optimization_info.AdvanceSolutionStep()
-            self.optimization_info["step"] = i
-            self.properties_control.ExecuteInitializeSolutionStep()
+            self.optimization_info.AdvanceStep()
+            self.properties_control.Initialize()
 
             if i > 1:
                 for element in model_part.Elements:
                     self.assertEqual(element.Properties[Kratos.DENSITY], element.Id * i)
 
-            self.properties_control.UpdateControl(collective_update.Clone())
+            self.properties_control.Update(collective_update.Clone())
 
-            self.properties_control.ExecuteFinalizeSolutionStep()
 
-        self.properties_control.ExecuteFinalize()
+        self.properties_control.Finalize()
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
