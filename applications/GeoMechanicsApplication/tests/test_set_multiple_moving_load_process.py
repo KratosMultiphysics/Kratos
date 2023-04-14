@@ -10,10 +10,10 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.rmp = self.current_model.CreateModelPart("root_part")
         self.mp = self.rmp.CreateSubModelPart("solid_part")
         self.cmp = self.rmp.CreateSubModelPart("compute_part")
-        
+
     def tearDown(self):
         self.rmp.Clear();
-    
+
     def checkRHS(self, rhs, expected_res):
         """
         routine to check calculation of rhs side within context of testing SetMovingLoad
@@ -61,7 +61,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -120,7 +120,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -179,7 +179,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -201,7 +201,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
-        
+
     def _TestSetMultipleMovingLoadsConfigurationCombined(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
@@ -241,7 +241,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         conditions.append(self.cmp.GetCondition(2))
         conditions.append(self.cmp.GetCondition(3))
         conditions.append(self.cmp.GetCondition(4))
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -256,14 +256,14 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-       
+
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
-        
+
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -2.0, 0.0, 0.0])
         self.checkRHS(all_rhs[2], [0.0, -1.5, 0.0, -0.5])
-        
+
         # move load within first element
         process.ExecuteFinalizeSolutionStep()
         process.ExecuteInitializeSolutionStep()
@@ -277,7 +277,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, -2.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -1.5, 0.0, -0.5])
         self.checkRHS(all_rhs[2], [0.0, -1.0, 0.0, -1.0])
-         
+
     def _TestSetMultipleMovingLoadsReverseGeom(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are reversed compared to the
@@ -315,7 +315,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialize and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -377,7 +377,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialize and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -499,7 +499,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
                                                   0.5)
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
-        
+
         # get conditions
         conditions = []
         conditions.append(self.cmp.GetCondition(3))
@@ -598,7 +598,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
                                                   0.5)
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
-        
+
         # get conditions
         conditions = []
         conditions.append(self.cmp.GetCondition(3))
@@ -698,7 +698,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
                                                   0.5)
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
-        
+
         # get conditions
         conditions = []
         conditions.append(self.cmp.GetCondition(3))
@@ -808,12 +808,12 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
-        
+
         # get conditions
         conditions = []
         conditions.append(self.cmp.GetCondition(3))
         conditions.append(self.cmp.GetCondition(4))
-        
+
         # initialize and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1107,12 +1107,12 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
                 """
                                                          )
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
-        
+
         # get conditions
         conditions = []
         conditions.append(self.cmp.GetCondition(3))
         conditions.append(self.cmp.GetCondition(4))
-        
+
         # initialize and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1166,12 +1166,12 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
                 """
                                                          )
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
-        
+
         # get conditions
         conditions = []
         conditions.append(self.cmp.GetCondition(3))
         conditions.append(self.cmp.GetCondition(4))
-        
+
         # initialize and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1268,7 +1268,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         # create condition
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
-        
+
         parameters = KratosMultiphysics.Parameters("""
                 {
                     "help"                      : "This process applies multiple moving load conditions belonging to a modelpart. The load moves over line elements.",
@@ -1342,12 +1342,12 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
                 """
                                                          )
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
-        
+
         # get conditions
         conditions = []
         conditions.append(self.cmp.GetCondition(3))
         conditions.append(self.cmp.GetCondition(4))
-        
+
         # initialize and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1400,12 +1400,12 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
                 """
                                                          )
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
-        
+
         # get conditions
         conditions = []
         conditions.append(self.cmp.GetCondition(3))
         conditions.append(self.cmp.GetCondition(4))
-        
+
         # initialize and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1456,11 +1456,11 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
-        
+
         # get conditions
         cond = self.cmp.GetCondition(2)
 
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1518,7 +1518,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1576,7 +1576,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1631,10 +1631,10 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
                                                          )
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
-        
+
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1703,7 +1703,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1714,7 +1714,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
-        
+
         self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
 
         # change time and recalculate load
@@ -1772,7 +1772,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
-        
+
         # initialise and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -1814,7 +1814,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
     def test_SetMultipleMovingLoadsConfigurationNegative(self):
         self._TestSetMultipleMovingLoadsConfigurationNegative()
-        
+
     def test_SetMultipleMovingLoadsConfigurationCombined(self):
         self._TestSetMultipleMovingLoadsConfigurationCombined()
 
