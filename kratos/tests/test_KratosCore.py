@@ -81,6 +81,8 @@ import test_particles_utilities
 import test_combine_model_part_modeler
 import test_calculate_distance_to_path_process
 import test_check_same_modelpart_using_skin_distance
+import test_kratos_globals
+import test_container_expression
 
 if sympy_available:
     import test_sympy_fe_utilities
@@ -179,6 +181,11 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_combine_model_part_modeler.TestCombineModelPartModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_path_process.TestCalculateDistanceToPathProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_check_same_modelpart_using_skin_distance.TestCheckSameModelPartUsingSkinDistanceProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_globals.TestKratosGlobals]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestHistoricalContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestNodalContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementContainerExpression]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))

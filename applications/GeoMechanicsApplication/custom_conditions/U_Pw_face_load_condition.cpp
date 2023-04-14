@@ -36,16 +36,16 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
 
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
     for(unsigned int i = 0; i<NumGPoints; ++i)
         (JContainer[i]).resize(TDim, LocalDim, false);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
+    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
     //Condition variables
     array_1d<double,TNumNodes*TDim> FaceLoadVector;
@@ -109,6 +109,36 @@ void UPwFaceLoadCondition<2,3>::
 
 //----------------------------------------------------------------------------------------
 template< >
+void UPwFaceLoadCondition<2,4>::
+CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+    const Matrix& Jacobian,
+    const double& Weight)
+{
+    const double dx_dxi = Jacobian(0, 0);
+    const double dy_dxi = Jacobian(1, 0);
+
+    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+
+    rIntegrationCoefficient = ds * Weight;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
+void UPwFaceLoadCondition<2,5>::
+CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+    const Matrix& Jacobian,
+    const double& Weight)
+{
+    const double dx_dxi = Jacobian(0, 0);
+    const double dy_dxi = Jacobian(1, 0);
+
+    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+
+    rIntegrationCoefficient = ds * Weight;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
 void UPwFaceLoadCondition<3,3>::
     CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
                                     const Matrix& Jacobian,
@@ -155,6 +185,8 @@ void UPwFaceLoadCondition<3,4>::
 
 template class UPwFaceLoadCondition<2,2>;
 template class UPwFaceLoadCondition<2,3>;
+template class UPwFaceLoadCondition<2,4>;
+template class UPwFaceLoadCondition<2,5>;
 
 template class UPwFaceLoadCondition<3,3>;
 template class UPwFaceLoadCondition<3,4>;

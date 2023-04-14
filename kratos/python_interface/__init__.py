@@ -14,6 +14,8 @@ if os.name == 'nt': # This means "Windows"
 
 from . import kratos_globals
 from . import python_registry
+from . import python_registry_lists
+from . import python_registry_utilities
 
 if sys.version_info < (3, 8):
     raise Exception("Kratos only supports Python version 3.8 and above")
@@ -22,13 +24,17 @@ class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
     kratos_libs = os.path.join(kratos_install_path, "libs")
+    kratos_module_libs = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".libs")
     kratos_applications = os.path.join(kratos_install_path, "applications")
     kratos_scripts = os.path.join(kratos_install_path, "kratos", "python_scripts")
     kratos_tests = os.path.join(kratos_install_path, "kratos", "tests")
 
 # import core library (Kratos.so)
 sys.path.append(KratosPaths.kratos_libs)
+sys.path.append(KratosPaths.kratos_module_libs)
 from Kratos import *
+
+Kernel.RegisterPythonVersion()
 
 def __getattr__(name):
     if name == "CppRegistry":
@@ -104,6 +110,9 @@ RegisterPrototype = python_registry.RegisterPrototype
 # This is required since we cannot use properties as usual due to the fact that we have no instance of CppRegistry (it is a static variable in c++)
 locals().pop("CppRegistry")
 
+# Loop and register the Python registry lists
+python_registry_utilities.RegisterAll("KratosMultiphysics", python_registry_lists)
+
 # Detect kratos library version
 python_version = KratosGlobals.Kernel.PythonVersion()
 python_version = python_version.replace("Python","")
@@ -115,7 +124,7 @@ if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.mi
         kratos_version_info[0], kratos_version_info[1]
     ))
 
-# Print the process id e.g. for attatching a debugger
+# print the process id e.g. for attaching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())
 
@@ -136,3 +145,24 @@ def _ImportApplication(application, application_name):
 
 def IsDistributedRun():
     return KratosGlobals.Kernel.IsDistributedRun()
+
+
+# iterating through the parameters is deprecated
+# the following wraps the __iter__ method to issue a deprecation warning
+list_deprecation_warnings = []
+orig_iter = Parameters.__iter__
+import inspect
+def iter_wrapper(self):
+    # get information where the function is called
+    # this is necessary to issue the deprecation warning only
+    # once per call location
+    frame = inspect.stack()[1]
+    filename = frame.filename
+    line_number = frame.lineno
+    tup = (filename, line_number)
+    # issue deprecation warning only once, providing file name and line number
+    if tup not in list_deprecation_warnings:
+        list_deprecation_warnings.append(tup)
+        print(f'Deprecated method called in "{frame.filename}" in line {frame.lineno}: Iterating through "Parameters" object is deprecated, please use the "values" method instead')
+    return orig_iter(self)
+Parameters.__iter__ = iter_wrapper

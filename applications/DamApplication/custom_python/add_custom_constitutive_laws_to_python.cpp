@@ -38,10 +38,8 @@
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
 
-#include "custom_constitutive/joint_cohesion_driven_3D_law.hpp"
-#include "custom_constitutive/joint_cohesion_driven_2D_law.hpp"
-#include "custom_constitutive/joint_stress_driven_3D_law.hpp"
-#include "custom_constitutive/joint_stress_driven_2D_law.hpp"
+#include "custom_constitutive/dam_joint_3D_law.hpp"
+#include "custom_constitutive/dam_joint_2D_law.hpp"
 
 namespace Kratos
 {
@@ -113,17 +111,11 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw")
     .def(py::init<>());
 
-    py::class_< JointCohesionDriven3DLaw, JointCohesionDriven3DLaw::Pointer, ConstitutiveLaw >
-    (m, "JointCohesionDriven3DLaw")
+    py::class_< DamJoint3DLaw, DamJoint3DLaw::Pointer, ConstitutiveLaw >
+    (m, "DamJoint3DLaw")
     .def( py::init<>() );
-    py::class_< JointCohesionDriven2DLaw, JointCohesionDriven2DLaw::Pointer, ConstitutiveLaw >
-    (m, "JointCohesionDriven2DLaw")
-    .def( py::init<>() );
-    py::class_< JointStressDriven3DLaw, JointStressDriven3DLaw::Pointer, ConstitutiveLaw >
-    (m, "JointStressDriven3DLaw")
-    .def( py::init<>() );
-    py::class_< JointStressDriven2DLaw, JointStressDriven2DLaw::Pointer, ConstitutiveLaw >
-    (m, "JointStressDriven2DLaw")
+    py::class_< DamJoint2DLaw, DamJoint2DLaw::Pointer, ConstitutiveLaw >
+    (m, "DamJoint2DLaw")
     .def( py::init<>() );
 }
 

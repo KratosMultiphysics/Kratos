@@ -97,7 +97,7 @@ class DerivativesRecoveryProcess(KM.Process):
             self.recovery_tool = SW.DerivativesRecoveryUtility3D
 
         self.operations = []
-        for operation_settings in self.settings["list_of_operations"]:
+        for operation_settings in self.settings["list_of_operations"].values():
             operation = self.DifferentialOperator(operation_settings, self.recovery_tool, self.model_part)
             self.operations.append(operation)
 

@@ -27,8 +27,8 @@ endif(POLICY CMP0057)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 2)
+set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_PATCH_VERSION 1)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -71,10 +71,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
 # Generate and copy configuration for language servers
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-EXECUTE_PROCESS(
-    COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${CMAKE_BINARY_DIR}/compile_commands.json"
-    "${CMAKE_SOURCE_DIR}/compile_commands.json")
 
 # Include cmake modules
 include(DownloadLib)
@@ -358,6 +354,11 @@ else()
   message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
 
+OPTION(KRATOS_NO_TRY_CATCH "Disabled the use of try/catch through the code" OFF)
+if( KRATOS_NO_TRY_CATCH MATCHES ON )
+  add_definitions( -DKRATOS_NO_TRY_CATCH )
+endif( KRATOS_NO_TRY_CATCH MATCHES ON )
+
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
 if(DEFINED ENV{BOOST_ROOT})
@@ -546,6 +547,11 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(${KRATOS_KERNEL} "")
 set(${KRATOS_PYTHON_INTERFACE} "")
 
+# Enable profiling if requested
+if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
+    add_compile_definitions(KRATOS_ENABLE_PROFILING)
+endif()
+
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
@@ -591,7 +597,7 @@ endforeach()
 message("\n***********************************************************************\n")
 
 message("\nList of upcoming API-breaking and behavior changes:")
-message("\t Geometry 'Dimension' deprecation: https://github.com/KratosMultiphysics/Kratos/pull/10445")
+message("\t Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
@@ -623,6 +629,8 @@ install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry.py" "KratosMultiphysics/python_registry.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry_lists.py" "KratosMultiphysics/python_registry_lists.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry_utilities.py" "KratosMultiphysics/python_registry_utilities.py" )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

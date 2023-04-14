@@ -81,6 +81,23 @@ namespace Kratos {
       ));
     }
 
+    /** Generates a sample Hexahedra3D8.
+     * Generates a hexahedra with side 1 where faces are not parallel to main planes.
+     * @return  Pointer to a Hexahedra3D8
+     */
+    HexaGeometryPtrType GenerateDeformedCenterLen1Hexahedra3D8() {
+      return HexaGeometryPtrType(new HexaGeometryType(
+        GeneratePoint<PointType>(-0.5, -0.5, -0.5),
+        GeneratePoint<PointType>( 0.5, -0.5, -0.5),
+        GeneratePoint<PointType>( 0.5,  0.5, -0.5),
+        GeneratePoint<PointType>(-0.5,  0.5, -0.5),
+        GeneratePoint<PointType>( 0.5, -0.5,  0.5),
+        GeneratePoint<PointType>( 1.5, -0.5,  0.5),
+        GeneratePoint<PointType>( 1.5,  0.5,  0.5),
+        GeneratePoint<PointType>( 0.5,  0.5,  0.5)
+      ));
+    }
+
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
@@ -275,10 +292,69 @@ namespace Kratos {
       TestAllShapeFunctionsLocalGradients(*geom);
   }
 
-  /** Checks the average edge length */
+    /** Checks the average edge length */
     KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8AverageEdgeLength, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateOriginCenterLen2Hexahedra3D8();
         KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 2.0, TOLERANCE);
+    }
+
+    /** Checks the solid angles */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8SolidAngles, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateOriginCenterLen2Hexahedra3D8();
+        Vector solid_angles;
+        geom->ComputeSolidAngles(solid_angles);
+        for (int i = 0; i < 8; i++) {
+          KRATOS_CHECK_NEAR(solid_angles[i], Globals::Pi/2.0, TOLERANCE);
+        }
+
+        auto geom2 = GenerateDeformedCenterLen1Hexahedra3D8();
+        geom2->ComputeSolidAngles(solid_angles);
+        constexpr double pi = Globals::Pi; 
+        std::vector<double> result_solid_angles = {
+          pi*0.25, pi*0.75, pi*0.75, pi*0.25,
+          pi*0.75, pi*0.25, pi*0.25, pi*0.75
+        };
+        KRATOS_CHECK_VECTOR_NEAR(solid_angles, result_solid_angles, TOLERANCE);
+    }
+
+    /** Checks the diahedral angles */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8DihedralAngles, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateDeformedCenterLen1Hexahedra3D8();
+        Vector diahedral_angles;
+        geom->ComputeDihedralAngles(diahedral_angles);
+        constexpr double pi = Globals::Pi; 
+        std::vector<double> result_diahedral_angles = {
+          pi*0.5, pi*0.25, pi*0.5,
+          pi*0.5, pi*0.75, pi*0.5,
+          pi*0.5, pi*0.75, pi*0.5,
+          pi*0.5, pi*0.25, pi*0.5,
+          pi*0.5, pi*0.75, pi*0.5,
+          pi*0.5, pi*0.25, pi*0.5,
+          pi*0.5, pi*0.25, pi*0.5,
+          pi*0.5, pi*0.75, pi*0.5
+        };
+        KRATOS_CHECK_VECTOR_NEAR(diahedral_angles, result_diahedral_angles, TOLERANCE);
+
+        double min_dihedral = geom->MinDihedralAngle();
+        KRATOS_CHECK_NEAR(min_dihedral, 0.25*pi, TOLERANCE);
+        double max_dihedral = geom->MaxDihedralAngle();
+        KRATOS_CHECK_NEAR(max_dihedral, 0.75*pi, TOLERANCE);
+    }
+
+    /** Checks the VolumeToRMSEdgeLength */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8VolumeToRMSEdgeLength, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateOriginCenterLen1Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom->VolumeToRMSEdgeLength(), 1.0, TOLERANCE);
+        auto geom_2 = GenerateDeformedCenterLen1Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom_2->VolumeToRMSEdgeLength(), 0.6495190528383, TOLERANCE);
+    }
+
+    /** Checks the VolumeToRMSEdgeLength */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShortestToLongestEdgeQuality, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateOriginCenterLen1Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom->ShortestToLongestEdgeQuality(), 1.0, TOLERANCE);
+        auto geom_2 = GenerateDeformedCenterLen1Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom_2->ShortestToLongestEdgeQuality(), 0.70710678118, TOLERANCE);
     }
 	}
 }  // namespace Kratos.

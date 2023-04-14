@@ -1,13 +1,19 @@
+from abc import ABC, abstractmethod
 import KratosMultiphysics as Kratos
 
-class ModelPartController(Kratos.Process):
-    def __init__(self):
-        super().__init__()
+class ModelPartController(ABC):
+    def Initialize(self) -> None:
+        pass
 
-    def ImportModelPart(self):
-        raise NotImplementedError("Calling base class ModelPartController::ImportModelPart. Please implement it in the derrived class.")
+    def Finalize(self) -> None:
+        pass
 
+    @abstractmethod
+    def ImportModelPart(self) -> None:
+        pass
+
+    @abstractmethod
     def GetModelPart(self) -> Kratos.ModelPart:
-        raise NotImplementedError("Calling base class ModelPartController::GetModelPart. Please implement it in the derrived class.")
+        pass
 
 

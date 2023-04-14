@@ -1,17 +1,27 @@
+from abc import ABC, abstractmethod
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
-class ResponseFunction(Kratos.Process):
-    def __init__(self):
-        super().__init__()
+class ResponseFunction(ABC):
+    @classmethod
+    @abstractmethod
+    def GetSensitivityFieldVariables(cls) -> 'list[SupportedSensitivityFieldVariableTypes]':
+        pass
 
-    def Check(self):
-        raise NotImplementedError("Calling base class ResponseFunction::Check method. Please implement in the derrived class.")
+    def Initialize(self) -> None:
+        pass
 
+    def Finalize(self) -> None:
+        pass
+
+    @abstractmethod
+    def Check(self) -> None:
+        pass
+
+    @abstractmethod
     def CalculateValue(self) -> float:
-        raise NotImplementedError("Calling base class ResponseFunction::CalculateValue method. Please implement in the derrived class.")
+        pass
 
-    def CalculateSensitivity(self, sensitivity_variable: any, sensitivity_model_part: Kratos.ModelPart):
-        raise NotImplementedError("Calling base class ResponseFunction::CalculateSensitivity method. Please implement in the derrived class.")
-
-    def GetModelPart(self) -> Kratos.ModelPart:
-        raise NotImplementedError("Calling base class ResponseFunction::GetModelPart method. Please implement in the derrived class.")
+    @abstractmethod
+    def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[SupportedSensitivityFieldVariableTypes, list[Kratos.ModelPart]]') -> None:
+        pass

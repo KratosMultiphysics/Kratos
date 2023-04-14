@@ -77,15 +77,15 @@ ModifiedCamClayYieldCriterion::~ModifiedCamClayYieldCriterion()
 //**********************************************************************
 
 // Compute Yield Condition according to two-invariant Cam-Clay yield criterion
-double& ModifiedCamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rOldPreconsolidationPressure)
+double& ModifiedCamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rOldPreconsolidationPressure, const Properties& rProp)
 {
     double mean_stress_p, deviatoric_q;
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, mean_stress_p, deviatoric_q);
 
-    const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+    const double shear_M = rProp[CRITICAL_STATE_LINE];
 
     double preconsolidation_stress = 0.0;
-    preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
+    preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure, rProp);
 
     // f = (Q/M)² + P (P - P_c)
     rStateFunction = std::pow(deviatoric_q/shear_M, 2);
@@ -97,16 +97,16 @@ double& ModifiedCamClayYieldCriterion::CalculateYieldCondition(double& rStateFun
 
 //*******************************CALCULATE FIRST YIELD FUNCTION DERIVATIVE *****************
 //************************************************************************************
-void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha, const double& rOldPreconsolidationPressure)
+void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha, const double& rOldPreconsolidationPressure, const Properties& rProp)
 {
     double mean_stress_p, deviatoric_q;
 
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, mean_stress_p, deviatoric_q);
 
-    const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+    const double shear_M = rProp[CRITICAL_STATE_LINE];
 
     double preconsolidation_stress = 0.0;
-    preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
+    preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure, rProp);
 
     rFirstDerivative.resize(3, false);
     rFirstDerivative[0] = 2.0 * mean_stress_p - preconsolidation_stress;     // (df/dP)
@@ -116,9 +116,9 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vecto
 
 //*******************************CALCULATE SECOND YIELD FUNCTION DERIVATIVE *****************
 //************************************************************************************
-void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative)
+void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative, const Properties& rProp)
 {
-    const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+    const double shear_M = rProp[CRITICAL_STATE_LINE];
 
     rSecondDerivative.resize(6, false);
     rSecondDerivative[0] = 2.0 ;                        // (df²/dP²)
