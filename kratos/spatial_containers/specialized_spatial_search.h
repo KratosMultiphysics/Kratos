@@ -105,16 +105,6 @@ public:
         UpdatePoint();
     }
 
-    ///Copy constructor  (not really required)
-    PointObject(const PointObject& rRHS):
-        BaseType(rRHS),
-        mpObject(rRHS.mpObject)
-    {
-    }
-
-    /// Destructor.
-    ~PointObject() override= default;
-
     ///@}
     ///@name Operations
     ///@{
@@ -182,31 +172,31 @@ public:
     using BaseType = SpatialSearch;
 
     /// Common Defines
-    using PointType = BaseType::PointType;
+    using BaseType::PointType;
 
-    using ElementsContainerType = BaseType::ElementsContainerType;
-    using ElementType = BaseType::ElementType;
-    using ElementPointerType = BaseType::ElementPointerType;
-    using ResultElementsContainerType = BaseType::ResultElementsContainerType;
-    using VectorResultElementsContainerType = BaseType::VectorResultElementsContainerType;
+    using BaseType::ElementsContainerType;
+    using BaseType::ElementType;
+    using BaseType::ElementPointerType;
+    using BaseType::ResultElementsContainerType;
+    using BaseType::VectorResultElementsContainerType;
 
-    using NodesContainerType = BaseType::NodesContainerType;
-    using NodeType = BaseType::NodeType;
-    using NodePointerType = BaseType::NodePointerType;
-    using ResultNodesContainerType = BaseType::ResultNodesContainerType;
-    using VectorResultNodesContainerType = BaseType::VectorResultNodesContainerType;
+    using BaseType::NodesContainerType;
+    using BaseType::NodeType;
+    using BaseType::NodePointerType;
+    using BaseType::ResultNodesContainerType;
+    using BaseType::VectorResultNodesContainerType;
 
-    using ConditionsContainerType = BaseType::ConditionsContainerType;
-    using ConditionType = BaseType::ConditionType;
-    using ConditionPointerType = BaseType::ConditionPointerType;
-    using ResultConditionsContainerType = BaseType::ResultConditionsContainerType;
-    using VectorResultConditionsContainerType = BaseType::VectorResultConditionsContainerType;
+    using BaseType::ConditionsContainerType;
+    using BaseType::ConditionType;
+    using BaseType::ConditionPointerType;
+    using BaseType::ResultConditionsContainerType;
+    using BaseType::VectorResultConditionsContainerType;
 
-    using RadiusArrayType = BaseType::RadiusArrayType;
-    using DistanceType = BaseType::DistanceType;
-    using VectorDistanceType = BaseType::VectorDistanceType;
+    using BaseType::RadiusArrayType;
+    using BaseType::DistanceType;
+    using BaseType::VectorDistanceType;
 
-    using ResultIteratorType = BaseType::ResultIteratorType;
+    using BaseType::ResultIteratorType;
 
     ///@}
     ///@name Life Cycle
@@ -337,14 +327,6 @@ public:
         ) override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -385,10 +367,6 @@ protected:
     Parameters mParameters; /// The configuration parameters
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -399,28 +377,12 @@ protected:
     Parameters GetDefaultParameters() const;
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
     ///@}
     ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
     ///@{
 
     ///@}
@@ -523,15 +485,7 @@ private:
             }
         });
     }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
+    
     ///@}
     ///@name Un accessible methods
     ///@{
