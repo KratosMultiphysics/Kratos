@@ -35,6 +35,8 @@ namespace Kratos
     {
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
         mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
+        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        mDistanceGetterFunctor = CreateDistanceGetterFunctor();
     }
 
     template<std::size_t TDim>
@@ -49,6 +51,8 @@ namespace Kratos
         KRATOS_WARNING("ApplyRayCastingProcess") << "Using deprecated constructor. Please use the one with Parameters.\n";
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
         mSettings["relative_tolerance"].SetDouble(mRelativeTolerance);
+        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        mDistanceGetterFunctor = CreateDistanceGetterFunctor();
     }
 
     template <std::size_t TDim>
@@ -61,6 +65,8 @@ namespace Kratos
     {
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
         mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
+        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        mDistanceGetterFunctor = CreateDistanceGetterFunctor();
     }
 
     template<std::size_t TDim>
@@ -71,7 +77,8 @@ namespace Kratos
 		const DistanceDatabase& rDistanceDatabase)
 		: mRelativeTolerance(RelativeTolerance),
 		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
-		  mIsSearchStructureAllocated(false)
+		  mIsSearchStructureAllocated(false),
+          mpDistanceVariable(pDistanceVariable)
     {
         KRATOS_WARNING("ApplyRayCastingProcess") << "Using deprecated constructor. Please use the one with Parameters.\n";
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
@@ -87,6 +94,7 @@ namespace Kratos
         }
         mSettings["distance_database"].SetString(distance_database);
         mSettings["distance_database"].SetString(pDistanceVariable->Name());
+        mDistanceGetterFunctor = CreateDistanceGetterFunctor();
     }
 
     template<std::size_t TDim>
@@ -118,25 +126,13 @@ namespace Kratos
 
         ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
-        // Set the getter function according to the database to be used
-        NodeScalarGetFunctionType node_distance_getter;
-        const std::string database = mSettings["distance_database"].GetString();
-        if (database == "nodal_historical") {
-            node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.FastGetSolutionStepValue(rDistanceVariable);};
-        } else if (database == "nodal_non_historical") {
-            node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.GetValue(rDistanceVariable);};
-        } else {
-            KRATOS_ERROR << "Provided 'distance_database' is '" << database << "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
-        }
+        
 
-        const Variable<double>* mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        auto apply_nodal_functor = CreateApplyNodalFunction();
 
         block_for_each(ModelPart1.Nodes(), [&](Node<3>& rNode){
-            double& r_node_distance = node_distance_getter(rNode, *mpDistanceVariable);
             const double ray_distance = this->DistancePositionInSpace(rNode);
-            if (ray_distance * r_node_distance < 0.0) {
-                r_node_distance = -r_node_distance;
-            }
+            apply_nodal_functor(rNode,ray_distance);
         });
     }
 
@@ -490,6 +486,32 @@ namespace Kratos
         }
 
         return is_intersected;
+    }
+
+    template<std::size_t TDim>
+    std::function<void(Node<3>&, const double)> ApplyRayCastingProcess<TDim>::CreateApplyNodalFunction() const
+    {
+        return [this](Node<3>& rNode, const double RayDistance) {
+            double& r_node_distance = mDistanceGetterFunctor(rNode, *mpDistanceVariable);
+            if (RayDistance * r_node_distance < 0.0) {
+                r_node_distance = -r_node_distance;
+            }
+        };
+    }
+
+    template<std::size_t TDim>
+    std::function<double&(Node<3>& rNode, const Variable<double>& rDistanceVariable)> ApplyRayCastingProcess<TDim>::CreateDistanceGetterFunctor() const
+    {
+        NodeScalarGetFunctionType distance_getter_functor;
+        const std::string database = mSettings["distance_database"].GetString();
+        if (database == "nodal_historical") {
+            distance_getter_functor = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.FastGetSolutionStepValue(rDistanceVariable);};
+        } else if (database == "nodal_non_historical") {
+            distance_getter_functor = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.GetValue(rDistanceVariable);};
+        } else {
+            KRATOS_ERROR << "Provided 'distance_database' is '" << database << "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
+        }
+        return distance_getter_functor;
     }
 
     /// Turn back information as a string.
