@@ -34,7 +34,7 @@ namespace Kratos
  *  of certain volume described by its contour
  */
 template<std::size_t TDim = 3>
-class ApplyRayCastingInterfaceRecognitionProcess : public ApplyRayCastingProcess<TDim>
+class KRATOS_API(KRATOS_CORE) ApplyRayCastingInterfaceRecognitionProcess : public ApplyRayCastingProcess<TDim>
 {
 
 public:
@@ -60,7 +60,7 @@ public:
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
         Parameters ThisParameters = Parameters())
-        : ApplyRayCastingProcess(rVolumePart,
+        : ApplyRayCastingProcess<TDim>(rVolumePart,
           rSkinPart,
           ThisParameters)
     {}
@@ -73,7 +73,7 @@ public:
     ApplyRayCastingInterfaceRecognitionProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
         Parameters ThisParameters = Parameters())
-        : ApplyRayCastingProcess(TheFindIntersectedObjectsProcess.
+        : ApplyRayCastingProcess<TDim>(TheFindIntersectedObjectsProcess,
           ThisParameters)
     {}
 
@@ -144,17 +144,7 @@ protected:
      * to the distance depending on whether the node is inside or outside.
      * If the node is on the interface we assign distance = 0.0
      */
-    ApplyNodalFunctorType CreateApplyNodalFunction() const override
-    {
-        return [this](Node<3>& rNode, const double RayDistance) {
-            double& r_node_distance = mDistanceGetterFunctor(rNode, *mpDistanceVariable);
-            if (std::abs(RayDistance) < this->mEpsilon) {
-                r_node_distance = 0.0;
-            } else if (RayDistance * r_node_distance < 0.0) {
-                r_node_distance = -r_node_distance;
-            }
-        };
-    }
+    std::function<void(Node<3>&, const double)> CreateApplyNodalFunction() const override;
 
     ///@}
     ///@name Protected  Access
