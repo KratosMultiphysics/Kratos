@@ -1,9 +1,11 @@
 #pragma once
 
 // External includes
+#include "metis.h"
 
 // Project includes
-#include "custom_processes/metis_divide_input_to_partitions_process.h"
+#include "includes/io.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
@@ -30,7 +32,7 @@ namespace Kratos
 ///@{
 
 /// Call Metis to divide an heterogeneous mesh, by partitioning its nodal graph.
-class KRATOS_API(METIS_APPLICATION) MetisDivideHeterogeneousInputProcess : public MetisDivideInputToPartitionsProcess
+class KRATOS_API(METIS_APPLICATION) MetisDivideHeterogeneousInputProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -39,31 +41,33 @@ public:
     /// Pointer definition of MetisDivideHeterogeneousInputProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisDivideHeterogeneousInputProcess);
 
-    typedef MetisDivideInputToPartitionsProcess BaseType;
-
-    using BaseType::SizeType;
-    using BaseType::GraphType;
-    using BaseType::idxtype;
+    using SizeType = IO::SizeType;
+    using GraphType = IO::GraphType;
+    using PartitioningInfo = IO::PartitioningInfo;
+    using PartitionIndicesType = IO::PartitionIndicesType;
+    using PartitionIndicesContainerType = IO::PartitionIndicesContainerType;
+    using idxtype = idx_t; // from metis
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MetisDivideHeterogeneousInputProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
-        MetisDivideInputToPartitionsProcess(rIO,NumberOfPartitions,Dimension),
-        mSynchronizeConditions(SynchronizeConditions),
-    mVerbosity(Verbosity)
+    MetisDivideHeterogeneousInputProcess(
+        IO& rIO,
+        SizeType NumberOfPartitions,
+        int Dimension = 3,
+        int Verbosity = 0,
+        bool SynchronizeConditions = false):
+            mrIO(rIO),
+            mNumberOfPartitions(NumberOfPartitions),
+            mSynchronizeConditions(SynchronizeConditions),
+            mVerbosity(Verbosity)
     {
     }
 
     /// Copy constructor.
-    MetisDivideHeterogeneousInputProcess(MetisDivideHeterogeneousInputProcess const& rOther):
-        MetisDivideInputToPartitionsProcess(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension),
-        mSynchronizeConditions(rOther.mSynchronizeConditions),
-      mVerbosity(rOther.mVerbosity)
-    {
-    }
+    MetisDivideHeterogeneousInputProcess(MetisDivideHeterogeneousInputProcess const& rOther) = delete;
 
     /// Destructor.
     virtual ~MetisDivideHeterogeneousInputProcess()
@@ -132,50 +136,16 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Protected LifeCycle
     ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Static Member Variables
-    ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
+
+    IO& mrIO;
+
+    SizeType mNumberOfPartitions;
 
     bool mSynchronizeConditions;
 
@@ -191,6 +161,8 @@ protected:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void ExecutePartitioning(PartitioningInfo& rPartitioningInfo);
 
     /// Call Metis to create a partition of nodes based on the nodal graph.
     /**

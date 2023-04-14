@@ -43,22 +43,19 @@ public:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    PwCondition() : Condition() {}
+    PwCondition() : PwCondition(0, nullptr, nullptr) {}
 
-    // Constructor 1
-    PwCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : Condition(NewId, pGeometry) {}
-    
-    // Constructor 2
-    PwCondition( IndexType NewId,
-                  GeometryType::Pointer pGeometry,
-                  PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties)
-    {
-        mThisIntegrationMethod = this->GetIntegrationMethod();
-    }
+    PwCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+        : PwCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Destructor
-    virtual ~PwCondition() {}
+    PwCondition( IndexType               NewId,
+                 GeometryType::Pointer   pGeometry,
+                 PropertiesType::Pointer pProperties )
+        : Condition(NewId, pGeometry, pProperties)
+    {}
+
+    ~PwCondition() override = default;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -87,13 +84,6 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
-    // Member Variables
-
-    GeometryData::IntegrationMethod mThisIntegrationMethod;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);

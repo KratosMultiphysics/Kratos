@@ -129,6 +129,9 @@ void KratosApplication::RegisterKratosCore() {
     // Registering all the standard (model - parameters constructible) processes
     KratosApplication::RegisterProcesses();
 
+    // Registering all the standard (model - parameters constructible) controllers
+    KratosApplication::RegisterControllers();
+
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();
@@ -179,7 +182,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("PeriodicConditionEdge", mPeriodicConditionEdge)
     KRATOS_REGISTER_CONDITION("PeriodicConditionCorner", mPeriodicConditionCorner)
 
-    //Register specific elements ( must be completed : elements defined in kratos_appliction.h)
+    //Register specific elements ( must be completed : elements defined in kratos_application.h)
     KRATOS_REGISTER_ELEMENT("GenericElement", mGenericElement)
 
     KRATOS_REGISTER_ELEMENT("Element2D1N", mElement2D1N)
@@ -220,6 +223,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_MODELER("CadTessellationModeler", mCadTessellationModeler);
 #endif
     KRATOS_REGISTER_MODELER("SerialModelPartCombinatorModeler", mSerialModelPartCombinatorModeler);
+    KRATOS_REGISTER_MODELER("CombineModelPartModeler", mCombineModelPartModeler);
 
     // Register general geometries:
     // Point register:
@@ -290,6 +294,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_FLAG(BLOCKED);
     KRATOS_REGISTER_FLAG(MARKER);
     KRATOS_REGISTER_FLAG(PERIODIC);
+    KRATOS_REGISTER_FLAG(WALL);
 
     // Note: using internal macro for these two because they do not have a NOT_ version
     KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(ALL_DEFINED);

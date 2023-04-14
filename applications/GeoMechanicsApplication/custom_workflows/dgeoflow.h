@@ -17,6 +17,7 @@
 /* External includes */
 
 #include <geo_mechanics_application.h>
+#include "includes/kernel.h"
 
 /* Utility includes */
 #include "includes/model_part.h"
@@ -211,7 +212,9 @@ namespace Kratos
     private:
         // Initial Setup
         Model current_model;
-        KratosGeoMechanicsApplication application;
+        Kernel kernel;
+        KratosGeoMechanicsApplication::Pointer geoApp;
+        
         void ResetModelParts();
 
         int echoLevel = 1;

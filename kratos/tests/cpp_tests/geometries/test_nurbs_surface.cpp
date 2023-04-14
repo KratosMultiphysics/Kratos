@@ -274,7 +274,6 @@ namespace Testing {
         auto surface = GenerateReferencePointSurface();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(surface.Dimension(), 2);
         KRATOS_CHECK_EQUAL(surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(surface.LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(surface.IsRational(), true);
@@ -305,7 +304,6 @@ namespace Testing {
         auto surface = GenerateReferencePieceOfCylinderNurbsSurface();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(surface.Dimension(), 2);
         KRATOS_CHECK_EQUAL(surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(surface.LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(surface.IsRational(), true);
@@ -379,7 +377,6 @@ namespace Testing {
         auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(surface.Dimension(), 2);
         KRATOS_CHECK_EQUAL(surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(surface.LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(surface.IsRational(), false);
@@ -697,7 +694,6 @@ namespace Testing {
         auto surface = GenerateReferenceQuarterSphereGeometry();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(surface.Dimension(), 2);
         KRATOS_CHECK_EQUAL(surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(surface.LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(surface.IsRational(), true);

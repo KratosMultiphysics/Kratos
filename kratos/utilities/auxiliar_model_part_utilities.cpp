@@ -376,6 +376,43 @@ void AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels(cons
 /***********************************************************************************/
 /***********************************************************************************/
 
+void AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts()
+{
+    VariableUtils variable_utils;
+    for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
+        if (r_sub_model_part.NumberOfNodes() > 0) {
+            auto& r_array_nodes = r_sub_model_part.Nodes();
+            variable_utils.SetFlag(TO_ERASE, true, r_array_nodes);
+            // Check orphans nodes
+            if (r_sub_model_part.NumberOfElements() > 0 || r_sub_model_part.NumberOfConditions() > 0 || r_sub_model_part.NumberOfGeometries() > 0) {
+                for (auto& r_elem : r_sub_model_part.Elements()) {
+                    auto& r_geometry = r_elem.GetGeometry();
+                    for (auto& r_node : r_geometry) {
+                        r_node.Set(TO_ERASE, false);
+                    }
+                }
+                for (auto& r_cond : r_sub_model_part.Conditions()) {
+                    auto& r_geometry = r_cond.GetGeometry();
+                    for (auto& r_node : r_geometry) {
+                        r_node.Set(TO_ERASE, false);
+                    }
+                }
+                const auto& r_geometries = r_sub_model_part.Geometries();
+                for (auto it_geom = r_geometries.begin(); it_geom != r_geometries.end(); ++it_geom) {
+                    auto& r_geometry = *((it_geom.base())->second);
+                    for (auto& r_node : r_geometry) {
+                        r_node.Set(TO_ERASE, false);
+                    }
+                }
+            }
+            r_sub_model_part.RemoveNodes(TO_ERASE);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     const std::string& rNewModelPartName,
     Model* pModel

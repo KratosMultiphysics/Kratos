@@ -121,23 +121,23 @@ namespace Kratos
                                            const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
             << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for FrictionalViscoplastic3DLaw: "
             << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[INTERNAL_FRICTION_ANGLE] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[INTERNAL_FRICTION_ANGLE] < 0.0)
             << "Incorrect or missing INTERNAL_FRICTION_ANGLE provided in process info for FrictionalViscoplastic3DLaw: "
             << rMaterialProperties[INTERNAL_FRICTION_ANGLE] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[COHESION] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[COHESION] < 0.0)
             << "Incorrect or missing COHESION provided in process info for FrictionalViscoplastic3DLaw: "
             << rMaterialProperties[COHESION] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
             << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for FrictionalViscoplastic3DLaw: "
             << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
             << "Incorrect or missing BULK_MODULUS provided in process info for FrictionalViscoplastic3DLaw: "
             << rMaterialProperties[BULK_MODULUS] << std::endl;
 

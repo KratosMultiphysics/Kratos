@@ -26,7 +26,7 @@ namespace Kratos
 SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw()
    : SmallStrainUMAT3DLaw()
    {
-    KRATOS_TRY;
+    KRATOS_TRY
     //KRATOS_INFO("SmallStrainUMAT2DInterfaceLaw()") << std::endl;
 
     KRATOS_CATCH("")
@@ -39,10 +39,10 @@ SmallStrainUMAT2DInterfaceLaw::
    SmallStrainUMAT2DInterfaceLaw(const SmallStrainUMAT2DInterfaceLaw &rOther)
    : SmallStrainUMAT3DLaw(rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    //KRATOS_INFO("SmallStrainUMAT2DInterfaceLaw(const...)") << std::endl;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************CLONE***********************************************
@@ -50,12 +50,12 @@ SmallStrainUMAT2DInterfaceLaw::
 
 ConstitutiveLaw::Pointer SmallStrainUMAT2DInterfaceLaw::Clone() const
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    //KRATOS_INFO("Clone()") << std::endl;
 
    return Kratos::make_shared<SmallStrainUMAT2DInterfaceLaw>(*this);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************ASSIGNMENT******************************************
@@ -63,7 +63,7 @@ ConstitutiveLaw::Pointer SmallStrainUMAT2DInterfaceLaw::Clone() const
 SmallStrainUMAT2DInterfaceLaw 
   &SmallStrainUMAT2DInterfaceLaw::operator=(SmallStrainUMAT2DInterfaceLaw const &rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    SmallStrainUMAT3DLaw::operator=(rOther);
 
@@ -71,7 +71,7 @@ SmallStrainUMAT2DInterfaceLaw
 
    return *this;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -106,7 +106,7 @@ void SmallStrainUMAT2DInterfaceLaw::SetExternalStressVector(Vector& rStressVecto
 void SmallStrainUMAT2DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
    // KRATOS_INFO("SetInternalStressVector:rStressVector") << rStressVector << std::endl;
-   KRATOS_TRY;
+   KRATOS_TRY
    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_2D_INTERFACE_ZZ);
    mStressVectorFinalized[INDEX_3D_XZ] = rStressVector(INDEX_2D_INTERFACE_XZ);
    KRATOS_CATCH("")

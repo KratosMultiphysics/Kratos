@@ -38,7 +38,6 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         default_parameters = KM.Parameters("""
         {
             "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
-            "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "mesh_tying_model_part"       : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
@@ -76,17 +75,10 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
 
         # We transfer the parameters to the base class
         base_process_settings = KM.Parameters("""{}""")
-        base_process_settings.AddValue("mesh_id", self.mesh_tying_settings["mesh_id"])
-        base_process_settings.AddValue("model_part_name", self.mesh_tying_settings["model_part_name"])
         base_process_settings.AddValue("search_model_part", self.mesh_tying_settings["mesh_tying_model_part"])
-        base_process_settings.AddValue("assume_master_slave", self.mesh_tying_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.mesh_tying_settings["mesh_tying_property_ids"])
-        base_process_settings.AddValue("interval", self.mesh_tying_settings["interval"])
-        base_process_settings.AddValue("zero_tolerance_factor", self.mesh_tying_settings["zero_tolerance_factor"])
-        base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
-        base_process_settings.AddValue("consider_tessellation", self.mesh_tying_settings["consider_tessellation"])
-        base_process_settings.AddValue("normal_check_proportion", self.mesh_tying_settings["normal_check_proportion"])
-        base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
+        parameter_list = ["model_part_name", "assume_master_slave", "interval", "zero_tolerance_factor", "integration_order", "consider_tessellation", "normal_check_proportion", "search_parameters"]
+        base_process_settings.CopyValuesFromExistingParameters(self.mesh_tying_settings, parameter_list)
 
         # Construct the base process.
         super().__init__(Model, base_process_settings)

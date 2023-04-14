@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED )
-#define  KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -171,5 +170,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED  defined

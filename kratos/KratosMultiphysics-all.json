@@ -8,7 +8,6 @@
         "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
         "KratosConstitutiveLawsApplication==${KRATOS_VERSION}",
         "KratosCoSimulationApplication==${KRATOS_VERSION}",
-        "KratosDamApplication==${KRATOS_VERSION}",
         "KratosDEMApplication==${KRATOS_VERSION}",
         "KratosFluidDynamicsApplication==${KRATOS_VERSION}",
         "KratosFSIApplication==${KRATOS_VERSION}",

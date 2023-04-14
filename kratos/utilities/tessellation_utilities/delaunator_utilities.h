@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_DELAUNATOR_UTILITIES)
-#define KRATOS_DELAUNATOR_UTILITIES
+#pragma once
 
 // System includes
 
@@ -85,4 +84,3 @@ namespace DelaunatorUtilities
 
 }; // namespace DelaunatorUtilities
 }  // namespace Kratos
-#endif /* KRATOS_DELAUNATOR_UTILITIES defined */

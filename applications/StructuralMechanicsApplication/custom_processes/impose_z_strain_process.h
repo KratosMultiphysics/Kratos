@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined(KRATOS_IMPOSE_Z_STRAIN_PROCESS )
-#define  KRATOS_IMPOSE_Z_STRAIN_PROCESS
+#pragma once
 
 #include "processes/process.h"
 #include "includes/model_part.h"
@@ -120,5 +119,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 } // namespace Kratos.
-
-#endif /* KRATOS_IMPOSE_Z_STRAIN_PROCESS defined */

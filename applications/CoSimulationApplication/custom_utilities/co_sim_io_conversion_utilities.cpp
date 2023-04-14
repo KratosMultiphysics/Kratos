@@ -430,7 +430,7 @@ void CoSimIOConversionUtilities::GetData(
     } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
         AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
     } else {
-        AuxiliarModelPartUtilities(rModelPart).GetScalarData<double>(rVariable, DataLoc, rData);
+        AuxiliarModelPartUtilities(rModelPart).GetScalarData(rVariable, DataLoc, rData);
     }
 
     KRATOS_CATCH("")
@@ -452,7 +452,7 @@ void CoSimIOConversionUtilities::SetData(
     } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
         AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
     } else {
-        AuxiliarModelPartUtilities(rModelPart).SetScalarData<double>(rVariable, DataLoc, rData);
+        AuxiliarModelPartUtilities(rModelPart).SetScalarData(rVariable, DataLoc, rData);
     }
 
     KRATOS_CATCH("")
@@ -474,7 +474,7 @@ void CoSimIOConversionUtilities::GetData(
     } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
         AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
     } else {
-        AuxiliarModelPartUtilities(rModelPart).GetVectorData< array_1d<double, 3> >(rVariable, DataLoc, rData);
+        AuxiliarModelPartUtilities(rModelPart).GetVectorData(rVariable, DataLoc, rData);
     }
 
     KRATOS_CATCH("")
@@ -496,7 +496,7 @@ void CoSimIOConversionUtilities::SetData(
     } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
         AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
     } else {
-        AuxiliarModelPartUtilities(rModelPart).SetVectorData< array_1d<double, 3> >(rVariable, DataLoc, rData);
+        AuxiliarModelPartUtilities(rModelPart).SetVectorData(rVariable, DataLoc, rData);
     }
 
     KRATOS_CATCH("")

@@ -4,13 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Mohamed Khalil
 // 
-#ifndef LOGGING_SETTINGS_HPP_
-#define LOGGING_SETTINGS_HPP_
+
+#pragma once
 
 // only tested on mac console
 // for linux, prefix \033 should be changed to \e
@@ -175,8 +175,5 @@ enum LoggingLevel { none, info_warnings, system_matrices, debug };
         std::cout << slave[i].Id( ) << ", "; \
     std::cout << slave[slave.PointsNumber( ) - 1].Id( ) << "\n";\
     RESET_LOG_SETTINGS
-
-
-#endif /* LOGGING_SETTINGS_HPP_ */
 
 

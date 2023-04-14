@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Luis Antonio Goncalves Junior
 //                   Alejandro Cornejo
@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "custom_processes/set_automated_initial_variable_process.h"
 #include "utilities/parallel_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -44,10 +45,8 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
     
     const array_1d<double, 3> hole_generatrix_point = mThisParameters["hole_generatrix_point"].GetVector();  
 
-    array_1d<double, 3> normalized_generatrix_vector;   
-    normalized_generatrix_vector[0] = (hole_generatrix_axis[0] * hole_generatrix_axis[0]) / std::sqrt(hole_generatrix_axis[0] * hole_generatrix_axis[0] + hole_generatrix_axis[1] * hole_generatrix_axis[1] + hole_generatrix_axis[2] * hole_generatrix_axis[2]);
-    normalized_generatrix_vector[1] = (hole_generatrix_axis[1] * hole_generatrix_axis[1]) / std::sqrt(hole_generatrix_axis[0] * hole_generatrix_axis[0] + hole_generatrix_axis[1] * hole_generatrix_axis[1] + hole_generatrix_axis[2] * hole_generatrix_axis[2]);
-    normalized_generatrix_vector[2] = (hole_generatrix_axis[2] * hole_generatrix_axis[2]) / std::sqrt(hole_generatrix_axis[0] * hole_generatrix_axis[0] + hole_generatrix_axis[1] * hole_generatrix_axis[1] + hole_generatrix_axis[2] * hole_generatrix_axis[2]);
+    array_1d<double, 3> normalized_generatrix_vector = hole_generatrix_axis;
+    ConstitutiveLawUtilities<3>::CheckAndNormalizeVector<array_1d<double,3>>(normalized_generatrix_vector);
 
     const double hole_radius_offset = mThisParameters["hole_radius_offset"].GetDouble();
 
@@ -61,19 +60,18 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
         array_1d<double, 3> relative_position_vector;
         relative_position_vector = r_element_centroid - hole_generatrix_point;
 
-        double vector_scaler = relative_position_vector[0] * normalized_generatrix_vector[0] + relative_position_vector[1] * normalized_generatrix_vector[1] + relative_position_vector[2] * normalized_generatrix_vector[2];
+        double vector_scaler = MathUtils<double>::Dot3(relative_position_vector, normalized_generatrix_vector);
         
         const array_1d<double, 3> intersection_point = hole_generatrix_point + vector_scaler * normalized_generatrix_vector;
 
         const array_1d<double, 3> radial_position_vector = r_element_centroid - intersection_point;
 
-        double centroid_relative_distance = std::sqrt(radial_position_vector[0] * radial_position_vector[0] + radial_position_vector[1] * radial_position_vector[1] + radial_position_vector[2] * radial_position_vector[2]) - hole_radius_offset;
+        double centroid_relative_distance = MathUtils<double>::Norm3(radial_position_vector) - hole_radius_offset;
 
         if (centroid_relative_distance < 0.0){
             if (std::abs(centroid_relative_distance) <= tolerance) {
                 centroid_relative_distance = 0.0;
-            }
-            else {
+            } else {
                 KRATOS_ERROR << "The relative centroid distance may not be negative. Check the hole radius offset and the thickness of element " << rElement.Id() << std::endl;
             }
         }

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -21,11 +21,9 @@
 // Project includes
 #include "utilities/string_utilities.h"
 
-namespace Kratos
-{
-namespace StringUtilities
-{
-std::string ConvertCammelCaseToSnakeCase(const std::string& rString)
+namespace Kratos::StringUtilities {
+
+std::string ConvertCamelCaseToSnakeCase(const std::string& rString)
 {
     std::string str(1, tolower(rString[0]));
 
@@ -42,6 +40,41 @@ std::string ConvertCammelCaseToSnakeCase(const std::string& rString)
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 
     return str;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string ConvertSnakeCaseToCamelCase(const std::string& rString)
+{
+    std::string output;
+
+    if (!rString.empty()) {
+        output.reserve(rString.size());
+        bool upper_switch = rString[0] == '_' ? false : true;
+
+        for (auto character : rString) {
+            KRATOS_ERROR_IF(!(std::isalnum(character) || character == '_') || std::isupper(character))
+                << "Invalid character '" << character
+                <<"' in snake case string '" << rString << '\'';
+
+            if (character == '_') {
+                KRATOS_ERROR_IF(upper_switch)
+                    << "Repeated underscores in snake case string '" << rString << '\'';
+                upper_switch = true;
+            } else { // character != '_'
+                // At this point, the character must be in [a-z0-9]
+                if (upper_switch) {
+                    output.push_back(std::toupper(character));
+                    upper_switch = false;
+                } else { // !upper_switch
+                    output.push_back(character);
+                } // else (upper_switch)
+            } // else (character == '_')
+        } // for character in rString
+    } // if rString
+
+    return output;
 }
 
 /***********************************************************************************/
@@ -110,7 +143,8 @@ std::string RemoveWhiteSpaces(const std::string& rString)
 
 std::vector<std::string> SplitStringByDelimiter(
     const std::string& rString,
-    const char Delimiter)
+    const char Delimiter
+    )
 {
     std::istringstream ss(rString);
     std::string token;
@@ -141,5 +175,4 @@ std::string ReplaceAllSubstrings(
     return output_string;
 }
 
-} // namespace StringUtilities
-} // namespace Kratos
+} // namespace Kratos::StringUtilities

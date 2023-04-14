@@ -13,15 +13,14 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
+#include "metis.h"
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/io.h"
 
 
 namespace Kratos {
@@ -44,6 +43,10 @@ public:
     /// Pointer definition of LegacyPartitioningUtilities
     KRATOS_CLASS_POINTER_DEFINITION(LegacyPartitioningUtilities);
 
+    using idxtype = idx_t; // from metis
+    using PartitionIndicesType = std::vector<idxtype>;
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -65,6 +68,33 @@ public:
     ///@name Operations
     ///@{
 
+    static void CalculateDomainsGraph(
+        IO::GraphType& rDomainsGraph,
+        SizeType NumberOfElements,
+        IO::ConnectivitiesContainerType& ElementsConnectivities,
+        PartitionIndicesType const& NPart,
+        PartitionIndicesType const&  EPart);
+
+    static void DividingNodes(
+        IO::PartitionIndicesContainerType& rNodesAllPartitions,
+        IO::ConnectivitiesContainerType& ElementsConnectivities,
+        IO::ConnectivitiesContainerType& ConditionsConnectivities,
+        PartitionIndicesType const& NodesPartitions,
+        PartitionIndicesType const& ElementsPartitions,
+        PartitionIndicesType const& ConditionsPartitions);
+
+    static void DividingElements(
+        IO::PartitionIndicesContainerType& rElementsAllPartitions,
+        PartitionIndicesType const& ElementsPartitions);
+
+    static void DividingConditions(
+        IO::PartitionIndicesContainerType& rConditionsAllPartitions,
+        PartitionIndicesType const& ConditionsPartitions);
+
+    static void ConvertKratosToCSRFormat(
+        IO::ConnectivitiesContainerType& KratosFormatNodeConnectivities,
+        idxtype** NodeIndices,
+        idxtype** NodeConnectivities);
 
     ///@}
 

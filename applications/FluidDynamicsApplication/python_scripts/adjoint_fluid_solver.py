@@ -74,7 +74,7 @@ class AdjointFluidSolver(FluidSolver):
         ## Complete the element name
         # TODO: EXPORT THE ADJOINT FOLLOWING THE CONVENTION. ONCE THIS IS DONE WE CAN USE THE FUNCTION IN THE BASE CLASS
         if (self.element_name is not None):
-            new_elem_name = self.element_name + str(int(domain_size)) + "D"
+            new_elem_name = f"{self.element_name}{int(domain_size)}D{int(elem_num_nodes)}N"
         else:
             raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
 
