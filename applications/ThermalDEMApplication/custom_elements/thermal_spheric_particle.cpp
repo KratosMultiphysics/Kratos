@@ -117,6 +117,9 @@ namespace Kratos
 
     Properties& r_properties = GetProperties();
 
+    // Dimension
+    mDimension = r_process_info[DOMAIN_SIZE];
+
     // Initialize base class
     SphericParticle::Initialize(r_process_info);
 
@@ -527,7 +530,7 @@ namespace Kratos
       double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
       UpdateTemperatureDependentRadius(r_process_info);
       ComputeAddedSearchDistance(r_process_info, added_search_distance);
-      SetSearchRadius(GetRadius() + added_search_distance);
+      SetSearchRadius(GetParticleRadius() + added_search_distance);
     }
 
     KRATOS_CATCH("")
@@ -754,7 +757,7 @@ namespace Kratos
     // set it to the summ of the radii of the elements (1% more, as if there is no overlap)
     // to avoid numerical issues of using a zero distance or separation in some formulas.
     if (distance <= std::numeric_limits<double>::epsilon())
-      distance = 1.001 * (GetRadius() + GetNeighborRadius()); // GetNeighborRadius should return 0.0 for walls!
+      distance = 1.001 * (GetParticleRadius() + GetNeighborRadius()); // GetNeighborRadius should return 0.0 for walls!
     
     return distance;
     
@@ -1499,6 +1502,30 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::SetParticleRealYoungRatio(const double ratio) {
     mRealYoungRatio = ratio;
+  }
+
+  //=====================================================================================================================================================================================
+  // DIMENSION DEPENDENT METHODS (DIFFERENT FOR 2D AND 3D)
+  // ATTENTION:
+  // METHODS INEHERITED IN CYLINDER PARTICLE (2D) FROM SPEHRIC PARTICLE ARE REIMPLEMENTED HERE
+  // THIS IS TO AVOID MAKING THERMAL PARTICLE A TEMPALTE CLASS TO INHERIT FROM CYLINDER PARTICLE
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::CalculateVolume(void) {
+    const double r = GetParticleRadius();
+
+    if      (mDimension == 2) return Globals::Pi * r * r;
+    else if (mDimension == 3) return SphericParticle::CalculateVolume();
+    else return 0.0;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::CalculateMomentOfInertia(void) {
+    const double r = GetParticleRadius();
+
+    if      (mDimension == 2) return 0.5 * GetMass() * r * r;
+    else if (mDimension == 3) return SphericParticle::CalculateMomentOfInertia();
+    else return 0.0;
   }
 
 } // namespace Kratos

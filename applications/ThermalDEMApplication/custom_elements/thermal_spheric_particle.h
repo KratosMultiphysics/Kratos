@@ -192,6 +192,13 @@ namespace Kratos
       void               SetParticleMomentInertia             (const double moment_inertia);
       void               SetParticleRealYoungRatio            (const double ratio);
 
+      // DIMENSION DEPENDENT METHODS (DIFFERENT FOR 2D AND 3D)
+      // ATTENTION:
+      // METHODS INEHERITED IN CYLINDER PARTICLE (2D) FROM SPEHRIC PARTICLE ARE REIMPLEMENTED HERE
+      // THIS IS TO AVOID MAKING THERMAL PARTICLE A TEMPALTE CLASS TO INHERIT FROM CYLINDER PARTICLE
+      double CalculateVolume          (void) override;
+      double CalculateMomentOfInertia (void) override;
+
       // Pointers to auxiliary objects
       HeatExchangeMechanism*       mpDirectConductionModel;
       HeatExchangeMechanism*       mpIndirectConductionModel;
@@ -203,6 +210,7 @@ namespace Kratos
       NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
 
       // General properties
+      unsigned int mDimension;           // dimension (2D or 3D)
       unsigned int mNumStepsEval;        // number of steps passed since last thermal evaluation
       double       mPreviousTemperature; // temperature from the beginning of the step
       bool         mIsTimeToSolve;       // flag to solve thermal problem in current step

@@ -40,6 +40,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             },
             "buffer_size": 2,
             "echo_level": 0,
+            "rebuild_level": 2,
             "reform_dofs_at_each_step": false,
             "clear_storage": false,
             "compute_reactions": false,
@@ -80,6 +81,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "line_search_tolerance"      : 0.5,
             "rotation_dofs"              : false,
             "block_builder"              : true,
+            "prebuild_dynamics"          : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
                 "solver_type": "AMGCL",
@@ -184,7 +186,8 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        self.builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool(),
+                                                                  self.settings["prebuild_dynamics"].GetBool())
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
@@ -194,7 +197,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
         # Solver creation
-        self.solver = self._ConstructSolver(builder_and_solver,
+        self.solver = self._ConstructSolver(self.builder_and_solver,
                                             self.settings["strategy_type"].GetString())
 
         # Set echo_level
@@ -304,11 +307,14 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _ConstructBuilderAndSolver(self, block_builder):
+    def _ConstructBuilderAndSolver(self, block_builder, prebuild_dynamics):
 
         # Creating the builder and solver
         if (block_builder):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            if prebuild_dynamics:
+                builder_and_solver = KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 

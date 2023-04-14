@@ -38,6 +38,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "utilities/pointer_map_communicator.h"
+#include "processes/find_nodal_h_process.h"
 
 namespace Kratos
 {
@@ -176,7 +177,12 @@ public:
         // Save the variables to be employed so that they can be restored after the solution
         const auto& r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-
+        if (mElementTauNodal || mCalculateNodalH)
+        {
+            ComputeNodalH();
+            mCalculateNodalH = false;
+        }
+        const double dynamic_tau = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
         // Save current level set value and current and previous step velocity values
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
         [&](int i_node){
@@ -184,6 +190,14 @@ public:
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
             mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
+            double velocity_norm = norm_2(mVelocity[i_node]);
+            double nodal_h = it_node-> GetValue(NODAL_H);
+
+            if (mElementTauNodal)
+            {
+                double tau = 1.0 / (dynamic_tau / previous_delta_time + velocity_norm / std::pow(nodal_h,2));
+                it_node->GetValue(TAU) = tau;
+            }
             }
         );
 
@@ -356,6 +370,10 @@ protected:
     bool mIsBfecc;
 
     bool mElementRequiresLimiter;
+
+    bool mElementTauNodal;
+
+    bool mCalculateNodalH = true;
 
     bool mElementRequiresLevelSetGradient;
 
@@ -541,6 +559,9 @@ protected:
 
         if (mElementRequiresLimiter){
                 block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
+        }
+        if(mElementTauNodal){
+                block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(TAU, 0.0);});
         }
     }
 
@@ -760,6 +781,16 @@ protected:
         mpSolvingStrategy->SolveSolutionStep(); // forward convection to obtain the corrected phi_n+1
         mpSolvingStrategy->FinalizeSolutionStep();
     }
+ 
+    /**
+     * @brief Nodal H calculation
+     * This function calculates the nodal h  by executing a process where the nodal h calculaiton is implemented. 
+     */
+    void ComputeNodalH()
+    {
+        auto nodal_h_process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(mrBaseModelPart);
+        nodal_h_process.Execute();
+    }
 
     ///@}
     ///@name Protected  Access
@@ -803,7 +834,8 @@ private:
 
         mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
         mElementRequiresLimiter =  ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
-
+        mElementTauNodal = ThisParameters["element_settings"].Has("tau_nodal") ? ThisParameters["element_settings"]["tau_nodal"].GetBool() : false;
+        
         if (ThisParameters["element_settings"].Has("elemental_limiter_acuteness") && mElementRequiresLimiter) {
             mPowerElementalLimiter = ThisParameters["element_settings"]["elemental_limiter_acuteness"].GetDouble();
         }
@@ -899,7 +931,8 @@ private:
                 "dynamic_tau" : 0.0,
                 "cross_wind_stabilization_factor" : 0.7,
                 "requires_distance_gradient" : false,
-                "time_integration_theta" : 0.5
+                "time_integration_theta" : 0.5,
+                "tau_nodal": false
             })");
         } else if (ElementType == "levelset_convection_algebraic_stabilization") {
             default_parameters = Parameters(R"({

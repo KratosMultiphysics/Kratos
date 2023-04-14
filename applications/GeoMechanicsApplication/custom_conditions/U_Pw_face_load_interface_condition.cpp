@@ -75,16 +75,16 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
     for (unsigned int i = 0; i<NumGPoints; i++)
         (JContainer[i]).resize(TDim,LocalDim,false);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
+    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
     
     //Condition variables
     array_1d<double,TNumNodes*TDim> DisplacementVector;
@@ -192,7 +192,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bo
     //Quadrilateral_interface_3d_4
     array_1d<double, 3> pmid0;
     array_1d<double, 3> pmid1;
-    array_1d<double,3> P2 = Geom.GetPoint( 2 );
+    const array_1d<double, 3>& P2 = Geom.GetPoint( 2 );
     noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
     noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + P2);
     

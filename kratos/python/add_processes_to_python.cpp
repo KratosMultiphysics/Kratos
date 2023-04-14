@@ -10,7 +10,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
@@ -35,6 +34,7 @@
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
+#include "processes/calculate_distance_to_path_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
@@ -67,15 +67,12 @@
 #include "processes/split_internal_interfaces_process.h"
 #include "processes/parallel_distance_calculation_process.h"
 #include "processes/generic_find_elements_neighbours_process.h"
-
+#include "processes/check_same_modelpart_using_skin_distance_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 typedef Node<3> NodeType;
 
@@ -117,13 +114,11 @@ void CalculateEmbeddedVariableFromSkinArray(
     rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
-
-
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<Process, Process::Pointer>(m,"Process")
+    py::class_<Process, Process::Pointer, Flags>(m,"Process")
     .def(py::init<>())
     .def("Create",&Process::Create)
     .def("Execute",&Process::Execute)
@@ -254,6 +249,14 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&>())
     ;
 
+    py::class_<CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsHistoricalVariable>, CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsHistoricalVariable>::Pointer, Process>(m, "CalculateDistanceToPathProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsNonHistoricalVariable>, CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m, "CalculateDistanceToPathNonHistoricalProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
     py::class_<CalculateSignedDistanceTo3DSkinProcess, CalculateSignedDistanceTo3DSkinProcess::Pointer, Process>(m,"CalculateSignedDistanceTo3DSkinProcess")
             .def(py::init<ModelPart&, ModelPart&>())
     .def("GenerateSkinModelPart",&CalculateSignedDistanceTo3DSkinProcess::GenerateSkinModelPart)
@@ -270,7 +273,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<StructuredMeshGeneratorProcess, StructuredMeshGeneratorProcess::Pointer, Process>(m,"StructuredMeshGeneratorProcess")
-            .def(py::init<const Geometry< Node<3> >&, ModelPart&, Parameters&>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
+            .def(py::init<const Geometry< Node<3> >&, ModelPart&, Parameters>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
     ;
 
     auto orientation_check_interface = py::class_<TetrahedralMeshOrientationCheck, TetrahedralMeshOrientationCheck::Pointer, Process>(m,"TetrahedralMeshOrientationCheck")
@@ -331,7 +334,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
-            .def(py::init< ModelPart&, Parameters& >())
+            .def(py::init< ModelPart&, Parameters >())
             .def(py::init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
             .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)
@@ -341,7 +344,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ApplyConstantVectorValueProcess, ApplyConstantVectorValueProcess::Pointer, Process>(m,"ApplyConstantVectorValueProcess")
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<array_1d<double, 3 > >& , const double, const Vector , std::size_t, Flags>())
-            .def(py::init< ModelPart&, Parameters& >())
+            .def(py::init< ModelPart&, Parameters >())
             .def_readonly_static("X_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::X_COMPONENT_FIXED)
             .def_readonly_static("Y_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Y_COMPONENT_FIXED)
             .def_readonly_static("Z_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Z_COMPONENT_FIXED)
@@ -408,11 +411,19 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool, const bool >())
     ;
 
+    // Check the same model part using skin distance
+    py::class_<CheckSameModelPartUsingSkinDistanceProcess<2>, CheckSameModelPartUsingSkinDistanceProcess<2>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess2D")
+        .def(py::init<Model&, Parameters>())
+        ;
+    py::class_<CheckSameModelPartUsingSkinDistanceProcess<3>, CheckSameModelPartUsingSkinDistanceProcess<3>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess3D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, const Flags>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
@@ -423,7 +434,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, const Flags>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<3>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
@@ -435,7 +446,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -443,7 +454,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -452,11 +463,13 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ApplyRayCastingProcess<2>, ApplyRayCastingProcess<2>::Pointer, Process>(m,"ApplyRayCastingProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
     py::class_<ApplyRayCastingProcess<3>, ApplyRayCastingProcess<3>::Pointer, Process>(m,"ApplyRayCastingProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
 //     // Calculate embedded variable from skin processes
@@ -728,6 +741,4 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

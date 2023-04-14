@@ -26,7 +26,7 @@ namespace Kratos
 SmallStrainUDSM2DPlaneStrainLaw::SmallStrainUDSM2DPlaneStrainLaw()
    : SmallStrainUDSM3DLaw()
    {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     KRATOS_CATCH("")
 
@@ -38,9 +38,9 @@ SmallStrainUDSM2DPlaneStrainLaw::
    SmallStrainUDSM2DPlaneStrainLaw(const SmallStrainUDSM2DPlaneStrainLaw &rOther)
    : SmallStrainUDSM3DLaw(rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************CLONE***********************************************
@@ -48,11 +48,11 @@ SmallStrainUDSM2DPlaneStrainLaw::
 
 ConstitutiveLaw::Pointer SmallStrainUDSM2DPlaneStrainLaw::Clone() const
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    return Kratos::make_shared<SmallStrainUDSM2DPlaneStrainLaw>(*this);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************ASSIGNMENT******************************************
@@ -60,13 +60,13 @@ ConstitutiveLaw::Pointer SmallStrainUDSM2DPlaneStrainLaw::Clone() const
 SmallStrainUDSM2DPlaneStrainLaw 
   &SmallStrainUDSM2DPlaneStrainLaw::operator=(SmallStrainUDSM2DPlaneStrainLaw const &rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    SmallStrainUDSM3DLaw::operator=(rOther);
 
    return *this;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -92,7 +92,7 @@ void SmallStrainUDSM2DPlaneStrainLaw::
 void SmallStrainUDSM2DPlaneStrainLaw::
    SetExternalStressVector(Vector& rStressVector)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    for (unsigned int i = 0; i < VoigtSize; ++i) {
       rStressVector(i) = mStressVector[i];
@@ -105,7 +105,7 @@ void SmallStrainUDSM2DPlaneStrainLaw::
 void SmallStrainUDSM2DPlaneStrainLaw::
    SetInternalStressVector(const Vector& rStressVector)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    for (unsigned int i = 0; i < VoigtSize; ++i) {
       mStressVectorFinalized[i] = rStressVector(i);
@@ -117,7 +117,7 @@ void SmallStrainUDSM2DPlaneStrainLaw::
 void SmallStrainUDSM2DPlaneStrainLaw::
    SetInternalStrainVector(const Vector& rStrainVector)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    for (unsigned int i = 0; i < VoigtSize; ++i) {
       mStrainVectorFinalized[i] = rStrainVector(i);
@@ -130,7 +130,7 @@ void SmallStrainUDSM2DPlaneStrainLaw::
    CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
                            Matrix& rConstitutiveMatrix )
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM])
    {

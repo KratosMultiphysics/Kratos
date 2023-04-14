@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
@@ -22,8 +22,7 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
@@ -399,7 +398,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
     std::stringstream str_steam;
     local_sys.PairingInfo(str_steam, 4);
     KRATOS_CHECK_STRING_EQUAL(str_steam.str(),
-        "NearestElementLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5");
+        "NearestElementLocalSystem based on Node #8 at Coordinates 1 | 2.5 | -5");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Line, KratosMappingApplicationSerialTestSuite)
@@ -520,5 +519,4 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystemWithApprox
     TestNearestElementLocalSystem(exp_loc_matrix, exp_origin_ids, p_geom);
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

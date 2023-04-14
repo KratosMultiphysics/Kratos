@@ -39,7 +39,7 @@ typedef std::size_t SizeType;
  * @author Alejandro Cornejo
  */
 template <SizeType TDim = 3>
-class RegeneratePfemPressureConditionsProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) RegeneratePfemPressureConditionsProcess : public Process
 {
 
 

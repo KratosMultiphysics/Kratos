@@ -93,6 +93,7 @@
 
 // Rules of mixtures
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
+#include "custom_constitutive/composites/traction_separation_law.h"
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
@@ -109,6 +110,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< MultiLinearIsotropicPlaneStress2D, typename MultiLinearIsotropicPlaneStress2D::Pointer, LinearPlaneStress >
     (m, "MultiLinearIsotropicPlaneStress2D").def(py::init<>() )
+    ;
+
+    py::class_< TractionSeparationLaw3D<3>, typename TractionSeparationLaw3D<3>::Pointer,  ConstitutiveLaw  >
+    (m,"TractionSeparationLaw3D").def(py::init<>())
     ;
 
     py::class_< WrinklingLinear2DLaw, typename WrinklingLinear2DLaw::Pointer, ConstitutiveLaw >

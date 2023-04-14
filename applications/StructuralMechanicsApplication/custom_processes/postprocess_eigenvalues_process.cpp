@@ -1,11 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
@@ -145,30 +144,21 @@ private:
 
 } // helpers namespace
 
-PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPart,
-                                                                Parameters OutputParameters)
-                                                                : mrModelPart(rModelPart),
-                                                                mOutputParameters(OutputParameters)
+PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(
+    Model& rModel,
+    Parameters OutputParameters)
+    : mOutputParameters(OutputParameters)
 {
-    Parameters default_parameters(R"(
-        {
-            "result_file_name"              : "Structure",
-            "file_format"                   : "vtk",
-            "file_label"                    : "step",
-            "result_file_format_use_ascii"  : false,
-            "folder_name"                   : "EigenResults",
-            "save_output_files_in_folder"   : true,
-            "animation_steps"               : 20,
-            "label_type"                    : "frequency",
-            "list_of_result_variables"      : ["DISPLACEMENT"]
-        }  )"
-    );
-
-    mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
+    mOutputParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
+    mpModelPart = &(rModel.GetModelPart(mOutputParameters["model_part_name"].GetString()));
     const std::string folder_name = mOutputParameters["folder_name"].GetString();
-    if (!std::filesystem::exists(folder_name)) {
-        std::filesystem::create_directories(folder_name);
+    if (OutputParameters["save_output_files_in_folder"].GetBool()) {
+        if (mOutputParameters["wipe_results_folder"].GetBool()) {
+            std::filesystem::remove_all(folder_name);
+        }
+        if (!std::filesystem::exists(folder_name)) {
+            std::filesystem::create_directories(folder_name);
+        }
     }
 }
 
@@ -177,14 +167,14 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     Kratos::unique_ptr<BaseEigenOutputWrapper> p_eigen_io_wrapper;
     const std::string file_format(mOutputParameters["file_format"].GetString());
     if (file_format == "vtk") {
-        p_eigen_io_wrapper = Kratos::make_unique<VtkEigenOutputWrapper>(mrModelPart, mOutputParameters);
+        p_eigen_io_wrapper = Kratos::make_unique<VtkEigenOutputWrapper>(*mpModelPart, mOutputParameters);
     } else if (file_format == "gid") {
-        p_eigen_io_wrapper = Kratos::make_unique<GidEigenOutputWrapper>(mrModelPart, mOutputParameters);
+        p_eigen_io_wrapper = Kratos::make_unique<GidEigenOutputWrapper>(*mpModelPart, mOutputParameters);
     } else {
         KRATOS_ERROR << "\"file_format\" can only be \"vtk\" or \"gid\"" << std::endl;
     }
 
-    const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
+    const auto& eigenvalue_vector = mpModelPart->GetProcessInfo()[EIGENVALUE_VECTOR];
     // Note: this is omega^2
     const SizeType num_eigenvalues = eigenvalue_vector.size();
     const SizeType num_animation_steps = mOutputParameters["animation_steps"].GetInt();
@@ -199,7 +189,7 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
         for (SizeType j=0; j<num_eigenvalues; ++j) {
             const std::string label = GetLabel(j, num_eigenvalues, eigenvalue_vector[j]);
 
-            block_for_each(mrModelPart.Nodes(), [cos_angle, j](auto& rNode){
+            block_for_each(mpModelPart->Nodes(), [cos_angle, j](auto& rNode){
                 // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
                 DofsContainerType& r_node_dofs = rNode.GetDofs();
                 const Matrix& r_node_eigenvectors = rNode.GetValue(EIGENVECTOR_MATRIX);
@@ -218,6 +208,24 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     }
 }
 
+const Parameters PostprocessEigenvaluesProcess::GetDefaultParameters() const
+{
+    Parameters default_parameters(R"({
+        "model_part_name"               : "Structure",
+        "result_file_name"              : "Structure",
+        "file_format"                   : "vtk",
+        "file_label"                    : "step",
+        "result_file_format_use_ascii"  : false,
+        "folder_name"                   : "EigenResults",
+        "save_output_files_in_folder"   : true,
+        "wipe_results_folder"           : false,
+        "animation_steps"               : 20,
+        "label_type"                    : "frequency",
+        "list_of_result_variables"      : ["DISPLACEMENT"]
+    })");
+    return default_parameters;
+}
+
 void PostprocessEigenvaluesProcess::GetVariables(std::vector<const Variable<double>*>& rRequestedDoubleResults,
                                                 std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults) const
 {
@@ -227,7 +235,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<const Variable<doub
         if( KratosComponents< Variable<double> >::Has( variable_name ) ) {
             const Variable<double >& variable = KratosComponents< Variable<double > >::Get(variable_name);
 
-            KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
+            KRATOS_ERROR_IF_NOT(mpModelPart->GetNodalSolutionStepVariablesList().Has( variable ))
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
                 << variable << std::endl;
 
@@ -235,7 +243,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<const Variable<doub
         } else if (KratosComponents< Variable< array_1d<double, 3> > >::Has(variable_name) ) {
             const Variable<array_1d<double,3> >& variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
 
-            KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
+            KRATOS_ERROR_IF_NOT(mpModelPart->GetNodalSolutionStepVariablesList().Has( variable ))
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
                 << variable << std::endl;
 

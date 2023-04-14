@@ -85,5 +85,7 @@ template class UPwUpdatedLagrangianAxisymmetricElement<2,4>;
 template class UPwUpdatedLagrangianAxisymmetricElement<2,6>;
 template class UPwUpdatedLagrangianAxisymmetricElement<2,8>;
 template class UPwUpdatedLagrangianAxisymmetricElement<2,9>;
+template class UPwUpdatedLagrangianAxisymmetricElement<2,10>;
+template class UPwUpdatedLagrangianAxisymmetricElement<2,15>;
 
 } // Namespace Kratos

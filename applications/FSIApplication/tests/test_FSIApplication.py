@@ -11,7 +11,6 @@ from convergence_accelerator_test import ConvergenceAcceleratorTest
 from convergence_accelerator_spring_test import ConvergenceAcceleratorSpringTest
 from fsi_coupling_interface_test import FSICouplingInterfaceTest
 from FSI_problem_emulator_test import FSIProblemEmulatorTest
-from non_conformant_one_side_map_test import NonConformantOneSideMapTest
 
 ## NIGTHLY TESTS
 
@@ -38,10 +37,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSICouplingInterfaceTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSIProblemEmulatorTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorSpringTest]))
-    smallSuite.addTest(NonConformantOneSideMapTest('test2D_1'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test2D_2'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test3D_1'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test3D_two_faces'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

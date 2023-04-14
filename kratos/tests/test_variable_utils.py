@@ -2,7 +2,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import math
 import os
 
 def GetFilePath(fileName):
@@ -38,7 +37,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, [node.X ** 2, 0.0, 0.0])
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1, [node.X, node.Y, node.Z])
 
-        ##copy the values to the destination model part
+        # ##copy the values to the destination model part
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VISCOSITY, origin_model_part, destination_model_part, 0)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VISCOSITY, origin_model_part, destination_model_part, 1)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.DISPLACEMENT, origin_model_part, destination_model_part, 0)
@@ -50,6 +49,16 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY, 1), 2.0 * node.X + 3.0 * node.Y)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0), node.X ** 2)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 1), node.X)
+
+        ##copy the values to the destination model part in different buffers
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VISCOSITY, KratosMultiphysics.VISCOSITY ,origin_model_part, destination_model_part, 0, 1)
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.DISPLACEMENT,origin_model_part, destination_model_part, 0, 1)
+
+        ##check the copied values
+        for node in destination_model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY, 1), node.X + node.Y)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1),[node.X ** 2, 0.0, 0.0])
+
 
     def test_copy_model_part_nodal_var_to_non_historical_var(self):
         ##set the origin model part
@@ -751,14 +760,14 @@ class TestVariableUtils(KratosUnittest.TestCase):
         input2d = [0.0,1.0,2.0,3.0,4.0,5.0]
         KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,input2d,0)
         verify2d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2) 
-        
+
         for v,r in zip(input2d,verify2d):
             self.assertEqual(v,r)
 
         input3d = [0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0]
         KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,input2d,0)
         verify3d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2) 
-        
+
         for v,r in zip(input3d,verify3d):
             self.assertEqual(v,r)
 

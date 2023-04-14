@@ -59,6 +59,9 @@ public:
     /// Pointer definition of DVMS
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DVMS);
 
+    /// Base type definition
+    using BaseType = QSVMS<TElementData>;
+
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
 
@@ -93,11 +96,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = QSVMS<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = QSVMS<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = BaseType::Dim;
+    constexpr static unsigned int NumNodes = BaseType::NumNodes;
+    constexpr static unsigned int BlockSize = BaseType::BlockSize;
+    constexpr static unsigned int LocalSize = BaseType::LocalSize;
+    constexpr static unsigned int StrainSize = BaseType::StrainSize;
 
     ///@}
     ///@name Life Cycle

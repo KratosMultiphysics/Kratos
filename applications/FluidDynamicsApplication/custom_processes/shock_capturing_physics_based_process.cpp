@@ -86,7 +86,11 @@ namespace Kratos
             "shock_sensor" : true,
             "shear_sensor" : true,
             "thermal_sensor" : true,
-            "thermally_coupled_formulation" : true
+            "thermally_coupled_formulation" : true,
+            "artificial_bulk_viscosity_constant": 1.5,
+            "artificial_conductivity_constant": 1.0,
+            "artificial_dynamic_viscosity_constant": 1.0,
+            "far_field_prandtl_number": 0.0
         })");
 
         return default_parameters;
@@ -129,6 +133,10 @@ namespace Kratos
         mShearSensor = rParameters["shear_sensor"].GetBool();
         mThermalSensor = rParameters["thermal_sensor"].GetBool();
         mThermallyCoupledFormulation = rParameters["thermally_coupled_formulation"].GetBool();
+        mArtBulkViscosityConstant = rParameters["artificial_bulk_viscosity_constant"].GetDouble();
+        mFarFieldPrandtlNumber = rParameters["far_field_prandtl_number"].GetDouble();
+        mArtConductivityConstant = rParameters["artificial_conductivity_constant"].GetDouble();
+        mArtDynViscosityConstant = rParameters["artificial_dynamic_viscosity_constant"].GetDouble();
 
         // Check user-provided assigned settings
         KRATOS_ERROR_IF(mThermalSensor && !mThermallyCoupledFormulation)

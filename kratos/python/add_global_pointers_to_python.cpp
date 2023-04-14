@@ -17,16 +17,14 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
-#include "processes/process.h"
 #include "python/add_global_pointers_to_python.h"
 #include "containers/global_pointers_vector.h"
-#include "utilities/pointer_communicator.h"
-#include "processes/process.h"
-#include "processes/find_global_nodal_neighbours_process.h"
+#include "includes/define_python.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/condition.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 
 void AddGlobalPointersToPython(pybind11::module& m)
@@ -42,5 +40,4 @@ void AddGlobalPointersToPython(pybind11::module& m)
 
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.
