@@ -45,9 +45,9 @@ class TestDofs(KratosUnittest.TestCase):
         self.assertEqual(dx.GetReaction(), KratosMultiphysics.REACTION_X)
         self.assertEqual(dx.EquationId, 5)
 
-        self.assertTrue(p<p2)
-        self.assertTrue(dy>dx)
-        self.assertTrue(p2>dz)
+        self.assertLess(p,p2)
+        self.assertGreater(dy,dx)
+        self.assertGreater(p2,dz)
 
     def testDofListValues(self):
         current_model = KratosMultiphysics.Model()
