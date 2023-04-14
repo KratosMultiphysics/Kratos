@@ -123,7 +123,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
     } else {
-        KRATOS_ERROR << "Unknown search backend" << std::endl;
+        static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
 }
 
@@ -310,7 +310,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
     // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
     } else {
-        KRATOS_ERROR << "Unknown search backend" << std::endl;
+        static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
 }
 
