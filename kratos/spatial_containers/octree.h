@@ -215,7 +215,7 @@ public:
 
     }
 
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
+    void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
     {
         rOStream << Perfix << "Partition at point (" << mPosition[0];
         for(IndexType j = 0 ; j < Dimension - 1 ; j++)
@@ -239,7 +239,7 @@ public:
     ///@name Operations
     ///@{
 
-    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& rResultDistance)
+    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& rResultDistance) override
     {
         CoordinateType distances_to_partitions[number_of_childs];
 
@@ -256,7 +256,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
+                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
         SizeType child_index = GetChildIndex(ThisPoint);
 
@@ -273,7 +273,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
+                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
         SizeType child_index = GetChildIndex(ThisPoint);
 
