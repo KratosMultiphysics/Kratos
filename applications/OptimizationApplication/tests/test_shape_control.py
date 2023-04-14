@@ -41,6 +41,8 @@ class TestShapeControl(kratos_unittest.TestCase):
     def test_ShapeControl(self):
         self.shape_control.Initialize()
 
+        data = Kratos.ContainerExpression.HistoricalExpression(self.model_part.GetSubModelPart("structure"))
+
         # run for 3 iterations
         for i in range(1, 4, 1):
             if (i > 1):
@@ -50,7 +52,6 @@ class TestShapeControl(kratos_unittest.TestCase):
                 temp.CopyFrom(data)
                 self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(test - temp), 0.0)
 
-            data = Kratos.ContainerExpression.HistoricalExpression(self.model_part.GetSubModelPart("structure"))
             data.SetData(Kratos.Array3([i, i, i]))
             self.shape_control.Update(KratosOA.ContainerExpression.CollectiveExpressions([data]))
 

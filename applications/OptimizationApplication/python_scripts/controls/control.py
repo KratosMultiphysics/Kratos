@@ -32,7 +32,7 @@ class Control(ABC):
 
         # check whether correct sensitivity variable sensitivities are provided
         if sorted(self.GetRequiredSensitivityFieldVariables(), key=lambda x:x.Name()) != sorted(sensitivity_variable_first_derivative_map.keys(), key=lambda x:x.Name()):
-            raise RuntimeError(f"Invalid sensitivity variable collective expressions provided. Required sensitivity variables:\n\t" + "\n\t".join(v.Name() for v in required_sensitivity_variables) + "\nProvided sensitivity variables:\n\t" + "\n\t".join([v.Name() for v in sensitivity_variable_first_derivative_map.keys()]))
+            raise RuntimeError("Invalid sensitivity variable collective expressions provided. Required sensitivity variables:\n\t" + "\n\t".join(v.Name() for v in required_sensitivity_variables) + "\nProvided sensitivity variables:\n\t" + "\n\t".join([v.Name() for v in sensitivity_variable_first_derivative_map.keys()]))
 
         for sensitivity_collective_expression in sensitivity_variable_first_derivative_map.values():
             # now check sensitivities for all required model parts are provided in the same
