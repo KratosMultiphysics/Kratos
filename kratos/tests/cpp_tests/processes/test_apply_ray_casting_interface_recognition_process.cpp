@@ -15,8 +15,8 @@
 #include "processes/apply_ray_casting_interface_recognition_process.h"
 
 namespace Kratos::Testing {
-	KRATOS_TEST_CASE_IN_SUITE(ApplyRayCastingWithInterfaceProcess3D, KratosCoreFastSuite)
-	{
+    KRATOS_TEST_CASE_IN_SUITE(ApplyRayCastingWithInterfaceProcess3D, KratosCoreFastSuite)
+    {
         Model current_model;
         ModelPart& r_volume_model_part = current_model.CreateModelPart("volume");
         ModelPart& r_skin_model_part = current_model.CreateModelPart("skin");
@@ -58,7 +58,7 @@ namespace Kratos::Testing {
         }
     }
     KRATOS_TEST_CASE_IN_SUITE(ApplyRayCastingWithInterfaceProcess2D, KratosCoreFastSuite)
-	{
+    {
         Model current_model;
         ModelPart& r_volume_model_part = current_model.CreateModelPart("volume");
         ModelPart& r_skin_model_part = current_model.CreateModelPart("skin");
