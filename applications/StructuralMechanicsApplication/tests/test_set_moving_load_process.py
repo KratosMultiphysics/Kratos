@@ -5,6 +5,18 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestSetMovingLoadProcess(KratosUnittest.TestCase):
 
+    def checkRHS(self, rhs: list[float], expected_res: list[float]):
+        """
+        routine to check calculation of rhs side within context of testing SetMovingLoad
+        Returns
+        -------
+
+        """
+        self.assertAlmostEqual(rhs[0], expected_res[0])
+        self.assertAlmostEqual(rhs[1], expected_res[1])
+        self.assertAlmostEqual(rhs[2], expected_res[2])
+        self.assertAlmostEqual(rhs[3], expected_res[3])
+
     def _TestSetMovingLoad(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
@@ -53,10 +65,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -2)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
 
         # move load
         process.ExecuteFinalizeSolutionStep()
@@ -65,10 +74,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -1.5)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -0.5)
+        self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
         
     def _TestSetMovingLoadOffsetPositive(self):
         """
@@ -119,10 +125,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -1.5)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -0.5)
+        self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
 
         # move load
         process.ExecuteFinalizeSolutionStep()
@@ -131,10 +134,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -1)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -1)
+        self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
         
     def _TestSetMovingLoadOffsetNegative(self):
         """
@@ -185,10 +185,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # move load
         process.ExecuteFinalizeSolutionStep()
@@ -197,10 +194,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -2)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
 
     def _TestSetMovingLoadReverseGeom(self):
         """
@@ -253,10 +247,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # cond.SetValue(SMA.MOVING_LOAD_LOCAL_DISTANCE, 0)
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -2)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, -2.0])
 
         # move load
         process.ExecuteFinalizeSolutionStep()
@@ -265,10 +256,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -0.5)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -1.5)
+        self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
 
     def _TestSetMovingLoadReverseGeomOffsetPositive(self):
         """
@@ -322,10 +310,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # cond.SetValue(SMA.MOVING_LOAD_LOCAL_DISTANCE, 0)
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -0.5)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -1.5)
+        self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
 
         # move load
         process.ExecuteFinalizeSolutionStep()
@@ -334,10 +319,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -1.0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -1.0)
+        self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
 
     def _TestSetMovingLoadReverseGeomOffsetNegative(self):
         """
@@ -391,10 +373,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # cond.SetValue(SMA.MOVING_LOAD_LOCAL_DISTANCE, 0)
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # move load
         process.ExecuteFinalizeSolutionStep()
@@ -403,10 +382,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -2)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, -2.0])
         
     def _TestSetMovingLoadMultipleConditions(self):
         """
@@ -466,15 +442,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -2)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -2.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load within first element
         process.ExecuteFinalizeSolutionStep()
@@ -486,15 +455,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -1)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -1)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to element connection element
         process.ExecuteFinalizeSolutionStep()
@@ -505,15 +467,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -2)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to next element
         process.ExecuteFinalizeSolutionStep()
@@ -524,16 +479,9 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], -1)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -1)
-
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
+        
     def _TestSetMovingLoadMultipleConditionsOffSetPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -593,15 +541,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -1)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -1)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load within first element
         process.ExecuteFinalizeSolutionStep()
@@ -613,15 +554,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -2)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to element connection element
         process.ExecuteFinalizeSolutionStep()
@@ -632,15 +566,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], -1)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -1)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
         # move load to next element
         process.ExecuteFinalizeSolutionStep()
@@ -651,15 +578,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -2)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
     
     def _TestSetMovingLoadMultipleConditionsOffSetNegative(self):
         """
@@ -720,15 +640,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load within first element
         process.ExecuteFinalizeSolutionStep()
@@ -740,15 +653,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -2)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -2.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to element connection element
         process.ExecuteFinalizeSolutionStep()
@@ -759,15 +665,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -1)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -1)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to next element
         process.ExecuteFinalizeSolutionStep()
@@ -778,15 +677,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -2)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
         
         # move load to next element
         process.ExecuteFinalizeSolutionStep()
@@ -797,15 +689,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], -1)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -1)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
     
     def _TestSetMovingLoadMultipleConditionsReversed(self):
         """
@@ -862,15 +747,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -2)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
         # move load within first element
         process.ExecuteFinalizeSolutionStep()
@@ -882,15 +760,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], -1)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -1)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
         # move load to element connection element
         process.ExecuteFinalizeSolutionStep()
@@ -902,15 +773,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -2)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to next element, also increase time step
         mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
@@ -923,15 +787,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -1.5)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -0.5)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -1.5, 0.0, -0.5])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
     def _TestSetMovingLoadMultipleConditionsReversedOffsetPositive(self):
         """
@@ -989,15 +846,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], -1)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -1)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
         # move load within first element
         process.ExecuteFinalizeSolutionStep()
@@ -1009,15 +859,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -2)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to element connection element
         process.ExecuteFinalizeSolutionStep()
@@ -1029,15 +872,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -1.0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -1.0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to next element, also increase time step
         mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
@@ -1050,15 +886,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
         
     def _TestSetMovingLoadMultipleConditionsReversedOffsetNegative(self):
         """
@@ -1116,15 +945,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load within first element
         process.ExecuteFinalizeSolutionStep()
@@ -1136,15 +958,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -2)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
         # move load to element connection element
         process.ExecuteFinalizeSolutionStep()
@@ -1156,15 +971,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], -1)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -1)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
         # move load to next element, also increase time step
         mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
@@ -1177,15 +985,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -0.5)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -1.5)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -0.5, 0.0, -1.5])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
     def _TestSetMovingLoadMultipleConditionsDifferentOrigin(self):
         """
@@ -1239,15 +1040,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], -1.5)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -0.5)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -1.5, 0.0, -0.5])
 
 
     def _TestSetMovingLoadMultipleConditionsDifferentOriginOffsetPositive(self):
@@ -1303,15 +1097,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -2)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
     
     def _TestSetMovingLoadMultipleConditionsDifferentOriginOffsetNegative(self):
@@ -1367,15 +1154,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -2.0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
     
     
     def _TestSetMovingLoadMultipleConditionsDifferentOriginReversed(self):
@@ -1430,15 +1210,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -0.5)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -1.5)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -0.5, 0.0, -1.5])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
         
         
     def _TestSetMovingLoadMultipleConditionsDifferentOriginReversedOffsetPositive(self):
@@ -1494,15 +1267,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], -1.0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], -1.0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], 0)
+        self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
         
     def _TestSetMovingLoadMultipleConditionsDifferentOriginReversedOffsetNegative(self):
         """
@@ -1557,15 +1323,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertAlmostEqual(all_rhs[0][0], 0)
-        self.assertAlmostEqual(all_rhs[0][1], 0)
-        self.assertAlmostEqual(all_rhs[0][2], 0)
-        self.assertAlmostEqual(all_rhs[0][3], 0)
-
-        self.assertAlmostEqual(all_rhs[1][0], 0)
-        self.assertAlmostEqual(all_rhs[1][1], 0)
-        self.assertAlmostEqual(all_rhs[1][2], 0)
-        self.assertAlmostEqual(all_rhs[1][3], -2.0)
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
     def _TestSetMovingLoadWithLoadFunction(self):
         """
@@ -1614,10 +1373,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # change time and recalculate load
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
@@ -1626,10 +1382,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -0.5, 5)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -0.5)
+        self.checkRHS(rhs, [0.0, -0.5, 0.0, -0.5])
         
     def _TestSetMovingLoadWithLoadFunctionOffsetPositive(self):
         """
@@ -1679,10 +1432,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # change time and recalculate load
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
@@ -1691,10 +1441,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -0.25)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -0.75)
+        self.checkRHS(rhs, [0.0, -0.25, 0.0, -0.75])
 
     def _TestSetMovingLoadWithLoadFunctionOffsetNegative(self):
         """
@@ -1744,10 +1491,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # change time and recalculate load
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
@@ -1756,11 +1500,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -0.75)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -0.25)
-    
+        self.checkRHS(rhs, [0.0, -0.75, 0.0, -0.25])
    
     def _TestSetMovingLoadWithVelocityFunction(self):
         """
@@ -1810,10 +1550,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -2)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
 
         # change time and recalculate load
         process.ExecuteFinalizeSolutionStep()
@@ -1822,10 +1559,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -2)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
 
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
@@ -1835,10 +1569,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -1.5)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -0.5)
+        self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
         
     def _TestSetMovingLoadWithVelocityFunctionOffsetPositive(self):
         """
@@ -1889,11 +1620,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -1)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -1)
-
+        self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
+        
         # change time and recalculate load
         process.ExecuteFinalizeSolutionStep()
         process.ExecuteInitializeSolutionStep()
@@ -1901,10 +1629,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -1)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -1)
+        self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
 
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
@@ -1914,10 +1639,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -0.5)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], -1.5)
+        self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
         
     def _TestSetMovingLoadWithVelocityFunctionOffsetNegative(self):
         """
@@ -1968,10 +1690,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # set load on node
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # change time and recalculate load
         process.ExecuteFinalizeSolutionStep()
@@ -1980,10 +1699,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], 0)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
@@ -1993,10 +1709,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-        self.assertAlmostEqual(rhs[0], 0)
-        self.assertAlmostEqual(rhs[1], -2)
-        self.assertAlmostEqual(rhs[2], 0)
-        self.assertAlmostEqual(rhs[3], 0)
+        self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
 
 
     def test_SetMovingLoad(self):
