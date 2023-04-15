@@ -127,9 +127,9 @@ std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryTyp
 /***********************************************************************************/
 
 double PointDistanceToLineSegment3D(
-    Point const& rLinePoint1,
-    Point const& rLinePoint2,
-    Point const& rToPoint
+    const Point& rLinePoint1,
+    const Point& rLinePoint2,
+    const Point& rToPoint
     )
 {
     const double epsilon = 1e-15; //1.0e-9;
