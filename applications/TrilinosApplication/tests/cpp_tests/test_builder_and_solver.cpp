@@ -599,7 +599,56 @@ namespace Kratos::Testing
             p_node_1->FastGetSolutionStepValue(PARTITION_INDEX) = rank - 1;
         }
 
+        std::cerr << "BEFORE PFC" << std::endl;
         ParallelFillCommunicator(rModelPart, Testing::GetDefaultDataCommunicator()).Execute();
+        std::cerr << "AFTER PFC" << std::endl;
+    }
+
+    void PrepareTestModelPart(ModelPart& rRootModelPart, ModelPart& rWorkModelPart, const DataCommunicator& rComm)
+    {
+        /* Mesh one quarter of a circle with triangular slices (one triangle per rank)
+        * Nodes at (0,0), (1,0) and (0,1) always belong to rank 0.
+        * NOTE: the modelpart should at least have PARTITION_INDEX in the nodal solution step data */
+        constexpr double total_angle = Globals::Pi/2.0;
+        constexpr double side_length = 1.0;
+
+        Properties::Pointer p_properties = rRootModelPart.CreateNewProperties(0);
+
+        const int rank = rComm.Rank();
+        const int size = rComm.Size();
+
+        auto p_center = rRootModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+        p_center->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+
+        const double angle_start = rank   * (total_angle / size);
+        const double angle_end   = rank+1 * (total_angle / size);
+
+        const double x1 = side_length * std::cos(angle_start);
+        const double y1 = side_length * std::sin(angle_start);
+
+        const double x2 = side_length * std::cos(angle_end);
+        const double y2 = side_length * std::sin(angle_end);
+
+        const unsigned int local_index = rank + 2;
+        const unsigned int ghost_index = (size == 1) || (rank != size-1) ? rank + 3 : 2;
+        auto p_node_1 = rRootModelPart.CreateNewNode(local_index, x1, y1, 0.0);
+        auto p_node_2 = rRootModelPart.CreateNewNode(ghost_index, x2, y2, 0.0);
+
+        p_node_1->FastGetSolutionStepValue(PARTITION_INDEX) = rank;
+        const int remote_rank = (rank != size-1) ? rank + 1 : 0;
+        p_node_2->FastGetSolutionStepValue(PARTITION_INDEX) = remote_rank;
+
+        std::vector<ModelPart::IndexType> element_nodes{1, local_index, ghost_index};
+
+        GeometryType::Pointer p_geometry = Kratos::make_shared<Triangle2D3<NodeType>>(
+            PointerVector<NodeType>{std::vector<NodeType::Pointer>({p_center, p_node_1, p_node_2})});
+
+        rRootModelPart.AddElement(Kratos::make_intrusive<TestElement>(rank+1, p_geometry, p_properties));
+
+        rWorkModelPart.AddNodes({1, local_index, ghost_index});
+        if (rank != size - 1) rWorkModelPart.AddElements({static_cast<unsigned int>(rank+1)});
+
+        ParallelFillCommunicator(rRootModelPart, Testing::GetDefaultDataCommunicator()).Execute();
     }
 
     /**
@@ -881,7 +930,9 @@ namespace Kratos::Testing
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(REACTION);
 
-        Testing::ModelPartWithHangingNode(r_model_part, r_mpi_comm);
+        ModelPart& r_work_part = r_model_part.CreateSubModelPart("WorkModelPart");
+
+        Testing::PrepareTestModelPart(r_model_part, r_work_part, r_mpi_comm);
 
         for (auto& r_node : r_model_part.Nodes()) {
             r_node.AddDof(DISPLACEMENT_X, REACTION_X);
@@ -902,11 +953,11 @@ namespace Kratos::Testing
         auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
         auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
 
-        p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
+        p_builder_and_solver->SetUpDofSet(p_scheme, r_work_part);
         const auto& r_dofset = p_builder_and_solver->GetDofSet();
 
         // expected known dofs: x & y displacement for each known node
-        const unsigned int expected_size = 2 * r_model_part.NumberOfNodes();
+        const unsigned int expected_size = 2 * r_work_part.NumberOfNodes();
         KRATOS_ERROR_IF(r_dofset.size() != expected_size) \
             << "Got " << r_dofset.size() << " dofs, expected " << expected_size << " " << r_dofset << std::endl;
     }
