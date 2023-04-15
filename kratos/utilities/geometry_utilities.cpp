@@ -126,7 +126,7 @@ std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryTyp
 /***********************************************************************************/
 /***********************************************************************************/
 
-double PointDistanceToLineSegment3D(
+double GeometryUtils::PointDistanceToLineSegment3D(
     const Point& rLinePoint1,
     const Point& rLinePoint2,
     const Point& rToPoint
