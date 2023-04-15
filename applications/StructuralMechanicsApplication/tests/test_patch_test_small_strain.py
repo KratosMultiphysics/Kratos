@@ -52,14 +52,14 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
-        if(dim == 2):
+        if dim == 2:
             cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         else:
             cl = StructuralMechanicsApplication.LinearElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _define_movement(self,dim):
-        if(dim == 2):
+        if dim == 2:
             #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
             #so that the displcement is linear and the exact F = I + A
             A = KratosMultiphysics.Matrix(3,3)
@@ -71,7 +71,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             b[0] = 0.5e-10
             b[1] = -0.2e-10
             b[2] = 0.0
-
         else:
             #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
             #so that the displcement is linear and the exact F = I + A
@@ -88,12 +87,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         return A,b
 
     def _solve(self,mp):
-
-        #define a minimal newton raphson solver
+        # Define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
 
         max_iters = 20
         compute_reactions = True
@@ -108,7 +105,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                                                                         calculate_norm_dx,
                                                                         move_mesh_flag)
 
-
+        #convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         #strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         #scheme,
                                                                         #convergence_criterion,
@@ -124,8 +121,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         strategy.Solve()
 
     def _check_results(self,mp,A,b):
-
-        ##check that the results are exact on the nodes
+        ## Check that the results are exact on the nodes
         for node in mp.Nodes:
             xvec = KratosMultiphysics.Vector(3)
             xvec[0] = node.X0
@@ -146,7 +142,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                     self.assertLess(abs(d[i]), self.tolerances["absolute"]["displacement"])
 
     def _check_outputs(self,mp,A,dim):
-
         E = mp.GetProperties()[1].GetValue(KratosMultiphysics.YOUNG_MODULUS)
         NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
 
@@ -175,7 +170,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                 Etensor[i,j] = 0.5*Etensor[i,j]
 
         # Verify strain
-        if(dim == 2):
+        if dim == 2:
             reference_strain = KratosMultiphysics.Vector(3)
             reference_strain[0] = Etensor[0,0]
             reference_strain[1] = Etensor[1,1]
@@ -200,7 +195,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                             self.assertLess(abs(strain[i]), self.tolerances["absolute"]["strain"])
 
         # Finally compute stress
-        if(dim == 2):
+        if dim == 2:
             #here assume plane stress
             c1 = E / (1.00 - NU*NU)
             c2 = c1 * NU
