@@ -17,7 +17,6 @@
 
 // Project includes
 #include "includes/geometrical_object.h"
-#include "utilities/geometry_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 
 namespace Kratos
@@ -231,12 +230,7 @@ void GeometricalObjectsBins::SearchInRadiusInCell(
     double distance = 0.0;
     for(auto p_geometrical_object : rCell){
         auto& r_geometry = p_geometrical_object->GetGeometry();
-        // TODO: Change this to new Distance method of the geometry to be more general
-        distance = GeometryUtils::PointDistanceToTriangle3D(
-            r_geometry[0],
-            r_geometry[1],
-            r_geometry[2],
-            rPoint);
+        distance = r_geometry.CalculateDistance(rPoint, Tolerance);
         if((Radius + Tolerance) > distance){
             rResults.insert(p_geometrical_object);
         }
@@ -256,12 +250,7 @@ void GeometricalObjectsBins::SearchNearestInCell(
     double distance = 0.0;
     for(auto p_geometrical_object : rCell){
         auto& r_geometry = p_geometrical_object->GetGeometry();
-        // TODO: Change this to new Distance method of the geometry to be more general
-        distance = GeometryUtils::PointDistanceToTriangle3D(
-            r_geometry[0],
-            r_geometry[1],
-            r_geometry[2],
-            rPoint);
+        distance = r_geometry.CalculateDistance(rPoint, Tolerance);
         if ((distance < rResult.GetDistance()) && (distance < MaxRadius)) {
             rResult.Set(p_geometrical_object);
             rResult.SetDistance(distance);

@@ -40,9 +40,6 @@ class GeometricalObject; // forward declaration, to be included in the cpp. This
  * All of the geometries should be given at construction time. After
  * constructing the bins the geometries cannot be modified. In case of
  * any modification, the bins should be reconstructed.
- * @note Please note that the current implementation is only for triangles.
- * Addapt it to other geometries is postponed to after adding distance
- * method to the geometry.
  * @author Pooyan Dadvand
 */
 class GeometricalObjectsBins
