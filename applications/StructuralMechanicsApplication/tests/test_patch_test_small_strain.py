@@ -716,6 +716,56 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
+    def test_SmallDisplacementElement_3D_prism_quadratic(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        # Create nodes
+        mp.CreateNewNode(1,1.0,0.0,0.0)
+        mp.CreateNewNode(2,0.5,0.0,0.0)
+        mp.CreateNewNode(3,1.0,0.5,0.0)
+        mp.CreateNewNode(4,0.5,0.5,0.0)
+        mp.CreateNewNode(5,0.0,0.0,0.0)
+        mp.CreateNewNode(6,1.0,1.0,0.0)
+        mp.CreateNewNode(7,0.5,1.0,0.0)
+        mp.CreateNewNode(8,0.0,0.5,0.0)
+        mp.CreateNewNode(9,0.0,1.0,0.0)
+        mp.CreateNewNode(10,1.0,0.0,0.2)
+        mp.CreateNewNode(11,0.5,0.0,0.2)
+        mp.CreateNewNode(12,1.0,0.5,0.2)
+        mp.CreateNewNode(13,0.5,0.5,0.2)
+        mp.CreateNewNode(14,0.0,0.0,0.2)
+        mp.CreateNewNode(15,1.0,1.0,0.2)
+        mp.CreateNewNode(16,0.5,1.0,0.2)
+        mp.CreateNewNode(17,0.0,0.5,0.2)
+        mp.CreateNewNode(18,0.0,1.0,0.2)
+        mp.CreateNewNode(19,1.0,0.0,0.1)
+        mp.CreateNewNode(20,0.0,0.0,0.1)
+        mp.CreateNewNode(21,1.0,1.0,0.1)
+        mp.CreateNewNode(22,0.0,1.0,0.1)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22])
+
+        # Create Element
+        mp.CreateNewElement("SmallDisplacementElement3D15N", 1, [5,1,9,14,10,18,2,4,8,11,13,17,20,19,22], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D15N", 2, [1,6,9,10,15,18,3,7,4,12,16,13,19,21,22], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
     def test_SmallDisplacementElement_3D_hexa(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
