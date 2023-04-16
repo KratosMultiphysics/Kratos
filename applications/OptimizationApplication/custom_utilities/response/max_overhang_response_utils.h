@@ -49,32 +49,32 @@ public:
     ///@name Static operations
     ///@{
 
-    static double CalculateValue(const std::vector<ModelPart*>& rModelParts);
+    static double CalculateValue(const std::vector<ModelPart*>& rModelParts, const Parameters& rResponseSettings);
 
     static void CalculateSensitivity(
         const std::vector<ModelPart*>& rEvaluatedModelParts,
         const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
-        const double PerturbationSize);
+        const Parameters& rResponseSettings);
 
     ///@}
 private:
     ///@name Private static operations
     ///@{
 
-    static double CalculateConditionValue(Condition& rCondition);
+    static double CalculateConditionValue(Condition& rCondition, const Parameters& rResponseSettings);
 
     static void CalculateConditionFiniteDifferenceShapeSensitivity(
         Condition& rCondition,
         Condition::Pointer& pThreadLocalCondition,
         ModelPart& rModelPart,
         std::vector<std::string>& rModelPartNames,
-        const double Delta,
+        const Parameters& rResponseSettings,
         const IndexType MaxNodeId,
         const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
 
     static void CalculateFiniteDifferenceShapeSensitivity(
        ModelPart& rModelPart,
-       const double Delta,
+       const Parameters& rResponseSettings,
        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
 
     ///@}

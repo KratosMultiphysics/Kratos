@@ -314,16 +314,25 @@ class MaxOverhangAngleResponseFunction(BaseResponseFunction):
 
     def __init__(self,response_name, response_settings,model):
 
+        self.default_response_settings = KM.Parameters("""{
+                    "evaluated_objects": [],
+                    "control_types": [],
+                    "controlled_objects": [],
+                    "print_direction": [],
+                    "max_angle": -30.0,
+                    "heaviside_beta": 25.0,
+                    "penalty_factor": 2.0,
+                    "gradient_settings":{
+                        "step_size" : 1e-6,
+                        "gradient_mode": "finite_differencing"
+                    }   
+                }""")  
+
+        response_settings.RecursivelyValidateAndAssignDefaults(self.default_response_settings) 
+
         self.type = "max_overhang_angle"
         self.variable = "MAX_OVERHANG_ANGLE"
-        super().__init__(response_name, response_settings, model)
-
-        if not self.response_settings.Has("gradient_settings"):
-            self.gradient_settings = KM.Parameters()
-            self.gradient_settings.AddString("gradient_mode","semi_analytic")
-            self.gradient_settings.AddDouble("step_size",1e-6)
-        else:
-            self.gradient_settings = self.response_settings["gradient_settings"]     
+        super().__init__(response_name, response_settings, model)  
 
         self.supported_control_types = ["shape"]
         self.gradients_variables = {"shape":"D_MAX_OVERHANG_ANGLE_D_X"}
@@ -335,14 +344,12 @@ class MaxOverhangAngleResponseFunction(BaseResponseFunction):
             if not control_type in self.supported_control_types:
                 raise RuntimeError("MaxOverhangAngleResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
 
-        
         root_model_part_name = self.evaluated_model_parts[0].split(".")[0]
         for evaluated_model_part in self.evaluated_model_parts:
             if evaluated_model_part.split(".")[0] != root_model_part_name:
                 raise RuntimeError("MaxOverhangAngleResponseFunction: evaluated_model_parts of max_overhang_angle response must have the same root model part !")
 
         self.root_model_part = self.model.GetModelPart(root_model_part_name)
-
 
         # add vars and response
         for control_type in self.control_types:
@@ -374,7 +381,7 @@ class MaxOverhangAngleResponseFunction(BaseResponseFunction):
         for model_part_name in self.evaluated_model_parts:
             r_evaluated_model_parts.append(self.model[model_part_name])
 
-        self.value =  KOA.ResponseUtils.MaxOverhangAngleResponseUtils.CalculateValue(r_evaluated_model_parts)
+        self.value =  KOA.ResponseUtils.MaxOverhangAngleResponseUtils.CalculateValue(r_evaluated_model_parts,self.response_settings)
 
         Logger.PrintInfo("MaxOverhangAngleResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
         return self.value
@@ -391,7 +398,7 @@ class MaxOverhangAngleResponseFunction(BaseResponseFunction):
 
         Logger.PrintInfo("MaxOverhangAngleResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-        KOA.ResponseUtils.MaxOverhangAngleResponseUtils.CalculateSensitivity(r_evaluated_model_parts,{KM.SHAPE_SENSITIVITY: r_controlled_model_parts},1e-5)
+        KOA.ResponseUtils.MaxOverhangAngleResponseUtils.CalculateSensitivity(r_evaluated_model_parts,{KM.SHAPE_SENSITIVITY: r_controlled_model_parts},self.response_settings)
         
         #TODO: After restructuring this copying data should be removed 
         for model_part in r_controlled_model_parts:
