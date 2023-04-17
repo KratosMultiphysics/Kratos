@@ -470,8 +470,8 @@ public:
         return std::sqrt(2.0 * Area());
     }
 
-    /** 
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area
@@ -504,8 +504,8 @@ public:
     //     return 0.0;
     // }
 
-    /** 
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -2483,8 +2483,7 @@ GeometryData Triangle3D3<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Triangle3D3<TPointType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension Triangle3D3<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.
 

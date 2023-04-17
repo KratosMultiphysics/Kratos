@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                     license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Co-authors:    Vicente Mataix Ferrandiz
@@ -59,7 +59,7 @@
 #include "custom_elements/shell_thick_element_3D3N.hpp"
 
 /* Adding the spring damper element */
-#include "custom_elements/spring_damper_element_3D2N.hpp"
+#include "custom_elements/spring_damper_element.hpp"
 
 /* Adding the SPRISM element */
 #include "custom_elements/solid_shell_element_sprism_3D6N.h"
@@ -401,7 +401,8 @@ private:
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
 
     // Adding the spring damper element
-    const SpringDamperElement3D2N mSpringDamperElement3D2N;
+    const SpringDamperElement<2> mSpringDamperElement2D;
+    const SpringDamperElement<3> mSpringDamperElement3D;
 
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<ShellKinematics::LINEAR>> mAdjointFiniteDifferencingShellThinElement3D3N;
@@ -416,7 +417,7 @@ private:
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D4N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
-    const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement3D2N>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
+    const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement<3>>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
 
     /* CONDITIONS*/
     // Point load

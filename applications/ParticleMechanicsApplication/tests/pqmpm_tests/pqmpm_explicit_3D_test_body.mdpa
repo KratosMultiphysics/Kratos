@@ -16,7 +16,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangian3D8N// GUI group identifier: point
+Begin Elements MPMUpdatedLagrangian3D8N// GUI group identifier: point
        28          0         26         20         41         58         43         27         55         62 
 End Elements
 
