@@ -38,17 +38,26 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::Initialize(
 {
     KRATOS_TRY
 
-    //const GeometryType& rGeom = this->GetGeometry();
-    //const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    //this->InitializeProperties();
 
-    
-    ElementVariables rVariables;
-    this->InitializeElementVariables(rVariables, rCurrentProcessInfo);
-    this->CalculateRoughness(rCurrentProcessInfo, rVariables);
-
-    mIsInitialised = true;
+    //mIsInitialised = true;
+    //this->InitializeProperties();
 
     KRATOS_CATCH("")
+}
+
+// ============================================================================================
+// ============================================================================================
+template<unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (!mIsInitialised)
+    {
+        this->InitializeProperties();
+        mIsInitialised = true;
+    }
+    this->CalculateRoughness(rCurrentProcessInfo, rVariables);
 }
 
 // ============================================================================================
@@ -75,26 +84,25 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
     Geom.Jacobian(JContainer, mThisIntegrationMethod);
 
     //Element variables
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+    this->InitializeElementVariables(rVariables, rCurrentProcessInfo);
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute GradNpT, B and StrainVector
-        this->CalculateKinematics(Variables, GPoint);
+        this->CalculateKinematics(rVariables, GPoint);
 
         //Compute weighting coefficient for integration
         //Variables.IntegrationCoefficient =
         //    this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
+        this->CalculateIntegrationCoefficient(rVariables.IntegrationCoefficient,
             JContainer[GPoint],
             IntegrationPoints[GPoint].Weight());
 
         //Contributions to the left hand side
-        this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+        this->CalculateAndAddLHS(rLeftHandSideMatrix, rVariables);
 
         //Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        this->CalculateAndAddRHS(rRightHandSideVector, rVariables);
     }
 
     KRATOS_CATCH("")
@@ -110,9 +118,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
     KRATOS_TRY
 
     //Properties variables
-    this->InitializeProperties(rVariables);
+    //this->InitializeProperties(rVariables);
 
     //Nodal Variables
+    //this->CalculateRoughness(rCurrentProcessInfo, rVariables);
     this->CalculateNodalFluxes(rCurrentProcessInfo, rVariables);
 
     //Variables computed at each GP
@@ -145,7 +154,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     ElementVariables& rVariables)
 {
     rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
-    rVariables.TVector = prod(rVariables.TMatrix, rVariables.righthandside);
+    rVariables.TVector = prod(rVariables.TMatrix, rVariables.rightHandSideFlux);
 
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
@@ -163,7 +172,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
     //rVariables.TVector = prod(rVariables.Np, rVariables.lefthandside);    //TODO: what is the result?
     for (int i = 0; i < TNumNodes; ++i)
     {
-        rVariables.TVector[i] = rVariables.Np[i] * rVariables.lefthandside[i];
+        rVariables.TVector[i] = rVariables.Np[i] * rVariables.leftHandSideFlux[i];
     }
     rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.TVector) * rVariables.IntegrationCoefficient;
 
@@ -346,6 +355,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
 {
     double timeStepSize = CurrentProcessInfo.GetValue(DELTA_TIME);
 
+    rVariables.previousRoughnessTemperature = rVariables.roughnessTemperature;
+    rVariables.previousStorage = rVariables.waterStorage;
+    rVariables.previousRadiation = rVariables.netRadiation;
+
     const GeometryType& Geom = this->GetGeometry();
     const double currentAirTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE);
     double currentWindSpeed = Geom[0].FastGetSolutionStepValue(WIND_SPEED);
@@ -360,43 +373,49 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     constexpr double roughnessHeight = 1.0;
     constexpr double gravitationalAcceleration = 9.81;
 
+    rVariables.previousRoughnessTemperature = rVariables.roughnessTemperature;
+    rVariables.previousStorage = rVariables.waterStorage;
+    rVariables.previousRadiation = rVariables.netRadiation;
+
     const double initialSoilTemperature = Geom[0].FastGetSolutionStepValue(TEMPERATURE, 1);
-    double previousRoughnessTemperature = rVariables.previousRoughnessTemperature; ////////////////////////////////////////////////////////////
-    double atmosphericStabilityFactor = 0.0;
-    double surfaceRoughnessFactor = 0.0;
 
-    currentWindSpeed = std::max(currentWindSpeed, 1.0e-3);
-
-    // Eq 5.29
-    const double richardsonBulkModulus = 2.0 * gravitationalAcceleration * measurementHeight / (currentAirTemperature +
-        previousRoughnessTemperature + 546.3) * (currentAirTemperature - previousRoughnessTemperature) / (currentWindSpeed * currentWindSpeed);
-
-    // Eq 5.25
-    const double frictionDragCoefficient = vonNeumanCoefficient / std::log(measurementHeight / roughnessHeight);
-
-    double cof = 0.0;
-    if (previousRoughnessTemperature >= currentAirTemperature)
+    rVariables.roughnessTemperature = 0.0;
+    for (unsigned int i = 0; i < TNumNodes; ++i)
     {
-        // Eq 5.27
-        cof = richardsonBulkModulus / (1.0 + 75.0 * frictionDragCoefficient * frictionDragCoefficient *
-            std::sqrt(measurementHeight / roughnessHeight * std::fabs(richardsonBulkModulus)));
-        atmosphericStabilityFactor = 1.0 - 10.0 * cof;
-        surfaceRoughnessFactor = 1.0 - 15.0 * cof;
-    }
-    else
-    {
-        // Eq 5.28
-        cof = std::sqrt(1.0 + 5.0 * richardsonBulkModulus);
-        atmosphericStabilityFactor = 1.0 / (1.0 + 10.0 * richardsonBulkModulus / cof);
-        surfaceRoughnessFactor = 1.0 / (1.0 + 15.0 * richardsonBulkModulus * cof);
-    }
+        double atmosphericStabilityFactor = 0.0;
+        double surfaceRoughnessFactor = 0.0;
 
-    const double c = roughnessLayerResistance * roughnessLayerHeight + timeStepSize + timeStepSize * currentWindSpeed * roughnessLayerResistance *
-        surfaceRoughnessFactor * frictionDragCoefficient * frictionDragCoefficient;
-    previousRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * previousRoughnessTemperature + timeStepSize *
-        initialSoilTemperature + timeStepSize * currentWindSpeed * roughnessLayerResistance * surfaceRoughnessFactor *
-        frictionDragCoefficient * frictionDragCoefficient * currentAirTemperature) / c;
-    rVariables.roughnessTemperature += previousRoughnessTemperature * relativeLength;
+        currentWindSpeed = std::max(currentWindSpeed, 1.0e-3);
+
+        // Eq 5.29
+        const double richardsonBulkModulus = 2.0 * gravitationalAcceleration * measurementHeight / (currentAirTemperature +
+            rVariables.previousRoughnessTemperature + 546.3) * (currentAirTemperature - rVariables.previousRoughnessTemperature) / (currentWindSpeed * currentWindSpeed);
+
+        // Eq 5.25
+        const double frictionDragCoefficient = vonNeumanCoefficient / std::log(measurementHeight / roughnessHeight);
+
+        double cof = 0.0;
+        if (rVariables.previousRoughnessTemperature >= currentAirTemperature) {
+            // Eq 5.27
+            cof = richardsonBulkModulus / (1.0 + 75.0 * frictionDragCoefficient * frictionDragCoefficient *
+                std::sqrt(measurementHeight / roughnessHeight * std::fabs(richardsonBulkModulus)));
+            atmosphericStabilityFactor = 1.0 - 10.0 * cof;
+            surfaceRoughnessFactor = 1.0 - 15.0 * cof;
+        }
+        else {
+            // Eq 5.28
+            cof = std::sqrt(1.0 + 5.0 * richardsonBulkModulus);
+            atmosphericStabilityFactor = 1.0 / (1.0 + 10.0 * richardsonBulkModulus / cof);
+            surfaceRoughnessFactor = 1.0 / (1.0 + 15.0 * richardsonBulkModulus * cof);
+        }
+
+        const double c = roughnessLayerResistance * roughnessLayerHeight + timeStepSize + timeStepSize * currentWindSpeed * roughnessLayerResistance *
+            surfaceRoughnessFactor * frictionDragCoefficient * frictionDragCoefficient;
+        double currentRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * rVariables.previousRoughnessTemperature + timeStepSize *
+            initialSoilTemperature + timeStepSize * currentWindSpeed * roughnessLayerResistance * surfaceRoughnessFactor *
+            frictionDragCoefficient * frictionDragCoefficient * currentAirTemperature) / c;
+        rVariables.roughnessTemperature += currentRoughnessTemperature * relativeLength;
+    }
 }
 
 // ============================================================================================
@@ -414,12 +433,10 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     const double minimalStorage = rVariables.minimalStorage;
     const double maximalStorage = rVariables.maximalStorage;
 
-    rVariables.previousRoughnessTemperature = rVariables.roughnessTemperature;
-    rVariables.previousStorage = rVariables.waterStorage;
-    rVariables.previousRadiation = rVariables.netRadiation;
+    const Properties mProperties = this->GetProperties();
+    const double relativeLength = mProperties[RELATIVE_LENGTH];
 
     const GeometryType& Geom = this->GetGeometry();
-
     const double timeStepSize = CurrentProcessInfo.GetValue(DELTA_TIME);
 
     constexpr double airDensity = 1.18;
@@ -441,14 +458,11 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         const double windSpeed = Geom[i].FastGetSolutionStepValue(WIND_SPEED);
 
         const double initialSoilTemperature = Geom[i].FastGetSolutionStepValue(TEMPERATURE, 1);
-        const double roughnessLayerTemperature = rVariables.roughnessTemperature;
-        double previousStorage = rVariables.previousStorage; /////////////////////////////////////////////////////////////
-        double previousRadiation = rVariables.previousRadiation; /////////////////////////////////////////////////////////////
 
         // Eq 5.22
-        const double soilRoughnessHeatFlux = airHeatCapacity * airDensity * (initialSoilTemperature - roughnessLayerTemperature) / roughnessLayerResistance;
+        const double soilRoughnessHeatFlux = airHeatCapacity * airDensity * (initialSoilTemperature - rVariables.roughnessTemperature) / roughnessLayerResistance;
         const double sensibleHeatFluxLeft = airHeatCapacity * airDensity / roughnessLayerResistance;
-        const double sensibleHeatFluxRight = -airHeatCapacity * airDensity * roughnessLayerTemperature / roughnessLayerResistance;
+        const double sensibleHeatFluxRight = -airHeatCapacity * airDensity * rVariables.roughnessTemperature / roughnessLayerResistance;
 
         // Eq 5.35
         const double atmosphericResistance = 1.0 / (0.007 + 0.0056 * windSpeed);
@@ -475,7 +489,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         const double netRadiation = shortWaveRadiation + absorbedLongWaveRadiation - emittedLongWaveRadiation;
 
         // Eq 5.20
-        const double surfaceHeatStorage = firstCoverStorageCoefficient * netRadiation + secondCoverStorageCoefficient * (netRadiation - previousRadiation) /
+        const double surfaceHeatStorage = firstCoverStorageCoefficient * netRadiation + secondCoverStorageCoefficient * (netRadiation - rVariables.previousRadiation) /
             timeStepSize + thirdCoverStorageCoefficient;
 
         // Eq 5.34
@@ -489,30 +503,30 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
 
         // Eq 5.36
         const double potentialEvaporation = latentHeatFlux / (waterDensity * latentEvaporationHeat);
-        const double potentialStorage = previousStorage + timeStepSize * (precipitation - potentialEvaporation);
+        const double potentialStorage = rVariables.previousStorage + timeStepSize * (precipitation - potentialEvaporation);
         if (potentialStorage > maximalStorage)
         {
             actualEvaporation = potentialEvaporation;
-            actualPrecipitation = (maximalStorage - previousStorage) / timeStepSize + actualEvaporation;
+            actualPrecipitation = (maximalStorage - rVariables.previousStorage) / timeStepSize + actualEvaporation;
         }
         else if (potentialStorage < minimalStorage)
         {
             actualPrecipitation = precipitation;
-            actualEvaporation = (previousStorage - minimalStorage) / timeStepSize + actualPrecipitation;
+            actualEvaporation = (rVariables.previousStorage - minimalStorage) / timeStepSize + actualPrecipitation;
         }
         else
         {
             actualEvaporation = potentialEvaporation;
             actualPrecipitation = precipitation;
         }
-        const double actualStorage = previousStorage + timeStepSize * (actualPrecipitation - actualEvaporation);
+        const double actualStorage = rVariables.previousStorage + timeStepSize * (actualPrecipitation - actualEvaporation);
         latentHeatFlux = actualEvaporation * waterDensity * latentEvaporationHeat;
 
         // Eq 5.31
         double subsurfaceHeatFlux = netRadiation - sensibleHeatFluxRight - latentHeatFlux + buildEnvironmentRadiation - surfaceHeatStorage;
 
-        rVariables.netRadiation += netRadiation * RELATIVE_LENGTH;
-        rVariables.waterStorage += actualStorage * RELATIVE_LENGTH;
+        rVariables.netRadiation += netRadiation * relativeLength;
+        rVariables.waterStorage += actualStorage * relativeLength;
         rVariables.leftHandSideFlux[i] = sensibleHeatFluxLeft;
         rVariables.rightHandSideFlux[i] = subsurfaceHeatFlux;
     }
@@ -546,8 +560,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties(
-    ElementVariables& rVariables)
+void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
 {
     KRATOS_TRY
 
@@ -560,6 +573,11 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties(
     rVariables.buildEnvironmentRadiation = rProp[QF_COEFFICIENT];
     rVariables.minimalStorage = rProp[SMIN_COEFFICIENT];
     rVariables.maximalStorage = rProp[SMAX_COEFFICIENT];
+
+    const GeometryType& Geom = this->GetGeometry();
+    rVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);
+    rVariables.waterStorage = 0.0;
+    rVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);
 
     KRATOS_CATCH("")
 }

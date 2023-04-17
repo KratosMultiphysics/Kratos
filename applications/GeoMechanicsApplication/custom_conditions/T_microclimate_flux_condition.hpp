@@ -99,8 +99,6 @@ protected:
         // needed for updated Lagrangian:
         double detJ;
         BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
-        array_1d<double, TNumNodes> righthandside;
-        array_1d<double, TNumNodes> lefthandside;
     };
     
     // Member Variables
@@ -108,6 +106,8 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
     void Initialize(const ProcessInfo& rCurrentProcessInfo);
+
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
@@ -143,18 +143,19 @@ protected:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void InitializeProperties(ElementVariables& rVariables);
+    void InitializeProperties();
 
     void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         unsigned int PointNumber, double detJ);
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     
     // Member Variables
+    ElementVariables rVariables;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
