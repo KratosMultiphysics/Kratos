@@ -1009,28 +1009,32 @@ VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Po
 {
     const auto& r_geometry_type = pGeometry->GetGeometryType();
     if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20) {
-        const auto& r_points = pGeometry->Points();
-        auto p_reorder_geom = Kratos::make_shared<GeometryType>(r_points);
+        auto p_reorder_geom = Kratos::make_shared<GeometryType>();
         GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
-        r_reordered_points[12] = r_points[16];
-        r_reordered_points[13] = r_points[17];
-        r_reordered_points[14] = r_points[18];
-        r_reordered_points[15] = r_points[19];
-        r_reordered_points[16] = r_points[12];
-        r_reordered_points[17] = r_points[13];
-        r_reordered_points[18] = r_points[14];
-        r_reordered_points[19] = r_points[15];
+        r_reordered_points.reserve(15);
+        for (IndexType i = 0; i < 12; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i));
+        }
+        for (IndexType i = 12; i < 16; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i + 4));
+        }
+        for (IndexType i = 16; i < 20; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i - 4));
+        }
         return p_reorder_geom;
     } else if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Prism3D15) {
-        const auto& r_points = pGeometry->Points();
-        auto p_reorder_geom = Kratos::make_shared<GeometryType>(r_points);
+        auto p_reorder_geom = Kratos::make_shared<GeometryType>();
         GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
-        r_reordered_points[9] = r_points[12];
-        r_reordered_points[10] = r_points[13];
-        r_reordered_points[11] = r_points[14];
-        r_reordered_points[12] = r_points[9];
-        r_reordered_points[13] = r_points[10];
-        r_reordered_points[14] = r_points[11];
+        r_reordered_points.reserve(15);
+        for (IndexType i = 0; i < 9; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i));
+        }
+        for (IndexType i = 9; i < 12; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i + 3));
+        }
+        for (IndexType i = 12; i < 15; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i - 3));
+        }
         return p_reorder_geom;
     } else {
         return pGeometry;
