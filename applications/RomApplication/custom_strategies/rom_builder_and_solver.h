@@ -18,6 +18,8 @@
 
 /* External includes */
 #include "concurrentqueue/concurrentqueue.h"
+#include <fstream>
+#include <string>
 
 /* Project includes */
 #include "includes/define.h"
@@ -26,6 +28,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/profiler.h"
 
 /* Application includes */
 #include "rom_application_variables.h"
@@ -289,7 +292,7 @@ public:
         TSystemVectorType &b) override
     {
         KRATOS_TRY
-
+        KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
         RomSystemMatrixType Arom = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
         RomSystemVectorType brom = ZeroVector(GetNumberOfROMModes());
 
@@ -739,6 +742,19 @@ protected:
             rA += Aconditions;
             rb += bconditions;
         }
+
+        double time = assembling_timer.ElapsedSeconds();
+        std::string folder = "Time/";
+        std::string filename = folder + "output_" + std::to_string(GetNumberOfROMModes()) + ".txt";
+
+        // Open the file stream
+        std::ofstream file(filename);
+
+        // Write the int value to the file
+        file << time;
+
+        // Close the file stream
+        file.close();
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
