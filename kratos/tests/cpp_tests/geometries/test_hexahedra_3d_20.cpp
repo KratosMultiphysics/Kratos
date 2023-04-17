@@ -25,14 +25,14 @@ namespace Kratos::Testing
 {
 using PointType = Node<3>;
 using PointPtrType = Node<3>::Pointer;
-using HexaGeometryType = Hexahedra3D20<PointType>;
-using HexaGeometryPtrType = HexaGeometryType::Pointer;
+using Hexa20GeometryType = Hexahedra3D20<PointType>;
+using Hexa20GeometryPtrType = Hexa20GeometryType::Pointer;
 
 /** Generates a sample Hexahedra3D20.
  * Generates a hexahedra defined by eight random points in the space.
  * @return  Pointer to a Hexahedra3D20
  */
-HexaGeometryPtrType GenerateHexahedra3D20(
+Hexa20GeometryPtrType GenerateHexahedra3D20(
     PointPtrType PointA = GeneratePoint<PointType>(),
     PointPtrType PointB = GeneratePoint<PointType>(),
     PointPtrType PointC = GeneratePoint<PointType>(),
@@ -53,14 +53,14 @@ HexaGeometryPtrType GenerateHexahedra3D20(
     PointPtrType PointS = GeneratePoint<PointType>(),
     PointPtrType PointT = GeneratePoint<PointType>(),
     PointPtrType PointU = GeneratePoint<PointType>()) {
-  return HexaGeometryPtrType(new HexaGeometryType(PointA, PointB, PointC, PointD, PointE, PointF, PointG, PointH, PointI, PointJ, PointK, PointM, PointN, PointO, PointP, PointQ, PointR, PointS, PointT, PointU));
+  return Hexa20GeometryPtrType(new Hexa20GeometryType(PointA, PointB, PointC, PointD, PointE, PointF, PointG, PointH, PointI, PointJ, PointK, PointM, PointN, PointO, PointP, PointQ, PointR, PointS, PointT, PointU));
 }
 
 /** Generates a sample Hexahedra3D20.
  * Generates a hexahedra with center on the origin with positive volume and side 1.
  * @return  Pointer to a Hexahedra3D20
  */
-HexaGeometryPtrType GenerateCanonicalHexahedra3D20()
+Hexa20GeometryPtrType GenerateCanonicalHexahedra3D20()
 {
   auto p1 = GeneratePoint<PointType>(0.0,1.0,1.0);
   auto p2 = GeneratePoint<PointType>(0.0,1.0,0.5);
@@ -82,7 +82,7 @@ HexaGeometryPtrType GenerateCanonicalHexahedra3D20()
   auto p18 = GeneratePoint<PointType>(1.0,0.5,0.0);
   auto p19 = GeneratePoint<PointType>(1.0,0.0,0.5);
   auto p20 = GeneratePoint<PointType>(1.0,0.0,0.0);
-  return HexaGeometryPtrType(new HexaGeometryType(p6, p1, p7, p14, p15, p5, p16, p20, p3, p2, p11, p9, p8, p4, p12, p18, p13, p10, p17, p19));
+  return Hexa20GeometryPtrType(new Hexa20GeometryType(p6, p1, p7, p14, p15, p5, p16, p20, p3, p2, p11, p9, p8, p4, p12, p18, p13, p10, p17, p19));
 }
 
 /** Checks if the number of edges is correct.
