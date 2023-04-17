@@ -28,7 +28,7 @@ endif(POLICY CMP0057)
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 3)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION 1)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -547,6 +547,11 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(${KRATOS_KERNEL} "")
 set(${KRATOS_PYTHON_INTERFACE} "")
 
+# Enable profiling if requested
+if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
+    add_compile_definitions(KRATOS_ENABLE_PROFILING)
+endif()
+
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
@@ -592,7 +597,7 @@ endforeach()
 message("\n***********************************************************************\n")
 
 message("\nList of upcoming API-breaking and behavior changes:")
-message("\t Geometry 'Dimension' deprecation: https://github.com/KratosMultiphysics/Kratos/pull/10445")
+message("\t Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")

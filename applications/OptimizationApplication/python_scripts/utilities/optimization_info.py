@@ -1,145 +1,128 @@
-import KratosMultiphysics as Kratos
+from __future__ import annotations
+from typing import Any
+
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
+from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 
 class OptimizationInfo:
-    class __KeyErrorMessage(str):
-        def __repr__(self):
-            return str(self)
+    """This is the main data holder for optimization problems
 
-    def __init__(self, echo_level: int = 0):
-        # objects registry
-        self.__optimization_processes: 'dict[str, Kratos.Process]' = {}
+    This class holds one private @ref BufferedDict container
+    which is used to hold components of the optimization problem being solved,
+    and the problem data generated while solving the optimization problem.
 
-        # initializing the buffer variables
-        self.__iteration_data = []
-        self.__buffer_index = 0
-        self.__echo_level = echo_level
+    """
+    def __init__(self) -> None:
+        """Creates an instance of Optimization info
 
-    def AddOptimizationProcess(self, category: any, routine_name: str, routine: Kratos.Process):
-        if not isinstance(routine, Kratos.Process):
-            raise RuntimeError(f"Only allowed to add objects derived from Kratos.Process. [ Type of added routine: {routine.__class__.__name__}]")
+        Creates an instance of optimization info with most basic structure
+        for the BufferedDict container and components container.
 
-        if not isinstance(routine, category):
-            raise RuntimeError(f"The provided routine with name \"{routine_name}\" is not derived from the provided category type \"{category.__name__}\".")
+        """
+        # create the optimization components data container with basic types
+        self.__components: 'dict[Any, dict[str, Any]]' = {
+            ResponseFunction: {},
+            ExecutionPolicy: {}
+        }
 
-        if not self.HasOptimizationProcessType(category):
-            self.__optimization_processes[category] = []
+        # create the unbufferd optimization problem data container
+        self.__problem_data = BufferedDict(1)
 
-        if self.HasOptimizationProcess(category, routine_name):
-            raise RuntimeError(f"Adding a routine with the name \"{routine_name}\" while having another routine with the same name. Kratos.Process names for each type of object should be unique. [ Type of the routine: \"{category.__name__}\" ]")
+        # initialize the step
+        self.__problem_data["step"] = 0
 
-        self.__optimization_processes[category].append([routine_name, routine])
-        self.__PrintInfo(1, f"Added {routine_name} optimization routine.")
+    def AddResponse(self, name: str, response_function: ResponseFunction) -> None:
+        self.__AddComponent(name, response_function, ResponseFunction)
 
-    def HasOptimizationProcess(self, category: any, routine_name: str) -> bool:
-        if not self.HasOptimizationProcessType(category):
-            raise RuntimeError(f"No objects of type \"{category.__name__}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__optimization_processes.keys()))
+    def GetResponse(self, name: str) -> ResponseFunction:
+        return self.__GetComponent(name, ResponseFunction)
 
-        return routine_name in [v[0] for v in self.__optimization_processes[category]]
+    def GetReponseData(self, name: str) -> BufferedDict:
+        return self.__GetComponentDataContainer(name, ResponseFunction)
 
-    def GetOptimizationProcess(self, category: any, routine_name: str) -> Kratos.Process:
-        if not self.HasOptimizationProcessType(category):
-            raise RuntimeError(f"No objects of type \"{category.__name__}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__optimization_processes.keys()))
+    def RemoveResponse(self, name: str) -> None:
+        self.__RemoveComponent(name, ResponseFunction)
+        self.__RemoveComponentDataContainer(name, ResponseFunction)
 
-        if not self.HasOptimizationProcess(category, routine_name):
-            raise RuntimeError(f"No routine with \"{routine_name}\" is available in the routines list for objects with type \"{category.__name__}\". Followings are available options:\n\t" + "\n\t".join(v[0] for v in self.__optimization_processes[category]))
+    def AddExecutionPolicy(self, name: str, response_function: ExecutionPolicy) -> None:
+        self.__AddComponent(name, response_function, ExecutionPolicy)
 
-        return self.__optimization_processes[category][[v[0] for v in self.__optimization_processes[category]].index(routine_name)][1]
+    def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
+        return self.__GetComponent(name, ExecutionPolicy)
 
-    def HasOptimizationProcessType(self, category: any) -> bool:
-        return category in self.__optimization_processes.keys()
+    def GetExecutionPolicyData(self, name: str) -> BufferedDict:
+        return self.__GetComponentDataContainer(name, ExecutionPolicy)
 
-    def GetOptimizationProcesses(self, category: any) -> 'list[Kratos.Process]':
-        if not self.HasOptimizationProcessType(category):
-            raise RuntimeError(f"No objects of type \"{category.__name__}\". Following are the available type options: \n\t" + "\n\t".join(self.__optimization_processes.keys()))
+    def RemoveExecutionPolicy(self, name: str) -> None:
+        self.__RemoveComponent(name, ExecutionPolicy)
+        self.__RemoveComponentDataContainer(name, ExecutionPolicy)
 
-        return [v[1] for v in self.__optimization_processes[category]]
+    def GetStep(self) -> int:
+        """Gets the current step of the optimization info
 
-    def SetBufferSize(self, buffer_size: int):
-        if len(self.__iteration_data) != buffer_size:
-            if len(self.__iteration_data) != 0:
-                is_empty = True
-                for v in self.__iteration_data:
-                    if v != {}:
-                        is_empty = False
-                        break
-                if not is_empty:
-                    Kratos.Logger.PrintWarning(self.__class__.__name__, f"Changing buffer size with data will lose all the data in optimization info buffer. [ current_buffer_size = {len(self.__iteration_data)}, new_buffer_size = {buffer_size} ].")
-            self.__iteration_data = [{} for _ in range(buffer_size)]
-            self.__buffer_index = 0
-            self.__PrintInfo(1, f"Optimization info buffer is set to {buffer_size}.")
+        Returns:
+            int: Current step of the optimization info.
+        """
+        return self.__problem_data["step"]
 
-    def AdvanceSolutionStep(self):
-        self.__buffer_index = (self.__buffer_index + 1) % len(self.__iteration_data)
+    def AdvanceStep(self) -> None:
+        """Advances the problem data by one step.
 
-    def GetBufferSize(self) -> int:
-        return len(self.__iteration_data)
+        This method advances problem data by one step and
+        clears all the data in the advanced step.
 
-    def GetSolutionStepData(self, solution_step_index: int) -> dict:
-        if solution_step_index not in range(len(self.__iteration_data)):
-            raise RuntimeError(f"Since the buffer size is {len(self.__iteration_data)}, the solution_step_index should be within [0, {len(self.__iteration_data)}). [ solution_Step_index = {solution_step_index} ].")
-        current_step_index = (self.__buffer_index - solution_step_index) % len(self.__iteration_data)
-        return self.__iteration_data[current_step_index]
+        """
+        current_step = self.__problem_data["step"]
+        self.__problem_data.AdvanceStep()
+        self.__problem_data["step"] = current_step + 1
 
-    def HasValue(self, key: str, solution_step_index: int = 0) -> bool:
-        if not isinstance(key, str):
-            raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
+    def GetProblemDataContainer(self) -> BufferedDict:
+        """Gets the global problem data container.
 
-        current_opt_info = self.GetSolutionStepData(solution_step_index)
+        Returns:
+            BufferedDict: Global problem data container.
+        """
+        return self.__problem_data
 
-        sub_keys = key.split("/")
-        for sub_key in sub_keys:
-            if not sub_key in current_opt_info.keys():
-                return False
-            current_opt_info = current_opt_info[sub_key]
+    def __AddComponent(self, name: str, component: Any, component_type: Any) -> None:
+        if not isinstance(component, component_type):
+            raise RuntimeError(f"Trying to add \"{name}\" of type {component.__class__.__name__} which is not derrived from {component_type.__name__}.")
 
-        return True
+        components = self.__components[component_type]
+        if name in components.keys():
+            raise RuntimeError(f"Trying to add \"{name}\" of type {component_type.__name__} when there exists an item with the same name.")
 
-    def GetValue(self, key: str, solution_step_index: int = 0) -> any:
-        if not isinstance(key, str):
-            raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
+        components[name] = component
 
-        current_opt_info = self.GetSolutionStepData(solution_step_index)
+    def __GetComponent(self, name: str, component_type: Any) -> Any:
+        components = self.__components[component_type]
+        if name in components.keys():
+            return components[name]
+        else:
+            raise RuntimeError(f"No {component_type.__name__} with name = \"{name}\" exists. Followings are the available {component_type.__name__}:\n" + "\n\t".join(components.keys()))
 
-        sub_keys = key.split("/")
-        for i, sub_key in enumerate(sub_keys):
-            try:
-                current_opt_info = current_opt_info[sub_key]
-            except KeyError as k:
-                cur_path = "\n\t" + "/".join(sub_keys[:i]) + "/"
-                msg = f"Subkey {sub_key} not found for {key} for solution step index = {solution_step_index}. Followings are available keys:{cur_path}" + (cur_path).join(current_opt_info.keys())
-                raise KeyError(OptimizationInfo.__KeyErrorMessage(msg)) from k
+    def __RemoveComponent(self, name: str, component_type: Any) -> None:
+        components = self.__components[component_type]
+        if name in components.keys():
+            del components[name]
+        else:
+            raise RuntimeError(f"No {component_type.__name__} with name = \"{name}\" exists. Followings are the available {component_type.__name__}:\n" + "\n\t".join(components.keys()))
 
-        return current_opt_info
+    def __GetComponentDataContainer(self, name: str, component_type: Any) -> BufferedDict:
+        components = self.__components[component_type]
 
-    def SetValue(self, key: str, value: any, solution_step_index: int = 0, overwrite = False):
-        if not isinstance(key, str):
-            raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
+        if not name in components.keys():
+            raise RuntimeError(f"No {component_type.__name__} with name = \"{name}\" exists. Followings are the available {component_type.__name__}:\n" + "\n\t".join(components.keys()))
 
-        current_opt_info = self.GetSolutionStepData(solution_step_index)
+        data_name = f"{component_type.__name__}/{name}"
+        if not self.__problem_data.HasValue(data_name):
+            self.__problem_data[data_name] = {}
 
-        sub_keys = key.split("/")
-        for sub_key in sub_keys[:-1]:
-            if sub_key not in current_opt_info.keys():
-                current_opt_info[sub_key] = {}
-            current_opt_info = current_opt_info[sub_key]
+        return self.__problem_data[data_name]
 
-            if not isinstance(current_opt_info, dict):
-                raise RuntimeError(f"Subkey \"{sub_key} of {key} is not a dictionary in solution step index = {solution_step_index}. Hence failing to add sub items.\"")
+    def __RemoveComponentDataContainer(self, name: str, component_type: Any) -> None:
+        data_name = f"{component_type.__name__}/{name}"
+        if self.__problem_data.HasValue(data_name):
+            del self.__problem_data[data_name]
 
-        if not overwrite and sub_keys[-1] in current_opt_info.keys():
-            msg =  f"Value for {sub_keys[-1]} exists. [ Key = {key}, Current value = {current_opt_info[sub_keys[-1]]}, new value = {value}, current dict = {current_opt_info}]"
-            raise RuntimeError(msg)
-
-        current_opt_info[sub_keys[-1]] = value
-
-    def __getitem__(self, key):
-        return self.GetSolutionStepData(0)[key]
-
-    def __setitem__(self, key, v):
-        if not isinstance(key, str):
-            raise KeyError(f"Buffer initialization is only supported for string keys. Provided key = {key}.")
-        self.GetSolutionStepData(0)[key] = v
-
-    def __PrintInfo(self, required_echo_level, msg, title = "OptimizationInfo"):
-        if self.__echo_level >= required_echo_level:
-            Kratos.Logger.PrintInfo(title, msg)

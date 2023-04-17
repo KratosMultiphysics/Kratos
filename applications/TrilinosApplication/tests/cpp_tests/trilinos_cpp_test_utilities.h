@@ -189,6 +189,7 @@ public:
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
     * @param rValues The values
+    * @param pMap Map pointer
     * @return The matrix generated
     */
     static TrilinosSparseMatrixType GenerateSparseMatrix(
@@ -196,7 +197,8 @@ public:
         const int NumGlobalElements,
         const std::vector<int>& rRowIndexes,
         const std::vector<int>& rColumnIndexes,
-        const std::vector<double>& rValues
+        const std::vector<double>& rValues,
+        const Epetra_Map* pMap =  nullptr
         );
     ///@}
 

@@ -63,7 +63,7 @@ namespace Kratos::Testing
     // The time scheme
     using TrilinosSchemeType = Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
     using TrilinosResidualBasedIncrementalUpdateStaticSchemeType = ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
-    
+
     /**
     * @brief It generates a truss structure with an expected solution
     */

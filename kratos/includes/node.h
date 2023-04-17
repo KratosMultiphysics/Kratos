@@ -451,7 +451,7 @@ public:
     }
 
 
-    template<class TDataType> bool SolutionStepsDataHas(const Variable<TDataType>& rThisVariable) const
+    bool SolutionStepsDataHas(const VariableData& rThisVariable) const
     {
         return SolutionStepData().Has(rThisVariable);
     }
@@ -695,7 +695,7 @@ public:
             }
         }
 
-        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
+        KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
     /**
@@ -713,7 +713,7 @@ public:
             }
         }
 
-        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
+        KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
 
     }
 
@@ -743,7 +743,7 @@ public:
             }
         }
 
-        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
+        KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
 
     }
 
@@ -777,7 +777,7 @@ public:
             }
         }
 
-        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
+        KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
 

@@ -1,11 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Aron Noordam
 //
@@ -43,7 +42,13 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "origin"          : [0.0, 0.0, 0.0]
         }  )"
     );
-    Parameters mParameters;
+    
+    // Set default velocity as a string, if the input velocity is a string
+    if (mParameters.Has("velocity")){
+        if (mParameters["velocity"].IsString()){
+            default_parameters["velocity"].SetString("1");
+        }
+    }
 
     mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 

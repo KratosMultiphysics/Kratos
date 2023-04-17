@@ -24,7 +24,7 @@ typedef std::size_t SizeType;
 typedef Node<3> NodeType;
 typedef ModelPart::NodesContainerType::iterator NodeIteratorType;
 
-class RemoveAloneDEMElementsProcess : public Process 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) RemoveAloneDEMElementsProcess : public Process 
 {
  public:
 
