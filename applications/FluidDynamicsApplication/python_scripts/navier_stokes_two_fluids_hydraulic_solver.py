@@ -199,10 +199,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
 
         if self.eulerian_fm_ale:
-            #FIXME: Maybe makes sense to create three new variables for these...
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX) # Auxiliary variable to store the historical scalar to be convected
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX) # Auxiliary variable to store the velocity to be used in the historical data convection
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN) # Auxiliary variable to store the gradient of the historical scalar to be convected
+            # Auxiliary variable to store the historical scalar to be convected
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONVECTION_SCALAR)
+            # Auxiliary variable to store the velocity to be used in the historical data convection
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONVECTION_VELOCITY)
+            # Auxiliary variable to store the gradient of the historical scalar to be convected
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONVECTION_SCALAR_GRADIENT)
 
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
@@ -275,40 +277,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self._ComputeInitialStepWaterVolume()
 
         # Perform the level-set convection according to the previous step velocity
-
-        d_0_bef = 0
-        d_1_bef = 0
-        d_2_bef = 0
-        for node in self.main_model_part.Nodes:
-            if node.Id ==38:
-                d_0_bef = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0)
-                d_1_bef = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1)
-                d_2_bef = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2)
-                print(f"Node 38 distance (0) - Before: {d_0_bef}")
-                print(f"Node 38 distance (1) - Before: {d_1_bef}")
-                print(f"Node 38 distance (2) - Before: {d_2_bef}")
-
         self._PerformLevelSetConvection()
-
-        d_0_post = 0
-        d_1_post = 0
-        d_2_post = 0
-        for node in self.main_model_part.Nodes:
-            if node.Id ==38:
-                d_0_post = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0)
-                d_1_post = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1)
-                d_2_post = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2)
-                print(f"Node 38 distance (0) - After: {d_0_post}")
-                print(f"Node 38 distance (1) - After: {d_1_post}")
-                print(f"Node 38 distance (2) - After: {d_2_post}")
-
-        print(f"Increment d_0: {abs(d_0_bef)-abs(d_0_post) }")
-        print(f"Increment d_1: {abs(d_1_bef)-abs(d_1_post) }")
-        print(f"Increment d_2: {abs(d_2_bef)-abs(d_2_post) }")
-
-        if self.eulerian_fm_ale:
-            self._PerformEulerianFmAleVelocity()
-
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
         # Perform distance correction to prevent ill-conditioned cuts
@@ -318,7 +287,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._SetNodalProperties()
 
         # Accumulative water volume error ratio due to level set. Adding source term
-
         self._ComputeVolumeError()
 
         # Perform the convection of the historical database (Eulerian FM-ALE)
@@ -363,10 +331,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 self.GetComputingModelPart())
 
         # Calculate the inlet and outlet volume discharges
-        outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(
-            self.GetComputingModelPart(), KratosMultiphysics.OUTLET)
-        inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(
-            self.GetComputingModelPart(), KratosMultiphysics.INLET)
+        outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(), KratosMultiphysics.OUTLET)
+        inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(), KratosMultiphysics.INLET)
         current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         inlet_volume = -current_dt * inlet_discharge
         outlet_volume = current_dt * outlet_discharge
