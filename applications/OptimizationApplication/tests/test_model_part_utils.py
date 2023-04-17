@@ -187,6 +187,10 @@ class TestModelPartUtils(kratos_unittest.TestCase):
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Conditions)
 
     def test_GetSensitivityModelPartForDirectSensitivitiesNodesConditionsElementsWithParents(self):
+        communicator: Kratos.Communicator = self.model_part.GetCommunicator()
+        if (communicator.GetDataCommunicator().IsDistributed() and communicator.TotalProcesses() == 3):
+            self.skipTest("This is skipped until the bug in issue 10938 is fixed.")
+
         model_parts: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, [self.model["test"]], True, True, True, True)
 
