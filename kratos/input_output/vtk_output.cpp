@@ -1008,17 +1008,32 @@ void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
 VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Pointer pGeometry) const
 {
     const auto& r_geometry_type = pGeometry->GetGeometryType();
-    switch (r_geometry_type)  {
-        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20:
-            // GeometryType::PointsArrayType points({pGeometry->pGetPoint(0),pGeometry->pGetPoint(1),pGeometry->pGetPoint(2),pGeometry->pGetPoint(3),pGeometry->pGetPoint(4),pGeometry->pGetPoint(5),pGeometry->pGetPoint(6),pGeometry->pGetPoint(7),pGeometry->pGetPoint(8),pGeometry->pGetPoint(9),pGeometry->pGetPoint(10),pGeometry->pGetPoint(11),pGeometry->pGetPoint(12),pGeometry->pGetPoint(13),pGeometry->pGetPoint(14),pGeometry->pGetPoint(15),pGeometry->pGetPoint(16),pGeometry->pGetPoint(17),pGeometry->pGetPoint(18),pGeometry->pGetPoint(19),pGeometry->pGetPoint(20)});
-            // auto p_reorder_geom = Kratos::make_shared<GeometryType>(points);
-            return pGeometry;
-        case GeometryData::KratosGeometryType::Kratos_Prism3D15:
-            // GeometryType::PointsArrayType points({pGeometry->pGetPoint(0),pGeometry->pGetPoint(1),pGeometry->pGetPoint(2),pGeometry->pGetPoint(3),pGeometry->pGetPoint(4),pGeometry->pGetPoint(5),pGeometry->pGetPoint(6),pGeometry->pGetPoint(7),pGeometry->pGetPoint(8),pGeometry->pGetPoint(9),pGeometry->pGetPoint(10),pGeometry->pGetPoint(11),pGeometry->pGetPoint(12),pGeometry->pGetPoint(13),pGeometry->pGetPoint(14),pGeometry->pGetPoint(15)});
-            // auto p_reorder_geom = Kratos::make_shared<GeometryType>(points);
-            return pGeometry;
-        default:
-            return pGeometry;
+    if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20) {
+        const auto& r_points = pGeometry->Points();
+        auto p_reorder_geom = Kratos::make_shared<GeometryType>(r_points);
+        GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
+        r_reordered_points[12] = r_points[16];
+        r_reordered_points[13] = r_points[17];
+        r_reordered_points[14] = r_points[18];
+        r_reordered_points[15] = r_points[19];
+        r_reordered_points[16] = r_points[12];
+        r_reordered_points[17] = r_points[13];
+        r_reordered_points[18] = r_points[14];
+        r_reordered_points[19] = r_points[15];
+        return p_reorder_geom;
+    } else if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Prism3D15) {
+        const auto& r_points = pGeometry->Points();
+        auto p_reorder_geom = Kratos::make_shared<GeometryType>(r_points);
+        GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
+        r_reordered_points[9] = r_points[12];
+        r_reordered_points[10] = r_points[13];
+        r_reordered_points[11] = r_points[14];
+        r_reordered_points[12] = r_points[9];
+        r_reordered_points[13] = r_points[10];
+        r_reordered_points[14] = r_points[11];
+        return p_reorder_geom;
+    } else {
+        return pGeometry;
     }
 }
 
