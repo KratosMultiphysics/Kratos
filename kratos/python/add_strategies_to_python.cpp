@@ -630,6 +630,8 @@ namespace Kratos
                 .def("GetScheme", &ResidualBasedLinearStrategyType::GetScheme)
                 .def("GetResidualNorm", &ResidualBasedLinearStrategyType::GetResidualNorm)
                 .def("SetBuilderAndSolver", &ResidualBasedLinearStrategyType::SetBuilderAndSolver)
+                .def("SetReformDofSetAtEachStepFlag", &ResidualBasedLinearStrategyType::SetReformDofSetAtEachStepFlag)
+                .def("GetReformDofSetAtEachStepFlag", &ResidualBasedLinearStrategyType::GetReformDofSetAtEachStepFlag)
                 ;
 
             typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
@@ -657,6 +659,8 @@ namespace Kratos
                 .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
                 .def("SetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
                 .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+                .def("SetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::SetReformDofSetAtEachStepFlag)
+                .def("GetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::GetReformDofSetAtEachStepFlag)
                 ;
 
             // ARC-LENGTH

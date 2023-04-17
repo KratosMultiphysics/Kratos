@@ -41,6 +41,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+    //TODO: delete after deprecated constructor are removed.
     /// Nodal databases auxiliary enum
     enum class DistanceDatabase {
         NodeHistorical,
@@ -61,6 +62,7 @@ public:
 
     using NodeType = ModelPart::NodeType;
     using NodeScalarGetFunctionType = std::function<double&(NodeType& rNode, const Variable<double>& rDistanceVariable)>;
+    using ApplyNodalFunctorType = std::function<void(NodeType&, const double)>;
 
     ///@}
     ///@name Life Cycle
@@ -76,7 +78,8 @@ public:
      */
     ApplyRayCastingProcess(
         ModelPart& rVolumePart,
-        ModelPart& rSkinPart);
+        ModelPart& rSkinPart,
+        Parameters ThisParameters = Parameters());
 
     /**
      * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
@@ -86,6 +89,7 @@ public:
      * the distance to as conditions
      * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
      */
+    KRATOS_DEPRECATED_MESSAGE("Deprecated constructor, please use the one with Parameters.")
     ApplyRayCastingProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
@@ -99,9 +103,9 @@ public:
      */
     ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-        const double RelativeTolerance);
+        Parameters ThisParameters = Parameters());
 
-    /**
+	/**
      * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
@@ -109,6 +113,7 @@ public:
      * @param pDistanceVariable user-defined variabe to be used to read and store the distance to the skin
      * @param rDistanceDatabase enum value specifying the database from which the distance variable is retrieved (see DistanceDatabase)
      */
+    KRATOS_DEPRECATED_MESSAGE("Deprecated constructor, please use the one with Parameters.")
     ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
         const double RelativeTolerance,
@@ -123,7 +128,7 @@ public:
     ///@{
 
     /// Default constructor.
-    ApplyRayCastingProcess() = delete;;
+    ApplyRayCastingProcess() = delete;
 
     /// Copy constructor.
     ApplyRayCastingProcess(ApplyRayCastingProcess const& rOther) = delete;
@@ -134,6 +139,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    const Parameters GetDefaultParameters() const override;
 
     /**
      * @brief Computes the raycasting distance for a node
@@ -200,7 +207,7 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-private:
+protected:
     ///@name Static Member Variables
     ///@{
 
@@ -209,16 +216,16 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mEpsilon = 1.0e-12;
-    double mExtraRayOffset = 1.0e-8;
-    double mRelativeTolerance = 1.0e-12;
+    Parameters mSettings;
+    double mEpsilon;
+    double mExtraRayOffset;
+    double mRelativeTolerance;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
-    double mCharacteristicLength = 1.0;
+    double mCharacteristicLength;
+    const Variable<double>* mpDistanceVariable = nullptr;
+    NodeScalarGetFunctionType mDistanceGetterFunctor;
 
-    const Variable<double>* mpDistanceVariable = &DISTANCE;
-
-    const DistanceDatabase mDistanceDatabase = DistanceDatabase::NodeHistorical;
 
     ///@}
     ///@name Private Operators
@@ -287,6 +294,17 @@ private:
      * This method sets the ray casting tolerances values according to the domain bounding box size
      */
     void SetRayCastingTolerances();
+
+    /**
+     * @brief This method returns the function to get the distance from a node
+     */
+    NodeScalarGetFunctionType CreateDistanceGetterFunctor() const;
+
+    /**
+     * @brief This method returns the function that will be applied to nodes
+     * depending on ray distance
+     */
+    virtual ApplyNodalFunctorType CreateApplyNodalFunction() const;
 
     ///@}
     ///@name Private  Access
