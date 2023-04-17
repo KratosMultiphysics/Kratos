@@ -195,9 +195,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
         
         if self.eulerian_fm_ale:
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN)
+            #FIXME: Maybe makes sense to create three new variables for these...
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX) # Auxiliary variable to store the historical scalar to be convected
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX) # Auxiliary variable to store the velocity to be used in the historical data convection
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN) # Auxiliary variable to store the gradient of the historical scalar to be convected
 
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
@@ -236,27 +237,20 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._GetDistanceModificationProcess().ExecuteInitialize()
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
+        #FIXME: Didn't we fix this in Uxue's machine?
         #Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
         self.initial_system_volume=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
 
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
-        
-        # FIXME: The order that works OK
         self._GetLevelSetConvectionProcess()
+
+        # Instantiate the eulerian historical data convection
         if self.eulerian_fm_ale:
             self._GetEulerianFmAleProcess()
 
-
-
-        # FIXME: The order that does NOT work OK
-        
-        # if self.eulerian_fm_ale:
-        #     self._GetEulerianFmAleProcess()
-        # self._GetLevelSetConvectionProcess()
-            
-
+        # Mass conservation settings
         self.mass_source = False
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
@@ -266,12 +260,14 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             acceleration_alpha_scheme= [0,0,0]
             node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_scheme)
 
+        # Allocate non-historical artificial viscosity data
         if self.artificial_viscosity:
-            for element in self.GetComputingModelPart().Elements:
-                element.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY,  0.0)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(
+                KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY,
+                self.GetComputingModelPart().Elements)
 
-        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(
-            self.GetComputingModelPart())
+        #FIXME: Check that this is required. Note that right now the convection process is the one computing NODAL_H if nodal tau is active
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.GetComputingModelPart())
         find_nodal_h.Execute()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
@@ -292,21 +288,35 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Perform the level-set convection according to the previous step velocity
 
+        d_0_bef = 0
+        d_1_bef = 0
+        d_2_bef = 0
         for node in self.main_model_part.Nodes:
             if node.Id ==38:
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-
-
+                d_0_bef = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0)
+                d_1_bef = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1)
+                d_2_bef = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2)
+                print(f"Node 38 distance (0) - Before: {d_0_bef}")
+                print(f"Node 38 distance (1) - Before: {d_1_bef}")
+                print(f"Node 38 distance (2) - Before: {d_2_bef}")
 
         self._PerformLevelSetConvection()
 
+        d_0_post = 0
+        d_1_post = 0
+        d_2_post = 0
         for node in self.main_model_part.Nodes:
             if node.Id ==38:
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
+                d_0_post = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0)
+                d_1_post = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1)
+                d_2_post = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2)
+                print(f"Node 38 distance (0) - After: {d_0_post}")
+                print(f"Node 38 distance (1) - After: {d_1_post}")
+                print(f"Node 38 distance (2) - After: {d_2_post}")
+        
+        print(f"Increment d_0: {abs(d_0_bef)-abs(d_0_post) }")
+        print(f"Increment d_1: {abs(d_1_bef)-abs(d_1_post) }")
+        print(f"Increment d_2: {abs(d_2_bef)-abs(d_2_post) }")
 
         if self.eulerian_fm_ale:
             self._PerformEulerianFmAleVelocity()
@@ -337,8 +347,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
-
-
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
@@ -360,10 +368,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         if self.artificial_viscosity:
             self.__CalculateArtificialViscosity()
 
-
-
-
-
     def __CalculateTimeIntegrationAcceleration(self):
         # Acceleration for generalised alpha time integration method.
         alpha_m=0.5*((3-self.rho_inf)/(1+self.rho_inf))
@@ -377,7 +381,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             acceleration_n=node.GetValue(KratosMultiphysics.ACCELERATION)
             acceleration_alpha_method=(v-vn)/(gamma*dt)+((gamma-1)/gamma)*acceleration_n
             node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_method)
-
 
     def __CalculateArtificialViscosity(self):
 
@@ -402,7 +405,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
     def _PerformEulerianFmAleVelocity(self):
 
-        # Solve the levelset convection problem
+        # Solve the historical data convection problem
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         velocity_components = [KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Z]
@@ -422,9 +425,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
  
             self._GetEulerianFmAleProcess().Execute()
             self.__CorrectVelocityHistory(velocity_components[i], mesh_var[i])
-
-
-
 
     def __CorrectVelocityHistory(self,velocity_components, mesh_variable):
         for node in self.GetComputingModelPart().Nodes:
@@ -537,8 +537,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
     def _GetEulerianFmAleLinearSolver(self):
         # A linear solver configured specifically for the level-set convection process
         if not hasattr(self, '_eulerian_fm_ale_linear_solver'):
-            # TODO: add customized configuration
-            self._eulerian_fm_ale_linear_solver = self._CreateLinearSolver()
+            self._eulerian_fm_ale_linear_solver = self._CreateLinearSolver() # TODO: add customized configuration
         return self._eulerian_fm_ale_linear_solver
 
     def _GetLevelSetConvectionProcess(self):
@@ -652,7 +651,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         return distance_reinitialization_process
 
-
     def _CreateDistanceGradientProcess(self):
         distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
                 self.main_model_part,
@@ -661,7 +659,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 KratosMultiphysics.NODAL_AREA)
 
         return distance_gradient_process
-
 
     def _CreateConsistentNodalPressureGradientProcess(self):
         consistent_nodal_pressure_gradient_process = KratosCFD.CalulateLevelsetConsistentNodalGradientProcess(
