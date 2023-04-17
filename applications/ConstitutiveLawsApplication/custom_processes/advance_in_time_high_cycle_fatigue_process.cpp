@@ -38,35 +38,46 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<double> damage;
+    std::vector<double> previous_cycle_damage;
+    std::vector<double>  cycles_to_failure_element;
+    std::vector<int>  local_number_of_cycles;
+
+    process_info[NO_LINEARITY_ACTIVATION] = false;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     //double increment;
 
     this->CyclicLoad();  //This method checks if a cyclic load is being applied.
 
-    if (!process_info[DAMAGE_ACTIVATION]) {
+    // if (!process_info[DAMAGE_ACTIVATION]) {
 
 
-        KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
+    KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-        for (auto& r_elem : mrModelPart.Elements()) {
-            unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
-            r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+    for (auto& r_elem : mrModelPart.Elements()) {
+        unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+        r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
+        r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
+        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
             for (unsigned int i = 0; i < number_of_ip; i++) {
-                    if (damage[i] > 0.0) {
-                        process_info[DAMAGE_ACTIVATION] = true;
-                        break;
-                    }
+                if ((damage[i] - previous_cycle_damage[i] > 1.0e-6) || (cycles_to_failure_element[i] - local_number_of_cycles[i] <= 1.0)) {
+                    process_info[NO_LINEARITY_ACTIVATION] = true;
+                    break;
+                }
             }
-        }
+        if (process_info[NO_LINEARITY_ACTIVATION]){
+            break;
+        }         
     }
+ 
 
     this->CyclePeriodPerIntegrationPoint(cycle_found);  //This method detects if a cycle has finished somewhere in the model and
                                                         //computes the time period of the cycle that has just finished.
 
     if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
+        
         bool advancing_strategy = false;
-        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in
-                                                                        //terms of max stress and reversion factor variation.                                                                                                                              
+        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[NO_LINEARITY_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in                                                                                                                    
         double increment = 0.0;
         if (advancing_strategy) {
             this->TimeIncrement(increment);
@@ -250,7 +261,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
     }
 
     double model_part_advancing_time = model_part_final_time - time;
-    if (!process_info[DAMAGE_ACTIVATION]) {
+    if (!process_info[NO_LINEARITY_ACTIVATION]) {
         min_time_increment = std::min(user_advancing_time, model_part_advancing_time);
     }else{
         min_time_increment = std::min(user_advancing_time_damage, model_part_advancing_time);
@@ -259,7 +270,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
 
     // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-        if (!process_info[DAMAGE_ACTIVATION]) {
+        if (!process_info[NO_LINEARITY_ACTIVATION]) {
             for (auto &r_elem : mrModelPart.Elements()){
                 unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
                 r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
