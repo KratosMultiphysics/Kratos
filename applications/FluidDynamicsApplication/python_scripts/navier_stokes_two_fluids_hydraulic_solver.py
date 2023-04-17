@@ -149,15 +149,14 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("DISTANCE_GRADIENT")
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("VELOCITY")
 
-
         self.eulerian_fm_ale = self.settings["eulerian_fm_ale"].GetBool()
         if self.eulerian_fm_ale:
-            self.fm_ale_variable = KratosMultiphysics.NODAL_PAUX
-            self.eulerian_gradient = KratosMultiphysics.VELOCITY_LAPLACIAN
-            self.eulerian_convection_var = KratosMultiphysics.NODAL_VAUX
-            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("NODAL_PAUX")
-            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("VELOCITY_LAPLACIAN")
-            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("NODAL_VAUX")
+            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR
+            self.eulerian_gradient = KratosCFD.CONVECTION_VELOCITY
+            self.eulerian_convection_var = KratosCFD.CONVECTION_SCALAR_GRADIENT
+            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
+            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("CONVECTION_VELOCITY")
+            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_SCALAR_GRADIENT")
 
 
 
@@ -198,11 +197,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         if self.eulerian_fm_ale:
             # Auxiliary variable to store the historical scalar to be convected
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONVECTION_SCALAR)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_SCALAR)
             # Auxiliary variable to store the velocity to be used in the historical data convection
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONVECTION_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_VELOCITY)
             # Auxiliary variable to store the gradient of the historical scalar to be convected
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONVECTION_SCALAR_GRADIENT)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_SCALAR_GRADIENT)
 
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
