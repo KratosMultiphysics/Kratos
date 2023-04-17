@@ -24,6 +24,8 @@ import test_model_part_controllers
 import test_container_expression_utils
 import test_container_expression
 import test_collective_expressions
+import test_buffered_dict
+import test_standardized_responses
 
 # Nightly tests
 
@@ -50,6 +52,7 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_execution_policies.TestExecutionPolicies]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([symmetry_utilities_tests.symmetry_tests.SymmetryUtilitiesTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_buffered_dict.TestBufferedDict]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_info.TestOptimizationInfo]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_utils.TestOptimizationUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtils]))
@@ -59,6 +62,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionShells]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionSolids]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedObjective]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedConstraint]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
