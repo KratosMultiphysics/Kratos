@@ -6,6 +6,9 @@ message("**** configuring KratosRomApplication ****")
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## RomApplication Core sources
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE
@@ -28,7 +31,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosRomApplicationCore SHARED ${KRATOS_ROM_APPLICATION_CORE} ${KRATOS_ROM_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosRomApplicationCore PUBLIC KratosCore)
+target_link_libraries(KratosRomApplicationCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosRomApplicationCore PROPERTIES COMPILE_DEFINITIONS "ROM_APPLICATION=EXPORT,API")
 
 ###############################################################

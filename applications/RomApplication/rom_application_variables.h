@@ -26,6 +26,8 @@
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
 
+#include "../StructuralMechanicsApplication/structural_mechanics_application_variables.h"
+
 namespace Kratos
 {
     typedef std::unordered_map<VariableData::KeyType, int> TMapPhiType;
