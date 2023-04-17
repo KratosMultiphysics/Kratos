@@ -81,8 +81,8 @@ static const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_t
     { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, 23 },
     { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, 23 },
     { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,   24 },
-    // { GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    25 }, // NOTE: Quadratic hexahedra (20) requires a conversor, order does not coincide with VTK
-    // { GeometryData::KratosGeometryType::Kratos_Prism3D15,        26 }, // NOTE: Quadratic prism (15) requires a conversor, order does not coincide with VTK
+    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    25 },
+    { GeometryData::KratosGeometryType::Kratos_Prism3D15,        26 },
     { GeometryData::KratosGeometryType::Kratos_Pyramid3D13,      27 }
 };
 
@@ -391,11 +391,12 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
 
     const auto& r_id_map = mKratosIdToVtkId; // const reference to not accidentially modify the map
     for (const auto& r_entity : rContainer) {
-        const auto& r_geom = r_entity.GetGeometry();
-        const unsigned int number_of_nodes = r_geom.size();
+        auto p_geom = r_entity.pGetGeometry();
+        const unsigned int number_of_nodes = p_geom->size();
+        p_geom = ReorderConnectivity(p_geom);
 
         WriteScalarDataToFile((unsigned int)number_of_nodes, rFileStream);
-        for (const auto& r_node : r_geom) {
+        for (const auto& r_node : *p_geom) {
             if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
             auto id_iter = r_id_map.find(r_node.Id());
             KRATOS_DEBUG_ERROR_IF(id_iter == r_id_map.end()) << "The node with Id " << r_node.Id() << " is not part of the ModelPart but used for Elements/Conditions!" << std::endl;
@@ -998,6 +999,26 @@ void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
         tmp = pBytes[1];
         pBytes[1] = pBytes[2];
         pBytes[2] = tmp;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Pointer pGeometry) const
+{
+    const auto& r_geometry_type = pGeometry->GetGeometryType();
+    switch (r_geometry_type)  {
+        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20:
+            // GeometryType::PointsArrayType points({pGeometry->pGetPoint(0),pGeometry->pGetPoint(1),pGeometry->pGetPoint(2),pGeometry->pGetPoint(3),pGeometry->pGetPoint(4),pGeometry->pGetPoint(5),pGeometry->pGetPoint(6),pGeometry->pGetPoint(7),pGeometry->pGetPoint(8),pGeometry->pGetPoint(9),pGeometry->pGetPoint(10),pGeometry->pGetPoint(11),pGeometry->pGetPoint(12),pGeometry->pGetPoint(13),pGeometry->pGetPoint(14),pGeometry->pGetPoint(15),pGeometry->pGetPoint(16),pGeometry->pGetPoint(17),pGeometry->pGetPoint(18),pGeometry->pGetPoint(19),pGeometry->pGetPoint(20)});
+            // auto p_reorder_geom = Kratos::make_shared<GeometryType>(points);
+            return pGeometry;
+        case GeometryData::KratosGeometryType::Kratos_Prism3D15:
+            // GeometryType::PointsArrayType points({pGeometry->pGetPoint(0),pGeometry->pGetPoint(1),pGeometry->pGetPoint(2),pGeometry->pGetPoint(3),pGeometry->pGetPoint(4),pGeometry->pGetPoint(5),pGeometry->pGetPoint(6),pGeometry->pGetPoint(7),pGeometry->pGetPoint(8),pGeometry->pGetPoint(9),pGeometry->pGetPoint(10),pGeometry->pGetPoint(11),pGeometry->pGetPoint(12),pGeometry->pGetPoint(13),pGeometry->pGetPoint(14),pGeometry->pGetPoint(15)});
+            // auto p_reorder_geom = Kratos::make_shared<GeometryType>(points);
+            return pGeometry;
+        default:
+            return pGeometry;
     }
 }
 
