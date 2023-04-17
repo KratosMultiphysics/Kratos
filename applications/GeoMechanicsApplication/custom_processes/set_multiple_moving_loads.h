@@ -94,17 +94,17 @@ namespace Kratos {
         /**
         * \brief Clones condition into a new sub body part of the compute model part
     	*/
-			ModelPart& SetMultipleMovingLoadsProcess::CloneMovingConditionInComputeModelPart(std::string NewBodyPartName);
+			ModelPart& CloneMovingConditionInComputeModelPart(std::string NewBodyPartName);
 
         /**
         * \brief Get maximum index of current conditions in root
         */
-			int SetMultipleMovingLoadsProcess::GetMaxConditionsIndex();
+			int GetMaxConditionsIndex();
 
         /**
         * \brief Remove cloned conditions as they are not executed
         */
-            void SetMultipleMovingLoadsProcess::RemoveClonedConditions();
+            void RemoveClonedConditions();
 
         ///@}
     };
