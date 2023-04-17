@@ -173,6 +173,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
+        # Initialize the system volue to None
+        # Note that this will be computed only once in the first InitializeSolutionStep call
+        self.__initial_system_volume = None
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesTwoFluidsHydraulicSolver finished.")
 
     def AddVariables(self):
@@ -193,7 +197,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE) # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
-        
+
         if self.eulerian_fm_ale:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
@@ -236,39 +240,23 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._GetDistanceModificationProcess().ExecuteInitialize()
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
-        #Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
-        self.initial_system_volume=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
-        
-        # FIXME: The order that works OK
+
         self._GetLevelSetConvectionProcess()
         if self.eulerian_fm_ale:
             self._GetEulerianFmAleProcess()
-
-
-
-        # FIXME: The order that does NOT work OK
-        
-        # if self.eulerian_fm_ale:
-        #     self._GetEulerianFmAleProcess()
-        # self._GetLevelSetConvectionProcess()
-            
 
         self.mass_source = False
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
         # Non historical variable are initilized in order to avoid memory problems
-        for node in self.GetComputingModelPart().Nodes:
-            acceleration_alpha_scheme= [0,0,0]
-            node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_scheme)
 
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ACCELERATION, self.main_model_part.Nodes)
         if self.artificial_viscosity:
-            for element in self.GetComputingModelPart().Elements:
-                element.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY,  0.0)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(
             self.GetComputingModelPart())
@@ -281,36 +269,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
-            outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.OUTLET)
-            inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.INLET)
-            current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            inlet_volume = -current_dt * inlet_discharge
-            outlet_volume = current_dt * outlet_discharge
-
-            # System water volume is calculated for current time step considering inlet and outlet discharge.
-            system_volume = inlet_volume + self.initial_system_volume - outlet_volume
+            self._ComputeInitialStepWaterVolume()
 
         # Perform the level-set convection according to the previous step velocity
-
-        for node in self.main_model_part.Nodes:
-            if node.Id ==38:
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-
-
-
         self._PerformLevelSetConvection()
-
-        for node in self.main_model_part.Nodes:
-            if node.Id ==38:
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
-                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,2))
-
-        if self.eulerian_fm_ale:
-            self._PerformEulerianFmAleVelocity()
-
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
         # Perform distance correction to prevent ill-conditioned cuts
@@ -319,25 +281,21 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
         self._SetNodalProperties()
 
+        # Accumulative water volume error ratio due to level set. Adding source term
+
+        self._ComputeVolumeError()
+
+        # Perform the convection of the historical database (Eulerian FM-ALE)
+        if self.eulerian_fm_ale:
+            self._PerformEulerianFmAleVelocity()
+
         # Initialize the solver current step
         self._GetSolutionStrategy().InitializeSolutionStep()
 
-        # Accumulative water volume error ratio due to level set. Adding source term
-        if self.mass_source:
-            water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-            volume_error = (water_volume_after_transport - system_volume) / system_volume
-            self.initial_system_volume=system_volume
-        else:
-            volume_error=0
-
-        self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
-
         # We set this value at every time step as other processes/solvers also use them
+        # Note that this is required as the convection processes may set a different value (this is the one to be used in the Navier-Stokes element)
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
-
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
-
-
 
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
@@ -361,6 +319,37 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.__CalculateArtificialViscosity()
 
 
+    def _ComputeInitialStepWaterVolume(self):
+
+        # Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
+        if self.__initial_system_volume is None:
+            self.__initial_system_volume = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(
+                self.GetComputingModelPart())
+
+        # Calculate the inlet and outlet volume discharges
+        outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(
+            self.GetComputingModelPart(), KratosMultiphysics.OUTLET)
+        inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(
+            self.GetComputingModelPart(), KratosMultiphysics.INLET)
+        current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        inlet_volume = -current_dt * inlet_discharge
+        outlet_volume = current_dt * outlet_discharge
+
+        # System water volume is calculated for current time step considering inlet and outlet discharge.
+        system_volume = inlet_volume + self.__initial_system_volume - outlet_volume
+        self.__initial_system_volume = system_volume
+
+
+
+    def _ComputeVolumeError(self):
+        if self.mass_source:
+            water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+
+            volume_error = (water_volume_after_transport -  self.__initial_system_volume) /  self.__initial_system_volume
+        else:
+            volume_error=0
+
+        self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
 
 
 
@@ -383,7 +372,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         properties_1 = self.main_model_part.Properties[1]
         water_dynamic_viscosity_max = self.artificial_limiter_coefficient * properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-
         for element in self.GetComputingModelPart().Elements:
             artificial_viscosity_gauss = element.CalculateOnIntegrationPoints(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
             item = 0
@@ -419,11 +407,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 0, 0)
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 1, 1)
- 
+
             self._GetEulerianFmAleProcess().Execute()
             self.__CorrectVelocityHistory(velocity_components[i], mesh_var[i])
-
-
 
 
     def __CorrectVelocityHistory(self,velocity_components, mesh_variable):
