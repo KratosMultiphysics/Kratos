@@ -35,5 +35,5 @@ def Factory(settings, Model):
     
     # Set process
     model_part = Model.GetModelPart(load_settings["model_part_name"].GetString())
-    return KGM.SetMultipleMovingLoadProcess(model_part, load_settings)
+    return KGM.SetMultipleMovingLoadsProcess(model_part, load_settings)
 
