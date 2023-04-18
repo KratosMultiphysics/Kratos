@@ -99,7 +99,8 @@ namespace Kratos
             const array_1d<double, 3>& rCoordinates, const double SideHalfLength);
 
         static bool IntersectionCheckWithBoundingBox(const GeometryType& rGeom,
-            const array_1d<double, 3>& rCoord, const double SideHalfLength);
+            const array_1d<double, 3>& rCoord, const Point & rPointLow,
+            const Point & rPointHigh);
 
         static void RecursivePQMPMNeighbourSearch(const ModelPart& rBackgroundGridModelPart,
             std::vector<GeometryType*>& rIntersectedGeometries,
@@ -107,7 +108,6 @@ namespace Kratos
             const Point& rPointHigh,
             IndexType& RecursionCount,
             const array_1d<double, 3>& rCoordinates,
-            const double SideHalfLength,
             const SizeType MaxRecursions = 100);
 
         static bool CheckFixedNodesWithinBoundingBox(const PointerVector<Node<3>>& rNodesList,
