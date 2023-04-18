@@ -392,7 +392,7 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
     const auto& r_id_map = mKratosIdToVtkId; // const reference to not accidentially modify the map
     for (const auto& r_entity : rContainer) {
         auto p_geom = r_entity.pGetGeometry();
-        const unsigned int number_of_nodes = p_geom->size();
+        const unsigned int number_of_nodes = p_geom->PointsNumber();
         p_geom = ReorderConnectivity(p_geom);
 
         WriteScalarDataToFile((unsigned int)number_of_nodes, rFileStream);
