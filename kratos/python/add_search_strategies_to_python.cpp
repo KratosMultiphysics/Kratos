@@ -624,10 +624,12 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def(py::init< >())
     .def(py::init<GeometricalObject*>())
     .def("Reset", &ResultType::Reset)
-    .def("IsObjectFound", &ResultType::IsObjectFound)
-    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
+    .def("Get", [&](ResultType& self) {return self.Get();})
+    .def("Set", &ResultType::Set)
     .def("GetDistance", &ResultType::GetDistance)
     .def("SetDistance", &ResultType::SetDistance)
+    .def("IsObjectFound", &ResultType::IsObjectFound)
+    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
     ;
 
     using ElementsContainerIteratorType = typename ModelPart::ElementsContainerType::iterator;
@@ -639,7 +641,6 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("GetCellSizes", &GeometricalObjectsBins::GetCellSizes)
     .def("GetNumberOfCells", &GeometricalObjectsBins::GetNumberOfCells)
     .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
-    //.def("SearchInRadius", &GeometricalObjectsBins::SearchInRadius)
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
         std::vector<ResultType> results;
