@@ -74,7 +74,7 @@ public:
         TIteratorType GeometricalObjectsEnd
         )
     {
-        std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
+        const std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
         if (number_of_objects > 0){
             mBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
             for (TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
