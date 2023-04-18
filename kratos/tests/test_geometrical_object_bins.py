@@ -43,7 +43,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         # Create node for search
         self.node = self.model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)
 
-    def test_GeometricalObjectsBins_SearchNearestInRadius(self):
+    def test_GeometricalObjectsBins_SearchInRadius(self):
         radius = 0.35
         results = self.search.SearchInRadius(self.node, radius)
 
