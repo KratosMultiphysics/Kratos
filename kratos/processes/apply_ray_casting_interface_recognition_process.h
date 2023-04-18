@@ -48,6 +48,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    using BaseType = ApplyRayCastingProcess<TDim>;
+
     /**
      * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
      * Constructor without user defined extra rays epsilon, used to
@@ -59,11 +61,7 @@ public:
     ApplyRayCastingInterfaceRecognitionProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        Parameters ThisParameters = Parameters())
-        : ApplyRayCastingProcess<TDim>(rVolumePart,
-          rSkinPart,
-          ThisParameters)
-    {}
+        Parameters ThisParameters = Parameters());
 
     /**
      * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
@@ -72,10 +70,7 @@ public:
      */
     ApplyRayCastingInterfaceRecognitionProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-        Parameters ThisParameters = Parameters())
-        : ApplyRayCastingProcess<TDim>(TheFindIntersectedObjectsProcess,
-          ThisParameters)
-    {}
+        Parameters ThisParameters = Parameters());
 
 
     /// Destructor.
@@ -105,6 +100,7 @@ public:
     ///@name Operations
     ///@{
 
+    const Parameters GetDefaultParameters() const override;
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
