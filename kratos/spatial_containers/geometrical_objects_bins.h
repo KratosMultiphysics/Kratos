@@ -87,6 +87,17 @@ public:
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
     }
 
+    /**
+     * @brief The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
+     * @param rGeometricalObjectsVector The geometries to be stored
+     * @tparam TContainer The container type
+     */
+    template<typename TContainer>
+    GeometricalObjectsBins(TContainer& rGeometricalObjectsVector)
+        : GeometricalObjectsBins(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end())
+    {
+    }
+
     /// Destructor.
     virtual ~GeometricalObjectsBins(){}
 

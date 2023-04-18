@@ -632,12 +632,12 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
     ;
 
-    using ElementsContainerIteratorType = typename ModelPart::ElementsContainerType::iterator;
-    using ConditionsContainerIteratorType = typename ModelPart::ConditionsContainerType::iterator;
+    using ElementsContainerType = ModelPart::ElementsContainerType;
+    using ConditionsContainerType = ModelPart::ConditionsContainerType;
 
     py::class_<GeometricalObjectsBins, GeometricalObjectsBins::Pointer>(m, "GeometricalObjectsBins")
-    .def(py::init<ElementsContainerIteratorType,ElementsContainerIteratorType>())
-    .def(py::init<ConditionsContainerIteratorType,ConditionsContainerIteratorType>())
+    .def(py::init<ElementsContainerType&>())
+    .def(py::init<ConditionsContainerType&>())
     .def("GetCellSizes", &GeometricalObjectsBins::GetCellSizes)
     .def("GetNumberOfCells", &GeometricalObjectsBins::GetNumberOfCells)
     .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
