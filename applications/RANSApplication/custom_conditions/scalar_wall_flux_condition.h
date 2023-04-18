@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_SCALAR_WALL_FLUX_CONDITION_H_INCLUDED)
-#define KRATOS_RANS_SCALAR_WALL_FLUX_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -242,6 +241,8 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
     /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
@@ -323,5 +324,3 @@ inline std::ostream& operator<<(
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_RANS_SCALAR_WALL_FLUX_CONDITION_H_INCLUDED defined

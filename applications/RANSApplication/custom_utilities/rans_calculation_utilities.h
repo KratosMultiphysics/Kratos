@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED)
-#define KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -106,7 +105,7 @@ void CalculateYPlusAndUtau(
     const int MaxIterations = 20,
     const double Tolerance = 1e-6);
 
-double CalculateWallHeight(
+double KRATOS_API(RANS_APPLICATION) CalculateWallHeight(
     const ConditionType& rCondition,
     const array_1d<double, 3>& rNormal);
 
@@ -137,10 +136,12 @@ void CalculateNumberOfNeighbourEntities(
     ModelPart& rModelPart,
     const Variable<double>& rOutputVariable);
 
+void CalculateWallTurbulentViscosity(
+    ModelPart& rModelPart,
+    const double mMinTurbulentViscosityValue);
+
 } // namespace RansCalculationUtilities
 
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED defined

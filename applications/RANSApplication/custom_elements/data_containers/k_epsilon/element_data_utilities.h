@@ -10,12 +10,13 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_EPSILON_HIGH_RE_ELEMENT_DATA_UTILITIES_H_INCLUDED)
-#define KRATOS_K_EPSILON_HIGH_RE_ELEMENT_DATA_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 
 // Project includes
+#include "includes/node.h"
+#include "geometries/geometry.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -28,9 +29,9 @@ namespace Kratos
 namespace KEpsilonElementData
 {
 double CalculateTurbulentViscosity(
-    const double Cmu,
-    const double TurbulentKineticEnergy,
-    const double TurbulentEnergyDissipationRate);
+    const Geometry<Node<3>>& rGeometry,
+    const Vector& rN,
+    const double Cmu);
 
 template <unsigned int TDim>
 double CalculateProductionTerm(
@@ -47,5 +48,3 @@ double CalculateGamma(
 ///@}
 
 } // namespace Kratos
-
-#endif

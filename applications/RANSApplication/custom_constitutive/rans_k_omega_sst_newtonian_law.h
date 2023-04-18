@@ -10,42 +10,51 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_NEWTONIAN_LAW_3D_H_INCLUDED)
-#define KRATOS_RANS_NEWTONIAN_LAW_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/newtonian_3d_law.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
+#include "includes/constitutive_law.h"
+
+// Application includes
+
 
 namespace Kratos
 {
 /**
- * @brief This class is extending Newtonian3DLaw in FluidDynamicsApplication
+ * @brief This class is extending Newtonian2DLaw in FluidDynamicsApplication
  *
- * This class is used to extend Newtonian3DLaw in FluidDynamicsApplication
+ * This class is used to extend Newtonian2DLaw in FluidDynamicsApplication
  * to include turbulent viscosity from Bossinesq Hypothesis.
  *
  */
-class KRATOS_API(RANS_APPLICATION) RansNewtonian3DLaw : public Newtonian3DLaw
+template<unsigned int TDim, class TPrimalBaseType>
+class KRATOS_API(RANS_APPLICATION) RansKOmegaSSTNewtonianLaw : public TPrimalBaseType
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = Newtonian3DLaw;
+    using BaseType = TPrimalBaseType;
+
+    using NodeType = Node<3>;
+
+    using GeometryType = Geometry<NodeType>;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /**
-     * Counted pointer of RansNewtonian3DLaw
+     * Counted pointer of Newtonian3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(RansNewtonian3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(RansKOmegaSSTNewtonianLaw);
 
     /**
      * Life Cycle
@@ -54,7 +63,7 @@ public:
     /**
      * Default constructor.
      */
-    RansNewtonian3DLaw();
+    RansKOmegaSSTNewtonianLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -65,12 +74,12 @@ public:
     /**
      * Copy constructor.
      */
-    RansNewtonian3DLaw(const RansNewtonian3DLaw& rOther);
+    RansKOmegaSSTNewtonianLaw(const RansKOmegaSSTNewtonianLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~RansNewtonian3DLaw();
+    ~RansKOmegaSSTNewtonianLaw();
 
     /**
      * Operations needed by the base class:
@@ -94,6 +103,13 @@ public:
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
+
+    double& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameters,
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
+
+
     ///@}
     ///@name Access
     ///@{
@@ -101,7 +117,6 @@ public:
     /**
      * Input and output
      */
-
     /**
      * Turn back information as a string.
      */
@@ -118,6 +133,14 @@ protected:
 
     ///@}
 private:
+    ///@name Private Operations
+    ///@{
+
+    double CalculateTurbulentViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+
+    double GetDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+
+    ///@}
     ///@name Serialization
     ///@{
 
@@ -128,8 +151,5 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-
-}; // Class RansNewtonian3DLaw
+}; // Class RansKOmegaSSTNewtonianLaw
 } // namespace Kratos.
-
-#endif // KRATOS_RANS_NEWTONIAN_LAW_3D_H_INCLUDED  defined

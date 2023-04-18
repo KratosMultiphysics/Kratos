@@ -70,6 +70,8 @@ KratosRANSApplication::KratosRANSApplication()
       // vms monolithic k based wall conditions
       mRansVMSMonolithicKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansVMSMonolithicKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansVMSMonolithicUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansVMSMonolithicUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),      
       // fractional step wall conditions
       mFractionalStepKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mFractionalStepKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -85,7 +87,12 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // k-omega-sst turbulence model conditions
+      mRansKOmegaSSTOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaSSTOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaSSTOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaSSTOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -125,8 +132,10 @@ void KratosRANSApplication::Register()
 
     // wall function condition specific additional variables
     KRATOS_REGISTER_VARIABLE( RANS_Y_PLUS )
+    KRATOS_REGISTER_VARIABLE( GAUSS_RANS_Y_PLUS )
     KRATOS_REGISTER_VARIABLE( RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT )
     KRATOS_REGISTER_VARIABLE( WALL_SMOOTHNESS_BETA )
+    KRATOS_REGISTER_VARIABLE( WALL_CORRECTION_FACTOR )
     KRATOS_REGISTER_VARIABLE( RANS_IS_WALL_FUNCTION_ACTIVE )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FRICTION_VELOCITY )
 
@@ -216,6 +225,9 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall2D2N", mRansVMSMonolithicKBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall3D3N", mRansVMSMonolithicKBasedWall3D3N);
 
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicUBasedWall2D2N", mRansVMSMonolithicUBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicUBasedWall3D3N", mRansVMSMonolithicUBasedWall3D3N);    
+
     // registering fractional step wall conditions
     KRATOS_REGISTER_CONDITION("RansFractionalStepKBasedWall2D2N", mFractionalStepKBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansFractionalStepKBasedWall3D3N", mFractionalStepKBasedWall3D3N);
@@ -238,8 +250,21 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall2D2N", mRansKOmegaOmegaUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
 
+    // registering k-omega-sst conditions
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaKBasedWall2D2N", mRansKOmegaSSTOmegaKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaKBasedWall3D3N", mRansKOmegaSSTOmegaKBasedWall3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaUBasedWall2D2N", mRansKOmegaSSTOmegaUBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaUBasedWall3D3N", mRansKOmegaSSTOmegaUBasedWall3D3N);
+
     // registering constitutive laws
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian2DLaw", mRansNewtonian2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian3DLaw", mRansNewtonian3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKEpsilonNewtonian2DLaw", mRansKEpsilonNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKEpsilonNewtonian3DLaw", mRansKEpsilonNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaNewtonian2DLaw", mRansKOmegaNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaNewtonian3DLaw", mRansKOmegaNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian2DLaw", mRansKOmegaSSTNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian3DLaw", mRansKOmegaSSTNewtonian3DLaw);
 }
 } // namespace Kratos.

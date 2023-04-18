@@ -20,8 +20,12 @@ class IncompressiblePotentialFlowSolverFormulationTest(UnitTest.TestCase):
             self.parameters["<PARALLEL_TYPE>"] = "MPI"
         else:
             self.parameters["<PARALLEL_TYPE>"] = "OpenMP"
+
+        self.parameters["<CONSTITUTIVE_LAW>"] = "Newtonian2DLaw"
+
         RunParametricTestCase(
             "backward_facing_step_incompressible_potential_flow_parameters.json",
+            "backward_facing_step_material_properties.json",
             "BackwardFacingStepTest", self.parameters, self.print_output)
 
 

@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_VARIABLE_UTILS)
-#define KRATOS_RANS_VARIABLE_UTILS
+#pragma once
 
 /* System includes */
 
@@ -105,9 +104,11 @@ void KRATOS_API(RANS_APPLICATION) CopyNodalSolutionStepVariablesList(
 void KRATOS_API(RANS_APPLICATION)
     SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements);
 
+void KRATOS_API(RANS_APPLICATION)
+    CalculateNodalNormal(
+        ModelPart& rModelPart);
+
 ///@}
 } // namespace RansVariableUtilities
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RANS_VARIABLE_UTILS  defined */

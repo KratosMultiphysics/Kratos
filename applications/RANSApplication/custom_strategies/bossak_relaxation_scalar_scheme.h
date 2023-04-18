@@ -11,8 +11,7 @@
 //                  Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED)
-#define KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED
+#pragma once
 
 // System includes
 #include <sstream>
@@ -117,6 +116,24 @@ public:
             mBossak, mAlphaBossak, delta_time);
 
         rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
+
+        KRATOS_CATCH("");
+    }
+
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        SystemMatrixType& A,
+        SystemVectorType& Dv,
+        SystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // update the solving variables
+        BaseType::Predict(rModelPart, rDofSet, A, Dv, b);
+
+        // update the solving variables time derivatives
+        UpdateScalarRateVariables(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -391,5 +408,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED defined */

@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_ALGEBRAIC_FLUX_CORRECTED_SCALAR_STEADY_SCHEME)
-#define KRATOS_ALGEBRAIC_FLUX_CORRECTED_SCALAR_STEADY_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -56,6 +55,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AlgebraicFluxCorrectedSteadyScalarScheme);
 
     using BaseType = Scheme<TSparseSpace, TDenseSpace>;
+
+    using DofType = typename BaseType::TDofType;
 
     using DofsArrayType = typename BaseType::DofsArrayType;
 
@@ -283,6 +284,25 @@ public:
         r_communicator.AssembleNonHistoricalData(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
         KRATOS_CATCH("")
+    }
+
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dv,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        block_for_each(rDofSet, [](DofType& pDof) {
+            if (pDof.IsFree()) {
+                const double value = pDof.GetSolutionStepValue(1);
+                pDof.GetSolutionStepValue() = value;
+            }
+        });
+
+        KRATOS_CATCH("");
     }
 
     void Update(
@@ -585,5 +605,3 @@ private:
 ///@}
 
 } // namespace Kratos
-
-#endif /* KRATOS_ALGEBRAIC_FLUX_CORRECTED_SCALAR_STEADY_SCHEME defined */

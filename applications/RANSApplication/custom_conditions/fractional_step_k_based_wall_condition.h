@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#ifndef KRATOS_FS_HIGH_RE_K_WALL_CONDITION_H
-#define KRATOS_FS_HIGH_RE_K_WALL_CONDITION_H
+#pragma once
 
 // System includes
 #include <iostream>
@@ -339,6 +338,12 @@ public:
                 << this->Info() << " cannot find parent element\n";
 
             mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
+
+            this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
+
+            this->SetValue(DISTANCE, mWallHeight);
+
+            KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
         }
 
         KRATOS_CATCH("");
@@ -458,6 +463,8 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -516,12 +523,11 @@ protected:
 
             // get parent element
             auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
-            auto p_constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
 
             // get fluid properties from parent element
             const auto& r_elem_properties = r_parent_element.GetProperties();
             const double rho = r_elem_properties[DENSITY];
-            ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_elem_properties, rCurrentProcessInfo);
+            const double nu = r_elem_properties[DYNAMIC_VISCOSITY] / rho;
 
             // get surface properties from condition
             const PropertiesType& r_cond_properties = this->GetProperties();
@@ -529,16 +535,12 @@ protected:
             const double y_plus_limit = r_cond_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
             const double inv_kappa = 1.0 / kappa;
 
-            double tke, nu;
+            double tke;
             array_1d<double, 3> wall_velocity;
 
             for (size_t g = 0; g < num_gauss_points; ++g)
             {
                 const Vector& gauss_shape_functions = row(shape_functions, g);
-
-                cl_parameters.SetShapeFunctionsValues(gauss_shape_functions);
-                p_constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-                nu /= rho;
 
                 FluidCalculationUtilities::EvaluateInPoint(
                     r_geometry, gauss_shape_functions,
@@ -651,5 +653,3 @@ inline std::ostream& operator<<(
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_FS_HIGH_RE_K_WALL_CONDITION_H

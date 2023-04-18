@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_OMEGA_SST_ELEMENT_DATA_K_ELEMENT_DATA_H_INCLUDED)
-#define KRATOS_K_OMEGA_SST_ELEMENT_DATA_K_ELEMENT_DATA_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -81,11 +80,6 @@ public:
     ///@name Operations
     ///@{
 
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
 
@@ -122,13 +116,7 @@ protected:
     double mBlendedSimgaK;
     double mVelocityDivergence;
     double mDensity;
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    double CalculateEffectiveViscosity(
-        const ProcessInfo& rCurrentProcessInfo);
+    double mA1;
 
     ///@}
 };
@@ -138,5 +126,3 @@ protected:
 } // namespace KOmegaSSTElementData
 
 } // namespace Kratos
-
-#endif

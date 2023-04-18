@@ -54,21 +54,14 @@
             "velocity_linear_solver_settings": {
                 "solver_type": "amgcl",
                 "tolerance": 1e-12
+            },
+            "wall_function_settings": {
+                "wall_function_region_type": "logarithmic_region_only"
             }
         }
     },
     "processes": {
         "initial_conditions_process_list": [
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "VISCOSITY",
-                    "value": 1.0
-                }
-            },
             {
                 "python_module": "process_factory",
                 "kratos_module": "KratosMultiphysics",
@@ -82,16 +75,6 @@
                         0.0,
                         0.0
                     ]
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "DENSITY",
-                    "value": 1.0
                 }
             }
         ],

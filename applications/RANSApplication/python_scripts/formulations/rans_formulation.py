@@ -1,8 +1,10 @@
+from abc import abstractmethod, ABC
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 
-class RansFormulation:
-    def __init__(self, base_computing_model_part, settings):
+class RansFormulation(ABC):
+    def __init__(self, base_computing_model_part, settings, deprecated_settings_dict):
         """RansFormulation base class
 
         This class is the base class for formulations used in RANSApplication. A single leaf formulation
@@ -20,6 +22,15 @@ class RansFormulation:
         self.__list_of_processes = []
         self.__move_mesh = False
 
+    @abstractmethod
+    def GetDefaultParameters(self):
+        """Returns default parameters used in this formulation
+
+        Returns:
+            Kratos.Parameters: Parameters of this formulation
+        """
+        pass
+
     def GetParameters(self):
         """Returns parameters used in this formulation
 
@@ -27,6 +38,11 @@ class RansFormulation:
             Kratos.Parameters: Parameters of this formulation
         """
         return self.__settings
+
+    def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
+        """Recursively calls BackwardCompatibilityHelper methods of existing formulations in this formulaton
+        """
+        self.__ExecuteRansFormulationMethods("BackwardCompatibilityHelper", [settings, deprecated_settings_dict])
 
     def GetDomainSize(self):
         """Returns domain size
@@ -107,6 +123,13 @@ class RansFormulation:
         if (self.GetStrategy() is not None):
             self.GetStrategy().InitializeSolutionStep()
 
+    def Predict(self):
+        for formulation in self.__list_of_formulations:
+            formulation.Predict()
+
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Predict()
+
     def SolveCouplingStep(self):
         """Solves current formulation
 
@@ -123,6 +146,9 @@ class RansFormulation:
                     return False
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+            if (self.IsConverged()):
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Coupling iter. {:d}/{:d} - *** CONVERGENCE ACHIEVED ***".format(iteration + 1, max_iterations))
+                return True
 
         return True
 
@@ -193,6 +219,19 @@ class RansFormulation:
 
         return True
 
+    def ElementHasNodalProperties(self):
+        """Recursively checks whether any one of the formulations require nodal properties.
+
+        Returns:
+            bool: True if one of them require nodal properties
+        """
+
+        for formulation in self.__list_of_formulations:
+            if (formulation.ElementHasNodalProperties()):
+                return True
+
+        return False
+
     def GetMoveMeshFlag(self):
         """Returns move mesh flag
 
@@ -258,20 +297,10 @@ class RansFormulation:
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetTimeSchemeSettings\" first before calling \"GetTimeSchemeSettings\".")
 
-    def SetWallFunctionSettings(self, settings):
-        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
-        self.__wall_function_settings = settings
-
-    def GetWallFunctionSettings(self):
-        """Returns wall function settings
-
-        Returns:
-            Kratos.Parameters: Wall function settings used for formulations
+    def SetWallFunctionSettings(self):
+        """Sets wall function settings
         """
-        if (hasattr(self, "_RansFormulation__wall_function_settings")):
-            return self.__wall_function_settings
-        else:
-            raise Exception(self.__class__.__name__ + " needs to use \"SetWallFunctionSettings\" first before calling \"GetWallFunctionSettings\".")
+        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings")
 
     def GetBaseModelPart(self):
         """Returns base model part used in the formulation

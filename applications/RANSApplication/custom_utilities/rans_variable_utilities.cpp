@@ -316,17 +316,7 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
                 << ": No CONSTITUTIVE_LAW defined for property "
                 << r_properties.Id() << "." << std::endl;
 
-            const auto rans_cl_name = r_properties[CONSTITUTIVE_LAW]->Info();
-
-            KRATOS_ERROR_IF(rans_cl_name.substr(0, 4) != "Rans")
-                << "Incompatible constitutive law is used. Please use constitutive "
-                "laws which starts with \"Rans*\" [ Constitutive law "
-                "name = "
-                << rans_cl_name << " ].\n";
-
-            // get the fluid constitutive law here because, turbulence models need the mu of fluid
-            auto p_constitutive_law =
-                KratosComponents<ConstitutiveLaw>::Get(rans_cl_name.substr(4)).Clone();
+            auto p_constitutive_law = r_properties[CONSTITUTIVE_LAW]->Clone();
 
             const auto& r_geometry = rElement.GetGeometry();
             const auto& r_shape_functions =
@@ -339,6 +329,29 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
     });
 
     KRATOS_CATCH("");
+}
+
+void KRATOS_API(RANS_APPLICATION)
+    CalculateNodalNormal(
+        ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](ModelPart::NodeType& rNode){
+        rNode.FastGetSolutionStepValue(NORMAL) = ZeroVector(3);
+    });
+
+    std::unordered_map<IndexType, Vector> nodal_areas;
+
+    block_for_each(rModelPart.Conditions(), [](ModelPart::ConditionType& rCondition) {
+        const array_1d<double, 3>& r_normal = rCondition.GetValue(NORMAL) / rCondition.GetGeometry().size();
+
+        for (auto& r_node : rCondition.GetGeometry()) {
+            r_node.SetLock();
+            r_node.FastGetSolutionStepValue(NORMAL) += r_normal;
+            r_node.UnSetLock();
+        }
+    });
+
+    rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 }
 
 // template instantiations

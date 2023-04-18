@@ -37,13 +37,14 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters("""
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME"
+                "model_part_name"         :"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "activate_wall_functions" : true
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
-        
+
         self.model_part = Model[settings["model_part_name"].GetString()]
-        if (not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):            
+        if (not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):
             process_info = self.model_part.ProcessInfo
             if (process_info.Has(KratosRANS.WALL_MODEL_PART_NAME)):
                 raise Exception(
@@ -55,10 +56,21 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
                 settings["model_part_name"].GetString())
 
             for node in self.model_part.Nodes:
-                node.Set(KratosMultiphysics.SLIP, True)
                 node.Set(KratosMultiphysics.STRUCTURE, True)
 
             for condition in self.model_part.Conditions:
-                condition.Set(KratosMultiphysics.SLIP, True)
                 condition.Set(KratosMultiphysics.STRUCTURE, True)
-                condition.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, 1)
+
+            self.model_part.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, settings["activate_wall_functions"].GetBool())
+
+            if (settings["activate_wall_functions"].GetBool()):
+                for node in self.model_part.Nodes:
+                    node.Set(KratosMultiphysics.SLIP, True)
+                    node.SetValue(KratosMultiphysics.Y_WALL, 1.0)
+
+                for condition in self.model_part.Conditions:
+                    condition.Set(KratosMultiphysics.SLIP, True)
+                    condition.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, 1)
+            else:
+                for condition in self.model_part.Conditions:
+                    condition.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, 0)
