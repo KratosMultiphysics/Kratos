@@ -45,49 +45,49 @@ class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
         self.print_reference_values = False
 
 
-    def testTwoFluidMassHydraulicSolverTest2D(self):
+    def testTwoFluidMassHydraulicSolverTestArtificialViscosity2D(self):
         self._artificial_viscosity = True
         self._eulerian_fm_ale_correction = False
         self._mass_source = False
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
-    def testTwoFluidMassHydraulicSolverTest2D(self):
+    def testTwoFluidMassHydraulicSolverTestEulerianFmALE2D(self):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = True
         self._mass_source = False
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
-    def testTwoFluidMassHydraulicSolverTest2D(self):
+    def testTwoFluidMassHydraulicSolverTestMassSource2D(self):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = False
         self._mass_source = True
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
-    def testTwoFluidMassHydraulicSolverTest2D(self):
+    def testTwoFluidMassHydraulicSolverTestTotal2D(self):
         self._artificial_viscosity = True
         self._eulerian_fm_ale_correction = True
         self._mass_source = True
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
-    def testTwoFluidMassHydraulicSolverTest3D(self):
+    def testTwoFluidMassHydraulicSolverTestArtificialViscosity3D(self):
         self._artificial_viscosity = True
         self._eulerian_fm_ale_correction = False
         self._mass_source = False
         self._AuxiliaryRunTest("ProjectParameters3D.json")
 
-    def testTwoFluidMassHydraulicSolverTest3D(self):
+    def testTwoFluidMassHydraulicSolverTestEulerianFmALE3D(self):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = True
         self._mass_source = False
         self._AuxiliaryRunTest("ProjectParameters3D.json")
 
-    def testTwoFluidMassHydraulicSolverTest3D(self):
+    def testTwoFluidMassHydraulicSolverTestMassSource3D(self):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = False
         self._mass_source = True
         self._AuxiliaryRunTest("ProjectParameters3D.json")
 
-    def testTwoFluidMassHydraulicSolverTest3D(self):
+    def testTwoFluidMassHydraulicSolverTestTotal3D(self):
         self._artificial_viscosity = True
         self._eulerian_fm_ale_correction = True
         self._mass_source = True
