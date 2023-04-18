@@ -52,6 +52,19 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         for result in results:
             self.assertTrue(result.Get().Id in cond_id_ref)
 
+    def test_GeometricalObjectsBins_SearchNearestInRadius(self):
+        radius = 0.35
+        result = self.search.SearchNearestInRadius(self.node, radius)
+        self.assertEqual(result.Get().Id, 1)
+
+    def test_GeometricalObjectsBins_SearchNearest(self):
+        result = self.search.SearchNearest(self.node)
+        self.assertEqual(result.Get().Id, 1)
+
+    def test_GeometricalObjectsBins_SearchIsInside(self):
+        result = self.search.SearchIsInside(self.node)
+        self.assertEqual(result.Get(), None)
+
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.main()
