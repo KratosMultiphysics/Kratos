@@ -20,6 +20,8 @@
 #include "python/add_search_strategies_to_python.h"
 #include "utilities/parallel_utilities.h"
 #include "spatial_containers/spatial_search.h"
+#include "spatial_containers/geometrical_objects_bins.h"
+#include "spatial_containers/spatial_search_result.h"
 
 namespace Kratos::Python
 {
@@ -614,6 +616,45 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
         return results_tuple;
     })
+    ;
+
+    using ResultType = SpatialSearchResult<GeometricalObject>;
+
+    py::class_<ResultType, ResultType::Pointer>(m, "ResultType")
+    .def(py::init< >())
+    .def(py::init<GeometricalObject*>())
+    .def("Reset", &ResultType::Reset)
+    .def("IsObjectFound", &ResultType::IsObjectFound)
+    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
+    .def("GetDistance", &ResultType::GetDistance)
+    .def("SetDistance", &ResultType::SetDistance)
+    ;
+
+    using ElementsContainerIteratorType = typename ModelPart::ElementsContainerType::iterator;
+    using ConditionsContainerIteratorType = typename ModelPart::ConditionsContainerType::iterator;
+
+    py::class_<GeometricalObjectsBins, GeometricalObjectsBins::Pointer>(m, "GeometricalObjectsBins")
+    .def(py::init<ElementsContainerIteratorType,ElementsContainerIteratorType>())
+    .def(py::init<ConditionsContainerIteratorType,ConditionsContainerIteratorType>())
+    .def("GetCellSizes", &GeometricalObjectsBins::GetCellSizes)
+    .def("GetNumberOfCells", &GeometricalObjectsBins::GetNumberOfCells)
+    .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
+    //.def("SearchInRadius", &GeometricalObjectsBins::SearchInRadius)
+    .def("SearchInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        std::vector<ResultType> results;
+        self.SearchInRadius(rPoint, Radius, results);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("SearchNearestInRadius", &GeometricalObjectsBins::SearchNearestInRadius)
+    .def("SearchNearest", &GeometricalObjectsBins::SearchNearest)
+    .def("SearchIsInside", &GeometricalObjectsBins::SearchIsInside)
     ;
 }
 
