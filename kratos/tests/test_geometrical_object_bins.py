@@ -48,9 +48,9 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         results = self.search.SearchInRadius(self.node, radius)
 
         self.assertEqual(len(results), 8)
-        # node_id_ref = [7, 17, 18, 23, 33, 39, 44, 56]
+        cond_id_ref = [125,78,117,18,68,1,41,119]
         for result in results:
-            print(result.Get().Id)
+            self.assertTrue(result.Get().Id in cond_id_ref)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
