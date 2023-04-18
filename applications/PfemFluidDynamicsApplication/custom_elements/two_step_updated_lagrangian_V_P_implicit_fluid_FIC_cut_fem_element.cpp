@@ -941,29 +941,65 @@ namespace Kratos
           ModifiedShapeFunctions::AreaNormalsContainerType interface_unit_normals;
           CalculateIntersectionGeometryData(interface_DN_DX, interface_N, interface_gauss_weights, interface_unit_normals);
 
+          // Create an auxiliary elemental data container for the boundary terms integration
+          ElementalVariables elemental_variables;
+          this->InitializeElementalVariables(elemental_variables);
+
           // Add the boundary terms
           const double penalty_parameter = 1.0e8; //TODO: Make this dimensionally consistent
 
+          array_1d<double,TDim> proj_dev_stress;
           const auto& r_geom = this->GetGeometry();
           const std::size_t n_nodes = r_geom.PointsNumber();
           const unsigned int n_int_gauss_pts = interface_gauss_weights.size();
           for (unsigned int g = 0; g < n_int_gauss_pts; g++) {
+              // Get interface Gauss point data
               const double g_weight = interface_gauss_weights[g];
+              const auto g_DN_DX = interface_DN_DX[g];
               const auto g_shape_functions = row(interface_N,g);
               const auto& r_g_unit_normal = interface_unit_normals[g];
 
-              double p_gauss = 0.0;
+              // Calculate the mechanical response at the interface Gauss point to get the viscous stress
+              this->CalcMechanicsUpdated(elemental_variables, rCurrentProcessInfo, g_DN_DX);
+
+              auto& r_strain_vector = elemental_variables.SpatialDefRate;
+              auto& r_dev_stress_vector = elemental_variables.UpdatedDeviatoricCauchyStress;
+              auto& r_constitutive_matrix = elemental_variables.ConstitutiveMatrix;
+
+              auto p_cons_law = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+              auto constitutive_law_values = ConstitutiveLaw::Parameters(
+                r_geom,
+                this->GetProperties(),
+                rCurrentProcessInfo);
+
+              auto& r_constitutive_law_options = constitutive_law_values.GetOptions();
+              r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+              r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+              constitutive_law_values.SetShapeFunctionsValues(g_shape_functions);
+              constitutive_law_values.SetStrainVector(r_strain_vector);
+              constitutive_law_values.SetStressVector(r_dev_stress_vector);
+              constitutive_law_values.SetConstitutiveMatrix(r_constitutive_matrix);
+
+              p_cons_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+
+              this->UpdateStressTensor(elemental_variables);             
+              VoigtStressNormalProjection(r_dev_stress_vector, r_g_unit_normal, proj_dev_stress);
+
+              // Interpolate the pressure at the interface Gauss point to calculate the isochoric stress
+              double pres_gauss = 0.0;
               for (std::size_t j = 0; j < n_nodes; ++j) {
-                  p_gauss += g_shape_functions[j] * r_geom[j].FastGetSolutionStepValue(PRESSURE);
+                  pres_gauss += g_shape_functions[j] * r_geom[j].FastGetSolutionStepValue(PRESSURE);
               }
 
               // Navier-Stokes traction boundary term
-              // TODO: Add viscous component
               for (std::size_t i = 0; i < n_nodes; ++i) {
-                  const double aux = g_weight * g_shape_functions[i] * p_gauss;
+                  const double aux = g_weight * g_shape_functions[i];
                   for (std::size_t d = 0; d < TDim; ++d) {
-                      // Pressure contribution (only to the RHS as this is the momentum step)
-                      rRightHandSideVector(i*TDim + d) += aux * r_g_unit_normal[d];
+                      // Add Right Hand Side contribution
+                      // TODO: Add the LHS terms
+                      rRightHandSideVector(i*TDim + d) += aux * (pres_gauss * r_g_unit_normal[d] - proj_dev_stress[d]);
+
                   }
               }
 
@@ -1181,6 +1217,27 @@ namespace Kratos
     }
 
     return n_pos == NumNodes ? true : false;
+  }
+
+  template<>
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<2>::VoigtStressNormalProjection(
+      const Vector& rVoigtStress,
+      const array_1d<double,3>& rUnitNormal,
+      array_1d<double,2>& rProjectedStress)
+  {
+      rProjectedStress[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
+      rProjectedStress[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
+  }
+
+  template<>
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<3>::VoigtStressNormalProjection(
+      const Vector& rVoigtStress,
+      const array_1d<double,3>& rUnitNormal,
+      array_1d<double,3>& rProjectedStress)
+  {
+      rProjectedStress[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[3]*rUnitNormal[1] + rVoigtStress[5]*rUnitNormal[2];
+      rProjectedStress[1] = rVoigtStress[3]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1] + rVoigtStress[4]*rUnitNormal[2];
+      rProjectedStress[2] = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1] + rVoigtStress[2]*rUnitNormal[2];
   }
 
   template class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<2>;

@@ -409,6 +409,11 @@ namespace Kratos
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
+    void VoigtStressNormalProjection(
+      const Vector& rVoigtStress,
+      const array_1d<double,3>& rUnitNormal,
+      array_1d<double,TDim>& rProjectedStress);
+
     ///@}
     ///@name Private Operators
     ///@{
