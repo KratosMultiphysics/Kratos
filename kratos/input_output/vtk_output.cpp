@@ -1005,13 +1005,13 @@ void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Pointer pGeometry) const
+VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Pointer& pGeometry) const
 {
     const auto& r_geometry_type = pGeometry->GetGeometryType();
     if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20) {
         auto p_reorder_geom = Kratos::make_shared<GeometryType>();
         GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
-        r_reordered_points.reserve(15);
+        r_reordered_points.reserve(pGeometry->PointsNumber());
         for (IndexType i = 0; i < 12; ++i) {
             r_reordered_points.push_back(pGeometry->pGetPoint(i));
         }
@@ -1025,7 +1025,7 @@ VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Po
     } else if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Prism3D15) {
         auto p_reorder_geom = Kratos::make_shared<GeometryType>();
         GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
-        r_reordered_points.reserve(15);
+        r_reordered_points.reserve(pGeometry->PointsNumber());
         for (IndexType i = 0; i < 9; ++i) {
             r_reordered_points.push_back(pGeometry->pGetPoint(i));
         }

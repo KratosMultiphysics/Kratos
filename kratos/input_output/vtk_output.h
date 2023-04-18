@@ -464,7 +464,7 @@ private:
      * @param pGeometry Pointer to the geometry to be reordered
      * @return Pointer to the reordered geometry
      */
-    GeometryType::Pointer ReorderConnectivity(GeometryType::Pointer pGeometry) const;
+    GeometryType::Pointer ReorderConnectivity(GeometryType::Pointer& pGeometry) const;
 
     /**
      * @brief Prints the Properties Id as an integer variable in each element/condition
