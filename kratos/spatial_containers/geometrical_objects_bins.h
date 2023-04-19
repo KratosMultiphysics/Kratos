@@ -110,43 +110,6 @@ public:
     ///@name Operations
     ///@{
 
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    /**
-     * @brief Getting the bins bounding box
-     * @return The bounding box of the bins
-     */
-    const BoundingBox<Point>& GetBoundingBox() const {
-        return mBoundingBox;
-    }
-
-    /**
-     * @brief return an array with the x,y and z size of the cube
-     * @return The size of the cube
-     */
-    const array_1d<double, 3>& GetCellSizes(){
-        return mCellSizes;
-    }
-
-    /**
-     * @brief returns a 3D array having the number of cells in direction x, y and z
-     * @return The number of cells in each direction
-     */
-    const array_1d<std::size_t, 3>& GetNumberOfCells(){
-        return mNumberOfCells;
-    }
-
-    /**
-     * @brief The total number of cells in the container
-     * @return The total number of cells
-     */
-    std::size_t GetTotalNumberOfCells(){
-        return mNumberOfCells[0] * mNumberOfCells[1] * mNumberOfCells[2];
-    }
-
     /**
      * @brief Accessing cell_ijk giving the 3 indices
      * @param I The index in x direction
@@ -221,6 +184,42 @@ public:
     ResultType SearchIsInside(const Point& rPoint);
 
     ///@}
+    ///@name Access
+    ///@{
+
+    /**
+     * @brief Getting the bins bounding box
+     * @return The bounding box of the bins
+     */
+    const BoundingBox<Point>& GetBoundingBox() const {
+        return mBoundingBox;
+    }
+
+    /**
+     * @brief return an array with the x,y and z size of the cube
+     * @return The size of the cube
+     */
+    const array_1d<double, 3>& GetCellSizes(){
+        return mCellSizes;
+    }
+
+    /**
+     * @brief returns a 3D array having the number of cells in direction x, y and z
+     * @return The number of cells in each direction
+     */
+    const array_1d<std::size_t, 3>& GetNumberOfCells(){
+        return mNumberOfCells;
+    }
+
+    /**
+     * @brief The total number of cells in the container
+     * @return The total number of cells
+     */
+    std::size_t GetTotalNumberOfCells(){
+        return mNumberOfCells[0] * mNumberOfCells[1] * mNumberOfCells[2];
+    }
+
+    ///@}
     ///@name Inquiry
     ///@{
 
@@ -248,15 +247,15 @@ public:
     ///@{
 
     ///@}
-private:
-    ///@name Static Member Variables
+protected:
+    ///@name Protected Static Member Variables
     ///@{
 
     static constexpr unsigned int Dimension = 3;    /// The dimension of the problem
     static constexpr double Tolerance = 1e-12;      /// The tolerance considered
 
     ///@}
-    ///@name Member Variables
+    ///@name Protected Member Variables
     ///@{
 
     BoundingBox<Point> mBoundingBox;                 /// The bounding box of the domain
@@ -267,6 +266,7 @@ private:
 
 
     ///@}
+private:
     ///@name Private Operators
     ///@{
 
