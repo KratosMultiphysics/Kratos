@@ -37,8 +37,12 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         RemoveFiles(cls.mdpa_name)
 
     def setUp(self):
+        communicator = KM.Testing.GetDefaultDataCommunicator()
         # Create search
-        self.search = KM.GeometricalObjectsBins(self.model_part.Conditions)
+        if communicator.IsDistributed():
+            self.search = KM.MPIGeometricalObjectsBins(self.model_part.Conditions)
+        else:
+            self.search = KM.GeometricalObjectsBins(self.model_part.Conditions)
 
         # Create node for search
         self.node = self.model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)

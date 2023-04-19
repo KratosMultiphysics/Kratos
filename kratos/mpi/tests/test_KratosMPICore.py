@@ -21,6 +21,7 @@ import test_mpi_processes
 import test_distributed_model_part_initializer
 import test_distributed_import_model_part_utility
 import test_distributed_sparse_matrices
+import test_geometrical_object_bins
 
 # importing OpenMP tests in MPI scope.
 with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
@@ -77,6 +78,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_utilities.TestSensitivityUtilitiesTwoDimSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartIOMPI]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometrical_object_bins.TestGeometricalObjectBins]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']
