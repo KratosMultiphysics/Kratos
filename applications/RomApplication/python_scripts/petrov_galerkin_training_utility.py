@@ -129,12 +129,12 @@ class PetrovGalerkinTrainingUtility(object):
             # Storing Petrov-Galerkin modes in Numpy format
             np.save(f'numpy_rom_data_{self.rom_basis_output_name}/LeftBasisMatrix.npy', u)
 
-        with open(self.rom_basis_output_name + ".json",'r') as f:
+        with open(f"{self.rom_basis_output_name}.json",'r') as f:
             updated_rom_parameters = json.load(f)
             updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
             updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
 
-        with open(self.rom_basis_output_name + ".json",'w') as f:
+        with open(f"{self.rom_basis_output_name}.json",'w') as f:
             json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo(f"PetrovGalerkinTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
@@ -145,7 +145,7 @@ class PetrovGalerkinTrainingUtility(object):
         return pretty_number
 
     def __GetGalerkinBasis(self):
-        with open(self.rom_basis_output_name + ".json",'r') as f:
+        with open(f"{self.rom_basis_output_name}.json",'r') as f:
             galerkin_rom_parameters = json.load(f)
             N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
             N_nodes = len(galerkin_rom_parameters["nodal_modes"])

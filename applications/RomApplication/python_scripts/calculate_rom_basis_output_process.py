@@ -183,9 +183,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             # Create the folder if it doesn't already exist
             if not os.path.exists(folder_name):
                 os.makedirs(folder_name)
-                print("Folder created successfully!")
-            else:
-                print("Folder already exists.")
+
             # Storing modes in Numpy format
             numpy.save(f'numpy_rom_data_{self.rom_basis_output_name}/RightBasisMatrix.npy', u)
             numpy.save(f'numpy_rom_data_{self.rom_basis_output_name}/NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
@@ -194,7 +192,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             raise Exception(err_msg)
 
         # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
-        output_filename = self.rom_basis_output_name + ".json"
+        output_filename = f"{self.rom_basis_output_name}.json"
         with open(output_filename, 'w') as f:
             json.dump(rom_basis_dict, f, indent = 4)
 

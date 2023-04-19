@@ -98,7 +98,7 @@ class HRomTrainingUtility(object):
         if  self.hrom_output_format == "numpy":
             hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
         elif self.hrom_output_format == "json":
-            with open(self.rom_basis_output_name + ".json",'r') as f:
+            with open(f"{self.rom_basis_output_name}.json",'r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
                 hrom_info = rom_parameters["elements_and_weights"]
 
@@ -219,10 +219,10 @@ class HRomTrainingUtility(object):
             np.save(f'numpy_rom_data_{self.rom_basis_output_name}/HROM_ConditionIds.npy',indexes[condition_indexes]-number_of_elements) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
 
         elif self.hrom_output_format=="json":
-            with open(self.rom_basis_output_name + ".json",'r') as f:
+            with open(f"{self.rom_basis_output_name}.json",'r') as f:
                 updated_rom_parameters = json.load(f)
                 updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
-            with open(self.rom_basis_output_name + ".json",'w') as f:
+            with open(f"{self.rom_basis_output_name}.json",'w') as f:
                 json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
