@@ -141,11 +141,14 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                         self._GetSolver().Predict()
                         computing_model_part.Set(KM.MODIFIED, False)
                     computing_model_part.ProcessInfo.SetValue(KM.NL_ITERATION_NUMBER, non_linear_iteration)
+                    reform_dofs = mechanical_solution_strategy.GetReformDofSetAtEachStepFlag()
+                    mechanical_solution_strategy.SetReformDofSetAtEachStepFlag(True)
                     is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._GetSolver().SolveSolutionStep()
                     is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._transfer_slave_to_master()
                     self.FinalizeSolutionStep()
+                    mechanical_solution_strategy.SetReformDofSetAtEachStepFlag(reform_dofs)
                     if is_converged:
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break

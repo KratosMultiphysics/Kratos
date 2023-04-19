@@ -70,12 +70,12 @@ public:
     StructuredMeshGeneratorProcess(
         const GeometryType& rGeometry,
         ModelPart& rOutputModelPart,
-        Parameters& TheParameters);
+        Parameters TheParameters);
 
     StructuredMeshGeneratorProcess(
         GeometryType::Pointer pGeometry,
         ModelPart& rOutputModelPart,
-        Parameters& TheParameters)
+        Parameters TheParameters)
         : StructuredMeshGeneratorProcess(
         *pGeometry,
         rOutputModelPart,

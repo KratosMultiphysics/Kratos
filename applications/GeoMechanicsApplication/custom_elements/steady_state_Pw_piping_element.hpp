@@ -95,7 +95,7 @@ public:
 
     bool InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom);
 
-    double CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
+    double CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
 
     double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
 
