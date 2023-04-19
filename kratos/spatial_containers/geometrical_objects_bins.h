@@ -42,7 +42,7 @@ class GeometricalObject; // forward declaration, to be included in the cpp. This
  * any modification, the bins should be reconstructed.
  * @author Pooyan Dadvand
 */
-class GeometricalObjectsBins
+class KRATOS_API(KRATOS_CORE) GeometricalObjectsBins
 {
 public:
     ///@name Type Definitions
