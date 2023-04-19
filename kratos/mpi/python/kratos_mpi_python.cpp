@@ -27,8 +27,7 @@
 #include "includes/parallel_environment.h"
 #include "add_mpi_search_strategies_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void InitializeMPIParallelRun()
 {
@@ -76,5 +75,4 @@ PYBIND11_MODULE(KratosMPI, m)
     AddMPISearchStrategiesToPython(m);
 }
 
-}
 }
