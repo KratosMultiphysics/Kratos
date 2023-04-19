@@ -25,8 +25,8 @@ namespace Kratos
     {
         this->mSettings = ThisParameters;
         this->mSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
-        this->mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
-        this->mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        this->mRelativeTolerance = this->mSettings["relative_tolerance"].GetDouble();
+        this->mpDistanceVariable = &KratosComponents<Variable<double>>::Get(this->mSettings["distance_variable"].GetString());
         this->mDistanceGetterFunctor = this->CreateDistanceGetterFunctor();
     }
 
@@ -39,8 +39,8 @@ namespace Kratos
     {
         this->mSettings = ThisParameters;
         this->mSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
-        this->mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
-        this->mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        this->mRelativeTolerance = this->mSettings["relative_tolerance"].GetDouble();
+        this->mpDistanceVariable = &KratosComponents<Variable<double>>::Get(this->mSettings["distance_variable"].GetString());
         this->mDistanceGetterFunctor = this->CreateDistanceGetterFunctor();
     }
 
