@@ -127,8 +127,11 @@ public:
     ///@name Deleted
     ///@{
 
-    /// Default constructor.
-    ApplyRayCastingProcess() = delete;
+    /// Default constructor, needed for registry
+    ApplyRayCastingProcess()
+    {
+        mIsSearchStructureAllocated = false; //used in dtor
+    }
 
     /// Copy constructor.
     ApplyRayCastingProcess(ApplyRayCastingProcess const& rOther) = delete;
@@ -319,6 +322,10 @@ protected:
     ///@}
     ///@name Un accessible methods
     ///@{
+
+private:
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", ApplyRayCastingProcess<TDim>)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", ApplyRayCastingProcess<TDim>)
 
 
     ///@}

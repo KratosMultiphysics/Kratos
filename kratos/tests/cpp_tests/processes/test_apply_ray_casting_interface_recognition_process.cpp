@@ -15,7 +15,7 @@
 #include "processes/apply_ray_casting_interface_recognition_process.h"
 
 namespace Kratos::Testing {
-    KRATOS_TEST_CASE_IN_SUITE(ApplyRayCastingWithInterfaceProcess3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ApplyRayCastingInterfaceRecognitionProcess3D, KratosCoreFastSuite)
     {
         Model current_model;
         ModelPart& r_volume_model_part = current_model.CreateModelPart("volume");
@@ -41,11 +41,12 @@ namespace Kratos::Testing {
             r_node.SetValue(DISTANCE, 1.0);
         }
         const Parameters settings(R"({
+            "volume_model_part" : "volume",
+            "skin_model_part" : "skin",
             "distance_database" : "nodal_non_historical"
         })");
         ApplyRayCastingInterfaceRecognitionProcess<3>(
-            r_volume_model_part,
-            r_skin_model_part,
+            current_model,
             settings).Execute();
         for (auto& r_node : r_volume_model_part.Nodes()) {
             double theoretical_distance = 0.0;
@@ -57,7 +58,7 @@ namespace Kratos::Testing {
             KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE),theoretical_distance,1e-10);
         }
     }
-    KRATOS_TEST_CASE_IN_SUITE(ApplyRayCastingWithInterfaceProcess2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ApplyRayCastingInterfaceRecognitionProcess2D, KratosCoreFastSuite)
     {
         Model current_model;
         ModelPart& r_volume_model_part = current_model.CreateModelPart("volume");
@@ -84,11 +85,12 @@ namespace Kratos::Testing {
             r_node.SetValue(DISTANCE, 1.0);
         }
         const Parameters settings(R"({
+            "volume_model_part" : "volume",
+            "skin_model_part" : "skin",
             "distance_database" : "nodal_non_historical"
         })");
         ApplyRayCastingInterfaceRecognitionProcess<2>(
-            r_volume_model_part,
-            r_skin_model_part,
+            current_model,
             settings).Execute();
         for (auto& r_node : r_volume_model_part.Nodes()) {
             double theoretical_distance = 0.0;

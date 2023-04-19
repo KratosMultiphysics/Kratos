@@ -33,7 +33,7 @@ namespace Kratos
 /** This class is used to define the which nodes are inside, outside or on the interface
  *  of certain volume described by its contour
  */
-template<std::size_t TDim = 3>
+template<std::size_t TDim>
 class KRATOS_API(KRATOS_CORE) ApplyRayCastingInterfaceRecognitionProcess : public ApplyRayCastingProcess<TDim>
 {
 
@@ -51,7 +51,8 @@ public:
     using BaseType = ApplyRayCastingProcess<TDim>;
 
     /**
-     * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
+     * @brief Construct a new ApplyRayCastingProcess object using model
+     * and paramterts.
      * Constructor without user defined extra rays epsilon, used to
      * generate the extra rays when voting is required for coloring
      * @param rVolumePart model part containing the volume elements
@@ -59,9 +60,8 @@ public:
      * the distance to as conditions
      */
     ApplyRayCastingInterfaceRecognitionProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart,
-        Parameters ThisParameters = Parameters());
+        Model& rModel,
+        Parameters ThisParameters);
 
     /**
      * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
@@ -81,8 +81,8 @@ public:
     ///@name Deleted
     ///@{
 
-    /// Default constructor.
-    ApplyRayCastingInterfaceRecognitionProcess() = delete;
+    /// Default constructor, needed for registry
+    ApplyRayCastingInterfaceRecognitionProcess() {}
 
     /// Copy constructor.
     ApplyRayCastingInterfaceRecognitionProcess(ApplyRayCastingInterfaceRecognitionProcess const& rOther) = delete;
@@ -156,6 +156,10 @@ protected:
     ///@name Un accessible methods
     ///@{
 
+private:
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", ApplyRayCastingInterfaceRecognitionProcess<TDim>)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", ApplyRayCastingInterfaceRecognitionProcess<TDim>)
+
 
     ///@}
 }; // Class ApplyRayCastingProcess
@@ -170,14 +174,16 @@ protected:
 ///@{
 
 /// input stream function
+template<std::size_t TDim>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    ApplyRayCastingInterfaceRecognitionProcess<>& rThis);
+    ApplyRayCastingInterfaceRecognitionProcess<TDim>& rThis);
 
 /// output stream function
+template<std::size_t TDim>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ApplyRayCastingInterfaceRecognitionProcess<>& rThis)
+    const ApplyRayCastingInterfaceRecognitionProcess<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

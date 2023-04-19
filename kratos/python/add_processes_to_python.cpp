@@ -476,15 +476,13 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ApplyRayCastingInterfaceRecognitionProcess<2>, 
       ApplyRayCastingInterfaceRecognitionProcess<2>::Pointer, Process>
       (m,"ApplyRayCastingInterfaceRecognitionProcess2D")
-        .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
     ;
 
     py::class_<ApplyRayCastingInterfaceRecognitionProcess<3>,
        ApplyRayCastingInterfaceRecognitionProcess<3>::Pointer, Process>
        (m,"ApplyRayCastingInterfaceRecognitionProcess3D")
-        .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
     ;
 
 //     // Calculate embedded variable from skin processes

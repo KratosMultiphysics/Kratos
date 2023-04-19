@@ -9,24 +9,25 @@
 //
 //  Main authors:    Daniel Diez
 //
+
 #include "processes/apply_ray_casting_interface_recognition_process.h"
 
 namespace Kratos
 {
     template<std::size_t TDim>
     ApplyRayCastingInterfaceRecognitionProcess<TDim>::ApplyRayCastingInterfaceRecognitionProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart,
+        Model& rModel,
         Parameters ThisParameters)
-        : ApplyRayCastingProcess<TDim>(rVolumePart,
-          rSkinPart,
-          BaseType::GetDefaultParameters())
+        : ApplyRayCastingProcess<TDim>(
+            rModel.GetModelPart(ThisParameters["volume_model_part"].GetString()),
+            rModel.GetModelPart(ThisParameters["skin_model_part"].GetString()),
+            BaseType::GetDefaultParameters())
     {
-        mSettings = ThisParameters;
-        mSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
-        mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
-        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
-        mDistanceGetterFunctor = CreateDistanceGetterFunctor();
+        this->mSettings = ThisParameters;
+        this->mSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        this->mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
+        this->mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        this->mDistanceGetterFunctor = this->CreateDistanceGetterFunctor();
     }
 
     template<std::size_t TDim>
@@ -36,17 +37,19 @@ namespace Kratos
         : ApplyRayCastingProcess<TDim>(TheFindIntersectedObjectsProcess,
           BaseType::GetDefaultParameters())
     {
-        mSettings = ThisParameters;
-        mSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
-        mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
-        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
-        mDistanceGetterFunctor = CreateDistanceGetterFunctor();
+        this->mSettings = ThisParameters;
+        this->mSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        this->mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
+        this->mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mSettings["distance_variable"].GetString());
+        this->mDistanceGetterFunctor = this->CreateDistanceGetterFunctor();
     }
 
     template<std::size_t TDim>
     const Parameters ApplyRayCastingInterfaceRecognitionProcess<TDim>::GetDefaultParameters() const
     {
         Parameters default_settings(R"({
+            "volume_model_part" : "",
+            "skin_model_part" : "",
             "interface_max_distance" : 1e-6
         })");
         default_settings.RecursivelyAddMissingParameters(BaseType::GetDefaultParameters());
@@ -56,7 +59,7 @@ namespace Kratos
     template<std::size_t TDim>
     std::function<void(Node<3>&, const double)> ApplyRayCastingInterfaceRecognitionProcess<TDim>::CreateApplyNodalFunction() const
     {
-        const double interface_tol = mSettings["interface_max_distance"].GetDouble();
+        const double interface_tol = this->mSettings["interface_max_distance"].GetDouble();
         return [this,interface_tol](Node<3>& rNode, const double RayDistance) {
             double& r_node_distance = this->mDistanceGetterFunctor(rNode, *(this->mpDistanceVariable));
             if (std::abs(RayDistance) < interface_tol) {
