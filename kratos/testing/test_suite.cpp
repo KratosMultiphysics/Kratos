@@ -11,12 +11,15 @@
 //
 //
 
+// System includes
+
+// External includes
+
 // Project includes
 #include "testing/test_suite.h"
 #include "includes/checks.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 TestSuite::TestSuite(std::string const& Name) : TestCase(Name), mTestCases() {}
 
@@ -90,5 +93,4 @@ void TestSuite::TestFunction() {
         << Name() << "\"" << std::endl;
 }
 
-}  // manespace Testing.
-}  // namespace Kratos.
+}  // manespace Kratos::Testing.

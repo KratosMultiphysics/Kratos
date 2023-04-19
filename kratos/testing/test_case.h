@@ -4,195 +4,183 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
+#pragma once
 
-#if !defined(KRATOS_TEST_CASE_H_INCLUDED )
-#define  KRATOS_TEST_CASE_H_INCLUDED
-
+// System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "testing/tester.h"
 #include "testing/test_case_result.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-	namespace Testing
-	{
-		namespace Internals
+namespace Internals
+{
+	template <typename TestType> class RegisterThisTest {
+	public:
+		explicit RegisterThisTest(bool IsDisabled=false)
 		{
-			template <typename TestType> class RegisterThisTest {
-			public:
-				explicit RegisterThisTest(bool IsDisabled=false)
-				{
-					TestType* p_test = new TestType;
-					if (IsDisabled)
-						p_test->Disable();
-					Tester::AddTestCase(p_test);
-				}
-			};
-
+			TestType* p_test = new TestType;
+			if (IsDisabled)
+				p_test->Disable();
+			Tester::AddTestCase(p_test);
 		}
+	};
 
-		///@addtogroup KratosCore
-		///@{
+}
 
-		///@name Kratos Classes
-		///@{
+///@addtogroup KratosCore
+///@{
 
-		/// The test case base class.
-		/** Defines the interface for all the test cases and also fixtures
-		*/
-		class KRATOS_API(KRATOS_CORE) TestCase
-		{
-		public:
-			///@name Type Definitions
-			///@{
+///@name Kratos Classes
+///@{
 
-			///@}
-			///@name Life Cycle
-			///@{
+/// The test case base class.
+/** Defines the interface for all the test cases and also fixtures
+*/
+class KRATOS_API(KRATOS_CORE) TestCase
+{
+public:
+	///@name Type Definitions
+	///@{
 
-			/// TestCase cannot be created without a name
-			TestCase() = delete;
+	///@}
+	///@name Life Cycle
+	///@{
 
-			/// The TestCase cannot be copied to avoid duplications
-			TestCase(TestCase const& rOther) = delete;
+	/// TestCase cannot be created without a name
+	TestCase() = delete;
 
-			/// The constructor to be called
-			TestCase(std::string const& Name);
+	/// The TestCase cannot be copied to avoid duplications
+	TestCase(TestCase const& rOther) = delete;
 
-			/// Destructor.
-			virtual ~TestCase();
+	/// The constructor to be called
+	TestCase(std::string const& Name);
 
+	/// Destructor.
+	virtual ~TestCase();
 
-			///@}
-			///@name Operators
-			///@{
+	///@}
+	///@name Operators
+	///@{
 
-			/// Preventing the assignment of the tests
-			TestCase& operator=(TestCase const& rOther) = delete;
+	/// Preventing the assignment of the tests
+	TestCase& operator=(TestCase const& rOther) = delete;
 
-			///@}
-			///@name Operations
-			///@{
+	///@}
+	///@name Operations
+	///@{
 
-			virtual void Reset();
+	virtual void Reset();
 
-			virtual void ResetResult();
+	virtual void ResetResult();
 
-			virtual void Setup();
+	virtual void Setup();
 
-			virtual void Run();
+	virtual void Run();
 
-			virtual void Profile();
+	virtual void Profile();
 
-			virtual void TearDown();
+	virtual void TearDown();
 
-			virtual void Enable();
+	virtual void Enable();
 
-			virtual void Disable();
+	virtual void Disable();
 
-			virtual void Select();
+	virtual void Select();
 
-			virtual void UnSelect();
+	virtual void UnSelect();
 
-			///@}
-			///@name Access
-			///@{
+	///@}
+	///@name Access
+	///@{
 
-			const std::string& Name() const;
+	const std::string& Name() const;
 
-			const TestCaseResult& GetResult() const;
+	const TestCaseResult& GetResult() const;
 
-			void SetResult(TestCaseResult const& TheResult);
+	void SetResult(TestCaseResult const& TheResult);
 
-			void SetResultOutput(std::string const& TheResultOutput);
+	void SetResultOutput(std::string const& TheResultOutput);
 
+	///@}
+	///@name Inquiry
+	///@{
 
-			///@}
-			///@name Inquiry
-			///@{
+	virtual bool IsEnabled() const;
 
-			virtual bool IsEnabled() const;
-			virtual bool IsDisabled() const;
-			virtual bool IsSelected() const;
+	virtual bool IsDisabled() const;
 
+	virtual bool IsSelected() const;
 
-			///@}
-			///@name Input and output
-			///@{
+	///@}
+	///@name Input and output
+	///@{
 
-			/// Turn back information as a string.
-			virtual std::string Info() const;
+	/// Turn back information as a string.
+	virtual std::string Info() const;
 
-			/// Print information about this object.
-			virtual void PrintInfo(std::ostream& rOStream) const;
+	/// Print information about this object.
+	virtual void PrintInfo(std::ostream& rOStream) const;
 
-			/// Print object's data.
-			virtual void PrintData(std::ostream& rOStream) const;
+	/// Print object's data.
+	virtual void PrintData(std::ostream& rOStream) const;
 
+	///@}
+private:
+	///@name Static Member Variables
+	///@{
 
-			///@}
+	///@}
+	///@name Member Variables
+	///@{
 
+	const std::string mName;
 
-		private:
-			///@name Static Member Variables
-			///@{
+	bool mIsEnabled;
 
+	bool mIsSelected;
 
-			///@}
-			///@name Member Variables
-			///@{
+	TestCaseResult mResult;
 
-			const std::string mName;
+	///@}
+	///@name Operations
+	///@{
 
-			bool mIsEnabled;
+	virtual void TestFunction() = 0;
 
-			bool mIsSelected;
+	///@}
+}; // Class TestCase
 
-			TestCaseResult mResult;
+///@}
 
-			///@}
-			///@name Operations
-			///@{
+///@name Input and output
+///@{
 
-			virtual void TestFunction() = 0;
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+	const TestCase& rThis)
+{
+	rThis.PrintInfo(rOStream);
+	rOStream << std::endl;
+	rThis.PrintData(rOStream);
 
-			///@}
-
-
-		}; // Class TestCase
-
-	  ///@}
-
-	  ///@name Input and output
-	  ///@{
-
-		/// output stream function
-		inline std::ostream& operator << (std::ostream& rOStream,
-			const TestCase& rThis)
-		{
-			rThis.PrintInfo(rOStream);
-			rOStream << std::endl;
-			rThis.PrintData(rOStream);
-
-			return rOStream;
-		}
-		///@}
-		///@name macros
-		///@{
+	return rOStream;
+}
+///@}
+///@name macros
+///@{
 
 
 #define KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) \
@@ -283,11 +271,7 @@ const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
-
 ///@}
 
-		///@} addtogroup block
-	} // manespace Testing.
-}  // namespace Kratos.
-
-#endif // KRATOS_TEST_CASE_H_INCLUDED  defined
+///@} addtogroup block
+}  // namespace Kratos::Testing.
