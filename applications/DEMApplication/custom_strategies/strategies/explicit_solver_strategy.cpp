@@ -220,8 +220,8 @@ namespace Kratos {
             ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
 
             block_for_each(rConditions, [&](ModelPart::ConditionType& rCondition){
-            rCondition.Set(DEMFlags::STICKY, true);
-        });
+                rCondition.Set(DEMFlags::STICKY, true);
+            });
         }
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
