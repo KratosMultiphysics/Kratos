@@ -15,6 +15,7 @@
 // System includes
 
 // External includes
+#include "mpi.h"
 
 // Project includes
 #include "spatial_containers/geometrical_objects_bins.h"
@@ -30,21 +31,21 @@ namespace Kratos
 class GeometricalObject; // forward declaration, to be included in the cpp. This is needed to reduce the compilation time. Can be done as we consider the GeometricalObject as a pointer
 
 /**
- * @class MPIGeometricalObjectsBins
+ * @class GeometricalObjectsBinsMPI
  * @ingroup KratosCore
  * @brief A bins container for 3 dimensional GeometricalObject entities (MPI version)
  * @details This is the MPI version of the GeometricalObjectsBins, which is a container for geometrical objects. It is used to perform fast search of geometrical objects in a given space.
  * @author Vicente Mataix Ferrandiz
 */
-class KRATOS_API(KRATOS_CORE) MPIGeometricalObjectsBins
+class KRATOS_API(KRATOS_CORE) GeometricalObjectsBinsMPI
     : public GeometricalObjectsBins
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MPIGeometricalObjectsBins
-    KRATOS_CLASS_POINTER_DEFINITION(MPIGeometricalObjectsBins);
+    /// Pointer definition of GeometricalObjectsBinsMPI
+    KRATOS_CLASS_POINTER_DEFINITION(GeometricalObjectsBinsMPI);
 
     /// The base type
     using BaseType = GeometricalObjectsBins;
@@ -53,12 +54,18 @@ public:
     using BaseType::CellType;
     using BaseType::ResultType;
 
+    /// The buffer type for doubles
+    using BufferTypeDouble = std::vector<std::vector<double>>;
+
+    /// The buffer type for integers (char)
+    using BufferTypeChar = std::vector<std::vector<char>>;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor deleted.
-    MPIGeometricalObjectsBins() = delete;
+    GeometricalObjectsBinsMPI() = delete;
 
     /**
      * @brief The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
@@ -67,12 +74,23 @@ public:
      * @tparam TIteratorType The type of the iterator
      */
     template<typename TIteratorType>
-    MPIGeometricalObjectsBins(
+    GeometricalObjectsBinsMPI(
         TIteratorType GeometricalObjectsBegin,
         TIteratorType GeometricalObjectsEnd
         ) : BaseType(GeometricalObjectsBegin, GeometricalObjectsEnd)
     {
-        // DOING NOTHING
+        // Set up the buffers
+        MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
+
+        mSendSizes.resize(mCommSize);
+        mRecvSizes.resize(mCommSize);
+
+        mSendBufferDouble.resize(mCommSize);
+        mRecvBufferDouble.resize(mCommSize);
+
+        mSendBufferChar.resize(mCommSize);
+        mRecvBufferChar.resize(mCommSize);
     }
 
     /**
@@ -81,13 +99,13 @@ public:
      * @tparam TContainer The container type
      */
     template<typename TContainer>
-    MPIGeometricalObjectsBins(TContainer& rGeometricalObjectsVector)
-        : MPIGeometricalObjectsBins(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end())
+    GeometricalObjectsBinsMPI(TContainer& rGeometricalObjectsVector)
+        : GeometricalObjectsBinsMPI(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end())
     {
     }
 
     /// Destructor.
-    ~MPIGeometricalObjectsBins() override {}
+    ~GeometricalObjectsBinsMPI() override {}
 
     ///@}
     ///@name Operators
@@ -113,12 +131,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "MPIGeometricalObjectsBins" ;
+        buffer << "GeometricalObjectsBinsMPI" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "MPIGeometricalObjectsBins";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "GeometricalObjectsBinsMPI";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -136,6 +154,21 @@ private:
     ///@name Member Variables
     ///@{
 
+    // TODO: Replace with the BB class instead
+    std::vector<double> mGlobalBoundingBoxes; /// The global bounding boxes of the model part, in the form: xmax, xmin,  ymax, ymin,  zmax, zmin
+
+    int mCommRank;                      /// The rank of the current processor
+    int mCommSize;                      /// The size of the communicator
+
+    std::vector<int> mSendSizes;        /// The size of the send buffer
+    std::vector<int> mRecvSizes;        /// The size of the receive buffer
+
+    BufferTypeDouble mSendBufferDouble; /// The send buffer (double)
+    BufferTypeDouble mRecvBufferDouble; /// The receive buffer (double)
+
+    BufferTypeChar mSendBufferChar;     /// The send buffer (char)
+    BufferTypeChar mRecvBufferChar;     /// The receive buffer (char)
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -143,6 +176,23 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method computes the global bounding boxes
+     */
+    void ComputeGlobalBoundingBoxes();
+
+    /**
+     * @brief This method exchanges data asynchronously
+     * @tparam TDataType The type of data to be exchanged
+     * @param rSendBuffer The send buffer
+     * @param rRecvBuffer The receive buffer
+     */
+    template< typename TDataType >
+    int ExchangeDataAsync(
+        const std::vector<std::vector<TDataType>>& rSendBuffer,
+        std::vector<std::vector<TDataType>>& rRecvBuffer
+        );
 
     ///@}
     ///@name Private  Access
@@ -157,14 +207,14 @@ private:
     ///@{
 
     /// Assignment operator deleted.
-    MPIGeometricalObjectsBins& operator=(MPIGeometricalObjectsBins const& rOther) = delete;
+    GeometricalObjectsBinsMPI& operator=(GeometricalObjectsBinsMPI const& rOther) = delete;
 
     /// Copy constructor deleted.
-    MPIGeometricalObjectsBins(MPIGeometricalObjectsBins const& rOther) = delete;
+    GeometricalObjectsBinsMPI(GeometricalObjectsBinsMPI const& rOther) = delete;
 
     ///@}
 
-}; // Class MPIGeometricalObjectsBins
+}; // Class GeometricalObjectsBinsMPI
 
 ///@}
 

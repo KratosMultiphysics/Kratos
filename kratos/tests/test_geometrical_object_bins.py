@@ -40,7 +40,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         communicator = KM.Testing.GetDefaultDataCommunicator()
         # Create search
         if communicator.IsDistributed():
-            self.search = KM.MPIGeometricalObjectsBins(self.model_part.Conditions)
+            self.search = KM.GeometricalObjectsBinsMPI(self.model_part.Conditions)
         else:
             self.search = KM.GeometricalObjectsBins(self.model_part.Conditions)
 

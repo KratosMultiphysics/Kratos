@@ -18,7 +18,7 @@
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "mpi/python/add_mpi_search_strategies_to_python.h"
-#include "mpi/spatial_containers/mpi_geometrical_objects_bins.h"
+#include "mpi/spatial_containers/geometrical_objects_bins_mpi.h"
 
 namespace Kratos::Python
 {
@@ -30,7 +30,7 @@ void AddMPISearchStrategiesToPython(pybind11::module& m)
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
 
-    py::class_<MPIGeometricalObjectsBins, MPIGeometricalObjectsBins::Pointer, GeometricalObjectsBins>(m, "MPIGeometricalObjectsBins")
+    py::class_<GeometricalObjectsBinsMPI, GeometricalObjectsBinsMPI::Pointer, GeometricalObjectsBins>(m, "GeometricalObjectsBinsMPI")
     .def(py::init<ElementsContainerType&>())
     .def(py::init<ConditionsContainerType&>())
     ;
