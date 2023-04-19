@@ -27,16 +27,16 @@ namespace Kratos::Testing
 {
 namespace Internals
 {
-	template <typename TestType> class RegisterThisTest {
-	public:
-		explicit RegisterThisTest(bool IsDisabled=false)
-		{
-			TestType* p_test = new TestType;
-			if (IsDisabled)
-				p_test->Disable();
-			Tester::AddTestCase(p_test);
-		}
-	};
+    template <typename TestType> class RegisterThisTest {
+    public:
+        explicit RegisterThisTest(bool IsDisabled=false)
+        {
+            TestType* p_test = new TestType;
+            if (IsDisabled)
+                p_test->Disable();
+            Tester::AddTestCase(p_test);
+        }
+    };
 
 }
 
@@ -52,115 +52,115 @@ namespace Internals
 class KRATOS_API(KRATOS_CORE) TestCase
 {
 public:
-	///@name Type Definitions
-	///@{
+    ///@name Type Definitions
+    ///@{
 
-	///@}
-	///@name Life Cycle
-	///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-	/// TestCase cannot be created without a name
-	TestCase() = delete;
+    /// TestCase cannot be created without a name
+    TestCase() = delete;
 
-	/// The TestCase cannot be copied to avoid duplications
-	TestCase(TestCase const& rOther) = delete;
+    /// The TestCase cannot be copied to avoid duplications
+    TestCase(TestCase const& rOther) = delete;
 
-	/// The constructor to be called
-	TestCase(std::string const& Name);
+    /// The constructor to be called
+    TestCase(std::string const& Name);
 
-	/// Destructor.
-	virtual ~TestCase();
+    /// Destructor.
+    virtual ~TestCase();
 
-	///@}
-	///@name Operators
-	///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-	/// Preventing the assignment of the tests
-	TestCase& operator=(TestCase const& rOther) = delete;
+    /// Preventing the assignment of the tests
+    TestCase& operator=(TestCase const& rOther) = delete;
 
-	///@}
-	///@name Operations
-	///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-	virtual void Reset();
+    virtual void Reset();
 
-	virtual void ResetResult();
+    virtual void ResetResult();
 
-	virtual void Setup();
+    virtual void Setup();
 
-	virtual void Run();
+    virtual void Run();
 
-	virtual void Profile();
+    virtual void Profile();
 
-	virtual void TearDown();
+    virtual void TearDown();
 
-	virtual void Enable();
+    virtual void Enable();
 
-	virtual void Disable();
+    virtual void Disable();
 
-	virtual void Select();
+    virtual void Select();
 
-	virtual void UnSelect();
+    virtual void UnSelect();
 
-	///@}
-	///@name Access
-	///@{
+    ///@}
+    ///@name Access
+    ///@{
 
-	const std::string& Name() const;
+    const std::string& Name() const;
 
-	const TestCaseResult& GetResult() const;
+    const TestCaseResult& GetResult() const;
 
-	void SetResult(TestCaseResult const& TheResult);
+    void SetResult(TestCaseResult const& TheResult);
 
-	void SetResultOutput(std::string const& TheResultOutput);
+    void SetResultOutput(std::string const& TheResultOutput);
 
-	///@}
-	///@name Inquiry
-	///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-	virtual bool IsEnabled() const;
+    virtual bool IsEnabled() const;
 
-	virtual bool IsDisabled() const;
+    virtual bool IsDisabled() const;
 
-	virtual bool IsSelected() const;
+    virtual bool IsSelected() const;
 
-	///@}
-	///@name Input and output
-	///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-	/// Turn back information as a string.
-	virtual std::string Info() const;
+    /// Turn back information as a string.
+    virtual std::string Info() const;
 
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const;
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-	/// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const;
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
 
-	///@}
+    ///@}
 private:
-	///@name Static Member Variables
-	///@{
+    ///@name Static Member Variables
+    ///@{
 
-	///@}
-	///@name Member Variables
-	///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-	const std::string mName;
+    const std::string mName;
 
-	bool mIsEnabled;
+    bool mIsEnabled;
 
-	bool mIsSelected;
+    bool mIsSelected;
 
-	TestCaseResult mResult;
+    TestCaseResult mResult;
 
-	///@}
-	///@name Operations
-	///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-	virtual void TestFunction() = 0;
+    virtual void TestFunction() = 0;
 
-	///@}
+    ///@}
 }; // Class TestCase
 
 ///@}
@@ -170,13 +170,13 @@ private:
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-	const TestCase& rThis)
+    const TestCase& rThis)
 {
-	rThis.PrintInfo(rOStream);
-	rOStream << std::endl;
-	rThis.PrintData(rOStream);
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-	return rOStream;
+    return rOStream;
 }
 ///@}
 ///@name macros
@@ -206,27 +206,27 @@ KRATOS_TESTING_TEST_CASE_CLASS_BODY(TestCaseName,ParentName) \
 // For example if the TestCaseName is "ModelPartConstruction" then the result is:
 // class TestModelPartConstruction : public TestCase
 // {
-//	public:
-//		TestModelPartConstruction() : TestCase("TestModelPartConstruction") {}
-//	private:
-//		void TestFunction() override;
-//		static Internals::RegisterThisTest<TestModelPartConstruction> mDummy;
-//	};
-//	Kratos::Testing::Internals::RegisterThisTest<TestModelPartConstruction>
-//		TestModelPartConstruction::mDummy;
-//	void TestModelPartConstruction::TestFunction()
+//    public:
+//        TestModelPartConstruction() : TestCase("TestModelPartConstruction") {}
+//    private:
+//        void TestFunction() override;
+//        static Internals::RegisterThisTest<TestModelPartConstruction> mDummy;
+//    };
+//    Kratos::Testing::Internals::RegisterThisTest<TestModelPartConstruction>
+//        TestModelPartConstruction::mDummy;
+//    void TestModelPartConstruction::TestFunction()
 //
 #define KRATOS_TEST_CASE(TestCaseName) \
 KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestCase) \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
-		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
 #define KRATOS_DISABLED_TEST_CASE(TestCaseName) \
 KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestCase) \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
-		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true); \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true); \
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
@@ -234,12 +234,12 @@ void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 // For example if the FixtureName is "ModelPartFixture" then the result is:
 // class ModelPartFixture : public TestCase
 // {
-//	public:
-//		ModelPartFixture(std::string const& Name) : TestCase(Name) {}
-//	private:
-//		void Setup() override;
-//		void TearDown() override;
-//	};
+//    public:
+//        ModelPartFixture(std::string const& Name) : TestCase(Name) {}
+//    private:
+//        void Setup() override;
+//        void TearDown() override;
+//    };
 //
 #define KRATOS_TEST_FIXTURE(TestFixtureName) \
 class TestFixtureName : public TestCase \
@@ -260,14 +260,14 @@ void TestFixtureName::TearDown()
 #define KRATOS_TEST_CASE_WITH_FIXTURE(TestCaseName,TestFixtureName) \
 KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestFixtureName)  \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
-		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
 #define KRATOS_DISABLED_TEST_CASE_WITH_FIXTURE(TestCaseName,TestFixtureName) \
 KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestFixtureName)  \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
-		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true); \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true); \
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
