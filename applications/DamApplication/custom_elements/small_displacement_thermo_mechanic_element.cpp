@@ -277,17 +277,17 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
         if( rVariable == CAUCHY_STRESS_VECTOR){
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	}
-	else if(rVariable == THERMAL_STRESS_VECTOR){
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::THERMAL_RESPONSE_ONLY);
-	}
-	else if(rVariable == MECHANICAL_STRESS_VECTOR){
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY);
-	}
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        }
+            else if(rVariable == THERMAL_STRESS_VECTOR){
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::THERMAL_RESPONSE_ONLY);
+        }
+            else if(rVariable == MECHANICAL_STRESS_VECTOR){
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY);
+        }
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )

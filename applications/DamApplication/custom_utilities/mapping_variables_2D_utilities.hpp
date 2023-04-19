@@ -163,7 +163,6 @@ protected:
                 }
             }
 
-
             for(int k = Row_top; k <= Row_bot; k++)
             {
                 for(int l = Column_left; l <= Column_right; l++)
@@ -332,18 +331,6 @@ protected:
             else if(Row_top >= AuxVariables.NRows) Row_top = AuxVariables.NRows-1;
             if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
             else if(Row_bot < 0) Row_bot = 0;
-
-            for(int k = Row_top; k <= Row_bot; k++)
-            {
-                for(int l = Column_left; l <= Column_right; l++)
-                {
-                    #pragma omp critical
-                    {
-                        ElementOldCellMatrix[k][l].push_back((*(itElemOld.base())));
-                    }
-                }
-            }
-
 
             for(int k = Row_top; k <= Row_bot; k++)
             {
