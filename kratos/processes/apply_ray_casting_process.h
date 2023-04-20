@@ -62,6 +62,7 @@ public:
 
     using NodeType = ModelPart::NodeType;
     using NodeScalarGetFunctionType = std::function<double&(NodeType& rNode, const Variable<double>& rDistanceVariable)>;
+    using ApplyNodalFunctorType = std::function<void(NodeType&, const double)>;
 
     ///@}
     ///@name Life Cycle
@@ -127,7 +128,7 @@ public:
     ///@{
 
     /// Default constructor.
-    ApplyRayCastingProcess() = delete;;
+    ApplyRayCastingProcess() = delete;
 
     /// Copy constructor.
     ApplyRayCastingProcess(ApplyRayCastingProcess const& rOther) = delete;
@@ -206,7 +207,7 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-private:
+protected:
     ///@name Static Member Variables
     ///@{
 
@@ -222,6 +223,8 @@ private:
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
     double mCharacteristicLength;
+    const Variable<double>* mpDistanceVariable = nullptr;
+    NodeScalarGetFunctionType mDistanceGetterFunctor;
 
 
     ///@}
@@ -291,6 +294,17 @@ private:
      * This method sets the ray casting tolerances values according to the domain bounding box size
      */
     void SetRayCastingTolerances();
+
+    /**
+     * @brief This method returns the function to get the distance from a node
+     */
+    NodeScalarGetFunctionType CreateDistanceGetterFunctor() const;
+
+    /**
+     * @brief This method returns the function that will be applied to nodes
+     * depending on ray distance
+     */
+    virtual ApplyNodalFunctorType CreateApplyNodalFunction() const;
 
     ///@}
     ///@name Private  Access
