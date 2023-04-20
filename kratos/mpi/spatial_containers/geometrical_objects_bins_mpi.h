@@ -187,6 +187,8 @@ private:
      * @tparam TDataType The type of data to be exchanged
      * @param rSendBuffer The send buffer
      * @param rRecvBuffer The receive buffer
+     * @todo This method should be moved to the communicator
+     * @todo Duplicated with InterfaceCommunicatorMPI from MappingApplication
      */
     template< typename TDataType >
     int ExchangeDataAsync(

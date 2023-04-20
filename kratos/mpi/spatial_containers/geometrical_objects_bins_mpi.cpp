@@ -16,13 +16,29 @@
 
 // Project includes
 #include "includes/geometrical_object.h"
+#include "input_output/vtk_output.h"
 #include "mpi/spatial_containers/geometrical_objects_bins_mpi.h"
 
 namespace Kratos
 {
 void GeometricalObjectsBinsMPI::ComputeGlobalBoundingBoxes()
 {
-    // TODO
+    // xmax, xmin, ymax, ymin, zmax, zmin
+    std::array<double, 6> local_bounding_box;
+    auto& r_min_point = mBoundingBox.GetMinPoint();
+    auto& r_max_point = mBoundingBox.GetMaxPoint();
+    for (unsigned int i=0; i<3; ++i) {
+        local_bounding_box[i*2]   = r_max_point[i];
+        local_bounding_box[i*2+1] = r_min_point[i];
+    }
+
+    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*mCommSize) {
+        mGlobalBoundingBoxes.resize(6*mCommSize);
+    }
+
+    MPI_Allgather(local_bounding_box.data(),   6, MPI_DOUBLE,
+                  mGlobalBoundingBoxes.data(), 6, MPI_DOUBLE,
+                  MPI_COMM_WORLD);
 }
 
 /***********************************************************************************/
