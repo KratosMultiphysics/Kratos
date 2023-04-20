@@ -692,7 +692,7 @@ std::string Parameters::GetString() const
 
 std::vector<std::string> Parameters::GetStringArray() const
 {
-    KRATOS_ERROR_IF_NOT(this->IsArray()) << "Argument must be an array" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->IsStringArray()) << "Argument must be a string array" << std::endl;
     std::vector<std::string> result(this->size());
     for (std::size_t i = 0; i < result.size(); ++i)
     {
@@ -765,7 +765,7 @@ KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(bool, Bool)
 
 KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::string, String)
 
-//KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::vector<std::string>, StringArray) // <== missing Parameters::IsStringArray()
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::vector<std::string>, StringArray)
 
 KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(Vector, Vector)
 
