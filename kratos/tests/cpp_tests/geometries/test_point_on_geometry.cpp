@@ -50,7 +50,6 @@ namespace Kratos {
 
             PointOnGeometry<PointerVector<Node<3>>, 3, 1> point(point_coordinates, p_nurbs_curve);
 
-            KRATOS_CHECK_EQUAL(point.Dimension(), 0);
             KRATOS_CHECK_EQUAL(point.LocalSpaceDimension(), 1);
             KRATOS_CHECK_EQUAL(point.WorkingSpaceDimension(), 3);
 
@@ -59,7 +58,6 @@ namespace Kratos {
             auto integration_info = point.GetDefaultIntegrationInfo();
             point.CreateQuadraturePointGeometries(geometry_vector, 2, integration_info);
 
-            KRATOS_CHECK_EQUAL(geometry_vector[0].Dimension(), 0);
             KRATOS_CHECK_EQUAL(geometry_vector[0].LocalSpaceDimension(), 1);
             KRATOS_CHECK_EQUAL(geometry_vector[0].WorkingSpaceDimension(), 3);
 

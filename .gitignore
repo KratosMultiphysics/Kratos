@@ -21,6 +21,8 @@ scripts/*.sh
 scripts/*.bat
 build/*
 bin/*
+docs/.jekyll-cache/*
+docs/_site/*
 
 # Autocopied file
 kratos/scripts/wheels/README.md
@@ -78,6 +80,8 @@ kratos/scripts/wheels/README.md
 
 # Most used editor files
 *.vscode
+remote_*.md
+
 /compile_commands.json
 
 # External downloaded libs (TPL downloaded libs, etc...)

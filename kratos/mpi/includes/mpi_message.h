@@ -10,8 +10,7 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_MPI_MESSAGE_H_INCLUDED
-#define KRATOS_MPI_MESSAGE_H_INCLUDED
+#pragma once
 
 #include <string>
 #include <vector>
@@ -77,6 +76,15 @@ template<> struct MPIDataType<bool>
     static inline MPI_Datatype DataType()
     {
         return MPI_C_BOOL;
+    }
+    static constexpr int LengthPerObject = 1;
+};
+
+template<> struct MPIDataType<char>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_CHAR;
     }
     static constexpr int LengthPerObject = 1;
 };
@@ -187,6 +195,7 @@ template<> class MPIMessage<unsigned int>: public Internals::ValueMessage<unsign
 template<> class MPIMessage<long unsigned int>: public Internals::ValueMessage<long unsigned int>, public Internals::MPIDataType<long unsigned int> {};
 template<> class MPIMessage<double>: public Internals::ValueMessage<double>, public Internals::MPIDataType<double> {};
 template<> class MPIMessage<bool>: public Internals::ValueMessage<bool>, public Internals::MPIDataType<bool> {};
+template<> class MPIMessage<char>: public Internals::ValueMessage<char>, public Internals::MPIDataType<char> {};
 template<> class MPIMessage<Flags::BlockType>: public Internals::ValueMessage<Flags::BlockType>, public Internals::MPIDataType<Flags::BlockType> {};
 
 template<> class MPIMessage<std::string>: public Internals::StringMessage, public Internals::MPIDataType<std::string> {};
@@ -195,5 +204,3 @@ template<class ValueType> class MPIMessage< std::vector<ValueType> >: public Int
 template<class ValueType, std::size_t Dimension> class MPIMessage<array_1d<ValueType,Dimension>>: public Internals::ArrayMessage<ValueType,Dimension>, public Internals::MPIDataType<ValueType> {};
 
 } // namespace Kratos
-
-#endif // KRATOS_MPI_MESSAGE_H_INCLUDED

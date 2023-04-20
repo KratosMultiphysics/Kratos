@@ -3,18 +3,18 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher
 //
 
-#if !defined(KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
+
 // Project includes
 #include "custom_conditions/base_load_condition.h"
 
@@ -326,5 +326,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED  defined

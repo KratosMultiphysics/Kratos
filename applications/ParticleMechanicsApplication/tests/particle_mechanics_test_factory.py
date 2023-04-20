@@ -85,6 +85,9 @@ class CooksMembraneUPIncompressibleTest(ParticleMechanicsTestFactory):
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
 
+class CLDispNewtonianFluidTest(ParticleMechanicsTestFactory):
+    file_name = "cl_tests/fluid_cl/newtonian_fluid_test"
+
 ### Gravity Application Tests
 class GravityApplicationTest(ParticleMechanicsTestFactory):
     file_name = "gravity_tests/dynamic_gravity_application_test"

@@ -20,7 +20,6 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    @KratosUnittest.skip("MCGICJN2 27/6/22 - Test Ignored - Investigation Underway")
     def test_interface_side_cohesive(self):
         """
         Tests an interface between a fixed line-element with and a non-fixed surface.
@@ -48,7 +47,6 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
             self.assertLess(error_gauss_1, precision)
             self.assertLess(error_gauss_2, precision)
 
-    @KratosUnittest.skip("MCGICJN2 27/6/22 - Test Ignored - Investigation Underway")
     def test_interface_on_beam(self):
         """
         Tests an interface on a beam. In this test a calculation is done with and without interface,
@@ -90,7 +88,6 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         self.assertLess(abs(max_interface_y_displacement - max_base_y_displacement), precision*max_base_y_displacement)
         self.assertLess(abs(min_interface_y_displacement - min_base_y_displacement), precision*max_base_y_displacement)
 
-    @KratosUnittest.skip("MCGICJN2 27/6/22 - Test Ignored - Investigation Underway")
     def test_weak_interface_on_beam(self):
         """
         Tests an interface on a beam. In this test a calculation is done with a very weak interface.

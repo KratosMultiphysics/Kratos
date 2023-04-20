@@ -71,6 +71,20 @@
         "loads_process_list"       : [],
         "list_other_processes"     : []
     }
+	//"_json_output_process" : [
+	//{
+	//	"python_module"   : "json_output_process",
+	//	"kratos_module" : "KratosMultiphysics",
+	//	"help"                  : "",
+	//	"process_name"          : "JsonOutputProcess",
+	//	"Parameters"            : {
+	//		"gauss_points_output_variables" : ["DAMAGE","UNIAXIAL_STRESS"],
+	//		"output_file_name"              : "HighCycleFatigue/high_cycle_fatigue_test_results.json",
+	//		"model_part_name"               : "Structure.Parts_Parts_Auto1",
+	//		"time_frequency"                : 3.0
+	//	}
+	//}
+	
     // "_json_output_process" : [
     // {
     //     "python_module"   : "json_output_process",

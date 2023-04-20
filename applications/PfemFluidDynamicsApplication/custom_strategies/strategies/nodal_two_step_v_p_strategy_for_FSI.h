@@ -814,8 +814,8 @@ namespace Kratos
 				{
 					rNodeOrderedNeighbours[k + 1] = neighb_nodes[k].Id();
 				}
+				}
 			}
-		}
 
 		void SetNeighboursOrderToInterfaceNode(ModelPart::NodeIterator itNode)
 		{

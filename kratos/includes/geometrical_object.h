@@ -55,7 +55,7 @@ namespace Kratos
  * @details Derives from IndexedObject, so it has an ID, and from Flags
  * @author Pooyan Dadvand
 */
-class GeometricalObject : public IndexedObject, public Flags
+class KRATOS_API(KRATOS_CORE) GeometricalObject : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
@@ -261,6 +261,12 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Checks if the GeometricalObject is active
+     * @return True by default, otherwise depending on the ACTIVE flag
+     */
+    bool IsActive() const;
 
     /**
      * @brief Checks if two GeometricalObject have the same type

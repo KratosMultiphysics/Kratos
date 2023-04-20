@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -25,8 +25,7 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
 {
@@ -90,6 +89,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TORSIONAL_INERTIA)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,I22)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,I33)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,BEAM_INITIAL_STRAIN_VECTOR)
 
     // shell generalized variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, STENBERG_SHEAR_STABILIZATION_SUITABLE )
@@ -220,6 +220,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SURFACE_LOADS_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NEGATIVE_FACE_PRESSURES_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MOVING_LOAD_LOCAL_DISTANCE)
 
     // Displacement-Control variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOAD_FACTOR)
@@ -265,7 +266,6 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IMPOSED_Z_STRAIN_VALUE)
 }
 
-}  // namespace Python.
-}  // namespace Kratos.
+}  // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

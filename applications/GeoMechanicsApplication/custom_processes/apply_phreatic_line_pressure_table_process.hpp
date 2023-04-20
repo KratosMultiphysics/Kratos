@@ -51,7 +51,7 @@ public:
 
         mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ public:
                         rNode.FastGetSolutionStepValue(var) = pressure;
                         if (mIsFixed) rNode.Fix(var);
                     } else {
-                        rNode.Free(var);
+                        if (mIsFixedProvided) rNode.Free(var);
                     }
                 });
             } else {
@@ -115,7 +115,7 @@ public:
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.

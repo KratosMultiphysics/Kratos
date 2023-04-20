@@ -1,22 +1,21 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:                 RRossi $
-//   Date:                $Date:                     2008 $
-//   Revision:            $Revision                   0.0 $
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
+#pragma once
 
-#if !defined(KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME )
-#define  KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME
+// System includes
 
+// External includes
 
-/* System includes */
-
-
-/* External includes */
-
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
@@ -722,6 +721,4 @@ private:
 /*@} */
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME  defined */
 

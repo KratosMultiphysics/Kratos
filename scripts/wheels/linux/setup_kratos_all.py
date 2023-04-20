@@ -31,9 +31,10 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Mathematics",
@@ -45,5 +46,5 @@ setuptools.setup(
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console"
     ],
-    python_requires='>=3.5',
+    python_requires='>=3.8',
 )

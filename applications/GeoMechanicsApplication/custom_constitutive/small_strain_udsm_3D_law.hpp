@@ -442,8 +442,8 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       pF_GetStateVarCount pGetStateVarCount;
       pF_UserMod          pUserMod;
 
-      bool mIsModelInitialized;
-      bool mIsUDSMLoaded;
+      bool mIsModelInitialized = false;
+      bool mIsUDSMLoaded = false;
 
       //AttributesUDSM mAttributes;
       array_1d<int, 4> mAttributes;

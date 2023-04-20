@@ -1,17 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher
 //
 
-#if !defined(KRATOS_GID_EIGEN_IO_H_INCLUDED )
-#define  KRATOS_GID_EIGEN_IO_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -19,7 +17,6 @@
 
 // Project includes
 #include "includes/gid_io.h"
-
 
 namespace Kratos
 {
@@ -261,6 +258,4 @@ class GidEigenIO : public GidIO<>
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GID_EIGEN_IO_H_INCLUDED  defined
 
