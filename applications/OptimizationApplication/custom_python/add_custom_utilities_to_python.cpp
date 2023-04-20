@@ -66,20 +66,6 @@ struct CollectiveShapeInfo
     const int* const mpNumberOfEntitiesInContainers;
 };
 
-/**
- * @brief Forbids the casting by defining the forbidden type methods.
- *
- * pybind11 casts to the method arguments types which ever is passed from python side. If the types
- * are not matching, then a new object is made from copying and then casting. For large vectors this is
- * an expensive operation. Therefore, this macro is used to forbid the casting and throw an error
- * if an unsupported numpy array is passed to the function.
- *
- */
-#define KRATOS_FORBIDDEN_CAST(METHOD_NAME, SELF_TYPE, CONST, DATA_TYPE)                                       \
-    .def(METHOD_NAME, [](SELF_TYPE& rSelf, CONST py::array_t<DATA_TYPE>& rData, const CollectiveShapeInfo&) { \
-        KRATOS_ERROR << "Unsupported numpy array is passed. Please change "                                   \
-                     << "it to dtype = numpy.float64. [ data_type = " << #DATA_TYPE << " ].\n"; }, py::arg("numpy_data_array"), py::arg("collective_shape_info"))
-
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -178,17 +164,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                        rCollectiveShapeInfo.mpNumberOfDimensionsInShapes,
                        rCollectiveShapeInfo.mpNumberOfEntitiesInContainers,
                        rCollectiveShapeInfo.mNumberOfContainers);
-        }, py::arg("numpy_data_array"), py::arg("collective_shape_info"))
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, float)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, long double)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, int8_t)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, int16_t)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, int32_t)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, int64_t)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, uint8_t)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, uint16_t)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, uint32_t)
-        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, uint64_t)
+        }, py::arg("numpy_data_array").noconvert(), py::arg("collective_shape_info"))
         .def("Read", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Read), py::arg("variable"))
         .def("Read", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Read), py::arg("variables_list"))
         .def("MoveFrom", [](CollectiveExpressions& rSelf, py::array_t<double>& rData, const CollectiveShapeInfo& rCollectiveShapeInfo){
@@ -199,17 +175,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                            rCollectiveShapeInfo.mpNumberOfDimensionsInShapes,
                            rCollectiveShapeInfo.mpNumberOfEntitiesInContainers,
                            rCollectiveShapeInfo.mNumberOfContainers);
-        }, py::arg("numpy_data_array"), py::arg("collective_shape_info"))
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , float)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , long double)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , int8_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , int16_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , int32_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , int64_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , uint8_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , uint16_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , uint32_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , uint64_t)
+        }, py::arg("numpy_data_array").noconvert(), py::arg("collective_shape_info"))
         .def("Evaluate", [](const CollectiveExpressions& rSelf){
             const IndexType size = rSelf.GetCollectiveFlattenedDataSize();
             auto array = AllocateNumpyArray<double>(size, {});
@@ -280,8 +246,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         ;
 }
-
-#undef KRATOS_FORBIDDEN_CAST
 
 }  // namespace Python.
 } // Namespace Kratos

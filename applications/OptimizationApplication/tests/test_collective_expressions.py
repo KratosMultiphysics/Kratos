@@ -485,35 +485,35 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         total_entities = self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1
         collective_shape_info = KratosOA.ContainerExpression.CollectiveShapeInfo(flat_dimension_sizes_list, number_of_dimensions, number_of_entities)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities)
             collective.Read(numpy_array, collective_shape_info)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.float32)
             collective.Read(numpy_array, collective_shape_info)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int32)
             collective.Read(numpy_array, collective_shape_info)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
             collective.Read(numpy_array, collective_shape_info)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities)
             collective.MoveFrom(numpy_array, collective_shape_info)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.float32)
             collective.MoveFrom(numpy_array, collective_shape_info)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int32)
             collective.MoveFrom(numpy_array, collective_shape_info)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
             collective.MoveFrom(numpy_array, collective_shape_info)
 
