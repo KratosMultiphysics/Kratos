@@ -581,6 +581,24 @@ bool Parameters::IsArray() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool Parameters::IsStringArray() const
+{
+    if (!mpValue->is_array()) {
+        return false;
+    } else {
+        const auto& r_array = (*mpValue);
+        for (IndexType i = 0; i < mpValue->size(); ++i) {
+            if (!r_array[i].is_string()) {
+                return false;
+            }
+        }
+        return true; // All entries are numbers or Vector is empty
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool Parameters::IsVector() const
 {
     if (!mpValue->is_array())
