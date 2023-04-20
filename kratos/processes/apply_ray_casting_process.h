@@ -51,6 +51,9 @@ public:
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", ApplyRayCastingProcess<TDim>)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", ApplyRayCastingProcess<TDim>)
+
     //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
     using CellType = OctreeBinaryCell<ConfigurationType>;
@@ -323,9 +326,6 @@ protected:
     ///@name Un accessible methods
     ///@{
 
-private:
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", ApplyRayCastingProcess<TDim>)
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", ApplyRayCastingProcess<TDim>)
 
 
     ///@}

@@ -44,11 +44,20 @@ public:
     /// Pointer definition of ApplyRayCastingInterfaceRecognitionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingInterfaceRecognitionProcess);
 
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", ApplyRayCastingInterfaceRecognitionProcess<TDim>)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", ApplyRayCastingInterfaceRecognitionProcess<TDim>)
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     using BaseType = ApplyRayCastingProcess<TDim>;
+
+
+    /**
+     * @brief Default constructor, needed for registry.
+     */
+    ApplyRayCastingInterfaceRecognitionProcess() = default;
 
     /**
      * @brief Construct a new ApplyRayCastingProcess object using model
@@ -80,9 +89,6 @@ public:
     ///@}
     ///@name Deleted
     ///@{
-
-    /// Default constructor, needed for registry
-    ApplyRayCastingInterfaceRecognitionProcess() {}
 
     /// Copy constructor.
     ApplyRayCastingInterfaceRecognitionProcess(ApplyRayCastingInterfaceRecognitionProcess const& rOther) = delete;
@@ -156,9 +162,6 @@ protected:
     ///@name Un accessible methods
     ///@{
 
-private:
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", ApplyRayCastingInterfaceRecognitionProcess<TDim>)
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", ApplyRayCastingInterfaceRecognitionProcess<TDim>)
 
 
     ///@}
