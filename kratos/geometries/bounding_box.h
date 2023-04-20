@@ -51,10 +51,8 @@ public:
     /// Default constructor
     BoundingBox()
     {
-        for (unsigned int i = 0; i < Dimension; i++) {
-            GetMinPoint()[i] = 0.0;
-            GetMaxPoint()[i] = 0.0;
-        }
+        std::fill(GetMinPoint().begin(), GetMinPoint().end(), 0.0);
+        std::fill(GetMaxPoint().begin(), GetMaxPoint().end(), 0.0);
     };
 
     BoundingBox(TPointType const& MinPoint, TPointType const& MaxPoint) :
@@ -96,10 +94,8 @@ public:
     void Set(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd)
     {
         if (PointsBegin == PointsEnd) {
-            for (unsigned int i = 0; i < Dimension; i++) {
-                GetMinPoint()[i] = 0.00;
-                GetMaxPoint()[i] = 0.00;
-            }
+            std::fill(GetMinPoint().begin(), GetMinPoint().end(), 0.0);
+            std::fill(GetMaxPoint().begin(), GetMaxPoint().end(), 0.0);
             return;
         }
 
