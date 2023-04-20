@@ -31,8 +31,54 @@
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
 
+
 namespace Kratos {
 namespace Python {
+
+struct CollectiveShapeInfo
+{
+    CollectiveShapeInfo(
+        const pybind11::array_t<int>& rShapes,
+        const pybind11::array_t<int>& rNumberOfDimensionsInShapes,
+        const pybind11::array_t<int>& rNumberOfEntitiesInContainers)
+        : mNumberOfContainers(rNumberOfEntitiesInContainers.size()),
+          mpShapes(rShapes.data()),
+          mpNumberOfDimensionsInShapes(rNumberOfDimensionsInShapes.data()),
+          mpNumberOfEntitiesInContainers(rNumberOfEntitiesInContainers.data())
+    {
+        KRATOS_ERROR_IF_NOT(rNumberOfDimensionsInShapes.size() == rNumberOfEntitiesInContainers.size())
+            << "Number of items in rNumberOfDimensionsInShapes and "
+               "rNumberOfEntitiesInContainers must be same. [ "
+               "rNumberOfDimensionsInShapes.size() = "
+            << rNumberOfDimensionsInShapes.size() << ", rNumberOfEntitiesInContainers.size() = "
+            << rNumberOfEntitiesInContainers.size() << " ].\n";
+
+        const int number_of_required_items_in_shape = std::accumulate(rNumberOfDimensionsInShapes.data(), rNumberOfDimensionsInShapes.data() + rNumberOfDimensionsInShapes.size(), 0);
+        KRATOS_ERROR_IF_NOT(rShapes.size() == number_of_required_items_in_shape)
+            << "Number of items in the flattened rShapes should be the sum of values in rNumberOfDimensionsInShapes [ rShapes.size() = "
+            << rShapes.size() << ", sum of values in rNumberOfDimensionsInShapes = "
+            << number_of_required_items_in_shape << " ].\n";
+    }
+
+    const int mNumberOfContainers;
+    const int* const mpShapes;
+    const int* const mpNumberOfDimensionsInShapes;
+    const int* const mpNumberOfEntitiesInContainers;
+};
+
+/**
+ * @brief Forbids the casting by defining the forbidden type methods.
+ *
+ * pybind11 casts to the method arguments types which ever is passed from python side. If the types
+ * are not matching, then a new object is made from copying and then casting. For large vectors this is
+ * an expensive operation. Therefore, this macro is used to forbid the casting and throw an error
+ * if an unsupported numpy array is passed to the function.
+ *
+ */
+#define KRATOS_FORBIDDEN_CAST(METHOD_NAME, SELF_TYPE, CONST, DATA_TYPE)                                       \
+    .def(METHOD_NAME, [](SELF_TYPE& rSelf, CONST py::array_t<DATA_TYPE>& rData, const CollectiveShapeInfo&) { \
+        KRATOS_ERROR << "Unsupported numpy array is passed. Please change "                                   \
+                     << "it to dtype = numpy.float64. [ data_type = " << #DATA_TYPE << " ].\n"; }, py::arg("numpy_data_array"), py::arg("collective_shape_info"))
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -114,6 +160,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties>(sub_module, "ConditionPropertiesExpression");
     AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::Properties>(sub_module, "ElementPropertiesExpression");
 
+    py::class_<CollectiveShapeInfo>(sub_module, "CollectiveShapeInfo")
+        .def(py::init<const pybind11::array_t<int>&, const pybind11::array_t<int>&, const pybind11::array_t<int>&>(), py::arg("flat_dimension_sizes_list"), py::arg("number_of_dimensions_for_each_container"), py::arg("number_of_entities_for_each_container"))
+        ;
+
     py::class_<CollectiveExpressions, CollectiveExpressions::Pointer>(sub_module, "CollectiveExpressions")
         .def(py::init<>())
         .def(py::init<const CollectiveExpressions&>())
@@ -121,6 +171,54 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Add", py::overload_cast<const CollectiveExpressions::CollectiveExpressionType&>(&CollectiveExpressions::Add))
         .def("Add", py::overload_cast<const CollectiveExpressions&>(&CollectiveExpressions::Add))
         .def("Clear", &CollectiveExpressions::Clear)
+        .def("Read", [](CollectiveExpressions& rSelf, const py::array_t<double>& rData, const CollectiveShapeInfo& rCollectiveShapeInfo){
+            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
+            rSelf.Read(rData.data(),
+                       rCollectiveShapeInfo.mpShapes,
+                       rCollectiveShapeInfo.mpNumberOfDimensionsInShapes,
+                       rCollectiveShapeInfo.mpNumberOfEntitiesInContainers,
+                       rCollectiveShapeInfo.mNumberOfContainers);
+        }, py::arg("numpy_data_array"), py::arg("collective_shape_info"))
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, float)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, long double)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, int8_t)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, int16_t)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, int32_t)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, int64_t)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, uint8_t)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, uint16_t)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, uint32_t)
+        KRATOS_FORBIDDEN_CAST("Read", CollectiveExpressions, const, uint64_t)
+        .def("Read", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Read), py::arg("variable"))
+        .def("Read", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Read), py::arg("variables_list"))
+        .def("MoveFrom", [](CollectiveExpressions& rSelf, py::array_t<double>& rData, const CollectiveShapeInfo& rCollectiveShapeInfo){
+            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
+
+            rSelf.MoveFrom(rData.mutable_data(),
+                           rCollectiveShapeInfo.mpShapes,
+                           rCollectiveShapeInfo.mpNumberOfDimensionsInShapes,
+                           rCollectiveShapeInfo.mpNumberOfEntitiesInContainers,
+                           rCollectiveShapeInfo.mNumberOfContainers);
+        }, py::arg("numpy_data_array"), py::arg("collective_shape_info"))
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , float)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , long double)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , int8_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , int16_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , int32_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , int64_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , uint8_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , uint16_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , uint32_t)
+        KRATOS_FORBIDDEN_CAST("MoveFrom", CollectiveExpressions, , uint64_t)
+        .def("Evaluate", [](const CollectiveExpressions& rSelf){
+            const IndexType size = rSelf.GetCollectiveFlattenedDataSize();
+            auto array = AllocateNumpyArray<double>(size, {});
+            rSelf.Evaluate(array.mutable_data(), size);
+            return array;
+        })
+        .def("Evaluate", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Evaluate), py::arg("variable"))
+        .def("Evaluate", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Evaluate), py::arg("variables_list"))
+        .def("GetCollectiveFlattenedDataSize", &CollectiveExpressions::GetCollectiveFlattenedDataSize)
         .def("GetContainerExpressions", py::overload_cast<>(&CollectiveExpressions::GetContainerExpressions))
         .def("IsCompatibleWith", &CollectiveExpressions::IsCompatibleWith)
         .def("Clone", &CollectiveExpressions::Clone)
@@ -182,6 +280,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         ;
 }
+
+#undef KRATOS_FORBIDDEN_CAST
 
 }  // namespace Python.
 } // Namespace Kratos
