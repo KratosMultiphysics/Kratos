@@ -147,7 +147,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::Properties>(sub_module, "ElementPropertiesExpression");
 
     py::class_<CollectiveShapeInfo>(sub_module, "CollectiveShapeInfo")
-        .def(py::init<const pybind11::array_t<int>&, const pybind11::array_t<int>&, const pybind11::array_t<int>&>(), py::arg("flat_dimension_sizes_list"), py::arg("number_of_dimensions_for_each_container"), py::arg("number_of_entities_for_each_container"))
+        .def(py::init<const pybind11::array_t<int>&, const pybind11::array_t<int>&, const pybind11::array_t<int>&>(), py::arg("flat_dimension_sizes_list").noconvert(), py::arg("number_of_dimensions_for_each_container").noconvert(), py::arg("number_of_entities_for_each_container").noconvert())
         ;
 
     py::class_<CollectiveExpressions, CollectiveExpressions::Pointer>(sub_module, "CollectiveExpressions")

@@ -110,6 +110,8 @@ void ContainerExpression<TContainerType>::MoveFrom(
     std::vector<IndexType> shape(ShapeSize);
     std::copy(pShapeBegin, pShapeBegin + ShapeSize, shape.begin());
 
+    KRATOS_WATCH(shape);
+
     auto p_expression = LiteralFlatExpression::Create(pBegin, number_of_entities, shape);
     this->mpExpression = p_expression;
 
