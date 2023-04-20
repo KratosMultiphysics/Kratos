@@ -47,6 +47,7 @@
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
@@ -140,6 +141,7 @@ KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_X_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_Y_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_Z_VALUE)
 KRATOS_CREATE_VARIABLE(bool, IS_GHOST)
+KRATOS_CREATE_VARIABLE(int, GROUP_ID)
 
 // *************** Continuum only BEGIN *************
 KRATOS_CREATE_VARIABLE(bool, DELTA_OPTION)
@@ -262,7 +264,8 @@ KRATOS_CREATE_VARIABLE(double, BOND_SIGMA_MAX_DEVIATION)
 KRATOS_CREATE_VARIABLE(double, BOND_TAU_ZERO)
 KRATOS_CREATE_VARIABLE(double, BOND_TAU_ZERO_DEVIATION)
 KRATOS_CREATE_VARIABLE(double, BOND_INTERNAL_FRICC)
-KRATOS_CREATE_VARIABLE(double, BOND_ROTATIONAL_MOMENT_COEFFICIENT)
+KRATOS_CREATE_VARIABLE(double, BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL)
+KRATOS_CREATE_VARIABLE(double, BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL)
 KRATOS_CREATE_VARIABLE(double, BOND_RADIUS_FACTOR)
 KRATOS_CREATE_VARIABLE(double, K_ALPHA) // for DEM_D_Quadratic_LAW
 
@@ -615,6 +618,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(INITIAL_ANGULAR_VELOCITY_Y_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_ANGULAR_VELOCITY_Z_VALUE)
     KRATOS_REGISTER_VARIABLE(IS_GHOST)
+    KRATOS_REGISTER_VARIABLE(GROUP_ID)
 
     // *************** Continuum only BEGIN *************
     KRATOS_REGISTER_VARIABLE(DELTA_OPTION)
@@ -731,7 +735,8 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(BOND_TAU_ZERO)
     KRATOS_REGISTER_VARIABLE(BOND_TAU_ZERO_DEVIATION)
     KRATOS_REGISTER_VARIABLE(BOND_INTERNAL_FRICC)
-    KRATOS_REGISTER_VARIABLE(BOND_ROTATIONAL_MOMENT_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL)
+    KRATOS_REGISTER_VARIABLE(BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL)
     KRATOS_REGISTER_VARIABLE(BOND_RADIUS_FACTOR)
 
     // *************** Continuum only END *************
@@ -1009,6 +1014,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     Serializer::Register("DEM_parallel_bond", DEM_parallel_bond());
+    Serializer::Register("DEM_parallel_bond_for_membrane", DEM_parallel_bond_for_membrane());
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());
     Serializer::Register("DEMRollingFrictionModelBounded", DEMRollingFrictionModelBounded());
