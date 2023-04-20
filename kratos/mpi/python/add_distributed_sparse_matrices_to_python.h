@@ -10,23 +10,19 @@
 //  Main author:     Riccardo Rossi
 //
 
-#ifndef KRATOS_ADD_DISTRIBUTED_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED
-#define KRATOS_ADD_DISTRIBUTED_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
-#include "includes/define_python.h"
+#include <pybind11/pybind11.h>
 
 // Project includes
+#include "includes/define_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddDistributedSparseMatricesToPython(pybind11::module& m);
 
-} // namespace Python
-} // namespace Kratos
-
-#endif // KRATOS_ADD_DISTRIBUTED_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED
+} // namespace Kratos::Python
 
