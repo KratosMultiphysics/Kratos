@@ -48,7 +48,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor deleted.
+    /// Default constructor
     BoundingBox()
     {
         for (unsigned int i = 0; i < Dimension; i++) {
