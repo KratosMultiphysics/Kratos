@@ -40,16 +40,16 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElementLinearBase
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElementLinearBase);
 
-    typedef GeoTrussElementBase<TDim,TNumNodes> BaseType;
-    typedef Element::GeometryType GeometryType;
-    typedef Element::NodesArrayType NodesArrayType;
-    typedef Element::PropertiesType PropertiesType;
-    typedef Element::IndexType IndexType;
-    typedef Element::SizeType SizeType;
-    typedef Element::MatrixType MatrixType;
-    typedef Element::VectorType VectorType;
-    typedef typename GeoTrussElementBase<TDim,TNumNodes>::FullDofMatrixType FullDofMatrixType;
-    typedef typename GeoTrussElementBase<TDim,TNumNodes>::FullDofVectorType FullDofVectorType;
+    using BaseType = GeoTrussElementBase<TDim, TNumNodes>;
+    using GeometryType = Element::GeometryType;
+    using NodesArrayType = Element::NodesArrayType;
+    using PropertiesType = Element::PropertiesType;
+    using IndexType = Element::IndexType;
+    using SizeType = Element::SizeType;
+    using MatrixType = Element::MatrixType;
+    using VectorType = Element::VectorType;
+    using FullDofMatrixType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType;
+    using FullDofVectorType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType;
 
     using GeoTrussElementBase<TDim,TNumNodes>::mpConstitutiveLaw;
 

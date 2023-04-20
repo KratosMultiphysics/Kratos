@@ -67,6 +67,8 @@ namespace Kratos
  * @ingroup TrilinosApplication
  * @brief The space adapted for Trilinos vectors and matrices
  * @author Riccardo Rossi
+ * @tparam TMatrixType The matrix type considered
+ * @tparam TVectorType the vector type considered
  */
 template<class TMatrixType, class TVectorType>
 class TrilinosSpace
@@ -418,26 +420,31 @@ public:
         const bool EnforceInitialGraph = false
         )
     {
+        // Define first auxiliary matrix
+        std::vector<int> NumNz;
+        MatrixType aux_1(::Copy, rA.RowMap(), NumNz.data());
+
+        // First multiplication
+        TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
+
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
-            // Define first auxiliary matrix
-            MatrixType aux(::Copy, rA.Graph());
-
-            // First multiplication
-            TransposeMult(rB, rD, aux, {true, false}, CallFillCompleteOnResult, true);
-
-            // Empty the solution Epetra_Matrix
-            SetToZero(rA);
-
             // Second multiplication
-            Mult(aux, rB, rA, CallFillCompleteOnResult, true);
-        } else { // A new matrix
-            // Define first auxiliary matrix
-            std::vector<int> NumNz;
-            MatrixType aux_1(::Copy, rA.RowMap(), NumNz.data());
+            MatrixType aux_2(::Copy, rA.RowMap(), NumNz.data());
+            Mult(aux_1, rB, aux_2, CallFillCompleteOnResult, KeepAllHardZeros);
 
-            // First multiplication
-            TransposeMult(rB, rD, aux_1, {true, false}, CallFillCompleteOnResult, KeepAllHardZeros);
+            // Create an Epetra_Matrix
+            MatrixType* aux_3 =  new MatrixType(::Copy, CombineMatricesGraphs(rA, aux_2));
+
+            // Copy values
+            CopyMatrixValues(*aux_3, aux_2);
+
+            // Doing a swap
+            std::swap(rA, *aux_3);
+
+            // Delete the new matrix
+            delete aux_3;
+        } else { // A new matrix
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
                 // Create an Epetra_Matrix
@@ -476,26 +483,31 @@ public:
         const bool EnforceInitialGraph = false
         )
     {
+        // Define first auxiliary matrix
+        std::vector<int> NumNz;
+        MatrixType aux_1(::Copy, rA.RowMap(), NumNz.data());
+
+        // First multiplication
+        Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
+
         // If we enforce the initial connectivity
         if (EnforceInitialGraph) {
-            // Define first auxiliary matrix
-            MatrixType aux(::Copy, rA.Graph());
-
-            // First multiplication
-            Mult(rB, rD, aux, CallFillCompleteOnResult, true);
-
-            // Empty the solution Epetra_Matrix
-            SetToZero(rA);
-
             // Second multiplication
-            TransposeMult(aux, rB, rA, {false, true}, CallFillCompleteOnResult, true);
-        } else { // A new matrix
-            // Define first auxiliary matrix
-            std::vector<int> NumNz;
-            MatrixType aux_1(::Copy, rB.RowMap(), NumNz.data());
+            MatrixType aux_2(::Copy, rA.RowMap(), NumNz.data());
+            TransposeMult(aux_1, rB, aux_2, {false, true}, CallFillCompleteOnResult, KeepAllHardZeros);
 
-            // First multiplication
-            Mult(rB, rD, aux_1, CallFillCompleteOnResult, KeepAllHardZeros);
+            // Create an Epetra_Matrix
+            MatrixType* aux_3 =  new MatrixType(::Copy, CombineMatricesGraphs(rA, aux_2));
+
+            // Copy values
+            CopyMatrixValues(*aux_3, aux_2);
+
+            // Doing a swap
+            std::swap(rA, *aux_3);
+
+            // Delete the new matrix
+            delete aux_3;
+        } else { // A new matrix
             // Already existing matrix
             if (rA.NumGlobalNonzeros() > 0) {
                 // Create an Epetra_Matrix
@@ -1080,6 +1092,91 @@ public:
     }
 
     /**
+     * @brief Generates a graph combining the graphs of two matrices
+     * @param rA The first matrix
+     * @param rB The second matrix
+     */
+    static Epetra_CrsGraph CombineMatricesGraphs(
+        const MatrixType& rA,
+        const MatrixType& rB
+        )
+    {
+        // Row maps must be the same
+        KRATOS_ERROR_IF_NOT(rA.RowMap().SameAs(rB.RowMap())) << "Row maps are not compatible" << std::endl;
+
+        // Gettings the graphs
+        const auto& r_graph_a = rA.Graph();
+        const auto& r_graph_b = rB.Graph();
+
+        // Assuming local indexes
+        KRATOS_ERROR_IF_NOT(r_graph_a.IndicesAreLocal() && r_graph_b.IndicesAreLocal()) << "Graphs indexes must be local" << std::endl;
+
+        // Some definitions
+        int i, j, ierr;
+        int num_entries; // Number of non-zero entries
+        int* cols;       // Column indices of row non-zero values
+        std::unordered_set<int> combined_indexes;
+        const bool same_col_map = rA.ColMap().SameAs(rB.ColMap());
+        Epetra_CrsGraph graph = same_col_map ? Epetra_CrsGraph(::Copy, rA.RowMap(), rA.ColMap(), 1000) : Epetra_CrsGraph(::Copy, rA.RowMap(), 1000);
+
+        // Same column map. Local indices, simpler and faster
+        if (same_col_map) {
+            for (i = 0; i < r_graph_a.NumMyRows(); i++) {
+                // First graph
+                ierr = r_graph_a.ExtractMyRowView(i, num_entries, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (I) with code ierr = " << ierr << std::endl;
+                for (j = 0; j < num_entries; j++) {
+                    combined_indexes.insert(cols[j]);
+                }
+                // Second graph
+                ierr = r_graph_b.ExtractMyRowView(i, num_entries, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (II) with code ierr = " << ierr << std::endl;
+                for (j = 0; j < num_entries; j++) {
+                    combined_indexes.insert(cols[j]);
+                }
+                // Vector equivalent
+                std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
+                num_entries = combined_indexes_vector.size();
+                // Adding to graph
+                ierr = graph.InsertMyIndices(i, num_entries, combined_indexes_vector.data());
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
+                // Clear set
+                combined_indexes.clear();
+            }
+        } else { // Different column map, global indices
+            for (i = 0; i < r_graph_a.NumMyRows(); i++) {
+                const int global_row_index = r_graph_a.GRID(i);
+                // First graph
+                ierr = r_graph_a.ExtractMyRowView(i, num_entries, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (I) with code ierr = " << ierr << std::endl;
+                for (j = 0; j < num_entries; j++) {
+                    combined_indexes.insert(r_graph_a.GCID(cols[j]));
+                }
+                // Second graph
+                ierr = r_graph_b.ExtractMyRowView(i, num_entries, cols);
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found extracting indices (II) with code ierr = " << ierr << std::endl;
+                for (j = 0; j < num_entries; j++) {
+                    combined_indexes.insert(r_graph_b.GCID(cols[j]));
+                }
+                // Vector equivalent
+                std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
+                num_entries = combined_indexes_vector.size();
+                // Adding to graph
+                ierr = graph.InsertGlobalIndices(global_row_index, num_entries, combined_indexes_vector.data());
+                KRATOS_ERROR_IF(ierr != 0) << "Epetra failure inserting indices with code ierr = " << ierr << std::endl;
+                // Clear set
+                combined_indexes.clear();
+            }
+        }
+
+        // Finalizing graph construction
+        ierr = graph.FillComplete();
+        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_CrsGraph.FillComplete. Error code: " << ierr << std::endl;
+
+        return graph;
+    }
+
+    /**
      * @brief Copy values from one matrix to another
      * @details It is assumed that the sparcity of both matrices is compatible
      * @param rA The matrix where assigning values
@@ -1090,6 +1187,9 @@ public:
         const MatrixType& rB
         )
     {
+        // Cleaning destination matrix
+        SetToZero(rA);
+
         // Copy values from rB to intermediate
         int i, ierr;
         int num_entries; // Number of non-zero entries (rB matrix)

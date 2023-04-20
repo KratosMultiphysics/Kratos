@@ -169,7 +169,6 @@ typedef Node<3> NodeType;
         auto curve = GenerateReferenceCurve2d();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(curve.Dimension(), 1);
         KRATOS_CHECK_EQUAL(curve.WorkingSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(curve.LocalSpaceDimension(), 1);
         KRATOS_CHECK_EQUAL(curve.IsRational(), false);
@@ -215,7 +214,6 @@ typedef Node<3> NodeType;
         auto curve = GenerateReferenceCurve3d();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(curve.Dimension(), 1);
         KRATOS_CHECK_EQUAL(curve.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(curve.LocalSpaceDimension(), 1);
         KRATOS_CHECK_EQUAL(curve.IsRational(), true);
