@@ -817,7 +817,6 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsStringArray, KratosCoreFastSuite)
         ]
     })");
 
-    // Check the IsVector Method
     for (std::size_t i = 0;  i < tmp["valid_string_arrays"].size(); ++i) {
         const auto& valid_vector = tmp["valid_string_arrays"][i];
         KRATOS_CHECK(valid_vector.IsStringArray());
