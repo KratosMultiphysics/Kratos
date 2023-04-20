@@ -393,35 +393,35 @@ class TestContainerExpression(ABC):
     def test_NumpyForbiddenCasts(self):
         a = self._GetSpecializedContainerExpression()
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(RuntimeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()))
             a.Read(numpy_array)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(RuntimeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.float32)
             a.Read(numpy_array)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(RuntimeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
             a.Read(numpy_array)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(RuntimeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int64)
             a.Read(numpy_array)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(RuntimeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()))
             a.MoveFrom(numpy_array)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(RuntimeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.float32)
             a.MoveFrom(numpy_array)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(RuntimeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
             a.MoveFrom(numpy_array)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(RuntimeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int64)
             a.MoveFrom(numpy_array)
 
