@@ -26,7 +26,7 @@ class RomManager(object):
 
 
 
-    def Fit(self, mu_train=None, store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False):
+    def Fit(self, mu_train=None, store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
         if mu_train is None:
             mu_train = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         #######################
@@ -46,7 +46,7 @@ class RomManager(object):
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                self.LaunchTrainHROM(mu_train)
+                self.LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
                 hrom_snapshots = self.LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
@@ -91,7 +91,7 @@ class RomManager(object):
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                self.LaunchTrainHROM(mu_train)
+                self.LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
                 hrom_snapshots = self.LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
@@ -236,7 +236,7 @@ class RomManager(object):
         simulation.GetPetrovGalerkinTrainUtility().CalculateAndSaveBasis(np.block(PetrovGalerkinTrainMatrix))
 
 
-    def LaunchTrainHROM(self, mu_train):
+    def LaunchTrainHROM(self, mu_train, store_residuals_projected=False):
         """
         This method should be parallel capable
         """
@@ -253,6 +253,8 @@ class RomManager(object):
             simulation.Run()
             RedidualsSnapshotsMatrix.append(simulation.GetHROM_utility()._GetResidualsProjectedMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
         RedidualsSnapshotsMatrix = np.block(RedidualsSnapshotsMatrix)
+        if store_residuals_projected:
+            self._StoreSnapshotsMatrix('residuals_projected',RedidualsSnapshotsMatrix)
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
         self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
         simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
