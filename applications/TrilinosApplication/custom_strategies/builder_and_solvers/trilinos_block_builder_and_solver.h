@@ -481,14 +481,14 @@ public:
      * @param rModelPart The model part of the problem to solve
      */
     void SetUpDofSet(
-        typename TSchemeType::Pointer pScheme, 
+        typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart
         ) override
     {
         KRATOS_TRY
 
         using DofsVectorType = Element::DofsVectorType;
-        
+
         // Gets the array of elements from the modeler
         DofsVectorType dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -515,6 +515,9 @@ public:
         }
 
         temp_dofs_array.Unique();
+
+        rModelPart.GetCommunicator().SynchronizeDofSet(temp_dofs_array);
+
         BaseType::mDofSet = temp_dofs_array;
 
         // Throws an exception if there are no Degrees of freedom involved in
