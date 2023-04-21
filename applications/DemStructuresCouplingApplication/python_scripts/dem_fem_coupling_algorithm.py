@@ -196,8 +196,9 @@ class Algorithm():
                 os.chdir(self.dem_solution.graphs_path)
                 self.dem_solution.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.dem_solution.time, self.dem_solution.graphs_path)
 
-                self.dem_solution.materialTest.MeasureForcesAndPressure()
-                self.dem_solution.materialTest.PrintGraph(self.dem_solution.time)
+                #old function, we can not use them now #TODO:update it
+                #self.dem_solution.materialTest.MeasureForcesAndPressure()
+                #self.dem_solution.materialTest.PrintGraph(self.dem_solution.time)
 
                 self.dem_solution.DEMFEMProcedures.PrintGraph(self.dem_solution.time)
                 self.dem_solution.DEMFEMProcedures.PrintBallsGraph(self.dem_solution.time)

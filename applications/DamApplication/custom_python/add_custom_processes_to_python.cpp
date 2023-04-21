@@ -88,12 +88,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     // Uplift Condition
     py::class_<DamUpliftConditionLoadProcess, DamUpliftConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftConditionLoadProcess")
-    .def(py::init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, ModelPart&, Parameters&>());
 
     // Uplift Condition for arch dams
     py::class_<DamUpliftCircularConditionLoadProcess, DamUpliftCircularConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftCircularConditionLoadProcess")
-    .def(py::init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, ModelPart&, Parameters&>());
 
    // Westergaard Condition (for hydrostatic + hydrodynamic pressure)
     py::class_<DamWestergaardConditionLoadProcess, DamWestergaardConditionLoadProcess::Pointer, Process>
