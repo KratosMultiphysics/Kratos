@@ -39,9 +39,9 @@ public:
 
     using GeometryType = ModelPart::ElementType::GeometryType;
 
-    typedef array_1d<double, 3> array_3d;
+    using array_3d = array_1d<double, 3>;
 
-    using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
+    using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_3d>*>;
 
     using SensitivityVariableModelPartsListMap = std::unordered_map<SensitivityFieldVariableTypes, std::vector<ModelPart*>>;
 
@@ -49,7 +49,8 @@ public:
     ///@name Static operations
     ///@{
 
-    static double CalculateValue(const std::vector<ModelPart*>& rModelParts, const Parameters& rResponseSettings);
+    static double CalculateValue(const std::vector<ModelPart*>& rModelParts, 
+                                 const Parameters ResponseSettings);
 
     static void CalculateSensitivity(
         const std::vector<ModelPart*>& rEvaluatedModelParts,
@@ -61,7 +62,7 @@ private:
     ///@name Private static operations
     ///@{
 
-    static double CalculateConditionValue(Condition& rCondition, const Parameters& rResponseSettings);
+    static double CalculateConditionValue(const Condition& rCondition, const Parameters& rResponseSettings);
 
     static void CalculateConditionFiniteDifferenceShapeSensitivity(
         Condition& rCondition,
@@ -70,12 +71,12 @@ private:
         std::vector<std::string>& rModelPartNames,
         const Parameters& rResponseSettings,
         const IndexType MaxNodeId,
-        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
+        const Variable<array_3d>& rOutputSensitivityVariable);
 
     static void CalculateFiniteDifferenceShapeSensitivity(
        ModelPart& rModelPart,
        const Parameters& rResponseSettings,
-       const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
+       const Variable<array_3d>& rOutputSensitivityVariable);
 
     ///@}
 };

@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.responses import additive_manufa
 class TestOverHangResponseFunction(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.model = Kratos.Model()    
+        cls.model = Kratos.Model()
         cls.PrepareTest()
         cls.response_util.Initialize()
 
@@ -29,7 +29,7 @@ class TestOverHangResponseFunction(kratos_unittest.TestCase):
                             "gradient_settings":{
                                 "step_size" : 1e-6,
                                 "gradient_mode": "finite_differencing"
-                            }   
+                            }
                         }""")
         cls.response_util = additive_manufacturing_responses.MaxOverhangAngleResponseFunction("overhang",cls.response_settings,cls.model)
 
@@ -45,22 +45,22 @@ class TestOverHangResponseFunction(kratos_unittest.TestCase):
 
         properties = cls.root_model_part.CreateNewProperties(1)
         properties[Kratos.DENSITY] = 2.0
-        cls.root_model_part.CreateNewElement("Element3D8N", 1, [1,2,4,3,5,6,8,7], properties)   
+        cls.root_model_part.CreateNewElement("Element3D8N", 1, [1,2,4,3,5,6,8,7], properties)
 
-        cls.root_model_part.CreateNewCondition("SurfaceCondition3D4N", 1, [1,3,4,2], properties) 
+        cls.root_model_part.CreateNewCondition("SurfaceCondition3D4N", 1, [1,3,4,2], properties)
         cls.root_model_part.CreateNewCondition("SurfaceCondition3D4N", 2, [1,5,7,3], properties)
         cls.root_model_part.CreateNewCondition("SurfaceCondition3D4N", 3, [3,7,8,4], properties)
         cls.root_model_part.CreateNewCondition("SurfaceCondition3D4N", 4, [2,4,8,6], properties)
-        cls.root_model_part.CreateNewCondition("SurfaceCondition3D4N", 5, [1,2,6,5], properties)    
+        cls.root_model_part.CreateNewCondition("SurfaceCondition3D4N", 5, [1,2,6,5], properties)
 
-        
+
         cls.evaluated_model_part.AddNodes([1,2,4,3,5,6,8,7])
         cls.evaluated_model_part.AddConditions([1,2,4,3,5])
 
-        
+
         cls.controlled_model_part.AddNodes([1,2,4,3,5,6,8,7])
         cls.controlled_model_part.AddElements([1])
-        
+
 
     def test_Value(self):
         self.assertAlmostEqual(self.response_util.CalculateValue(), 0.2, 5)
@@ -77,7 +77,7 @@ class TestOverHangResponseFunction(kratos_unittest.TestCase):
         self.assertVectorAlmostEqual(node_3_sens, [-0.1,1.9799,-1.83848], 5)
         self.assertVectorAlmostEqual(node_4_sens, [0.1,1.9799,-1.83848], 5)
         self.assertVectorAlmostEqual(node_5_sens, [-0.1,-1.9799,-1.83848], 5)
-        self.assertVectorAlmostEqual(node_6_sens, [0.1,-1.9799,-1.83848], 5)    
+        self.assertVectorAlmostEqual(node_6_sens, [0.1,-1.9799,-1.83848], 5)
 
 
 if __name__ == "__main__":

@@ -35,19 +35,19 @@ namespace Kratos
 
 double MaxOverhangAngleResponseUtils::CalculateValue(
     const std::vector<ModelPart*>& rModelParts, 
-    const Parameters& rResponseSettings)
+    const Parameters ResponseSettings)
 {
     double value = 0.0;    
     for (auto p_model_part : rModelParts) {
-        const double local_condition_value = block_for_each<SumReduction<double>>(p_model_part->Conditions(), [&](auto& rCondition) {
-            return CalculateConditionValue(rCondition,rResponseSettings);
+        const double local_condition_value = block_for_each<SumReduction<double>>(p_model_part->Conditions(), [&](const auto& rCondition) {
+            return CalculateConditionValue(rCondition,ResponseSettings);
         });
         value += p_model_part->GetCommunicator().GetDataCommunicator().SumAll(local_condition_value);
     }
     
     double total_area = 0.0;
     for (auto p_model_part : rModelParts) {
-        const double local_condition_area = block_for_each<SumReduction<double>>(p_model_part->Conditions(), [&](auto& rCondition) {
+        const double local_condition_area = block_for_each<SumReduction<double>>(p_model_part->Conditions(), [&](const auto& rCondition) {
             return rCondition.GetGeometry().Area();
         });
         total_area += p_model_part->GetCommunicator().GetDataCommunicator().SumAll(local_condition_area);
@@ -57,7 +57,7 @@ double MaxOverhangAngleResponseUtils::CalculateValue(
 }
 
 double MaxOverhangAngleResponseUtils::CalculateConditionValue(
-    Condition& rCondition,
+    const Condition& rCondition,
     const Parameters& rResponseSettings)
 {
     array_3d print_direction = rResponseSettings["print_direction"].GetVector();
@@ -65,18 +65,24 @@ double MaxOverhangAngleResponseUtils::CalculateConditionValue(
     << "MaxOverhangAngleResponseUtils:print_direction: "<<print_direction<<" has size close to zero\n";    
     print_direction /= norm_2(print_direction);
 
-    double max_angle = rResponseSettings["max_angle"].GetDouble();
+    const double max_angle = rResponseSettings["max_angle"].GetDouble();
     KRATOS_ERROR_IF(!(max_angle >= 0.0 && max_angle <= 90.0))
     << "MaxOverhangAngleResponseUtils: max_angle: "<<max_angle<<" should be in range [0,90]\n";
-
     double sin_max_angle = std::sin(max_angle * Globals::Pi / 180);
-    double heaviside_beta = rResponseSettings["heaviside_beta"].GetDouble();
-    double penalty_factor = rResponseSettings["penalty_factor"].GetDouble();
+
+
+    const double heaviside_beta = rResponseSettings["heaviside_beta"].GetDouble();
+    KRATOS_ERROR_IF(std::signbit(heaviside_beta))
+    << "MaxOverhangAngleResponseUtils: heaviside_beta: "<<heaviside_beta<<" should be positive\n";
+
+    const double penalty_factor = rResponseSettings["penalty_factor"].GetDouble();
+    KRATOS_ERROR_IF(std::signbit(penalty_factor))
+    << "MaxOverhangAngleResponseUtils: penalty_factor: "<<penalty_factor<<" should be positive\n";    
 
     const array_3d local_coords = ZeroVector(3);
-    const array_3d normal = rCondition.GetGeometry().UnitNormal(local_coords);
-    double area = rCondition.GetGeometry().Area();
-    double ratio = -inner_prod(print_direction, normal)/sin_max_angle;
+    const array_3d& normal = rCondition.GetGeometry().UnitNormal(local_coords);
+    const double area = rCondition.GetGeometry().Area();
+    const double ratio = -inner_prod(print_direction, normal)/sin_max_angle;
     double pow_val = -2.0 * heaviside_beta * (ratio-1); 
     std::clamp(pow_val, -700.0, 700.0);
 
@@ -123,7 +129,7 @@ void MaxOverhangAngleResponseUtils::CalculateSensitivity(
 void MaxOverhangAngleResponseUtils::CalculateFiniteDifferenceShapeSensitivity(
     ModelPart& rModelPart,
     const Parameters& rResponseSettings,
-    const Variable<array_1d<double, 3>>& rOutputSensitivityVariable)
+    const Variable<array_3d>& rOutputSensitivityVariable)
 {
     KRATOS_TRY
 
@@ -176,7 +182,7 @@ void MaxOverhangAngleResponseUtils::CalculateConditionFiniteDifferenceShapeSensi
     std::vector<std::string>& rModelPartNames,
     const Parameters& rResponseSettings,
     const IndexType MaxNodeId,
-    const Variable<array_1d<double, 3>>& rOutputSensitivityVariable)
+    const Variable<array_3d>& rOutputSensitivityVariable)
 {
     KRATOS_TRY
 

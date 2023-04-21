@@ -43,9 +43,9 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateSensitivity", &LinearStrainEnergyResponseUtils::CalculateSensitivity)
         ;
 
-    py::class_<MaxOverhangAngleResponseUtils >(m, "MaxOverhangAngleResponseUtils")
-        .def_static("CalculateValue", &MaxOverhangAngleResponseUtils::CalculateValue)
-        .def_static("CalculateSensitivity", &MaxOverhangAngleResponseUtils::CalculateSensitivity)
+    m.def_submodule("MaxOverhangAngleResponseUtils")
+        .def("CalculateValue", &MaxOverhangAngleResponseUtils::CalculateValue)
+        .def("CalculateSensitivity", &MaxOverhangAngleResponseUtils::CalculateSensitivity)
         ;
 
 }
