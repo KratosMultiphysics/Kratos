@@ -5,7 +5,7 @@ from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition i
 import numpy as np
 import importlib
 import json
-
+import os
 
 
 
@@ -26,7 +26,7 @@ class RomManager(object):
 
 
 
-    def Fit(self, mu_train=None):
+    def Fit(self, mu_train=None, store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False):
         if mu_train is None:
             mu_train = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         #######################
@@ -35,8 +35,12 @@ class RomManager(object):
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LaunchTrainROM(mu_train)
+                if store_all_snapshots or store_fom_snapshots:
+                    self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
                 rom_snapshots = self.LaunchROM(mu_train)
+                if store_all_snapshots or store_rom_snapshots:
+                    self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
             if any(item == "HROM" for item in training_stages):
@@ -45,6 +49,8 @@ class RomManager(object):
                 self.LaunchTrainHROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
                 hrom_snapshots = self.LaunchHROM(mu_train)
+                if store_all_snapshots or store_hrom_snapshots:
+                    self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################
 
@@ -55,8 +61,12 @@ class RomManager(object):
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LaunchTrainROM(mu_train)
+                if store_all_snapshots or store_fom_snapshots:
+                    self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
                 rom_snapshots = self.LaunchROM(mu_train)
+                if store_all_snapshots or store_rom_snapshots:
+                    self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in training_stages):
                 raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
@@ -69,10 +79,14 @@ class RomManager(object):
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LaunchTrainROM(mu_train)
+                if store_all_snapshots or store_fom_snapshots:
+                    self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "TrainPG")
                 self.TrainPG(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "PG")
                 rom_snapshots = self.LaunchROM(mu_train)
+                if store_all_snapshots or store_rom_snapshots:
+                    self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
@@ -80,6 +94,8 @@ class RomManager(object):
                 self.LaunchTrainHROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
                 hrom_snapshots = self.LaunchHROM(mu_train)
+                if store_all_snapshots or store_hrom_snapshots:
+                    self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
 
@@ -515,12 +531,15 @@ class RomManager(object):
 
 
 
+    def _StoreSnapshotsMatrix(self, string_numpy_array_name, numpy_array):
 
+        # Define the directory and file path
+        directory = './SnapshotsMatrices'
+        file_path = os.path.join(directory, string_numpy_array_name + '.npy')
 
+        # Create the directory if it doesn't exist
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-
-
-
-
-
-
+        #save the array inside the chosen directory
+        np.save(file_path, numpy_array)
