@@ -573,12 +573,12 @@ namespace Kratos::Testing
         const double y2 = side_length * std::sin(angle_end);
 
         const unsigned int local_index = rank + 2;
-        const unsigned int ghost_index = (size == 1) || (rank != size-1) ? rank + 3 : 2;
+        const unsigned int ghost_index = rank + 3;
         auto p_node_1 = rRootModelPart.CreateNewNode(local_index, x1, y1, 0.0);
         auto p_node_2 = rRootModelPart.CreateNewNode(ghost_index, x2, y2, 0.0);
 
         p_node_1->FastGetSolutionStepValue(PARTITION_INDEX) = rank;
-        const int remote_rank = (rank != size-1) ? rank + 1 : 0;
+        const int remote_rank = (rank != size-1) ? rank + 1 : rank;
         p_node_2->FastGetSolutionStepValue(PARTITION_INDEX) = remote_rank;
 
         std::vector<ModelPart::IndexType> element_nodes{1, local_index, ghost_index};
@@ -883,8 +883,6 @@ namespace Kratos::Testing
             r_node.AddDof(DISPLACEMENT_Z, REACTION_Z);
         }
 
-        const Communicator& r_comm = r_model_part.GetCommunicator();
-
         // Instantiate the builder and solver
         Epetra_MpiComm epetra_comm(MPIDataCommunicator::GetMPICommunicator(r_mpi_comm));
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
@@ -896,9 +894,8 @@ namespace Kratos::Testing
 
         // expected known dofs:
         // - on regular ranks: x & y displacement for each known node
-        // - on last rank: x & y displacement for the single hanging node
-        unsigned int expected_size = 2;
-        if (r_mpi_comm.Rank() < r_mpi_comm.Size() - 1) expected_size *= r_work_part.NumberOfNodes();
+        // - on last rank: x & y displacement for the two nodes shared with other partitions (0 & n-1)
+        unsigned int expected_size = (r_mpi_comm.Rank() < r_mpi_comm.Size() - 1) ? 6 : 4;
 
         KRATOS_ERROR_IF(r_dofset.size() != expected_size) \
             << "Got " << r_dofset.size() << " dofs, expected " << expected_size << std::endl;
