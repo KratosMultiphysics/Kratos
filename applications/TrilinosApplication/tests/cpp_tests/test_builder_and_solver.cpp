@@ -956,10 +956,14 @@ namespace Kratos::Testing
         p_builder_and_solver->SetUpDofSet(p_scheme, r_work_part);
         const auto& r_dofset = p_builder_and_solver->GetDofSet();
 
-        // expected known dofs: x & y displacement for each known node
-        const unsigned int expected_size = 2 * r_work_part.NumberOfNodes();
+        // expected known dofs:
+        // - on regular ranks: x & y displacement for each known node
+        // - on last rank: x & y displacement for the single hanging node
+        unsigned int expected_size = 2;
+        if (r_mpi_comm.Rank() < r_mpi_comm.Size() - 1) expected_size *= r_work_part.NumberOfNodes();
+
         KRATOS_ERROR_IF(r_dofset.size() != expected_size) \
-            << "Got " << r_dofset.size() << " dofs, expected " << expected_size << " " << r_dofset << std::endl;
+            << "Got " << r_dofset.size() << " dofs, expected " << expected_size << std::endl;
     }
 
 
