@@ -4,193 +4,190 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
+#pragma once
 
-#if !defined(KRATOS_TEST_CASE_RESULT_H_INCLUDED )
-#define  KRATOS_TEST_CASE_RESULT_H_INCLUDED
-
+// System includes
 #include <string>
 #include <iostream>
 
+// External includes
+
+// Project includes
 #include "includes/kratos_export_api.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-	namespace Testing
-	{
-		///@addtogroup KratosCore
-		///@{
+///@addtogroup KratosCore
+///@{
 
-		///@name Kratos Classes
-		///@{
+///@name Kratos Classes
+///@{
 
-		/// The test case base class.
-		/** Defines the interface for all the test cases and also fixtures
-		*/
-		class KRATOS_API(KRATOS_CORE) TestCaseResult
-		{
-		public:
-			///@name Type Definitions
-			///@{
+/// The test case base class.
+/** Defines the interface for all the test cases and also fixtures
+*/
+class KRATOS_API(KRATOS_CORE) TestCaseResult
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-			///@}
-			///@name Life Cycle
-			///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-			/// TestCaseResult default constructors rest variables to before run
-			TestCaseResult();
+    /// TestCaseResult default constructors rest variables to before run
+    TestCaseResult();
 
-			/// Copy constructor
-			TestCaseResult(TestCaseResult const& rOther);
+    /// Copy constructor
+    TestCaseResult(TestCaseResult const& rOther);
 
-			/// Destructor.
-			virtual ~TestCaseResult();
+    /// Destructor.
+    virtual ~TestCaseResult();
 
 
-			///@}
-			///@name Operators
-			///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-			/// Assignment operator
-			TestCaseResult& operator=(TestCaseResult const& rOther);
+    /// Assignment operator
+    TestCaseResult& operator=(TestCaseResult const& rOther);
 
-			///@}
-			///@name Operations
-			///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-			/// Reset the results to before run state
-			virtual void Reset();
+    /// Reset the results to before run state
+    virtual void Reset();
 
 
-			///@}
-			///@name Access
-			///@{
+    ///@}
+    ///@name Access
+    ///@{
 
-			void SetToSucceed();
+    void SetToSucceed();
 
-			void SetToFailed();
+    void SetToFailed();
 
-			void SetToSkipped();
+    void SetToSkipped();
 
-			void SetOutput(const std::string& TheOutput);
+    void SetOutput(const std::string& TheOutput);
 
-			const std::string& GetOutput() const;
+    const std::string& GetOutput() const;
 
-			void SetErrorMessage(const std::string& TheMessage);
+    void SetErrorMessage(const std::string& TheMessage);
 
-			const std::string& GetErrorMessage() const;
+    const std::string& GetErrorMessage() const;
 
-			void SetSetupElapsedTime(double ElapsedTime);
+    void SetSetupElapsedTime(double ElapsedTime);
 
-			double GetSetupElapsedTime() const;
+    double GetSetupElapsedTime() const;
 
-			void SetRunElapsedTime(double ElapsedTime);
+    void SetRunElapsedTime(double ElapsedTime);
 
-			double GetRunElapsedTime() const;
+    double GetRunElapsedTime() const;
 
-			void SetTearDownElapsedTime(double ElapsedTime);
+    void SetTearDownElapsedTime(double ElapsedTime);
 
-			double GetTearDownElapsedTime() const;
+    double GetTearDownElapsedTime() const;
 
-			void SetElapsedTime(double ElapsedTime);
+    void SetElapsedTime(double ElapsedTime);
 
-			double GetElapsedTime() const;
+    double GetElapsedTime() const;
 
 
 
-			///@}
-			///@name Inquiry
-			///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-			bool IsSucceed() const;
+    bool IsSucceed() const;
 
-			bool IsFailed() const;
+    bool IsFailed() const;
 
-			bool IsSkipped() const;
+    bool IsSkipped() const;
 
-			bool IsRun() const;
+    bool IsRun() const;
 
-			///@}
-			///@name Input and output
-			///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-			/// Turn back information as a string.
-			virtual std::string Info() const;
+    /// Turn back information as a string.
+    virtual std::string Info() const;
 
-			/// Print information about this object.
-			virtual void PrintInfo(std::ostream& rOStream) const;
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-			/// Print object's data.
-			virtual void PrintData(std::ostream& rOStream) const;
-
-
-			///@}
-			///@name Friends
-			///@{
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
 
 
-			///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		private:
-
-			///@name Type definitions
-			///@{
-
-			enum class Result {
-				DidNotRun,
-				Passed,
-				Failed,
-				Skipped
-			};
-
-			///@}
-			///@name Static Member Variables
-			///@{
+    ///@}
 
 
-			///@}
-			///@name Member Variables
-			///@{
+private:
 
-			Result mStatus;
-			std::string mOutput;
-			std::string mErrorMessage;
-			double mSetupElapsedTime;
-			double mRunElapsedTime;
-			double mTearDownElapsedTime;
-			double mElapsedTime;
+    ///@name Type definitions
+    ///@{
+
+    enum class Result {
+        DidNotRun,
+        Passed,
+        Failed,
+        Skipped
+    };
+
+    ///@}
+    ///@name Static Member Variables
+    ///@{
 
 
-			///@}
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-		}; // Class TestCaseResult
+    Result mStatus;
+    std::string mOutput;
+    std::string mErrorMessage;
+    double mSetupElapsedTime;
+    double mRunElapsedTime;
+    double mTearDownElapsedTime;
+    double mElapsedTime;
 
-	  ///@}
 
-	  ///@name Input and output
-	  ///@{
+    ///@}
 
-		/// output stream function
-		inline std::ostream& operator << (std::ostream& rOStream,
-			const TestCaseResult& rThis)
-		{
-			rThis.PrintInfo(rOStream);
-			rOStream << std::endl;
-			rThis.PrintData(rOStream);
+}; // Class TestCaseResult
 
-			return rOStream;
-		}
-		///@}
+///@}
 
-		///@} addtogroup block
-	} // manespace Testing.
-}  // namespace Kratos.
+///@name Input and output
+///@{
 
-#endif // KRATOS_TEST_CASE_RESULT_H_INCLUDED  defined
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+    const TestCaseResult& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
+}  // namespace Kratos::Testing.
