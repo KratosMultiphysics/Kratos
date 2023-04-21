@@ -441,6 +441,7 @@ private:
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mUltimateStress = 0.0;
+    double mUniaxialResidualStress = 0.0;
 
     ///@}
     ///@name Private Operators

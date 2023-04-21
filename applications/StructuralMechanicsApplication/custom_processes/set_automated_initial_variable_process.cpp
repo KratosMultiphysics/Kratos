@@ -68,7 +68,7 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
 
         double centroid_relative_distance = MathUtils<double>::Norm3(radial_position_vector) - hole_radius_offset;
 
-        if (centroid_relative_distance < 0.0){
+        if (centroid_relative_distance < tolerance){
             if (std::abs(centroid_relative_distance) <= tolerance) {
                 centroid_relative_distance = 0.0;
             } else {
