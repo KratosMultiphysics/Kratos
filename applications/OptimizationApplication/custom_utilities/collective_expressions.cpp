@@ -89,9 +89,9 @@ void CollectiveExpressions::Clear()
 
 void CollectiveExpressions::Read(
     double const* pBegin,
-    int const* pListShapeBegin,
-    int const* ShapeSizes,
     int const* NumberOfEntities,
+    int const** pListShapeBegin,
+    int const* ShapeSizes,
     const int NumberOfContainers)
 {
     KRATOS_TRY
@@ -103,11 +103,12 @@ void CollectiveExpressions::Read(
 
     for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
         std::visit([&pBegin, &pListShapeBegin, &ShapeSizes, &NumberOfEntities](const auto& v) {
-            v->Read(pBegin, *NumberOfEntities, pListShapeBegin, *ShapeSizes);
+            v->Read(pBegin, *NumberOfEntities, *pListShapeBegin, *ShapeSizes);
 
             // now offset everything
             pBegin += v->GetContainer().size() * v->GetFlattenedSize();
-            pListShapeBegin += *(ShapeSizes++);
+            ++pListShapeBegin;
+            ++ShapeSizes;
             ++NumberOfEntities;
         }, p_container_variable_data_holder);
     }
@@ -148,9 +149,9 @@ void CollectiveExpressions::Read(const std::vector<VariableTypes>& rVariables)
 
 void CollectiveExpressions::MoveFrom(
     double* pBegin,
-    int const* pListShapeBegin,
-    int const* ShapeSizes,
     int const* NumberOfEntities,
+    int const** pListShapeBegin,
+    int const* ShapeSizes,
     const int NumberOfContainers)
 {
     KRATOS_TRY
@@ -162,11 +163,12 @@ void CollectiveExpressions::MoveFrom(
 
     for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
         std::visit([&pBegin, &pListShapeBegin, &ShapeSizes, &NumberOfEntities](const auto& v) {
-            v->MoveFrom(pBegin, *NumberOfEntities, pListShapeBegin, *ShapeSizes);
+            v->MoveFrom(pBegin, *NumberOfEntities, *pListShapeBegin, *ShapeSizes);
 
             // now offset everything
             pBegin += v->GetContainer().size() * v->GetFlattenedSize();
-            pListShapeBegin += *(ShapeSizes++);
+            ++pListShapeBegin;
+            ++ShapeSizes;
             ++NumberOfEntities;
         }, p_container_variable_data_holder);
     }

@@ -236,19 +236,6 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         self.assertTrue(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([c, b])))
         self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([c, d])))
 
-    def test_CollectiveShapeInfo(self):
-        flat_dimension_sizes_list = numpy.array([3, 3])
-        number_of_dimensions = numpy.array([1, 0, 1, 0])
-        number_of_entities = numpy.array([10, 20, 30, 40])
-
-        _ = KratosOA.ContainerExpression.CollectiveShapeInfo(flat_dimension_sizes_list, number_of_dimensions, number_of_entities)
-
-        with self.assertRaises(RuntimeError):
-            _ = KratosOA.ContainerExpression.CollectiveShapeInfo(numpy.array([3, 3, 4]), number_of_dimensions, number_of_entities)
-
-        with self.assertRaises(RuntimeError):
-            _ = KratosOA.ContainerExpression.CollectiveShapeInfo(numpy.array([3, 3, 4]), numpy.array([1, 0, 0]), number_of_entities)
-
     def test_ReadEvaluate1(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
         b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
@@ -351,14 +338,11 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
 
         collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
 
-        flat_dimension_sizes_list = numpy.array([3, 3])
-        number_of_dimensions = numpy.array([1, 0, 1, 0])
         number_of_entities = numpy.array([self.model_part.NumberOfNodes(), self.model_part.NumberOfNodes(), self.model_part.NumberOfConditions(), self.model_part.NumberOfElements()])
         data = numpy.arange(1, self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1, 1.0)
-        collective_shape_info = KratosOA.ContainerExpression.CollectiveShapeInfo(flat_dimension_sizes_list, number_of_dimensions, number_of_entities)
 
         # here we copy data
-        collective.Read(data, collective_shape_info)
+        collective.Read(data, number_of_entities, [[3], [], [3], []])
 
         # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
         collective += 2
@@ -400,14 +384,11 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
 
         collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
 
-        flat_dimension_sizes_list = numpy.array([3, 3])
-        number_of_dimensions = numpy.array([1, 0, 1, 0])
-        number_of_entities = numpy.array([self.model_part.NumberOfNodes(), self.model_part.NumberOfNodes(), self.model_part.NumberOfConditions(), self.model_part.NumberOfElements()])
+        number_of_entities = [self.model_part.NumberOfNodes(), self.model_part.NumberOfNodes(), self.model_part.NumberOfConditions(), self.model_part.NumberOfElements()]
         data = numpy.arange(1, self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1, 1.0)
-        collective_shape_info = KratosOA.ContainerExpression.CollectiveShapeInfo(flat_dimension_sizes_list, number_of_dimensions, number_of_entities)
 
         # here we move data. The life time is not managed by the collective. If moved data is destroyed, then use of collective can seg fault.
-        collective.MoveFrom(data, collective_shape_info)
+        collective.MoveFrom(data, number_of_entities, [[3], [], [3], []])
 
         # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
         collective += 2
@@ -479,43 +460,40 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
 
         collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
 
-        flat_dimension_sizes_list = numpy.array([3, 3])
-        number_of_dimensions = numpy.array([1, 0, 1, 0])
         number_of_entities = numpy.array([self.model_part.NumberOfNodes(), self.model_part.NumberOfNodes(), self.model_part.NumberOfConditions(), self.model_part.NumberOfElements()])
         total_entities = self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1
-        collective_shape_info = KratosOA.ContainerExpression.CollectiveShapeInfo(flat_dimension_sizes_list, number_of_dimensions, number_of_entities)
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities)
-            collective.Read(numpy_array, collective_shape_info)
+            collective.Read(numpy_array, number_of_entities, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.float32)
-            collective.Read(numpy_array, collective_shape_info)
+            collective.Read(numpy_array, number_of_entities, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int32)
-            collective.Read(numpy_array, collective_shape_info)
+            collective.Read(numpy_array, number_of_entities, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
-            collective.Read(numpy_array, collective_shape_info)
+            collective.Read(numpy_array, number_of_entities, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities)
-            collective.MoveFrom(numpy_array, collective_shape_info)
+            collective.MoveFrom(numpy_array, number_of_entities, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.float32)
-            collective.MoveFrom(numpy_array, collective_shape_info)
+            collective.MoveFrom(numpy_array, number_of_entities, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int32)
-            collective.MoveFrom(numpy_array, collective_shape_info)
+            collective.MoveFrom(numpy_array, number_of_entities, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
-            collective.MoveFrom(numpy_array, collective_shape_info)
+            collective.MoveFrom(numpy_array, number_of_entities, [[3], [], [3], []])
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

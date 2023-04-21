@@ -35,37 +35,6 @@
 namespace Kratos {
 namespace Python {
 
-struct CollectiveShapeInfo
-{
-    CollectiveShapeInfo(
-        const pybind11::array_t<int>& rShapes,
-        const pybind11::array_t<int>& rNumberOfDimensionsInShapes,
-        const pybind11::array_t<int>& rNumberOfEntitiesInContainers)
-        : mNumberOfContainers(rNumberOfEntitiesInContainers.size()),
-          mpShapes(rShapes.data()),
-          mpNumberOfDimensionsInShapes(rNumberOfDimensionsInShapes.data()),
-          mpNumberOfEntitiesInContainers(rNumberOfEntitiesInContainers.data())
-    {
-        KRATOS_ERROR_IF_NOT(rNumberOfDimensionsInShapes.size() == rNumberOfEntitiesInContainers.size())
-            << "Number of items in rNumberOfDimensionsInShapes and "
-               "rNumberOfEntitiesInContainers must be same. [ "
-               "rNumberOfDimensionsInShapes.size() = "
-            << rNumberOfDimensionsInShapes.size() << ", rNumberOfEntitiesInContainers.size() = "
-            << rNumberOfEntitiesInContainers.size() << " ].\n";
-
-        const int number_of_required_items_in_shape = std::accumulate(rNumberOfDimensionsInShapes.data(), rNumberOfDimensionsInShapes.data() + rNumberOfDimensionsInShapes.size(), 0);
-        KRATOS_ERROR_IF_NOT(rShapes.size() == number_of_required_items_in_shape)
-            << "Number of items in the flattened rShapes should be the sum of values in rNumberOfDimensionsInShapes [ rShapes.size() = "
-            << rShapes.size() << ", sum of values in rNumberOfDimensionsInShapes = "
-            << number_of_required_items_in_shape << " ].\n";
-    }
-
-    const int mNumberOfContainers;
-    const int* const mpShapes;
-    const int* const mpNumberOfDimensionsInShapes;
-    const int* const mpNumberOfEntitiesInContainers;
-};
-
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -146,10 +115,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties>(sub_module, "ConditionPropertiesExpression");
     AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::Properties>(sub_module, "ElementPropertiesExpression");
 
-    py::class_<CollectiveShapeInfo>(sub_module, "CollectiveShapeInfo")
-        .def(py::init<const pybind11::array_t<int>&, const pybind11::array_t<int>&, const pybind11::array_t<int>&>(), py::arg("flat_dimension_sizes_list"), py::arg("number_of_dimensions_for_each_container"), py::arg("number_of_entities_for_each_container"))
-        ;
-
     py::class_<CollectiveExpressions, CollectiveExpressions::Pointer>(sub_module, "CollectiveExpressions")
         .def(py::init<>())
         .def(py::init<const CollectiveExpressions&>())
@@ -157,25 +122,63 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Add", py::overload_cast<const CollectiveExpressions::CollectiveExpressionType&>(&CollectiveExpressions::Add))
         .def("Add", py::overload_cast<const CollectiveExpressions&>(&CollectiveExpressions::Add))
         .def("Clear", &CollectiveExpressions::Clear)
-        .def("Read", [](CollectiveExpressions& rSelf, const py::array_t<double>& rData, const CollectiveShapeInfo& rCollectiveShapeInfo){
-            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
-            rSelf.Read(rData.data(),
-                       rCollectiveShapeInfo.mpShapes,
-                       rCollectiveShapeInfo.mpNumberOfDimensionsInShapes,
-                       rCollectiveShapeInfo.mpNumberOfEntitiesInContainers,
-                       rCollectiveShapeInfo.mNumberOfContainers);
-        }, py::arg("numpy_data_array").noconvert(), py::arg("collective_shape_info"))
-        .def("Read", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Read), py::arg("variable"))
-        .def("Read", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Read), py::arg("variables_list"))
-        .def("MoveFrom", [](CollectiveExpressions& rSelf, py::array_t<double>& rData, const CollectiveShapeInfo& rCollectiveShapeInfo){
+        .def("Read", [](CollectiveExpressions& rSelf, const py::array_t<double>& rData, const std::vector<int>& rListOfNumberOfEntitiesInContainers, const std::vector<std::vector<int>>& rListOfShapes){
             KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
 
+            KRATOS_ERROR_IF(rListOfNumberOfEntitiesInContainers.size() != rListOfShapes.size())
+                << "List of number of entities and list of shapes size mismatch. "
+                << "[ List of number of entities size = "
+                << rListOfNumberOfEntitiesInContainers.size()
+                << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
+
+            // create c style double pointer from std::vector list for shapes.
+            int const** p_list_of_shapes = new int const*[rListOfNumberOfEntitiesInContainers.size()];
+            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes, [](const auto& rShape) { return rShape.data(); });
+
+            // create c style double pointer for sizes of std::vector list.
+            int* p_list_of_shape_dimensions = new int[rListOfNumberOfEntitiesInContainers.size()];
+            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions, [](const auto& rShape) { return rShape.size(); });
+
+            rSelf.Read(rData.data(),
+                       rListOfNumberOfEntitiesInContainers.data(),
+                       p_list_of_shapes,
+                       p_list_of_shape_dimensions,
+                       rListOfNumberOfEntitiesInContainers.size());
+
+            // delete allocated memories
+            delete[] p_list_of_shapes;
+            delete[] p_list_of_shape_dimensions;
+        }, py::arg("numpy_data_array").noconvert(), py::arg("list_of_number_of_entities_in_contaienrs"), py::arg("list_of_shapes"))
+        .def("Read", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Read), py::arg("variable"))
+        .def("Read", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Read), py::arg("variables_list"))
+        .def("MoveFrom", [](CollectiveExpressions& rSelf, py::array_t<double>& rData, const std::vector<int>& rListOfNumberOfEntitiesInContainers, const std::vector<std::vector<int>>& rListOfShapes){
+            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
+
+            KRATOS_ERROR_IF(rListOfNumberOfEntitiesInContainers.size() != rListOfShapes.size())
+                << "List of number of entities and list of shapes size mismatch. "
+                << "[ List of number of entities size = "
+                << rListOfNumberOfEntitiesInContainers.size()
+                << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
+
+            // create c style double pointer from std::vector list for shapes.
+            int const** p_list_of_shapes = new int const*[rListOfNumberOfEntitiesInContainers.size()];
+            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes, [](const auto& rShape) { return rShape.data(); });
+
+            // create c style double pointer for sizes of std::vector list.
+            int* p_list_of_shape_dimensions = new int[rListOfNumberOfEntitiesInContainers.size()];
+            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions, [](const auto& rShape) { return rShape.size(); });
+
             rSelf.MoveFrom(rData.mutable_data(),
-                           rCollectiveShapeInfo.mpShapes,
-                           rCollectiveShapeInfo.mpNumberOfDimensionsInShapes,
-                           rCollectiveShapeInfo.mpNumberOfEntitiesInContainers,
-                           rCollectiveShapeInfo.mNumberOfContainers);
-        }, py::arg("numpy_data_array").noconvert(), py::arg("collective_shape_info"))
+                           rListOfNumberOfEntitiesInContainers.data(),
+                           p_list_of_shapes,
+                           p_list_of_shape_dimensions,
+                           rListOfNumberOfEntitiesInContainers.size());
+
+            // delete allocated memories
+            delete[] p_list_of_shapes;
+            delete[] p_list_of_shape_dimensions;
+
+        }, py::arg("numpy_data_array").noconvert(), py::arg("list_of_number_of_entities_in_contaienrs"), py::arg("list_of_shapes"))
         .def("Evaluate", [](const CollectiveExpressions& rSelf){
             const IndexType size = rSelf.GetCollectiveFlattenedDataSize();
             auto array = AllocateNumpyArray<double>(size, {});

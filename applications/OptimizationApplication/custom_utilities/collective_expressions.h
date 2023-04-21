@@ -153,16 +153,16 @@ public:
      * vector represents how much data for entities is present for each ContainerExpression in @ref pBegin.
      *
      * @param pBegin                Starting pointer to the data to read from.
+     * @param NumberOfEntities      Number of entities for each container.
      * @param pListShapeBegin       Matrix of shape sizes. Rows for each container, columns for size of each dimension.
      * @param ShapeSizes            Vector containing number of dimensions for each container.
-     * @param NumberOfEntities      Number of entities for each container.
      * @param NumberOfContainers    Number of containers.
      */
     void Read(
         double const* pBegin,
-        int const* pListShapeBegin,
-        int const* ShapeSizes,
         int const* NumberOfEntities,
+        int const** pListShapeBegin,
+        int const* ShapeSizes,
         const int NumberOfContainers);
 
     /**
@@ -195,16 +195,16 @@ public:
      * @warning This instance does not take the ownership of the passed array. Hence, life time is not managed by this instance.
      *
      * @param pBegin                Starting pointer to the data to read from.
+     * @param NumberOfEntities      Number of entities for each container.
      * @param pListShapeBegin       Matrix of shape sizes. Rows for each container, columns for size of each dimension.
      * @param ShapeSizes            Vector containing number of dimensions for each container.
-     * @param NumberOfEntities      Number of entities for each container.
      * @param NumberOfContainers    Number of containers.
      */
     void MoveFrom(
         double* pBegin,
-        int const* pListShapeBegin,
-        int const* ShapeSizes,
         int const* NumberOfEntities,
+        int const** pListShapeBegin,
+        int const* ShapeSizes,
         const int NumberOfContainers);
 
     /**
