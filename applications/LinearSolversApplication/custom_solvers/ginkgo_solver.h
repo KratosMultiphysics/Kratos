@@ -19,221 +19,11 @@
 #include "includes/define.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers_define.h"
+#include "custom_solvers/ginkgo_preconditioners.h"
 
 namespace Kratos {
 
-template<class TValueType = double, class TIndexType = std::int64_t>
-class GinkoSolverPreconditioners {
-public:
-    using rc_etype = gko::remove_complex<TValueType>;
-
-    // Extracted from ginkgo's "benchmark/utils/preconditioners.hpp"
-    static const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std::shared_ptr<const gko::Executor>, const Parameters &rSettings)>> mFactory;
-};
-
-template<class TValueType, class TIndexType>
-const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std::shared_ptr<const gko::Executor>, const Parameters &rSettings)>> GinkoSolverPreconditioners<TValueType, TIndexType>::mFactory = {
-    {"none",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            return gko::matrix::IdentityFactory<TValueType>::create(exec);
-        }},
-    {"jacobi",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            return gko::preconditioner::Jacobi<TValueType, TIndexType>::build()
-                .with_max_block_size(rSettings["max_block_size"].GetInt())
-                // .with_storage_optimization(parse_storage_optimization(rSettings["jacobi_storage"].GetDouble()))
-                .with_accuracy(static_cast<rc_etype>(rSettings["accuracy"].GetDouble()))
-                .with_skip_sorting(true)
-                .on(exec);
-        }},
-    {"paric",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact =gko::share(gko::factorization::ParIc<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetInt())
-                .with_skip_sorting(true)
-                .on(exec));
-                
-            return gko::preconditioner::Ic<gko::solver::LowerTrs<TValueType, TIndexType>, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .on(exec);
-        }},
-    {"parict",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::ParIct<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetInt())
-                .with_approximate_select(rSettings["parilut_approx_select"].GetDouble())
-                .with_fill_in_limit(rSettings["parilut_limit"].GetDouble())
-                .with_skip_sorting(true)
-                .on(exec));
-
-            return gko::preconditioner::Ilu<gko::solver::LowerTrs<TValueType, TIndexType>, gko::solver::UpperTrs<TValueType, TIndexType>, false, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .on(exec);
-        }},
-    {"parilu",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::ParIlu<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetInt())
-                .with_skip_sorting(true)
-                .on(exec));
-
-            return gko::preconditioner::Ilu<gko::solver::LowerTrs<TValueType, TIndexType>,gko::solver::UpperTrs<TValueType, TIndexType>, false, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .on(exec);
-        }},
-    {"parilut",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::ParIlut<TValueType, TIndexType>::build()
-                    .with_iterations(rSettings["parilu_iterations"].GetInt())
-                    .with_approximate_select(rSettings["parilut_approx_select"].GetDouble())
-                    .with_fill_in_limit(rSettings["parilut_limit"].GetDouble())
-                    .with_skip_sorting(true)
-                    .on(exec));
-
-            return gko::preconditioner::Ilu<gko::solver::LowerTrs<TValueType, TIndexType>, gko::solver::UpperTrs<TValueType, TIndexType>, false, TIndexType>::build()
-                    .with_factorization_factory(fact)
-                    .on(exec);
-        }},
-    {"ic",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::Ic<TValueType, TIndexType>::build().on(exec));
-
-            return gko::preconditioner::Ic<gko::solver::LowerTrs<TValueType, TIndexType>,TIndexType>::build()
-                .with_factorization_factory(fact)
-                .on(exec);
-        }},
-    {"ilu",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::Ilu<TValueType, TIndexType>::build().on(exec));
-
-            return gko::preconditioner::Ilu<gko::solver::LowerTrs<TValueType, TIndexType>, gko::solver::UpperTrs<TValueType, TIndexType>, false, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .on(exec);
-        }},
-    {"paric-isai",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::ParIc<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetInt())
-                .with_skip_sorting(true)
-                .on(exec));
-            
-            auto lisai = gko::share(gko::preconditioner::LowerIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            return gko::preconditioner::Ic<gko::preconditioner::LowerIsai<TValueType, TIndexType>,TIndexType>::build()
-                .with_factorization_factory(fact)
-                .with_l_solver_factory(lisai)
-                .on(exec);
-        }},
-    {"parict-isai",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::ParIct<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetInt())
-                .with_approximate_select(rSettings["parilut_approx_select"].GetDouble())
-                .with_fill_in_limit(rSettings["parilut_limit"].GetDouble())
-                .with_skip_sorting(true)
-                .on(exec));
-
-            auto lisai = gko::share(gko::preconditioner::LowerIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            return gko::preconditioner::Ic<gko::preconditioner::LowerIsai<TValueType, TIndexType>, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .with_l_solver_factory(lisai)
-                .on(exec);
-        }},
-    {"parilu-isai",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::ParIlu<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetInt())
-                .with_skip_sorting(true)
-                .on(exec));
-
-            auto lisai = gko::share(gko::preconditioner::LowerIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            auto uisai = gko::share(gko::preconditioner::UpperIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            return gko::preconditioner::Ilu<gko::preconditioner::LowerIsai<TValueType, TIndexType>,gko::preconditioner::UpperIsai<TValueType, TIndexType>, false, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .with_l_solver_factory(lisai)
-                .with_u_solver_factory(uisai)
-                .on(exec);
-        }},
-    {"parilut-isai",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::ParIlut<TValueType, TIndexType>::build()
-                .with_iterations(rSettings["parilu_iterations"].GetInt())
-                .with_approximate_select(rSettings["parilut_approx_select"].GetDouble())
-                .with_fill_in_limit(rSettings["parilut_limit"].GetDouble())
-                .with_skip_sorting(true)
-                .on(exec));
-
-            auto lisai = gko::share(gko::preconditioner::LowerIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            auto uisai = gko::share(gko::preconditioner::UpperIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            return gko::preconditioner::Ilu<gko::preconditioner::LowerIsai<TValueType, TIndexType>, gko::preconditioner::UpperIsai<TValueType, TIndexType>, false, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .with_l_solver_factory(lisai)
-                .with_u_solver_factory(uisai)
-                .on(exec);
-        }},
-    {"ic-isai",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::Ic<TValueType, TIndexType>::build()
-                .on(exec));
-            
-            auto lisai = gko::share(gko::preconditioner::LowerIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            return gko::preconditioner::Ic<gko::preconditioner::LowerIsai<TValueType, TIndexType>, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .with_l_solver_factory(lisai)
-                .on(exec);
-        }},
-    {"ilu-isai",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            auto fact = gko::share(gko::factorization::Ilu<TValueType, TIndexType>::build().on(exec));
-            auto lisai = gko::share(gko::preconditioner::LowerIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            auto uisai = gko::share(gko::preconditioner::UpperIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec));
-
-            return gko::preconditioner::Ilu<gko::preconditioner::LowerIsai<TValueType, TIndexType>, gko::preconditioner::UpperIsai<TValueType, TIndexType>, false, TIndexType>::build()
-                .with_factorization_factory(fact)
-                .with_l_solver_factory(lisai)
-                .with_u_solver_factory(uisai)
-                .on(exec);
-        }},
-    {"general-isai",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            return gko::preconditioner::GeneralIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec);
-        }},
-    {"spd-isai",
-        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
-            return gko::preconditioner::SpdIsai<TValueType, TIndexType>::build()
-                .with_sparsity_power(rSettings["isai_power"].GetDouble())
-                .on(exec);
-        }}
-};
-
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
+template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>, class TIndexType=std::int32_t>
 class GinkgoSolver
     : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
@@ -255,7 +45,7 @@ public:
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
     using vec = gko::matrix::Dense<double>;
-    using mtx = gko::matrix::Csr<double, std::int64_t>;
+    using mtx = gko::matrix::Csr<double, TIndexType>;
     
     GinkgoSolver() = delete;
 
@@ -282,9 +72,6 @@ public:
         settings.ValidateAndAssignDefaults(default_parameters);
 
         // specify available options
-        // std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
-        // std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
-        
         std::set<std::string> available_solvers = {"bicgstab","bicg","cg","cgs","fcg","idr", "gmres","lower_trs", "upper_trs"};
         std::set<std::string> available_preconditioner = {"none","jacobi","paric","parict","parilu","parilut","ic","ilu","paric-isai","parict-isai","parilu-isai","parilut-isai","ic-isai","ilu-isai","general-isai","spd-isai"};
         std::set<std::string> available_executors = {"reference", "omp", "cuda"};
@@ -304,7 +91,7 @@ public:
         mMaxIterationsNumber = settings["max_iteration"].GetDouble();
         mResidualMode = settings["residual_mode"].GetString();
 
-        mPrecond = GinkoSolverPreconditioners<double, std::int64_t>::mFactory.at(settings["preconditioner"].GetString())(mExec, settings);
+        mPrecond = GinkoSolverPreconditioners<double, TIndexType>::mFactory.at(settings["preconditioner"].GetString())(mExec, settings);
 
         auto FLAGS_nrhs = 1;
 
@@ -393,9 +180,9 @@ public:
     {
 
         #ifdef KRATOS_DEBUG
-        std::cout << "Using Ginkgo solver..." << std::endl;
-        std::cout << "\tSizeof(std::size_t)  (Kratos IndexType): " << sizeof(std::size_t)  << std::endl;
-        std::cout << "\tSizeof(std::int64_t) (Ginkgo IndexType): " << sizeof(std::int64_t) << std::endl;
+            std::cout << "Using Ginkgo solver..." << std::endl;
+            std::cout << "\tSizeof(std::size_t)  (Kratos IndexType): " << sizeof(std::size_t)  << std::endl;
+            std::cout << "\tSizeof(TIndexType)   (Ginkgo IndexType): " << sizeof(TIndexType) << std::endl;
         #endif
 
         // Initialize ginkgo data interfaces
@@ -405,8 +192,8 @@ public:
             mExec, 
             gko::dim<2>{rA.size1(), rA.size2()},
             gko::make_array_view(mExec, rA.value_data().size(),  &(rA.value_data()[0])),                                    // Values
-            gko::make_array_view(mExec, rA.index2_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index2_data()[0]))), // Col
-            gko::make_array_view(mExec, rA.index1_data().size(), reinterpret_cast<std::int64_t *>(&(rA.index1_data()[0]))), // Row
+            gko::make_array_view(mExec, rA.index2_data().size(), reinterpret_cast<TIndexType *>(&(rA.index2_data()[0]))), // Col
+            gko::make_array_view(mExec, rA.index1_data().size(), reinterpret_cast<TIndexType *>(&(rA.index1_data()[0]))), // Row
             std::make_shared<typename mtx::load_balance>(2)
         ));
 
@@ -434,14 +221,14 @@ public:
 
         std::cout << "Checking A rows..." << std::endl;
         for(std::size_t i = 0; i < rA.index1_data().size(); i++) {
-            if (static_cast<std::int64_t>(rA.index1_data()[i]) != gko_rA->get_row_ptrs()[i]) {
+            if (static_cast<TIndexType>(rA.index1_data()[i]) != gko_rA->get_row_ptrs()[i]) {
                 std::cout << "row index incorrect at i=" << i << "(" << rA.index1_data()[i] << "," << gko_rA->get_row_ptrs()[i] << ")" << std::endl;
             } 
         }
 
         std::cout << "Checking A cols..." << std::endl;
         for(std::size_t i = 0; i < rA.index2_data().size(); i++) {
-            if (static_cast<std::int64_t>(rA.index2_data()[i]) != gko_rA->get_col_idxs()[i]) {
+            if (static_cast<TIndexType>(rA.index2_data()[i]) != gko_rA->get_col_idxs()[i]) {
                 std::cout << "col index incorrect at i=" << i << "(" << rA.index2_data()[i] << "," << gko_rA->get_col_idxs()[i] << ")" << std::endl;
             } 
         }
@@ -478,12 +265,12 @@ public:
     {
         auto exec = gko::CudaExecutor::create(0, gko::OmpExecutor::create());
 
-        auto fact = gko::share(gko::factorization::ParIlu<double, std::int64_t>::build()
+        auto fact = gko::share(gko::factorization::ParIlu<double, TIndexType>::build()
                 .with_iterations(3)
                 .with_skip_sorting(true)
                 .on(exec));
 
-        auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, std::int64_t>,gko::solver::UpperTrs<double, std::int64_t>, false, std::int64_t>::build()
+        auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, TIndexType>,gko::solver::UpperTrs<double, TIndexType>, false, TIndexType>::build()
                 .with_factorization_factory(fact)
                 .on(exec);
 
@@ -507,6 +294,8 @@ public:
             .with_preconditioner(give(precond))
             .on(exec);
 
+        std::cout << "MTX SIZE: " << rA.size1() << " " << rA.size2() << std::endl;
+
         auto gko_rA = gko::share(mtx::create(
             exec,
             gko::dim<2>{rA.size1(), rA.size2()},
@@ -524,7 +313,10 @@ public:
         ));
 
         // A
+        auto values_ref_debug = gko_rA->get_values();
         for(int i = 0; i < rA.value_data().size(); i++) {
+            // std::cout << "VAL A KTS: " << rA.value_data()[i] << std::endl;
+            // std::cout << "VAL A GKO: " << gko_rA->get_values()[i] << std::endl;
             gko_rA->get_values()[i] = rA.value_data()[i];
         }
 
