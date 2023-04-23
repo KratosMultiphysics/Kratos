@@ -99,7 +99,7 @@ class CreatePointBasedEntitiesProcess(KM.Process):
 
         if settings["initialize_communicators"].GetBool() and model_part.IsDistributed():
             from KratosMultiphysics.mpi import ParallelFillCommunicator
-            ParallelFillCommunicator(self.model_part, self.model_part.GetCommunicator().GetDataCommunicator()).Execute()
+            ParallelFillCommunicator(model_part, model_part.GetCommunicator().GetDataCommunicator()).Execute()
 
 
 def RecursiveCreateModelParts(model_part, model_part_name):
