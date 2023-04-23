@@ -240,7 +240,7 @@ if (NLOPT_CXX)
     src/algs/ags/ags.cc)
 endif ()
 
-install (FILES ${NLOPT_HEADERS} DESTINATION ${RELATIVE_INSTALL_INCLUDE_DIR})
+install (FILES ${NLOPT_HEADERS} DESTINATION ~/Kratos/applications/OptimizationApplication/custom_external_libraries/header)
 
 set (nlopt_lib nlopt)
 add_library (${nlopt_lib} ${NLOPT_SOURCES})

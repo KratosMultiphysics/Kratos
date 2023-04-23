@@ -9,7 +9,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Add the NLOPT library as a subdirectory and include its headers
 add_subdirectory(custom_external_libraries/nlopt)
-include_directories(custom_external_libraries/nlopt/src/api)
+include_directories(custom_external_libraries/header)
 
 ## Optimization core sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
@@ -28,6 +28,9 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
+
+#set Library include path
+set(NLOPT_INCLUDE_DIR "~/Kratos/applications/OptimizationApplication/custom_external_libraries/header")
 
 add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE})
 target_link_libraries(KratosOptimizationCore PUBLIC KratosCore nlopt) # Link NLOPT library

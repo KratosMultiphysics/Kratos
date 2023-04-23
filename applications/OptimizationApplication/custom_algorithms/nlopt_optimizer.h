@@ -19,6 +19,8 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <functional>
+
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -31,47 +33,43 @@
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include "custom_external_libraries/nlopt/src/api/nlopt.h"
+#include "custom_external_libraries/header/nlopt.hpp"
 
 // ==============================================================================
 
 namespace Kratos {
+
+typedef struct {
+    double a, b;
+} my_constraint_data;
+
+double myvconstraint(const std::vector<double> &x, std::vector<double> &grad, void *data)
+{
+  my_constraint_data *d = reinterpret_cast<my_constraint_data*>(data);
+  double a = d->a, b = d->b;
+  if (!grad.empty()) {
+    grad[0] = 3 * a * (a*x[0] + b) * (a*x[0] + b);
+    grad[1] = -1.0;
+  }
+  return ((a*x[0] + b) * (a*x[0] + b) * (a*x[0] + b) - x[1]);
+}
+
+
+
 
 class KRATOS_API(OPTIMIZATION_APPLICATION) NLOptOptimizer 
 {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(NLOptOptimizer);
 
-        NLOptOptimizer(nlopt_algorithm algorithm, unsigned int num_variables);
-        virtual ~NLOptOptimizer();
-        void SetObjectiveFunction(std::function<double(std::vector<double>&)> objective_function);
-        void SetGradient(std::function<void(std::vector<double>&, std::vector<double>&)> gradient);
-        void SetLowerBounds(std::vector<double> lower_bounds);
-        void SetUpperBounds(std::vector<double> upper_bounds);
-        void SetInitialGuess(std::vector<double> initial_guess);
-        void SetRelativeTolerance(double relative_tolerance);
-        void SetAbsoluteTolerance(double absolute_tolerance);
-        void SetMaxIterations(unsigned int max_iterations);
+      void Set_Function(std::function <double(std::vector<double> x, std::vector<double> grad, void *data)> myfunc );
+      int Optimize();
 
-        std::vector<double> Optimize();
+    private:
 
-        private:
-            static double ObjectiveFunctionWrapper(unsigned n, const double* x, double* grad, void* data);
-            static void GradientWrapper(unsigned n, const double* x, double* grad, void* data);
-            void InitializeOptimizer();
+    std ::function <const double(std::vector<double> &x, std::vector<double> &grad, void *data)> callback_;
 
-            nlopt_algorithm m_algorithm;
-            unsigned int m_num_variables;
-            nlopt_opt m_opt;
-            std::function<double(std::vector<double>&)> m_objective_function;
-            std::function<void(std::vector<double>&, std::vector<double>&)> m_gradient;
-            std::vector<double> m_lower_bounds;
-            std::vector<double> m_upper_bounds;
-            std::vector<double> m_initial_guess;
-            double m_relative_tolerance;
-            double m_absolute_tolerance;
-            unsigned int m_max_iterations;
-
+       
     }; // Class NLOptOptimizer
 
 } // namespace Kratos

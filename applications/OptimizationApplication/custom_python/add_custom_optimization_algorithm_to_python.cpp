@@ -18,6 +18,9 @@
 // // External includes
 // // ------------------------------------------------------------------------------
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
+#include <pybind11/complex.h>
+#include <functional>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -65,7 +68,7 @@ void  AddCustomOptimizationAlgorithmToPython(pybind11::module& m)
         .def("Initialize", &AlgorithmGradientProjection::Initialize)
         .def("CalculateSolutionStep", &AlgorithmGradientProjection::CalculateSolutionStep)
         ;  
-
+/*
     // Expose nlopt_algorithm enum
     py::enum_<nlopt_algorithm>(m, "nlopt_algorithm")
         .value("NLOPT_GN_DIRECT", nlopt_algorithm::NLOPT_GN_DIRECT)
@@ -109,20 +112,16 @@ void  AddCustomOptimizationAlgorithmToPython(pybind11::module& m)
         .value("NLOPT_GN_ESCH", nlopt_algorithm::NLOPT_GN_ESCH)
         .value("NLOPT_GN_AGS", nlopt_algorithm::NLOPT_GN_AGS)
         .value("NLOPT_NUM_ALGORITHMS", nlopt_algorithm::NLOPT_NUM_ALGORITHMS);        
+*/
 
     py::class_<NLOptOptimizer>(m, "NLOptOptimizer")
-        .def(py::init<nlopt_algorithm, unsigned int>())
-        .def("set_objective_function", &NLOptOptimizer::SetObjectiveFunction)
-        .def("set_gradient", &NLOptOptimizer::SetGradient)
-        .def("set_lower_bounds", &NLOptOptimizer::SetLowerBounds)
-        .def("set_upper_bounds", &NLOptOptimizer::SetUpperBounds)
-        .def("set_initial_guess", &NLOptOptimizer::SetInitialGuess)
-        .def("set_relative_tolerance", &NLOptOptimizer::SetRelativeTolerance)
-        .def("set_absolute_tolerance", &NLOptOptimizer::SetAbsoluteTolerance)
-        .def("set_max_iterations", &NLOptOptimizer::SetMaxIterations)
-        .def("optimize", &NLOptOptimizer::Optimize);        
+        .def(py::init<>())
+        .def("optimize", &NLOptOptimizer::Optimize)
+        .def("set_function", &NLOptOptimizer::Set_Function)
+        ;
+}       
  
-}
+
 
 }  // namespace Python.
 } // Namespace Kratos

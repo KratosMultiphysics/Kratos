@@ -34,6 +34,11 @@ export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+add_app ${KRATOS_APP_DIR}/OptimizationApplication
+add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication
+#add_app ${KRATOS_APP_DIR}/KratosPythonWrapperApplication/PythonWrapperApplication
+
+
 
 # Clean
 clear

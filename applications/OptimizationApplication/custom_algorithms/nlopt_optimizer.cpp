@@ -11,132 +11,57 @@
 //
 
 #include "nlopt_optimizer.h"
+#include <vector>
+#include <string>
+#include <cmath>
+#include <iomanip>
+#include "custom_external_libraries/header/nlopt.hpp"
 
 namespace Kratos {
+ 
 
-NLOptOptimizer::NLOptOptimizer(nlopt_algorithm algorithm, unsigned int num_variables)
-    : m_algorithm(algorithm),
-      m_num_variables(num_variables),
-      m_opt(nullptr),
-      m_objective_function(nullptr),
-      m_gradient(nullptr),
-      m_relative_tolerance(0.0),
-      m_absolute_tolerance(0.0),
-      m_max_iterations(0)
-{
-    InitializeOptimizer();
+void NLOptOptimizer::Set_Function(std:: function <double( std::vector<double> x, std::vector<double> grad, void *data)> myfunc ){
+   callback_ = std::move(myfunc);
 }
 
-NLOptOptimizer::~NLOptOptimizer()
-{
-    if (m_opt != nullptr) {
-        nlopt_destroy(m_opt);
-    }
+
+int NLOptOptimizer::Optimize(){ 
+    std :: vector <double> v1; 
+    v1.push_back(1);
+    v1.push_back(1);                     
+    callback_(v1,v1,NULL);
+    nlopt::opt opt("LD_MMA", 2);
+    std::vector<double> lb(2);
+    lb[0] = -HUGE_VAL; lb[1] = 0;
+    opt.set_lower_bounds(lb);
+    opt.set_min_objective(callback_, NULL);
+    my_constraint_data data[2] = { {2,0}, {-1,1} };
+    opt.add_inequality_constraint(myvconstraint, &data[0], 1e-8);
+    opt.add_inequality_constraint(myvconstraint, &data[1], 1e-8);
+    opt.set_xtol_rel(1e-4);
+
+  // try setting an algorithm parameter: */
+  opt.set_param("inner_maxeval", 123);
+  if (opt.get_param("inner_maxeval", 1234) != 123 || opt.get_param("not a param", 1234) != 1234 ||
+      opt.num_params() != 1 || std::string(opt.nth_param(0)) != "inner_maxeval") {
+    std::cerr << "failed to retrieve nlopt parameter" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  std::vector<double> x(2);
+  x[0] = 1.234; x[1] = 5.678;
+  double minf;
+
+  try{
+    opt.optimize(x, minf);
+    std::cerr << "found minimum at f(" << x[0] << "," << x[1] << ") = "
+              << std::setprecision(10) << minf <<std::endl;
+    return std::fabs(minf - 0.5443310474) < 1e-3 ? EXIT_SUCCESS : EXIT_FAILURE;
+  }
+  catch(std::exception &e) {
+    std::cerr << "nlopt failed: " << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
+  }
 }
 
-void NLOptOptimizer::SetObjectiveFunction(std::function<double(std::vector<double>&)> objective_function)
-{
-    m_objective_function = objective_function;
-}
-
-void NLOptOptimizer::SetGradient(std::function<void(std::vector<double>&, std::vector<double>&)> gradient)
-{
-    m_gradient = gradient;
-}
-
-void NLOptOptimizer::SetLowerBounds(std::vector<double> lower_bounds)
-{
-    m_lower_bounds = lower_bounds;
-}
-
-void NLOptOptimizer::SetUpperBounds(std::vector<double> upper_bounds)
-{
-    m_upper_bounds = upper_bounds;
-}
-
-void NLOptOptimizer::SetInitialGuess(std::vector<double> initial_guess)
-{
-    m_initial_guess = initial_guess;
-}
-
-void NLOptOptimizer::SetRelativeTolerance(double relative_tolerance)
-{
-    m_relative_tolerance = relative_tolerance;
-}
-
-void NLOptOptimizer::SetAbsoluteTolerance(double absolute_tolerance)
-{
-    m_absolute_tolerance = absolute_tolerance;
-}
-void NLOptOptimizer::SetMaxIterations(unsigned int max_iterations)
-{
-    m_max_iterations = max_iterations;
-}
-
-std::vector<double> NLOptOptimizer::Optimize()
-{
-    std::vector<double> result(m_num_variables);
-
-    // Set up the optimization problem
-    nlopt_set_min_objective(m_opt, ObjectiveFunctionWrapper, this);
-    nlopt_set_lower_bounds(m_opt, m_lower_bounds.data());
-    nlopt_set_upper_bounds(m_opt, m_upper_bounds.data());
-    nlopt_set_initial_step(m_opt, m_initial_guess.data());
-    nlopt_set_xtol_rel(m_opt, m_relative_tolerance);
-    nlopt_set_ftol_abs(m_opt, m_absolute_tolerance);
-    nlopt_set_maxeval(m_opt, m_max_iterations);
-
-    if (m_gradient != nullptr) {
-        //nlopt_set_gradient(m_opt, GradientWrapper, this);
-    }
-
-    // Run the optimization algorithm
-    double min_value;
-    nlopt_result result_code = nlopt_optimize(m_opt, m_initial_guess.data(), &min_value);
-
-    if (result_code < 0) {
-        std::string error_message = "NLOpt optimization failed with error code " + std::to_string(result_code);
-        throw std::runtime_error(error_message);
-    }
-
-    // Copy the optimal values into the result vector
-    // const double* optimal_values = nlopt_get_solution(m_opt);
-    // std::copy(optimal_values, optimal_values + m_num_variables, result.begin());
-
-    return result;
-}
-
-double NLOptOptimizer::ObjectiveFunctionWrapper(unsigned int n, const double* x, double* grad, void* data)
-{
-    NLOptOptimizer* optimizer = static_cast<NLOptOptimizer*>(data);
-    std::vector<double> x_vec(x, x + n);
-
-    double result = optimizer->m_objective_function(x_vec);
-
-    if (grad != nullptr && optimizer->m_gradient != nullptr) {
-        optimizer->m_gradient(x_vec, optimizer->m_initial_guess);
-        std::copy(optimizer->m_initial_guess.begin(), optimizer->m_initial_guess.end(), grad);
-    }
-
-    return result;
-}
-
-void NLOptOptimizer::GradientWrapper(unsigned int n, const double* x, double* grad, void* data)
-{
-    NLOptOptimizer* optimizer = static_cast<NLOptOptimizer*>(data);
-    std::vector<double> x_vec(x, x + n);
-
-    optimizer->m_gradient(x_vec, optimizer->m_initial_guess);
-    std::copy(optimizer->m_initial_guess.begin(), optimizer->m_initial_guess.end(), grad);
-}
-
-void NLOptOptimizer::InitializeOptimizer()
-{
-    m_opt = nlopt_create(m_algorithm, m_num_variables);
-
-    if (m_opt == nullptr) {
-        throw std::runtime_error("Could not create NLOpt optimizer");
-    }
-}
-
-}
