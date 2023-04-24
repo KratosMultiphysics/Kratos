@@ -76,7 +76,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             "eulerian_fm_ale_settings":{
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
-                "convection_model_part_name" : "EulerianFMALEModelPart",
                 "eulerian_error_compensation" : false,
                 "element_type" : "levelset_convection_supg",
                 "element_settings" : {
@@ -87,7 +86,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
-                "convection_model_part_name" : "LevelSetConvectionModelPart",
                 "eulerian_error_compensation" : false,
                 "element_type" : "levelset_convection_supg",
                 "element_settings" : {
@@ -147,6 +145,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("DISTANCE_GRADIENT")
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("VELOCITY")
+        self.settings["levelset_convection_settings"].AddEmptyValue("convection_model_part_name").SetString("LevelSetConvectionModelPart")
+
+
 
         self.eulerian_fm_ale = self.settings["eulerian_fm_ale"].GetBool()
         if self.eulerian_fm_ale:
@@ -154,8 +155,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.eulerian_gradient = KratosCFD.CONVECTION_VELOCITY
             self.eulerian_convection_var = KratosCFD.CONVECTION_SCALAR_GRADIENT
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
-            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("CONVECTION_VELOCITY")
-            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_SCALAR_GRADIENT")
+            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("CONVECTION_SCALAR_GRADIENT")
+            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_VELOCITY")
+            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("convection_model_part_name").SetString("EulerianFMALEModelPart")
 
 
 
