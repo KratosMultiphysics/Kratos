@@ -1,0 +1,173 @@
+
+Begin Properties 1
+End Properties
+
+
+Begin Nodes
+  1  0.0000000000 0.0000000000 0.0000000000
+  2  0.2500000000 0.0000000000 0.0000000000
+  3  0.5000000000 0.0000000000 0.0000000000
+  4  0.7500000000 0.0000000000 0.0000000000
+  5  1.0000000000 0.0000000000 0.0000000000
+  6  1.0000000000 0.2500000000 0.0000000000
+  7  1.0000000000 0.5000000000 0.0000000000
+  8  1.0000000000 0.7500000000 0.0000000000
+  9  1.0000000000 1.0000000000 0.0000000000
+  10 0.7500000000 1.0000000000 0.0000000000
+  11 0.5000000000 1.0000000000 0.0000000000
+  12 0.2500000000 1.0000000000 0.0000000000
+  13 0.0000000000 1.0000000000 0.0000000000
+  14 0.0000000000 0.7500000000 0.0000000000
+  15 0.0000000000 0.5000000000 0.0000000000
+  16 0.0000000000 0.2500000000 0.0000000000
+  17 0.5000000000 0.5000000000 0.0000000000
+  18 0.1250000000 0.1250000000 0.0000000000
+  19 0.2500000000 0.2500000000 0.0000000000
+  20 0.3750000000 0.3750000000 0.0000000000
+  21 0.8750000000 0.1250000000 0.0000000000
+  22 0.7500000000 0.2500000000 0.0000000000
+  23 0.6250000000 0.3750000000 0.0000000000
+  24 0.8750000000 0.8750000000 0.0000000000
+  25 0.7500000000 0.7500000000 0.0000000000
+  26 0.6250000000 0.6250000000 0.0000000000
+  27 0.1250000000 0.8750000000 0.0000000000
+  28 0.2500000000 0.7500000000 0.0000000000
+  29 0.3750000000 0.6250000000 0.0000000000
+  30 0.3750000000 0.1250000000 0.0000000000
+  31 0.6250000000 0.1250000000 0.0000000000
+  32 0.5000000000 0.2500000000 0.0000000000
+  33 0.8750000000 0.3750000000 0.0000000000
+  34 0.8750000000 0.6250000000 0.0000000000
+  35 0.7500000000 0.5000000000 0.0000000000
+  36 0.6250000000 0.8750000000 0.0000000000
+  37 0.3750000000 0.8750000000 0.0000000000
+  38 0.5000000000 0.7500000000 0.0000000000
+  39 0.1250000000 0.6250000000 0.0000000000
+  40 0.1250000000 0.3750000000 0.0000000000
+  41 0.2500000000 0.5000000000 0.0000000000
+End Nodes
+
+
+Begin Elements SmallStrainUPwDiffOrderElement2D15N
+  1  1   1  5 17  2  3  4 21 22 23 20 19 18 30 31 32
+  2  1   5  9 17  6  7  8 24 25 26 23 22 21 33 34 35
+  3  1   9 13 17 10 11 12 27 28 29 26 25 24 36 37 38
+  4  1  13  1 17 14 15 16 18 19 20 29 28 27 39 40 41
+End Elements
+
+
+Begin Conditions LineLoadDiffOrderCondition2D5N
+  1  1   9 13 10 11 12
+End Conditions
+
+
+Begin SubModelPart Soil_drained-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+	26
+	27
+	28
+	29
+	30
+	31
+	32
+	33
+	34
+	35
+	36
+	37
+	38
+	39
+	40
+	41
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Solid_Displacement-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart sides
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    5
+    6
+    7
+    8
+    9
+    13
+    14
+    15
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Line_Load-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    9
+    10
+    11
+    12
+    13
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+    1
+  End SubModelPartConditions
+End SubModelPart
+

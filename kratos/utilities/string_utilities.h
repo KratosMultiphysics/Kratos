@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_STRING_UTILITIES)
-#define KRATOS_STRING_UTILITIES
+#pragma once
 
 // System includes
 #include <string>
@@ -104,7 +103,8 @@ namespace StringUtilities
      */
     std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringByDelimiter(
         const std::string& rString,
-        const char Delimiter);
+        const char Delimiter
+        );
 
     /**
      * @brief This function replaces from a string all times a certain substring is repeated
@@ -121,4 +121,3 @@ namespace StringUtilities
 
 }; // namespace StringUtilities
 }  // namespace Kratos
-#endif /* KRATOS_STRING_UTILITIES defined */

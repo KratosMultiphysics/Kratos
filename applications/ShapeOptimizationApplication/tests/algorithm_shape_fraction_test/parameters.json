@@ -1,0 +1,93 @@
+{
+    "optimization_settings" : {
+        "model_settings"  : {
+            "domain_size"              : 3,
+            "model_part_name"          : "tent",
+            "model_import_settings"    : {
+                "input_type"       : "mdpa",
+                "input_filename"   : "tent"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : true,
+                "damping_regions": [
+                    {
+                        "sub_model_part_name": "damped_nodes",
+                        "damp_X": true,
+                        "damp_Y": true,
+                        "damp_Z": true,
+                        "damping_function_type": "gaussian",
+                        "damping_radius": 5.0
+                    }
+                ]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+                "identifier" : "target",
+                "type"       : "minimization",
+                "analyzer"   : "external",
+                "project_gradient_on_surface_normals" : true
+        }],
+        "constraints" : [{
+            "identifier" : "z_15",
+            "type"       : "<=",
+            "analyzer"   : "external",
+            "reference"  : "specified_value",
+            "reference_value" : -1.0,
+            "project_gradient_on_surface_normals" : true
+        },{
+            "identifier" : "z_40",
+            "type"       : ">=",
+            "analyzer"   : "external",
+            "reference"  : "specified_value",
+            "reference_value" : 1.0,
+            "project_gradient_on_surface_normals" : true
+        },{
+            "identifier" : "z_65",
+            "type"       : "=",
+            "analyzer"   : "external",
+            "reference"  : "specified_value",
+            "reference_value" : 1.0,
+            "project_gradient_on_surface_normals" : true
+        }],
+        "design_variables" : {
+            "type"  : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "gaussian",
+                "filter_radius"              : 5.0,
+                "max_nodes_in_filter_radius" : 100
+            }
+        },
+        "optimization_algorithm" : {
+            "name"               : "shape_fraction_optimization",
+            "max_iterations"     : 12,
+            "relative_tolerance" : 1e-2,
+            "shape_fraction": {
+                "penalty_method"             : "extended_interior",
+                "nodal_tolerance"            : 0.1,
+                "inner_tolerance"            : 0.1,
+                "max_fraction"               : 0.65,
+                "initial_penalty_factor"     : 1.5,
+                "max_inner_steps"            : 5
+            },
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : false,
+                "step_size"                  : 0.25
+            }
+        },
+        "output" : {
+            "design_output_mode" : "none",
+            "nodal_results"      : [ "SHAPE_UPDATE",
+                                     "SHAPE_CHANGE",
+                                     "DP1DX",
+                                     "DPF1DX"],
+            "output_format" : {
+                "name": "vtk"
+            }
+        }
+    }
+}
