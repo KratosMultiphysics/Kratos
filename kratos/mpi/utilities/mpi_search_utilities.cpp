@@ -22,6 +22,10 @@
 
 namespace Kratos
 {
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void MPISearchUtilities::ComputeBoundingBoxesWithTolerance(
     const std::vector<double>& rBoundingBoxes,
     const double Tolerance,
