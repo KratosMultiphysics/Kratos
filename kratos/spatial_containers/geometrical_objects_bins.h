@@ -59,9 +59,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor deleted.
-    GeometricalObjectsBins() = delete;
-
     /**
      * @brief The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
      * @param GeometricalObjectsBegin The begin iterator of the geometries to be stored
@@ -248,6 +245,13 @@ public:
 
     ///@}
 protected:
+    ///@name Protected Life Cycle
+    ///@{
+
+    /// Default constructor protected.
+    GeometricalObjectsBins() = default;
+
+    ///@}
     ///@name Protected Static Member Variables
     ///@{
 
@@ -266,8 +270,7 @@ protected:
 
 
     ///@}
-private:
-    ///@name Private Operators
+    ///@name Protected Operations
     ///@{
 
 
@@ -311,6 +314,80 @@ private:
             }
         }
     }
+
+    /**
+     * @brief This method initializes the search
+     * @details This method initializes the search
+     */
+    virtual void InitializeSearch()
+    {
+        // do nothing
+    }
+
+    /**
+     * @brief This method finalizes the search
+     * @details This method finalizes the search
+     */
+    virtual void FinalizeSearch()
+    {
+        // do nothing
+    }
+
+    ///@}
+private:
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief This method takes a point and finds all of the objects in the given radius to it.
+     * @details The result contains the object and also its distance to the point. Local version.
+     * @param rPoint The point to be checked
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     */
+    void LocalSearchInRadius(
+        const Point& rPoint,
+        const double Radius,
+        std::vector<ResultType>& rResults
+        );
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it in a given radius.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * If there are no objects in that radius the result will be set to not found. Local version.
+     * Result contains a flag is the object has been found or not.
+     * @param rPoint The point to be checked
+     * @param Radius The radius to be checked
+     * @return ResultType The result of the search
+     */
+    ResultType LocalSearchNearestInRadius(
+        const Point& rPoint,
+        const double Radius
+        );
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not. Local version.
+     * @param rPoint The point to be checked
+     * @return ResultType The result of the search
+    */
+    ResultType LocalSearchNearest(const Point& rPoint);
+
+    /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest. Local version.
+     * @param rPoint The point to be checked
+     * @return ResultType The result of the search
+     */
+    ResultType LocalSearchIsInside(const Point& rPoint);
 
     /**
      * @brief Giving the min and max position of cells intersecting with the bounding box of the geometry.

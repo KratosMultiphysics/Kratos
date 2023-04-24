@@ -71,10 +71,83 @@ void GeometricalObjectsBins::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
+    // Initialize search
+    InitializeSearch();
+
+    // Search
+    LocalSearchInRadius(rPoint, Radius, rResults);
+
+    // Finalize search
+    FinalizeSearch();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius(
+    const Point& rPoint,
+    const double Radius
+    )
+{
+    // Initialize search
+    InitializeSearch();
+
+    // Search
+    auto result = LocalSearchNearestInRadius(rPoint, Radius);
+
+    // Finalize search
+    FinalizeSearch();
+
+    return result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const Point& rPoint)
+{
+    // Initialize search
+    InitializeSearch();
+
+    // Search
+    auto result = LocalSearchNearest(rPoint);
+
+    // Finalize search
+    FinalizeSearch();
+
+    return result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const Point& rPoint)
+{
+    // Initialize search
+    InitializeSearch();
+
+    // Search
+    auto result = LocalSearchIsInside(rPoint);
+
+    // Finalize search
+    FinalizeSearch();
+
+    return result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometricalObjectsBins::LocalSearchInRadius(
+    const Point& rPoint,
+    const double Radius,
+    std::vector<ResultType>& rResults
+    )
+{
     std::unordered_set<GeometricalObject*> results;
 
-    array_1d< std::size_t, Dimension> min_position;
-    array_1d< std::size_t, Dimension> max_position;
+    array_1d<std::size_t, Dimension> min_position;
+    array_1d<std::size_t, Dimension> max_position;
 
     for(unsigned int i = 0; i < Dimension; i++ ) {
         min_position[i] = CalculatePosition(rPoint[i] - Radius, i);
@@ -83,8 +156,8 @@ void GeometricalObjectsBins::SearchInRadius(
     for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
         for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
             for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
-                auto& cell = GetCell(i,j,k);
-                SearchInRadiusInCell(cell, rPoint, Radius, results);
+                auto& r_cell = GetCell(i,j,k);
+                SearchInRadiusInCell(r_cell, rPoint, Radius, results);
             }
         }
     }
@@ -98,7 +171,7 @@ void GeometricalObjectsBins::SearchInRadius(
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius(
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::LocalSearchNearestInRadius(
     const Point& rPoint,
     const double Radius
     )
@@ -108,12 +181,12 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
 
     const double radius_increment = *std::max_element(mCellSizes.begin(), mCellSizes.end());
 
-    array_1d< std::size_t, 3 > min_position;
-    array_1d< std::size_t, 3 > max_position;
+    array_1d<std::size_t, Dimension> min_position;
+    array_1d<std::size_t, Dimension> max_position;
 
     for(double current_radius = 0 ; current_radius < Radius + radius_increment ; current_radius += radius_increment){
         current_radius = (current_radius > Radius) ? Radius : current_radius;
-        for(int i = 0; i < 3; i++ ) {
+        for(unsigned int i = 0; i < Dimension; i++ ) {
             min_position[i] = CalculatePosition(rPoint[i] - current_radius, i);
             max_position[i] = CalculatePosition(rPoint[i] + current_radius, i) + 1;
         }
@@ -121,8 +194,8 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
         for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
             for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                 for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
-                    auto& cell = GetCell(i,j,k);
-                    SearchNearestInCell(cell, rPoint, current_result, current_radius);
+                    auto& r_cell = GetCell(i,j,k);
+                    SearchNearestInCell(r_cell, rPoint, current_result, current_radius);
                 }
             }
         }
@@ -139,7 +212,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const Point& rPoint) 
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::LocalSearchNearest(const Point& rPoint)
 {
     ResultType current_result;
 
@@ -152,7 +225,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const P
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const Point& rPoint)
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::LocalSearchIsInside(const Point& rPoint)
 {
     ResultType current_result;
     current_result.SetDistance(std::numeric_limits<double>::max());
