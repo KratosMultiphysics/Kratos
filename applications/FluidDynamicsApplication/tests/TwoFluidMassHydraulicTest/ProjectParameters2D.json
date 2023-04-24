@@ -12,7 +12,7 @@
         "solver_settings"  : {
             "model_part_name"             : "FluidModelPart",
             "domain_size"                 : 2,
-            "solver_type"                 : "TwoFluidsHydraulic",
+            "solver_type"                 : "two_fluid_hydraulic",
             "model_import_settings"       : {
                 "input_type"     : "mdpa",
                 "input_filename" : "2D_geometry"
