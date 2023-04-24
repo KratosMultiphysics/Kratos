@@ -200,4 +200,100 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint5, KratosCoreGeometriesFastSuite) {
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
 }
+
+void ShapeFunctionSanityCheck(
+    Geometry<Node<3>>::Pointer geom,
+    const GeometryData::IntegrationMethod method,
+    bool isFullIntegration)
+{
+
+    const unsigned int numPoints = geom->PointsNumber();
+    const unsigned int numGauss = geom->IntegrationPointsNumber(method);
+
+    Vector detJ;
+    GeometryData::ShapeFunctionsGradientsType DN_DX;
+    geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, detJ, method);
+
+    Matrix shapeFunctions = ZeroMatrix(numGauss, numPoints);
+    noalias(shapeFunctions) = geom->ShapeFunctionsValues(method);
+
+    // Shape functions are a partition of unity
+    for (unsigned int g = 0; g < numGauss; g++) {
+        double shapeFuncSum = 0.0;
+        for (unsigned int i = 0; i < numPoints; i++) {
+            shapeFuncSum += shapeFunctions(g, i);
+        }
+        std::cerr << "GPPT g " << g << " sum " << shapeFuncSum << std::endl;
+        KRATOS_CHECK_NEAR(shapeFuncSum, 1.0, TOLERANCE);
+    }
+
+    // Shape function gradients shoud sum to 0
+    // Gradient of interpolated nodal coordinates should be dx_i/d_xj = kronecker(1, j)
+    for (unsigned int g = 0; g < numGauss; g++) {
+        double gradSumX = 0.0;
+        double gradSumY = 0.0;
+        double gradSumZ = 0.0;
+
+        Matrix coordinateGradients = ZeroMatrix(3,3);
+        const auto& gradients = DN_DX[g];
+        for (unsigned int n = 0; n < numPoints; n++) {
+            gradSumX += gradients(n, 0);
+            gradSumY += gradients(n, 1);
+            gradSumZ += gradients(n, 2);
+
+            const auto& node = (*geom)[n].Coordinates();
+
+            for (unsigned int i = 0; i < 3; i++) {
+                for (unsigned int j = 0; j < 3; j++) {
+                    coordinateGradients(i, j) += gradients(n, j) * node[i];
+                }
+            }
+        }
+        KRATOS_CHECK_NEAR(gradSumX, 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(gradSumY, 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(gradSumZ, 0.0, TOLERANCE);
+        for (unsigned int i = 0; i < 3; i++) {
+            for (unsigned int j = 0; j < 3; j++) {
+                KRATOS_CHECK_NEAR(coordinateGradients(i, j), (i == j ? 1.0 : 0.0), TOLERANCE);
+            }
+        }
+    }
+
+    // Sum of weights times detJ is volume (only if fully integrated)
+    if (isFullIntegration) {
+        const auto& integrationPoints = geom->IntegrationPoints(method);
+
+        double volume = 0.0;
+        double totalWeight = 0.0;
+        for (unsigned int g = 0; g < numGauss; g++) {
+            volume += detJ[g] * integrationPoints[g].Weight();
+            totalWeight += integrationPoints[g].Weight();
+        }
+
+        KRATOS_CHECK_NEAR(volume, 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(totalWeight, 0.5, TOLERANCE);
+    }
+
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Prism3D15ShapeFunctionsSanityCheckGauss1, KratosCoreGeometriesFastSuite) {
+    ShapeFunctionSanityCheck(GenerateRegularPrism3D15(), GeometryData::IntegrationMethod::GI_GAUSS_1, false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Prism3D15ShapeFunctionsSanityCheckGauss2, KratosCoreGeometriesFastSuite) {
+    ShapeFunctionSanityCheck(GenerateRegularPrism3D15(), GeometryData::IntegrationMethod::GI_GAUSS_2, false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Prism3D15ShapeFunctionsSanityCheckGauss3, KratosCoreGeometriesFastSuite) {
+    ShapeFunctionSanityCheck(GenerateRegularPrism3D15(), GeometryData::IntegrationMethod::GI_GAUSS_3, true);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Prism3D15ShapeFunctionsSanityCheckGauss4, KratosCoreGeometriesFastSuite) {
+    ShapeFunctionSanityCheck(GenerateRegularPrism3D15(), GeometryData::IntegrationMethod::GI_GAUSS_4, true);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Prism3D15ShapeFunctionsSanityCheckGauss5, KratosCoreGeometriesFastSuite) {
+    ShapeFunctionSanityCheck(GenerateRegularPrism3D15(), GeometryData::IntegrationMethod::GI_GAUSS_5, true);
+}
+
 }  // namespace Kratos::Testing.
