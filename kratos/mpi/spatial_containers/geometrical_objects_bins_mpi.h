@@ -77,7 +77,7 @@ public:
     GeometricalObjectsBinsMPI(
         TIteratorType GeometricalObjectsBegin,
         TIteratorType GeometricalObjectsEnd
-        ) : BaseType(GeometricalObjectsBegin, GeometricalObjectsEnd)
+        )
     {
         // Set up the buffers
         MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
@@ -91,6 +91,26 @@ public:
 
         mSendBufferChar.resize(mCommSize);
         mRecvBufferChar.resize(mCommSize);
+
+        // We compute the local bounding box
+        const std::size_t local_number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
+        if (local_number_of_objects > 0){
+            mBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
+            for (TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
+                mBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
+            }
+        }
+        mBoundingBox.Extend(Tolerance);
+
+        // Now we compute the global bounding boxes
+        ComputeGlobalBoundingBoxes();
+
+        // We compute the cell size (WIP)
+        // TODO: Update for global bounding boxes
+        const std::size_t global_number_of_objects = local_number_of_objects;
+        CalculateCellSize(global_number_of_objects);
+        mCells.resize(GetTotalNumberOfCells());
+        AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
     }
 
     /**
@@ -176,6 +196,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method initializes the search
+     * @details This method initializes the search
+     */
+    void InitializeSearch() override;
+
+    /**
+     * @brief This method finalizes the search
+     * @details This method finalizes the search
+     */
+    void FinalizeSearch() override;
 
     /**
      * @brief This method computes the global bounding boxes

@@ -21,6 +21,85 @@
 
 namespace Kratos
 {
+void GeometricalObjectsBinsMPI::InitializeSearch()
+{
+    KRATOS_TRY;
+
+    // Reset to zero
+    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
+
+    // // Apply tolerance to bounding boxes
+    // std::vector<double> bounding_boxes_with_tol;
+    // MapperUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
+    //                                                    mSearchRadius,
+    //                                                    bounding_boxes_with_tol);
+
+    // // Compute Candidate Partitions and fill the send buffer
+    // MapperUtilities::FillBufferBeforeLocalSearch(mrMapperLocalSystems,
+    //                                              bounding_boxes_with_tol,
+    //                                              GetBufferSizeEstimate(),
+    //                                              mSendBufferDouble,
+    //                                              mSendSizes);
+
+    // // copy the local information directly
+    // mRecvBufferDouble[mCommRank] = mSendBufferDouble[mCommRank];
+
+    // const int err = ExchangeDataAsync(mSendBufferDouble, mRecvBufferDouble);
+
+    // KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the information for "
+    //     << "the construction of the MapperInterfaceInfos in MPI" << std::endl;
+
+    // // Construct MapperInterfaceInfos
+    // MapperUtilities::CreateMapperInterfaceInfosFromBuffer(mRecvBufferDouble,
+    //                                                       rpRefInterfaceInfo,
+    //                                                       mCommRank,
+    //                                                       mMapperInterfaceInfosContainer);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometricalObjectsBinsMPI::FinalizeSearch()
+{
+    KRATOS_TRY;
+
+    // Reset to zero
+    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
+
+    // FilterInterfaceInfosSuccessfulSearch();
+
+    // MapperUtilities::FillBufferAfterLocalSearch(mMapperInterfaceInfosContainer,
+    //                                             rpRefInterfaceInfo,
+    //                                             mCommRank,
+    //                                             mSendBufferChar,
+    //                                             mSendSizes);
+
+    // const int err = ExchangeDataAsync(mSendBufferChar, mRecvBufferChar);
+
+    // KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the "
+    //     << "serialized MapperInterfaceInfos in MPI" << std::endl;
+
+    // MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(mRecvBufferChar,
+    //                                                            rpRefInterfaceInfo,
+    //                                                            mCommRank,
+    //                                                            mMapperInterfaceInfosContainer);
+
+    // AssignInterfaceInfos();
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void GeometricalObjectsBinsMPI::ComputeGlobalBoundingBoxes()
 {
     // xmax, xmin, ymax, ymin, zmax, zmin

@@ -241,10 +241,6 @@ BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart);
 
 BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart);
 
-void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
-                                       const double Tolerance,
-                                       std::vector<double>& rBoundingBoxesWithTolerance);
-
 std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox);
 
 bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
