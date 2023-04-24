@@ -241,7 +241,7 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
             # for visualization
             self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_SEARCH_DIRECTION)
             self.__mapDesignVariableVectorToNodalVariable([0.0]*len(s), KSO.THICKNESS_CORRECTION)
-            self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_CONTROL_UPDATE)
+            self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_UPDATE)
             print(f"SteepestDescent:: search direction: {s}")
             return s
 
@@ -285,7 +285,7 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         # for visualization
         self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_SEARCH_DIRECTION)
         self.__mapDesignVariableVectorToNodalVariable(c, KSO.THICKNESS_CORRECTION)
-        self.__mapDesignVariableVectorToNodalVariable(s+c, KSO.THICKNESS_CONTROL_UPDATE)
+        self.__mapDesignVariableVectorToNodalVariable(s+c, KSO.THICKNESS_UPDATE)
 
         return s+c
 
