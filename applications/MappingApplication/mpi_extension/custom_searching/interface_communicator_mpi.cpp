@@ -76,7 +76,7 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const MapperInterfaceIn
 
     // Apply tolerance to bounding boxes
     std::vector<double> bounding_boxes_with_tol;
-    SearchUtilitiesMPI::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
+    MPISearchUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
                                                        mSearchRadius,
                                                        bounding_boxes_with_tol);
 

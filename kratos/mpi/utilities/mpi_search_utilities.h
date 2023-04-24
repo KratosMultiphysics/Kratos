@@ -41,13 +41,13 @@ namespace Kratos
 ///@{
 
 /**
- * @class SearchUtilitiesMPI
+ * @class MPISearchUtilities
  * @ingroup KratosMPI
  * @brief MPI utilities for searching geometrical objects
  * @details Original implementation fron MappingUtilities 
  * @author Philipp Bucher
  */
-class SearchUtilitiesMPI
+class MPISearchUtilities
 {
 public:
     ///@name Type Definitions

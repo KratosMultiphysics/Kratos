@@ -22,7 +22,7 @@
 
 namespace Kratos
 {
-void SearchUtilitiesMPI::ComputeBoundingBoxesWithTolerance(
+void MPISearchUtilities::ComputeBoundingBoxesWithTolerance(
     const std::vector<double>& rBoundingBoxes,
     const double Tolerance,
     std::vector<double>& rBoundingBoxesWithTolerance
