@@ -289,6 +289,10 @@ public:
      */
     void RemoveConditionsAndBelongingsFromAllLevels(const Flags IdentifierFlag = TO_ERASE);
 
+    /**
+     * @brief This method removed nodes from submodelparts not contained neither in the elements or conditions
+     */
+    void RemoveOrphanNodesFromSubModelParts();
 
     /// To Export a Scalar data (Double/int/...)
     template<class TContainerType>
@@ -647,36 +651,6 @@ public:
     {
         rOStream << Info() << std::endl;
     }
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 
 private:
     ///@name Static Member Variables

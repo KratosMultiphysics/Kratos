@@ -138,7 +138,6 @@ void  AddGeometriesToPython(pybind11::module& m)
     // Dimension access
     .def("WorkingSpaceDimension", &GeometryType::WorkingSpaceDimension)
     .def("LocalSpaceDimension", &GeometryType::LocalSpaceDimension)
-    .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize", &GeometryType::DomainSize)
     .def("EdgesNumber", &GeometryType::EdgesNumber)
     .def("PointsNumber", &GeometryType::PointsNumber)

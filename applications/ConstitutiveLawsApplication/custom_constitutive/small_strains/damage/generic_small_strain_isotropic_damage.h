@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -451,4 +450,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

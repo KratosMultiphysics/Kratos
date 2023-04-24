@@ -110,7 +110,15 @@ void AddDataCommunicatorToPython(pybind11::module &m)
         rSelf.Broadcast(SourceMessage,SourceRank);
         return SourceMessage;
     })
-    .def("Broadcast", [](DataCommunicator& rSelf, const std::string& rSourceMessage, const int SourceRank){
+    .def("Broadcast", [](DataCommunicator& rSelf, std::string& rSourceMessage, const int SourceRank){
+        rSelf.Broadcast(rSourceMessage, SourceRank);
+        return rSourceMessage;
+    })
+    .def("Broadcast", [](DataCommunicator& rSelf, Vector& rSourceMessage, const int SourceRank){
+        rSelf.Broadcast(rSourceMessage, SourceRank);
+        return rSourceMessage;
+    })
+    .def("Broadcast", [](DataCommunicator& rSelf, Matrix& rSourceMessage, const int SourceRank){
         rSelf.Broadcast(rSourceMessage, SourceRank);
         return rSourceMessage;
     })

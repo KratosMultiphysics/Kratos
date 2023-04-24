@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Bodhinanda Chandra
 //
 
-#if !defined(KRATOS_QUADRILATERAL_3D_4_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_3D_4_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,6 +24,7 @@
 // Project includes
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
@@ -442,8 +442,8 @@ public:
         return std::sqrt( Area() );
     }
 
-    /** 
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area
@@ -453,16 +453,8 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        double area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /**
@@ -477,12 +469,12 @@ public:
         KRATOS_WARNING("Quadrilateral3D4") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning error instead)" << std::endl;
         return Area();
         // TODO: Replace in June 2023
-        // KRATOS_ERROR << "Quadrilateral3D4:: Method not well defined. Replace with DomainSize() instead." << std::endl; 
+        // KRATOS_ERROR << "Quadrilateral3D4:: Method not well defined. Replace with DomainSize() instead." << std::endl;
         // return 0.0;
     }
 
-    /** 
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -493,7 +485,7 @@ public:
     {
         return Area();
     }
-    
+
 
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
@@ -1818,9 +1810,6 @@ const GeometryData Quadrilateral3D4<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral3D4<TPointType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension Quadrilateral3D4<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

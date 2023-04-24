@@ -11,8 +11,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED)
-#define  KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -431,4 +430,3 @@ private:
 
 }; // Class HyperElasticIsotropicNeoHookean3D
 }  // namespace Kratos.
-#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined

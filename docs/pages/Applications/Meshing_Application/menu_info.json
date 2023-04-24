@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "mmg_application",
+    "landing_page": "General/Utilities-MMG-Process.md",
+    "additional_menu_options": {
+        "product": "Meshing Application",
+        "title": "sidebar"
+    }
+}

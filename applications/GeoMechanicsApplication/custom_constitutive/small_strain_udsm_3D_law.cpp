@@ -78,11 +78,9 @@ typedef void(*f_UserMod) (int    *, int     *, int    *,
 //************************************************************************************
 
 SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw()
-   : ConstitutiveLaw(),
-     mIsModelInitialized(false),
-     mIsUDSMLoaded(false)
+   : ConstitutiveLaw()
    {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     KRATOS_CATCH("")
 
@@ -103,7 +101,7 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw &rOther)
      mStateVariablesFinalized(rOther.mStateVariablesFinalized)
 
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::ConstitutiveLaw()") << std::endl;
 
    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
@@ -112,7 +110,7 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw &rOther)
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::ConstitutiveLaw()") << std::endl;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************CLONE***********************************************
@@ -120,19 +118,19 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw &rOther)
 
 ConstitutiveLaw::Pointer SmallStrainUDSM3DLaw::Clone() const
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::Clone()") << std::endl;
 
    return Kratos::make_shared<SmallStrainUDSM3DLaw>(*this);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************ASSIGNMENT******************************************
 //************************************************************************************
 SmallStrainUDSM3DLaw &SmallStrainUDSM3DLaw::operator=(SmallStrainUDSM3DLaw const &rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::operator=()") << std::endl;
 
    ConstitutiveLaw::operator=(rOther);
@@ -154,7 +152,7 @@ SmallStrainUDSM3DLaw &SmallStrainUDSM3DLaw::operator=(SmallStrainUDSM3DLaw const
 
    return *this;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -196,7 +194,7 @@ void SmallStrainUDSM3DLaw::GetLawFeatures(Features &rFeatures)
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::GetLawFeatures()") << std::endl;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -204,7 +202,7 @@ int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
                                 const GeometryType &rElementGeometry,
                                 const ProcessInfo &rCurrentProcessInfo) const
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::Check()") << std::endl;
 
    // Verify Properties variables
@@ -225,7 +223,7 @@ int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::Check()") << std::endl;
    return 0;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -234,7 +232,7 @@ void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialPropert
                                               const Vector &rShapeFunctionsValues)
 
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::InitializeMaterial()") << std::endl;
 
    // loading the model
@@ -258,13 +256,13 @@ void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialPropert
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::InitializeMaterial()") << std::endl;
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProperties)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::ResetStateVariables()") << std::endl;
 
    // reset state variables
@@ -278,7 +276,7 @@ void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProper
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::ResetStateVariables()") << std::endl;
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 //----------------------------------------------------------------------------------------
@@ -286,7 +284,7 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
                                          const GeometryType& rElementGeometry,
                                          const Vector& rShapeFunctionsValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::ResetMaterial()") << std::endl;
 
    // reset state variables
@@ -313,13 +311,13 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::ResetMaterial()") << std::endl;
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::SetAttributes()") << std::endl;
 
    if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
@@ -378,13 +376,13 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetAttributes()") << std::endl;
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 //----------------------------------------------------------------------------------------
 int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMaterialProperties)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM()") << std::endl;
 
    if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
@@ -445,13 +443,13 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
 
    return nStateVariables;
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 //----------------------------------------------------------------------------------------
 int SmallStrainUDSM3DLaw::GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::GetNumberOfMaterialParametersFromUDSM()") << std::endl;
 
    if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
@@ -464,34 +462,26 @@ int SmallStrainUDSM3DLaw::GetNumberOfMaterialParametersFromUDSM(const Properties
 
    return nParameters;
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 //----------------------------------------------------------------------------------------
 bool SmallStrainUDSM3DLaw::loadUDSM(const Properties &rMaterialProperties)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::loadUDSM()") << std::endl;
 
-   bool isLoaded = false;
-
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-   isLoaded = loadUDSMWindows(rMaterialProperties);
+   const auto isLoaded = loadUDSMWindows(rMaterialProperties);
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::loadUDSM()") << std::endl;
-
    return isLoaded;
-#endif
-
-#if defined(KRATOS_COMPILED_IN_LINUX) || defined(KRATOS_COMPILED_IN_OS)
-   isLoaded = loadUDSMLinux(rMaterialProperties);
-   return isLoaded;
-#endif
-
+#elif defined(KRATOS_COMPILED_IN_LINUX) || defined(KRATOS_COMPILED_IN_OS)
+   return loadUDSMLinux(rMaterialProperties);
+#else
    KRATOS_ERROR << "loadUDSM is not supported yet for Mac OS applications" << std::endl;
+#endif
 
-   return isLoaded;
-
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 //----------------------------------------------------------------------------------------
@@ -518,7 +508,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
    {
       KRATOS_INFO("Error in loadUDSMLinux") << "cannot load the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
       KRATOS_ERROR << "Cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-      return false;
    }
    
    // resolve function GetParamCount address
@@ -530,7 +519,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
       {
          KRATOS_INFO("Error in loadUDSMLinux") << "cannot load function GetParamCount in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
          KRATOS_ERROR << "Cannot load function GetParamCount in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-         return false;
       }
    }
 
@@ -545,7 +533,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
       {
          KRATOS_INFO("Error in loadUDSMLinux") << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
          KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-         return false;
       }
    }
 
@@ -553,7 +540,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
 
 #else
    KRATOS_ERROR << "loadUDSMLinux should be called in Linux applications" << rMaterialProperties[UDSM_NAME] << std::endl;
-   return false;
 #endif
 }
 
@@ -584,7 +570,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
    {
       KRATOS_INFO("Error in loadUDSMWindows") << "cannot load the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
       KRATOS_ERROR << "cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-      return false;
    }
 
    // resolve function GetParamCount address
@@ -597,7 +582,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
       {
          KRATOS_INFO("Error in loadUDSMWindows") << "cannot load function GetParamCount in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
          KRATOS_ERROR << "cannot load function GetParamCount in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-         return false;
       }
    }
 
@@ -613,7 +597,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
       {
          KRATOS_INFO("Error in loadUDSMWindows") << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
          KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-         return false;
       }
    }
 
@@ -622,7 +605,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
    return true;
 #else
    KRATOS_ERROR << "loadUDSMWindows should be called in Windows applications" << rMaterialProperties[UDSM_NAME] << std::endl;
-   return false;
 #endif
 
    KRATOS_CATCH("")
@@ -634,39 +616,39 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
 
 void SmallStrainUDSM3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    CalculateMaterialResponseCauchy(rValues);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    CalculateMaterialResponseCauchy(rValues);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CalculateMaterialResponseKirchhoff()") << std::endl;
 
    CalculateMaterialResponseCauchy(rValues);
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateMaterialResponseKirchhoff()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy()") << std::endl;
 
    // Get Values to compute the constitutive law:
@@ -693,7 +675,7 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -711,7 +693,7 @@ void SmallStrainUDSM3DLaw::
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -726,7 +708,7 @@ void SmallStrainUDSM3DLaw::SetExternalStressVector(Vector& rStressVector)
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetExternalStressVector()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -741,7 +723,7 @@ void SmallStrainUDSM3DLaw::SetInternalStressVector(const Vector& rStressVector)
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetInternalStressVector()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -770,14 +752,14 @@ void SmallStrainUDSM3DLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CopyConstitutiveMatrix()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
                                                         Matrix& rConstitutiveMatrix )
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CalculateConstitutiveMatrix()") << std::endl;
 
    // update strain vector
@@ -790,14 +772,14 @@ void SmallStrainUDSM3DLaw::CalculateConstitutiveMatrix( ConstitutiveLaw::Paramet
    CopyConstitutiveMatrix(rValues, rConstitutiveMatrix);
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateConstitutiveMatrix()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues,
                                             Vector& rStressVector )
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CalculateStress()") << std::endl;
 
    // update strain vector
@@ -810,13 +792,13 @@ void SmallStrainUDSM3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues
    SetExternalStressVector(rStressVector);
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateStress()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;
 
    // process data
@@ -884,7 +866,7 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &r
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -913,7 +895,7 @@ void SmallStrainUDSM3DLaw::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::
 //----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::InitializeMaterialResponseCauchy()") << std::endl;
 
    if (!mIsModelInitialized)
@@ -932,7 +914,7 @@ void SmallStrainUDSM3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Par
    }
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::InitializeMaterialResponseCauchy()") << std::endl;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -981,7 +963,7 @@ void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

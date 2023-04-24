@@ -20,9 +20,7 @@
 #include "geometries/pyramid_3d_13.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
-
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 typedef GeometryType::Pointer             BaseGeometryPtrType;
 typedef Pyramid3D13<NodeType>             Pyramid3D13GeometryType;
@@ -47,6 +45,14 @@ BaseGeometryPtrType GenerateRegularPyramid3D13() {
         GeneratePoint<NodeType>( 0.5, -0.5, 0.75),
         GeneratePoint<NodeType>( 0.5,  0.5, 0.75)
     ));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GetGeometryType, KratosCoreGeometriesFastSuite)
+{
+    auto geomRegular = GenerateRegularPyramid3D13();
+
+    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Pyramid);
+    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Pyramid3D13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13EdgesNumber, KratosCoreGeometriesFastSuite)
@@ -284,5 +290,4 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GaussPoint5, KratosCoreGeometriesFastSuite)
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
 }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing.

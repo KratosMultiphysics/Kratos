@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -453,8 +452,8 @@ public:
         return std::sqrt(std::abs(this->DeterminantOfJacobian( PointType() ) ) );
     }
 
-    /** 
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area
@@ -464,16 +463,8 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     // TODO: Code activated in June 2023
@@ -490,8 +481,8 @@ public:
     //     return 0.0;
     // }
 
-    /** 
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -660,9 +651,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 3 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 4 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ), this->pGetPoint( 5 ) ) );
         return edges;
     }
 
@@ -1132,9 +1123,6 @@ GeometryData Triangle3D6<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(
-    2, 3, 2);
+GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined
