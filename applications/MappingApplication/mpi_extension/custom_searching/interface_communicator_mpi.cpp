@@ -24,6 +24,7 @@
 #include "input_output/vtk_output.h"
 #include "interface_communicator_mpi.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "mpi/utilities/mpi_search_utilities.h"
 
 namespace Kratos
 {
@@ -75,7 +76,7 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const MapperInterfaceIn
 
     // Apply tolerance to bounding boxes
     std::vector<double> bounding_boxes_with_tol;
-    MapperUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
+    SearchUtilitiesMPI::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
                                                        mSearchRadius,
                                                        bounding_boxes_with_tol);
 

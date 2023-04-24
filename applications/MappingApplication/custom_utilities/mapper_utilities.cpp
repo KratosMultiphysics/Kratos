@@ -219,29 +219,6 @@ BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart)
     return global_bounding_box;
 }
 
-void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
-                                       const double Tolerance,
-                                       std::vector<double>& rBoundingBoxesWithTolerance)
-{
-    const SizeType size_vec = rBoundingBoxes.size();
-
-    KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0)
-        << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
-
-    if (rBoundingBoxesWithTolerance.size() != size_vec) {
-        rBoundingBoxesWithTolerance.resize(size_vec);
-    }
-
-    // Apply Tolerances
-    for (IndexType i=0; i<size_vec; i+=2) {
-        rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] + Tolerance;
-    }
-
-    for (IndexType i=1; i<size_vec; i+=2) {
-        rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] - Tolerance;
-    }
-}
-
 std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox)
 {
     // xmax, xmin,  ymax, ymin,  zmax, zmin
