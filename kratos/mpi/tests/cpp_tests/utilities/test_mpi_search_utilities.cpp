@@ -17,9 +17,28 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "geometries/point.h"
 #include "mpi/utilities/mpi_search_utilities.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
+
+KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesMPI_PointIsInsideBoundingBox, KratosMPICoreFastSuite)
+{
+    const MPISearchUtilities::BoundingBoxType bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
+    // xmax, xmin,  ymax, ymin,  zmax, zmin
+
+    const Point p_out_x(10.6, 1.0, 3.8);
+    const Point p_out_y(10.1, -80.0, 3.8);
+    const Point p_out_z(10.1, 1.0, -3.8);
+    const Point p_in(10.0, -30.78, 3.7);
+
+    KRATOS_CHECK_IS_FALSE(MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_x));
+    KRATOS_CHECK_IS_FALSE(MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_y));
+    KRATOS_CHECK_IS_FALSE(MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_z));
+
+    KRATOS_CHECK(MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, p_in));
+}
 
 double GetBBoxValue(const int Index, const double Factor, const double Offset)
 {

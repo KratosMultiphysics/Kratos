@@ -117,23 +117,6 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox, KratosMappin
     KRATOS_CHECK_DOUBLE_EQUAL(bbox[5], -8.3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointIsInsideBoundingBox, KratosMappingApplicationSerialTestSuite)
-{
-    const MapperUtilities::BoundingBoxType bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
-    // xmax, xmin,  ymax, ymin,  zmax, zmin
-
-    const Point p_out_x(10.6, 1.0, 3.8);
-    const Point p_out_y(10.1, -80.0, 3.8);
-    const Point p_out_z(10.1, 1.0, -3.8);
-    const Point p_in(10.0, -30.78, 3.7);
-
-    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointIsInsideBoundingBox(bounding_box, p_out_x));
-    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointIsInsideBoundingBox(bounding_box, p_out_y));
-    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointIsInsideBoundingBox(bounding_box, p_out_z));
-
-    KRATOS_CHECK(MapperUtilities::PointIsInsideBoundingBox(bounding_box, p_in));
-}
-
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMappingApplicationSerialTestSuite)
 {
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
