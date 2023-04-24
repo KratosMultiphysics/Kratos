@@ -1959,7 +1959,62 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
 
 void ModelPartIO::ReadConditionsBlock(ModelPart& rModelPart)
 {
-    ReadConditionsBlock(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
+    KRATOS_TRY
+
+    SizeType id;
+    SizeType properties_id;
+    SizeType node_id;
+    SizeType number_of_read_conditions = 0;
+
+
+    std::string word;
+    std::string condition_name;
+
+    ReadWord(condition_name);
+    KRATOS_INFO("ModelPartIO") << "  [Reading Conditions : ";
+
+    if(!KratosComponents<Condition>::Has(condition_name))
+    {
+        std::stringstream buffer;
+        buffer << "Condition " << condition_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the condition name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+        return;
+    }
+
+    Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_name);
+    SizeType number_of_nodes = r_clone_condition.GetGeometry().size();
+    Condition::NodesArrayType temp_condition_nodes;
+    ModelPart::ConditionsContainerType aux_conds;
+
+    while(!mpStream->eof())
+    {
+        ReadWord(word); // Reading the condition id or End
+        if(CheckEndBlock("Conditions", word))
+            break;
+
+        ExtractValue(word,id);
+        ReadWord(word); // Reading the properties id;
+        ExtractValue(word, properties_id);
+        Properties::Pointer p_temp_properties = *(FindKey(rModelPart.rProperties(), properties_id, "Properties").base());
+        temp_condition_nodes.clear();
+        for(SizeType i = 0 ; i < number_of_nodes ; i++)
+        {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_condition_nodes.push_back( *(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
+        }
+
+        aux_conds.push_back(r_clone_condition.Create(ReorderedConditionId(id), temp_condition_nodes, p_temp_properties));
+        number_of_read_conditions++;
+    }
+    KRATOS_INFO("") << number_of_read_conditions << " conditions read] [Type: " << condition_name << "]" << std::endl;
+    aux_conds.Unique();
+
+    rModelPart.AddConditions(aux_conds.begin(), aux_conds.end());
+
+    KRATOS_CATCH("")
 }
 
 void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
