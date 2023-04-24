@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesMPI_ComputeBoundingBoxWithTol, KratosMP
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(SearchUtilitiesMPI::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MPISearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
@@ -46,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesMPI_ComputeBoundingBoxWithTol, KratosMP
 
     const double tolerance = 5.478;
 
-    SearchUtilitiesMPI::ComputeBoundingBoxesWithTolerance(bboxes,
+    MPISearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes,
                                                        tolerance,
                                                        bboxes_with_tol);
 
