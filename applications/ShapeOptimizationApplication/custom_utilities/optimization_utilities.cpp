@@ -304,6 +304,28 @@ void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,
     }
 }
 
+void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,
+    Matrix& rMatrix,
+    const std::vector<Vector*>& rGradientVectors
+)
+{
+    const int number_of_design_variables = rGradientVectors[0]->size();
+
+    if ((rMatrix.size1() != number_of_design_variables || rMatrix.size2() !=  rGradientVectors.size())){
+        rMatrix.resize(number_of_design_variables, rGradientVectors.size());
+    }
+
+    for (int i = 0; i < number_of_design_variables; ++i)
+    {
+        int j=0;
+        for (Vector* p_variable_j : rGradientVectors)
+        {
+            rMatrix(i, j) = (*p_variable_j)[i];
+            ++j;
+        }
+    }
+}
+
 void OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection(
     Vector& rObjectiveGradient,
     Matrix& rConstraintGradients,

@@ -244,6 +244,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                                     }
                                     return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
                                 })
+        .def_static("AssembleMatrixFromGradientVectors", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rGradientVectors){
+                                            std::size_t list_length = pybind11::len(rGradientVectors);
+                                            std::vector<Vector*> gradient_vectors(list_length);
+                                            for (std::size_t i = 0; i < list_length; i++)
+                                            {
+                                                gradient_vectors[i] = (rGradientVectors[i]).cast<Vector*>();
+                                            }
+                                            return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, gradient_vectors);
+                                        })
         .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         .def_static("AssembleBufferMatrix", &OptimizationUtilities::AssembleBufferMatrix)
         .def_static("CalculateRelaxedProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateRelaxedProjectedSearchDirectionAndCorrection)

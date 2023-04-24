@@ -39,7 +39,8 @@ class Optimizer:
         self.analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, self.model_part_controller, external_analyzer)
         self.communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
-        if not optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
+        if not optimization_settings["design_variables"]["type"].GetString() in ["vertex_morphing", "free_thickness", "thickness"]:
+            variable_type = optimization_settings["design_variables"]["type"].GetString()
             raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
 
         self.__AddVariablesToBeUsedByAllAlgorithms()
@@ -105,27 +106,28 @@ class Optimizer:
             self.__AddVariablesToBeUsedBySensitivityHeatmap()
 
     def __AddVariablesToBeUsedByDesignVariables(self):
-        if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
-            self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
-                model_part = self.model_part_controller.GetOptimizationModelPart()
-                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
-                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
-                model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
-        if self.optimization_settings["design_variables"]["filter"].Has("sliding_morphing") and \
-            self.optimization_settings["design_variables"]["filter"]["sliding_morphing"].GetBool():
-                model_part = self.model_part_controller.GetOptimizationModelPart()
-                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
-                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
-                model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+        if self.optimization_settings["design_variables"].Has("filter"):
+            if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
+                self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
+                    model_part = self.model_part_controller.GetOptimizationModelPart()
+                    model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+                    model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+                    model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+            if self.optimization_settings["design_variables"]["filter"].Has("sliding_morphing") and \
+                self.optimization_settings["design_variables"]["filter"]["sliding_morphing"].GetBool():
+                    model_part = self.model_part_controller.GetOptimizationModelPart()
+                    model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+                    model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+                    model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
 
-        if self.optimization_settings["design_variables"]["filter"]["filter_radius"].IsString() and \
-            self.optimization_settings["design_variables"]["filter"]["filter_radius"].GetString() == "adaptive":
-            # variables required for adaptive
-            model_part = self.model_part_controller.GetOptimizationModelPart()
-            model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS)
-            model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS_RAW)
-            model_part.AddNodalSolutionStepVariable(KSO.GAUSSIAN_CURVATURE)
-            model_part.AddNodalSolutionStepVariable(KSO.MAX_NEIGHBOUR_DISTANCE)
+            if self.optimization_settings["design_variables"]["filter"]["filter_radius"].IsString() and \
+                self.optimization_settings["design_variables"]["filter"]["filter_radius"].GetString() == "adaptive":
+                # variables required for adaptive
+                model_part = self.model_part_controller.GetOptimizationModelPart()
+                model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS)
+                model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS_RAW)
+                model_part.AddNodalSolutionStepVariable(KSO.GAUSSIAN_CURVATURE)
+                model_part.AddNodalSolutionStepVariable(KSO.MAX_NEIGHBOUR_DISTANCE)
 
     def __AddVariablesToBeUsedBySensitivityHeatmap(self):
         model_part = self.model_part_controller.GetOptimizationModelPart()
