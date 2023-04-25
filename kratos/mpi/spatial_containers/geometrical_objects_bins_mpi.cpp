@@ -46,7 +46,7 @@ void GeometricalObjectsBinsMPI::InitializeSearch()
     // // Copy the local information directly
     // mSearchData.RecvBufferDouble[mSearchData.CommRank] = mSearchData.SendBufferDouble[mSearchData.CommRank];
 
-    // const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferDouble, mSearchData.RecvBufferDoubl, mSearchData);
+    // const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferDouble, mSearchData.RecvBufferDoubl, , mSearchData.CommRank, mSearchData.CommSize, mSearchData.SendSizes, mSearchData.RecvSizes);
 
     // KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the information for "
     //     << "the construction of the MapperInterfaceInfos in MPI" << std::endl;
