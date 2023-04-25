@@ -76,19 +76,22 @@ template<typename TDataType>
 int MPISearchUtilities::ExchangeDataAsync(
     const std::vector<std::vector<TDataType>>& rSendBuffer,
     std::vector<std::vector<TDataType>>& rRecvBuffer,
-    MPISearchData& rSearchData
+    const int CommRank,
+    const int CommSize,
+    const std::vector<int>& rSendSizes,
+    std::vector<int>& rRecvSizes
     )
 {
     // Exchange the buffer sizes
-    MPI_Alltoall(rSearchData.SendSizes.data(), 1, MPI_INT, rSearchData.RecvSizes.data(), 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(rSendSizes.data(), 1, MPI_INT, rRecvSizes.data(), 1, MPI_INT, MPI_COMM_WORLD);
 
     // Send Information to Candidate Partitions
     int num_comm_events     = 0;
     int num_comm_events_idx = 0;
 
-    for(int i=0; i<rSearchData.CommSize; ++i) {
-        if(i != rSearchData.CommRank && rSearchData.RecvSizes[i]) num_comm_events++;
-        if(i != rSearchData.CommRank && rSearchData.SendSizes[i]) num_comm_events++;
+    for(int i=0; i<CommSize; ++i) {
+        if(i != CommRank && rRecvSizes[i]) num_comm_events++;
+        if(i != CommRank && rSendSizes[i]) num_comm_events++;
     }
 
     // TODO make members?
@@ -98,19 +101,19 @@ int MPISearchUtilities::ExchangeDataAsync(
     const MPI_Datatype mpi_datatype(GetMPIDatatype(TDataType()));
 
     // Exchange the data
-    for (int i=0; i<rSearchData.CommSize; ++i) {
-        if (i != rSearchData.CommRank && rSearchData.RecvSizes[i]) { // TODO check what "rSearchData.RecvSizes[i]" returns
-            if (rRecvBuffer[i].size() != static_cast<SizeType>(rSearchData.RecvSizes[i])) {
-                rRecvBuffer[i].resize(rSearchData.RecvSizes[i]);
+    for (int i=0; i<CommSize; ++i) {
+        if (i != CommRank && rRecvSizes[i]) { // TODO check what "rRecvSizes[i]" returns
+            if (rRecvBuffer[i].size() != static_cast<SizeType>(rRecvSizes[i])) {
+                rRecvBuffer[i].resize(rRecvSizes[i]);
             }
 
-            MPI_Irecv(rRecvBuffer[i].data(), rSearchData.RecvSizes[i],
+            MPI_Irecv(rRecvBuffer[i].data(), rRecvSizes[i],
                       mpi_datatype, i, 0,
                       MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
         }
 
-        if (i != rSearchData.CommRank && rSearchData.SendSizes[i]) {
-            MPI_Isend(rSendBuffer[i].data(), rSearchData.SendSizes[i],
+        if (i != CommRank && rSendSizes[i]) {
+            MPI_Isend(rSendBuffer[i].data(), rSendSizes[i],
                       mpi_datatype, i, 0,
                       MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
         }
@@ -126,13 +129,19 @@ int MPISearchUtilities::ExchangeDataAsync(
 template int MPISearchUtilities::ExchangeDataAsync<double>(
     const std::vector<std::vector<double>>& rSendBuffer,
     std::vector<std::vector<double>>& rRecvBuffer,
-    MPISearchData& rSearchData
+    const int CommRank,
+    const int CommSize,
+    const std::vector<int>& rSendSizes,
+    std::vector<int>& rRecvSizes
     );
 
 template int MPISearchUtilities::ExchangeDataAsync<char>(
     const std::vector<std::vector<char>>& rSendBuffer,
     std::vector<std::vector<char>>& rRecvBuffer,
-    MPISearchData& rSearchData
+    const int CommRank,
+    const int CommSize,
+    const std::vector<int>& rSendSizes,
+    std::vector<int>& rRecvSizes
     );
 
 } // namespace Kratos

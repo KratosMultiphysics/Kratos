@@ -77,7 +77,7 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const MapperInterfaceIn
     // copy the local information directly
     mSearchData.RecvBufferDouble[mSearchData.CommRank] = mSearchData.SendBufferDouble[mSearchData.CommRank];
 
-    const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferDouble, mSearchData.RecvBufferDouble, mSearchData);
+    const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferDouble, mSearchData.RecvBufferDouble, mSearchData.CommRank, mSearchData.CommSize, mSearchData.SendSizes, mSearchData.RecvSizes);
 
     KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the information for "
         << "the construction of the MapperInterfaceInfos in MPI" << std::endl;
@@ -105,7 +105,7 @@ void InterfaceCommunicatorMPI::FinalizeSearchIteration(const MapperInterfaceInfo
                                                 mSearchData.SendBufferChar,
                                                 mSearchData.SendSizes);
 
-    const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferChar, mSearchData.RecvBufferChar, mSearchData);
+    const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferChar, mSearchData.RecvBufferChar, mSearchData.CommRank, mSearchData.CommSize, mSearchData.SendSizes, mSearchData.RecvSizes);
 
     KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the "
         << "serialized MapperInterfaceInfos in MPI" << std::endl;
