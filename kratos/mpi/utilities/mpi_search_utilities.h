@@ -42,11 +42,58 @@ namespace Kratos
 ///@{
 
 /**
+ * @class MPISearchData
+ * @ingroup KratosMPI
+ * @brief MPI search data
+ * @details Original implementation from MappingUtilities
+ * @author Philipp Bucher (moved by Vicente Mataix Ferrandiz)
+ */
+struct MPISearchData
+{
+    ///@name Type Definitions
+    ///@{
+
+    /// The buffer type for doubles
+    using BufferTypeDouble = std::vector<std::vector<double>>;
+
+    /// The buffer type for integers (char)
+    using BufferTypeChar = std::vector<std::vector<char>>;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Initializes the MPISearchData object by setting up the necessary buffers
+     * and obtaining the rank and size of the MPI communicator.
+     */
+    void Initialize();
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    int CommRank;                      /// The rank of the current processor
+    int CommSize;                      /// The size of the communicator
+
+    std::vector<int> SendSizes;        /// The size of the send buffer
+    std::vector<int> RecvSizes;        /// The size of the receive buffer
+
+    BufferTypeDouble SendBufferDouble; /// The send buffer (double)
+    BufferTypeDouble RecvBufferDouble; /// The receive buffer (double)
+
+    BufferTypeChar SendBufferChar;     /// The send buffer (char)
+    BufferTypeChar RecvBufferChar;     /// The receive buffer (char)
+
+    ///@}
+};
+
+/**
  * @class MPISearchUtilities
  * @ingroup KratosMPI
  * @brief MPI utilities for searching geometrical objects
- * @details Original implementation fron MappingUtilities 
- * @author Philipp Bucher
+ * @details Original implementation from MappingUtilities 
+ * @author Philipp Bucher (moved by Vicente Mataix Ferrandiz)
  */
 class MPISearchUtilities
 {
@@ -54,6 +101,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The Bounding Box type
     using BoundingBoxType = std::array<double, 6>;
 
     /// The index type definition
@@ -100,6 +148,22 @@ public:
         const double Tolerance,
         std::vector<double>& rBoundingBoxesWithTolerance
         );
+
+    /**
+     * @brief This method exchanges data asynchronously
+     * @tparam TDataType The type of data to be exchanged
+     * @param rSendBuffer The send buffer
+     * @param rRecvBuffer The receive buffer
+     * @param rSearchData The search data
+     * @todo This method should be moved to the communicator
+     */
+    template<typename TDataType>
+    static int ExchangeDataAsync(
+        const std::vector<std::vector<TDataType>>& rSendBuffer,
+        std::vector<std::vector<TDataType>>& rRecvBuffer,
+        MPISearchData& rSearchData
+        );
+
 
     ///@}
 };
