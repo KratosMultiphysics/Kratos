@@ -119,6 +119,9 @@ namespace Kratos
     /// Number of nodes
     static constexpr SizeType NumNodes = TDim + 1;
 
+    /// Voigt size
+    static constexpr SizeType StrainSize = TDim == 2 ? 3 : 6;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -409,11 +412,6 @@ namespace Kratos
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
-    void VoigtStressNormalProjection(
-      const Vector& rVoigtStress,
-      const array_1d<double,3>& rUnitNormal,
-      array_1d<double,TDim>& rProjectedStress);
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -438,6 +436,19 @@ namespace Kratos
         ModifiedShapeFunctions::AreaNormalsContainerType& rInterfaceUnitNormals);
 
     void CalculateCutGeometryData(Vector &rGaussWeights);
+
+    void VoigtStressNormalProjection(
+      const Vector& rVoigtStress,
+      const array_1d<double,3>& rUnitNormal,
+      array_1d<double,TDim>& rProjectedStress);
+
+    void CalculateBMatrix(
+        const Matrix& rDNDX,
+        BoundedMatrix<double,StrainSize, TDim*NumNodes>& rB);
+
+    void VoigtTransformForProduct(
+        const array_1d<double,3>& rVector,
+        BoundedMatrix<double, TDim, StrainSize>& rVoigtMatrix);
 
     ///@}
     ///@name Private  Access

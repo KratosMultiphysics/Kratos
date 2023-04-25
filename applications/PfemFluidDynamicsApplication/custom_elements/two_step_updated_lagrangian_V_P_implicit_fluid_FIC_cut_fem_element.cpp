@@ -989,7 +989,7 @@ namespace Kratos
               // Interpolate the pressure at the interface Gauss point to calculate the isochoric stress
               double pres_gauss = 0.0;
               for (std::size_t j = 0; j < n_nodes; ++j) {
-                  pres_gauss += g_shape_functions[j] * r_geom[j].FastGetSolutionStepValue(PRESSURE);
+                  pres_gauss += g_shape_functions[j] * r_geom[j].FastGetSolutionStepValue(PRESSURE); //FIXME: This must be evaluated at n+theta 
               }
 
               // Navier-Stokes traction boundary term
@@ -1004,14 +1004,25 @@ namespace Kratos
               }
 
               // Cut-FEM boundary condition imposition (penalty) -> TODO: To be enhanced by a Nitsche BC
+              BoundedMatrix<double, StrainSize, TDim*NumNodes> B;
+              BoundedMatrix<double, TDim, StrainSize> voigt_normal;
+              CalculateBMatrix(g_DN_DX, B);
+              VoigtTransformForProduct(r_g_unit_normal, voigt_normal);
+              BoundedMatrix<double, StrainSize, TDim*NumNodes> aux_BC = prod(trans(B), trans(r_constitutive_matrix));
+              BoundedMatrix<double, TDim*NumNodes, TDim> aux_BC_proj = prod(aux_BC, voigt_normal);
               for (std::size_t i = 0; i < n_nodes; ++i) {
                   for (std::size_t j = 0; j < n_nodes; ++j) {
-                      const auto& r_vel_j = r_geom[j].FastGetSolutionStepValue(VELOCITY);
+                      const auto& r_vel_j = r_geom[j].FastGetSolutionStepValue(VELOCITY); //FIXME: This must be evaluated at n+theta 
                       const array_1d<double,3> bc_vel = ZeroVector(3); //TODO: This should be the "structure" velocity in the future
                       const double aux = g_weight* penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
                       for (std::size_t d = 0; d < TDim; ++d) {
+                          // Penalty term
                           rLeftHandSideMatrix(i*TDim + d, j*TDim + d) += aux;
                           rRightHandSideVector(i*TDim + d) -= aux*(r_vel_j[d] - bc_vel[d]);
+                          // Nitsche term (only viscous component)
+                          for (std::size_t d2 = 0; d2 < TDim; ++d2) {
+                              rLeftHandSideMatrix(i*TDim + d, j*TDim + d) -= ;
+                          }
                       }
                   }
               }
@@ -1081,7 +1092,7 @@ namespace Kratos
 
       for (unsigned int i = 0; i < rInterfaceUnitNormals.size(); ++i) {
           const double norm = norm_2(rInterfaceUnitNormals[i]);
-          KRATOS_ERROR_IF(norm < 1.0e-12) << "Normal is close to zero in element " << this->Id() << " cut interface." << std::endl;
+          KRATOS_WARNING_IF("CalculateIntersectionGeometryData", norm < 1.0e-12) << "Normal is close to zero in element " << this->Id() << " cut interface." << std::endl;
           rInterfaceUnitNormals[i] /= norm;
       }
   }
@@ -1239,6 +1250,72 @@ namespace Kratos
       rProjectedStress[1] = rVoigtStress[3]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1] + rVoigtStress[4]*rUnitNormal[2];
       rProjectedStress[2] = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1] + rVoigtStress[2]*rUnitNormal[2];
   }
+
+  template<>
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<2>::CalculateBMatrix(
+      const Matrix &rDNDX,
+      BoundedMatrix<double,StrainSize, 2*NumNodes>& rB)
+  {
+      IndexType index;
+      for (unsigned int i = 0; i < NumNodes; i++) {
+          index = 2*i;
+          rB( 0, index + 0 ) = rDNDX(i,0);
+          rB( 1, index + 1 ) = rDNDX(i,1);
+          rB( 2, index + 0 ) = rDNDX(i,1);
+          rB( 2, index + 1 ) = rDNDX(i,0);
+      }
+  }
+
+  template<>
+  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<3>::CalculateBMatrix(
+      const Matrix &rDNDX,
+      BoundedMatrix<double,StrainSize, 3*NumNodes>& rB)
+  {
+      IndexType index;
+      for (unsigned int i = 0; i < NumNodes; i++) {
+          index = 3*i;
+          rB( 0, index + 0 ) = rDNDX( i, 0 );
+          rB( 1, index + 1 ) = rDNDX( i, 1 );
+          rB( 2, index + 2 ) = rDNDX( i, 2 );
+          rB( 3, index + 0 ) = rDNDX( i, 1 );
+          rB( 3, index + 1 ) = rDNDX( i, 0 );
+          rB( 4, index + 1 ) = rDNDX( i, 2 );
+          rB( 4, index + 2 ) = rDNDX( i, 1 );
+          rB( 5, index + 0 ) = rDNDX( i, 2 );
+          rB( 5, index + 2 ) = rDNDX( i, 0 );
+      }
+  }
+
+template<>
+void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<2>::VoigtTransformForProduct(
+    const array_1d<double,3>& rVector,
+    BoundedMatrix<double, 2, StrainSize>& rVoigtMatrix) {
+
+    rVoigtMatrix.clear();
+
+    rVoigtMatrix(0,0) = rVector(0);
+    rVoigtMatrix(0,2) = rVector(1);
+    rVoigtMatrix(1,1) = rVector(1);
+    rVoigtMatrix(1,2) = rVector(0);
+}
+
+template<>
+void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<3>::VoigtTransformForProduct(
+    const array_1d<double,3>& rVector,
+    BoundedMatrix<double, 3, StrainSize>& rVoigtMatrix) {
+
+    rVoigtMatrix.clear();
+
+    rVoigtMatrix(0,0) = rVector(0);
+    rVoigtMatrix(0,3) = rVector(1);
+    rVoigtMatrix(0,5) = rVector(2);
+    rVoigtMatrix(1,1) = rVector(1);
+    rVoigtMatrix(1,3) = rVector(0);
+    rVoigtMatrix(1,4) = rVector(2);
+    rVoigtMatrix(2,2) = rVector(2);
+    rVoigtMatrix(2,4) = rVector(1);
+    rVoigtMatrix(2,5) = rVector(0);
+}
 
   template class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<2>;
   template class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<3>;
