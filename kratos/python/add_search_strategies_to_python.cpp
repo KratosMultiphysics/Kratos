@@ -21,6 +21,7 @@
 #include "utilities/parallel_utilities.h"
 #include "spatial_containers/spatial_search.h"
 #include "spatial_containers/specialized_spatial_search.h"
+#include "spatial_containers/specialized_spatial_search_factory.h"
 
 namespace Kratos::Python
 {
