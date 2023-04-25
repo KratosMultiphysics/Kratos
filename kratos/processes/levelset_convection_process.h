@@ -514,9 +514,7 @@ protected:
 
         KRATOS_TRY
 
-        if (mrModel.HasModelPart(mAuxModelPartName)) {
-            mrModel.DeleteModelPart(mAuxModelPartName);
-        }
+        KRATOS_ERROR_IF(mrModel.HasModelPart(mAuxModelPartName)) << "A process or operation using an auxiliar model_part with the name '" << mAuxModelPartName << "' already exists. Please choose another." << std::endl;
 
         mpDistanceModelPart= &(mrModel.CreateModelPart(mAuxModelPartName));
 
