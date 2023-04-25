@@ -154,14 +154,21 @@ public:
      * @tparam TDataType The type of data to be exchanged
      * @param rSendBuffer The send buffer
      * @param rRecvBuffer The receive buffer
-     * @param rSearchData The search data
+     * @param CommRank The rank of the current processor
+     * @param CommSize The size of the communicator
+     * @param rSendSizes The size of the send buffer
+     * @param rRecvSizes The size of the receive buffer
+     * @return 0 if the operation was successful
      * @todo This method should be moved to the communicator
      */
     template<typename TDataType>
     static int ExchangeDataAsync(
         const std::vector<std::vector<TDataType>>& rSendBuffer,
         std::vector<std::vector<TDataType>>& rRecvBuffer,
-        MPISearchData& rSearchData
+        const int CommRank,
+        const int CommSize,
+        const std::vector<int>& rSendSizes,
+        std::vector<int>& rRecvSizes
         );
 
 
