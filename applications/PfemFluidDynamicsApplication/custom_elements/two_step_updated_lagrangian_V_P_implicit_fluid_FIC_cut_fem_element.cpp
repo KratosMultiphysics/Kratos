@@ -946,7 +946,8 @@ void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateLoc
         this->InitializeElementalVariables(elemental_variables);
 
         // Add the boundary terms
-        const double penalty_parameter = 1.0e8; //TODO: Make this dimensionally consistent
+        const double kappa = 1.0e8; //TODO: Make this user-definable
+        const double h = this->ElementSize();
 
         array_1d<double,TDim> proj_dev_stress;
         const auto& r_geom = this->GetGeometry();
@@ -982,9 +983,10 @@ void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateLoc
             constitutive_law_values.SetConstitutiveMatrix(r_constitutive_matrix);
 
             p_cons_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+            this->UpdateStressTensor(elemental_variables);
 
-            this->UpdateStressTensor(elemental_variables);             
-            VoigtStressNormalProjection(r_dev_stress_vector, r_g_unit_normal, proj_dev_stress);
+            // Take dynamic viscosity from the bottom right corner of the constitutive matrix
+            const double mu = r_constitutive_matrix(StrainSize,StrainSize); 
 
             // Interpolate the pressure at the interface Gauss point to calculate the isochoric stress
             double pres_gauss = 0.0;
@@ -993,6 +995,7 @@ void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateLoc
             }
 
             // Navier-Stokes traction boundary term
+            VoigtStressNormalProjection(r_dev_stress_vector, r_g_unit_normal, proj_dev_stress);
             for (std::size_t i = 0; i < n_nodes; ++i) {
                 const double aux = g_weight * g_shape_functions[i];
                 for (std::size_t d = 0; d < TDim; ++d) {
@@ -1003,25 +1006,26 @@ void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateLoc
                 }
             }
 
-            // Cut-FEM boundary condition imposition (penalty) -> TODO: To be enhanced by a Nitsche BC
+            // Cut-FEM boundary condition Nitsche imposition
+            const double penalty_parameter = kappa * mu / h;
             BoundedMatrix<double, StrainSize, TDim*NumNodes> B;
             BoundedMatrix<double, TDim, StrainSize> voigt_normal;
             CalculateBMatrix(g_DN_DX, B);
             VoigtTransformForProduct(r_g_unit_normal, voigt_normal);
             BoundedMatrix<double, StrainSize, TDim*NumNodes> aux_BC = prod(trans(B), trans(r_constitutive_matrix));
             BoundedMatrix<double, TDim*NumNodes, TDim> aux_BC_proj = prod(aux_BC, voigt_normal);
-            for (std::size_t i = 0; i < n_nodes; ++i) {
-                for (std::size_t j = 0; j < n_nodes; ++j) { 
+            for (IndexType i = 0; i < n_nodes; ++i) {
+                for (IndexType j = 0; j < n_nodes; ++j) { 
                     const auto& r_vel_j = r_geom[j].FastGetSolutionStepValue(VELOCITY); //FIXME: This must be evaluated at n+theta 
                     const array_1d<double,3> bc_vel = ZeroVector(3); //TODO: This should be the "structure" velocity in the future
                     const double aux = g_weight* penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
                     const double aux_2 = g_weight * g_shape_functions[j];
-                    for (std::size_t d = 0; d < TDim; ++d) {
+                    for (IndexType d = 0; d < TDim; ++d) {
                         // Penalty term
                         rLeftHandSideMatrix(i*TDim + d, j*TDim + d) += aux;
                         rRightHandSideVector(i*TDim + d) -= aux*(r_vel_j[d] - bc_vel[d]);
                         // Nitsche term (only viscous component)
-                        for (std::size_T d2 = 0; d2 < TDim; ++d2) {
+                        for (IndexType d2 = 0; d2 < TDim; ++d2) {
                             rLeftHandSideMatrix(i*TDim + d, j*TDim + d2) -= aux_BC_proj(i*TDim+d, i*TDim+d2)*aux_2;
                             rRightHandSideVector(i*TDim + d) += aux_BC_proj(i*TDim+d, i*TDim+d2)*aux_2*(r_vel_j[d] - bc_vel[d]);
                         }
