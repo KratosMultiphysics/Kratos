@@ -17,6 +17,7 @@ class CommonResponseFunction(object):
     def ComputeResponseGradients(des_var, gradients, MC):
         MC.ComputePrimal(des_var)
         MC.ComputeAdjoint(des_var)
+        self.function.ComputeResponseGradients(gradients)
 
 
     
