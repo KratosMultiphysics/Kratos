@@ -30,6 +30,11 @@ namespace Kratos {
 #define KRATOS_SHA1_NUMBER "0"
 #endif
 
+// GiT branch name at configure
+#ifndef KRATOS_BRANCH_NAME
+#define KRATOS_BRANCH_NAME ""
+#endif
+
 // Build type
 #ifndef KRATOS_BUILD_TYPE
 #define KRATOS_BUILD_TYPE "Release"
@@ -59,6 +64,7 @@ namespace Kratos {
 KRATOS_TO_STRING(KRATOS_MAJOR_VERSION) "." \
 KRATOS_TO_STRING(KRATOS_MINOR_VERSION) "." \
 KRATOS_TO_STRING(KRATOS_PATCH_VERSION) "-" \
+KRATOS_BRANCH_NAME "-" \
 KRATOS_SHA1_NUMBER "-" \
 KRATOS_BUILD_TYPE  "-" \
 KRATOS_ARCH_TYPE
@@ -96,8 +102,12 @@ std::string GetPatchVersion() {
     return KRATOS_PATCH_VERSION;
 }
 
-std::string GetCommitVersion() {
+std::string GetCommit() {
     return KRATOS_SHA1_NUMBER;
+}
+
+std::string GetBranchName() {
+    return KRATOS_BRANCH_NAME;
 }
 
 std::string GetBuildType() {
