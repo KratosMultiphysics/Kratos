@@ -303,7 +303,8 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLeftHa
         for (IndexType j = 0; j < matrix_size; ++j) {
             rLeftHandSideMatrix(i,j) = aux_stiffnes(i,j);
             rLeftHandSideMatrix(i, matrix_size + j) = aux_oss_stab_operator(i,j);
-            rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_operator(i,j);
+            // rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_stab_operator(j,i);
             rLeftHandSideMatrix(matrix_size + i, matrix_size + j) = aux_lumped_mass_operator(i,j);
         }
     }
@@ -746,11 +747,11 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
                 sum_N_j += kinematic_variables.N[j];
             }
             for (IndexType d = 0; d < dim; ++d) {
-                // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) -= aux_w_kappa_tau_1 * N_i * sum_N_j;
-                rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += w_gauss * N_i * sum_N_j;
+                rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += aux_w_kappa_tau_1 * N_i * sum_N_j;
+                // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += w_gauss * N_i * sum_N_j;
             }
-            // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) -= aux_w_kappa_tau_2 * N_i * sum_N_j;
-            rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) += w_gauss * N_i * sum_N_j;
+            rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) += aux_w_kappa_tau_2 * N_i * sum_N_j;
+            // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) += w_gauss * N_i * sum_N_j;
         }
     }
 }
