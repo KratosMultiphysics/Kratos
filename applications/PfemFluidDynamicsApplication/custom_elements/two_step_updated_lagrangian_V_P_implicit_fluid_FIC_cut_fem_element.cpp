@@ -922,113 +922,115 @@ namespace Kratos
   //   }
   // }
 
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateLocalMomentumEquations(
-      MatrixType &rLeftHandSideMatrix,
-      VectorType &rRightHandSideVector,
-      const ProcessInfo &rCurrentProcessInfo)
-  {
-      // Volume Navier-Stokes contribution
-      // Note that this uses the CalculateGeometryData below, meaning that if it is cut, it already does the subintegration
-      BaseType::CalculateLocalMomentumEquations(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+template <unsigned int TDim>
+void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateLocalMomentumEquations(
+    MatrixType &rLeftHandSideMatrix,
+    VectorType &rRightHandSideVector,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Volume Navier-Stokes contribution
+    // Note that this uses the CalculateGeometryData below, meaning that if it is cut, it already does the subintegration
+    BaseType::CalculateLocalMomentumEquations(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-      // If intersected, add the boundary contribution
-      if (IsCut()) {
-          // Calculate intersection Gauss points geometry data
-          Matrix interface_N;
-          ShapeFunctionDerivativesArrayType interface_DN_DX;
-          Vector interface_gauss_weights;
-          ModifiedShapeFunctions::AreaNormalsContainerType interface_unit_normals;
-          CalculateIntersectionGeometryData(interface_DN_DX, interface_N, interface_gauss_weights, interface_unit_normals);
+    // If intersected, add the boundary contribution
+    if (IsCut()) {
+        // Calculate intersection Gauss points geometry data
+        Matrix interface_N;
+        ShapeFunctionDerivativesArrayType interface_DN_DX;
+        Vector interface_gauss_weights;
+        ModifiedShapeFunctions::AreaNormalsContainerType interface_unit_normals;
+        CalculateIntersectionGeometryData(interface_DN_DX, interface_N, interface_gauss_weights, interface_unit_normals);
 
-          // Create an auxiliary elemental data container for the boundary terms integration
-          ElementalVariables elemental_variables;
-          this->InitializeElementalVariables(elemental_variables);
+        // Create an auxiliary elemental data container for the boundary terms integration
+        ElementalVariables elemental_variables;
+        this->InitializeElementalVariables(elemental_variables);
 
-          // Add the boundary terms
-          const double penalty_parameter = 1.0e8; //TODO: Make this dimensionally consistent
+        // Add the boundary terms
+        const double penalty_parameter = 1.0e8; //TODO: Make this dimensionally consistent
 
-          array_1d<double,TDim> proj_dev_stress;
-          const auto& r_geom = this->GetGeometry();
-          const std::size_t n_nodes = r_geom.PointsNumber();
-          const unsigned int n_int_gauss_pts = interface_gauss_weights.size();
-          for (unsigned int g = 0; g < n_int_gauss_pts; g++) {
-              // Get interface Gauss point data
-              const double g_weight = interface_gauss_weights[g];
-              const auto g_DN_DX = interface_DN_DX[g];
-              const auto g_shape_functions = row(interface_N,g);
-              const auto& r_g_unit_normal = interface_unit_normals[g];
+        array_1d<double,TDim> proj_dev_stress;
+        const auto& r_geom = this->GetGeometry();
+        const std::size_t n_nodes = r_geom.PointsNumber();
+        const unsigned int n_int_gauss_pts = interface_gauss_weights.size();
+        for (unsigned int g = 0; g < n_int_gauss_pts; g++) {
+            // Get interface Gauss point data
+            const double g_weight = interface_gauss_weights[g];
+            const auto g_DN_DX = interface_DN_DX[g];
+            const auto g_shape_functions = row(interface_N,g);
+            const auto& r_g_unit_normal = interface_unit_normals[g];
 
-              // Calculate the mechanical response at the interface Gauss point to get the viscous stress
-              this->CalcMechanicsUpdated(elemental_variables, rCurrentProcessInfo, g_DN_DX);
+            // Calculate the mechanical response at the interface Gauss point to get the viscous stress
+            this->CalcMechanicsUpdated(elemental_variables, rCurrentProcessInfo, g_DN_DX);
 
-              auto& r_strain_vector = elemental_variables.SpatialDefRate;
-              auto& r_dev_stress_vector = elemental_variables.UpdatedDeviatoricCauchyStress;
-              auto& r_constitutive_matrix = elemental_variables.ConstitutiveMatrix;
+            auto& r_strain_vector = elemental_variables.SpatialDefRate;
+            auto& r_dev_stress_vector = elemental_variables.UpdatedDeviatoricCauchyStress;
+            auto& r_constitutive_matrix = elemental_variables.ConstitutiveMatrix;
 
-              auto p_cons_law = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
-              auto constitutive_law_values = ConstitutiveLaw::Parameters(
-                r_geom,
-                this->GetProperties(),
-                rCurrentProcessInfo);
+            auto p_cons_law = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+            auto constitutive_law_values = ConstitutiveLaw::Parameters(
+            r_geom,
+            this->GetProperties(),
+            rCurrentProcessInfo);
 
-              auto& r_constitutive_law_options = constitutive_law_values.GetOptions();
-              r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-              r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+            auto& r_constitutive_law_options = constitutive_law_values.GetOptions();
+            r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-              constitutive_law_values.SetShapeFunctionsValues(g_shape_functions);
-              constitutive_law_values.SetStrainVector(r_strain_vector);
-              constitutive_law_values.SetStressVector(r_dev_stress_vector);
-              constitutive_law_values.SetConstitutiveMatrix(r_constitutive_matrix);
+            constitutive_law_values.SetShapeFunctionsValues(g_shape_functions);
+            constitutive_law_values.SetStrainVector(r_strain_vector);
+            constitutive_law_values.SetStressVector(r_dev_stress_vector);
+            constitutive_law_values.SetConstitutiveMatrix(r_constitutive_matrix);
 
-              p_cons_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+            p_cons_law->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-              this->UpdateStressTensor(elemental_variables);             
-              VoigtStressNormalProjection(r_dev_stress_vector, r_g_unit_normal, proj_dev_stress);
+            this->UpdateStressTensor(elemental_variables);             
+            VoigtStressNormalProjection(r_dev_stress_vector, r_g_unit_normal, proj_dev_stress);
 
-              // Interpolate the pressure at the interface Gauss point to calculate the isochoric stress
-              double pres_gauss = 0.0;
-              for (std::size_t j = 0; j < n_nodes; ++j) {
-                  pres_gauss += g_shape_functions[j] * r_geom[j].FastGetSolutionStepValue(PRESSURE); //FIXME: This must be evaluated at n+theta 
-              }
+            // Interpolate the pressure at the interface Gauss point to calculate the isochoric stress
+            double pres_gauss = 0.0;
+            for (std::size_t j = 0; j < n_nodes; ++j) {
+                pres_gauss += g_shape_functions[j] * r_geom[j].FastGetSolutionStepValue(PRESSURE); //FIXME: This must be evaluated at n+theta 
+            }
 
-              // Navier-Stokes traction boundary term
-              for (std::size_t i = 0; i < n_nodes; ++i) {
-                  const double aux = g_weight * g_shape_functions[i];
-                  for (std::size_t d = 0; d < TDim; ++d) {
-                      // Add Right Hand Side contribution
-                      // TODO: Add the LHS terms
-                      rRightHandSideVector(i*TDim + d) += aux * (pres_gauss * r_g_unit_normal[d] - proj_dev_stress[d]);
+            // Navier-Stokes traction boundary term
+            for (std::size_t i = 0; i < n_nodes; ++i) {
+                const double aux = g_weight * g_shape_functions[i];
+                for (std::size_t d = 0; d < TDim; ++d) {
+                    // Add Right Hand Side contribution
+                    // TODO: Add the LHS terms
+                    rRightHandSideVector(i*TDim + d) += aux * (pres_gauss * r_g_unit_normal[d] - proj_dev_stress[d]);
 
-                  }
-              }
+                }
+            }
 
-              // Cut-FEM boundary condition imposition (penalty) -> TODO: To be enhanced by a Nitsche BC
-              BoundedMatrix<double, StrainSize, TDim*NumNodes> B;
-              BoundedMatrix<double, TDim, StrainSize> voigt_normal;
-              CalculateBMatrix(g_DN_DX, B);
-              VoigtTransformForProduct(r_g_unit_normal, voigt_normal);
-              BoundedMatrix<double, StrainSize, TDim*NumNodes> aux_BC = prod(trans(B), trans(r_constitutive_matrix));
-              BoundedMatrix<double, TDim*NumNodes, TDim> aux_BC_proj = prod(aux_BC, voigt_normal);
-              for (std::size_t i = 0; i < n_nodes; ++i) {
-                  for (std::size_t j = 0; j < n_nodes; ++j) {
-                      const auto& r_vel_j = r_geom[j].FastGetSolutionStepValue(VELOCITY); //FIXME: This must be evaluated at n+theta 
-                      const array_1d<double,3> bc_vel = ZeroVector(3); //TODO: This should be the "structure" velocity in the future
-                      const double aux = g_weight* penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
-                      for (std::size_t d = 0; d < TDim; ++d) {
-                          // Penalty term
-                          rLeftHandSideMatrix(i*TDim + d, j*TDim + d) += aux;
-                          rRightHandSideVector(i*TDim + d) -= aux*(r_vel_j[d] - bc_vel[d]);
-                          // Nitsche term (only viscous component)
-                          for (std::size_t d2 = 0; d2 < TDim; ++d2) {
-                              rLeftHandSideMatrix(i*TDim + d, j*TDim + d) -= ;
-                          }
-                      }
-                  }
-              }
-          }
-      }
-  }
+            // Cut-FEM boundary condition imposition (penalty) -> TODO: To be enhanced by a Nitsche BC
+            BoundedMatrix<double, StrainSize, TDim*NumNodes> B;
+            BoundedMatrix<double, TDim, StrainSize> voigt_normal;
+            CalculateBMatrix(g_DN_DX, B);
+            VoigtTransformForProduct(r_g_unit_normal, voigt_normal);
+            BoundedMatrix<double, StrainSize, TDim*NumNodes> aux_BC = prod(trans(B), trans(r_constitutive_matrix));
+            BoundedMatrix<double, TDim*NumNodes, TDim> aux_BC_proj = prod(aux_BC, voigt_normal);
+            for (std::size_t i = 0; i < n_nodes; ++i) {
+                for (std::size_t j = 0; j < n_nodes; ++j) { 
+                    const auto& r_vel_j = r_geom[j].FastGetSolutionStepValue(VELOCITY); //FIXME: This must be evaluated at n+theta 
+                    const array_1d<double,3> bc_vel = ZeroVector(3); //TODO: This should be the "structure" velocity in the future
+                    const double aux = g_weight* penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
+                    const double aux_2 = g_weight * g_shape_functions[j];
+                    for (std::size_t d = 0; d < TDim; ++d) {
+                        // Penalty term
+                        rLeftHandSideMatrix(i*TDim + d, j*TDim + d) += aux;
+                        rRightHandSideVector(i*TDim + d) -= aux*(r_vel_j[d] - bc_vel[d]);
+                        // Nitsche term (only viscous component)
+                        for (std::size_T d2 = 0; d2 < TDim; ++d2) {
+                            rLeftHandSideMatrix(i*TDim + d, j*TDim + d2) -= aux_BC_proj(i*TDim+d, i*TDim+d2)*aux_2;
+                            rRightHandSideVector(i*TDim + d) += aux_BC_proj(i*TDim+d, i*TDim+d2)*aux_2*(r_vel_j[d] - bc_vel[d]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement<TDim>::CalculateGeometryData(
