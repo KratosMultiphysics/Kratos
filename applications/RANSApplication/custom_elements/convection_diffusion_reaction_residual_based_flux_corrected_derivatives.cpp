@@ -220,8 +220,7 @@ template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
 void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::Data::CalculateDataAfterGaussPointPointLoop()
 {
     using namespace ConvectionDiffusionReactionStabilizationUtilities;
-    double matrix_norm;
-    CalculateDiscreteUpwindOperator<TNumNodes>(matrix_norm, mDiscreteDiffusionMatrix, mPrimalDampingMatrix);
+    CalculateDiscreteUpwindOperator<TNumNodes>(mDiscreteDiffusionMatrix, mPrimalDampingMatrix);
     mDiagonalCoefficient = CalculatePositivityPreservingMatrix(mPrimalDampingMatrix);
     mScalarMultiplier /= mNumberOfGaussPoints;
 }

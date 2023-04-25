@@ -314,7 +314,7 @@ void RansAdjointUtilities::RescaleAdjointSolution(ModelPart& rModelPart)
     const double ratio_rans_scalar_2_adjoint_refined_2_energy = rans_scalar_2_adjoint_refined_2_energy / rans_scalar_2_adjoint_stable_2_energy;
     const double ratio_rans_scalar_2_adjoint_refined_3_energy = rans_scalar_2_adjoint_refined_3_energy / rans_scalar_2_adjoint_stable_3_energy;
     const double ratio_rans_aux_adjoint_refined_scalar_2_energy = rans_aux_adjoint_refined_scalar_2_energy / rans_aux_adjoint_stable_scalar_2_energy;
-    const double ratio_shape_sensitivity_refined_energy = shape_sensitivity_refined_energy / shape_sensitivity_stable_energy;
+    // const double ratio_shape_sensitivity_refined_energy = shape_sensitivity_refined_energy / shape_sensitivity_stable_energy;
 
     // now rescale the adjoint solution
     block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
