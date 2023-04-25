@@ -5,8 +5,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 class ResponseFunction(ABC):
     @classmethod
     @abstractmethod
-    def GetSensitivityFieldVariables(cls) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        pass
 
     def Initialize(self) -> None:
         pass
@@ -15,13 +13,9 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def Check(self) -> None:
+    def ComputeResponseValue(self, des_var, MC) -> float:
         pass
 
     @abstractmethod
-    def CalculateValue(self) -> float:
-        pass
-
-    @abstractmethod
-    def CalculateSensitivity(self, sensitivity_model_part_variable_info: 'dict[SupportedSensitivityFieldVariableTypes, list[Kratos.ModelPart]]') -> None:
+    def ComputeResponseGradients(self, des_var, gradients, MC) -> None:
         pass
