@@ -15,9 +15,9 @@
 // System includes
 
 // External includes
-#include "mpi.h"
 
 // Project includes
+#include "mpi/utilities/mpi_search_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 
 namespace Kratos
@@ -54,12 +54,6 @@ public:
     using BaseType::CellType;
     using BaseType::ResultType;
 
-    /// The buffer type for doubles
-    using BufferTypeDouble = std::vector<std::vector<double>>;
-
-    /// The buffer type for integers (char)
-    using BufferTypeChar = std::vector<std::vector<char>>;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -79,18 +73,8 @@ public:
         TIteratorType GeometricalObjectsEnd
         )
     {
-        // Set up the buffers
-        MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
-
-        mSendSizes.resize(mCommSize);
-        mRecvSizes.resize(mCommSize);
-
-        mSendBufferDouble.resize(mCommSize);
-        mRecvBufferDouble.resize(mCommSize);
-
-        mSendBufferChar.resize(mCommSize);
-        mRecvBufferChar.resize(mCommSize);
+        // Initialize the search data
+        mSearchData.Initialize();
 
         // We compute the local bounding box
         const std::size_t local_number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
@@ -177,17 +161,9 @@ private:
     // TODO: Replace with the BB class instead
     std::vector<double> mGlobalBoundingBoxes; /// The global bounding boxes of the model part, in the form: xmax, xmin,  ymax, ymin,  zmax, zmin
 
-    int mCommRank;                      /// The rank of the current processor
-    int mCommSize;                      /// The size of the communicator
+    double mRadius = 0.0;                     /// The radius of the search
 
-    std::vector<int> mSendSizes;        /// The size of the send buffer
-    std::vector<int> mRecvSizes;        /// The size of the receive buffer
-
-    BufferTypeDouble mSendBufferDouble; /// The send buffer (double)
-    BufferTypeDouble mRecvBufferDouble; /// The receive buffer (double)
-
-    BufferTypeChar mSendBufferChar;     /// The send buffer (char)
-    BufferTypeChar mRecvBufferChar;     /// The receive buffer (char)
+    MPISearchData mSearchData;                /// The search data
 
     ///@}
     ///@name Private Operators
@@ -213,20 +189,6 @@ private:
      * @brief This method computes the global bounding boxes
      */
     void ComputeGlobalBoundingBoxes();
-
-    /**
-     * @brief This method exchanges data asynchronously
-     * @tparam TDataType The type of data to be exchanged
-     * @param rSendBuffer The send buffer
-     * @param rRecvBuffer The receive buffer
-     * @todo This method should be moved to the communicator
-     * @todo Duplicated with InterfaceCommunicatorMPI from MappingApplication
-     */
-    template< typename TDataType >
-    int ExchangeDataAsync(
-        const std::vector<std::vector<TDataType>>& rSendBuffer,
-        std::vector<std::vector<TDataType>>& rRecvBuffer
-        );
 
     ///@}
     ///@name Private  Access
