@@ -34,7 +34,8 @@ PotentialToCompressibleNavierStokesOperation::PotentialToCompressibleNavierStoke
     mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }
 
-Operation::Pointer PotentialToCompressibleNavierStokesOperation::Create(Model &rModel,
+Operation::Pointer PotentialToCompressibleNavierStokesOperation::Create(
+    Model &rModel,
     Parameters Parameters) const
 {
     return Kratos::make_shared<PotentialToCompressibleNavierStokesOperation>(rModel, Parameters);
