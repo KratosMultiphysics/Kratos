@@ -126,8 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
    
     for(unsigned int index = 0; index < model_part.NumberOfNodes(); ++index)
     {  
-      auto r_node = compressible_model_part.NodesBegin() + index;
-      const auto potential_node = model_part.NodesBegin() + index;
+      auto it_node = compressible_model_part.NodesBegin() + index;
+      const auto it_potential_node = model_part.NodesBegin() + index;
 
       // Getting potential flow velocities
       const auto &velocity = potential_node->GetValue(VELOCITY);
