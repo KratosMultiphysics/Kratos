@@ -161,5 +161,4 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
       KRATOS_CHECK_NEAR(nodal_total_energy, density * energy, 1e-6);
     }
 }
-} // namespace Testing
-}  // namespace Kratos.
+} // namespace Kratos::Testing
