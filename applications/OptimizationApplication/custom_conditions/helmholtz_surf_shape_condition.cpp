@@ -213,8 +213,6 @@ void HelmholtzSurfShapeCondition::Calculate(const Variable<double>& rVariable, d
         CalculateSurfaceStiffnessMatrix(K,rCurrentProcessInfo);
 
         auto& r_geometry = this->GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
         const unsigned int number_of_points = r_geometry.size();
         Vector nodal_vals(number_of_points*3);

@@ -1,20 +1,30 @@
+# Core imports
+import KratosMultiphysics
+
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
+from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
 import numpy as np
 
 class ConvergenceCriteriaWrapper:
-    """This class wraps the convergence criteria such that they can be used "automized"
-    => this class stores the residual and updates the solutions, such that the
-    convergence criteria can be configured through json
-    In case of distributed data, the data is gathered on one rank, the convergence checked and the result broadcasted to the other ranks
+    """ @brief This class wraps the convergence criteria such that they can be used "automated".
+        @details This class stores the residual and updates the solutions, such that the
+                 convergence criteria can be configured through JSON.
+                 In case of distributed data, the data is gathered on one rank, the convergence
+                 checked and the result broadcast to the other ranks.
     """
-    def __init__(self, settings, solver_wrapper, parent_coupled_solver_data_communicator):
-        self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
-        settings.RemoveValue("data_name")
-        settings.RemoveValue("solver")
+    def __init__(self,
+                 settings: KratosMultiphysics.Parameters,
+                 interface_data: CouplingInterfaceData,
+                 parent_coupled_solver_data_communicator: KratosMultiphysics.DataCommunicator):
+        self.interface_data = interface_data
+
+        for key in ("data_name", "solver"):
+            if settings.Has(key):
+                settings.RemoveValue(key)
 
         if not settings.Has("label"):
             settings.AddEmptyValue("label").SetString(colors.bold('{}.{}'.format(self.interface_data.solver_name, self.interface_data.name)))
