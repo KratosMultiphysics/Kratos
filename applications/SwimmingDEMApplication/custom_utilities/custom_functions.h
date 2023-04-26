@@ -595,7 +595,7 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-double CalculateElementalVolume(const Geometry<Node <3> >& geom)
+double CalculateElementalVolume(const Geometry<Node >& geom)
 {
     double vol;
     double h;

@@ -12,7 +12,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) MeiLiftLaw : public SaffmanLiftLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(MeiLiftLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option

@@ -56,7 +56,7 @@ public:
 
     typedef class SteadyStatePwPipingElement<2, 4>               SteadyStatePwPipingElementType;
     typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 	
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

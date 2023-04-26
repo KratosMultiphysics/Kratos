@@ -20,7 +20,7 @@ namespace Kratos {
 class KRATOS_API(SWIMMING_DEM_APPLICATION) HydrodynamicInteractionLaw : public Flags {
 
 public:
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     // Pointer types for HydrodynamicInteractionLaw
     KRATOS_CLASS_POINTER_DEFINITION(HydrodynamicInteractionLaw);

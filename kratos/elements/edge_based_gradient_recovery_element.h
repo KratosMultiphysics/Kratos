@@ -81,7 +81,7 @@ public:
     constexpr static std::size_t LocalSize = NumNodes * BlockSize;
 
     /// Node type (default is: Node)
-    using NodeType = Node <3>;
+    using NodeType = Node;
 
     /// Geometry type (using with given NodeType)
     using GeometryType = Geometry<NodeType>;

@@ -1555,7 +1555,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Multiply
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         NodeIteratorType i_node = r_model_part.NodesBegin() + i;
-        Node <3> ::Pointer p_node = *(i_node.base());
+        Node ::Pointer p_node = *(i_node.base());
         p_node->FastGetSolutionStepValue(r_variable) *= factor;
     }
 }

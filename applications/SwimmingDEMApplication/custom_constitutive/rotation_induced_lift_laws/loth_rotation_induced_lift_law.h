@@ -13,7 +13,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) LothRotationInducedLiftLaw : public RubinowAndKellerLiftLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(LothRotationInducedLiftLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option

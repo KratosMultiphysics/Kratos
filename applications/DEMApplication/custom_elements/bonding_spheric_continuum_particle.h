@@ -34,7 +34,7 @@ namespace Kratos {
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
         typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
         typedef std::size_t IndexType;
         typedef Geometry<Node > GeometryType;

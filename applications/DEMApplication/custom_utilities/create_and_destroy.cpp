@@ -515,7 +515,7 @@ namespace Kratos {
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
-        Geometry<Node <3> >::PointsArrayType nodelist;
+        Geometry<Node >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
@@ -553,7 +553,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
-        Geometry<Node <3> >::PointsArrayType nodelist;
+        Geometry<Node >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);

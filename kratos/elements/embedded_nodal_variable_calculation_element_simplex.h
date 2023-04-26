@@ -66,7 +66,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedNodalVariableCalculationElementSimplex);
 
     /// Node type (default is: Node)
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;

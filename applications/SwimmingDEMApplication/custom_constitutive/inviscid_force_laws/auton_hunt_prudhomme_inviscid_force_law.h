@@ -11,7 +11,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) AutonHuntPrudhommeInviscidForceLaw : public InviscidForceLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(AutonHuntPrudhommeInviscidForceLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
