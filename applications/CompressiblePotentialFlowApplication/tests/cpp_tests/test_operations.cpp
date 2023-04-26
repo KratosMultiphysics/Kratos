@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
     model_part.GetProcessInfo()[SOUND_VELOCITY] = sound_velocity;
     model_part.GetProcessInfo()[FREE_STREAM_DENSITY] = free_stream_density;
     model_part.GetProcessInfo()[FREE_STREAM_MACH] = free_stream_mach;
-    const double& specific_heat = (std::pow(sound_velocity,2) / (gamma * reference_temperature)) / (gamma - 1.0);
+    const double specific_heat = (std::pow(sound_velocity,2) / (gamma * reference_temperature)) / (gamma - 1.0);
     
     // Variables addition
     model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
