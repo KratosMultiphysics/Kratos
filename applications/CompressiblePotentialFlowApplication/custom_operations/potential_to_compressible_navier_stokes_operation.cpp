@@ -61,8 +61,8 @@ void PotentialToCompressibleNavierStokesOperation::Execute()
     const bool compute_nodal_velocities = mParameters["compute_nodal_velocities"].GetBool();
     
     // Saving the modelparts
-    auto& mOriginModelPart = mpModel->GetModelPart(origin_model_part_name);
-    auto& mDestinationModelPart = mpModel->GetModelPart(destination_model_part_name);
+    auto& r_origin_model_part = mpModel->GetModelPart(origin_model_part_name);
+    auto& r_destination_model_part = mpModel->GetModelPart(destination_model_part_name);
 
     const int n_orig_nodes = mOriginModelPart.NumberOfNodes();
     const int n_dest_nodes = mDestinationModelPart.NumberOfNodes();
