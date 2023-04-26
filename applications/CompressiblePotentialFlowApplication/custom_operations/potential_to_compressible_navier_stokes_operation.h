@@ -108,8 +108,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<const Variable<array_1d<double, 3>>*>    mArrayVariablesList;
-    std::vector<const Variable<double>*>                 mDoubleVariablesList;
     Model* mpModel = nullptr;
     Parameters mParameters;
 
