@@ -28,7 +28,6 @@ namespace Kratos
     class GlobalPointersVector;
     template< class TDataType >
     class Dof;
-    template< std::size_t TDimension, class TDofType >
     class Node;
     template< class TPointType >
     class Geometry;
