@@ -61,8 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
     model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
     std::vector<ModelPart::IndexType> elemNodes_1{ 1, 2, 3 };
-    model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes_1, pElemProp);
-    auto& r_element = model_part.GetElement(1);
+    auto p_element = model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes_1, pElemProp);
     r_element.GetValue(WAKE) = 1;
     Vector wake_elemental_distances(3);
     wake_elemental_distances(0) = 1.0;
