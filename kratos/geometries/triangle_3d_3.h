@@ -1042,9 +1042,18 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        for (unsigned int i = 0; i < 2; ++i) {
-            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] < 0.0) ? 0.0 : rPointLocalCoordinates[i];
-            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] > 1.0) ? 1.0 : rPointLocalCoordinates[i];
+        double sum_coordinates = 0.0;
+        for(unsigned int i = 0 ; i < 2 ; i++){ // It's a triangle, so only (local) xi and eta
+            if (local_coordinates[i] < 0.0) { // Clipping to zero
+                local_coordinates[i] = 0.0;
+            } else if (local_coordinates[i] > 1.0) { // Clipping to one
+                local_coordinates[i] = 1.0;
+            }
+            sum_coordinates += local_coordinates[i];
+        }
+        
+        for(unsigned int i = 0 ; i < 2 ; i++){ // Clipping to line y=1-x
+            local_coordinates[i]/=sum_coordinates;
         }
 
         return 1;
