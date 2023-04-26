@@ -92,6 +92,8 @@ public:
 
     using AccessorPointerType = Accessor::UniquePointer;
 
+    using AccessorsContainerType = std::unordered_map<KeyType, AccessorPointerType>;
+
     using TablesContainerType = std::unordered_map<std::size_t, TableType>; // This is a provisional implementation and should be changed to hash. Pooyan.
 
     /// Properties container. A vector set of properties with their Id's as key.
@@ -114,13 +116,34 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(), mAccessors() {}
+    explicit Properties(IndexType NewId = 0)
+    : BaseType(NewId)
+    , mData()
+    , mTables()
+    , mSubPropertiesList()
+    , mAccessors() {}
 
     /// Default of properties with subproperties
-    explicit Properties(IndexType NewId, const SubPropertiesContainerType& SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList), mAccessors() {}
+    explicit Properties(IndexType NewId, const SubPropertiesContainerType& SubPropertiesList)
+    : BaseType(NewId)
+    , mData()
+    , mTables()
+    , mSubPropertiesList(SubPropertiesList)
+    , mAccessors() {}
 
     /// Copy constructor.
-    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList), mAccessors(rOther.mAccessors) {}
+    Properties(const Properties& rOther)
+    : BaseType(rOther)
+    , mData(rOther.mData)
+    , mTables(rOther.mTables)
+    , mSubPropertiesList(rOther.mSubPropertiesList)
+    {
+        for (auto& r_item : rOther.mAccessors) {
+            const auto key = r_item.first;
+            const auto& rp_accessor = r_item.second;
+            mAccessors.emplace(key, rp_accessor->Clone());
+        }
+    }
 
     /// Destructor.
     ~Properties() override {}
@@ -137,7 +160,11 @@ public:
         mData = rOther.mData;
         mTables = rOther.mTables;
         mSubPropertiesList = rOther.mSubPropertiesList;
-        mAccessors = rOther.mAccessors;
+        for (auto& r_item : rOther.mAccessors) {
+            const auto key = r_item.first;
+            const auto& rp_accessor = r_item.second;
+            mAccessors.emplace(key, rp_accessor->Clone());
+        }
         return *this;
     }
 
@@ -270,14 +297,13 @@ public:
         }
     }
 
-    /* 
+    /*
     Method to add Accessors to properties
     */
     template<class TVariableType>
-    void SetAccessor(const TVariableType& rVariable, AccessorPointerType& pAccessor)
+    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
     {
         mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
-        // mAccessors[rVariable.Key()].swap(pAccessor);
     }
 
     template<class TVariableType>
@@ -601,7 +627,7 @@ private:
 
     SubPropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
-    std::unordered_map<KeyType, AccessorPointerType> mAccessors  = {};
+    AccessorsContainerType mAccessors = {};
 
     ///@}
     ///@name Private Operators
@@ -623,7 +649,7 @@ private:
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
         rSerializer.save("SubPropertiesList", mSubPropertiesList);
-        rSerializer.save("Accessors", mAccessors);
+        // rSerializer.save("Accessors", mAccessors);
     }
 
     void load(Serializer& rSerializer) override
@@ -632,7 +658,7 @@ private:
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
         rSerializer.load("SubPropertiesList", mSubPropertiesList);
-        rSerializer.load("Accessors", mAccessors);
+        // rSerializer.load("Accessors", mAccessors);
     }
 
     ///@}

@@ -56,13 +56,18 @@ public:
     ///@name Life Cycle
     ///@{
 
+    Accessor() = default;
+
     /// Destructor.
     virtual ~Accessor() = default;
+
+    /// Copy constructor
+    Accessor(const Accessor& rOther) {}
 
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief Custom method to retrieve double type properties
      * @param rVariable The variable considered (double type properties)
