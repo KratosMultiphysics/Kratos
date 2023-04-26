@@ -54,9 +54,9 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
             return mValue * rProperties[rVariable];
         }
 
-        Accessor::Pointer Clone() const override
+        Accessor::UniquePointer Clone() const override
         {
-            return Kratos::make_shared<CustomAccessor>(*this);
+            return Kratos::make_unique<CustomAccessor>(*this);
         }
 
         private:
@@ -79,8 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
 
     auto p_elem = Kratos::make_intrusive<TestElement>(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
 
-    CustomAccessor custom_accessor = CustomAccessor();
-    p_prop->SetAccessor(YOUNG_MODULUS, custom_accessor.Clone());
+    p_prop->SetAccessor(YOUNG_MODULUS, std::make_unique<CustomAccessor>());
 
     Vector N;
     const double modified_E = p_prop->GetValue(YOUNG_MODULUS, *pgeom, N, r_process_info);

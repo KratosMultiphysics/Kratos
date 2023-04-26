@@ -90,7 +90,7 @@ public:
 
     using KeyType = IndexType;
 
-    using AccessorPointerType = Accessor::Pointer;
+    using AccessorPointerType = Accessor::UniquePointer;
 
     using TablesContainerType = std::unordered_map<std::size_t, TableType>; // This is a provisional implementation and should be changed to hash. Pooyan.
 
@@ -274,9 +274,10 @@ public:
     Method to add Accessors to properties
     */
     template<class TVariableType>
-    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
+    void SetAccessor(const TVariableType& rVariable, AccessorPointerType& pAccessor)
     {
-        mAccessors[rVariable.Key()] = pAccessor;
+        mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
+        // mAccessors[rVariable.Key()].swap(pAccessor);
     }
 
     template<class TVariableType>

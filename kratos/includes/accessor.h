@@ -49,7 +49,7 @@ public:
     /// Geometry type definition
     using GeometryType = Geometry<NodeType>;
 
-    /// Pointer definition of NodeSearchUtility
+    /// Pointer definition of Accessor
     KRATOS_CLASS_POINTER_DEFINITION(Accessor);
 
     ///@}
@@ -234,7 +234,7 @@ public:
         ) const;
 
     // Getting a pointer to the class
-    virtual Accessor::Pointer Clone() const;
+    virtual Accessor::UniquePointer Clone() const;
 
     ///@}
     ///@name Input and output

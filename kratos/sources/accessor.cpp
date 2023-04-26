@@ -173,8 +173,8 @@ std::string Accessor::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Accessor::Pointer Accessor::Clone() const
+Accessor::UniquePointer Accessor::Clone() const
 {
-    return Kratos::make_shared<Accessor>(*this);
+    return Kratos::make_unique<Accessor>(*this);
 }
 } // namespace Kratos
