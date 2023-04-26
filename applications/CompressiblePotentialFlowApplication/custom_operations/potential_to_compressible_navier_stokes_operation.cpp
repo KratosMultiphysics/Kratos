@@ -99,7 +99,7 @@ void PotentialToCompressibleNavierStokesOperation::Execute()
         const auto &r_velocity = it_orig_node->GetValue(VELOCITY);
         
         // Calculate the conservative variables
-        const double& velocity_norm_2 = velocity[0] * velocity[0] + velocity[1] * velocity[1];
+        const double velocity_norm_2 = velocity[0] * velocity[0] + velocity[1] * velocity[1];
         const double velocity_norm = std::sqrt(velocity_norm_2);
         const double mach = velocity_norm / sound_velocity;
         const double num = 1.0 + 0.5 * (gamma - 1.0) * std::pow(free_stream_mach,2);
