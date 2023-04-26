@@ -101,11 +101,11 @@ void PotentialToCompressibleNavierStokesOperation::Execute()
         // Calculate the conservative variables
         const double& velocity_norm_2 = velocity[0] * velocity[0] + velocity[1] * velocity[1];
         const double velocity_norm = std::sqrt(velocity_norm_2);
-        const double& mach = velocity_norm / sound_velocity;
-        const double& num = 1.0 + 0.5 * (gamma - 1.0) * std::pow(free_stream_mach,2);
-        const double& den = 1.0 + 0.5 * (gamma - 1.0) * std::pow(mach,2);
-        const double& density = free_stream_rho * std::pow((num / den),(1.0 / (gamma - 1.0)));
-        const double& energy = specific_heat * reference_temperature + 0.5 * velocity_norm_2;
+        const double mach = velocity_norm / sound_velocity;
+        const double num = 1.0 + 0.5 * (gamma - 1.0) * std::pow(free_stream_mach,2);
+        const double den = 1.0 + 0.5 * (gamma - 1.0) * std::pow(mach,2);
+        const double density = free_stream_rho * std::pow((num / den),(1.0 / (gamma - 1.0)));
+        const double energy = specific_heat * reference_temperature + 0.5 * velocity_norm_2;
         
         // Setting the Navier Stokes initial condition
         it_dest_node->FastGetSolutionStepValue(DENSITY, 0) = density; 
