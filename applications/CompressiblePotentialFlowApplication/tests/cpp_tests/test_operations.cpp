@@ -54,8 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
     model_part.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
     
     // Set the element properties
-    model_part.CreateNewProperties(0);
-    Properties::Pointer pElemProp = model_part.pGetProperties(0);
+    auto p_elem_prop = model_part.CreateNewProperties(0);
    
     // Geometry creation
     model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
