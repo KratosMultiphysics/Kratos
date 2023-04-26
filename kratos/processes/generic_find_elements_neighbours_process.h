@@ -61,7 +61,7 @@ public:
     ///@{
     typedef  ModelPart::NodesContainerType NodesContainerType;
     typedef  ModelPart::ElementsContainerType ElementsContainerType;
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
 
 
     /// Pointer definition of GenericFindElementalNeighboursProcess

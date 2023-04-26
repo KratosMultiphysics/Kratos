@@ -61,8 +61,8 @@ public:
     typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
     typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
     typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
 
     ///@}
@@ -169,7 +169,7 @@ public:
             ++number_of_nodes; //one new node!
             Element_Nodes[index] = number_of_nodes + number_of_previous_nodes; //we give this node consecutives ids. now we create the new node
             ModelPart::NodesContainerType::iterator it_node = this_model_part.Nodes().begin()+index;
-            Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
+            Node ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
             pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
             pnode->GetValue(FATHER_NODES).resize(0);
             pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
@@ -284,7 +284,7 @@ public:
                 ++number_of_nodes; //one new node!
                 Condition_Nodes[index] = number_of_nodes + number_of_previous_nodes; //we give this node consecutives ids. now we create the new node
                 ModelPart::NodesContainerType::iterator it_node = this_model_part.Nodes().begin()+index;
-                Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
+                Node ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
                 pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
                 pnode->GetValue(FATHER_NODES).resize(0);
                 pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
@@ -340,11 +340,11 @@ public:
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
         {
             int index_i = i->Id() - 1;
-            GlobalPointersVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
             Coord.push_back(index_i, index_i, -1);        //only modification added, now the diagonal is filled with -1 too.
 
             unsigned int active = 0;
-            for (GlobalPointersVector< Node < 3 > >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
+            for (GlobalPointersVector< Node >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
             {
                 int index_j = inode->Id() - 1;
                 if (index_j > index_i)
@@ -724,7 +724,7 @@ public:
                 else   Coordinate_New_Node[i][index] = Coord_Node_1[index]; //when both nodes are the same it doesnt make any sense to interpolate
 
                 /// inserting the new node in the model part
-                Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);  //remember that is the new model part!!
+                Node ::Pointer pnode = new_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);  //remember that is the new model part!!
 
                 pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 
@@ -837,7 +837,7 @@ public:
                 else   Coordinate_New_Node[i][index] = Coord_Node_1[index]; //when both nodes are the same it doesnt make any sense to interpolate
 
                 /// inserting the new node in the model part
-                Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);  //remember that is the new model part!!
+                Node ::Pointer pnode = new_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);  //remember that is the new model part!!
 
                 pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 

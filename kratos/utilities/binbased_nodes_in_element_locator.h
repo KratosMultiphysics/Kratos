@@ -275,7 +275,7 @@ private:
      * @return False if is not possible to compute, true if it is  
      */
     inline bool CalculatePosition(
-        Geometry<Node < 3 > >&geom,
+        Geometry<Node >&geom,
         const double xc, 
         const double yc, 
         const double zc,
@@ -321,7 +321,7 @@ private:
      * @return False if is not possible to compute, true if it is  
      */
     inline bool CalculatePosition(
-        Geometry<Node < 3 > >&geom,
+        Geometry<Node >&geom,
         const double xc,
          const double yc, 
          const double zc,

@@ -131,7 +131,7 @@ public:
                     const unsigned int i2 = rAux[t[base + 2]];
 
                     if (dimension == 2) {
-                        Triangle2D3<Node < 3 > > rGeom(
+                        Triangle2D3<Node > rGeom(
                             rThisModelPart.Nodes()(i0),
                             rThisModelPart.Nodes()(i1),
                             rThisModelPart.Nodes()(i2)
@@ -156,7 +156,7 @@ public:
                         rNewObjects.push_back(p_object);
                         r_child_objects.push_back(typename TGeometricalObjectType::WeakPointer(p_object) );
                     } else {
-                        Triangle3D3<Node < 3 > > rGeom(
+                        Triangle3D3<Node > rGeom(
                             rThisModelPart.Nodes()(i0),
                             rThisModelPart.Nodes()(i1),
                             rThisModelPart.Nodes()(i2)

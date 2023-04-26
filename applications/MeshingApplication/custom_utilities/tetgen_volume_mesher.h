@@ -194,7 +194,7 @@ public:
 
 
         //generate new nodes
-        Node < 3 > ::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
+        Node ::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
         for(int i=in.numberofpoints; i< out.numberofpoints; i++)
         {
             int base = i * 3;
@@ -207,10 +207,10 @@ public:
             // Giving model part's variables list to the node
             p_new_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
             p_new_node->SetBufferSize(mrModelPart.NodesBegin()->GetBufferSize());
-            for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+            for (Node ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType &rDof = **iii;
-                Node < 3 > ::DofType::Pointer p_new_dof = p_new_node->pAddDof(rDof);
+                Node ::DofType &rDof = **iii;
+                Node ::DofType::Pointer p_new_dof = p_new_node->pAddDof(rDof);
                 (p_new_dof)->FreeDof(); //the variables are left as free for the internal node
             }
 

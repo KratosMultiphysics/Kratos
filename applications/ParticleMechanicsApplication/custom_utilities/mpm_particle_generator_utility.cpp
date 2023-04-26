@@ -87,7 +87,7 @@ namespace MPMParticleGeneratorUtility
                     // Get geometry and dimension of the background grid
                     const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
-                    const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
+                    const Geometry< Node >& r_geometry = i->GetGeometry(); // current element's geometry
 
                     // Get integration method and shape function values
                     IntegrationMethod int_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -288,7 +288,7 @@ namespace MPMParticleGeneratorUtility
                         ParticleMechanicsMathUtilities<double>::Normalize(mpc_normal);
 
                         // Get shape_function_values from defined particle_per_condition
-                        const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current condition's geometry
+                        const Geometry< Node >& r_geometry = i->GetGeometry(); // current condition's geometry
 
                         Matrix shape_functions_values;
 

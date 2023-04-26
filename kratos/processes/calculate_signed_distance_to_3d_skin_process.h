@@ -369,13 +369,13 @@ public:
 	for (int i = 0; i < n_structure_nodes; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
-            Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+            Node ::Pointer p_structure_node = *(iparticle.base());
 	    p_structure_node->Set(VISITED, false);
 	}
         for (int i = 0; i < n_structure_nodes; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
-            Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+            Node ::Pointer p_structure_node = *(iparticle.base());
             BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
             Element::Pointer pElement;
 
@@ -424,7 +424,7 @@ public:
 	for (int i = 0; i < n_structure_nodes; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
-            Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+            Node ::Pointer p_structure_node = *(iparticle.base());
 	    if (p_structure_node->IsNot(VISITED))
 		n_bad_nodes++;
 	}
@@ -435,16 +435,16 @@ public:
 
                 for (int i = 0; i < n_structure_nodes; i++) {
                     ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
-                    Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+                    Node ::Pointer p_structure_node = *(iparticle.base());
 
                     //here we store the number of neigbor nodes that were given the pressure in the previous loop (i.e. were found)
                     if (p_structure_node->IsNot(VISITED)) {
                         int n_good_neighbors = 0;
                         double pos_pres = 0.0;
                         double neg_pres = 0.0;
-                        GlobalPointersVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+                        GlobalPointersVector< Node >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
                         
-                        for (GlobalPointersVector< Node < 3 > >::iterator j = neighours.begin(); j != neighours.end(); j++) {
+                        for (GlobalPointersVector< Node >::iterator j = neighours.begin(); j != neighours.end(); j++) {
                             if (j->Is(VISITED)) {
                                 n_good_neighbors++;
                                 pos_pres += j->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
@@ -471,7 +471,7 @@ public:
                 for (int i = 0; i < n_structure_nodes; i++)
                 {
                    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
-                   Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+                   Node ::Pointer p_structure_node = *(iparticle.base());
                    if (p_structure_node->IsNot(VISITED))
                        n_bad_nodes++;		  
                 }
@@ -484,12 +484,12 @@ public:
 		for (int i = 0; i < n_structure_nodes; i++)
 		{
 		    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
-		    Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+		    Node ::Pointer p_structure_node = *(iparticle.base());
 
 		    double pos_pressure=p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 		    double neg_pressure=p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
                     
-                    GlobalPointersVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
 			
 	  	    if (neighours.size()>=1.0)
 			{			    
@@ -1580,9 +1580,9 @@ public:
                 if(edge_points.size() == 3)
                 {
                     // ######## ADDING NEW NODE #########
-                    Node < 3 >::Pointer pnode1 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[0].X(),edge_points[0].Y(),edge_points[0].Z());
-                    Node < 3 >::Pointer pnode2 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[1].X(),edge_points[1].Y(),edge_points[1].Z());
-                    Node < 3 >::Pointer pnode3 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[2].X(),edge_points[2].Y(),edge_points[2].Z());
+                    Node::Pointer pnode1 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[0].X(),edge_points[0].Y(),edge_points[0].Z());
+                    Node::Pointer pnode2 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[1].X(),edge_points[1].Y(),edge_points[1].Z());
+                    Node::Pointer pnode3 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[2].X(),edge_points[2].Y(),edge_points[2].Z());
 
                     // ######## ADDING NEW CONDITION #########
                     //form a triangle
@@ -1649,10 +1649,10 @@ public:
                     }
 
                     // ######## ADDING NEW NODE #########
-                    Node < 3 >::Pointer pnode1 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[0].X(),edge_points[0].Y(),edge_points[0].Z());
-                    Node < 3 >::Pointer pnode2 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[min_pos].X(),edge_points[min_pos].Y(),edge_points[min_pos].Z());
-                    Node < 3 >::Pointer pnode3 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[center_pos].X(),edge_points[center_pos].Y(),edge_points[center_pos].Z());
-                    Node < 3 >::Pointer pnode4 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[max_pos].X(),edge_points[max_pos].Y(),edge_points[max_pos].Z());
+                    Node::Pointer pnode1 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[0].X(),edge_points[0].Y(),edge_points[0].Z());
+                    Node::Pointer pnode2 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[min_pos].X(),edge_points[min_pos].Y(),edge_points[min_pos].Z());
+                    Node::Pointer pnode3 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[center_pos].X(),edge_points[center_pos].Y(),edge_points[center_pos].Z());
+                    Node::Pointer pnode4 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[max_pos].X(),edge_points[max_pos].Y(),edge_points[max_pos].Z());
 
                     // ######## ADDING NEW CONDITION #########
                     //form two triangles

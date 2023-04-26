@@ -80,7 +80,7 @@ ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart:
     return rModelPart.pGetMesh(MeshIndex);
 }
 
-Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
+Node ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
 {
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
@@ -162,7 +162,7 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
         KRATOS_ERROR << "The Element \"" << ElementName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Elements are registered:\n" << msg.str() << std::endl;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
+    Geometry< Node >::PointsArrayType pElementNodeList;
 
     for(unsigned int i = 0; i < NodeIdList.size(); i++) {
         pElementNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
@@ -181,7 +181,7 @@ Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std:
         KRATOS_ERROR << "The Condition \"" << ConditionName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Conditions are registered:\n" << msg.str() << std::endl;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
+    Geometry< Node >::PointsArrayType pConditionNodeList;
 
     for(unsigned int i = 0; i <NodeIdList.size(); i++) {
         pConditionNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));

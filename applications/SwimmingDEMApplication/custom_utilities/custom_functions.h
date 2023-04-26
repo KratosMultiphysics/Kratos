@@ -711,7 +711,7 @@ double CalculateDiameter(const double x0, const double y0, const double z0,
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<double>& r_var, double& vol)
+double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node >& geom, const Variable<double>& r_var, double& vol)
 {
 
     vol = geom.DomainSize();
@@ -741,7 +741,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
+array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry<Node >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
 {
 
     vol = geom.DomainSize();
@@ -771,7 +771,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
+array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(const Geometry<Node >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
 {
 
     vol = geom.DomainSize();

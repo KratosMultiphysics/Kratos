@@ -1163,7 +1163,7 @@ namespace Kratos
 			//KRATOS_WATCH(elem_partition_size);
 			for (unsigned int i = 1; i < number_of_threads; i++)
 			elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
-			//typedef Node < 3 > PointType;
+			//typedef Node PointType;
 			//std::vector<ModelPart::NodesContainerType> aux;// aux;
 			//aux.resize(number_of_threads);
 
@@ -1303,7 +1303,7 @@ namespace Kratos
 
 				for (unsigned int i=0; i!=((mmaximum_number_of_particles*mnelems)/mfilter_factor)+mfilter_factor; i++)
 				{
-					Node < 3 > ::Pointer pnode = lagrangian_model_part.CreateNewNode( i+mlast_node_id+1 , 0.0, 0.0, 0.0);  //recordar que es el nueevo model part!!
+					Node ::Pointer pnode = lagrangian_model_part.CreateNewNode( i+mlast_node_id+1 , 0.0, 0.0, 0.0);  //recordar que es el nueevo model part!!
 					//pnode->SetBufferSize(mr_model_part.NodesBegin()->GetBufferSize());
 					pnode->SetBufferSize(1);
 				}
@@ -1765,7 +1765,7 @@ namespace Kratos
 	//***************************************
         //***************************************
 
-        inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
+        inline bool CalculatePosition(Geometry<Node >&geom,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 3 > & N
                 )
@@ -1838,7 +1838,7 @@ namespace Kratos
 	    //***************************************
         //***************************************
 
-        inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
+        inline bool CalculatePosition(Geometry<Node >&geom,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 4 > & N
                 )
@@ -1961,7 +1961,7 @@ namespace Kratos
 
 
 
-		void ComputeGaussPointPositions_4(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 7, 3 > & pos,BoundedMatrix<double, 7, 3 > & N)
+		void ComputeGaussPointPositions_4(Geometry< Node >& geom, BoundedMatrix<double, 7, 3 > & pos,BoundedMatrix<double, 7, 3 > & N)
         {
             double one_third = 1.0 / 3.0;
             double one_sixt = 0.15; //1.0 / 6.0;
@@ -2003,7 +2003,7 @@ namespace Kratos
         }
 
 
-        void ComputeGaussPointPositionsForPostReseed(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 7, 3 > & pos,BoundedMatrix<double, 7, 3 > & N) //2d
+        void ComputeGaussPointPositionsForPostReseed(Geometry< Node >& geom, BoundedMatrix<double, 7, 3 > & pos,BoundedMatrix<double, 7, 3 > & N) //2d
         {
             double one_third = 1.0 / 3.0;
             double one_eight = 0.12; //1.0 / 6.0;
@@ -2078,7 +2078,7 @@ namespace Kratos
 
         }
 
-        void ComputeGaussPointPositionsForPostReseed(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 9, 3 > & pos,BoundedMatrix<double, 9, 4 > & N) //3D
+        void ComputeGaussPointPositionsForPostReseed(Geometry< Node >& geom, BoundedMatrix<double, 9, 3 > & pos,BoundedMatrix<double, 9, 4 > & N) //3D
         {
             double one_quarter = 0.25;
             double small_fraction = 0.1; //1.0 / 6.0;
@@ -2146,7 +2146,7 @@ namespace Kratos
 
 
 
-        void ComputeGaussPointPositionsForPreReseed(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 3, 3 > & pos,BoundedMatrix<double, 3, 3 > & N) //2D
+        void ComputeGaussPointPositionsForPreReseed(Geometry< Node >& geom, BoundedMatrix<double, 3, 3 > & pos,BoundedMatrix<double, 3, 3 > & N) //2D
         {
 
             N(0, 0) = 0.5;
@@ -2178,7 +2178,7 @@ namespace Kratos
 
         }
 
-        void ComputeGaussPointPositionsForPreReseed(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 4, 3 > & pos,BoundedMatrix<double, 4, 4 > & N) //3D
+        void ComputeGaussPointPositionsForPreReseed(Geometry< Node >& geom, BoundedMatrix<double, 4, 3 > & pos,BoundedMatrix<double, 4, 4 > & N) //3D
         {
 			//creating 4 particles, each will be closer to a node and equidistant to the other nodes
 
@@ -2218,7 +2218,7 @@ namespace Kratos
 
 
 
-		void ComputeGaussPointPositions_45(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 45, 3 > & pos,BoundedMatrix<double, 45, 3 > & N)
+		void ComputeGaussPointPositions_45(Geometry< Node >& geom, BoundedMatrix<double, 45, 3 > & pos,BoundedMatrix<double, 45, 3 > & N)
         {
 			//std::cout << "NEW ELEMENT" << std::endl;
 			unsigned int counter=0;
@@ -2240,7 +2240,7 @@ namespace Kratos
 
         }
 
-        void ComputeGaussPointPositions_initial(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 15, 3 > & pos,BoundedMatrix<double, 15, 3 > & N) //2D
+        void ComputeGaussPointPositions_initial(Geometry< Node >& geom, BoundedMatrix<double, 15, 3 > & pos,BoundedMatrix<double, 15, 3 > & N) //2D
         {
 			//std::cout << "NEW ELEMENT" << std::endl;
 			unsigned int counter=0;
@@ -2262,7 +2262,7 @@ namespace Kratos
 
         }
 
-        void ComputeGaussPointPositions_initial(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 20, 3 > & pos,BoundedMatrix<double, 20, 4 > & N) //3D
+        void ComputeGaussPointPositions_initial(Geometry< Node >& geom, BoundedMatrix<double, 20, 3 > & pos,BoundedMatrix<double, 20, 4 > & N) //3D
         {
 			//std::cout << "NEW ELEMENT" << std::endl;
 			//double total;

@@ -111,7 +111,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::UpdateTranslationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 array_1d<double, 3 >& coor,
                 array_1d<double, 3 >& displ,
                 array_1d<double, 3 >& delta_displ,
@@ -128,7 +128,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -142,7 +142,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -157,7 +157,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -169,7 +169,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const double& moment_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -183,7 +183,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,

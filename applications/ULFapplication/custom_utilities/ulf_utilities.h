@@ -507,7 +507,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
                 double n_str = 0;
 
                 //counting number on nodes at the wall
-                Geometry< Node < 3 > >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 n_str = geom[0].FastGetSolutionStepValue(IS_BOUNDARY);
                 n_str += geom[1].FastGetSolutionStepValue(IS_BOUNDARY);
                 n_str += geom[2].FastGetSolutionStepValue(IS_BOUNDARY);
@@ -574,7 +574,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
                 double n_wall = 0;
 
                 //counting number on nodes at the wall
-                Geometry< Node < 3 > >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 if (geom.size() == 4)
                 {
                     for (int ii = 0; ii <= domain_size; ++ii)
@@ -720,7 +720,7 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
                 hnode2 *= hnode2; //take the square
 
                 //loop on neighbours and erase if they are too close
-                for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                for (GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
                     if (static_cast<bool> (i->Is(TO_ERASE)) == false) //we can erase the current node only if the neighb is not to be erased

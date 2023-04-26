@@ -70,8 +70,8 @@ class MSuitePFEMModeler
 public:
     ///@name Type Definitions
     ///@{
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
     typedef std::vector<double> DistanceVector;
@@ -214,7 +214,7 @@ public:
             m.e.resize(elen);
             for (i = 0; i < elen; i++)
             {
-                Geometry< Node < 3 > >& geom = (ThisModelPart.ElementsBegin() + i)->GetGeometry();
+                Geometry< Node >& geom = (ThisModelPart.ElementsBegin() + i)->GetGeometry();
                 for (j = 0; j < nv; j++)
                 {
                     int ix = int(geom[j].Id());
@@ -320,7 +320,7 @@ public:
             int id = i + 1;
             const elemento& ei = el_list[i];
 
-            Triangle2D3<Node < 3 > > geom(
+            Triangle2D3<Node > geom(
                 *((nodes_begin + ei[0]).base()),
                 *((nodes_begin + ei[1]).base()),
                 *((nodes_begin + ei[2]).base())
@@ -341,11 +341,11 @@ public:
                 int id = counter++;
                 const elemento& ei = el_list_fk[i];
 
-//                    Line2D2<Node < 3 > > geom(
+//                    Line2D2<Node > geom(
 //                            *((nodes_begin + ei[0]).base()),
 //                            *((nodes_begin + ei[1]).base())
 //                            );
-                Line2D2<Node < 3 > > geom(
+                Line2D2<Node > geom(
                     *((nodes_begin + ei[1]).base()),
                     *((nodes_begin + ei[0]).base())
                 );

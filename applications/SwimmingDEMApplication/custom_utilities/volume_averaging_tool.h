@@ -419,7 +419,7 @@ private:
         Variable<array_1d<double,3> >& rDestinationVariable) {
 
             //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
 
             //getting the data of the solution step
             array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
@@ -444,7 +444,7 @@ private:
         Variable<double>& rDestinationVariable) {
 
         //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
 
 
             //getting the data of the solution step
@@ -470,7 +470,7 @@ private:
         Variable<double>& rDestinationVariable)
 {
             //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
 
 
 
@@ -498,7 +498,7 @@ private:
         int n_particles_per_depth_distance) {
 
             //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
 
 
             //getting the data of the solution step

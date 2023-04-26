@@ -254,13 +254,13 @@ void LocalRefineGeometryMesh::CalculateCoordinateAndInsertNewNodes(
         noalias(coordinates_new_nodes[i]) = 0.50 * (coord_node_1 + coord_node_2);
 
         /* Inserting the news node in the model part */
-        auto pnode = Node < 3 >::Pointer(new Node < 3 >(rListNewNodes[i], coordinates_new_nodes[i][0], coordinates_new_nodes[i][1], coordinates_new_nodes[i][2]));
+        auto pnode = Node::Pointer(new Node(rListNewNodes[i], coordinates_new_nodes[i][0], coordinates_new_nodes[i][1], coordinates_new_nodes[i][2]));
         pnode->SetSolutionStepVariablesList( rModelPart.NodesBegin()->pGetVariablesList() );
         pnode->SetBufferSize(rModelPart.NodesBegin()->GetBufferSize());
 
         pnode->GetValue(FATHER_NODES).resize(0);
-        pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer( it_node1 ));
-        pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer( it_node2 ));
+        pnode->GetValue(FATHER_NODES).push_back(Node ::WeakPointer( it_node1 ));
+        pnode->GetValue(FATHER_NODES).push_back(Node ::WeakPointer( it_node2 ));
 
         pnode->X0() = 0.5 * (it_node1->X0() + it_node2->X0());
         pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());

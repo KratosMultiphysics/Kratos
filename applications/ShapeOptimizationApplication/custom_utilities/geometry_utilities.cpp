@@ -214,7 +214,7 @@ std::tuple<std::vector<double>, std::vector<double>> GeometryUtilities::ComputeD
 {
     KRATOS_TRY;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef NodeType::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;

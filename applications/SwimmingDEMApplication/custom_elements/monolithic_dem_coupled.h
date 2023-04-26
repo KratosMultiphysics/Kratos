@@ -146,7 +146,7 @@ public:
     typedef IndexedObject BaseType;
 
     ///definition of node type (default is: Node)
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters

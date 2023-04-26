@@ -80,7 +80,7 @@ public:
      */
     typedef ProcessInfo ProcessInfoType;
     typedef std::size_t SizeType;
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
 
     typedef Vector StrainVectorType;
     typedef Vector StressVectorType;

@@ -340,7 +340,7 @@ namespace Kratos
 	//***************************************
         //***************************************
 
-        inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
+        inline bool CalculatePosition(Geometry<Node >&geom,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 3 > & N
                 )
@@ -377,7 +377,7 @@ namespace Kratos
 	        //***************************************
         //***************************************
 
-        inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
+        inline bool CalculatePosition(Geometry<Node >&geom,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 4 > & N
                 )

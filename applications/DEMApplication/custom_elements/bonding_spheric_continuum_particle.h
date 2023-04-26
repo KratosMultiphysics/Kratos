@@ -37,7 +37,7 @@ namespace Kratos {
         typedef Node <3> NodeType;
         typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
         typedef std::size_t IndexType;
-        typedef Geometry<Node < 3 > > GeometryType;
+        typedef Geometry<Node > GeometryType;
         typedef Properties PropertiesType;
 
         /// Default constructor.

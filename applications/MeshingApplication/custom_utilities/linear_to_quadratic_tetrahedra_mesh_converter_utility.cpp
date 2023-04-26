@@ -43,7 +43,7 @@ namespace Kratos {
         unsigned int i8 = rNodeIds[8];
         unsigned int i9 = rNodeIds[9];
 
-        Tetrahedra3D10<Node < 3 > > geom(
+        Tetrahedra3D10<Node > geom(
             rThisModelPart.pGetNode(i0),
             rThisModelPart.pGetNode(i1),
             rThisModelPart.pGetNode(i2),

@@ -201,7 +201,7 @@ public:
 
         for(auto i = it_begin; i!=it_end; i++) {
             int index_i = i->Id() - 1; // WARNING: MESH MUST BE IN ORDER
-            GlobalPointersVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_CONDITION_NODES);
+            GlobalPointersVector< Node >& neighb_nodes = i->GetValue(NEIGHBOUR_CONDITION_NODES);
 
             std::vector<unsigned int> aux(neighb_nodes.size());
             unsigned int active = 0;

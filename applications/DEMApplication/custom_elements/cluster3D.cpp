@@ -170,7 +170,7 @@ namespace Kratos {
             }
 
             Kratos::SphericParticle* new_sphere;
-            Node < 3 > ::Pointer new_node;
+            Node ::Pointer new_node;
             if (!breakable) {
                 new_sphere = p_creator_destructor->SphereCreatorForClusters(dem_model_part,
                                                                             new_node,
