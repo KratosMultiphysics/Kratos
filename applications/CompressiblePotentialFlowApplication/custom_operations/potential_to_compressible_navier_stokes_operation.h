@@ -72,11 +72,6 @@ public:
     /// Assignment operator.
     PotentialToCompressibleNavierStokesOperation& operator=(PotentialToCompressibleNavierStokesOperation const& rOther) = delete;
 
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
 
     ///@}
     ///@name Operations
