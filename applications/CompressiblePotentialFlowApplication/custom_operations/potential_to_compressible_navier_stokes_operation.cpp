@@ -108,9 +108,10 @@ void PotentialToCompressibleNavierStokesOperation::Execute()
         const double energy = specific_heat * reference_temperature + 0.5 * velocity_norm_2;
         
         // Setting the Navier Stokes initial condition
-        it_dest_node->FastGetSolutionStepValue(DENSITY, 0) = density; 
-        it_dest_node->FastGetSolutionStepValue(MOMENTUM, 0) = density*velocity;
-        it_dest_node->FastGetSolutionStepValue(TOTAL_ENERGY, 0) = density*energy; });
+        it_dest_node->FastGetSolutionStepValue(DENSITY) = density; 
+        it_dest_node->FastGetSolutionStepValue(MOMENTUM) = density*velocity;
+        it_dest_node->FastGetSolutionStepValue(TOTAL_ENERGY) = density*energy;
+    });
 
     KRATOS_CATCH("")
 }
