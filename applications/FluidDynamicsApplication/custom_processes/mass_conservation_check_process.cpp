@@ -667,9 +667,9 @@ Triangle2D3<Node>::Pointer MassConservationCheckProcess::GenerateAuxTriangle( co
                             std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-7 );
 
     // creating auxiliary nodes based on the transformed position
-    Node<3UL>::Pointer node1 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
-    Node<3UL>::Pointer node2 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
-    Node<3UL>::Pointer node3 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
+    Node::Pointer node1 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
+    Node::Pointer node2 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
+    Node::Pointer node3 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
 
     // finally creating the desired Triangle2D3 based on the nodes
     Triangle2D3<Node>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node > >( node1, node2, node3 );
