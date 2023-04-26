@@ -57,8 +57,8 @@ void PotentialToCompressibleNavierStokesOperation::Execute()
 
     const std::string origin_model_part_name = mParameters["origin_model_part"].GetString();
     const std::string destination_model_part_name = mParameters["destination_model_part"].GetString();
-    const double& reference_temperature = mParameters["reference_temperature"].GetDouble();
-    const double& compute_nodal_velocities = mParameters["compute_nodal_velocities"].GetBool();
+    const double reference_temperature = mParameters["reference_temperature"].GetDouble();
+    const bool compute_nodal_velocities = mParameters["compute_nodal_velocities"].GetBool();
     
     // Saving the modelparts
     auto& mOriginModelPart = mpModel->GetModelPart(origin_model_part_name);
