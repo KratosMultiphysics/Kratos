@@ -1050,8 +1050,11 @@ public:
             sum_coordinates += rProjectionPointLocalCoordinates[i];
         }
         
-        for(unsigned int i = 0 ; i < 2 ; i++){ // Clipping to line y=1-x
-            rProjectionPointLocalCoordinates[i] /= sum_coordinates;
+        // Clipping to line y=1-x
+        if (sum_coordinates>1.0){
+            for(unsigned int i = 0 ; i < 2 ; i++){ 
+                rProjectionPointLocalCoordinates[i] /= sum_coordinates;
+            }
         }
 
         return 1;
