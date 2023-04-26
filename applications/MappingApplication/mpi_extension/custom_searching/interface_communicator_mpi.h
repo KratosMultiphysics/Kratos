@@ -118,11 +118,6 @@ private:
 
     void ComputeGlobalBoundingBoxes();
 
-    template<typename TDataType>
-    int ExchangeDataAsync(
-        const std::vector<std::vector<TDataType>>& rSendBuffer,
-        std::vector<std::vector<TDataType>>& rRecvBuffer);
-
     ///@}
 
 }; // Class InterfaceCommunicatorMPI
