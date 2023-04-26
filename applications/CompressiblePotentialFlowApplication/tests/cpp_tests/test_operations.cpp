@@ -142,11 +142,11 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
       // Explicit calculate of local nodal values
       const double& velocity_norm_2 = velocity[0] * velocity[0] + velocity[1] * velocity[1];
       const double& velocity_norm = std::pow(velocity_norm_2,0.5);
-      const double& mach = velocity_norm / sound_velocity;
-      const double& num = 1.0 + 0.5 * (gamma - 1.0) * std::pow(free_stream_mach,2);
-      const double& den = 1.0 + 0.5 * (gamma - 1.0) * std::pow(mach,2);
-      const double& density = free_stream_density * std::pow((num / den),(1.0 / (gamma - 1.0)));
-      const double& energy = specific_heat * reference_temperature + 0.5 * velocity_norm_2;
+      const double mach = velocity_norm / sound_velocity;
+      const double num = 1.0 + 0.5 * (gamma - 1.0) * std::pow(free_stream_mach,2);
+      const double den = 1.0 + 0.5 * (gamma - 1.0) * std::pow(mach,2);
+      const double density = free_stream_density * std::pow((num / den),(1.0 / (gamma - 1.0)));
+      const double energy = specific_heat * reference_temperature + 0.5 * velocity_norm_2;
 
       // Check nodal values
       auto nodal_density = r_node->FastGetSolutionStepValue(DENSITY);
