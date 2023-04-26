@@ -182,7 +182,7 @@ public:
             });
 
         auto& r_data_comm = r_smoothing_model_part.GetCommunicator().GetDataCommunicator();
-        GlobalPointersVector< Node<3 > > gp_list;
+        GlobalPointersVector< Node > gp_list;
 
         const unsigned int num_nodes = r_smoothing_model_part.NumberOfNodes();
 
@@ -197,7 +197,7 @@ public:
             }
         }
 
-        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_data_comm, gp_list);
+        GlobalPointerCommunicator< Node > pointer_comm(r_data_comm, gp_list);
 
         auto combined_proxy = pointer_comm.Apply(
             [&](GlobalPointer<Node> &global_pointer) -> std::pair<double, array_1d<double,3>> {
@@ -222,7 +222,7 @@ public:
             double weight = 0.0;
             double dist_diff_avg = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
             array_1d<double,3> dx;
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)

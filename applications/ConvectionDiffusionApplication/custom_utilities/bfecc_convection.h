@@ -301,11 +301,11 @@ public:
         }
 
         auto& r_default_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-        GlobalPointersVector< Node<3 > > gp_list;
+        GlobalPointersVector< Node > gp_list;
 
         for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -314,7 +314,7 @@ public:
             }
         }
 
-        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+        GlobalPointerCommunicator< Node > pointer_comm(r_default_comm, gp_list);
 
         auto coordinate_proxy = pointer_comm.Apply(
             [](GlobalPointer<Node >& global_pointer) -> Point::CoordinatesArrayType
@@ -339,7 +339,7 @@ public:
             double S_plus = 0.0;
             double S_minus = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -369,7 +369,7 @@ public:
             double numerator = 0.0;
             double denominator = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
