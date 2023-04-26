@@ -74,11 +74,11 @@ void PotentialToCompressibleNavierStokesOperation::Execute()
         << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
     // Getting the required variables
-    const double& gamma = mOriginModelPart.GetProcessInfo().GetValue(HEAT_CAPACITY_RATIO);
-    const double& sound_velocity = mOriginModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
-    const double& free_stream_rho = mOriginModelPart.GetProcessInfo().GetValue(FREE_STREAM_DENSITY);
-    const double& free_stream_mach = mOriginModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH);
-    const double& specific_heat = (std::pow(sound_velocity,2) / (gamma * reference_temperature)) / (gamma - 1.0);
+    const double gamma = mOriginModelPart.GetProcessInfo().GetValue(HEAT_CAPACITY_RATIO);
+    const double sound_velocity = mOriginModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    const double free_stream_rho = mOriginModelPart.GetProcessInfo().GetValue(FREE_STREAM_DENSITY);
+    const double free_stream_mach = mOriginModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH);
+    const double specific_heat = (std::pow(sound_velocity,2) / (gamma * reference_temperature)) / (gamma - 1.0);
     
     // Calculate de nodal velocities
     if (compute_nodal_velocities){
