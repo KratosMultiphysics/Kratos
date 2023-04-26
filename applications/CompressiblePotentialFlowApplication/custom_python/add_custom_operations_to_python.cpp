@@ -27,8 +27,7 @@ void AddCustomOperationsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<PotentialToCompressibleNavierStokesOperation, PotentialToCompressibleNavierStokesOperation::Pointer, Operation >
-        (m,"PotentialToCompressibleNavierStokesOperation")
+    py::class_<PotentialToCompressibleNavierStokesOperation, PotentialToCompressibleNavierStokesOperation::Pointer, Operation > (m,"PotentialToCompressibleNavierStokesOperation")
     .def(py::init<Model&, Parameters>())
     ;
 }
