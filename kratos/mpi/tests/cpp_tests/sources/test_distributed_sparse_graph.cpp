@@ -87,7 +87,7 @@ ElementConnectivityType ElementConnectivities()
     return connectivities;
 }
 
-ElementConnectivityType ElementConnectivities(const std::vector<DistTestingInternals::IndexType> bounds)
+ElementConnectivityType ElementConnectivities(const std::vector<DistTestingInternals::IndexType>& bounds)
 {
     KRATOS_TRY
     ElementConnectivityType all_connectivities = ElementConnectivities();

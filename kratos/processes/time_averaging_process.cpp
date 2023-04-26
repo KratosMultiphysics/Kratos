@@ -81,7 +81,7 @@ int TimeAveragingProcess::Check()
         std::string msg;
         msg = mrModel.Info() + " doesn't have " + mModelPartName +
               ". Available model parts are: \n";
-        for (std::string model_part_name : r_model_part_names)
+        for (const std::string& model_part_name : r_model_part_names)
             msg += "     " + model_part_name + "\n";
 
         KRATOS_ERROR << msg;

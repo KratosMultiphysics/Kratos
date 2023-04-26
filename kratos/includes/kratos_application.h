@@ -11,31 +11,24 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_KRATOS_APPLICATION_H_INCLUDED)
-#define KRATOS_KRATOS_APPLICATION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/kratos_components.h"
 #include "includes/element.h"
-#include "elements/mesh_element.h"
-#include "elements/distance_calculation_element_simplex.h"
-#include "elements/edge_based_gradient_recovery_element.h"
-#include "elements/levelset_convection_element_simplex.h"
-#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "includes/condition.h"
-#include "conditions/mesh_condition.h"
-#include "includes/periodic_condition.h"
-#include "utilities/quaternion.h"
-#include "includes/master_slave_constraint.h"
-#include "constraints/linear_master_slave_constraint.h"
+#include "includes/kratos_components.h"
 #include "includes/geometrical_object.h"
+#include "includes/periodic_condition.h"
+#include "includes/master_slave_constraint.h"
+#include "input_output/logger.h"
+#include "utilities/quaternion.h"
+#include "constraints/linear_master_slave_constraint.h"
 
-/* Geometries definition */
+// Geometries definition
 #include "geometries/register_kratos_components_for_geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -64,12 +57,24 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
+#include "geometries/quadrature_point_geometry.h"
+
+// Elements
+#include "elements/mesh_element.h"
+#include "elements/distance_calculation_element_simplex.h"
+#include "elements/edge_based_gradient_recovery_element.h"
+#include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
+
+// Conditions
+#include "conditions/mesh_condition.h"
 
 // Modelers
 #include "modeler/modeler.h"
 #include "modeler/cad_io_modeler.h"
 #include "modeler/cad_tessellation_modeler.h"
 #include "modeler/serial_model_part_combinator_modeler.h"
+#include "modeler/combine_model_part_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -78,7 +83,7 @@ namespace Kratos {
 /**
  * @class KratosApplication
  * @brief This class defines the interface with kernel for all applications in Kratos.
- * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
+ * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole system correctly.
  * @ingroup KratosCore
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
@@ -99,7 +104,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@{
 
     /// Default constructor.
-    explicit KratosApplication(const std::string ApplicationName);
+    explicit KratosApplication(const std::string& ApplicationName);
 
     KratosApplication() = delete;
 
@@ -415,7 +420,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
-
+    // Generic condition
+    const MeshCondition mGenericCondition;
     // Point conditions
     const MeshCondition mPointCondition2D1N;
     const MeshCondition mPointCondition3D1N;
@@ -445,6 +451,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const PeriodicCondition mPeriodicConditionCorner;
 
     // General elements must be defined
+    const MeshElement mGenericElement;
+
     const MeshElement mElement2D1N;
     const MeshElement mElement2D2N;
     const MeshElement mElement2D3N;
@@ -484,6 +492,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const CadTessellationModeler mCadTessellationModeler;
 #endif
     const SerialModelPartCombinatorModeler mSerialModelPartCombinatorModeler;
+    const CombineModelPartModeler mCombineModelPartModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
@@ -644,5 +653,3 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif  // KRATOS_KRATOS_APPLICATION_H_INCLUDED  defined

@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
 
@@ -106,7 +106,7 @@ public:
         ModelPart& ThisModelPart ,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,
-        NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
+        EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes=true,
         double my_alpha = 1.4, double h_factor=0.5)
     {
 
@@ -765,13 +765,13 @@ private:
     boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
     array_1d<double,2> mC; //center pos
     array_1d<double,2> mRhs; //center pos
-    //NodeEraseProcess* mpNodeEraseProcess;
+    //EntitiesEraseProcess<Node<3>>* mpNodeEraseProcess;
 
 
     ///@}
     ///@name Private Operators
     ///@{
-    void RemoveCloseNodes(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, NodeEraseProcess& node_erase, double& h_factor)
+    void RemoveCloseNodes(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, EntitiesEraseProcess<Node<3>>& node_erase, double& h_factor)
     {
         //unsigned int bucket_size = 20;
 

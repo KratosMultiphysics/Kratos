@@ -118,9 +118,9 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFast
     }
 
     // Build the list
-    std::vector<int> indices;
+    std::vector<int> indices(3, 0);
     for(int i = 0; i < 3; i++) {
-        indices.push_back(i + (current_rank * 2));
+        indices[i] = i + (current_rank * 2);
     }
 
     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm );

@@ -24,7 +24,15 @@ namespace Kratos {
         }
     }
 
-    void DEM_KDEM_Rankine::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
+    void DEM_KDEM_Rankine::CheckFailure(const int i_neighbour_count, 
+                                        SphericContinuumParticle* element1, 
+                                        SphericContinuumParticle* element2,
+                                        double& contact_sigma,
+                                        double& contact_tau, 
+                                        double LocalElasticContactForce[3],
+                                        double ViscoDampingLocalContactForce[3],
+                                        double ElasticLocalRotationalMoment[3],
+                                        double ViscoLocalRotationalMoment[3]){
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 

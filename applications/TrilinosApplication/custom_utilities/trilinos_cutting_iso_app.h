@@ -328,7 +328,7 @@ public:
         }
 
         Clear();
-        ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
+        ParallelFillCommunicator(new_model_part, this_model_part.GetCommunicator().GetDataCommunicator()).Execute(); //changed from PrintDebugInfo to Execute
         if (mrComm.MyPID() == 0) std::cout << "copyng conditions and recalculation plan have been completed" << std::endl;
         KRATOS_CATCH("")
     }
@@ -387,7 +387,7 @@ public:
         if (mrComm.MyPID() == 0) std::cout << "finished generating elements" << std::endl;
 
         //fill the communicator
-        ParallelFillCommunicator(mr_new_model_part).Execute();
+        ParallelFillCommunicator(mr_new_model_part, this_model_part.GetCommunicator().GetDataCommunicator()).Execute();
         if (mrComm.MyPID() == 0) std::cout << "recalculation of communication plan completed" << std::endl;
 
         //clean up the data

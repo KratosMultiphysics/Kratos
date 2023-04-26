@@ -15,7 +15,7 @@
 
 // System includes
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <numeric>
 #ifdef _OPENMP

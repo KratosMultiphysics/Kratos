@@ -96,9 +96,23 @@ namespace Kratos {
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
+        /*
         virtual void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
-        }
+        };
+        */
+
+        virtual void CheckFailure(const int i_neighbour_count, 
+                                    SphericContinuumParticle* element1, 
+                                    SphericContinuumParticle* element2,
+                                    double& contact_sigma,
+                                    double& contact_tau, 
+                                    double LocalElasticContactForce[3],
+                                    double ViscoDampingLocalContactForce[3],
+                                    double ElasticLocalRotationalMoment[3],
+                                    double ViscoLocalRotationalMoment[3]) {
+
+        };
 
         virtual void CalculateForces(const ProcessInfo& r_process_info,
                                      double OldLocalElasticContactForce[3],
@@ -163,17 +177,36 @@ namespace Kratos {
                                                const ProcessInfo& r_process_info) {
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateTangentialForces) shouldn't be accessed, use derived class instead"<<std::endl;
         };
+      
+        virtual void CalculateMoments(SphericContinuumParticle* element, 
+                                      SphericContinuumParticle* neighbor, 
+                                      double equiv_young, 
+                                      double distance, 
+                                      double calculation_area,
+                                      double LocalCoordSystem[3][3], 
+                                      double ElasticLocalRotationalMoment[3], 
+                                      double ViscoLocalRotationalMoment[3], 
+                                      double equiv_poisson, 
+                                      double indentation, 
+                                      double LocalElasticContactForce[3],
+                                      double normalLocalContactForce,
+                                      double GlobalElasticContactForces[3],
+                                      double LocalCoordSystem_2[3],
+                                      const int i_neighbor_count){
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateMoments) shouldn't be accessed, use derived class instead"<<std::endl;
+        };
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                                      SphericContinuumParticle* neighbor,
-                                                      double equiv_young,
-                                                      double distance,
-                                                      double calculation_area,
-                                                      double LocalCoordSystem[3][3],
-                                                      double ElasticLocalRotationalMoment[3],
-                                                      double ViscoLocalRotationalMoment[3],
-                                                      double equiv_poisson,
-                                                      double indentation);
+                                                SphericContinuumParticle* neighbor,
+                                                double equiv_young,
+                                                double distance,
+                                                double calculation_area,
+                                                double LocalCoordSystem[3][3],
+                                                double ElasticLocalRotationalMoment[3],
+                                                double ViscoLocalRotationalMoment[3],
+                                                double equiv_poisson,
+                                                double indentation,
+                                                double LocalElasticContactForce[3]);
 
         virtual void AddPoissonContribution(const double equiv_poisson,
                                             double LocalCoordSystem[3][3],

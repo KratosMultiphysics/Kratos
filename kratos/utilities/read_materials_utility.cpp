@@ -12,11 +12,11 @@
 //
 
 // System includes
+#include <filesystem>
 
 // External includes
 
 // Project includes
-#include "includes/kratos_filesystem.h"
 #include "utilities/read_materials_utility.h"
 #include "utilities/parallel_utilities.h"
 
@@ -72,7 +72,7 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     // Read json string in materials file, create Parameters
     const std::string& r_materials_filename = Params["Parameters"]["materials_filename"].GetString();
 
-    KRATOS_ERROR_IF_NOT(Kratos::filesystem::exists(r_materials_filename)) << "The material file specified with name \"" << r_materials_filename << "\" does not exist!" << std::endl;
+    KRATOS_ERROR_IF_NOT(std::filesystem::exists(r_materials_filename)) << "The material file specified with name \"" << r_materials_filename << "\" does not exist!" << std::endl;
 
     std::ifstream ifs(r_materials_filename);
     Parameters materials(ifs);
@@ -501,8 +501,8 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
         parent_model_part_name = model_part_names[i];
 
         // removing the submodelpart-names one-by-one
-        while (parent_model_part_name.find(".") != std::string::npos) {
-            std::size_t found_pos = parent_model_part_name.find_last_of(".");
+        while (parent_model_part_name.find('.') != std::string::npos) {
+            std::size_t found_pos = parent_model_part_name.find_last_of('.');
             parent_model_part_name = parent_model_part_name.substr(0, found_pos);
 
             for (IndexType j = 0; j < i; ++j) {

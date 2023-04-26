@@ -1,33 +1,14 @@
-import os
-import re
-import sys
-import getopt
+import KratosMultiphysics as KM
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
+
+from KratosMultiphysics.testing import utilities as testing_utils
+
+import sys, os
+import argparse
 import subprocess
 
 from importlib import import_module
-
-import KratosMultiphysics as KtsMp
-import KratosMultiphysics.KratosUnittest as KtsUt
-import KratosMultiphysics.kratos_utilities as KtsUtls
-
-
-def Usage():
-    ''' Prints the usage of the script '''
-
-    lines = [
-        'Usage:',
-        '\t python kratos_run_tests [-l level] [-v verbosity] [-a app1:[app2:...]]',  # noqa
-        'Options',
-        '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
-        '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
-        '\t --using-mpi: If running in MPI and executing the MPI-tests'
-    ]
-    for l in lines:
-        KtsMp.Logger.PrintInfo(l) # using the logger to only print once in MPI
-
 
 class Commander(object):
     def __init__(self):
@@ -54,6 +35,9 @@ class Commander(object):
 
         command: string
             command to be used to call the tests. Ex: Python, Python3, Runkratos
+
+        timer: integer
+            limit time considered to execute the tests
 
         '''
 
@@ -152,8 +136,8 @@ class Commander(object):
             import_module("KratosMultiphysics." + application)
 
         try:
-            KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.PROGRESS)
-            self.exitCode = KtsMp.Tester.RunAllTestCases()
+            KM.Tester.SetVerbosity(KM.Tester.Verbosity.PROGRESS)
+            self.exitCode = KM.Tester.RunAllTestCases()
         except Exception as e:
             print('[Warning]:', e, file=sys.stderr)
             self.exitCode = 1
@@ -177,96 +161,53 @@ def print_summary(exit_codes):
 
 def main():
     # Define the command
-    cmd = os.path.join(os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()), 'runkratos')
-
-    verbose_values = [0, 1, 2]
-    level_values = ['all', 'nightly', 'small', 'validation']
-
-    # Set default values
-    applications = KtsUtls.GetListOfAvailableApplications()
-    verbosity = 1
-    level = 'all'
-    is_mpi = False
+    cmd = testing_utils.GetPython3Command()
+    
+    # List of application 
+    applications = kratos_utils.GetListOfAvailableApplications()
 
     # Keep the worst exit code
     exit_code = 0
 
     # Parse Commandline
-    try:
-        opts, args = getopt.getopt(
-            sys.argv[1:],
-            'ha:v:l:c:', [
-                'help',
-                'applications=',
-                'verbose=',
-                'level=',
-                'command=',
-                'using-mpi'
-            ])
-    except getopt.GetoptError as err:
-        print(str(err))
-        Usage()
-        sys.exit(2)
+    # parse command line options
+    parser = argparse.ArgumentParser()
 
-    for o, a in opts:
-        if o in ('-v', '--verbose'):
-            if int(a) in verbose_values:
-                verbosity = int(a)
-            else:
-                print('Error: {} is not a valid verbose level.'.format(a))
-                Usage()
-                sys.exit()
-        elif o in ('-h', '--help'):
-            Usage()
-            sys.exit()
-        elif o in ('-l', '--level'):
-            if a in level_values:
-                level = a
-            else:
-                print('Error: {} is not a valid level.'.format(a))
-                Usage()
-                sys.exit()
-        elif o in ('-a', '--applications'):
-            try:
-                parsedApps = a.split(':')
-            except:
-                print('Error: Cannot parse applications.')
-                Usage()
-                sys.exit()
+    parser.add_argument('-c', '--command', default=cmd, help="Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used")
+    parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'], help="Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'")
+    parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2], help="Verbosity level: 0, 1 (Default), 2")
+    parser.add_argument('-a', '--applications', default=applications, help="List of applications to run separated by \':\'. All compiled applications will be run by default")
+    parser.add_argument('-m', '--using-mpi', default=False, help="If running in MPI and executing the MPI-tests")
+    parser.add_argument('-t', '--timer', default=-1, help="Use the provided custom time limit for the execution. If not provided, the default values are used")
 
-            for a in parsedApps:
-                if a not in applications + ['KratosCore']:
-                    print('Warning: Application {} does not exist'.format(a))
-                    sys.exit()
+    args = parser.parse_args()
 
-            applications = parsedApps
-
-            if 'KratosCore' in applications:
-                applications.remove('KratosCore')
-
-        elif o in ('-c', '--command'):
-            try:
-                cmd = str(a)
-            except:
-                print('Error: Cannot parse command name {0}.'.format(a))
-                Usage()
-                sys.exit()
-
-        elif o in ('--using-mpi'):
-            is_mpi = True
-
-        else:
-            assert False, 'unhandled option'
-
-    if is_mpi:
+    # Set if mpi
+    if args.using_mpi:
         level = "mpi_" + level
+
+    # Parser the applications
+    if isinstance(args.applications,str):
+        parsedApps = args.applications.split(':')
+    else:
+        parsedApps = args.applications
+    for a in parsedApps:
+        if a not in applications + ['KratosCore']:
+            print('Warning: Application {} does not exist'.format(a))
+            sys.exit()
+    applications = parsedApps
+    if 'KratosCore' in applications:
+        applications.remove('KratosCore')
 
     # Set timeout of the different levels
     signalTime = None
-    if level == 'small':
-        signalTime = int(90)
-    elif level == 'nightly':
-        signalTime = int(900)
+    if int(args.timer) > 0:
+        signalTime = int(args.timer)
+    else:
+        if args.level == 'small':
+            signalTime = int(90)
+        elif args.level == 'nightly':
+            signalTime = int(900)
 
     # Create the commands
     commander = Commander()
@@ -276,13 +217,13 @@ def main():
     # KratosCore must always be runned
     print_test_header("KratosCore")
 
-    with KtsUt.SupressConsoleOutput():
+    with KratosUnittest.SupressConsoleOutput():
         commander.RunTestSuit(
             'KratosCore',
             'kratos',
-            os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()),
-            level,
-            verbosity,
+            os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),
+            args.level,
+            args.verbosity,
             cmd,
             signalTime
         )
@@ -294,13 +235,13 @@ def main():
     for application in applications:
         print_test_header(application)
 
-        with KtsUt.SupressConsoleOutput():
+        with KratosUnittest.SupressConsoleOutput():
             commander.RunTestSuit(
                 application,
                 application,
-                KtsMp.KratosPaths.kratos_applications+'/',
-                level,
-                verbosity,
+                KM.KratosPaths.kratos_applications+'/',
+                args.level,
+                args.verbosity,
                 cmd,
                 signalTime
             )
@@ -310,7 +251,7 @@ def main():
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print_test_header("cpp")
-    with KtsUt.SupressConsoleOutput():
+    with KratosUnittest.SupressConsoleOutput():
         commander.RunCppTests(applications)
     print_test_footer("cpp", commander.exitCode)
     exit_codes["cpp"] = commander.exitCode

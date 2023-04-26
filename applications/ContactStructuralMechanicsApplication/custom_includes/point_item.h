@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(POINT_ITEM_DEFINED )
-#define  POINT_ITEM_DEFINED
+#pragma once
 
 // System includes
 
@@ -176,68 +175,13 @@ public:
         noalias(this->Coordinates()) = mpOriginEntity->GetGeometry().Center().Coordinates();
     }
 
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
     ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
 
     typename TEntity::Pointer mpOriginEntity; // Entity pointer
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
     ///@}
 }; // Class PointItem
 
@@ -254,5 +198,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // POINT_ITEM_DEFINED  defined

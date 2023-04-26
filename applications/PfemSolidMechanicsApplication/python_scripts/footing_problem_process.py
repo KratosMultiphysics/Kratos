@@ -1,6 +1,5 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPFEMSolid
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
@@ -40,13 +39,13 @@ class FootingProblemProcess(KratosMultiphysics.Process):
 
 
     def ExecuteFinalizeSolutionStep(self):
-        
+
         time = self._GetStepTime()
-        
+
         SomeProcessInfo = KratosMultiphysics.ProcessInfo()
 
         Force = 0.0*KratosMultiphysics.Array3()
-        for node in self.model_part.GetNodes(0): 
+        for node in self.model_part.GetNodes(0):
             if ( abs(node.Y0) < 1.0e-5):
                 if (node.X0 < 1.0001):
                     res = node.GetSolutionStepValue(KratosSolid.DISPLACEMENT_REACTION)

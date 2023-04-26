@@ -11,8 +11,7 @@
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_GEOMETRICAL_PROJECTION_UTILITIES)
-#define KRATOS_GEOMETRICAL_PROJECTION_UTILITIES
+#pragma once
 
 // System includes
 
@@ -35,13 +34,24 @@ namespace Kratos
  * @brief This is a class that provides auxiliar utilities for projections
  * @details This is a class that provides auxiliar utilities for the projections. Check the documentation for more details
  * @author Vicente Mataix Ferrandiz
- * Contact: vmataix@cimne.upc.edu
  */
-class GeometricalProjectionUtilities
+class KRATOS_API(KRATOS_CORE) GeometricalProjectionUtilities
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /**
+     * @brief How the distance is computed enum
+     */
+    enum class DistanceComputed
+    {
+        NO_RADIUS,
+        PROJECTION_ERROR,
+        RADIUS_PROJECTED,
+        RADIUS_NOT_PROJECTED_OUTSIDE,
+        RADIUS_NOT_PROJECTED_INSIDE
+    };
 
     /// Pointer definition of GeometricalProjectionUtilities
     KRATOS_CLASS_POINTER_DEFINITION( GeometricalProjectionUtilities );
@@ -183,14 +193,14 @@ public:
      */
     template<class TGeometryType>
     static inline double FastProjectOnLine(const TGeometryType& rGeometry,
-                                           const Point& rPointToProject,
+                                           const PointType& rPointToProject,
                                            PointType& rPointProjected)
     {
         const array_1d<double, 3>& r_p_a = rGeometry[0].Coordinates();
         const array_1d<double, 3>& r_p_b = rGeometry[1].Coordinates();
         const array_1d<double, 3> ab = r_p_b - r_p_a;
 
-        const array_1d<double, 3> p_c = rPointToProject.Coordinates();
+        const array_1d<double, 3>& p_c = rPointToProject.Coordinates();
 
         const double factor = (inner_prod(r_p_b, p_c) - inner_prod(r_p_a, p_c) - inner_prod(r_p_b, r_p_a) + inner_prod(r_p_a, r_p_a)) / inner_prod(ab, ab);
 
@@ -198,6 +208,53 @@ public:
 
         return norm_2(rPointProjected.Coordinates()-p_c);
     }
+
+
+    /**
+     * @brief Computes the minimal distance to a line
+     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @tparam TGeometryType The type of the line
+     * @param rGeometry The line where compute the distance
+     * @param rPoint The point to compute the distance
+     * @param Tolerance Tolerance to check it falls inside the line
+     * @return Distance The distance between point and line
+     */
+    template<class TGeometryType>
+    static inline double FastMinimalDistanceOnLine(
+        const TGeometryType& rGeometry,
+        const PointType& rPoint,
+        const double Tolerance = 1.0e-9
+        )
+    {
+        PointType projected_point;
+        const double projected_distance = FastProjectOnLine(rGeometry, rPoint, projected_point);
+        typename TGeometryType::CoordinatesArrayType projected_local;
+        if (rGeometry.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
+            return projected_distance;
+        } else {
+            const double distance_a = rPoint.Distance(rGeometry[0]);
+            const double distance_b = rPoint.Distance(rGeometry[1]);
+            return std::min(distance_a, distance_b);
+        }
+    }
+
+    /**
+     * @brief Computes the minimal distance to a line with radius contribution
+     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @param rDistance The distance
+     * @param rSegment The line segment
+     * @param rPoint The point to compute distance
+     * @param Radius The radius
+     * @param Tolerance Tolerance to check it falls inside the line
+     * @return The Distance computation type
+     */
+    static DistanceComputed FastMinimalDistanceOnLineWithRadius(
+        double& rDistance,
+        const Geometry<Node<3>>& rSegment,
+        const Point& rPoint,
+        const double Radius,
+        const double Tolerance = 1.0e-9
+        );
 
     /**
      * @brief Project a point over a line (2D only)
@@ -336,5 +393,4 @@ private:
 
 ///@}
 
-}
-#endif /* KRATOS_GEOMETRICAL_PROJECTION_UTILITIES defined */
+} /// namespace Kratos

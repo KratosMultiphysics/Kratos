@@ -101,7 +101,7 @@ class GiDOutputProcess(KM.OutputProcess):
             self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
-            # not exist and I don't want the validator assinging defaults there.
+            # not exist and I don't want the validator assigning defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param
@@ -235,11 +235,7 @@ class GiDOutputProcess(KM.OutputProcess):
             mesh_name = 0.0
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
-
-            if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
-                self.__write_step_to_list()
-            else:
-                self.__write_step_to_list(0)
+            self.__write_step_to_list()
 
         if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
             label = 0.0
@@ -341,7 +337,7 @@ class GiDOutputProcess(KM.OutputProcess):
             f.close()
 
         # Note: it is important to call the GidIO destructor, since it closes output files
-        # Since Python's garbage colletion DOES NOT ensure that the destructor will be called,
+        # Since Python's garbage collection DOES NOT ensure that the destructor will be called,
         # I'm deallocating the GidIO instances explicitly. This is VERY BAD PRACTICE
         # and effectively breaks the class if called after this point, but we haven't found
         # a better solution yet (jcotela 12/V/2016)
@@ -409,7 +405,7 @@ class GiDOutputProcess(KM.OutputProcess):
 
     def _InitializeListFiles(self,additional_frequencies):
         '''Set up .post.lst files for global and cut results.
-        If we have only one tipe of output (volume or cut), the
+        If we have only one type of output (volume or cut), the
         list file is called <gid_model_name>.post.lst. When we have
         both types, call the volume one <gid_model_name>.post.lst and
         the cut one <gid_model_name>_cuts.post.lst.
@@ -759,6 +755,6 @@ class GiDOutputProcess(KM.OutputProcess):
 
         # Make sure that the path to the desired output folder exists
         output_path = Path(file_name).parent
-        KM.FilesystemExtensions.MPISafeCreateDirectories(str(output_path))
+        KM.FilesystemExtensions.MPISafeCreateDirectories(output_path)
 
         return file_name

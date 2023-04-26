@@ -1,0 +1,959 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+Begin Properties 0
+End Properties
+Begin Properties 1
+DENSITY 2400.0
+YOUNG_MODULUS 26000000000.0
+POISSON_RATIO 0.20
+THERMAL_EXPANSION 1e-05
+CONSTITUTIVE_LAW_NAME ThermalLinearElastic3DLaw
+End Properties
+Begin Properties 2
+DENSITY 2400.0
+YOUNG_MODULUS 26000000000.0
+POISSON_RATIO 0.20
+THERMAL_EXPANSION 1e-05
+CONSTITUTIVE_LAW_NAME ThermalLinearElastic3DLaw
+End Properties
+Begin Properties 3
+DENSITY 2400.0
+YOUNG_MODULUS 26000000000.0
+POISSON_RATIO 0.20
+THERMAL_EXPANSION 1e-05
+CONSTITUTIVE_LAW_NAME ThermalLinearElastic3DLaw
+End Properties
+Begin Table 1 TIME VALUE
+0 -1
+3600 -1
+7200 1
+10800 3
+14400 5
+18000 7
+End Table
+Begin Table 2 TIME VALUE
+0 24
+3600 19.5
+7200 18.5
+10800 18.5
+14400 22.5
+18000 22.5
+End Table
+Begin Table 3 TIME VALUE
+0 8.3
+3600 10.0
+7200 12.0
+10800 15.0
+14400 13.0
+18000 12.0
+End Table
+Begin Nodes
+1 9.0522400000 7.7058000000 8.0000000000
+2 9.0458400000 7.4878000000 6.0000000000
+3 9.0394400000 7.2698000000 4.0000000000
+4 9.0330400000 7.0518000000 2.0000000000
+5 9.0266400000 6.8338000000 0.0000000000
+6 0.0000000000 8.1510800000 8.0000000000
+7 0.0000000000 7.9422800000 6.0000000000
+8 0.0000000000 7.7334800000 4.0000000000
+9 2.4732160102 -0.7391704371 8.0000000000
+10 0.0000000000 7.5246800000 2.0000000000
+11 2.4570469195 -1.1241211089 6.0000000000
+12 2.7603364342 -1.4336543561 4.0000000000
+13 0.0000000000 7.3158800000 0.0000000000
+14 2.4247087381 -1.8940224525 2.0000000000
+15 2.6646924706 -2.2901923964 -0.0000000000
+16 -2.7913087980 -0.5924740874 8.0000000000
+17 -2.7758226161 -1.0130642218 6.0000000000
+18 -2.4408778288 -1.5090717807 4.0000000000
+19 -2.7448502524 -1.8542444905 2.0000000000
+20 7.3775200000 -9.2864400000 8.0000000000
+21 -2.7318976468 -2.3557619820 -0.0000000000
+22 7.2903200000 -9.9380400000 6.0000000000
+23 -9.0522400000 7.7058000000 8.0000000000
+24 -9.0458400000 7.4878000000 6.0000000000
+25 -9.0394400000 7.2698000000 4.0000000000
+26 7.2031200000 -10.5896400000 4.0000000000
+27 0.0000000000 -8.7936400000 8.0000000000
+28 -9.0330400000 7.0518000000 2.0000000000
+29 0.0000000000 -9.4332400000 6.0000000000
+30 -9.0266400000 6.8338000000 0.0000000000
+31 7.1159200000 -11.2412400000 2.0000000000
+32 0.0000000000 -10.0728400000 4.0000000000
+33 7.0287200000 -11.8928400000 0.0000000000
+34 0.0000000000 -10.7124400000 2.0000000000
+35 0.0000000000 -11.3520400000 0.0000000000
+36 -7.3775200000 -9.2864400000 8.0000000000
+37 -7.2903200000 -9.9380400000 6.0000000000
+38 -7.2031200000 -10.5896400000 4.0000000000
+39 -7.1159200000 -11.2412400000 2.0000000000
+40 -7.0287200000 -11.8928400000 0.0000000000
+End Nodes
+Begin Elements SmallDisplacementThermoMechanicElement3D4N// GUI group identifier: Parts Auto1
+73 1 35 31 33 15
+74 1 40 34 35 21
+75 1 34 31 35 15
+76 1 39 34 40 21
+77 1 13 28 30 19
+78 1 10 28 13 19
+79 1 5 10 13 14
+80 1 4 10 5 14
+81 1 34 35 21 15
+82 1 10 13 14 19
+83 1 40 39 21 30
+84 1 31 33 15 5
+85 1 21 34 15 14
+86 1 15 21 14 13
+87 1 34 15 14 31
+88 1 14 15 13 5
+89 1 15 14 31 5
+90 1 14 34 19 21
+91 1 19 14 21 13
+92 1 34 19 21 39
+93 1 21 19 13 30
+94 1 19 21 39 30
+95 1 28 30 19 39
+96 1 5 4 14 31
+End Elements
+Begin Elements SmallDisplacementThermoMechanicElement3D4N// GUI group identifier: Parts Auto2
+1 2 34 26 31 14
+2 2 39 32 34 19
+3 2 32 26 34 14
+4 2 38 32 39 19
+5 2 34 32 14 19
+6 2 10 25 28 18
+7 2 8 25 10 18
+8 2 4 8 10 12
+9 2 3 8 4 12
+10 2 10 8 18 12
+11 2 39 38 19 28
+12 2 26 31 14 4
+13 2 32 14 19 18
+14 2 14 19 18 10
+15 2 19 32 18 38
+16 2 19 18 10 28
+17 2 18 19 38 28
+18 2 32 14 18 12
+19 2 14 18 12 10
+20 2 32 14 12 26
+21 2 12 14 10 4
+22 2 14 12 26 4
+23 2 4 3 12 26
+24 2 25 28 18 38
+End Elements
+Begin Elements SmallDisplacementThermoMechanicElement3D4N// GUI group identifier: Parts Auto3
+25 3 38 29 32 18
+26 3 32 22 26 12
+27 3 29 22 32 12
+28 3 37 29 38 18
+29 3 29 32 18 12
+30 3 8 24 25 17
+31 3 7 24 8 17
+32 3 3 7 8 11
+33 3 2 7 3 11
+34 3 8 7 17 11
+35 3 22 26 12 3
+36 3 38 37 18 25
+37 3 18 29 12 11
+38 3 12 18 11 8
+39 3 29 12 11 22
+40 3 11 12 8 3
+41 3 12 11 22 3
+42 3 18 29 11 17
+43 3 11 18 17 8
+44 3 18 29 17 37
+45 3 18 17 8 25
+46 3 17 18 37 25
+47 3 24 25 17 37
+48 3 3 2 11 22
+49 3 37 27 29 17
+50 3 29 20 22 11
+51 3 27 20 29 11
+52 3 36 27 37 17
+53 3 29 27 11 17
+54 3 7 23 24 16
+55 3 6 23 7 16
+56 3 2 6 7 9
+57 3 1 6 2 9
+58 3 7 6 16 9
+59 3 37 36 17 24
+60 3 20 22 11 2
+61 3 27 11 17 9
+62 3 11 17 9 7
+63 3 27 11 9 20
+64 3 9 11 7 2
+65 3 11 9 20 2
+66 3 9 27 16 17
+67 3 16 9 17 7
+68 3 27 16 17 36
+69 3 17 16 7 24
+70 3 16 17 36 24
+71 3 23 24 16 36
+72 3 2 1 9 20
+End Elements
+Begin Elements EulerianConvDiff3D // GUI group identifier: Parts Auto1
+137 0 35 31 33 15
+138 0 40 34 35 21
+139 0 34 31 35 15
+140 0 39 34 40 21
+141 0 13 28 30 19
+142 0 10 28 13 19
+143 0 5 10 13 14
+144 0 4 10 5 14
+145 0 34 35 21 15
+146 0 10 13 14 19
+147 0 40 39 21 30
+148 0 31 33 15 5
+149 0 21 34 15 14
+150 0 15 21 14 13
+151 0 34 15 14 31
+152 0 14 15 13 5
+153 0 15 14 31 5
+154 0 14 34 19 21
+155 0 19 14 21 13
+156 0 34 19 21 39
+157 0 21 19 13 30
+158 0 19 21 39 30
+159 0 28 30 19 39
+160 0 5 4 14 31
+End Elements
+Begin Elements EulerianConvDiff3D // GUI group identifier: Parts Auto2
+161 0 34 26 31 14
+162 0 39 32 34 19
+163 0 32 26 34 14
+164 0 38 32 39 19
+165 0 34 32 14 19
+166 0 10 25 28 18
+167 0 8 25 10 18
+168 0 4 8 10 12
+169 0 3 8 4 12
+170 0 10 8 18 12
+171 0 39 38 19 28
+172 0 26 31 14 4
+173 0 32 14 19 18
+174 0 14 19 18 10
+175 0 19 32 18 38
+176 0 19 18 10 28
+177 0 18 19 38 28
+178 0 32 14 18 12
+179 0 14 18 12 10
+180 0 32 14 12 26
+181 0 12 14 10 4
+182 0 14 12 26 4
+183 0 4 3 12 26
+184 0 25 28 18 38
+End Elements
+Begin Elements EulerianConvDiff3D // GUI group identifier: Parts Auto3
+185 0 38 29 32 18
+186 0 32 22 26 12
+187 0 29 22 32 12
+188 0 37 29 38 18
+189 0 29 32 18 12
+190 0 8 24 25 17
+191 0 7 24 8 17
+192 0 3 7 8 11
+193 0 2 7 3 11
+194 0 8 7 17 11
+195 0 22 26 12 3
+196 0 38 37 18 25
+197 0 18 29 12 11
+198 0 12 18 11 8
+199 0 29 12 11 22
+200 0 11 12 8 3
+201 0 12 11 22 3
+202 0 18 29 11 17
+203 0 11 18 17 8
+204 0 18 29 17 37
+205 0 18 17 8 25
+206 0 17 18 37 25
+207 0 24 25 17 37
+208 0 3 2 11 22
+209 0 37 27 29 17
+210 0 29 20 22 11
+211 0 27 20 29 11
+212 0 36 27 37 17
+213 0 29 27 11 17
+214 0 7 23 24 16
+215 0 6 23 7 16
+216 0 2 6 7 9
+217 0 1 6 2 9
+218 0 7 6 16 9
+219 0 37 36 17 24
+220 0 20 22 11 2
+221 0 27 11 17 9
+222 0 11 17 9 7
+223 0 27 11 9 20
+224 0 9 11 7 2
+225 0 11 9 20 2
+226 0 9 27 16 17
+227 0 16 9 17 7
+228 0 27 16 17 36
+229 0 17 16 7 24
+230 0 16 17 36 24
+231 0 23 24 16 36
+232 0 2 1 9 20
+End Elements
+Begin Conditions SurfaceLoadCondition3D3N// GUI group identifier: Hydrostatic Pressure Parts Auto1
+1 0 10 13 28
+2 0 13 30 28
+3 0 4 5 10
+4 0 5 13 10
+End Conditions
+Begin Conditions SurfaceLoadCondition3D3N// GUI group identifier: Hydrostatic Pressure Parts Auto2
+5 0 8 10 25
+6 0 10 28 25
+7 0 3 4 8
+8 0 4 10 8
+End Conditions
+Begin Conditions SurfaceLoadCondition3D3N// GUI group identifier: Hydrostatic Pressure Parts Auto3
+9 0 7 8 24
+10 0 8 25 24
+11 0 6 7 23
+12 0 7 24 23
+13 0 2 3 7
+14 0 3 8 7
+15 0 1 2 6
+16 0 2 7 6
+End Conditions
+Begin Conditions FluxCondition3D3N// GUI group identifier: T Ambient Heat Flux Parts Auto1
+17 0 10 13 28
+18 0 13 30 28
+19 0 39 40 34
+20 0 40 35 34
+21 0 4 5 10
+22 0 5 13 10
+23 0 34 35 31
+24 0 35 33 31
+End Conditions
+Begin Conditions FluxCondition3D3N// GUI group identifier: T Ambient Heat Flux Parts Auto2
+25 0 8 10 25
+26 0 10 28 25
+27 0 38 39 32
+28 0 39 34 32
+29 0 3 4 8
+30 0 4 10 8
+31 0 32 34 26
+32 0 34 31 26
+End Conditions
+Begin Conditions FluxCondition3D3N// GUI group identifier: T Ambient Heat Flux Parts Auto3
+33 0 7 8 24
+34 0 8 25 24
+35 0 37 38 29
+36 0 38 32 29
+37 0 36 37 27
+38 0 37 29 27
+39 0 6 7 23
+40 0 7 24 23
+41 0 2 3 7
+42 0 3 8 7
+43 0 29 32 22
+44 0 32 26 22
+45 0 27 29 20
+46 0 29 22 20
+47 0 1 2 6
+48 0 2 7 6
+End Conditions
+Begin SubModelPart Parts_Parts_Auto1 Begin SubModelPartNodes
+4
+5
+10
+13
+14
+15
+19
+21
+28
+30
+31
+33
+34
+35
+39
+40
+End SubModelPartNodes Begin SubModelPartElements
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+End SubModelPartElements End SubModelPart
+Begin SubModelPart Parts_Parts_Auto2 Begin SubModelPartNodes
+3
+4
+8
+10
+12
+14
+18
+19
+25
+26
+28
+31
+32
+34
+38
+39
+End SubModelPartNodes Begin SubModelPartElements
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+End SubModelPartElements End SubModelPart
+Begin SubModelPart Parts_Parts_Auto3 Begin SubModelPartNodes
+1
+2
+3
+6
+7
+8
+9
+11
+12
+16
+17
+18
+20
+22
+23
+24
+25
+26
+27
+29
+32
+36
+37
+38
+End SubModelPartNodes Begin SubModelPartElements
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+End SubModelPartElements End SubModelPart
+Begin SubModelPart Thermal_Parts_Auto1 Begin SubModelPartNodes
+4
+5
+10
+13
+14
+15
+19
+21
+28
+30
+31
+33
+34
+35
+39
+40
+End SubModelPartNodes Begin SubModelPartElements
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+End SubModelPartElements End SubModelPart
+Begin SubModelPart Thermal_Parts_Auto2 Begin SubModelPartNodes
+3
+4
+8
+10
+12
+14
+18
+19
+25
+26
+28
+31
+32
+34
+38
+39
+End SubModelPartNodes Begin SubModelPartElements
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+End SubModelPartElements End SubModelPart
+Begin SubModelPart Thermal_Parts_Auto3 Begin SubModelPartNodes
+1
+2
+3
+6
+7
+8
+9
+11
+12
+16
+17
+18
+20
+22
+23
+24
+25
+26
+27
+29
+32
+36
+37
+38
+End SubModelPartNodes Begin SubModelPartElements
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+End SubModelPartElements End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 Begin SubModelPartNodes
+5
+13
+15
+21
+30
+33
+35
+40
+End SubModelPartNodes End SubModelPart
+Begin SubModelPart INITIALTEMPERATURE_Temperature_Auto1 Begin SubModelPartNodes
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+End SubModelPartNodes End SubModelPart
+Begin SubModelPart CONSTANTRESERVOIRTEMPERATURE_Reservoir_temperature:_Constant_Parts_Auto1 Begin SubModelPartTables
+3
+1
+End SubModelPartTables Begin SubModelPartNodes
+1
+2
+3
+4
+5
+6
+7
+8
+10
+13
+23
+24
+25
+28
+30
+End SubModelPartNodes End SubModelPart
+Begin SubModelPart HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto1 Begin SubModelPartTables
+1
+End SubModelPartTables Begin SubModelPartNodes
+4
+5
+10
+13
+28
+30
+End SubModelPartNodes Begin SubModelPartConditions
+1
+2
+3
+4
+End SubModelPartConditions End SubModelPart
+Begin SubModelPart HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto2 Begin SubModelPartTables
+1
+End SubModelPartTables Begin SubModelPartNodes
+3
+4
+8
+10
+25
+28
+End SubModelPartNodes Begin SubModelPartConditions
+5
+6
+7
+8
+End SubModelPartConditions End SubModelPart
+Begin SubModelPart HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto3 Begin SubModelPartTables
+1
+End SubModelPartTables Begin SubModelPartNodes
+1
+2
+3
+6
+7
+8
+23
+24
+25
+End SubModelPartNodes Begin SubModelPartConditions
+9
+10
+11
+12
+13
+14
+15
+16
+End SubModelPartConditions End SubModelPart
+Begin SubModelPart ThermalParameters3D_Thermal_Parameters_Parts_Auto1 Begin SubModelPartNodes
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+End SubModelPartNodes End SubModelPart
+Begin SubModelPart TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto1 Begin SubModelPartTables
+2
+End SubModelPartTables Begin SubModelPartNodes
+4
+5
+10
+13
+28
+30
+31
+33
+34
+35
+39
+40
+End SubModelPartNodes Begin SubModelPartConditions
+17
+18
+19
+20
+21
+22
+23
+24
+End SubModelPartConditions End SubModelPart
+Begin SubModelPart TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto2 Begin SubModelPartTables
+2
+End SubModelPartTables Begin SubModelPartNodes
+3
+4
+8
+10
+25
+26
+28
+31
+32
+34
+38
+39
+End SubModelPartNodes Begin SubModelPartConditions
+25
+26
+27
+28
+29
+30
+31
+32
+End SubModelPartConditions End SubModelPart
+Begin SubModelPart TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto3 Begin SubModelPartTables
+2
+End SubModelPartTables Begin SubModelPartNodes
+1
+2
+3
+6
+7
+8
+20
+22
+23
+24
+25
+26
+27
+29
+32
+36
+37
+38
+End SubModelPartNodes Begin SubModelPartConditions
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+End SubModelPartConditions End SubModelPart
+Begin SubModelPart Results Begin SubModelPartNodes
+1
+2
+3
+6
+7
+8
+9
+11
+12
+16
+17
+18
+20
+22
+23
+24
+25
+26
+27
+29
+32
+36
+37
+38
+End SubModelPartNodes End SubModelPart

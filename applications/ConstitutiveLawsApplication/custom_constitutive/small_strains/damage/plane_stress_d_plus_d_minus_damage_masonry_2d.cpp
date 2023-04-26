@@ -1024,7 +1024,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateTangentTensor(
 	Vector StrainVector,
 	Vector PredictiveStressVector,
 	CalculationData& data,
-	Properties props)
+	const Properties& props)
 {
 	// prepare constitutive matrix
 	Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();

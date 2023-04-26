@@ -106,7 +106,7 @@ class KRATOS_API(KRATOS_CORE) CadJsonOutput
 
     /// Returns the paramaters/json of a specific brep_surface
     static void GetBrepSurfaceParameters(
-        const typename ModelPart::GeometryIterator rGeometryIterator, Parameters& rBrepsParameters, IndexType EchoLevel);
+        const typename ModelPart::GeometryIterator& rGeometryIterator, Parameters& rBrepsParameters, IndexType EchoLevel);
 
     /// Returns the paramaters/json of a loop - typically from a brep_surface
     static void GetBoundaryLoopParameters(

@@ -122,7 +122,7 @@ public:
                               const Variable<double>& rVariable,
                               const double double_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
@@ -146,7 +146,7 @@ public:
                               const Variable< int >& rVariable,
                               const int int_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(int_value), mbool_value(false),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
@@ -174,7 +174,7 @@ public:
                               const Variable< bool >& rVariable,
                               const bool bool_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(0), mbool_value(bool_value),mmesh_id(mesh_id)
     {
         KRATOS_TRY;

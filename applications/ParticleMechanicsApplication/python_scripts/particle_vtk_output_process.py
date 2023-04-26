@@ -2,13 +2,13 @@ import os
 from pyevtk import hl
 from pyevtk import vtk
 import numpy as np
-import shutil
 import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.kratos_utilities as kratos_utils
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 # Import time library
 from time import time
-
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -21,7 +21,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
     defaults = KratosMultiphysics.Parameters("""{
         "model_part_name"                    : "MPM_Material",
         "output_control_type"                : "step",
-        "output_frequency"                   : 1,
+        "output_interval"                    : 1,
         "file_format"                        : "ascii",
         "output_precision"                   : 7,
         "folder_name"                        : "vtk_output",
@@ -36,14 +36,13 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
         if param is None:
             param = self.defaults
         else:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param
         self.model_part = model_part
         self.problem_name = param["model_part_name"].GetString()
 
-        self.step_count = 0
-        self.printed_step_count = 0
         self.next_output = 0.0
 
         self.coords_X = np.empty(0)
@@ -54,8 +53,19 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
         self.result_dict = {}
 
         self.vtk_post_path_directory = os.path.join(param["folder_name"].GetString())
-        shutil.rmtree(self.vtk_post_path_directory, ignore_errors=True)
-        os.makedirs(str(self.vtk_post_path_directory))
+        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            kratos_utils.DeleteDirectoryIfExisting(self.vtk_post_path_directory)
+            os.makedirs(str(self.vtk_post_path_directory))
+
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
+
+        if DeprecationManager.HasDeprecatedVariable(context_string,settings,old_name,new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings,old_name,new_name)
 
 
         # Public Functions
@@ -70,7 +80,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_control_type,"file_label")
             raise Exception(msg)
 
-        self.output_frequency = self.param["output_frequency"].GetDouble()
+        self.output_frequency = self.param["output_interval"].GetDouble()
 
         # Set Variable list to print
         self.variable_name_list = self.param["gauss_point_results"]
@@ -82,8 +92,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
 
     def ExecuteBeforeSolutionLoop(self): pass
 
-    def ExecuteInitializeSolutionStep(self):
-        self.step_count += 1
+    def ExecuteInitializeSolutionStep(self): pass
 
     def ExecuteFinalizeSolutionStep(self): pass
 
@@ -91,7 +100,6 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
 
     def PrintOutput(self):
         # Print the output
-        self.printed_step_count += 1
         self._get_mp_coords()
         self._get_mp_results()
         self._write_vtk()
@@ -103,7 +111,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
                 while self._get_pretty_time(self.next_output) <= time:
                     self.next_output += self.output_frequency
             else:
-                while self.next_output <= self.step_count:
+                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.STEP]:
                     self.next_output += self.output_frequency
 
     def IsOutputStep(self):
@@ -111,7 +119,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
             time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
             return (time >= self._get_pretty_time(self.next_output))
         else:
-            return ( self.step_count >= self.next_output )
+            return ( self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output )
 
     # Private Functions
     def _get_pretty_time(self,time):
@@ -221,7 +229,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
         return np.asarray(self.temp_results[:,index], order = 'C')
 
     def _write_vtk(self):
-        particles_filename = self.problem_name + str(self.printed_step_count)
+        particles_filename = self.problem_name + str(self.model_part.ProcessInfo[KratosMultiphysics.STEP])
         path = os.path.join(self.vtk_post_path_directory, particles_filename)
         hl.pointsToVTK(path, self.coords_X, self.coords_Y, self.coords_Z, self.result_dict)
 

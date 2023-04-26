@@ -27,7 +27,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # SIMULATION FLAGS
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option) #TODO: check that this is finding the function in base classes

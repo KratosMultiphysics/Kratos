@@ -48,6 +48,8 @@ ModelPart& RansIncompressiblePotentialFlowVelocity2D3NSetUp(
     // set nodal historical variables
     RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 

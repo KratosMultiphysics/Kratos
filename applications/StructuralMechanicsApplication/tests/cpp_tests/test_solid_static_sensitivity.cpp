@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
@@ -19,7 +19,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/shared_pointers.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"

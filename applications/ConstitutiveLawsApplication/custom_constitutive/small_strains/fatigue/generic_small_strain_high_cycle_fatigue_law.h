@@ -12,8 +12,8 @@
 //  Collaborator:
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_HIGH_CYCLE_FATIGUE_LAW_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_HIGH_CYCLE_FATIGUE_LAW_H_INCLUDED
+#pragma once
+
 // System includes
 
 // External includes
@@ -408,7 +408,7 @@ private:
     ///@name Access
     ///@{
     Vector GetStressVector() {return mStressVector;}
-    void SetStressVector(const Vector toStressVector) {mStressVector = toStressVector;}
+    void SetStressVector(const Vector& toStressVector) {mStressVector = toStressVector;}
     ///@}
     ///@name Member Variables
     ///@{
@@ -503,4 +503,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

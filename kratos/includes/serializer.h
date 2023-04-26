@@ -4,84 +4,79 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_SERIALIZER_H_INCLUDED )
-#define  KRATOS_SERIALIZER_H_INCLUDED
+#pragma once
 
 // System includes
+#include <map>
+#include <set>
 #include <string>
 #include <cstring>
-#include <iostream>
-#include <map>
-#include <unordered_map>
-#include <set>
-#include <unordered_set>
 #include <sstream>
 #include <fstream>
+#include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "input_output/logger.h"
 #include "containers/flags.h"
-#include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
-#include "input_output/logger.h"
 
-//#include "containers/model.h"
-// #include "containers/variable.h"
-
-#define KRATOS_SERIALIZATION_DIRECT_LOAD(type)                           \
-    void load(std::string const & rTag, type& rValue)                \
-    {                                                                \
-        load_trace_point(rTag);                                      \
-            read(rValue);                                             \
-    }                                \
-    void load(std::string const & rTag, type const& rValue)                \
-    {                                                                \
-        load_trace_point(rTag);                                      \
-            read(const_cast<type&>(rValue));                                             \
-    }                                \
-                                     \
-    void load_base(std::string const & rTag, type& rValue)           \
-    {                                                                \
-          load_trace_point(rTag);                                      \
-      read(rValue);                                             \
+#define KRATOS_SERIALIZATION_DIRECT_LOAD(type)                          \
+    void load(std::string const & rTag, type& rValue)                   \
+    {                                                                   \
+        load_trace_point(rTag);                                         \
+            read(rValue);                                               \
+    }                                                                   \
+    void load(std::string const & rTag, type const& rValue)             \
+    {                                                                   \
+        load_trace_point(rTag);                                         \
+            read(const_cast<type&>(rValue));                            \
+    }                                                                   \
+                                                                        \
+    void load_base(std::string const & rTag, type& rValue)              \
+    {                                                                   \
+          load_trace_point(rTag);                                       \
+      read(rValue);                                                     \
     }
 
-#define KRATOS_SERIALIZATION_DIRECT_SAVE(type)                           \
-    void save(std::string const & rTag, type const & rValue)         \
-    {                                                                \
-      save_trace_point(rTag);                                      \
-      write(rValue);                                             \
-    }                                    \
-                                     \
-    void save_base(std::string const & rTag, type const & rValue)    \
-    {                                                                \
-      save_trace_point(rTag);                                      \
-      write(rValue);                                             \
+#define KRATOS_SERIALIZATION_DIRECT_SAVE(type)                          \
+    void save(std::string const & rTag, type const & rValue)            \
+    {                                                                   \
+      save_trace_point(rTag);                                           \
+      write(rValue);                                                    \
+    }                                                                   \
+                                                                        \
+    void save_base(std::string const & rTag, type const & rValue)       \
+    {                                                                   \
+      save_trace_point(rTag);                                           \
+      write(rValue);                                                    \
     }
 
-#define KRATOS_SERIALIZATION_DIRECT_CREATE(type)                         \
-    void* create(std::string const & rTag, type* prototype)          \
-    {                                                                \
-      type* p_new = new type;                                        \
-      load(rTag, *p_new);                                            \
-      return p_new;                                                  \
+#define KRATOS_SERIALIZATION_DIRECT_CREATE(type)                        \
+    void* create(std::string const & rTag, type* prototype)             \
+    {                                                                   \
+      type* p_new = new type;                                           \
+      load(rTag, *p_new);                                               \
+      return p_new;                                                     \
     }
 
-#define KRATOS_SERIALIZER_MODE_BINARY \
+#define KRATOS_SERIALIZER_MODE_BINARY                                   \
     if(!mTrace) {
-#define KRATOS_SERIALIZER_MODE_ASCII \
+#define KRATOS_SERIALIZER_MODE_ASCII                                    \
     } else {
-#define KRATOS_SERIALIZER_MODE_END \
+#define KRATOS_SERIALIZER_MODE_END                                      \
     }
 namespace Kratos
 {
@@ -565,8 +560,18 @@ public:
 
         save("size", size);
 
+        // Workaround for the special case of std::vector<bool>.
+        // Long story short, the return type of std::vector<bool>::operator[]
+        // is not necessarily bool&, but up to the STL vendor's decision.
+        // Detailed explanation: https://github.com/KratosMultiphysics/Kratos/issues/10357#issuecomment-1274725614.
+        using SaveType = std::conditional_t<
+            std::is_same_v<typename std::decay<TDataType>::type, bool>,
+            bool,
+            const TDataType&
+        >;
+
         for(SizeType i = 0 ; i < size ; i++)
-            save("E", rObject[i]);
+            save("E", SaveType(rObject[i]));
 //    write(rObject);
     }
 
@@ -936,7 +941,7 @@ public:
         return msRegisteredObjectsName;
     }
 
-    void Set(Flags ThisFlag)
+    void Set(const Flags ThisFlag)
     {
         mFlags.Set(ThisFlag);
     }
@@ -1424,7 +1429,7 @@ private:
     /// Sets the pointer of the stream buffer at the begnining
     void SeekBegin();
 
-    /// Sets the pointer of the stream buffer at tht end
+    /// Sets the pointer of the stream buffer at the end
     void SeekEnd();
 
     ///@}
@@ -1502,5 +1507,3 @@ private:
 
 #undef KRATOS_SERIALIZATION_DIRECT_LOAD
 #undef KRATOS_SERIALIZATION_DIRECT_SAVE
-
-#endif // KRATOS_SERIALIZER_H_INCLUDED  defined

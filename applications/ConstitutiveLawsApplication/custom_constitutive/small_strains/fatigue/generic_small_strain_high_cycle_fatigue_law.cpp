@@ -21,26 +21,26 @@
 #include "constitutive_laws_application_variables.h"
 #include "constitutive_laws_application_variables.h"
 #include "generic_small_strain_high_cycle_fatigue_law.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/high_cycle_fatigue_law_integrator.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/high_cycle_fatigue_law_integrator.h"
 
 // Yield surfaces
-#include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/tresca_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/auxiliar_files/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/drucker_prager_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
 
 namespace Kratos
 {
@@ -258,7 +258,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                 rValues.SetStressVector(r_integrated_stress_vector);
             }
         } else { // Damage case
-            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector,
@@ -349,7 +349,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         // Initialize Plastic Parameters
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-        this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);
         uniaxial_stress *= sign_factor;
@@ -377,7 +376,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         const double F = uniaxial_stress - threshold;
 
         if (F > threshold_tolerance) {
-                const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+                const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
                 // This routine updates the PredictiveStress to verify the yield surface
                 TConstLawIntegratorType::IntegrateStressVector(
                     predictive_stress_vector,
@@ -388,8 +387,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
                     characteristic_length);
                 this->SetDamage(damage);
                 this->SetThreshold(uniaxial_stress);
-
-                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
         } else {
             predictive_stress_vector *= (1.0 - this->GetDamage());
             TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
@@ -397,10 +394,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         Vector previous_stresses = ZeroVector(2);
         const Vector& r_aux_stresses = mPreviousStresses;
-        previous_stresses[1] = this->GetValue(UNIAXIAL_STRESS, previous_stresses[1])*sign_factor;
+        previous_stresses[1] = this->CalculateValue(rValues, UNIAXIAL_STRESS, previous_stresses[1]) * sign_factor / (1.0 - this->GetDamage());
         previous_stresses[0] = r_aux_stresses[1];
         mPreviousStresses = previous_stresses;
-        this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
     }
 }
 /***********************************************************************************/
@@ -601,11 +597,10 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     double& rValue
     )
 {
-    if (rThisVariable == DAMAGE || rThisVariable == UNIAXIAL_STRESS || rThisVariable == THRESHOLD) {
-        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    } else {
+    if (this->Has(rThisVariable))
         return this->GetValue(rThisVariable, rValue);
-    }
+    else
+        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/

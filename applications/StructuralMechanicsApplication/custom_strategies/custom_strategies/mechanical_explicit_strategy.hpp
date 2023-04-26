@@ -1,25 +1,22 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license:
-//kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter (based on the work of JMCarbonel)
 //
 //
 
-#if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
-#define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
@@ -508,7 +505,7 @@ private:
             // If we consider rotation dofs
             const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
 
-            // Auxiliar values
+            // Auxiliary values
             const array_1d<double,3> zero_array = ZeroVector(3);
 
             // Getting
@@ -641,5 +638,3 @@ protected:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_STRATEGY  defined */

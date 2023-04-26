@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED )
-#define  KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 
@@ -126,6 +125,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The definition of the node
+    typedef Node<3> NodeType;
+
     /// Pointer definition of ComputeNodalGradientProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNodalGradientProcess);
 
@@ -153,7 +155,6 @@ public:
     {
     }
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -163,7 +164,6 @@ public:
     {
         Execute();
     }
-
 
     ///@}
     ///@name Operations
@@ -184,11 +184,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -211,55 +209,43 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -323,11 +309,9 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -339,9 +323,7 @@ private:
     /// Copy constructor.
     //ComputeNodalGradientProcess(ComputeNodalGradientProcess const& rOther);
 
-
     ///@}
-
 }; // Class ComputeNodalGradientProcess
 
 ///@}
@@ -371,7 +353,5 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined
 
 

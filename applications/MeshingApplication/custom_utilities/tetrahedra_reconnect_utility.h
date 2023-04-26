@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 
 #include "utilities/binbased_fast_point_locator.h"
 
@@ -266,7 +266,7 @@ public:
         if (removeFreeVertexes )
         {
             std::cout << "Removing free vertexes " << "\n";
-            (NodeEraseProcess(mrModelPart)).Execute();
+            (EntitiesEraseProcess<Node<3>>(mrModelPart)).Execute();
         }
         if (debugMode) std::cout << "-----------------Generation Finished OK-------------------" << "\n";
 

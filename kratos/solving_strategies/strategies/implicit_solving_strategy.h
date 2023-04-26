@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_IMPLICIt_SOLVING_STRATEGY)
-#define KRATOS_IMPLICIt_SOLVING_STRATEGY
+#pragma once
 
 /* System includes */
 
@@ -159,36 +158,9 @@ public:
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
-    /**
-     * This sets the build level
-     * @param Level The build level
-     * @details
-     * {
-     * 0 -> Build StiffnessMatrix just once
-     * 1 -> Build StiffnessMatrix at the beginning of each solution step
-     * 2 -> build StiffnessMatrix at each iteration
-     * }
-     */
-    void SetRebuildLevel(int Level) override
-    {
-        mRebuildLevel = Level;
-        mStiffnessMatrixIsBuilt = false;
-    }
-
-    /**
-     * @brief This returns the build level
-     * @details
-     * {
-     * 0 -> Build StiffnessMatrix just once
-     * 1 -> Build StiffnessMatrix at the beginning of each solution step
-     * 2 -> build StiffnessMatrix at each iteration
-     * }
-     * @return The build level
-     */
-    int GetRebuildLevel() const override
-    {
-        return mRebuildLevel;
-    }
+    ///@}
+    ///@name Inquiry
+    ///@{
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -219,6 +191,59 @@ public:
     }
 
     ///@}
+    ///@name Access
+    ///@{
+
+    /**
+     * @brief This sets the build level
+     * @param Level The build level
+     * @details
+     * {
+     * 0 -> Build StiffnessMatrix just once
+     * 1 -> Build StiffnessMatrix at the beginning of each solution step
+     * 2 -> build StiffnessMatrix at each iteration
+     * }
+     */
+    void SetRebuildLevel(int Level) override
+    {
+        mRebuildLevel = Level;
+        mStiffnessMatrixIsBuilt = false;
+    }
+
+    /**
+     * @brief This returns the build level
+     * @details
+     * {
+     * 0 -> Build StiffnessMatrix just once
+     * 1 -> Build StiffnessMatrix at the beginning of each solution step
+     * 2 -> build StiffnessMatrix at each iteration
+     * }
+     * @return The build level
+     */
+    int GetRebuildLevel() const override
+    {
+        return mRebuildLevel;
+    }
+
+    /**
+     * @brief This method sets the flag mStiffnessMatrixIsBuilt
+     * @param StiffnessMatrixIsBuilt The flag that tells if the stiffness matrix is built
+     */
+    void SetStiffnessMatrixIsBuilt(const bool StiffnessMatrixIsBuilt)
+    {
+        mStiffnessMatrixIsBuilt = StiffnessMatrixIsBuilt;
+    }
+
+    /**
+     * @brief This method gets the flag mStiffnessMatrixIsBuilt
+     * @return mStiffnessMatrixIsBuilt: The flag that tells if the stiffness matrix is built
+     */
+    bool GetStiffnessMatrixIsBuilt() const
+    {
+        return mStiffnessMatrixIsBuilt;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -235,8 +260,8 @@ protected:
     ///@{
 
     // Settings for the rebuilding of the stiffness matrix
-    int mRebuildLevel;
-    bool mStiffnessMatrixIsBuilt;
+    int mRebuildLevel;            /// The current rebuild level
+    bool mStiffnessMatrixIsBuilt; /// A flag indicating if the stiffness matrix has been built
 
     ///@}
     ///@name Protected member Variables
@@ -331,5 +356,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_IMPLICIt_SOLVING_STRATEGY  defined */

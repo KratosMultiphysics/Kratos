@@ -3,7 +3,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // Project includes
 #include "cluster3D.h"
@@ -271,6 +271,19 @@ namespace Kratos {
             Output = particle_viscodamping_energy;
 
             return;
+        }
+
+        if (rVariable == PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY) {
+
+          double particle_rollingresistance_energy = 0.0;
+
+          for (unsigned int i = 0; i < mListOfSphericParticles.size(); i++) {
+            particle_rollingresistance_energy += mListOfSphericParticles[i]->GetInelasticRollingResistanceEnergy();
+          }
+
+          Output = particle_rollingresistance_energy;
+
+          return;
         }
 
         KRATOS_CATCH("")

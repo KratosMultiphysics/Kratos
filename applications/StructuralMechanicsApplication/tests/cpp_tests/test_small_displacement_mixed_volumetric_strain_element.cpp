@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -32,6 +32,30 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 namespace Testing
 {
+
+namespace
+{
+    void LinearPerturbationField(
+        ModelPart &rModelPart,
+        const double c_1,
+        const double c_2,
+        const double c_3 = 0.0)
+    {
+        array_1d<double, 3> aux_disp;
+        for (auto &r_node : rModelPart.Nodes()) {
+            aux_disp[0] = c_1 * r_node.X0();
+            aux_disp[1] = c_2 * r_node.Y0();
+            aux_disp[2] = c_3 * r_node.Z0();
+            r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+            r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = c_1 + c_2 + c_3;
+
+            r_node.X() = (1 + c_1) * r_node.X0();
+            r_node.Y() = (1 + c_2) * r_node.Y0();
+            r_node.Z() = (1 + c_3) * r_node.Z0();
+        }
+    }
+}
+
     /**
     * Checks the Small Displacement Mixed Strain Element
     * Simple test
@@ -199,26 +223,6 @@ namespace Testing
         const std::vector<double> expected_LHS_row_0({286752,22756.4,22756.4,-91666.7,-30341.9,-105449,-105449,-91666.7,-79273.5,-22756.4,-52724.4,-45833.3,15170.9,105449,11378.2,-45833.3,15170.9,11378.2,105449,-45833.3,-79273.5,-52724.4,-22756.4,-45833.3,-71688,-11378.2,-11378.2,-22916.7,-56517.1,52724.4,52724.4,-22916.7});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
-    }
-
-    void LinearPerturbationField(
-        ModelPart &rModelPart,
-        const double c_1,
-        const double c_2,
-        const double c_3 = 0.0)
-    {
-        array_1d<double, 3> aux_disp;
-        for (auto &r_node : rModelPart.Nodes()) {
-            aux_disp[0] = c_1 * r_node.X0();
-            aux_disp[1] = c_2 * r_node.Y0();
-            aux_disp[2] = c_3 * r_node.Z0();
-            r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-            r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = c_1 + c_2 + c_3;
-
-            r_node.X() = (1 + c_1) * r_node.X0();
-            r_node.Y() = (1 + c_2) * r_node.Y0();
-            r_node.Z() = (1 + c_3) * r_node.Z0();
-        }
     }
 
     /**

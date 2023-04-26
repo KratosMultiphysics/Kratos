@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <filesystem>
 #include <unordered_set>
 
 // External includes
@@ -19,7 +20,6 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_filesystem.h"
 #include "utilities/cpp_tests_utilities.h"
 #include "mpi/includes/mpi_communicator.h"
 
@@ -63,7 +63,7 @@ namespace Kratos
             r_sub_modelpart_4.AddNode(r_model_part.pGetNode(6));
 
             // Adding nodes to random submodelparts
-            if (r_data_communicator.IsDistributed()) {
+            if (r_data_communicator.IsDistributed() && size > 1) {
                 if (rank == 0) {
                     r_sub_modelpart_3.AddNode(r_model_part.pGetNode(4));
                 }
@@ -110,8 +110,8 @@ namespace Kratos
                 }
             }
             r_data_communicator.Barrier();
-            Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), filename + std::to_string(rank) + ".json"}));
 
+            std::filesystem::remove(std::filesystem::current_path() / (filename + std::to_string(rank) + ".json"));
         }
     } // namespace Testing
 }  // namespace Kratos.

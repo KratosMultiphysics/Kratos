@@ -10,9 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED )
-#define  KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -89,7 +87,7 @@ public:
     {
         mpComm = &ParallelEnvironment::GetDataCommunicator("Serial");
         mGraph.resize(GraphSize,false);
-        mLocks.resize(GraphSize);
+        mLocks = decltype(mLocks)(GraphSize);
 
         // @RiccardoRossi why is this needed? isn't this done with resizing?
         //doing first touching
@@ -113,6 +111,11 @@ public:
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
         mpComm = rOther.mpComm;
+        mGraph.resize(rOther.mGraph.size());
+        IndexPartition<IndexType>(rOther.mGraph.size()).for_each([&](IndexType i) {
+            mGraph[i] = std::unordered_set<IndexType>();
+        });
+        mLocks = decltype(mLocks)(rOther.mLocks.size());
         this->AddEntries(rOther);
     }
 
@@ -237,14 +240,14 @@ public:
         ExportCSRArrays(pRowIndicesData,RowIndicesDataSize,pColIndicesData,ColIndicesDataSize);
         if(rRowIndices.size() != RowIndicesDataSize)
             rRowIndices.resize(RowIndicesDataSize);
-        IndexPartition<IndexType>(RowIndicesDataSize).for_each( 
+        IndexPartition<IndexType>(RowIndicesDataSize).for_each(
             [&](IndexType i){rRowIndices[i] = pRowIndicesData[i];}
         );
-        
+
         delete [] pRowIndicesData;
         if(rColIndices.size() != ColIndicesDataSize)
             rColIndices.resize(ColIndicesDataSize);
-        IndexPartition<IndexType>(ColIndicesDataSize).for_each( 
+        IndexPartition<IndexType>(ColIndicesDataSize).for_each(
             [&](IndexType i){rColIndices[i] = pColIndicesData[i];}
         );
         delete [] pColIndicesData;
@@ -284,11 +287,11 @@ public:
                 row_indices[i] = 0;
             });
 
-            //count the entries 
+            //count the entries
             IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
                 row_indices[i+1] = mGraph[i].size();
             });
-            
+
             //sum entries
             for(IndexType i = 1; i<static_cast<IndexType>(row_indices.size()); ++i){
                 row_indices[i] += row_indices[i-1];
@@ -509,7 +512,7 @@ private:
         IndexType size;
         rSerializer.load("GraphSize",size);
 
-        mLocks.resize(size);
+        mLocks = decltype(mLocks)(size);
         mGraph.resize(size);
 
         for(IndexType I=0; I<size; ++I)
@@ -585,7 +588,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED  defined
-
-

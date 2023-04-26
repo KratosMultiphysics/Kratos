@@ -13,8 +13,7 @@
 //                   Alejandro Cornejo
 //
 //
-#if !defined(KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED )
-#define  KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -663,7 +662,7 @@ protected:
 		Vector strain_vector,
 		Vector stress_vector,
 		CalculationData& data,
-		const Properties props);
+		const Properties& props);
 
 	/**
      * @brief This method computes the secant tensor
@@ -724,4 +723,3 @@ private:
 }; // Class DamageDPlusDMinusMasonry2DLaw
 
 } // namespace Kratos
-#endif // KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED  defined

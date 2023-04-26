@@ -1,4 +1,5 @@
 import os
+import json
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
@@ -41,51 +42,30 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
 
-    def test_absorbing_boundary_on_1d_column_tetra(self):
+    def test_stiff_absorbing_boundary_on_1d_column_quad(self):
         """
-        Tests the lysmer absorbing boundary condition on a column made of tetrahedrals. The boundary is a 3d3n triangle.
+        Tests a very stiff Lysmer absorbing boundary condition on a column made of rectangulars. The boundary is a 2d2n
+        line. Since the boundary is very stiff, the wave is completely reflected
 
-        :return:
         """
-        test_name = 'test_lysmer_boundary_column3d_tetra.gid'
+
+        test_name = 'test_lysmer_boundary_stiff_column2d_quad'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
-        # quarter node, middle node, three quarter node
-        node_nbrs_to_assert = [33,54,81]
-        direction = 2
+        test_helper.run_kratos(file_path)
 
-        self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
+        # retrieve results from calculation
+        with open(os.path.join(file_path, "calculated_result.json")) as fp:
+            calculated_result = json.load(fp)
 
-    def test_absorbing_boundary_on_1d_column_tetra_horizontal(self):
-        """
-        Tests the lysmer absorbing boundary condition on a column made of tetrahedrals. In this case the wave columns
-        moves in a positive y-direction. The boundary is a 3d3n triangle.
-        :return:
-        """
+        output_indices = [0, 8, 16, 24, 32]
+        calculated_velocity = [calculated_result["NODE_51"]["VELOCITY_Y"][idx] for idx in output_indices]
 
-        test_name = 'test_lysmer_boundary_column3d_tetra_hor.gid'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        # set expected results
+        expected_results = [0, self.expected_velocity, 0, -self.expected_velocity, 0]
 
-        # quarter node, middle node, three quarter node
-        node_nbrs_to_assert = [33,54,81]
-        direction = 1
-
-        self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
-
-    def test_absorbing_boundary_on_1d_column_hexa(self):
-        """
-        Tests the lysmer absorbing boundary condition on a column made of hexahedrals. The boundary is a 3d4n rectangle.
-
-        :return:
-        """
-        test_name = 'test_lysmer_column3d_hexa.gid'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
-
-        # quarter node, middle node, three quarter node
-        node_nbrs_to_assert = [31, 54, 81]
-        direction = 2
-
-        self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
+        # assert
+        self.assertVectorAlmostEqual(calculated_velocity, expected_results, 2)
 
     def run_and_assert_1d_column(self, file_path, node_nbrs, direction):
         """
@@ -101,7 +81,7 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         # get name of output file
         _, output_file_name = os.path.split(file_path)
-        output_file_name = os.path.splitext(output_file_name)[0] + "_0.post.res"
+        output_file_name = os.path.splitext(output_file_name)[0] + ".post.res"
         output_file_path = os.path.join(file_path,output_file_name)
 
         # clear old results

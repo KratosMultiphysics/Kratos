@@ -35,6 +35,8 @@ ModelPart& RansKOmegaKAFC2D3NSetUp(
     auto& r_model_part = KOmegaTestUtilities::RansKOmegaK2D3NSetUp(
         rModel, "RansKOmegaKAFC2D3N");
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 
@@ -43,6 +45,8 @@ ModelPart& RansKOmegaOmegaAFC2D3NSetUp(
 {
     auto& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D3NSetUp(
         rModel, "RansKOmegaOmegaAFC2D3N");
+
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
     return r_model_part;
 }

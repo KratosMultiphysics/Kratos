@@ -12,8 +12,7 @@
 //       Contact:    A.Winterstein [at] tum.de
 //
 
-#if !defined (KRATOS_LINEAR_ELASTIC_ORTHOTROPIC_2D_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_ELASTIC_ORTHOTROPIC_2D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -212,4 +211,3 @@ namespace Kratos
 		///@}
 	}; // Class LinearElasticOrthotropic2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_ORTHOTROPIC_2D_LAW_H_INCLUDED  defined

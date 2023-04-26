@@ -259,6 +259,7 @@ public:
     template<class TParticleType>
     void DestroyParticles(ModelPart::MeshType& rMesh, const double current_time);
     void DestroyContactElements(ModelPart& r_model_part);
+    void MarkIsolatedParticlesForErasing(ModelPart& r_model_part);
     void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part);
     void RemoveUnusedNodesOfTheClustersModelPart(ModelPart& r_clusters_modelpart);
 

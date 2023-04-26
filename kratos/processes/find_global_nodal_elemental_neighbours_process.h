@@ -34,7 +34,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(KRATOS_CORE) FindGlobalNodalElementalNeighboursProcess
+class FindGlobalNodalElementalNeighboursProcess
     : public FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>
 {
 public:

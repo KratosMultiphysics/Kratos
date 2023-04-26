@@ -26,107 +26,73 @@ namespace Kratos {
     if (!particle->mNeighborInContact)
       return 0.0;
 
+    // Get contact info with current neighbor
+    typename ThermalSphericParticle::ContactParams contact_params = particle->GetContactParameters();
+
+    // Time passed since last thermal solution
+    double time = particle->mNumStepsEval * r_process_info[DELTA_TIME];
+
     // Conversion and partition coefficients
     const double conversion = r_process_info[HEAT_GENERATION_RATIO];
     const double partition  = ComputePartitionCoeff(particle);
+    const double coeff      = conversion * partition;
 
-    // Add contribution from different sources of energy dissipation
-    double heat_gen_sliding = 0.0;
-    double heat_gen_rolling = 0.0;
-    double heat_gen_damping = 0.0;
+    // Initialize contribution from different sources of heat generation
+    double heat_gen;
+    double heat_gen_damping_pp = 0.0;
+    double heat_gen_damping_pw = 0.0;
+    double heat_gen_sliding_pp = 0.0;
+    double heat_gen_sliding_pw = 0.0;
+    double heat_gen_rolling_pp = 0.0;
+    double heat_gen_rolling_pw = 0.0;
 
-    if (r_process_info[GENERATION_SLIDING_OPTION]) {
-      heat_gen_sliding = partition * conversion * ComputeHeatGenerationSlidingFriction(particle);
-
-      if (particle->mNeighborType & PARTICLE_NEIGHBOR)
-        particle->mGenerationHeatFlux_slid_particle += heat_gen_sliding;
-      else if (particle->mNeighborType & WALL_NEIGHBOR)
-        particle->mGenerationHeatFlux_slid_wall += heat_gen_sliding;
-    }
-    if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-      heat_gen_rolling = partition * conversion * ComputeHeatGenerationRollingFriction(particle);
-
-      if (particle->mNeighborType & PARTICLE_NEIGHBOR)
-        particle->mGenerationHeatFlux_roll_particle += heat_gen_rolling;
-      else if (particle->mNeighborType & WALL_NEIGHBOR)
-        particle->mGenerationHeatFlux_roll_wall += heat_gen_rolling;
-    }
+    // Damping thermal power
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
-      heat_gen_damping = partition * conversion * ComputeHeatGenerationDampingContact(particle);
+      heat_gen = coeff * contact_params.viscodamping_energy / time;
 
-      if (particle->mNeighborType & PARTICLE_NEIGHBOR)
-        particle->mGenerationHeatFlux_damp_particle += heat_gen_damping;
-      else if (particle->mNeighborType & WALL_NEIGHBOR)
-        particle->mGenerationHeatFlux_damp_wall += heat_gen_damping;
+      if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
+        heat_gen_damping_pp = heat_gen;
+        particle->mGenerationHeatFlux_damp_particle += heat_gen;
+      }
+      else if (particle->mNeighborType & WALL_NEIGHBOR) {
+        heat_gen_damping_pw = heat_gen;
+        particle->mGenerationHeatFlux_damp_wall += heat_gen;
+      }  
     }
 
-    return heat_gen_sliding + heat_gen_rolling + heat_gen_damping;
+    // Sliding friction thermal power
+    if (r_process_info[GENERATION_SLIDING_OPTION]) {
+      heat_gen = coeff * contact_params.frictional_energy / time;
 
-    KRATOS_CATCH("")
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  double GenerationDissipation::ComputeHeatGenerationSlidingFriction(ThermalSphericParticle* particle) {
-    KRATOS_TRY
-
-    typename ThermalSphericParticle:: ContactParams contact_params = particle->GetContactParameters();
-    const double force_normal     = contact_params.local_force_total[0];
-    const double velocity_tangent = contact_params.local_velocity[1];
-
-    if (fabs(force_normal)     < std::numeric_limits<double>::epsilon() ||
-        fabs(velocity_tangent) < std::numeric_limits<double>::epsilon())
-      return 0.0;
-
-    const double friction_coeff = particle->GetContactDynamicFrictionCoefficient();
-    return friction_coeff * fabs(force_normal * velocity_tangent);
-
-    KRATOS_CATCH("")
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  double GenerationDissipation::ComputeHeatGenerationRollingFriction(ThermalSphericParticle* particle) {
-    KRATOS_TRY
-
-    // Total normal force
-    typename ThermalSphericParticle:: ContactParams contact_params = particle->GetContactParameters();
-    const double force_normal = fabs(contact_params.local_force_total[0]);
-
-    // Relative angular velocity
-    // ASSUMPTION: Angular velocity of walls is not considered!
-    double rel_vel;
-
-    if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
-      array_1d<double, 3> rel_angular_velocity;
-      noalias(rel_angular_velocity) = particle->GetParticleAngularVelocity() - particle->mNeighbor_p->GetParticleAngularVelocity();
-      rel_vel = DEM_MODULUS_3(rel_angular_velocity);
-    }
-    else {
-      rel_vel = DEM_MODULUS_3(particle->GetParticleAngularVelocity());
+      if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
+        heat_gen_sliding_pp = heat_gen;
+        particle->mGenerationHeatFlux_slid_particle += heat_gen;
+      }
+      else if (particle->mNeighborType & WALL_NEIGHBOR) {
+        heat_gen_sliding_pw = heat_gen;
+        particle->mGenerationHeatFlux_slid_wall += heat_gen;
+      }
     }
 
-    if (force_normal < std::numeric_limits<double>::epsilon() ||
-        rel_vel      < std::numeric_limits<double>::epsilon())
-      return 0.0;
-    
-    const double eff_radius    = particle->ComputeEffectiveRadius();
-    const double rolling_coeff = particle->GetContactRollingFrictionCoefficient();
+    // Rolling friction thermal power
+    if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+      heat_gen = coeff * contact_params.rollresist_energy / time;
 
-    return rel_vel * rolling_coeff * eff_radius * force_normal;
+      if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
+        heat_gen_rolling_pp = heat_gen;
+        particle->mGenerationHeatFlux_roll_particle += heat_gen;
+      }
+      else if (particle->mNeighborType & WALL_NEIGHBOR) {
+        heat_gen_rolling_pw = heat_gen;
+        particle->mGenerationHeatFlux_roll_wall += heat_gen;
+      }
+    }
 
-    KRATOS_CATCH("")
-  }
+    // Fill heat map
+    if (r_process_info[HEAT_MAP_GENERATION_OPTION])
+      FillDensityMap(r_process_info, particle, time, heat_gen_damping_pp, heat_gen_damping_pw, heat_gen_sliding_pp, heat_gen_sliding_pw, heat_gen_rolling_pp, heat_gen_rolling_pw);
 
-  //------------------------------------------------------------------------------------------------------------
-  double GenerationDissipation::ComputeHeatGenerationDampingContact(ThermalSphericParticle* particle) {
-    KRATOS_TRY
-
-    typename ThermalSphericParticle:: ContactParams contact_params = particle->GetContactParameters();
-    const double force_damp_normal  = fabs(contact_params.local_force_damping[0]);
-    const double force_damp_tangent = fabs(contact_params.local_force_damping[1]);
-    const double velocity_normal    = fabs(contact_params.local_velocity[0]);
-    const double velocity_tangent   = fabs(contact_params.local_velocity[1]);
-
-    return force_damp_normal * velocity_normal + force_damp_tangent * velocity_tangent;
+    return heat_gen_damping_pp + heat_gen_damping_pw + heat_gen_sliding_pp + heat_gen_sliding_pw + heat_gen_rolling_pp + heat_gen_rolling_pw;
 
     KRATOS_CATCH("")
   }
@@ -138,6 +104,65 @@ namespace Kratos {
     const double k1 = particle->GetParticleConductivity();
     const double k2 = particle->GetNeighborConductivity();
     return k1 / (k1 + k2);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void GenerationDissipation::FillDensityMap(const ProcessInfo& r_process_info,
+                                             ThermalSphericParticle* particle,
+                                             const double time,
+                                             const double heat_gen_damping_pp,
+                                             const double heat_gen_damping_pw,
+                                             const double heat_gen_sliding_pp,
+                                             const double heat_gen_sliding_pw,
+                                             const double heat_gen_rolling_pp,
+                                             const double heat_gen_rolling_pw) {
+    KRATOS_TRY
+
+    // Get heat generation coordinates (contact point)
+    const array_1d<double, 3> coord = particle->GetParticleCoordinates();
+    array_1d<double, 3> dir;
+    noalias(dir) = particle->GetNeighborCoordinates() - coord;
+
+    const double dist        = DEM_MODULUS_3(dir);
+    const double r1          = particle->GetRadius();
+    const double r2          = particle->GetRadius();
+    const double indentation = r1 + r2 - dist;
+    const double length      = r1 - indentation / 2.0;
+    const double ratio       = length / dist;
+
+    const double x = coord[0] + dir[0] * ratio;
+    const double y = coord[1] + dir[1] * ratio;
+    const double z = coord[2] + dir[2] * ratio;
+
+    // Get map geometry (corner points must have already been adjusted so that all coords_1 < coords_2)
+    const array_1d<double, 3> coords_1     = r_process_info[HEAT_MAP_COORDINATES_1];
+    const array_1d<double, 3> coords_2     = r_process_info[HEAT_MAP_COORDINATES_2];
+    const array_1d<int, 3>    subdivisions = r_process_info[HEAT_MAP_SUBDIVISIONS];
+
+    const double dx = (coords_2[0] - coords_1[0]) / subdivisions[0];
+    const double dy = (coords_2[1] - coords_1[1]) / subdivisions[1];
+    const double dz = (coords_2[2] - coords_1[2]) / subdivisions[2];
+
+    // Check if generation point is inside map boundary
+    if ((x < coords_1[0]) || (x > coords_2[0]) ||
+        (y < coords_1[1]) || (y > coords_2[1]) ||
+        (z < coords_1[2]) || (z > coords_2[2]))
+      return;
+
+    // Determine indexes
+    const int i_x = (x - coords_1[0]) / dx;
+    const int i_y = (y - coords_1[1]) / dy;
+    const int i_z = (z - coords_1[2]) / dz;
+    
+    // Fill maps with energy (heat power * time)
+    particle->mHeatMapGenerationDampingPP[i_x][i_y][i_z] += heat_gen_damping_pp * time;
+    particle->mHeatMapGenerationDampingPW[i_x][i_y][i_z] += heat_gen_damping_pw * time;
+    particle->mHeatMapGenerationSlidingPP[i_x][i_y][i_z] += heat_gen_sliding_pp * time;
+    particle->mHeatMapGenerationSlidingPW[i_x][i_y][i_z] += heat_gen_sliding_pw * time;
+    particle->mHeatMapGenerationRollingPP[i_x][i_y][i_z] += heat_gen_rolling_pp * time;
+    particle->mHeatMapGenerationRollingPW[i_x][i_y][i_z] += heat_gen_rolling_pw * time;
 
     KRATOS_CATCH("")
   }

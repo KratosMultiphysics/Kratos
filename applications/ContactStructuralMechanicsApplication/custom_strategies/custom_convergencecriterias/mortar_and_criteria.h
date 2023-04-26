@@ -4,20 +4,19 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_AND_CRITERIA_H)
-#define  KRATOS_MORTAR_AND_CRITERIA_H
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "utilities/color_utilities.h"
@@ -463,5 +462,3 @@ template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::CONDITION_NUMBER_IS_INITIALIZED(Kratos::Flags::Create(2));
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_MORTAR_AND_CRITERIA_H  defined */

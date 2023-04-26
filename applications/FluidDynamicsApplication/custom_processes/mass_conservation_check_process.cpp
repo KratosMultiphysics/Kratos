@@ -35,7 +35,7 @@ MassConservationCheckProcess::MassConservationCheckProcess(
         const bool PerformCorrections,
         const int CorrectionFreq,
         const bool WriteToLogFile,
-        const std::string LogFileName)
+        const std::string& LogFileName)
     : Process(), mrModelPart(rModelPart) {
 
     mCorrectionFreq = CorrectionFreq;

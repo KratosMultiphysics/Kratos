@@ -80,9 +80,9 @@ struct block_matrix_adapter {
         col_type cur_col;
         val_type cur_val;
 
-        row_iterator(const Matrix &A, col_type row)
-            : base(reinterpret_cast<Base*>(buf.data())), done(true)
+        row_iterator(const Matrix &A, col_type row) : done(true)
         {
+            base = reinterpret_cast<Base*>(buf.data());
             for(int i = 0; i < BlockSize; ++i) {
                 new (base + i) Base(backend::row_begin(A, row * BlockSize + i));
 

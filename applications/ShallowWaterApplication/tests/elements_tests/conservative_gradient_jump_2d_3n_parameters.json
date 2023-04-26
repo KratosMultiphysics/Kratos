@@ -40,7 +40,7 @@
             "process_name"         : "GidOutputProcess",
             "Parameters"           : {
                 "model_part_name"        : "main_model_part",
-                "output_name"            : "shallow_water_2d_3n",
+                "output_name"            : "conservative_gradient_jump",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"         : {

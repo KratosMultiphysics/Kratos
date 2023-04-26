@@ -1,14 +1,12 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher
-//
 //
 
 // System includes
@@ -25,8 +23,8 @@ namespace Kratos
 void VtkEigenOutput::PrintEigenOutput(
         const std::string& rLabel,
         const int AnimationStep,
-        const std::vector<Variable<double>>& rRequestedDoubleResults,
-        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults)
+        const std::vector<const Variable<double>*>& rRequestedDoubleResults,
+        const std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults)
 {
     std::ofstream output_file;
     const std::string output_file_name = GetEigenOutputFileName(AnimationStep);
@@ -55,12 +53,12 @@ void VtkEigenOutput::PrintEigenOutput(
         OpenOutputFile(output_file_name, ios_flags, output_file);
     }
 
-    for (const auto& r_variable : rRequestedDoubleResults) {
-        WriteScalarEigenVariable(mrModelPart.Nodes(), r_variable, rLabel, output_file);
+    for (const auto& p_variable : rRequestedDoubleResults) {
+        WriteScalarEigenVariable(mrModelPart.Nodes(), *p_variable, rLabel, output_file);
     }
 
-    for (const auto& r_variable : rRequestedVectorResults) {
-        WriteVectorEigenVariable(mrModelPart.Nodes(), r_variable, rLabel, output_file);
+    for (const auto& p_variable : rRequestedVectorResults) {
+        WriteVectorEigenVariable(mrModelPart.Nodes(), *p_variable, rLabel, output_file);
     }
 
     output_file.close();

@@ -13,7 +13,7 @@
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "includes/cfd_variables.h"
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -32,18 +32,6 @@ namespace Kratos
     NewElement.SetFlags(this->GetFlags());
 
     return Element::Pointer(new TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement(NewElement));
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
-  {
   }
 
   template <unsigned int TDim>

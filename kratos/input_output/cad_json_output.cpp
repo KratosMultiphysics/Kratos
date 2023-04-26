@@ -41,7 +41,7 @@ namespace Kratos
     }
 
     void CadJsonOutput::GetBrepSurfaceParameters(
-        const typename ModelPart::GeometryIterator rGeometryIterator, Parameters& rBrepsParameters, IndexType EchoLevel) {
+        const typename ModelPart::GeometryIterator& rGeometryIterator, Parameters& rBrepsParameters, IndexType EchoLevel) {
         const auto& r_aux_geometry = *rGeometryIterator;
         const BrepSurfaceType r_brep_surface_geom = dynamic_cast<const BrepSurfaceType&>(r_aux_geometry);
         Parameters face_parameters;

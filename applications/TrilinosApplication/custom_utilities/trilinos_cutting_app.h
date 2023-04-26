@@ -142,7 +142,7 @@ public:
 
         if (mMPICommSetup_is_defined==false)
 		{
-            ModelPartCommunicatorUtilities::SetMPICommunicator(new_model_part);
+            ModelPartCommunicatorUtilities::SetMPICommunicator(new_model_part, mr_model_part.GetCommunicator().GetDataCommunicator());
 			mMPICommSetup_is_defined=true;
 		}
 
@@ -396,7 +396,7 @@ public:
 
         Clear();
         //KRATOS_WATCH(new_model_part)
-		ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
+		ParallelFillCommunicator(new_model_part, this_model_part.GetCommunicator().GetDataCommunicator()).Execute(); //changed from PrintDebugInfo to Execute
         //ParallelFillCommunicator(new_model_part).PrintDebugInfo(); //changed from PrintDebugInfo to Execute
 
         if (mrComm.MyPID() == 0) std::cout << "copyng conditions and recalculation plan have been completed" << std::endl;
@@ -439,7 +439,7 @@ public:
 
         if (mMPICommSetup_is_defined==false)
 		{
-            ModelPartCommunicatorUtilities::SetMPICommunicator(mr_new_model_part);
+            ModelPartCommunicatorUtilities::SetMPICommunicator(mr_new_model_part, mr_model_part.GetCommunicator().GetDataCommunicator());
 			mMPICommSetup_is_defined=true;
 		}
 
@@ -498,7 +498,7 @@ public:
 
 
         //fill the communicator
-        ParallelFillCommunicator(mr_new_model_part).Execute();
+        ParallelFillCommunicator(mr_new_model_part, this_model_part.GetCommunicator().GetDataCommunicator()).Execute();
         if (mrComm.MyPID() == 0) std::cout << "recalculation of communication plan completed" << std::endl;
 
         //clean up the data

@@ -87,7 +87,7 @@ public:
 
     typedef Table<double> TableType;
 
-    typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
+    typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implementation and should be changed to hash. Pooyan.
 
     /// Properties container. A vector set of properties with their Id's as key.
     typedef PointerVectorSet<Properties, IndexedObject> SubPropertiesContainerType;
@@ -112,7 +112,7 @@ public:
     explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
 
     /// Default of properties with subproperties
-    explicit Properties(IndexType NewId, SubPropertiesContainerType SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
+    explicit Properties(IndexType NewId, const SubPropertiesContainerType& SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
 
     /// Copy constructor.
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList) {}

@@ -62,7 +62,7 @@ public:
         // get virtual thickness
         mVirtualThickness = rParameters["virtual_thickness"].GetDouble();
          
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------

@@ -15,12 +15,11 @@ class TwoFluidNoRedistanceSolver(two_fluids_solver.NavierStokesTwoFluidsSolver):
         super(TwoFluidNoRedistanceSolver,self).__init__(model,settings)
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Recompute the BDF2 coefficients
-            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        # Recompute the BDF2 coefficients
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
-            # Initialize the solver current step
-            self._GetSolutionStrategy().InitializeSolutionStep()
+        # Initialize the solver current step
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
 
 class DarcyChannelTest(UnitTest.TestCase):

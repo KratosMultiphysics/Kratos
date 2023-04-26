@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
-#include <stdlib.h>
+#include <cstdlib>
 #include <time.h>
 #include <string>
 
@@ -462,6 +462,41 @@ class PreUtilities
             const double distance_to_center = MathUtils<double>::Norm3(vector_distance_to_center);
             const double radius = it->FastGetSolutionStepValue(RADIUS);
             if(distance_to_center + radius > max_radius + tolerance_for_erasing) {
+                it->Set(TO_ERASE, true);
+            }
+        }
+    }
+
+    void MarkToEraseParticlesOutsideRadiusForGettingCylinder(ModelPart& r_model_part, const double max_radius, const array_1d<double, 3>& center, const double tolerance_for_erasing) {
+        auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)pNodes.size(); k++) {
+            auto it = pNodes.begin() + k;
+            const array_1d<double, 3>& coords = it->Coordinates();
+            const double distance_to_center = std::sqrt((coords[0] - center[0]) * (coords[0] - center[0]) + (coords[2] - center[2]) * (coords[2] - center[2]));
+            const double radius = it->FastGetSolutionStepValue(RADIUS);
+            if(distance_to_center + radius > max_radius + tolerance_for_erasing) {
+                it->Set(TO_ERASE, true);
+            }
+        }
+    }
+
+    void MarkToEraseParticlesOutsideBoundary(ModelPart& r_model_part, const double min_x, const double max_x, const double min_y, const double max_y, const double min_z, const double max_z, const double tolerance_for_erasing) {
+        auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)pNodes.size(); k++) {
+            auto it = pNodes.begin() + k;
+            const array_1d<double, 3>& coords = it->Coordinates();
+            const double radius = it->FastGetSolutionStepValue(RADIUS);
+            if(coords[0] + radius > max_x + tolerance_for_erasing || coords[0] - radius < min_x - tolerance_for_erasing) {
+                it->Set(TO_ERASE, true);
+            }
+            else if(coords[1] + radius > max_y + tolerance_for_erasing || coords[1] - radius < min_y - tolerance_for_erasing) {
+                it->Set(TO_ERASE, true);
+            }
+            else if(coords[2] + radius > max_z + tolerance_for_erasing || coords[2] - radius < min_z - tolerance_for_erasing) {
                 it->Set(TO_ERASE, true);
             }
         }

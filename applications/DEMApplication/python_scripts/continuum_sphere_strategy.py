@@ -16,9 +16,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if "PostSkinSphere" in DEM_parameters.keys():
             self.print_skin_sphere = DEM_parameters["PostSkinSphere"].GetBool()
 
-        if (self.delta_option > 0):
-            self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
-
         if "DontSearchUntilFailure" in DEM_parameters.keys(): #TODO: important Todo. When Json gets divided in encapsulated parts, all these checks should be done in one functions, comparing with defaults!
             if DEM_parameters["DontSearchUntilFailure"].GetBool():
                 print ("Search is not active until a bond is broken.")
@@ -123,6 +120,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
     def SetContinuumType(self):
         self.continuum_type = True
+
+
+
+
+
 
     def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group

@@ -25,21 +25,21 @@
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
 // Plasticity Integrator includes
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
 
 // Yield surfaces
-#include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/auxiliar_files/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/drucker_prager_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/rankine_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/rankine_plastic_potential.h"
 
 namespace Kratos
 {
@@ -62,7 +62,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    // Auxiliar values
+    // Auxiliary values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
@@ -130,7 +130,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    // Auxiliar values
+    // Auxiliary values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
@@ -846,7 +846,7 @@ Vector& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     Vector& rValue
     )
 {
-    rValue.resize(VoigtSize);
+    rValue.resize(VoigtSize, false);
     rValue.clear();
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         noalias(rValue) = mPlasticStrain;
@@ -1072,7 +1072,7 @@ int AssociativePlasticDamageModel<TYieldSurfaceType>::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    // The auxiliar output
+    // The auxiliary output
     int aux_out = 0;
     KRATOS_ERROR_IF(!rMaterialProperties.Has(FRACTURE_ENERGY))           << "FRACTURE_ENERGY not provided in the material properties" << std::endl;
     KRATOS_ERROR_IF(!rMaterialProperties.Has(HARDENING_CURVE))           << "HARDENING_CURVE not provided in the material properties" << std::endl;

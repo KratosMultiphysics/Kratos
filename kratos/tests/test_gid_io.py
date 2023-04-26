@@ -88,7 +88,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"all_active_out")
 
-        self.__Check("all_active_out_0.post.msh","auxiliar_files_for_python_unittest/reference_files/all_active_ref.ref")
+        self.__Check("all_active_out.post.msh","auxiliar_files_for_python_unittest/reference_files/all_active_ref.ref")
 
     def test_gid_io_deactivation(self):
         current_model = KratosMultiphysics.Model()
@@ -103,7 +103,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"deactivated_out")
 
-        self.__Check("deactivated_out_0.post.msh","auxiliar_files_for_python_unittest/reference_files/deactivated_ref.ref")
+        self.__Check("deactivated_out.post.msh","auxiliar_files_for_python_unittest/reference_files/deactivated_ref.ref")
 
     def test_gid_io_results(self):
         current_model = KratosMultiphysics.Model()
@@ -161,7 +161,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"results_out")
 
-        self.__Check("results_out_0.post.res","auxiliar_files_for_python_unittest/reference_files/results_out_ref.ref")
+        self.__Check("results_out.post.res","auxiliar_files_for_python_unittest/reference_files/results_out_ref.ref")
 
     def test_DoubleFreeError(self):
         current_model = KratosMultiphysics.Model()
@@ -184,12 +184,12 @@ class TestGidIO(KratosUnittest.TestCase):
         gid_io_2 = None
 
     def tearDown(self):
-        kratos_utils.DeleteFileIfExisting("all_active_out_0.post.msh")
-        kratos_utils.DeleteFileIfExisting("all_active_out_0.post.res")
-        kratos_utils.DeleteFileIfExisting("deactivated_out_0.post.msh")
-        kratos_utils.DeleteFileIfExisting("deactivated_out_0.post.res")
-        kratos_utils.DeleteFileIfExisting("results_out_0.post.msh")
-        kratos_utils.DeleteFileIfExisting("results_out_0.post.res")
+        kratos_utils.DeleteFileIfExisting("all_active_out.post.msh")
+        kratos_utils.DeleteFileIfExisting("all_active_out.post.res")
+        kratos_utils.DeleteFileIfExisting("deactivated_out.post.msh")
+        kratos_utils.DeleteFileIfExisting("deactivated_out.post.res")
+        kratos_utils.DeleteFileIfExisting("results_out.post.msh")
+        kratos_utils.DeleteFileIfExisting("results_out.post.res")
         kratos_utils.DeleteFileIfExisting("python_scripts.post.lst")
         kratos_utils.DeleteFileIfExisting("tests.post.lst")
 

@@ -39,7 +39,8 @@
             "FRICTION_DECAY"                         : 500,
             "COEFFICIENT_OF_RESTITUTION"             : 0.5,
             "ROLLING_FRICTION"                       : 0.01,
-            "ROLLING_FRICTION_WITH_WALLS"            : 0.01
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.01,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list" : ["wood_clusters","boundary_mpm_material"],
@@ -52,7 +53,8 @@
             "FRICTION_DECAY"                         : 500,
             "COEFFICIENT_OF_RESTITUTION"             : 0.5,
             "ROLLING_FRICTION"                       : 0.01,
-            "ROLLING_FRICTION_WITH_WALLS"            : 0.01
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.01,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list" : ["wood_clusters","wood_clusters"],
@@ -65,7 +67,8 @@
             "FRICTION_DECAY"                         : 500,
             "COEFFICIENT_OF_RESTITUTION"             : 0.5,
             "ROLLING_FRICTION"                       : 0.01,
-            "ROLLING_FRICTION_WITH_WALLS"            : 0.01
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.01,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     }],
     "material_assignation_table" : [

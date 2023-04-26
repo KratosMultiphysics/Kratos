@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos Roig
 //
@@ -87,7 +87,7 @@ void UnvOutput::WriteElements() {
         const int elementLabel = element.Id();
         Kratos::ModelPart::ConditionType::GeometryType elementGeometry = element.GetGeometry();
         // Write triangles
-        if (elementGeometry.size() == 3 && elementGeometry.Dimension() == 2) {
+        if (elementGeometry.size() == 3 && elementGeometry.WorkingSpaceDimension() == 2) {
             const int feDescriptorId = 41; // Plane Stress Linear Triangle
             const int numberOfNodes = 3;
             outputFile << std::setw(10) << elementLabel;
@@ -101,7 +101,7 @@ void UnvOutput::WriteElements() {
             outputFile << std::setw(10) << elementGeometry[2].Id() << "\n";
         }
             // Write tetrahedras
-        else if (elementGeometry.size() == 4 && elementGeometry.Dimension() == 3) {
+        else if (elementGeometry.size() == 4 && elementGeometry.WorkingSpaceDimension() == 3) {
             const int feDescriptorId = 111; // Solid linear tetrahedron
             const int numberOfNodes = 4;
             outputFile << std::setw(10) << elementLabel;
