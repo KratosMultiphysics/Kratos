@@ -145,8 +145,7 @@ public:
                                   typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver),
           mrComm(rComm),
-          mGuessRowSize(GuessRowSize),
-          mSynchronizeDofSet(false)
+          mGuessRowSize(GuessRowSize)
     {
     }
 
@@ -935,7 +934,7 @@ protected:
 
     EpetraCommunicatorType& mrComm;
     int mGuessRowSize;
-    bool mSynchronizeDofSet;
+    bool mSynchronizeDofSet = false;
     IndexType mLocalSystemSize;
     int mFirstMyId;
     int mLastMyId;
