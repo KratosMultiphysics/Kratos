@@ -61,9 +61,9 @@ public:
 
     /// Destructor.
     ~PotentialToCompressibleNavierStokesOperation() override = default;
+
     /// Copy constructor.
-    //TODO: Check. It is required by the registry
-    PotentialToCompressibleNavierStokesOperation(PotentialToCompressibleNavierStokesOperation const& rOther)  = delete;
+    PotentialToCompressibleNavierStokesOperation(PotentialToCompressibleNavierStokesOperation const& rOther);
 
     ///@}
     ///@name Operators
