@@ -1098,8 +1098,8 @@ private:
 
 ///@}
 
-// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node<3,double> >;
-// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node<3,double>::Pointer >;
+// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node >;
+// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node::Pointer >;
 
 ///@name Type Definitions
 ///@{
@@ -1111,14 +1111,12 @@ private:
 
 
 /// input stream function
-template<class Dof<double>>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  Node<Dof<double>>& rThis);
+                                  Node& rThis);
 
 /// output stream function
-template<class Dof<double>>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Node<Dof<double>>& rThis)
+                                  const Node& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : ";

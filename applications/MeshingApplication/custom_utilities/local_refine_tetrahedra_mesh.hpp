@@ -137,10 +137,10 @@ public:
         }
 
         pnode->GetValue(FATHER_NODES).resize(0);
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(0) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(1) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(2) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(3) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(0) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(1) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(2) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(3) ) );
 
         return new_id;
     }
