@@ -887,7 +887,9 @@ namespace Kratos::Testing
         Epetra_MpiComm epetra_comm(MPIDataCommunicator::GetMPICommunicator(r_mpi_comm));
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
         auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
-        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+        auto bs_parameters = Kratos::Parameters(R"({ "guess_row_size": 15, "synchronize_dof_set": true })");
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer(
+            new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, bs_parameters) );
 
         p_builder_and_solver->SetUpDofSet(p_scheme, r_work_part);
         const auto& r_dofset = p_builder_and_solver->GetDofSet();
