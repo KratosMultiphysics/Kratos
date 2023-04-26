@@ -38,11 +38,11 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
     // Set potential_model_part properties
     BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
     free_stream_velocity(0) = 10.0;      
-    const double& gamma = 1.4;
-    const double& sound_velocity = 340;
-    const double& free_stream_density = 1.0;
-    const double& free_stream_mach = 0.2;
-    const double& reference_temperature = 273;
+    const double gamma = 1.4;
+    const double sound_velocity = 340;
+    const double free_stream_density = 1.0;
+    const double free_stream_mach = 0.2;
+    const double reference_temperature = 273;
     model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
     model_part.GetProcessInfo()[HEAT_CAPACITY_RATIO] = gamma;
     model_part.GetProcessInfo()[SOUND_VELOCITY] = sound_velocity;
