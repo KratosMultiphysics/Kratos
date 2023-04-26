@@ -63,10 +63,8 @@ class Element;
 /// This class defines the node
 /** The node class from Kratos is defined in this class
 */
-template<class TDofType = Dof<double> >
 class Node : public Point, public Flags
 {
-
 public:
     ///@name Type Definitions
     ///@{
@@ -74,27 +72,38 @@ public:
     /// Pointer definition of Node
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Node);
 
-    typedef Node<TDofType> NodeType;
+    /// Node definition
+    using NodeType = Node;
 
-    typedef Point BaseType;
+    /// Base type
+    using BaseType = Point;
 
-    typedef Point PointType;
+    /// Point type
+    using PointType = Point;
 
-    typedef TDofType DofType;
+    /// Dof type
+    using DofType = Dof<double>;
 
-    typedef std::size_t IndexType;
+    /// The index type
+    using IndexType = std::size_t;
 
-    typedef typename std::size_t SizeType;
+    /// The size type
+    using SizeType = std::size_t;
 
-    typedef std::vector<std::unique_ptr<TDofType>> DofsContainerType;
+    /// The DoF container type definition
+    using DofsContainerType = std::vector<std::unique_ptr<Dof<double>>>;
 
-    typedef VariablesListDataValueContainer SolutionStepsNodalDataContainerType;
+    /// The solution step data container type
+    using SolutionStepsNodalDataContainerType = VariablesListDataValueContainer;
 
-    typedef VariablesListDataValueContainer::BlockType BlockType;
+    /// The block type
+    using BlockType = VariablesListDataValueContainer::BlockType;
 
-    typedef Variable<double> DoubleVariableType;
+    /// NOTE: Unused
+    using DoubleVariableType = Variable<double>;
 
-    typedef GlobalPointersVector<NodeType > WeakPointerVectorType;
+    /// NOTE: Unused
+    using WeakPointerVectorType = GlobalPointersVector<NodeType>;
 
 
     ///@}
@@ -1102,14 +1111,14 @@ private:
 
 
 /// input stream function
-template<class TDofType>
+template<class Dof<double>>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  Node<TDofType>& rThis);
+                                  Node<Dof<double>>& rThis);
 
 /// output stream function
-template<class TDofType>
+template<class Dof<double>>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Node<TDofType>& rThis)
+                                  const Node<Dof<double>>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : ";
