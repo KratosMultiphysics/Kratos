@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
     Model this_model;
     
     // Create potential_model_part
-    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+    auto& r_model_part = this_model.CreateModelPart("Main", 3);
     model_part.GetProcessInfo()[DOMAIN_SIZE] = 2;
     
     // Set potential_model_part properties
