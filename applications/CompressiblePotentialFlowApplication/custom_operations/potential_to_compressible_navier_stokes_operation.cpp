@@ -96,7 +96,7 @@ void PotentialToCompressibleNavierStokesOperation::Execute()
         const auto it_orig_node = mOriginModelPart.NodesBegin() + index;
 
         // Getting potential flow velocities
-        const auto &velocity = it_orig_node->GetValue(VELOCITY);
+        const auto &r_velocity = it_orig_node->GetValue(VELOCITY);
         
         // Calculate the conservative variables
         const double& velocity_norm_2 = velocity[0] * velocity[0] + velocity[1] * velocity[1];
