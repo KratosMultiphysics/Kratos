@@ -151,7 +151,7 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
       // Check nodal values
       auto nodal_density = r_node->FastGetSolutionStepValue(DENSITY);
       KRATOS_CHECK_NEAR(nodal_density, density, 1e-6);
-      auto nodal_momentum = r_node->FastGetSolutionStepValue(MOMENTUM);
+      auto& r_nodal_momentum = r_node->FastGetSolutionStepValue(MOMENTUM);
       KRATOS_CHECK_NEAR(nodal_momentum[0], density * velocity[0], 1e-6);
       KRATOS_CHECK_NEAR(nodal_momentum[1], density * velocity[1], 1e-6);
       auto nodal_total_energy = r_node->FastGetSolutionStepValue(TOTAL_ENERGY);
