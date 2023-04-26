@@ -51,7 +51,7 @@ struct ElementalData
     array_1d<double, TNumNodes> N;
 };
 
-typedef Node < 3, Dof<double> > NodeType;
+typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 
 template <int Dim, int NumNodes>
