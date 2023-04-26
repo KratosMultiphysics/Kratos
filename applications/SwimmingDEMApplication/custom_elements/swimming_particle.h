@@ -78,7 +78,7 @@ namespace Kratos
                                    const ProcessInfo& rCurrentProcessInfo,
                                    const array_1d<double,3>& gravity) override;
 
-      std::vector<Node<3>::Pointer> mNeighbourNodes;
+      std::vector<Node::Pointer> mNeighbourNodes;
       std::vector<double> mNeighbourNodesDistances;
 
       /// Turn back information as a string.

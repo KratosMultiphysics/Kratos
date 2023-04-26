@@ -592,10 +592,10 @@ protected:
         }
 
         if (mElementRequiresLimiter){
-                block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
+                block_for_each(mpDistanceModelPart->Nodes(), [&](Node& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
         }
         if(mElementTauNodal){
-                block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(TAU, 0.0);});
+                block_for_each(mpDistanceModelPart->Nodes(), [&](Node& rNode){rNode.SetValue(TAU, 0.0);});
         }
     }
 
@@ -673,7 +673,7 @@ protected:
         GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
 
         auto coordinate_proxy = pointer_comm.Apply(
-            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            [](GlobalPointer<Node >& global_pointer) -> Point::CoordinatesArrayType
             {
                 return global_pointer->Coordinates();
             }
@@ -711,7 +711,7 @@ protected:
         );
 
         auto combined_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3>> &global_pointer) -> std::pair<double, array_1d<double,3>> {
+            [&](GlobalPointer<Node> &global_pointer) -> std::pair<double, array_1d<double,3>> {
                 return std::make_pair(
                     global_pointer->FastGetSolutionStepValue(*mpLevelSetVar),
                     global_pointer->Coordinates());
@@ -781,7 +781,7 @@ protected:
      */
     void ErrorCalculationAndCorrection()
     {
-        block_for_each(mpDistanceModelPart->Nodes(), [this](Node<3>& rNode){
+        block_for_each(mpDistanceModelPart->Nodes(), [this](Node& rNode){
             noalias(rNode.FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar);
             noalias(rNode.FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar, 1);
             rNode.FastGetSolutionStepValue(*mpLevelSetVar, 1) = rNode.FastGetSolutionStepValue(*mpLevelSetVar);

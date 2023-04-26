@@ -180,10 +180,10 @@ namespace Kratos
 					array_1d<double,3> position_node;
 					double distance=0.0;
 					position_node = pnode->Coordinates();
-					GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+					GlobalPointersVector< Node >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
 					//we loop all the nodes to check all the edges
 					const double number_of_neighbours = double(rneigh.size());
-					for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+					for( GlobalPointersVector<Node >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
 					{
 						array_1d<double,3> position_difference;
 						position_difference = inode->Coordinates() - position_node;
@@ -289,7 +289,7 @@ namespace Kratos
 				number_of_particles=0;
 				//int & number_of_water_particles = ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
 
-				Geometry< Node<3> >& geom = ielem->GetGeometry();
+				Geometry< Node >& geom = ielem->GetGeometry();
 				//unsigned int elem_id = ielem->Id();
 				//mareas_vector[i_int]=CalculateArea(geom); UNUSED SO COMMENTED
 				ComputeGaussPointPositions_initial(geom, pos, N); //we also have the standard (4), and 45
@@ -434,7 +434,7 @@ namespace Kratos
 						ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 						Element::Pointer pelement(*it_begin_topo);  //we have no idea in which element it might be from the topographic domain, so we just set it in the first element.
 
-						//Geometry<Node<3> >& geom = ielem->GetGeometry();
+						//Geometry<Node >& geom = ielem->GetGeometry();
 						//array_1d<double,TDim+1> N;
 
 
@@ -520,7 +520,7 @@ namespace Kratos
 					if (number_of_particles_in_elem<(minimum_number_of_particles))// && (ielem->GetGeometry())[0].Y()<0.10 )
 				    {
 						//KRATOS_WATCH("elem with little particles")
-						Geometry< Node<3> >& geom = ielem->GetGeometry();
+						Geometry< Node >& geom = ielem->GetGeometry();
 						ComputeGaussPointPositionsForPreReseed(geom, pos, N);
 						//double conductivity = ielem->GetProperties()[CONDUCTIVITY];
 						//KRATOS_WATCH(conductivity);
@@ -613,7 +613,7 @@ namespace Kratos
 					for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
 					{
 						ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-						Geometry<Node<3> >& geom = ielem->GetGeometry();
+						Geometry<Node >& geom = ielem->GetGeometry();
 
 						array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
 
@@ -634,7 +634,7 @@ namespace Kratos
 					for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
 					{
 						ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-						Geometry<Node<3> >& geom = ielem->GetGeometry();
+						Geometry<Node >& geom = ielem->GetGeometry();
 
 						array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
 
@@ -1128,7 +1128,7 @@ namespace Kratos
 					array_1d<double,(TDim+1)> nodes_addedweights = ZeroVector((TDim+1));
 					//array_1d<double,(TDim+1)> weighting_inverse_divisor;
 
-					Geometry<Node<3> >& geom = ielem->GetGeometry();
+					Geometry<Node >& geom = ielem->GetGeometry();
 
 					for (int i=0 ; i!=(TDim+1) ; ++i)
 					{
@@ -1325,7 +1325,7 @@ namespace Kratos
 					rhs_z = ZeroVector((TDim+1));         //resetting vectors
 					rhs_d = ZeroVector((TDim+1));         //resetting vectors
 
-					Geometry<Node<3> >& geom = ielem->GetGeometry();
+					Geometry<Node >& geom = ielem->GetGeometry();
 					const double elem_volume = geom.Area();
 
 					for (int i=0 ; i!=(TDim+1) ; ++i)  //saving the nodal positions for faster access
@@ -1494,7 +1494,7 @@ namespace Kratos
 					//const int & elem_id = ielem->Id();
 					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 					Element::Pointer pelement(*ielem.base());
-					Geometry<Node<3> >& geom = ielem->GetGeometry();
+					Geometry<Node >& geom = ielem->GetGeometry();
 
 					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
@@ -1590,7 +1590,7 @@ namespace Kratos
 					if (number_of_particles_in_elem<(minimum_number_of_particles))// && (ielem->GetGeometry())[0].Y()<0.10 )
 				    {
 						//KRATOS_WATCH("elem with little particles")
-						Geometry< Node<3> >& geom = ielem->GetGeometry();
+						Geometry< Node >& geom = ielem->GetGeometry();
 						ComputeGaussPointPositionsForPreReseed(geom, pos, N);
 						//double conductivity = ielem->GetProperties()[CONDUCTIVITY];
 						//KRATOS_WATCH(conductivity);
@@ -1737,7 +1737,7 @@ namespace Kratos
 					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 
 
-					Geometry< Node<3> >& geom = ielem->GetGeometry();
+					Geometry< Node >& geom = ielem->GetGeometry();
 					if ( (number_of_particles_in_elem<(minimum_number_of_particles)))// && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(minimum_number_of_particles) ) )
 				    {
 
@@ -2058,7 +2058,7 @@ namespace Kratos
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				Element::Pointer pelement(*ielem.base());
-				Geometry<Node<3> >& geom = ielem->GetGeometry();
+				Geometry<Node >& geom = ielem->GetGeometry();
 				//double mean_elem_dist=0.0;
 				bool pure_air_elem=true;
 				for(unsigned int j=0; j<(TDim+1); j++)
@@ -2126,7 +2126,7 @@ namespace Kratos
 						ModelPart::ConditionsContainerType::iterator icondition = iconditionbegin+ii;
 						if ( icondition->GetValue(IS_INLET) > 0.5 )
 						{
-							Geometry<Node<3> >& geom = icondition->GetGeometry();
+							Geometry<Node >& geom = icondition->GetGeometry();
 							array_1d<double,3> normal = ZeroVector(3);
 							this->CalculateNormal(geom,normal);
 							const double normal_lenght = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
@@ -2304,7 +2304,7 @@ namespace Kratos
 		if(is_found == true)
 		{
 			KEEP_INTEGRATING=true;
-			Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
+			Geometry< Node >& geom = pelement->GetGeometry();//the element we're in
 			vel=ZeroVector(3);
 			vel_without_other_phase_nodes = ZeroVector(3);
 			sum_Ns_without_other_phase_nodes=0.0;
@@ -2382,7 +2382,7 @@ namespace Kratos
 				is_found = FindNodeOnMesh(position, N ,pelement,elements_in_trajectory,number_of_elements_in_trajectory,check_from_element_number,result_begin,MaxNumberOfResults); //good, now we know where this point is:
 				if(is_found == true)
 				{
-					Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
+					Geometry< Node >& geom = pelement->GetGeometry();//the element we're in
 					sum_Ns_without_other_phase_nodes=0.0;
 
 					if (particle_distance<0.0 && discriminate_streamlines==true)
@@ -2470,7 +2470,7 @@ namespace Kratos
 	void AccelerateParticleUsingDeltaVelocity(
 						 PFEM_Particle_Fluid & pparticle,
 						 Element::Pointer & pelement,
-						 Geometry< Node<3> >& geom)
+						 Geometry< Node >& geom)
 	{
 		array_1d<double,TDim+1> N;
 
@@ -2587,7 +2587,7 @@ namespace Kratos
 		if(is_found == true)
 		{
 			KEEP_INTEGRATING=true;
-			Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
+			Geometry< Node >& geom = pelement->GetGeometry();//the element we're in
 			vel=ZeroVector(3);
 			particle_vel=ZeroVector(3);
 			distance=0.0;
@@ -2614,7 +2614,7 @@ namespace Kratos
 				is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
 				if(is_found == true)
 				{
-					Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
+					Geometry< Node >& geom = pelement->GetGeometry();//the element we're in
 
 					vel=ZeroVector(3);
 					particle_vel=ZeroVector(3);
@@ -2703,7 +2703,7 @@ namespace Kratos
 		const array_1d<double,3>& coords = position;
 		 array_1d<double,TDim+1> aux_N;
 	    //before using the bin to search for possible elements we check first the last element in which the particle was.
-		Geometry<Node<3> >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
+		Geometry<Node >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
 		bool is_found_1 = CalculatePosition(geom_default,coords[0],coords[1],coords[2],N);
 		if(is_found_1 == true) //that was easy!
 		{
@@ -2721,7 +2721,7 @@ namespace Kratos
 			if (N[i]<0.0)
 			{
 				checked_element=i;
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 				if (is_found_2)
 				{
@@ -2738,7 +2738,7 @@ namespace Kratos
 		{
 			if(neighb_elems(i).get()!=nullptr)
 			{
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
@@ -2756,7 +2756,7 @@ namespace Kratos
 		//loop over the candidate elements and check if the particle falls within
 			for(SizeType i = 0; i< results_found; i++)
 			{
-				Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
+				Geometry<Node >& geom = (*(result_begin+i))->GetGeometry();
 
 				//find local position
 				bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
@@ -2789,7 +2789,7 @@ namespace Kratos
 		const array_1d<double,3>& coords = position;
 		 array_1d<double,TDim+1> aux_N;
 	    //before using the bin to search for possible elements we check first the last element in which the particle was.
-		Geometry<Node<3> >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
+		Geometry<Node >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
 		bool is_found_1 = CalculatePosition(geom_default,coords[0],coords[1],coords[2],N);
 		if(is_found_1 == true)
 		{
@@ -2799,7 +2799,7 @@ namespace Kratos
 		//if it was not found in the first element, we can proceed to check in the following elements (in the trajectory defined by previous particles that started from the same element.
 		for (unsigned int i=(check_from_element_number);i!=number_of_elements_in_trajectory;i++)
 		{
-			Geometry<Node<3> >& geom = elements_in_trajectory[i].GetGeometry();
+			Geometry<Node >& geom = elements_in_trajectory[i].GetGeometry();
 			bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 			if (is_found_2)
 			{
@@ -2822,7 +2822,7 @@ namespace Kratos
 			if (N[i]<0.0)
 			{
 				checked_element=i;
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 				if (is_found_2)
 				{
@@ -2839,7 +2839,7 @@ namespace Kratos
 		{
 			if(neighb_elems(i).get()!=nullptr)
 			{
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
@@ -2865,7 +2865,7 @@ namespace Kratos
 			//loop over the candidate elements and check if the particle falls within
 			for(SizeType i = 0; i< results_found; i++)
 			{
-				Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
+				Geometry<Node >& geom = (*(result_begin+i))->GetGeometry();
 
 				//find local position
 				bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
@@ -2906,7 +2906,7 @@ namespace Kratos
 	    //before using the bin to search for possible elements we check first the last element in which the particle was.
 
 		//ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin()+last_element;
-		Geometry<Node<3> >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
+		Geometry<Node >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
 		bool is_found_1 = CalculatePosition(geom_default,coords[0],coords[1],coords[2],N);
 		if(is_found_1 == true)
 		{
@@ -2920,7 +2920,7 @@ namespace Kratos
 		{
 			if(neighb_elems(i).get()!=nullptr)
 			{
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
@@ -2939,7 +2939,7 @@ namespace Kratos
 		//loop over the candidate elements and check if the particle falls within
 		for(SizeType i = 0; i< results_found; i++)
 		{
-			Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
+			Geometry<Node >& geom = (*(result_begin+i))->GetGeometry();
 
 			//find local position
 			bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
@@ -3629,12 +3629,12 @@ namespace Kratos
 	typename BinsObjectDynamic<Configure>::Pointer  mpTopographicBinsObjectDynamic;
 
 
-	void CalculateNormal(Geometry<Node<3> >& pGeometry, array_1d<double,3>& An );
+	void CalculateNormal(Geometry<Node >& pGeometry, array_1d<double,3>& An );
 
 	};
 
 	template<>
-	void MoveParticleUtilityPFEM2<2>::CalculateNormal(Geometry<Node<3> >& pGeometry, array_1d<double,3>& An )
+	void MoveParticleUtilityPFEM2<2>::CalculateNormal(Geometry<Node >& pGeometry, array_1d<double,3>& An )
 	{
 		array_1d<double,2> v1;
 		v1[0] = pGeometry[1].X() - pGeometry[0].X();
@@ -3660,7 +3660,7 @@ namespace Kratos
 	}
 
 	template<>
-	void MoveParticleUtilityPFEM2<3>::CalculateNormal(Geometry<Node<3> >& pGeometry, array_1d<double,3>& An )
+	void MoveParticleUtilityPFEM2<3>::CalculateNormal(Geometry<Node >& pGeometry, array_1d<double,3>& An )
 	{
 		array_1d<double,3> v1,v2;
 		v1[0] = pGeometry[1].X() - pGeometry[0].X();

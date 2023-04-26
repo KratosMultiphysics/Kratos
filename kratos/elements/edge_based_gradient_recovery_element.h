@@ -80,7 +80,7 @@ public:
     /// Problem size
     constexpr static std::size_t LocalSize = NumNodes * BlockSize;
 
-    /// Node type (default is: Node<3>)
+    /// Node type (default is: Node)
     using NodeType = Node <3>;
 
     /// Geometry type (using with given NodeType)

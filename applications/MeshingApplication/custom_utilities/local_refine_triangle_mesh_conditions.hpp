@@ -132,10 +132,10 @@ public:
 
     void ResetFatherNodes(ModelPart &rModelPart) override
     {
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode)
+        block_for_each(mModelPart.Nodes(), [&](Node& rNode)
         {
             if(!rNode.Has(FATHER_NODES)){
-                GlobalPointersVector<Node<3>> empty_father_vector;
+                GlobalPointersVector<Node> empty_father_vector;
                 rNode.SetValue(FATHER_NODES, empty_father_vector);
             }
         });

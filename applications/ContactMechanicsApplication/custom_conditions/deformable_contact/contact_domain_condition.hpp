@@ -76,7 +76,7 @@ public:
   ///BaseLengths
   typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
-  typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node >       NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 

@@ -67,7 +67,7 @@ public:
     ///base type: an GeometricalObject that automatically has a unique number
     typedef GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> BaseType;
 
-    ///definition of node type (default is: Node<3>)
+    ///definition of node type (default is: Node)
     typedef Node < 3 > NodeType;
 
     /**

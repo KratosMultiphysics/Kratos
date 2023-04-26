@@ -30,7 +30,7 @@ typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 typedef std::vector<std::vector<double>> MatrixResultsType;
 typedef std::vector<int> EqIDVectorResultsType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 namespace {
 
@@ -372,7 +372,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
-    auto node_local_sys(Kratos::make_shared<Node<3>>(8, 1.0, 2.5, -5.0));
+    auto node_local_sys(Kratos::make_shared<Node>(8, 1.0, 2.5, -5.0));
 
     NearestElementLocalSystem local_sys(node_local_sys.get());
 

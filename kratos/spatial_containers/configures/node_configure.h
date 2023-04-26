@@ -70,7 +70,7 @@ public:
     * @param PointerType Pointer to nodes of doubles with 3 coordinates (Dimension = 3)
     */
     typedef Point                   PointType;
-    typedef Node<3>                 ObjectType;
+    typedef Node                 ObjectType;
     typedef ObjectType::Pointer     PointerType;
 
     /** Additional types needed by the bins.

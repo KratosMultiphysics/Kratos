@@ -96,7 +96,7 @@ public:
         smallest_edge = local_smallest_edge; //giving it a value, just in case.
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) //looping all the elements
         {
-            Geometry<Node<3> >&geom = it->GetGeometry(); //geometry of the element
+            Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)  //edge i
             {
                 node_coord[0] = geom[i].X();
@@ -347,8 +347,8 @@ public:
 
                 pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
                 pnode->GetValue(FATHER_NODES).resize(0);
-                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
-                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );
+                pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
+                pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );
                 pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //
                 pnode->X0() = it_node->X0();
                 pnode->Y0() = it_node->Y0();
@@ -374,7 +374,7 @@ public:
 
         for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
         {
-            Geometry<Node<3> >&geom = i_condition->GetGeometry(); //current condition(nodes, etc)
+            Geometry<Node >&geom = i_condition->GetGeometry(); //current condition(nodes, etc)
             if (geom.size()==3)
             {
                 for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)         //looping the nodes
@@ -383,7 +383,7 @@ public:
                     int local_position = (*pmy_ov_map).LID(position); //changing from global id to local id
                     triangle_nodes[i]=local_IDs_ov[local_position] ; // saving the i nodeId
                 } //nodes id saved. now we have to create the element.
-                Triangle3D3<Node<3> > geometry(
+                Triangle3D3<Node > geometry(
                     new_model_part.Nodes()(triangle_nodes[0]),  //condition to be added
                     new_model_part.Nodes()(triangle_nodes[1]),
                     new_model_part.Nodes()(triangle_nodes[2])

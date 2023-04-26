@@ -69,7 +69,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeGradientPouliot2012);
 
     typedef ComputeComponentGradientSimplex<TDim, TNumNodes> BaseType;
-    /// Node type (default is: Node<3>)
+    /// Node type (default is: Node)
     typedef Node <3> NodeType;
 
     /// Geometry type (using with given NodeType)

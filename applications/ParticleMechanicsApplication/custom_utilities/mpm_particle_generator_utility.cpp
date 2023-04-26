@@ -157,7 +157,7 @@ namespace MPMParticleGeneratorUtility
                         if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
 
                         pelem->Set(ACTIVE);
-                        auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                        auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],
                             mp_volume[0]);
 
@@ -375,7 +375,7 @@ namespace MPMParticleGeneratorUtility
                             bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
                             if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
 
-                            auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                            auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                                 pelem->pGetGeometry(), mpc_xg[0],
                                 mpc_area[0]);
 
@@ -429,7 +429,7 @@ namespace MPMParticleGeneratorUtility
                                 if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::MPC search failed." << std::endl;
 
                                 pelem->Set(ACTIVE);
-                                auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                                auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                                     pelem->pGetGeometry(), mpc_xg[0],
                                     mpc_area[0]);
 

@@ -42,7 +42,7 @@ public:
     // Pointer types for BinghamFluid
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BinghamFluid);
 
-    /// Node type (default is: Node<3>)
+    /// Node type (default is: Node)
     typedef Node <3> NodeType;
 
     /// Geometry type (using with given NodeType)

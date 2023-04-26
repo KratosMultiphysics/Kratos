@@ -81,7 +81,7 @@ public:
 
     typedef DataValueContainer ContainerType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef NodeType::IndexType IndexType;
 

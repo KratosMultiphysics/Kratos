@@ -210,7 +210,7 @@ public:
     * @return rAux: The vector that includes the index of the new edges
     */
     void CalculateEdges(
-        Geometry<Node<3>>& rGeom,
+        Geometry<Node>& rGeom,
         const compressed_matrix<int>& rCoord,
         int* EdgeIds,
         std::vector<int>& rAux

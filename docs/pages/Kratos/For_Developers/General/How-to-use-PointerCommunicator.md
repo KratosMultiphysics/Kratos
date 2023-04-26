@@ -54,7 +54,7 @@ GlobalPointerCommunicator pointer_comm(DefaultDataCommunicator, gp_list); // Her
 
 // Define a function to access to the data
 result_proxy = pointer_comm.Apply<double>(
-            [](GlobalPointer<Node<3> >& gp) -> double
+            [](GlobalPointer<Node >& gp) -> double
             {
                   return gp->FastGetSolutionStepValue(TEMPERATURE);
             }
@@ -89,7 +89,7 @@ GlobalPointerCommunicator pointer_comm(DefaultDataCommunicator,
 // Define a function to access to the data ----> NO COMMUNICATION HAPPENS IN THE SERIAL CASE
 // we only store the access function within result_proxy and we will use it on every "Get" call
 result_proxy = pointer_comm.Apply<double>(
-            [](GlobalPointer<Node<3> >& gp) -> double
+            [](GlobalPointer<Node >& gp) -> double
             {
                   return gp->FastGetSolutionStepValue(TEMPERATURE);
             }

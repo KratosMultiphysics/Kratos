@@ -1435,10 +1435,10 @@ protected:
         KRATOS_CATCH("")
     }
 
-    Node<3>::Pointer AuxCreateNewNode(ModelPart& r_model_part, int Id, double x, double y, double z)
+    Node::Pointer AuxCreateNewNode(ModelPart& r_model_part, int Id, double x, double y, double z)
     {
         //create a new node
-        Node<3>::Pointer p_new_node = Node<3>::Pointer(new Node<3>(Id, x, y, z));
+        Node::Pointer p_new_node = Node::Pointer(new Node(Id, x, y, z));
 
         // Giving model part's variables list to the node
         p_new_node->SetSolutionStepVariablesList(&(r_model_part.GetNodalSolutionStepVariablesList()));

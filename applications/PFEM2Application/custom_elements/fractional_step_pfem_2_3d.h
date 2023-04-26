@@ -36,7 +36,7 @@ namespace Kratos
     ///typedef IndexedObject BaseType;
     ///Element from which it is derived
     ///typedef VMS<TDim, TNumNodes> ElementBaseType;
-    ///definition of node type (default is: Node<3>)
+    ///definition of node type (default is: Node)
 
     //typedef Node < 3 > NodeType;
     /**

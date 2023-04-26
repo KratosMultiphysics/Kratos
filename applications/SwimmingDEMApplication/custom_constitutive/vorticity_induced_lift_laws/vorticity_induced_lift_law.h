@@ -33,7 +33,7 @@ namespace Kratos {
 
         virtual std::string GetTypeOfLaw();
 
-        virtual void ComputeForce(Geometry<Node<3> >& r_geometry,
+        virtual void ComputeForce(Geometry<Node >& r_geometry,
                                   const double reynolds_number,
                                   double particle_radius,
                                   double fluid_density,

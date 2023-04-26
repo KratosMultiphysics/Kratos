@@ -81,7 +81,7 @@ public:
         std::vector< bool > found( rModelPart.Nodes().size());
 
         // Allocate non-historical variables
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             rNode.SetValue(rVar, 0.0);
         });
 
@@ -317,14 +317,14 @@ public:
         GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
 
         auto coordinate_proxy = pointer_comm.Apply(
-            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            [](GlobalPointer<Node >& global_pointer) -> Point::CoordinatesArrayType
             {
                 return global_pointer->Coordinates();
             }
         );
 
         auto distance_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3> >& global_pointer) -> double
+            [&](GlobalPointer<Node >& global_pointer) -> double
             {
                 return global_pointer->FastGetSolutionStepValue(rVar);
             }

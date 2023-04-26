@@ -76,7 +76,7 @@ public:
 
     /**
      * Type definitions
-     * NOTE: geometries are assumed to be of type Node<3> for all problems
+     * NOTE: geometries are assumed to be of type Node for all problems
      */
     typedef ProcessInfo ProcessInfoType;
     typedef std::size_t SizeType;

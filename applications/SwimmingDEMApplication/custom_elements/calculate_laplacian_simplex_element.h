@@ -70,7 +70,7 @@ public:
 
     typedef ComputeMaterialDerivativeSimplex<TDim, TNumNodes> BaseType;
 
-    /// Node type (default is: Node<3>)
+    /// Node type (default is: Node)
     typedef Node <3> NodeType;
 
     /// Geometry type (using with given NodeType)

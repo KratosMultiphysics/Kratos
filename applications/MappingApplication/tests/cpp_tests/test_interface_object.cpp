@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite
 {
     Point coords(1.0, 2.5, 30.0);
 
-    const auto node_1(Kratos::make_shared<Node<3>>(1, coords));
+    const auto node_1(Kratos::make_shared<Node>(1, coords));
 
     Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceNode>(node_1.get()));
 
@@ -65,13 +65,13 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSuite)
 {
-    Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-    Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-    Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-    Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
+    Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+    Node::Pointer p_point2(new Node(2, 0.00, 10.00, 0.00));
+    Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+    Node::Pointer p_point4(new Node(4, 10.00, 0.00, 0.00));
 
-    const Kratos::shared_ptr<Geometry<Node<3>>> p_quad(
-        Kratos::make_shared<Quadrilateral2D4<Node<3>>>(
+    const Kratos::shared_ptr<Geometry<Node>> p_quad(
+        Kratos::make_shared<Quadrilateral2D4<Node>>(
             p_point1, p_point2, p_point3, p_point4));
 
     Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceGeometryObject>(p_quad.get()));

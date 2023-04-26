@@ -45,7 +45,7 @@ public:
 
     using ElementBaseType = TwoFluidVMS<TDim,TNumNodes>;
 
-    ///definition of node type (default is: Node<3>)
+    ///definition of node type (default is: Node)
     typedef Node < 3 > NodeType;
     
     /**

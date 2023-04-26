@@ -202,7 +202,7 @@ public:
             double y = out.pointlist[base+1];
             double z = out.pointlist[base+2];
 
-            Node<3>::Pointer p_new_node = Node<3>::Pointer(new Node<3>(i+1, x, y, z));
+            Node::Pointer p_new_node = Node::Pointer(new Node(i+1, x, y, z));
 
             // Giving model part's variables list to the node
             p_new_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
@@ -226,7 +226,7 @@ public:
         {
             int base=i*4;
 
-            Tetrahedra3D4<Node<3> > geom(
+            Tetrahedra3D4<Node > geom(
                 *( (nodes_begin +  out.tetrahedronlist[base]-1).base() 	),
                 *( (nodes_begin +  out.tetrahedronlist[base+1]-1).base() 	),
                 *( (nodes_begin +  out.tetrahedronlist[base+2]-1).base() 	),

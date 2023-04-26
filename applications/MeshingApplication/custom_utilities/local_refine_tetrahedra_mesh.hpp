@@ -429,7 +429,7 @@ public:
                             unsigned int i1   = aux[t[base+1]];
                             unsigned int i2   = aux[t[base+2]];
 
-                            Triangle3D3<Node<3> > newgeom(
+                            Triangle3D3<Node > newgeom(
                                     this_model_part.Nodes()(i0),
                                     this_model_part.Nodes()(i1),
                                     this_model_part.Nodes()(i2)

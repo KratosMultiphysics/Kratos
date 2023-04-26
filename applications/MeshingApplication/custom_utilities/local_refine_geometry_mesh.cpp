@@ -70,7 +70,7 @@ void LocalRefineGeometryMesh::LocalRefineMesh(
     });
 
     if (RefineOnReference) {
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
             rNode.X() = rNode.X0();
             rNode.Y() = rNode.Y0();
             rNode.Z() = rNode.Z0();
@@ -95,14 +95,14 @@ void LocalRefineGeometryMesh::LocalRefineMesh(
     RenumeringElementsAndNodes(mModelPart, new_elements);
 
     // Assigning refinement level to newly created nodes
-    block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+    block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
         if(!rNode.Has(REFINEMENT_LEVEL)){
             rNode.SetValue(REFINEMENT_LEVEL, mCurrentRefinementLevel);
         }
     });
 
     if (RefineOnReference) {
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
             const array_1d<double, 3 >& r_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
             rNode.X() = rNode.X0() + r_disp[0];
             rNode.Y() = rNode.Y0() + r_disp[1];
@@ -236,7 +236,7 @@ void LocalRefineGeometryMesh::CalculateCoordinateAndInsertNewNodes(
     auto& r_reference_dofs = (rModelPart.NodesBegin())->GetDofs();
 
     // Fill an auxiliary array with a pointer to the existing nodes
-    std::unordered_map< unsigned int, Node<3>::Pointer > aux_node_list;
+    std::unordered_map< unsigned int, Node::Pointer > aux_node_list;
     for(auto it = rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
         aux_node_list[it->Id()] = ( *(it.base()) );
 
@@ -444,7 +444,7 @@ void LocalRefineGeometryMesh::UpdateSubModelPartNodes(ModelPart &rModelPart)
 
 void LocalRefineGeometryMesh::ResetFatherNodes(ModelPart &rModelPart)
 {
-    block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+    block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
         if (rNode.Has(FATHER_NODES)) {
             (rNode.GetValue(FATHER_NODES)).clear();
         }

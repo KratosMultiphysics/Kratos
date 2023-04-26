@@ -264,7 +264,7 @@ public:
         int nerased_el = 0;
         for(ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it!=rModelPart.ElementsEnd(); it++)
         {
-            Geometry< Node<3> >& geom = it->GetGeometry();
+            Geometry< Node >& geom = it->GetGeometry();
 
 //	    bool erase_el = false;
             for(unsigned int i=0; i<geom.size(); i++)

@@ -395,7 +395,7 @@ namespace Kratos
 
             if (is_found == true)
 	      {
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                Geometry<Node >& geom = pelement->GetGeometry();
 		BoundedMatrix<double, 3, 2 > msDN_DX;
 		array_1d<double, 3 > N;
 	    	//array_1d<double, 3 > N;
@@ -669,7 +669,7 @@ namespace Kratos
 	    bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
 	    if (is_found == true)
 	      {
-		Geometry<Node<3> >& geom = pelement->GetGeometry();
+		Geometry<Node >& geom = pelement->GetGeometry();
 		BoundedMatrix<double, 4, 3 > msDN_DX;
 		array_1d<double, 4 > N;
 		double Area=0.0;
@@ -889,7 +889,7 @@ namespace Kratos
 
 		  int nf=0;
 		  //loop on neighbours and erase if they are too close
-		  for( GlobalPointersVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+		  for( GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		    {
 
 			//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
@@ -938,7 +938,7 @@ namespace Kratos
 
             if (is_found == true)
 	      {
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                Geometry<Node >& geom = pelement->GetGeometry();
 
                 BoundedMatrix<double, 4, 3 > msDN_DX;
 
@@ -1029,7 +1029,7 @@ namespace Kratos
 
 	for (ModelPart::ElementsContainerType::iterator ielem = mp_local_model_part.ElementsBegin();ielem != mp_local_model_part.ElementsEnd(); ielem++)
 	  {
-	    Geometry< Node<3> >& geom = ielem->GetGeometry();
+	    Geometry< Node >& geom = ielem->GetGeometry();
 	    if(geom.size()>1)
 	      {
 		ielem->GetValue(DIAMETER) = -1;
@@ -1059,7 +1059,7 @@ namespace Kratos
 
 	for (ModelPart::ElementsContainerType::iterator ielem = mp_local_model_part.ElementsBegin(); ielem != mp_local_model_part.ElementsEnd(); ielem++)
 	  {
-	    Geometry< Node<3> >& geom = ielem->GetGeometry();
+	    Geometry< Node >& geom = ielem->GetGeometry();
 	    if(geom.size()>1 && ielem->GetValue(DIAMETER) < 0 )
 	      {
 		color++;
@@ -1443,7 +1443,7 @@ namespace Kratos
 
             if (is_found == true)
 	      {
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                Geometry<Node >& geom = pelement->GetGeometry();
                 const array_1d<double, 3 > & vel_particle = (iparticle)->FastGetSolutionStepValue(VELOCITY);
                 double density_particle = (iparticle)->FastGetSolutionStepValue(DENSITY);
                 double Tp=(iparticle)->FastGetSolutionStepValue(YCH4);  //HEAT_FLUX

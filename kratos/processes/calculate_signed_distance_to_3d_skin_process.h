@@ -386,7 +386,7 @@ public:
                 array_1d<double,4> nodalPressures;
                 const Vector& ElementalDistances = pElement->GetValue(ELEMENTAL_DISTANCES);
 
-                Geometry<Node<3> >& geom = pElement->GetGeometry();
+                Geometry<Node >& geom = pElement->GetGeometry();
 
                 for(unsigned int j=0; j<geom.size(); j++)
                 {
@@ -495,7 +495,7 @@ public:
 			{			    
 			    double av_pos_pres=0.0;
 			    double av_neg_pres=0.0;
-			    for( GlobalPointersVector< Node<3> >::iterator j = neighours.begin();
+			    for( GlobalPointersVector< Node >::iterator j = neighours.begin();
 				        j != neighours.end(); j++)
 			    {
 				
@@ -528,8 +528,8 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void ComputeDiscontinuousInterpolation( const Node<3>& pNode,
-                                            Geometry< Node<3> >& geom,
+    void ComputeDiscontinuousInterpolation( const Node& pNode,
+                                            Geometry< Node >& geom,
                                             const array_1d<double,4>& distances,
                                             array_1d<double,4>& Npos,
                                             array_1d<double,4>& Nneg)
@@ -692,7 +692,7 @@ public:
     ///******************************************************************************************************************
 
     void AveragePressureToNode(BinBasedFastPointLocator<3>& node_locator,
-                               Node<3>& node)
+                               Node& node)
     {
         //loop over nodes and find the tetra in which it falls, than do interpolation
         Vector N;
@@ -707,7 +707,7 @@ public:
         {
             array_1d<double,4> nodalPressures;
             const Vector& ElementalDistances = pElement->GetValue(ELEMENTAL_DISTANCES);
-            Geometry<Node<3> >& geom = pElement->GetGeometry();
+            Geometry<Node >& geom = pElement->GetGeometry();
 
             for(unsigned int i=0; i<4; i++)
                 nodalPressures[i] = geom[i].GetSolutionStepValue(PRESSURE);
@@ -1219,7 +1219,7 @@ public:
                                           std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                           array_1d<double,4>&                         ElementalDistances )
     {
-        Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
+        Geometry< Node >& rFluidGeom = i_fluid_Element->GetGeometry();
 
         Point  P1;
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
@@ -1240,7 +1240,7 @@ public:
                                            std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                            array_1d<double,4>&                         ElementalDistances )
     {
-        Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
+        Geometry< Node >& rFluidGeom = i_fluid_Element->GetGeometry();
 
         Point  P1;
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
@@ -1281,7 +1281,7 @@ public:
                                              std::vector<IntersectionNodeStruct>&        NodesOfApproximatedStructure,
                                              array_1d<double,4>&                         ElementalDistances )
     {
-        Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
+        Geometry< Node >& rFluidGeom = i_fluid_Element->GetGeometry();
 
         Point P1;
         Point P2;
@@ -1468,7 +1468,7 @@ public:
              i_fluid_Element != mrFluidModelPart.ElementsEnd();
              i_fluid_Element++)
         {
-            Geometry< Node<3> >& geom = i_fluid_Element->GetGeometry();
+            Geometry< Node >& geom = i_fluid_Element->GetGeometry();
             const Vector& ElementalDistances = i_fluid_Element->GetValue(ELEMENTAL_DISTANCES);
 
             // Assign distances to the single nodes, if a smaller value is found
@@ -1551,7 +1551,7 @@ public:
             if(is_split == true)
             {
                 const Vector& distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
-                Geometry< Node<3> >& geom = i_fluid_element->GetGeometry();
+                Geometry< Node >& geom = i_fluid_element->GetGeometry();
 
                 // generate the points on the edges at the zero of the distance function
                 std::vector< Point > edge_points;
@@ -1586,7 +1586,7 @@ public:
 
                     // ######## ADDING NEW CONDITION #########
                     //form a triangle
-                    Triangle3D3< Node<3> > triangle(pnode1, pnode2, pnode3);
+                    Triangle3D3< Node > triangle(pnode1, pnode2, pnode3);
 
                     Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D");
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
@@ -1656,8 +1656,8 @@ public:
 
                     // ######## ADDING NEW CONDITION #########
                     //form two triangles
-                    Triangle3D3< Node<3> > triangle1(pnode1, pnode2, pnode3);
-                    Triangle3D3< Node<3> > triangle2(pnode1, pnode3, pnode4);
+                    Triangle3D3< Node > triangle1(pnode1, pnode2, pnode3);
+                    Triangle3D3< Node > triangle2(pnode1, pnode3, pnode4);
 
                     Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D");
                  
@@ -2054,7 +2054,7 @@ public:
 
     }
 
-    void CalculateNodeDistance(Node<3>& rNode)
+    void CalculateNodeDistance(Node& rNode)
     {
         double coord[3] = {rNode.X(), rNode.Y(), rNode.Z()};
         double distance = DistancePositionInSpace(coord);
@@ -2067,7 +2067,7 @@ public:
             node_distance = -node_distance;
     }
 
-    //      void CalculateNodeDistanceFromCell(Node<3>& rNode)
+    //      void CalculateNodeDistanceFromCell(Node& rNode)
     //      {
     //          OctreeType::key_type node_key[3] = {octree->CalcKeyNormalized(rNode.X()), octree->CalcKeyNormalized(rNode.Y()), octree->CalcKeyNormalized(rNode.Z())};
     //          OctreeType::cell_type* pcell = octree->pGetCell(node_key);
@@ -2221,7 +2221,7 @@ public:
             //          {
             //              if(cell->pGetData()->size() > position)
             //              {
-            //                  Node<3>* p_node = (*cell->pGetData())[position];
+            //                  Node* p_node = (*cell->pGetData())[position];
             //                  if(p_node)
             //                  {
             //                      //KRATOS_WATCH(p_node->Id())
