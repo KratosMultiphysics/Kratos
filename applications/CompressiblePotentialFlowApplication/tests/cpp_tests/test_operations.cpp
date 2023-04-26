@@ -18,8 +18,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_operations/potential_to_compressible_navier_stokes_operation.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 /**
 * @brief This method creates a potential_model_part and a "fake" compressible_model_part. 
