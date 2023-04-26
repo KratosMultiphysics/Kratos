@@ -1046,8 +1046,6 @@ public:
         for(unsigned int i = 0 ; i < 2 ; i++){ // It's a triangle, so only (local) xi and eta
             if (rProjectionPointLocalCoordinates[i] < 0.0) { // Clipping to zero
                 rProjectionPointLocalCoordinates[i] = 0.0;
-            } else if (rProjectionPointLocalCoordinates[i] > 1.0) { // Clipping to one
-                rProjectionPointLocalCoordinates[i] = 1.0;
             }
             sum_coordinates += rProjectionPointLocalCoordinates[i];
         }
