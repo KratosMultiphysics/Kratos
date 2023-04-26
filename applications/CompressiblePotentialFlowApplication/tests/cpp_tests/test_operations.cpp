@@ -140,7 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
       KRATOS_CHECK_NEAR(velocity[2], 0, 1e-6);
 
       // Explicit calculate of local nodal values
-      const double& velocity_norm_2 = velocity[0] * velocity[0] + velocity[1] * velocity[1];
+      const double velocity_norm_2 = velocity[0] * velocity[0] + velocity[1] * velocity[1];
       const double velocity_norm = std::sqrt(velocity_norm_2);
       const double mach = velocity_norm / sound_velocity;
       const double num = 1.0 + 0.5 * (gamma - 1.0) * std::pow(free_stream_mach,2);
