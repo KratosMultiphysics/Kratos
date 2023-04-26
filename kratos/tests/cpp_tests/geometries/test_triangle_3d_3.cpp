@@ -221,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Inradius, KratosCoreGeometriesFastSuite) {
 KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ProjectionPoint, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    Point point(0.5 * std::cos(Globals::Pi/4), 0.55, 0.5 * std::sin(Globals::Pi/4));
+    Point point(0.5 * std::cos(Globals::Pi/4), 0.45, 0.5 * std::sin(Globals::Pi/4));
 
     Geometry<Point>::CoordinatesArrayType global_coords;
     Geometry<Point>::CoordinatesArrayType local_coords;
@@ -242,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ProjectionPoint, KratosCoreGeometriesFastSu
     KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], point_projected[2], 1.0e-4);
 
     KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.5, 1.0e-4);
-    KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.55, 1.0e-4);
+    KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.45, 1.0e-4);
     KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
 }
 
