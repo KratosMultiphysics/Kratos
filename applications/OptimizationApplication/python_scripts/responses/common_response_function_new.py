@@ -18,6 +18,3 @@ class CommonResponseFunction(object):
         MC.ComputePrimal(des_var)
         MC.ComputeAdjoint(des_var)
         self.function.ComputeResponseGradients(gradients)
-
-
-    

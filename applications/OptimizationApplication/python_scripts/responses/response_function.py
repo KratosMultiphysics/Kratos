@@ -13,7 +13,7 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def ComputeResponseValue(self, MC) -> float:
+    def ComputeResponseValue(self) -> float:
         pass
 
     @abstractmethod
