@@ -102,13 +102,6 @@ public:
     /// The block type
     using BlockType = VariablesListDataValueContainer::BlockType;
 
-    /// NOTE: Unused
-    using DoubleVariableType = Variable<double>;
-
-    /// NOTE: Unused
-    using WeakPointerVectorType = GlobalPointersVector<NodeType>;
-
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -545,9 +538,7 @@ public:
             }
         }
 
-#if KRATOS_DEBUG
-        KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
-#endif 
+        KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl; 
 
         pAddDof(rDofVariable)->FixDof();
     }
@@ -562,9 +553,7 @@ public:
             }
         }
 
-#if KRATOS_DEBUG
-        KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
-#endif
+        KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
 
         pAddDof(rDofVariable)->FreeDof();
     }
