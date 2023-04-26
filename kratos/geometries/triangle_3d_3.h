@@ -1044,16 +1044,16 @@ public:
     {
         double sum_coordinates = 0.0;
         for(unsigned int i = 0 ; i < 2 ; i++){ // It's a triangle, so only (local) xi and eta
-            if (local_coordinates[i] < 0.0) { // Clipping to zero
-                local_coordinates[i] = 0.0;
-            } else if (local_coordinates[i] > 1.0) { // Clipping to one
-                local_coordinates[i] = 1.0;
+            if (rProjectionPointLocalCoordinates[i] < 0.0) { // Clipping to zero
+                rProjectionPointLocalCoordinates[i] = 0.0;
+            } else if (rProjectionPointLocalCoordinates[i] > 1.0) { // Clipping to one
+                rProjectionPointLocalCoordinates[i] = 1.0;
             }
-            sum_coordinates += local_coordinates[i];
+            sum_coordinates += rProjectionPointLocalCoordinates[i];
         }
         
         for(unsigned int i = 0 ; i < 2 ; i++){ // Clipping to line y=1-x
-            local_coordinates[i]/=sum_coordinates;
+            rProjectionPointLocalCoordinates[i] /= sum_coordinates;
         }
 
         return 1;
