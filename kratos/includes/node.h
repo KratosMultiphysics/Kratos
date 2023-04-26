@@ -35,6 +35,9 @@
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
 #include "includes/kratos_flags.h"
+#if KRATOS_DEBUG
+#include "utilities/openmp_utils.h"
+#endif
 
 namespace Kratos
 {
