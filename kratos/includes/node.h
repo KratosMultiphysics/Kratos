@@ -732,7 +732,7 @@ public:
      * @return The DoF associated to the given variable
      */
     template<class TVariableType>
-    inline const typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
+    inline typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
     {
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
             if((*it_dof)->GetVariable() == rDofVariable){
@@ -752,7 +752,7 @@ public:
      * @return The DoF associated to the given variable
      */
     template<class TVariableType>
-    inline const typename DofType::Pointer pGetDof(
+    inline typename DofType::Pointer pGetDof(
         TVariableType const& rDofVariable,
         int Position
         ) const
