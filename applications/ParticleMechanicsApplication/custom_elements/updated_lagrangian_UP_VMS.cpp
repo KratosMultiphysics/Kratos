@@ -195,6 +195,9 @@ void UpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVari
     rVariables.ResProjDisplGP = ZeroVector(dimension);
     rVariables.ResProjPressGP = 0;
 
+    // Set Body forces
+    rVariables.BodyForceMP = ZeroVector(dimension);
+
     KRATOS_CATCH( "" )
 
 }
@@ -277,7 +280,7 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        Vector volume_force = mMP.volume_acceleration * mMP.mass;
+        Vector volume_force =  Variables.BodyForceMP; //mMP.volume_acceleration * mMP.mass +
 //         std::cout << "mass Elem System:  " << mMP.mass << "\n";
         this->CalculateAndAddRHS(
             rRightHandSideVector,
@@ -334,7 +337,7 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
         {
             rVariables.ResProjPressGP += r_N(0,j) * r_geometry[j].FastGetSolutionStepValue(RESPROJ_PRESS);
 
-            nodal_resprojdispl= r_geometry[j].FastGetSolutionStepValue(RESPROJ_DISPL,0);
+            nodal_resprojdispl = r_geometry[j].FastGetSolutionStepValue(RESPROJ_DISPL,0);
             for (unsigned int k = 0; k < dimension; k++)
             {
                  rVariables.ResProjDisplGP[k] += r_N(0, j) * nodal_resprojdispl[k];
@@ -361,6 +364,28 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
     {
         rVariables.ShearModulus = GetProperties()[DYNAMIC_VISCOSITY];
         rVariables.BulkModulus = 1e16;
+    }
+
+
+
+    // Body forces
+    rVariables.BodyForceMP = ZeroVector(3);
+    array_1d<double, 3 > nodal_body_force = ZeroVector(3);
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+        if (r_geometry[j].SolutionStepsDataHas(BODY_FORCE))
+        {
+            nodal_body_force = r_geometry[j].FastGetSolutionStepValue(BODY_FORCE,0);
+            // std::cout << "Bodyforce: " << nodal_body_force <<"\n";
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+                rVariables.BodyForceMP[k] += r_N(0, j) * nodal_body_force[k];
+                //rVariables.BodyForceMP[k] += 5000;
+
+            }
+            // std::cout << "Bodyforce: " << rVariables.BodyForceMP <<"\n";
+        }
+
     }
 
     KRATOS_CATCH("")

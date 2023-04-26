@@ -324,7 +324,7 @@ void UpdatedLagrangian::CalculateElementalSystem(
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        Vector volume_force = mMP.volume_acceleration * mMP.mass;
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass ); //+ Variables.BodyForceMP;
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
