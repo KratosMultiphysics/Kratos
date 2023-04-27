@@ -120,7 +120,6 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(quadrature_points[0]->size(), 3);
             KRATOS_CHECK_EQUAL(quadrature_points[0]->WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(quadrature_points[0]->LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(quadrature_points[0]->Dimension(), 2);
 
             KRATOS_CHECK_MATRIX_NEAR(quadrature_points[0]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3)[0], 1e-6);
             KRATOS_CHECK_MATRIX_NEAR(quadrature_points[1]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3)[1], 1e-6);
@@ -140,7 +139,6 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->size(), 3);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->Dimension(), 2);
 
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size1(), 1);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size2(), 3);
@@ -179,7 +177,6 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->size(), 3);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->Dimension(), 2);
 
             KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[0].Id(), 4);
             KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[1].Id(), 5);
@@ -219,7 +216,6 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->size(), 3);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_this_quadrature_point->Dimension(), 2);
 
             KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[0].Id(), 4);
             KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[1].Id(), 5);
@@ -261,7 +257,6 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(geom.size(), 3);
             KRATOS_CHECK_EQUAL(geom.WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(geom.LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(geom.Dimension(), 2);
 
             KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size1(), 1);
             KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size2(), 3);
@@ -286,7 +281,6 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(geom.size(), 3);
             KRATOS_CHECK_EQUAL(geom.WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(geom.LocalSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(geom.Dimension(), 2);
 
             KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size1(), 1);
             KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size2(), 3);

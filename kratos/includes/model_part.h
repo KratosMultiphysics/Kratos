@@ -792,6 +792,19 @@ public:
      */
     void RemoveMasterSlaveConstraintsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
+    /**
+     * @brief Returns if the MasterSlaveConstraint corresponding to it's identifier exists
+     * @param MasterSlaveConstraintId The ID of master-slave constraint
+     * @param ThisIndex The mesh index
+     */
+    bool HasMasterSlaveConstraint(
+        const IndexType MasterSlaveConstraintId,
+        IndexType ThisIndex = 0
+        ) const
+    {
+        return GetMesh(ThisIndex).HasMasterSlaveConstraint(MasterSlaveConstraintId);
+    }
+
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
     MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId, IndexType ThisIndex = 0);
 

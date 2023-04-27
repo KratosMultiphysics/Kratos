@@ -44,10 +44,37 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
     StlIO stl_io(p_input);
     stl_io.ReadModelPart(r_model_part);
 
-    std::cout << r_model_part << std::endl;
+    KRATOS_CHECK(r_model_part.HasSubModelPart("1 triangle"));
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfGeometries(), 1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTLAsElement, KratosCoreFastSuite)
+{
+    Kratos::shared_ptr<std::stringstream> p_input = Kratos::make_shared<std::stringstream>(R"input(
+    solid 1 triangle
+        facet normal  1.000000 0.000000 0.000000 
+            outer loop 
+            vertex 0.1 -2.56114e-08 0.1
+            vertex 0.1 -0.499156 -0.0352136
+            vertex 0.1 -0.473406 -0.0446259
+            endloop 
+        endfacet 
+    endsolid 1 triangle
+    )input");  
+
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    Parameters settings(R"({
+        "new_entity_type" : "element"
+    })");
+    StlIO stl_io(p_input,settings);
+    stl_io.ReadModelPart(r_model_part);
 
     KRATOS_CHECK(r_model_part.HasSubModelPart("1 triangle"));
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfGeometries(), 0);
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfElements(), 1);
 }
 
@@ -85,11 +112,9 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
     StlIO stl_io(p_input);
     stl_io.ReadModelPart(r_model_part);
 
-    std::cout << r_model_part << std::endl;
-
     KRATOS_CHECK(r_model_part.HasSubModelPart("3 triangles"));
     KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfNodes(), 9);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfElements(), 3);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfGeometries(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
@@ -109,10 +134,14 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
     //this element should be ignored as its area is zero.
     r_model_part.CreateNewElement("Element3D3N", 102, {1, 2, 4}, p_properties);
 
+    Parameters settings(R"({
+        "open_mode" : "write"
+    })");
+
     // write stl
     std::filesystem::path filename = "test_stl_write.stl";
     {
-        StlIO stl_write(filename, IO::WRITE);
+        StlIO stl_write(filename, settings);
         stl_write.WriteModelPart(r_model_part);
         // force to write to file
     }
@@ -128,13 +157,14 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfProperties(), 1);
     KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfSubModelParts() ,1);
     KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfGeometries(), 1);
     KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfConditions(), 0);
 
     KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfGeometries(), 1);
+    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfElements(), 0);
     KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfConditions(), 0);
-    
+
     // remove the generated files
     if (std::filesystem::remove(filename) != true) {
         KRATOS_ERROR << "Error deleting test output file: " << filename << "\n";
