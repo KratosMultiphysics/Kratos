@@ -7,14 +7,26 @@ class MasterControl(object):
     def __init__(self) -> None:
         self.SubControlList = []
         self.actual_model_des_var
+        self.Analysis = []
 
-    def ComputePrimal(self, des_var):
+    def UpdateModels(self, des_var):
         for sub_control in self.SubControlList:
-            require_update = sub_control.CheckModelState(des_var)
-            if require_update:
-                sub_control.UpdateModel(des_var) # Calls VM, computes delta_x and update the sub_model part
-                sub_model_part = sub_control.GetModelPart()
-                sub_model_part.ComputePrimal()
-                
-    def ComputeAdjoint(self, des_var):
-        pass
+            sub_des_var = self.GetSubVectorPart(des_var, sub_control)
+            sub_actual_model_des_var = self.GetSubVectorPart(self.actual_model_des_var)
+            sub_control.UpdateModel(sub_des_var, sub_actual_model_des_var)
+        self.actual_model_des_var = des_var
+        for analysis in self.Analysis:
+            for sub_control in self.SubControlList:
+                RMP = sub_control.GetRootModel()
+                if RMP.isSolved and analysis.Has(RMP):
+                    analysis.isSolved = False
+
+    def GetInitialDesignVariables(self):
+        return init_des_var
+    
+    def FlatternVectors(self):
+        vector = []
+        for sub_control in self.SubControlList:
+            sub_vector = sub_control.GetData()
+            vector.append(sub_vector)
+        return vector

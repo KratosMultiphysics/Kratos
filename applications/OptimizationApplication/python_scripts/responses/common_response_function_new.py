@@ -11,7 +11,7 @@ class CommonResponseFunction(object):
         self.model
 
     def ComputeResponseValue(des_var, MC):
-        MC.ComputePrimal(des_var, self.model)
+        MC.ComputePrimal(des_var)
         value = self.function.ComputeResponseValue() # we don't need to parse the des_var here anymore
 
     def ComputeResponseGradients(des_var, gradients, MC):

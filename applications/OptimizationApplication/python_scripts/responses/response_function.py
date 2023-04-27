@@ -13,9 +13,9 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def ComputeResponseValue(self) -> float:
+    def ComputeResponseValue(self, des_var, MC) -> float:
         pass
 
     @abstractmethod
-    def ComputeResponseGradients(self, gradients) -> None:
+    def ComputeResponseGradients(self, des_var, gradients, MC) -> None:
         pass
