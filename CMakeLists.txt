@@ -151,9 +151,20 @@ if(GIT_FOUND)
     message("Git did not find the SHA1 number. It will be set to 0.")
     set (KratosMultiphysics_SHA1_NUMBER 0)
   endif(SHA1_NOT_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} branch --show-current
+    OUTPUT_VARIABLE KratosMultiphysics_BRANCH_NAME
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE BRANCH_NAME_NOT_FOUND
+  )
+  if(BRANCH_NAME_NOT_FOUND)
+    message("Git did not find the branch name. It will be set to empty.")
+    set (KratosMultiphysics_BRANCH_NAME "")
+  endif(BRANCH_NAME_NOT_FOUND)
 else(GIT_FOUND)
-  message("Git was not found on your system. SHA1 number will be set to 0.")
+  message(STATUS "Git was not found on your system. SHA1 number will be set to 0. Branch name to empty.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
+  set (KratosMultiphysics_BRANCH_NAME "")
 endif(GIT_FOUND)
 
 # Configure files depending on the build type
