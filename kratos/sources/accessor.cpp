@@ -177,4 +177,5 @@ Accessor::UniquePointer Accessor::Clone() const
 {
     return Kratos::make_unique<Accessor>(*this);
 }
+
 } // namespace Kratos

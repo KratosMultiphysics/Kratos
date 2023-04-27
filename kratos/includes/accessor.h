@@ -56,6 +56,7 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor
     Accessor() = default;
 
     /// Destructor.

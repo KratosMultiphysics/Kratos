@@ -627,7 +627,7 @@ private:
 
     SubPropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
-    AccessorsContainerType mAccessors = {};
+    AccessorsContainerType mAccessors = {}; /// The map containing the variable and corresponding accessor pairs
 
     ///@}
     ///@name Private Operators
@@ -649,7 +649,13 @@ private:
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
         rSerializer.save("SubPropertiesList", mSubPropertiesList);
-        // rSerializer.save("Accessors", mAccessors);
+        std::vector<std::pair<const KeyType, Accessor*>> aux_accessors_container;
+        for (auto& r_item : mAccessors) {
+            const auto key = r_item.first;
+            const auto& rp_accessor = r_item.second;
+            aux_accessors_container.push_back(std::make_pair(key, &(*rp_accessor)));
+        }
+        rSerializer.save("Accessors", aux_accessors_container);
     }
 
     void load(Serializer& rSerializer) override
@@ -658,7 +664,13 @@ private:
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
         rSerializer.load("SubPropertiesList", mSubPropertiesList);
-        // rSerializer.load("Accessors", mAccessors);
+        std::vector<std::pair<const KeyType, Accessor*>> aux_accessors_container;
+        rSerializer.load("Accessors", aux_accessors_container);
+        for (auto& r_item : aux_accessors_container) {
+            const auto key = r_item.first;
+            const auto& rp_accessor = r_item.second;
+            mAccessors.emplace(key, rp_accessor->Clone());
+        }
     }
 
     ///@}
