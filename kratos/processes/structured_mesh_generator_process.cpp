@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(const GeometryType& rGeometry, ModelPart& rOutputModelPart, Parameters& TheParameters)
+StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(const GeometryType& rGeometry, ModelPart& rOutputModelPart, Parameters TheParameters)
     : Process()
     , mrGeometry(rGeometry)
     , mrOutputModelPart(rOutputModelPart) {
