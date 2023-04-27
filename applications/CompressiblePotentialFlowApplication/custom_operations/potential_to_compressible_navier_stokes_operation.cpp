@@ -29,6 +29,8 @@ namespace Kratos
 PotentialToCompressibleNavierStokesOperation::PotentialToCompressibleNavierStokesOperation(
     Model& rModel,
     Parameters ModelParameters)
+        : mpModel(&rModel)
+        , mParameters(ModelParameters)
 {
     mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }

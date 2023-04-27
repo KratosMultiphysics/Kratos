@@ -35,7 +35,7 @@ namespace Kratos
  * @brief This operation pass the nodal velocities from Potential model part as initial condition of a compressible 
  * Navier Stokes model part in conservative variables form.
 */
-class KRATOS_API(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) PotentialToCompressibleNavierStokesOperation : public Operation
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) PotentialToCompressibleNavierStokesOperation : public Operation
 {
 public:
     ///@name Type Definitions
