@@ -97,7 +97,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
-        /// Bins<3ul, PointType, PointVector> definitions
+        /// StaticBins definitions
         using StaticBinsTree = Tree<Bins<3ul, PointType, PointVector>>;
 
         // Creating the tree
@@ -182,7 +182,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
-        /// Bins<3ul, PointType, PointVector> definitions
+        /// StaticBins definitions
         using StaticBinsTree = Tree<Bins<3ul, PointType, PointVector>>;
 
         // Creating the tree
