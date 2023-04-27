@@ -35,9 +35,6 @@
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
 #include "includes/kratos_flags.h"
-#if KRATOS_DEBUG
-#include "utilities/openmp_utils.h"
-#endif
 
 namespace Kratos
 {
@@ -323,26 +320,22 @@ public:
         return PointType::operator ==(rOther);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return GetSolutionStepValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
+    template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
     {
         return GetSolutionStepValue(rThisVariable);
     }
 
-    template<class TDataType> 
-    TDataType& operator[](const Variable<TDataType>& rThisVariable)
+    template<class TDataType> TDataType& operator[](const Variable<TDataType>& rThisVariable)
     {
         return GetValue(rThisVariable);
     }
 
-    template<class TDataType> 
-    const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
+    template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue(rThisVariable);
     }
@@ -412,26 +405,22 @@ public:
         return mData;
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
+    template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
@@ -445,57 +434,48 @@ public:
     //*******************************************************************************************
     //By Riccardo
     //very similar to the one before BUT throws an error if the variable does not exist
-    template<class TVariableType> 
-    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
+    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
-    template<class TVariableType> 
-    const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> 
-    const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
+    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex, ThisPosition);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
+    template<class TVariableType> typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetCurrentValue(rThisVariable, ThisPosition);
     }
 //*******************************************************************************************
 
-    template<class TVariableType> 
-    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
+    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
     {
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
     {
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         if(!mData.Has(rThisVariable))
             return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
@@ -503,8 +483,7 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> 
-    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         if(!mData.Has(rThisVariable))
             return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
@@ -518,8 +497,7 @@ public:
         mData.SetValue(rThisVariable, rValue);
     }
 
-    template<class TDataType> 
-    bool Has(const Variable<TDataType>& rThisVariable) const
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
     }
@@ -538,10 +516,12 @@ public:
             }
         }
 
-    #if KRATOS_DEBUG
-        KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
-    #endif
-
+#ifdef KRATOS_DEBUG
+        if(OpenMPUtils::IsInParallel() != 0)
+        {
+            KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+        }
+#endif
         pAddDof(rDofVariable)->FixDof();
     }
 
@@ -555,10 +535,12 @@ public:
             }
         }
 
-    #if KRATOS_DEBUG
-        KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
-    #endif
-
+#ifdef KRATOS_DEBUG
+        if(OpenMPUtils::IsInParallel() != 0)
+        {
+            KRATOS_ERROR << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+        }
+#endif
         pAddDof(rDofVariable)->FreeDof();
     }
 
