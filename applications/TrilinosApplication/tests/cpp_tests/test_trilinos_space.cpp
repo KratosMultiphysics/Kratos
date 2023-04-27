@@ -511,6 +511,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosScaleAndAdd2, KratosTrilinosApplic
     local_vector_1 = mult_1 * local_vector_2 + mult_2 * local_vector_1;
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector_1, local_vector_1);
 }
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSet, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
