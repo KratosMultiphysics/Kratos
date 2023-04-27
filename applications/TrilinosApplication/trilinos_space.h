@@ -632,99 +632,24 @@ public:
      * @brief Sets a value in a vector
      * @param rX The vector considered
      * @param i The index of the value considered
-     * @param Value The value considered
-     * @tparam TGlobalAssemble If considering a global assembling
+     * @param value The value considered
      */
-    template<bool TGlobalIndex = true, bool TGlobalAssemble = true>
     static void SetValue(
         VectorType& rX,
         IndexType i,
-        const double Value
+        const double value
         )
     {
-        int ierr = 0;
-        if constexpr (TGlobalIndex) {
-            Epetra_IntSerialDenseVector indices(1);
-            Epetra_SerialDenseVector values(1);
-            indices[0] = i;
-            values[0] = Value;
-            ierr = rX.ReplaceGlobalValues(indices, values);
-        } else {
-            ierr = rX.ReplaceMyValue(static_cast<int>(i), 0, Value);
-        }
+        Epetra_IntSerialDenseVector indices(1);
+        Epetra_SerialDenseVector values(1);
+        indices[0] = i;
+        values[0] = value;
+
+        int ierr = rX.ReplaceGlobalValues(indices, values);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
-        if constexpr (TGlobalAssemble) {
-            ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-            KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
-        }
-    }
-
-    /**
-     * @brief Sets a value in a vector without global assembly
-     * @param rX The vector considered
-     * @param i The index of the value considered
-     * @param Value The value considered
-     */
-    template<bool TGlobalIndex = true>
-    static void SetValueWithoutGlobalAssembly(
-        VectorType& rX,
-        IndexType i,
-        const double Value
-        )
-    {
-        SetValue<TGlobalIndex, false>(rX, i, Value);
-    }
-
-    /**
-     * @brief Sets a value in a matrix
-     * @param rX The vector considered
-     * @param i The first index of the value considered
-     * @param j The second index of the value considered
-     * @param Value The value considered
-     * @tparam TGlobalAssemble If considering a global assembling
-     */
-    template<bool TGlobalIndex = true, bool TGlobalAssemble = true>
-    static void SetValue(
-        MatrixType& rA,
-        IndexType i,
-        IndexType j,
-        const double Value
-        )
-    {
-        std::vector<double> values(1, Value);
-        std::vector<int> indices(1, j);
-
-        int ierr = 0;
-        if constexpr (TGlobalIndex) {
-            ierr = rA.ReplaceGlobalValues(static_cast<int>(i), 1, values.data(), indices.data());
-        } else {
-            ierr = rA.ReplaceMyValues(static_cast<int>(i), 1, values.data(), indices.data());
-        }
-        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
-
-        if constexpr (TGlobalAssemble) {
-            ierr = rA.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
-        }
-    }
-
-    /**
-     * @brief Sets a value in a matrix
-     * @param rX The vector considered
-     * @param i The first index of the value considered
-     * @param j The second index of the value considered
-     * @param Value The value considered
-     */
-    template<bool TGlobalIndex = true>
-    static void SetValueWithoutGlobalAssembly(
-        MatrixType& rA,
-        IndexType i,
-        IndexType j,
-        const double Value
-        )
-    {
-        SetValue<TGlobalIndex, false>(rA, i, j, Value);
+        ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
     }
 
     /**
