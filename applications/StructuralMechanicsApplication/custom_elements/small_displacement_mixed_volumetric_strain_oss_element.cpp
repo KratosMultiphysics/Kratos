@@ -20,7 +20,6 @@
 #include "utilities/integration_utilities.h"
 #include "utilities/math_utils.h"
 #include "includes/checks.h"
-#include "includes/cfd_variables.h" //FIXME: For the OSS_SWITCH. Move to a more suitable place
 
 // Application includes
 #include "custom_elements/small_displacement_mixed_volumetric_strain_oss_element.h"
