@@ -36,9 +36,9 @@ public:
      * Type definitions
      * NOTE: geometries are assumed to be of type Node<3> for all problems
      */
-    typedef ProcessInfo ProcessInfoType;
-    typedef std::size_t SizeType;
-    typedef Geometry<Node<3>> GeometryType;
+    using ProcessInfoType = ProcessInfo;
+    using SizeType = std::size_t;
+    using GeometryType = Geometry<Node<3>>;
 
     /**
      * Counted pointer of RetentionLaw

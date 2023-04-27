@@ -56,13 +56,13 @@ public:
     ///@{
 
     /// The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw       CLBaseType;
+    using CLBaseType = ConstitutiveLaw;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    typedef LinearElastic2DInterfaceLaw      BaseType;
+    using BaseType = LinearElastic2DInterfaceLaw;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_3D;

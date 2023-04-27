@@ -163,7 +163,6 @@ class TestGeometry(KratosUnittest.TestCase):
         self.assertFalse(curve.IsRational())
 
         # check general information
-        self.assertEqual(curve.Dimension(), 1);
         self.assertEqual(curve.WorkingSpaceDimension(), 3);
         self.assertEqual(curve.LocalSpaceDimension(), 1);
 

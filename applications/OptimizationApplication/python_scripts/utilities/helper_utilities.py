@@ -27,6 +27,10 @@ def GetClassModuleFromKratos(class_name: str) -> str:
     else:
         raise RuntimeError(f"{class_name} is not found in KratosMultiphysics core or any of the available application root directories in Kratos. Available applications:\n\t" + "\n\t".join(list_of_available_appliacations))
 
+def CallOnAll(list_of_objects: 'list[any]', method: any, *args, **kwargs):
+    for obj in list_of_objects:
+        getattr(obj, method.__name__)(*args, **kwargs)
+
 def OptimizationProcessFactory(
     module_name: str,
     class_name: str,
