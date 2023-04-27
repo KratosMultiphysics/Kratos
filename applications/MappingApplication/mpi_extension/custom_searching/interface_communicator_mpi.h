@@ -122,7 +122,7 @@ private:
 
     std::size_t GetBufferSizeEstimate() const
     {
-        return mrMapperLocalSystems.size() / mSearchData.CommSize;
+        return mrMapperLocalSystems.size() / mCommSize;
     }
 
     void ComputeGlobalBoundingBoxes();
