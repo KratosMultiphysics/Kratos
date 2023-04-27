@@ -21,7 +21,6 @@
 
 // Project includes
 #include "custom_searching/interface_communicator.h"
-#include "mpi/utilities/mpi_search_utilities.h"
 
 namespace Kratos
 {
@@ -105,7 +104,17 @@ private:
     std::vector<double> mGlobalBoundingBoxes;
     // xmax, xmin,  ymax, ymin,  zmax, zmin
 
-    MPISearchData mSearchData; /// The search data
+    int mCommRank;
+    int mCommSize;
+
+    std::vector<int> mSendSizes;
+    std::vector<int> mRecvSizes;
+
+    BufferTypeDouble mSendBufferDouble;
+    BufferTypeDouble mRecvBufferDouble;
+
+    BufferTypeChar mSendBufferChar;
+    BufferTypeChar mRecvBufferChar;
 
     ///@}
     ///@name Private Operations
