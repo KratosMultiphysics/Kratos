@@ -23,25 +23,6 @@
 namespace Kratos
 {
 
-void MPISearchData::Initialize()
-{
-    // Set up the buffers
-    MPI_Comm_rank(MPI_COMM_WORLD, &CommRank);
-    MPI_Comm_size(MPI_COMM_WORLD, &CommSize);
-
-    SendSizes.resize(CommSize);
-    RecvSizes.resize(CommSize);
-
-    SendBufferDouble.resize(CommSize);
-    RecvBufferDouble.resize(CommSize);
-
-    SendBufferChar.resize(CommSize);
-    RecvBufferChar.resize(CommSize);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void MPISearchUtilities::ComputeBoundingBoxesWithTolerance(
     const std::vector<double>& rBoundingBoxes,
     const double Tolerance,

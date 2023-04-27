@@ -27,8 +27,8 @@ void GeometricalObjectsBinsMPI::InitializeSearch()
     KRATOS_TRY;
 
     // Reset to zero
-    std::fill(mSearchData.SendSizes.begin(), mSearchData.SendSizes.end(), 0);
-    std::fill(mSearchData.RecvSizes.begin(), mSearchData.RecvSizes.end(), 0);
+    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
     // Apply tolerance to bounding boxes
     std::vector<double> bounding_boxes_with_tol;
@@ -40,21 +40,21 @@ void GeometricalObjectsBinsMPI::InitializeSearch()
     // MapperUtilities::FillBufferBeforeLocalSearch(mrMapperLocalSystems,
     //                                              bounding_boxes_with_tol,
     //                                              GetBufferSizeEstimate(),
-    //                                              mSearchData.SendBufferDouble,
-    //                                              mSearchData.SendSizes);
+    //                                              mSendBufferDouble,
+    //                                              mSendSizes);
 
     // // Copy the local information directly
-    // mSearchData.RecvBufferDouble[mSearchData.CommRank] = mSearchData.SendBufferDouble[mSearchData.CommRank];
+    // mRecvBufferDouble[mCommRank] = mSendBufferDouble[mCommRank];
 
-    // const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferDouble, mSearchData.RecvBufferDoubl, , mSearchData.CommRank, mSearchData.CommSize, mSearchData.SendSizes, mSearchData.RecvSizes);
+    // const int err = MPISearchUtilities::ExchangeDataAsync(mSendBufferDouble, mRecvBufferDoubl, , mCommRank, mCommSize, mSendSizes, mRecvSizes);
 
     // KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the information for "
     //     << "the construction of the MapperInterfaceInfos in MPI" << std::endl;
 
     // // Construct MapperInterfaceInfos
-    // MapperUtilities::CreateMapperInterfaceInfosFromBuffer(mSearchData.RecvBufferDouble,
+    // MapperUtilities::CreateMapperInterfaceInfosFromBuffer(mRecvBufferDouble,
     //                                                       rpRefInterfaceInfo,
-    //                                                       mSearchData.CommRank,
+    //                                                       mCommRank,
     //                                                       mMapperInterfaceInfosContainer);
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -70,16 +70,16 @@ void GeometricalObjectsBinsMPI::FinalizeSearch()
     KRATOS_TRY;
 
     // Reset to zero
-    std::fill(mSearchData.SendSizes.begin(), mSearchData.SendSizes.end(), 0);
-    std::fill(mSearchData.RecvSizes.begin(), mSearchData.RecvSizes.end(), 0);
+    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
     // FilterInterfaceInfosSuccessfulSearch();
 
     // MapperUtilities::FillBufferAfterLocalSearch(mMapperInterfaceInfosContainer,
     //                                             rpRefInterfaceInfo,
-    //                                             mSearchData.CommRank,
+    //                                             mCommRank,
     //                                             mSendBufferChar,
-    //                                             mSearchData.SendSizes);
+    //                                             mSendSizes);
 
     // const int err = ExchangeDataAsync(mSendBufferChar, mRecvBufferChar);
 
@@ -88,7 +88,7 @@ void GeometricalObjectsBinsMPI::FinalizeSearch()
 
     // MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(mRecvBufferChar,
     //                                                            rpRefInterfaceInfo,
-    //                                                            mSearchData.CommRank,
+    //                                                            mCommRank,
     //                                                            mMapperInterfaceInfosContainer);
 
     // AssignInterfaceInfos();
@@ -112,8 +112,8 @@ void GeometricalObjectsBinsMPI::ComputeGlobalBoundingBoxes()
         local_bounding_box[i*2+1] = r_min_point[i];
     }
 
-    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*mSearchData.CommSize) {
-        mGlobalBoundingBoxes.resize(6*mSearchData.CommSize);
+    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*mCommSize) {
+        mGlobalBoundingBoxes.resize(6*mCommSize);
     }
 
     MPI_Allgather(local_bounding_box.data(),   6, MPI_DOUBLE,

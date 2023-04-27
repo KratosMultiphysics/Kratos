@@ -15,6 +15,7 @@
 // System includes
 
 // External includes
+#include "mpi.h"
 
 // Project includes
 #include "mpi/utilities/mpi_search_utilities.h"
@@ -50,6 +51,10 @@ public:
     /// The base type
     using BaseType = GeometricalObjectsBins;
 
+    /// The buffer type definition
+    using BufferTypeDouble = std::vector<std::vector<double>>;
+    using BufferTypeChar = std::vector<std::vector<char>>;
+
     /// The type of geometrical object to be stored in the bins
     using BaseType::CellType;
     using BaseType::ResultType;
@@ -73,8 +78,21 @@ public:
         TIteratorType GeometricalObjectsEnd
         )
     {
-        // Initialize the search data
-        mSearchData.Initialize();
+        // Set up the buffers
+        MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
+
+        mSendSizes.resize(mCommSize);
+        mRecvSizes.resize(mCommSize);
+
+        mSendBufferDouble.resize(mCommSize);
+        mRecvBufferDouble.resize(mCommSize);
+
+        mSendBufferChar.resize(mCommSize);
+        mRecvBufferChar.resize(mCommSize);
+
+        // TODO: Do equivalent
+        // mMapperInterfaceInfosContainer.resize(mCommSize);
 
         // We compute the local bounding box
         const std::size_t local_number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
@@ -163,7 +181,17 @@ private:
 
     double mRadius = 0.0;                     /// The radius of the search
 
-    MPISearchData mSearchData;                /// The search data
+    int mCommRank;
+    int mCommSize;
+
+    std::vector<int> mSendSizes; /// The sizes of the send buffers
+    std::vector<int> mRecvSizes; /// The sizes of the recv buffers
+
+    BufferTypeDouble mSendBufferDouble; /// The send buffer (double)
+    BufferTypeDouble mRecvBufferDouble; /// The recv buffer (double)
+
+    BufferTypeChar mSendBufferChar; /// The send buffer (char)
+    BufferTypeChar mRecvBufferChar; /// The recv buffer (char)
 
     ///@}
     ///@name Private Operators
