@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_io_to_python.h"
 #ifdef KRATOS_USING_MPI // MPI-parallel compilation
 #include "custom_python/mpi/add_custom_mpi_utilities_to_python.h"
 #endif
@@ -46,6 +47,7 @@ namespace Python{
         AddCustomUtilitiesToPython(m);
         AddCustomConstitutiveLawsToPython(m);
         AddCustomProcessesToPython(m);
+        AddCustomIOToPython(m);
 #ifdef KRATOS_USING_MPI // MPI-parallel compilation
         AddCustomMPIUtilitiesToPython(m);
 #endif
