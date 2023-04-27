@@ -538,7 +538,9 @@ public:
             }
         }
 
-        KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl; 
+    #if KRATOS_DEBUG
+        KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+    #endif
 
         pAddDof(rDofVariable)->FixDof();
     }
@@ -553,7 +555,9 @@ public:
             }
         }
 
-        KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+    #if KRATOS_DEBUG
+        KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+    #endif
 
         pAddDof(rDofVariable)->FreeDof();
     }
