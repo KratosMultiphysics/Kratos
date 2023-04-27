@@ -66,7 +66,6 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     using PointTypePointer = typename PointType::Pointer;
     using PointVector = std::vector<PointTypePointer>;
     using PointIterator = PointVector::iterator;
-    using DistanceIterator = std::vector<double>::iterator;
 
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureElements, rInputElements, rResults, rResultsDistance);
@@ -120,8 +119,6 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
 
         // Performing search
         ParallelSearch(rInputElements, rRadius, dynamic_bins, rResults, rResultsDistance);
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
@@ -159,7 +156,6 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     using PointTypePointer = typename PointType::Pointer;
     using PointVector = std::vector<PointTypePointer>;
     using PointIterator = PointVector::iterator;
-    using DistanceIterator = std::vector<double>::iterator;
 
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureNodes, rInputNodes, rResults, rResultsDistance);
@@ -213,8 +209,6 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
 
         // Performing search
         ParallelSearch(rInputNodes, rRadius, dynamic_bins, rResults, rResultsDistance);
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
@@ -252,7 +246,6 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
     using PointTypePointer = typename PointType::Pointer;
     using PointVector = std::vector<PointTypePointer>;
     using PointIterator = PointVector::iterator;
-    using DistanceIterator = std::vector<double>::iterator;
 
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureConditions, rInputConditions, rResults, rResultsDistance);
@@ -307,8 +300,6 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
 
         // Performing search
         ParallelSearch(rInputConditions, rRadius, dynamic_bins, rResults, rResultsDistance);
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsStaticObjects) {
-    // } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamicObjects) {
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
@@ -348,6 +339,4 @@ template class SpecializedSpatialSearch<SpatialContainer::KDTree>;
 template class SpecializedSpatialSearch<SpatialContainer::Octree>;
 template class SpecializedSpatialSearch<SpatialContainer::BinsStatic>;
 template class SpecializedSpatialSearch<SpatialContainer::BinsDynamic>;
-// template class SpecializedSpatialSearch<SpatialContainer::BinsStaticObjects>;
-// template class SpecializedSpatialSearch<SpatialContainer::BinsDynamicObjects>;
 } // namespace Kratos.
