@@ -34,7 +34,6 @@ class QuadPartitionTest(KratosUnittest.TestCase):
                 partitioned_io = ModelPartIO(file_path, io_flags)
                 partitioned_io.ReadModelPart(model_part)
 
-                from KratosMultiphysics import Logger
                 for condition in model_part.Conditions:
                     parent = condition.GetValue(FRACTIONAL_STEP)
                     self.assertTrue(parent in model_part.Elements)
