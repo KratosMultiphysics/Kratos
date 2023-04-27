@@ -24,7 +24,7 @@
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/element.h"
-#include "custom_elements/updated_lagrangian_UP_VMS.hpp"
+#include "custom_elements/mpm_updated_lagrangian_UP_VMS.hpp"
 #include "containers/array_1d.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
