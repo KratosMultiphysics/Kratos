@@ -24,6 +24,7 @@
 #include "input_output/vtk_output.h"
 #include "interface_communicator_mpi.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "mpi/utilities/mpi_search_utilities.h"
 
 namespace Kratos
 {
@@ -40,8 +41,20 @@ InterfaceCommunicatorMPI::InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
                           rMapperLocalSystems,
                           SearchSettings)
 {
-    // Initialize MPI
-    mSearchData.Initialize();
+    // Set up the buffers
+    MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
+
+    mMapperInterfaceInfosContainer.resize(mCommSize);
+
+    mSendSizes.resize(mCommSize);
+    mRecvSizes.resize(mCommSize);
+
+    mSendBufferDouble.resize(mCommSize);
+    mRecvBufferDouble.resize(mCommSize);
+
+    mSendBufferChar.resize(mCommSize);
+    mRecvBufferChar.resize(mCommSize);
 }
 
 /***********************************************************************************/
@@ -58,8 +71,8 @@ void InterfaceCommunicatorMPI::InitializeSearch(const MapperInterfaceInfoUniqueP
 void InterfaceCommunicatorMPI::InitializeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     // Reset to zero
-    std::fill(mSearchData.SendSizes.begin(), mSearchData.SendSizes.end(), 0);
-    std::fill(mSearchData.RecvSizes.begin(), mSearchData.RecvSizes.end(), 0);
+    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
     // Apply tolerance to bounding boxes
     std::vector<double> bounding_boxes_with_tol;
@@ -71,21 +84,21 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const MapperInterfaceIn
     MapperUtilities::FillBufferBeforeLocalSearch(mrMapperLocalSystems,
                                                  bounding_boxes_with_tol,
                                                  GetBufferSizeEstimate(),
-                                                 mSearchData.SendBufferDouble,
-                                                 mSearchData.SendSizes);
+                                                 mSendBufferDouble,
+                                                 mSendSizes);
 
     // copy the local information directly
-    mSearchData.RecvBufferDouble[mSearchData.CommRank] = mSearchData.SendBufferDouble[mSearchData.CommRank];
+    mRecvBufferDouble[mCommRank] = mSendBufferDouble[mCommRank];
 
-    const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferDouble, mSearchData.RecvBufferDouble, mSearchData.CommRank, mSearchData.CommSize, mSearchData.SendSizes, mSearchData.RecvSizes);
+    const int err = MPISearchUtilities::ExchangeDataAsync(mSendBufferDouble, mRecvBufferDouble, mCommRank, mCommSize, mSendSizes, mRecvSizes);
 
     KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the information for "
         << "the construction of the MapperInterfaceInfos in MPI" << std::endl;
 
     // Construct MapperInterfaceInfos
-    MapperUtilities::CreateMapperInterfaceInfosFromBuffer(mSearchData.RecvBufferDouble,
+    MapperUtilities::CreateMapperInterfaceInfosFromBuffer(mRecvBufferDouble,
                                                           rpRefInterfaceInfo,
-                                                          mSearchData.CommRank,
+                                                          mCommRank,
                                                           mMapperInterfaceInfosContainer);
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -94,25 +107,25 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const MapperInterfaceIn
 void InterfaceCommunicatorMPI::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     // Reset to zero
-    std::fill(mSearchData.SendSizes.begin(), mSearchData.SendSizes.end(), 0);
-    std::fill(mSearchData.RecvSizes.begin(), mSearchData.RecvSizes.end(), 0);
+    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
     FilterInterfaceInfosSuccessfulSearch();
 
     MapperUtilities::FillBufferAfterLocalSearch(mMapperInterfaceInfosContainer,
                                                 rpRefInterfaceInfo,
-                                                mSearchData.CommRank,
-                                                mSearchData.SendBufferChar,
-                                                mSearchData.SendSizes);
+                                                mCommRank,
+                                                mSendBufferChar,
+                                                mSendSizes);
 
-    const int err = MPISearchUtilities::ExchangeDataAsync(mSearchData.SendBufferChar, mSearchData.RecvBufferChar, mSearchData.CommRank, mSearchData.CommSize, mSearchData.SendSizes, mSearchData.RecvSizes);
+    const int err = MPISearchUtilities::ExchangeDataAsync(mSendBufferChar, mRecvBufferChar, mCommRank, mCommSize, mSendSizes, mRecvSizes);
 
     KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the "
         << "serialized MapperInterfaceInfos in MPI" << std::endl;
 
-    MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(mSearchData.RecvBufferChar,
+    MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(mRecvBufferChar,
                                                                rpRefInterfaceInfo,
-                                                               mSearchData.CommRank,
+                                                               mCommRank,
                                                                mMapperInterfaceInfosContainer);
 
     AssignInterfaceInfos();
@@ -127,8 +140,8 @@ void InterfaceCommunicatorMPI::ComputeGlobalBoundingBoxes()
 {
     const auto local_bounding_box = MapperUtilities::ComputeLocalBoundingBox(mrModelPartOrigin);
 
-    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*mSearchData.CommSize) {
-        mGlobalBoundingBoxes.resize(6*mSearchData.CommSize);
+    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*mCommSize) {
+        mGlobalBoundingBoxes.resize(6*mCommSize);
     }
 
     MPI_Allgather(local_bounding_box.data(),   6, MPI_DOUBLE,
@@ -145,7 +158,7 @@ void InterfaceCommunicatorMPI::ComputeGlobalBoundingBoxes()
         auto props = r_bbox_model_part.CreateNewProperties(0);
 
         // create hexahedral elements representing the bounding boxes
-        for (int i=0; i<mSearchData.CommSize; ++i) {
+        for (int i=0; i<mCommSize; ++i) {
             const double x_max = mGlobalBoundingBoxes[(i*6)];
             const double x_min = mGlobalBoundingBoxes[(i*6)+1];
             const double y_max = mGlobalBoundingBoxes[(i*6)+2];
