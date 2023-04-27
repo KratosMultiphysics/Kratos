@@ -71,11 +71,11 @@ int Tester::RunTestSuite(std::string const& TestSuiteName)
     return RunSelectedTestCases();
 }
 
-int Tester::RunTestCases(std::string const& TestCasesNamePattern)
+int Tester::RunTestCases(std::string const& rTestCasesNamePattern)
 {
     ResetAllTestCasesResults();
     UnSelectAllTestCases();
-    SelectTestCasesByPattern(TestCasesNamePattern);
+    SelectTestCasesByPattern(rTestCasesNamePattern);
     return RunSelectedTestCases();
 
     //KRATOS_CHECK(std::regex_match(s, std::regex(buffer.str())));
@@ -236,13 +236,13 @@ void Tester::SelectOnlyEnabledTestCases()
             i_test->second->UnSelect();
 }
 
-void Tester::SelectTestCasesByPattern(std::string const& TestCasesNamePattern)
+void Tester::SelectTestCasesByPattern(std::string const& rTestCasesNamePattern)
 {
     // creating the regex pattern replacing * with ".*"
     std::regex replace_star("\\*");
     std::stringstream regex_pattern_string;
     std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
-        TestCasesNamePattern.begin(), TestCasesNamePattern.end(), replace_star, ".*");
+        rTestCasesNamePattern.begin(), rTestCasesNamePattern.end(), replace_star, ".*");
     for (auto i_test = GetInstance().mTestCases.begin();
         i_test != GetInstance().mTestCases.end(); i_test++)
         if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str()))) {
@@ -295,8 +295,6 @@ int Tester::RunSelectedTestCases()
     return tmp;
 }
 
-
-
 int Tester::ProfileSelectedTestCases()
 {
     KRATOS_ERROR << "Profile test cases is not implemented yet" << std::endl;
@@ -332,7 +330,11 @@ std::size_t Tester::NumberOfSelectedTestCases()
     return result;
 }
 
-void Tester::StartShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)
+void Tester::StartShowProgress(
+    const std::size_t Current,
+    const std::size_t Total,
+    const TestCase* pTheTestCase
+    )
 {
     if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
     {
@@ -341,7 +343,11 @@ void Tester::StartShowProgress(std::size_t Current, std::size_t Total, const Tes
     }
 }
 
-void Tester::EndShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)
+void Tester::EndShowProgress(
+    const std::size_t Current,
+    const std::size_t Total,
+    const TestCase* pTheTestCase
+    )
 {
     constexpr std::size_t ok_culumn = 72;
     if (GetInstance().mVerbosity == Verbosity::PROGRESS) {
@@ -378,7 +384,11 @@ void Tester::EndShowProgress(std::size_t Current, std::size_t Total, const TestC
     }
 }
 
-int Tester::ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests,double ElapsedTime)
+int Tester::ReportResults(
+    std::ostream& rOStream,
+    const std::size_t NumberOfRunTests,
+    const double ElapsedTime
+    )
 {
     int exit_code = 0;
 
@@ -439,7 +449,10 @@ void Tester::ReportFailures(std::ostream& rOStream)
     }
 }
 
-void Tester::ReportDistributedFailureDetails(std::ostream& rOStream, const TestCase* const pTheTestCase)
+void Tester::ReportDistributedFailureDetails(
+    std::ostream& rOStream,
+    const TestCase* pTheTestCase
+    )
 {
     TestCaseResult const& r_test_case_result = pTheTestCase->GetResult();
     rOStream << " with messages: " << std::endl;
