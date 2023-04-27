@@ -42,53 +42,6 @@ namespace Kratos
 ///@{
 
 /**
- * @class MPISearchData
- * @ingroup KratosMPI
- * @brief MPI search data
- * @details Original implementation from MappingUtilities
- * @author Philipp Bucher (moved by Vicente Mataix Ferrandiz)
- */
-struct MPISearchData
-{
-    ///@name Type Definitions
-    ///@{
-
-    /// The buffer type for doubles
-    using BufferTypeDouble = std::vector<std::vector<double>>;
-
-    /// The buffer type for integers (char)
-    using BufferTypeChar = std::vector<std::vector<char>>;
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief Initializes the MPISearchData object by setting up the necessary buffers
-     * and obtaining the rank and size of the MPI communicator.
-     */
-    void Initialize();
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    int CommRank;                      /// The rank of the current processor
-    int CommSize;                      /// The size of the communicator
-
-    std::vector<int> SendSizes;        /// The size of the send buffer
-    std::vector<int> RecvSizes;        /// The size of the receive buffer
-
-    BufferTypeDouble SendBufferDouble; /// The send buffer (double)
-    BufferTypeDouble RecvBufferDouble; /// The receive buffer (double)
-
-    BufferTypeChar SendBufferChar;     /// The send buffer (char)
-    BufferTypeChar RecvBufferChar;     /// The receive buffer (char)
-
-    ///@}
-};
-
-/**
  * @class MPISearchUtilities
  * @ingroup KratosMPI
  * @brief MPI utilities for searching geometrical objects
