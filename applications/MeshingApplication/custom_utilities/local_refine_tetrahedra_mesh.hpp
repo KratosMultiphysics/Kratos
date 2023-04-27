@@ -108,13 +108,13 @@ public:
         pnode->Z0() = Z0;
 
         // Add the dofs
-        Node ::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
+        Node::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
         unsigned int step_data_size = model_part.GetNodalSolutionStepDataSize();
 
-        for (Node ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+        for (Node::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); ++iii)
         {
-            Node ::DofType& rDof = **iii;
-            Node ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+            Node::DofType& rDof = **iii;
+            Node::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             // The variables are left as free for the internal node
             (p_new_dof)->FreeDof();
