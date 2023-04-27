@@ -242,6 +242,7 @@ class RomManager(object):
         simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
+        simulation.GetHROM_utility().CreateHRomModelParts()
 
 
     def LaunchHROM(self, mu_train):
@@ -512,7 +513,6 @@ class RomManager(object):
                 "create_hrom_visualization_model_part" : true
             }""")
         return hrom_training_parameters
-
 
 
 
