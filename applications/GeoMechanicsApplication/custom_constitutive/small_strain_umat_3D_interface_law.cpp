@@ -26,7 +26,7 @@ namespace Kratos
 SmallStrainUMAT3DInterfaceLaw::SmallStrainUMAT3DInterfaceLaw()
    : SmallStrainUMAT3DLaw()
    {
-    KRATOS_TRY;
+    KRATOS_TRY
     //KRATOS_INFO("SmallStrainUMAT3DInterfaceLaw()") << std::endl;
 
     KRATOS_CATCH("")
@@ -39,10 +39,10 @@ SmallStrainUMAT3DInterfaceLaw::
    SmallStrainUMAT3DInterfaceLaw(const SmallStrainUMAT3DInterfaceLaw &rOther)
    : SmallStrainUMAT3DLaw(rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    //KRATOS_INFO("SmallStrainUMAT3DInterfaceLaw(const...)") << std::endl;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************CLONE***********************************************
@@ -50,12 +50,12 @@ SmallStrainUMAT3DInterfaceLaw::
 
 ConstitutiveLaw::Pointer SmallStrainUMAT3DInterfaceLaw::Clone() const
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    //KRATOS_INFO("Clone()") << std::endl;
 
    return Kratos::make_shared<SmallStrainUMAT3DInterfaceLaw>(*this);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************ASSIGNMENT******************************************
@@ -63,7 +63,7 @@ ConstitutiveLaw::Pointer SmallStrainUMAT3DInterfaceLaw::Clone() const
 SmallStrainUMAT3DInterfaceLaw 
   &SmallStrainUMAT3DInterfaceLaw::operator=(SmallStrainUMAT3DInterfaceLaw const &rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    SmallStrainUMAT3DLaw::operator=(rOther);
 
@@ -71,7 +71,7 @@ SmallStrainUMAT3DInterfaceLaw
 
    return *this;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -109,7 +109,7 @@ void SmallStrainUMAT3DInterfaceLaw::SetExternalStressVector(Vector& rStressVecto
 void SmallStrainUMAT3DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
    // KRATOS_INFO("SetInternalStressVector:rStressVector") << rStressVector << std::endl;
-   KRATOS_TRY;
+   KRATOS_TRY
    std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
 
    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_3D_INTERFACE_ZZ);

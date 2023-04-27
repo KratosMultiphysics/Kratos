@@ -80,7 +80,7 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        Parameters& rParameters);
+        Parameters rParameters);
 
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;

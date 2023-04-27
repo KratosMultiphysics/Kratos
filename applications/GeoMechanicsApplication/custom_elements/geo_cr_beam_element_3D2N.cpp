@@ -55,7 +55,7 @@ GeoCrBeamElement3D2N::~GeoCrBeamElement3D2N() {}
 void GeoCrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
 
-    KRATOS_TRY;
+    KRATOS_TRY
     mIsInitialization = true;
 
     KRATOS_CATCH("")
@@ -78,7 +78,7 @@ void GeoCrBeamElement3D2N::
     ConstCalculateRightHandSide( VectorType& rRightHandSideVector,
                                  const ProcessInfo& rCurrentProcessInfo ) const
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     Vector nodal_forces_local_qe = CalculateLocalNodalForces();
 
     BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix = GetTransformationMatrixGlobal();
@@ -164,7 +164,7 @@ void GeoCrBeamElement3D2N::
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     if (mIsInitialization) {
         if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
@@ -185,17 +185,17 @@ void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     noalias(mLocalForcesFinalized) = CalculateLocalNodalForces() + mLocalForcesFinalizedPrevious;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N)
     rSerializer.save("LocalForcesFinalized", mLocalForcesFinalized);
     rSerializer.save("LocalForcesFinalizedPrevious", mLocalForcesFinalizedPrevious);
 }
@@ -203,7 +203,7 @@ void GeoCrBeamElement3D2N::save(Serializer& rSerializer) const
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N)
     rSerializer.load("LocalForcesFinalized", mLocalForcesFinalized);
     rSerializer.load("LocalForcesFinalizedPrevious", mLocalForcesFinalizedPrevious);
 }

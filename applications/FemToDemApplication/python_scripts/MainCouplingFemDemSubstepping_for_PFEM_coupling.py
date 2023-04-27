@@ -9,8 +9,6 @@ import KratosMultiphysics.FemToDemApplication.MainCouplingFemDemSubstepping as M
 import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
 import math
 import os
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 
 def Wait():
     input("Press Something")
@@ -23,12 +21,6 @@ class MainCoupledFemDemSubstepping_for_PFEM_coupling_Solution(MainCouplingFemDem
         self.FEM_Solution = FEM.FEM_for_PFEM_coupling_Solution(Model)
         self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model)
 
-        # Initialize Remeshing files
-        self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
-        if self.DoRemeshing:
-            self.mmg_parameter_file = open("MMGParameters.json",'r')
-            self.mmg_parameters = KratosMultiphysics.Parameters(self.mmg_parameter_file.read())
-            self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
         self.InitializePlotsFiles()
         self.echo_level = 0
         self.is_slave = False

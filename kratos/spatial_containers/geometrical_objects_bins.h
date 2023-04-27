@@ -5,24 +5,19 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-
-#if !defined(KRATOS_GEOMETRICAL_OBJECTS_BINS_H_INCLUDED )
-#define  KRATOS_GEOMETRICAL_OBJECTS_BINS_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 #include <unordered_set>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -142,11 +137,11 @@ public:
         KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
 
         BoundingBox<Point> result;
-        
+
         result.GetMinPoint()[0] = mBoundingBox.GetMinPoint()[0] + I * mCellSizes[0];
         result.GetMinPoint()[1] = mBoundingBox.GetMinPoint()[1] + J * mCellSizes[1];
         result.GetMinPoint()[2] = mBoundingBox.GetMinPoint()[2] + K * mCellSizes[2];
-         
+
         result.GetMaxPoint()[0] = mBoundingBox.GetMinPoint()[0] + (I + 1) * mCellSizes[0];
         result.GetMaxPoint()[1] = mBoundingBox.GetMinPoint()[1] + (J + 1) * mCellSizes[1];
         result.GetMaxPoint()[2] = mBoundingBox.GetMinPoint()[2] + (K + 1) * mCellSizes[2];
@@ -298,7 +293,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     BoundingBox<Point> mBoundingBox;
     array_1d<std::size_t, Dimension> mNumberOfCells;
     array_1d<double, 3>  mCellSizes;
@@ -360,7 +355,7 @@ private:
                     }
                 }
             }
-        }        
+        }
     }
 
     /// Giving the min and max position of cells intersecting with the bounding box of the geometry.
@@ -388,20 +383,19 @@ private:
                                 : position;
         return result;
     }
-    
+
     /// Expands by the tolerance the geometry bounding box and checks the intersection
     template<typename TGeometryType>
     static inline bool IsIntersected(TGeometryType& TheGeometry, BoundingBox<Point> Box, const double tolerance)
     {
         Point rLowPointTolerance;
         Point rHighPointTolerance;
-        
-        for(std::size_t i = 0; i<3; i++)
-        {
+
+        for(std::size_t i = 0; i<3; i++) {
             rLowPointTolerance[i]  =  Box.GetMinPoint()[i] - tolerance;
             rHighPointTolerance[i] =  Box.GetMaxPoint()[i] + tolerance;
         }
-        
+
         return  TheGeometry.HasIntersection(rLowPointTolerance,rHighPointTolerance);
     }
 
@@ -511,5 +505,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRICAL_OBJECTS_BINS_H_INCLUDED  defined

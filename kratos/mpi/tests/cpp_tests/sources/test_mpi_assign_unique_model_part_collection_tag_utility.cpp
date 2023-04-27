@@ -63,7 +63,7 @@ namespace Kratos
             r_sub_modelpart_4.AddNode(r_model_part.pGetNode(6));
 
             // Adding nodes to random submodelparts
-            if (r_data_communicator.IsDistributed()) {
+            if (r_data_communicator.IsDistributed() && size > 1) {
                 if (rank == 0) {
                     r_sub_modelpart_3.AddNode(r_model_part.pGetNode(4));
                 }

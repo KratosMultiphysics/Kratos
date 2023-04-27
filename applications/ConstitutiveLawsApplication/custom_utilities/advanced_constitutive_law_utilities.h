@@ -469,6 +469,12 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double EulerAngle3, // hi
         BoundedMatrix<double, 3, 3>& rRotationOperator
         );
+    
+     /**
+     * @brief This computes the MacaullyBrackets of a double
+     */
+    static double MacaullyBrackets(
+        const double Number);
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos

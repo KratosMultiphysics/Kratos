@@ -15,7 +15,7 @@
 
 
 #include "includes/element.h"
-#include "custom_elements/updated_lagrangian_UP.hpp"
+#include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 
 namespace Kratos
 {
@@ -42,7 +42,7 @@ namespace Kratos
  */
 
 class UpdatedLagrangianUPVMS
-    : public UpdatedLagrangianUP
+    : public MPMUpdatedLagrangianUP
 {
 public:
 
@@ -263,6 +263,8 @@ protected:
                                         const double& rIntegrationWeight
                                        ) override;
 
+
+
     /**
      * Calculation of stabilization terms for the continuity equation
      */
@@ -270,7 +272,6 @@ protected:
             GeneralVariables & rVariables,
             Vector& rVolumeForce,
             const double& rIntegrationWeight);
-
 
     /**
      * Calculation stabilization terms for the momentum equation

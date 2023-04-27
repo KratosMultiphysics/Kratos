@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/updated_lagrangian.hpp"
+#include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP_VMS.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
@@ -42,14 +42,14 @@ namespace Kratos
 //************************************************************************************
 
 UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS()
-    : UpdatedLagrangianUP()
+    : MPMUpdatedLagrangianUP()
 {
     //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( IndexType NewId, GeometryType::Pointer pGeometry )
-    : UpdatedLagrangianUP( NewId, pGeometry )
+    : MPMUpdatedLagrangianUP( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -58,7 +58,7 @@ UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( IndexType NewId, GeometryType::P
 //************************************************************************************
 
 UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : UpdatedLagrangianUP( NewId, pGeometry, pProperties )
+    : MPMUpdatedLagrangianUP( NewId, pGeometry, pProperties )
 {
     mFinalizedStep = true;
 
@@ -68,7 +68,7 @@ UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( IndexType NewId, GeometryType::P
 //************************************************************************************
 
 UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( UpdatedLagrangianUPVMS const& rOther)
-    :UpdatedLagrangianUP(rOther)
+    : MPMUpdatedLagrangianUP(rOther)
 
 {
 }
@@ -78,7 +78,7 @@ UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( UpdatedLagrangianUPVMS const& rO
 
 UpdatedLagrangianUPVMS&  UpdatedLagrangianUPVMS::operator=(UpdatedLagrangianUPVMS const& rOther)
 {
-    UpdatedLagrangianUP::operator=(rOther);
+    MPMUpdatedLagrangianUP::operator=(rOther);
 
 
     return *this;
@@ -169,7 +169,7 @@ void UpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVari
 {
     KRATOS_TRY
 
-    UpdatedLagrangian::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+    MPMUpdatedLagrangian::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int voigt_dimension = (dimension-1)*(dimension-1)+2;
@@ -605,13 +605,13 @@ void UpdatedLagrangianUPVMS::CalculateAndAddRHS(
 {
 
     // Operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
-    UpdatedLagrangianUP::CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+    CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
     // Operation performed: rRightHandSideVector -= IntForce*IntegrationWeight
-    UpdatedLagrangianUP::CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight);
+    CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
-    UpdatedLagrangianUP::CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
+    CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
     CalculateAndAddStabilizedDisplacement( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
@@ -699,7 +699,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddLHS(
 {
 
     // Operation performed: add Km to the rLefsHandSideMatrix
-    UpdatedLagrangianUP::CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    MPMUpdatedLagrangianUP::CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kg to the rLefsHandSideMatrix
     if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
@@ -708,13 +708,13 @@ void UpdatedLagrangianUPVMS::CalculateAndAddLHS(
     }
 
     // Operation performed: add Kup to the rLefsHandSideMatrix
-    UpdatedLagrangianUP::CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    MPMUpdatedLagrangianUP::CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operations performed: add Kpu to the rLefsHandSideMatrix
-    UpdatedLagrangianUP::CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    MPMUpdatedLagrangianUP::CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kpp to the rLefsHandSideMatrix
-    UpdatedLagrangianUP::CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    MPMUpdatedLagrangianUP::CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
     CalculateAndAddKuuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -951,7 +951,7 @@ void UpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentPro
     {
         //UpdatedLagrangian::SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
         //std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
-        UpdatedLagrangian::CalculateOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
+        MPMUpdatedLagrangian::CalculateOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
         mp_volume =  int_volumes[PointNumber];
         mp_mass   = int_volumes[PointNumber]*density;
 
@@ -1005,13 +1005,13 @@ void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vecto
 
 void UpdatedLagrangianUPVMS::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangian )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
     rSerializer.save("Pressure",m_mp_pressure);
 }
 
 void UpdatedLagrangianUPVMS::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangian )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
     rSerializer.load("Pressure",m_mp_pressure);
 }
 } // Namespace Kratos

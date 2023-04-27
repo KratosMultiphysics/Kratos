@@ -5,26 +5,21 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_GEOMETRY_UTILITIES_INCLUDED )
-#define  KRATOS_GEOMETRY_UTILITIES_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "geometries/geometry.h"
 #include "includes/node.h"
-#include "includes/element.h"
 
 namespace Kratos
 {
@@ -35,25 +30,33 @@ namespace Kratos
  * @details It is faster than using Geometry as it is more specialized
  * @author Riccardo Rossi
  */
-class GeometryUtils
+class KRATOS_API(KRATOS_CORE) GeometryUtils
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the node
-    typedef Node<3> NodeType;
+    using NodeType = Node<3>;
 
     /// Definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief This function returns a string equivalent for the geometry type
+     * @param TypeOfGeometry The geometry type
+     */
+    static std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry);
 
     /**
      * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
@@ -152,9 +155,8 @@ public:
 
         //Jacobian is calculated:
         //  |dx/dxi  dx/deta|    |x1-x0   x2-x0|
-        //J=|                |=    |              |
+        //J=|               |=   |             |
         //  |dy/dxi  dy/deta|    |y1-y0   y2-y0|
-
 
         double detJ = x10 * y20-y10 * x20;
 
@@ -427,233 +429,27 @@ public:
      * @return The distance between the point and the line
      */
     static double PointDistanceToLineSegment3D(
-        Point const& rLinePoint1,
-        Point const& rLinePoint2,
-        Point const& rToPoint
-        )
-    {
-        const double epsilon = 1e-15; //1.00e-9;
-
-        const array_1d<double,3> v1 = rLinePoint2 - rLinePoint1;
-        const array_1d<double,3> v2 = rLinePoint1 - rToPoint;
-        array_1d<double,3> v3;
-
-        const double square_distance = inner_prod(v1,v1);
-
-        if(square_distance < epsilon) // near zero length line
-            return norm_2(v2); // we return the distance to the first point of line
-
-        const double t = - inner_prod(v1,v2) / square_distance;
-
-        if(t < 0.0) { // it is before point 1
-            // We return the distance to point 1
-            noalias(v3) = rLinePoint1 - rToPoint;
-
-            return norm_2(v3);
-        }
-
-        if(t > 1.00) { // it is after point 2
-            // We return the distance to point 2
-            noalias(v3) = rLinePoint2 - rToPoint;
-
-            return norm_2(v3);
-        }
-
-        // The projection point is between point 1 and 2 of the line segment
-        noalias(v3) = rLinePoint1 * (1.0 - t) + rLinePoint2 * t;
-
-        return norm_2(v3 - rToPoint);
-
-    }
+        const Point& rLinePoint1,
+        const Point& rLinePoint2,
+        const Point& rToPoint
+        );
 
     /**
      * @brief This function calculates the distance of a 3D point to a 3D triangle
      * @details The implementation is done using following reference:
      *          http://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
-     * @param TrianglePoint1 First point of triangle
-     * @param TrianglePoint2 Second point of triangle
-     * @param TrianglePoint3 Third point of triangle
-     * @param ToPoint The point which distance is required
+     * @param rTrianglePoint1 First point of triangle
+     * @param rTrianglePoint2 Second point of triangle
+     * @param rTrianglePoint3 Third point of triangle
+     * @param rPoint The point which distance is required
      * @return The distance between the point and the triangle
      */
     static double PointDistanceToTriangle3D(
-        Point const& TrianglePoint1,
-        Point const& TrianglePoint2,
-        Point const& TrianglePoint3,
-        Point const& ToPoint
-    )
-    {
-        const array_1d<double, 3> e0 = TrianglePoint2 - TrianglePoint1;
-        const array_1d<double, 3> e1 = TrianglePoint3 - TrianglePoint1;
-        const array_1d<double, 3> dd = TrianglePoint1 - ToPoint;
-
-        const double a = inner_prod(e0, e0);
-        const double b = inner_prod(e0, e1);
-        const double c = inner_prod(e1, e1);
-        const double d = inner_prod(e0, dd);
-        const double e = inner_prod(e1, dd);
-        const double f = inner_prod(dd, dd);
-
-        const double det = a*c-b*b;
-        double s = b*e-c*d;
-        double t = b*d-a*e;
-
-        double square_distance = 0.00;
-
-        if ( s + t <= det ) {
-            if ( s < 0.0 ) {
-                if ( t < 0.0 ) { // region 4
-                    if (d < 0) {
-                        t = 0;
-                        if (-d >= a) {
-                            s = 1;
-                            square_distance = a + 2*d + f;
-                        } else {
-                            s = -d/a;
-                            square_distance = d*s + f;
-                        }
-                    } else {
-                        s = 0;
-                        if (e >= 0) {
-                            t = 0;
-                            square_distance = f;
-                        } else {
-                            if (-e >= c) {
-                                t = 1;
-                                square_distance = c + 2*e + f;
-                            } else {
-                                t = -e/c;
-                                square_distance = e*t + f;
-                            }
-                        }
-                    }
-                } else { // region 3
-                    s = 0.0;
-                    if(e >= 0.0) {
-                        t = 0.0;
-                        square_distance = f;
-                    } else {
-                        if (-e >= c) {
-                            t = 1.00;
-                            square_distance = c + 2*e +f;
-                        } else {
-                            t = -e/c;
-                            square_distance = e*t + f;
-                        }
-                    }
-
-                }
-            } else if ( t < 0.00 ) { // region 5
-                t = 0;
-                if (d >= 0) {
-                    s = 0;
-                    square_distance = f;
-                } else {
-                    if (-d >= a) {
-                        s = 1;
-                        square_distance = a + 2.0 * d + f;
-                    } else {
-                        s = -d / a;
-                        square_distance = d * s + f;
-                    }
-                }
-            } else { // region 0
-                double inv_det = 1.0 / det;
-                s *= inv_det;
-                t *= inv_det;
-                square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-            }
-        } else {
-            if ( s < 0.00 ) {
-                // Region 2
-                const double temp0 = b + d;
-                const double temp1 = c + e;
-                if (temp1 > temp0)  { // Minimum on edge s+t=1
-                    const double numer = temp1 - temp0;
-                    const double denom = a - 2*b + c;
-                    if(numer >= denom) {
-                        s = 1.0;
-                        t = 0.0;
-                        square_distance = a + 2*d + f;
-                    } else {
-                        s = numer/denom;
-                        t = 1.0 - s;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                } else { // Minimum on edge s=0
-                    s = 0.0;
-                    if(temp1 <= 0.0) {
-                        t = 1;
-                        square_distance = c + 2*e + f;
-                    } else {
-                        if(e >= 0.0) {
-                            t = 0.0;
-                            square_distance = f;
-                        } else {
-                            t = -e/c;
-                            square_distance = e*t + f;
-                        }
-                    }
-                }
-            } else if ( t < 0.0 ) {
-                // Region 6
-                double temp0 = b + e;
-                double temp1 = a + d;
-                if (temp1 > temp0) {
-                    double numer = temp1 - temp0;
-                    double denom = a - 2*b + c;
-                    if(numer >= denom) {
-                        s = 0.0;
-                        t = 1.0;
-                        square_distance = c + 2*e + f;
-                    } else {
-                        t = numer/denom;
-                        s = 1.0 - t;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                } else {
-                    t = 0.0;
-                    if(temp1 <= 0.0) {
-                        s = 1;
-                        square_distance = a + 2*d + f;
-                    } else {
-                        if(d >= 0.0) {
-                            s = 0.0;
-                            square_distance = f;
-                        } else {
-                            s = -d/a;
-                            square_distance = d*s + f;
-                        }
-                    }
-                }
-            } else {
-                // Region 1
-                double numer = c + e - b - d;
-
-                if (numer <= 0.0) {
-                    s = 0.0;
-                    t = 1.0;
-                    square_distance = c + 2.0 * e + f;
-                } else {
-                    double denom = a - 2.0 * b + c;
-                    if (numer >= denom) {
-                        s = 1.0;
-                        t = 0.0;
-                        square_distance = a + 2.0 * d + f;
-                    } else {
-                        s = numer / denom;
-                        t = 1.0 - s;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                }
-            }
-        }
-
-        if(square_distance < 0.0)
-            return 0.0; // avoiding -0 case!!
-
-        return std::sqrt(square_distance);
-    }
+        const Point& rTrianglePoint1,
+        const Point& rTrianglePoint2,
+        const Point& rTrianglePoint3,
+        const Point& rPoint
+        );
 
     /**
      * @brief Calculate the gradients of shape functions.
@@ -800,7 +596,7 @@ public:
      * @param Step                              Step to be used in historical variable value interpolation
      */
     template <class TDataType>
-    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableValueAtGaussPoint(
+    static void EvaluateHistoricalVariableValueAtGaussPoint(
         TDataType& rOutput,
         const GeometryType& rGeometry,
         const Variable<TDataType>& rVariable,
@@ -819,7 +615,7 @@ public:
      * @param rGaussPointShapeFunctionDerivativeValues  Shape function derivatives evaluated at gauss point
      * @param Step                                      Step to be used in historical variable value interpolation
      */
-    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableGradientAtGaussPoint(
+    static void EvaluateHistoricalVariableGradientAtGaussPoint(
         array_1d<double, 3>& rOutput,
         const GeometryType& rGeometry,
         const Variable<double>& rVariable,
@@ -842,7 +638,7 @@ public:
      * @param rGaussPointShapeFunctionDerivativeValues  Shape function derivatives evaluated at gauss point
      * @param Step                                      Step to be used in historical variable value interpolation
      */
-    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableGradientAtGaussPoint(
+    static void EvaluateHistoricalVariableGradientAtGaussPoint(
         BoundedMatrix<double, 3, 3>& rOutput,
         const GeometryType& rGeometry,
         const Variable<array_1d<double, 3>>& rVariable,
@@ -857,7 +653,7 @@ public:
      * @param Tolerance the tolerance to the boundary.
      * @return true if the point is inside, false otherwise
      */
-    static bool KRATOS_API(KRATOS_CORE) ProjectedIsInside(
+    static bool ProjectedIsInside(
         const GeometryType& rGeometry,
         const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
         GeometryType::CoordinatesArrayType& rResult,
@@ -866,7 +662,5 @@ public:
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined
 
 

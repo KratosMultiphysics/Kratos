@@ -58,11 +58,11 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
         self.constraint_gradient_variables = {}
-        for itr, constraint in enumerate(self.constraints):
+        for itr, constraint in enumerate(self.constraints.values()):
             self.constraint_gradient_variables.update({
                 constraint["identifier"].GetString() : {
-                    "gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
-                    "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+                    "gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX"),
+                    "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
                 }
             })
         self.max_correction_share = self.algorithm_settings["max_correction_share"].GetDouble()
@@ -146,7 +146,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
         self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id =  constraint["identifier"].GetString()
             self.communicator.requestValueOf(con_id)
             self.communicator.requestGradientOf(con_id)
@@ -155,7 +155,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         # compute normals only if required
         surface_normals_required = self.objectives[0]["project_gradient_on_surface_normals"].GetBool()
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if constraint["project_gradient_on_surface_normals"].GetBool():
                 surface_normals_required = True
 
@@ -172,7 +172,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DX)
 
         # project and damp constraint gradients
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id = constraint["identifier"].GetString()
             conGradientDict = self.communicator.getStandardizedGradient(con_id)
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
@@ -188,7 +188,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id = constraint["identifier"].GetString()
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
             mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
@@ -256,7 +256,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         active_constraint_values = []
         active_constraint_variables = []
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if self.__isConstraintActive(constraint):
                 identifier = constraint["identifier"].GetString()
                 constraint_value = self.communicator.getStandardizedValue(identifier)
@@ -287,6 +287,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
         additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
+        self.data_logger.LogSensitivityHeatmap(self.optimization_iteration, self.mapper)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 

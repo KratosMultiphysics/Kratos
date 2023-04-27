@@ -1,18 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#if !defined(KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED )
-#define  KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -120,7 +117,5 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED  defined
 
 

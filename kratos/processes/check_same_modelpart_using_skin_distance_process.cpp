@@ -167,7 +167,6 @@ const Parameters CheckSameModelPartUsingSkinDistanceProcess<TDim>::GetDefaultPar
         "skin_model_part_1_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
         "skin_model_part_2_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
         "tolerance"                           : 1.0e-3,
-        //"continuous_distance"               : false, // TODO: Add continuous version if needed in the future
         "bounding_box_scale_factor"           : 1.5,
         "number_of_divisions_background_mesh" : 30,
         "discontinuous_distance_settings": {

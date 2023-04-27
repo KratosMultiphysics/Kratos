@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand, Carlos A. Roig
 //
@@ -19,15 +19,11 @@
 #include "testing/testing.h"
 #include "add_testing_to_python.h"
 
-
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void ListOfAllTestCases() {
-	std::cout << Testing::Tester::GetInstance() << std::endl;
+    std::cout << Testing::Tester::GetInstance() << std::endl;
 }
 
 void  AddTestingToPython(pybind11::module& m) {
@@ -69,5 +65,4 @@ void  AddTestingToPython(pybind11::module& m) {
     }, py::return_value_policy::reference);
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

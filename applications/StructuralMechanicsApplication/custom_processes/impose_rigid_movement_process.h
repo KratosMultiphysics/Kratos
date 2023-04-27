@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_IMPOSE_RIGID_MOVEMENT_PROCESS)
-#define KRATOS_IMPOSE_RIGID_MOVEMENT_PROCESS
+#pragma once
 
 // System includes
 
@@ -272,4 +271,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }
-#endif /* KRATOS_IMPOSE_RIGID_MOVEMENT_PROCESS defined */

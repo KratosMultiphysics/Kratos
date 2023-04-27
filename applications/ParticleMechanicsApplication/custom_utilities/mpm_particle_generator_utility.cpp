@@ -109,21 +109,22 @@ namespace MPMParticleGeneratorUtility
                     }
 
                     // Set element type
-                    std::string element_type_name = "UpdatedLagrangian";
+                    std::string element_type_name = "MPMUpdatedLagrangian";
                     if (IsMixedFormulation) {
                         if ((rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 0) || (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 1)){
-                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "UpdatedLagrangianUP";
+                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "MPMUpdatedLagrangianUP";
                             else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                         }
                         else {
                             if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3  || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "UpdatedLagrangianUPVMS";
                             else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                         }
+
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
                     else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
                         if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)) {
-                            element_type_name = "UpdatedLagrangianPQ";
+                            element_type_name = "MPMUpdatedLagrangianPQ";
                             KRATOS_ERROR_IF(IsAxisSymmetry) << "PQMPM is not implemented for axisymmetric elements yet." << std::endl;
                         }
                     }
