@@ -893,7 +893,7 @@ public:
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    TSparseSpace::SetValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+                    TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                 }
             });
 
@@ -941,8 +941,8 @@ public:
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    TSparseSpace::SetValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, max_diag);
-                    TSparseSpace::SetValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+                    TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, max_diag);
+                    TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                 }
             });
 
@@ -1314,14 +1314,14 @@ protected:
 
         // Setting the master dofs into the T and C system
         for (auto eq_id : mMasterIds) {
-            TSparseSpace::SetValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
-            TSparseSpace::SetValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
+            TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
+            TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
         }
 
         // Setting inactive slave dofs in the T and C system
         for (auto eq_id : mInactiveSlaveDofs) {
-            TSparseSpace::SetValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
-            TSparseSpace::SetValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
+            TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
+            TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
         }
 
         // Finalizing the assembly
