@@ -194,9 +194,6 @@ public:
 
     using BaseType::ResultIteratorType;
 
-    /// The distance iterator
-    using DistanceIterator = std::vector<double>::iterator;
-
     ///@}
     ///@name Life Cycle
     ///@{

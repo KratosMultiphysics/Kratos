@@ -63,9 +63,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
 {
     // Defining the point type for the search
     using PointType = PointObject<Element>;
-    using PointTypePointer = typename PointType::Pointer;
-    using PointVector = std::vector<PointTypePointer>;
-    using PointIterator = PointVector::iterator;
+    using PointVector = std::vector<PointType::Pointer>;
 
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureElements, rInputElements, rResults, rResultsDistance);
@@ -76,8 +74,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
         /// KDtree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using KDTree = Tree<KDTreePartition<BucketType>>;
+        using KDTree = Tree<KDTreePartition<Bucket<3ul, PointType, PointVector>>>;
 
         // Creating the tree
         KDTree kd_tree(points.begin(), points.end(), bucket_size);
@@ -89,8 +86,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
         /// Octree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using Octree = Tree<OCTreePartition<BucketType>>;
+        using Octree = Tree<OCTreePartition<Bucket<3ul, PointType, PointVector>>>;
 
         // Creating the tree
         Octree octree(points.begin(), points.end(), bucket_size);
@@ -101,9 +97,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
-        /// StaticBins definitions
-        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using StaticBinsTree = Tree<StaticBins>;
+        /// Bins<3ul, PointType, PointVector> definitions
+        using StaticBinsTree = Tree<Bins<3ul, PointType, PointVector>>;
 
         // Creating the tree
         StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
@@ -112,7 +107,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
         ParallelSearch(rInputElements, rRadius, static_bins_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
-        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector>;
 
         // Creating the bins
         DynamicBins dynamic_bins(points.begin(), points.end());
@@ -153,9 +148,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
 {
     // Defining the point type for the search
     using PointType = PointObject<Node<3>>;
-    using PointTypePointer = typename PointType::Pointer;
-    using PointVector = std::vector<PointTypePointer>;
-    using PointIterator = PointVector::iterator;
+    using PointVector = std::vector<PointType::Pointer>;
 
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureNodes, rInputNodes, rResults, rResultsDistance);
@@ -166,8 +159,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
         /// KDtree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using KDTree = Tree<KDTreePartition<BucketType>>;
+        using KDTree = Tree<KDTreePartition<Bucket<3ul, PointType, PointVector>>>;
 
         // Creating the tree
         KDTree kd_tree(points.begin(), points.end(), bucket_size);
@@ -179,8 +171,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
         /// Octree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using Octree = Tree<OCTreePartition<BucketType>>;
+        using Octree = Tree<OCTreePartition<Bucket<3ul, PointType, PointVector>>>;
 
         // Creating the tree
         Octree octree(points.begin(), points.end(), bucket_size);
@@ -191,9 +182,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
-        /// StaticBins definitions
-        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using StaticBinsTree = Tree<StaticBins>;
+        /// Bins<3ul, PointType, PointVector> definitions
+        using StaticBinsTree = Tree<Bins<3ul, PointType, PointVector>>;
 
         // Creating the tree
         StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
@@ -202,7 +192,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
         ParallelSearch(rInputNodes, rRadius, static_bins_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
-        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector>;
 
         // Creating the bins
         DynamicBins dynamic_bins(points.begin(), points.end());
@@ -243,9 +233,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
 {
     // Defining the point type for the search
     using PointType = PointObject<Condition>;
-    using PointTypePointer = typename PointType::Pointer;
-    using PointVector = std::vector<PointTypePointer>;
-    using PointIterator = PointVector::iterator;
+    using PointVector = std::vector<PointType::Pointer>;
 
     // Defining the PointVector
     PointVector points = PrepareSearch(rStructureConditions, rInputConditions, rResults, rResultsDistance);
@@ -256,8 +244,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
         /// KDtree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using KDTree = Tree<KDTreePartition<BucketType>>;
+        using KDTree = Tree<KDTreePartition<Bucket<3ul, PointType, PointVector>>>;
 
         // Creating the tree
         KDTree kd_tree(points.begin(), points.end(), bucket_size);
@@ -269,8 +256,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         const int bucket_size = mParameters["bucket_size"].GetInt();
 
         /// Octree definitions
-        using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using Octree = Tree<OCTreePartition<BucketType>>;
+        using Octree = Tree<OCTreePartition<Bucket<3ul, PointType, PointVector>>>;
 
         // Creating the tree
         Octree octree(points.begin(), points.end(), bucket_size);
@@ -280,10 +266,9 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
     } else if constexpr (TSearchBackend == SpatialContainer::BinsStatic) {
         // Retrieving parameters
         const int bucket_size = mParameters["bucket_size"].GetInt();
-        
+
         /// StaticBins definitions
-        using StaticBins = Bins<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-        using StaticBinsTree = Tree<StaticBins>;
+        using StaticBinsTree = Tree<Bins<3ul, PointType, PointVector>>;
 
         // Creating the tree
         StaticBinsTree static_bins_tree(points.begin(), points.end(), bucket_size);
@@ -291,9 +276,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
         // Performing search
         ParallelSearch(rInputConditions, rRadius, static_bins_tree, rResults, rResultsDistance);
     } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
-    } else if constexpr (TSearchBackend == SpatialContainer::BinsDynamic) {
         /// BinsDynamic definitions
-        using DynamicBins = BinsDynamic<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using DynamicBins = BinsDynamic<3ul, PointType, PointVector>;
 
         // Creating the bins
         DynamicBins dynamic_bins(points.begin(), points.end());
