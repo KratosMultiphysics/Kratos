@@ -89,7 +89,7 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def MapGradient(self, sensitivity_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
+    def MapGradient(self, physical_sensitivity_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         """Maps physical space sensitivity gradients to the control space
 
         This method is used to map the given physical space gradients to the control space. The input should be as in the following example:
@@ -100,7 +100,7 @@ class Control(ABC):
             }
 
         Args:
-            sensitivity_variable_container_expression_map (dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]): Map of design variable and ContainerExpression with sensitivities
+            physical_sensitivity_variable_container_expression_map (dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]): Map of physical space variable and ContainerExpression with sensitivities
 
         Returns:
             ContainerExpressionTypes: Gradients mapped in to control space.
