@@ -1,12 +1,12 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class ResponseRoutine:
-    def __init__(self, master_control: MasterControl, response_name: str, optimization_info: OptimizationInfo) -> None:
+    def __init__(self, master_control: MasterControl, response_name: str, optimization_info: OptimizationProblem) -> None:
         self.__master_control = master_control
         self.__response_name = response_name
         self.__response = optimization_info.GetResponse(response_name)

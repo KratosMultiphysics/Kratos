@@ -7,7 +7,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.responses.standardized_constraint import StandardizedConstraint
 
@@ -16,7 +16,7 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
-        cls.optimization_info = OptimizationInfo()
+        cls.optimization_info = OptimizationProblem()
 
         cls.response_function = MassResponseFunction(cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""), cls.optimization_info)
         cls.optimization_info.AddResponse("mass", cls.response_function)

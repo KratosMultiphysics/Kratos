@@ -6,7 +6,7 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 
-class OptimizationInfo:
+class OptimizationProblem:
     """This is the main data holder for optimization problems
 
     This class holds one private @ref BufferedDict container

@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 
@@ -13,7 +13,7 @@ class StandardizedObjective(ResponseRoutine):
         "maximization"
 
     """
-    def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_info: OptimizationInfo, required_buffer_size: int = 2):
+    def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_info: OptimizationProblem, required_buffer_size: int = 2):
         default_parameters = Kratos.Parameters("""{
             "response_name": "",
             "type"         : "",
@@ -45,12 +45,18 @@ class StandardizedObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Response value for {self.GetReponseName()} is not calculated yet.")
     
-    def CalculateStandardizedValue(self, control_space_updates: KratosOA.ContainerExpression.CollectiveExpressions) -> float:
+    def CalculateStandardizedValue(self, control_space_updates: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
         standardized_response_value = self.CalculateValue(control_space_updates) * self.__scaling
         if not self.__initial_response_value:
             self.__initial_response_value = standardized_response_value
 
+        # put the saving mechanism
+
         return standardized_response_value
+
+    def GetReponseValue(self, step_index):
+        # return the value
+        pass
 
     def CalculateStandardizedGradient(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
         self.CalculateGradient() * self.__scaling

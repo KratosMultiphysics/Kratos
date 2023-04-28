@@ -2,23 +2,23 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class StandardizedResponseFunction:
-    """Communicator class to simplify standardization between responses and OptimizationInfo
+    """Communicator class to simplify standardization between responses and OptimizationProblem
 
-    Instances of this class simplifies interaction between OptimizationInfo
+    Instances of this class simplifies interaction between OptimizationProblem
     and responses.
 
     """
-    def __init__(self, master_control: MasterControl, response_name: str, optimization_info: OptimizationInfo, required_buffer_size: int = 2):
+    def __init__(self, master_control: MasterControl, response_name: str, optimization_info: OptimizationProblem, required_buffer_size: int = 2):
         """Creates an instance of StandardizedResponseFunction.
 
         This creates an instance of response function utility. If it finds an already existing
         response function problem data, then this communicator links to it. Otherwise, it creates
-        respective response function problem data containers in OptimizationInfo
+        respective response function problem data containers in OptimizationProblem
 
         In the event, this creates the response function problem data, then a buffered data container with
         required_buffer_size is created (given by GetBufferedData). Another unbuffered data container is
@@ -28,7 +28,7 @@ class StandardizedResponseFunction:
 
         Args:
             name (str): Name of the response function.
-            optimization_info (OptimizationInfo): Root or child instance of type OptimizationInfo
+            optimization_info (OptimizationProblem): Root or child instance of type OptimizationProblem
             required_buffer_size (int, optional): Required buffer size for this response. Defaults to 2.
 
         Raises:

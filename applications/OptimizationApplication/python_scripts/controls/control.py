@@ -69,7 +69,7 @@ class Control(ABC):
         Args:
             model (Kratos.Model): Kratos model the control belongs to.
             parameters (Kratos.Parameters): Parameters to define behaviour of the control.
-            optimization_info (OptimizationInfo): Optimization problem data.
+            optimization_info (OptimizationProblem): Optimization problem data.
 
         Returns:
             Any: The constructed control.

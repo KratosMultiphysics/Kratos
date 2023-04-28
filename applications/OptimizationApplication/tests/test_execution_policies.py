@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 
 class TestExecutionPolicies(kratos_unittest.TestCase):
@@ -20,7 +20,7 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
                 }
             }
         }""")
-        execution_policy = ExecutionPolicyDecorator(model, parameters, OptimizationInfo())
+        execution_policy = ExecutionPolicyDecorator(model, parameters, OptimizationProblem())
         execution_policy.ExecuteInitialize()
         execution_policy.Execute()
 

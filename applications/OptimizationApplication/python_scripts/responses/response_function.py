@@ -49,7 +49,7 @@ class ResponseFunction(ABC):
         Args:
             model (Kratos.Model): Kratos model the response belongs to.
             parameters (Kratos.Parameters): Parameters to define behaviour of the response.
-            optimization_info (OptimizationInfo): Optimization problem data.
+            optimization_info (OptimizationProblem): Optimization problem data.
 
         Returns:
             Any: The constructed response.
