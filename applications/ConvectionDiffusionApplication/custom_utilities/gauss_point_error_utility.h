@@ -194,6 +194,8 @@ public:
 
     double ExecuteOnConditions(ModelPart& rModelPart);
 
+    double ExecuteOnConditionsGradient(ModelPart& rModelPart);
+
     double ExecuteOnConditionsSolution(ModelPart& rModelPart);
 
     // std::array<double,2> Execute();

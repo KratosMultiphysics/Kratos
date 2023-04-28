@@ -348,6 +348,38 @@ double GaussPointErrorUtility::ExecuteOnConditions(ModelPart& rModelPart)
     return f_error_norm;
 }
 
+double GaussPointErrorUtility::ExecuteOnConditionsGradient(ModelPart& rModelPart)
+{
+    // Initialize values
+    double grad_error_norm = 0.0;
+
+    // Loop the elements to calculate the error
+    const int n_conds = rModelPart.NumberOfConditions();
+    for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
+        auto it_cond = rModelPart.ConditionsBegin() + i_cond;
+        const auto& r_geom = it_cond->GetGeometry();
+        const std::size_t n_nodes = r_geom.PointsNumber();
+
+        const double w = it_cond->GetValue(INTEGRATION_WEIGHT);
+        const auto& r_sh_func_grad = it_cond->GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);
+
+        array_1d<double,3> temp_grad = ZeroVector(3);
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            const double i_temp = r_geom[i_node].FastGetSolutionStepValue(TEMPERATURE);
+            for (std::size_t d = 0; d < r_sh_func_grad.size2(); ++d) {
+                temp_grad(d) += r_sh_func_grad(i_node,d) * i_temp;
+            }
+        }
+
+        const auto grad_exact = CalculateTemperatureExactSolutionGradient(it_cond->GetValue(INTEGRATION_COORDINATES));
+        array_1d<double,3> i_gauss_grad_err = temp_grad - grad_exact;
+        grad_error_norm += w * std::pow(norm_2(i_gauss_grad_err), 2);
+    }
+
+    grad_error_norm = std::sqrt(grad_error_norm);
+    return grad_error_norm;
+}
+
 double GaussPointErrorUtility::ExecuteOnConditionsSolution(ModelPart& rModelPart)
 {
     // Initialize values
@@ -503,16 +535,16 @@ ModifiedShapeFunctions::Pointer GaussPointErrorUtility::SetModifiedShapeFunction
 //     return grad;
 // }
 
-// Parabolic solution for 1x1 square test
-array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
-{
-    const double phi_max = 1.0;
-    array_1d<double,3> grad;
-    grad[0] = 0.0;
-    grad[1] = -2.0*phi_max*rCoords[1];
-    grad[2] = 0.0;
-    return grad;
-}
+// // Parabolic solution for 1x1 square test
+// array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
+// {
+//     const double phi_max = 1.0;
+//     array_1d<double,3> grad;
+//     grad[0] = 0.0;
+//     grad[1] = -2.0*phi_max*rCoords[1];
+//     grad[2] = 0.0;
+//     return grad;
+// }
 
 // array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
 // {
@@ -541,6 +573,18 @@ array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGrad
 //     return grad;
 // }
 
+// Manufactured solution gradient for the "annulus" plate test
+array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
+{
+    array_1d<double,3> grad;
+    const double x = rCoords[0];
+    const double y = rCoords[1];
+    grad[0] = 0.25*(-2*x + 2*x/(std::pow(x,2) + std::pow(y,2))) + 0.25*std::cos(x)*std::sinh(y);
+    grad[1] = 0.25*(-2*y + 2*y/(std::pow(x,2) + std::pow(y,2))) + 0.25*std::sin(x)*std::cosh(y);
+    grad[2] = 0.0;
+    return grad;
+}
+
 // // Manufactured solution for the "zig-zag" plate test
 // double GaussPointErrorUtility::CalculateTemperatureExactSolution(const array_1d<double,3>& rCoords)
 // {
@@ -549,27 +593,22 @@ array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGrad
 //     return y*std::sin(2.0*Globals::Pi*x) - x*std::cos(2.0*Globals::Pi*y);
 // }
 
-// // Manufactured solution for the "annulus" plate test
-// double GaussPointErrorUtility::CalculateTemperatureExactSolution(const array_1d<double,3>& rCoords)
-// {
-//     const double x = rCoords[0];
-//     const double y = rCoords[1];
-//     // return x+y;
-//     // return std::pow((1.0-x),2);
-//     // return std::pow(x,2) + std::pow(y,2);
-//     // return 0.25*(9.0 - std::pow(x,2) - std::pow(y,2) - 2.0*std::log(3.0) + std::log(std::pow(x,2)+std::pow(y,2)));
-//     // return 0.25*(9.0 - std::pow(x,2) - std::pow(y,2) - 2.0*std::log(3.0) + std::log(std::pow(x,2)+std::pow(y,2))) + 0.25*std::sin(y)*std::sinh(x);
-//     return 0.25*(9.0 - std::pow(x,2) - std::pow(y,2) - 2.0*std::log(3.0) + std::log(std::pow(x,2)+std::pow(y,2))) + 0.25*std::sin(x)*std::sinh(y);
-// }
-
-// Parabolic solution for 1x1 square test
+// Manufactured solution for the "annulus" plate test
 double GaussPointErrorUtility::CalculateTemperatureExactSolution(const array_1d<double,3>& rCoords)
 {
-    const double phi_max = 1.0;
     const double x = rCoords[0];
     const double y = rCoords[1];
-    return phi_max*(1.0-std::pow(y,2));
+    return 0.25*(9.0 - std::pow(x,2) - std::pow(y,2) - 2.0*std::log(3.0) + std::log(std::pow(x,2)+std::pow(y,2))) + 0.25*std::sin(x)*std::sinh(y);
 }
+
+// // Parabolic solution for 1x1 square test
+// double GaussPointErrorUtility::CalculateTemperatureExactSolution(const array_1d<double,3>& rCoords)
+// {
+//     const double phi_max = 1.0;
+//     const double x = rCoords[0];
+//     const double y = rCoords[1];
+//     return phi_max*(1.0-std::pow(y,2));
+// }
 
 // double GaussPointErrorUtility::CalculatePressureExactSolution(const array_1d<double,3>& rCoords)
 // {
