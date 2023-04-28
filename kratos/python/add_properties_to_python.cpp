@@ -32,11 +32,11 @@ namespace Python
 {
 namespace py = pybind11;
 
-using Node<3> = NodeType;
-using Mesh<NodeType, Properties, Element, Condition> = MeshType;
-using ConstitutiveLaw = ConstitutiveLawBaseType;
-using std::size_t = IndexType;
-using PointerVectorSet<Properties, IndexedObject> = PropertiesContainerType;
+using NodeType = Node<3>;
+using MeshType = Mesh<NodeType, Properties, Element, Condition>;
+using ConstitutiveLawBaseType = ConstitutiveLaw;
+using IndexType = std::size_t;
+using PropertiesContainerType = PointerVectorSet<Properties, IndexedObject>;
 using GeometryType = Geometry<NodeType>;
 
 template< class TContainerType, class TVariableType >
