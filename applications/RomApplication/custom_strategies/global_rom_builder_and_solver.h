@@ -83,42 +83,42 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GlobalROMBuilderAndSolver);
 
     // The size_t types
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
 
     /// The definition of the current class
-    typedef GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    using ClassType = GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Definition of the classes from the base class
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>   BaseBuilderAndSolverType;
-    typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-    typedef typename BaseBuilderAndSolverType::TSchemeType TSchemeType;
-    typedef typename BaseBuilderAndSolverType::DofsArrayType DofsArrayType;
-    typedef typename BaseBuilderAndSolverType::TSystemMatrixType TSystemMatrixType;
-    typedef typename BaseBuilderAndSolverType::TSystemVectorType TSystemVectorType;
-    typedef typename BaseBuilderAndSolverType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseBuilderAndSolverType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef typename BaseBuilderAndSolverType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    typedef typename BaseBuilderAndSolverType::TSystemVectorPointerType TSystemVectorPointerType;
-    typedef typename BaseBuilderAndSolverType::ElementsArrayType ElementsArrayType;
-    typedef typename BaseBuilderAndSolverType::ConditionsArrayType ConditionsArrayType;
+    using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using BaseType = ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using TSchemeType = typename BaseBuilderAndSolverType::TSchemeType;
+    using DofsArrayType = typename BaseBuilderAndSolverType::DofsArrayType;
+    using TSystemMatrixType = typename BaseBuilderAndSolverType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseBuilderAndSolverType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseBuilderAndSolverType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseBuilderAndSolverType::LocalSystemMatrixType;
+    using TSystemMatrixPointerType = typename BaseBuilderAndSolverType::TSystemMatrixPointerType;
+    using TSystemVectorPointerType = typename BaseBuilderAndSolverType::TSystemVectorPointerType;
+    using ElementsArrayType = typename BaseBuilderAndSolverType::ElementsArrayType;
+    using ConditionsArrayType = typename BaseBuilderAndSolverType::ConditionsArrayType;
 
     /// Additional definitions
-    typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
-    typedef Element::EquationIdVectorType EquationIdVectorType;
-    typedef Element::DofsVectorType DofsVectorType;
-    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
-    typedef LocalSystemMatrixType RomSystemMatrixType;
-    typedef LocalSystemVectorType RomSystemVectorType;
+    using MasterSlaveConstraintContainerType = typename ModelPart::MasterSlaveConstraintContainerType;
+    using EquationIdVectorType = typename Element::EquationIdVectorType;
+    using DofsVectorType = typename Element::DofsVectorType;
+    using CompressedMatrixType = boost::numeric::ublas::compressed_matrix<double>;
+    using RomSystemMatrixType = LocalSystemMatrixType;
+    using RomSystemVectorType = LocalSystemVectorType;
     using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
     using EigenSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
-    typedef typename NodeType::DofType DofType;
-    typedef typename DofType::Pointer DofPointerType;
-    typedef moodycamel::ConcurrentQueue<DofType::Pointer> DofQueue;
+    using NodeType = Node<3>;
+    using DofType = typename NodeType::DofType;
+    using DofPointerType = typename DofType::Pointer;
+    using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
 
     ///@}
     ///@name Life cycle
