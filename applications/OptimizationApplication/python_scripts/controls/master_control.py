@@ -37,6 +37,11 @@ class MasterControl:
         """
         CallOnAll(self.__list_of_controls, Control.Initialize)
 
+    def Check(self) -> None:
+        """Checks all the controls.
+        """
+        CallOnAll(self.__list_of_controls, Control.Check)
+
     def Finalize(self) -> None:
         """Finalizes all the controls.
         """

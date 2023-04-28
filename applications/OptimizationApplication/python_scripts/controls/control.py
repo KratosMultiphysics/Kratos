@@ -27,6 +27,15 @@ class Control(ABC):
         """
         pass
 
+    @abstractmethod
+    def Check(self) -> None:
+        """Checks the control.
+
+        This method checks the control. This is only called once in the whole optimization process.
+
+        """
+        pass
+
     def Finalize(self) -> None:
         """Finalizes the control.
 
