@@ -1,25 +1,28 @@
 import os
-import shutil
 
 from KratosMultiphysics import KratosUnittest, Model, ModelPartIO, PARTITION_INDEX, FRACTIONAL_STEP
+from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.MetisApplication import MetisDivideHeterogeneousInputProcess
 
 class QuadPartitionTest(KratosUnittest.TestCase):
 
-    def setUp(self):
-        self.work_dir = os.path.abspath(os.path.dirname(__file__))
-
     def testConditionPartitioning(self):
-        self.test_file = test_file = "quads"
+        test_file = "quads"
         partitions = 3
         sync_conditions = True
         domain_size = 2
         verbosity = 0
 
+        work_dir = os.path.abspath(os.path.dirname(__file__))
         model = Model()
         io_flags = ModelPartIO.READ|ModelPartIO.SKIP_TIMER|ModelPartIO.IGNORE_VARIABLES_ERROR
 
-        with KratosUnittest.WorkFolderScope(self.work_dir, ''):
+        # Register clean up operation for files created by the partitioner
+        self.addCleanup(
+            DeleteDirectoryIfExisting,
+            os.path.join(work_dir, f'{test_file}_partitioned'))
+
+        with KratosUnittest.WorkFolderScope(work_dir, ''):
             io = ModelPartIO(test_file, io_flags)
 
             partitioner = MetisDivideHeterogeneousInputProcess(
@@ -37,10 +40,3 @@ class QuadPartitionTest(KratosUnittest.TestCase):
                 for condition in model_part.Conditions:
                     parent = condition.GetValue(FRACTIONAL_STEP)
                     self.assertTrue(parent in model_part.Elements)
-
-    def tearDown(self):
-        with KratosUnittest.WorkFolderScope(self.work_dir, ''):
-            try:
-                shutil.rmtree(f'{self.test_file}_partitioned')
-            except:
-                pass
