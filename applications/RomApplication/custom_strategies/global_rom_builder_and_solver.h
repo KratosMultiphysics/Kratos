@@ -11,18 +11,17 @@
 //                  
 //
 
-#if !defined(KRATOS_GLOBAL_ROM_BUILDER_AND_SOLVER)
-#define KRATOS_GLOBAL_ROM_BUILDER_AND_SOLVER
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 #include "concurrentqueue/concurrentqueue.h"
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
@@ -38,30 +37,28 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 
 ///@}
 ///@name Type Definitions
 ///@{
 
-
-///@}GlobalROMBuilderAndSolver
+///@}
 ///@name  Enum's
 ///@{
-
 
 ///@}
 ///@name  Functions
 ///@{
 
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class GlobalROMBuilderAndSolver
+ */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GlobalROMBuilderAndSolver : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
@@ -145,7 +142,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -363,11 +359,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -395,13 +389,11 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 protected:
     ///@}
     ///@name Protected static member variables
     ///@{
-
 
     ///@}
     ///@name Protected member variables
@@ -421,7 +413,6 @@ protected:
     ///@}
     ///@name Protected operators
     ///@{
-
 
     ///@}
     ///@name Protected operations
@@ -764,18 +755,17 @@ protected:
     ///@name Protected access
     ///@{
 
-
     ///@}
     ///@name Protected inquiry
     ///@{
 
-
     ///@}
     ///@name Protected life cycle
     ///@{
-
 private:
-
+    ///@name Private member variables 
+    ///@{
+        
     SizeType mNumberOfRomModes;
     EigenDynamicMatrix meigen_romA;
     EigenDynamicVector meigen_romb;
@@ -796,5 +786,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_GLOBAL_ROM_BUILDER_AND_SOLVER  defined */
