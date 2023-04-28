@@ -66,6 +66,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.rom_basis_output_name = settings["rom_basis_output_name"].GetString()
 
+        self.rom_basis_output_folder = settings["rom_basis_output_folder"].GetString()
+
         # Get the SVD truncation tolerance
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
 
@@ -90,6 +92,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "nodal_unknowns": [],
             "rom_basis_output_format": "numpy",
             "rom_basis_output_name": "RomParameters",
+            "rom_basis_output_folder" : "rom_data",
             "svd_truncation_tolerance": 1.0e-6
         }""")
 
@@ -169,6 +172,11 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         rom_basis_dict["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = 0
         #NOTE "petrov_galerkin_number_of_rom_dofs" is not used unless a Petrov-Galerkin simulation is called, in which case it shall be modified either manually or from the RomManager
 
+
+        # Create the folder if it doesn't already exist
+        if not os.path.exists(self.rom_basis_output_folder):
+            os.makedirs(self.rom_basis_output_folder)
+
         if self.rom_basis_output_format == "json":
             # Storing modes in JSON format
             i = 0
@@ -177,22 +185,15 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                 i += n_nodal_unknowns
 
         elif self.rom_basis_output_format == "numpy":
-            # Set the name of the folder where the numpy basis are going to be stored (Same name as rom_basis_output_name).
-            folder_name = f"numpy_rom_data_{self.rom_basis_output_name}"
-
-            # Create the folder if it doesn't already exist
-            if not os.path.exists(folder_name):
-                os.makedirs(folder_name)
-
             # Storing modes in Numpy format
-            numpy.save(f'numpy_rom_data_{self.rom_basis_output_name}/RightBasisMatrix.npy', u)
-            numpy.save(f'numpy_rom_data_{self.rom_basis_output_name}/NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
+            numpy.save(f'{self.rom_basis_output_folder}/RightBasisMatrix.npy', u)
+            numpy.save(f'{self.rom_basis_output_folder}/NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
 
         # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
-        output_filename = f"{self.rom_basis_output_name}.json"
+        output_filename = f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json"
         with open(output_filename, 'w') as f:
             json.dump(rom_basis_dict, f, indent = 4)
 
