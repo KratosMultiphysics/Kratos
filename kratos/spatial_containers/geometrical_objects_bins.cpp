@@ -71,14 +71,11 @@ void GeometricalObjectsBins::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
-    // Initialize search
-    InitializeSearch();
-
     // Search
     LocalSearchInRadius(rPoint, Radius, rResults);
 
-    // Finalize search
-    FinalizeSearch();
+    // Synchronize search
+    SynchronizeSearchInRadius(rResults);
 }
 
 /***********************************************************************************/
@@ -89,16 +86,11 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
     const double Radius
     )
 {
-    // Initialize search
-    InitializeSearch();
-
     // Search
     auto result = LocalSearchNearestInRadius(rPoint, Radius);
 
-    // Finalize search
-    FinalizeSearch();
-
-    return result;
+    // Synchronize search
+    return SynchronizeSearchNearestInRadius(result);
 }
 
 /***********************************************************************************/
@@ -106,16 +98,11 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
 
 GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const Point& rPoint)
 {
-    // Initialize search
-    InitializeSearch();
-
     // Search
     auto result = LocalSearchNearest(rPoint);
 
-    // Finalize search
-    FinalizeSearch();
-
-    return result;
+    // Synchronize search
+    return SynchronizeSearchNearest(result);
 }
 
 /***********************************************************************************/
@@ -123,16 +110,11 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const P
 
 GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const Point& rPoint)
 {
-    // Initialize search
-    InitializeSearch();
-
     // Search
     auto result = LocalSearchIsInside(rPoint);
 
-    // Finalize search
-    FinalizeSearch();
-
-    return result;
+    // Synchronize search
+    return SynchronizeSearchIsInside(result);
 }
 
 /***********************************************************************************/
@@ -231,7 +213,6 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::LocalSearchIsInside(c
     current_result.SetDistance(std::numeric_limits<double>::max());
 
     array_1d<std::size_t, Dimension> position;
-
     for(unsigned int i = 0; i < Dimension; i++ ) {
         position[i] = CalculatePosition(rPoint[i], i);
     }
@@ -254,7 +235,7 @@ void GeometricalObjectsBins::CalculateCellSize(const std::size_t NumberOfCells)
         lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
         avarage_length += lengths[i];
     }
-    avarage_length *= 1.0 / 3.0; // NOTE: We can replace it by 0.33333333333333333333333333333333 to avoid floating point operations (sometimes compiler may not optimize it)
+    avarage_length *= 0.33333333333333333333333333333333;
 
     if (avarage_length < std::numeric_limits<double>::epsilon()) {
         mNumberOfCells = ScalarVector(3, 1);
@@ -340,9 +321,9 @@ void GeometricalObjectsBins::SearchIsInsideInCell(
     ResultType& rResult
     )
 {
+    array_1d<double, 3> point_local_coordinates;
     for(auto p_geometrical_object : rCell){
         auto& r_geometry = p_geometrical_object->GetGeometry();
-        array_1d<double, 3> point_local_coordinates;
         const bool is_inside = r_geometry.IsInside(rPoint,point_local_coordinates,Tolerance);
         if (is_inside) {
             rResult.Set(p_geometrical_object);
@@ -350,6 +331,38 @@ void GeometricalObjectsBins::SearchIsInsideInCell(
             return;
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometricalObjectsBins::SynchronizeSearchInRadius(std::vector<ResultType>& rLocalResults)
+{
+    // do nothing
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBins::ResultType& GeometricalObjectsBins::SynchronizeSearchNearestInRadius(ResultType& rLocalResult)
+{
+    return rLocalResult;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBins::ResultType& GeometricalObjectsBins::SynchronizeSearchNearest(ResultType& rLocalResult)
+{
+    return rLocalResult;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBins::ResultType& GeometricalObjectsBins::SynchronizeSearchIsInside(ResultType& rLocalResult)
+{
+    return rLocalResult;
 }
 
 }  // namespace Kratos.
