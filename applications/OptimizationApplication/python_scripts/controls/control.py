@@ -77,14 +77,14 @@ class Control(ABC):
 
     @abstractmethod
     def GetEmptyControlField(self) -> ContainerExpressionTypes:
-        """Returns an empty control field data holder.
+        """Returns a new empty control field data holder.
 
-        This returns an empty control field data holder to give information about on which model part's container
+        This returns a new empty control field data holder to give information about on which model part's container
         this model part is acting on. This has O(1) complexity, hence has the least cost because it does not read
         any data from respective model part's container.
 
         Returns:
-            ContainerExpressionTypes: Returns an empty ContainerExpression corresponding to control's model part's respective container.
+            ContainerExpressionTypes: Returns a new empty ContainerExpression corresponding to control's model part's respective container.
         """
         pass
 

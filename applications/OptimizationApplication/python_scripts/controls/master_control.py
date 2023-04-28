@@ -4,30 +4,75 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
 class MasterControl:
+    """Master control class.
+
+    This class is used to simplify working with many controls at once. Following responsibilities are assumed:
+        1. Maps physical gradients from different domains to one CollectiveExpression (using MapGradients).
+        2. Updates each respective domain from updates given by one CollectiveExpression (using Update).
+
+    There should be only one master control class per optimization problem.
+
+    """
     def __init__(self) -> None:
         self.__list_of_controls: 'list[Control]' = []
 
     def AddControl(self, control: Control) -> None:
+        """Adds a given control to the master control.
+
+        Args:
+            control (Control): Control to be added
+        """
         self.__list_of_controls.append(control)
 
     def GetControls(self) -> 'list[Control]':
+        """Returns the list of controls in the master control.
+
+        Returns:
+            list[Control]: List of controls.
+        """
         return self.__list_of_controls
 
     def Initialize(self) -> None:
+        """Initializes all the controls.
+        """
         CallOnAll(self.__list_of_controls, Control.Initialize)
 
     def Finalize(self) -> None:
+        """Finalizes all the controls.
+        """
         CallOnAll(self.__list_of_controls, Control.Finalize)
 
-    def GetPhysicalVariables(self) -> 'list[list[SupportedSensitivityFieldVariableTypes]]':
-        physical_variables: 'list[list[SupportedSensitivityFieldVariableTypes]]' = []
+    def GetPhysicalVariableCollectiveExpressionsMap(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]':
+        """Returns map of physical variables and collective expressions from each control.
+
+        This returns a map of physical control variables and a collective expressions. The collective expressions will contain
+        all the container expressions for respective control's control domains for each physical control variable. The repeated container
+        expressions for the same physical control variable is omitted to avoid double calculations.
+
+        Returns:
+            dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]: Physical control variable and collective expressions map.
+        """
+        physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]' = {}
 
         for control in self.__list_of_controls:
-            physical_variables.append(control.GetPhysicalVariables())
+            for physical_variable in control.GetPhysicalVariables():
+                # check whether the physical variable is already there.
+                if not physical_variable in physical_variable_collective_expressions.keys():
+                    physical_variable_collective_expressions[physical_variable] = KratosOA.ContainerExpression.CollectiveExpressions()
 
-        return physical_variables
+                # check whether the container for that physical variable is already there.
+                control_container_expression = control.GetEmptyControlField()
+                if not control_container_expression.GetContainer() not in physical_variable_collective_expressions[physical_variable].GetContainerExpressions():
+                    physical_variable_collective_expressions[physical_variable].Add(control_container_expression)
+
+        return physical_variable_collective_expressions
 
     def GetControlVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
+        """Returns list of control variables.
+
+        Returns:
+            list[SupportedSensitivityFieldVariableTypes]: List of control variables.
+        """
         control_variables: 'list[SupportedSensitivityFieldVariableTypes]' = []
 
         for control in self.__list_of_controls:
@@ -36,6 +81,11 @@ class MasterControl:
         return control_variables
 
     def GetEmptyControlFields(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
+        """Returns empty CollectiveExpressions containing empty ContainerExpressions for each control.
+
+        Returns:
+            KratosOA.ContainerExpression.CollectiveExpressions: Empty CollectiveExpressions
+        """
         empty_control_fields = KratosOA.ContainerExpression.CollectiveExpressions()
 
         for control in self.__list_of_controls:
@@ -44,25 +94,76 @@ class MasterControl:
         return empty_control_fields
 
     def MapGradients(self, physical_space_sensitivity_variable_and_collective_expressions_map: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]') -> KratosOA.ContainerExpression.CollectiveExpressions:
+        """Maps physical space gradients to a collective expression.
+
+        This method maps sensitivities w.r.t. physical space variables to control space by using each control. It is done by converting input
+        map with CollectiveExpressions to a map with ContainerExpressions. The following is a pseudo example:
+
+        input:
+
+        physical_space_sensitivity_variable_and_collective_expressions_map = {
+            "YOUND_MODULUS": [ControlDomain1, ControlDomain2],
+            "DENSITY"      : [ControlDomain1, ControlDomain2],
+            "VISCOSITY"    : [ControlDomain2],
+        }
+
+        control info:
+        control1: domain = ControlDomain1
+                  physical_vars = YOUND_MODULUS, DENSITY
+
+        control1: domain = ControlDomain2
+                  physical_vars = VISCOSITY, DENSITY
+
+
+        from above information, following two maps are created and passed to each control to obtain one ContainerExpression from each control.
+        control_specific_maps:
+        for control1: {YOUND_MODULUS: ControlDomain1, DENSITY: ControlDomain1}
+        for control2: {VISCOSITY: ControlDomain2}
+
+        then returned mapped gradients are added to one CollectiveExpression.
+
+        This converts given map of sensitivities w.r.t. different physical space variables to one sensitivities in control space and aggregated
+        to one CollectiveExpression.
+
+        Args:
+            physical_space_sensitivity_variable_and_collective_expressions_map (dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]): Map of physical space sensitivities.
+
+        Returns:
+            KratosOA.ContainerExpression.CollectiveExpressions: Control space sensitivities.
+        """
         mapped_gradients = KratosOA.ContainerExpression.CollectiveExpressions()
 
         for control in self.__list_of_controls:
+            # iterate through each control to create its own container expression map from the collective expressions map given as input
             control_physical_sensitivities_container_expression_map = {}
             for physical_control_variable in control.GetPhysicalVariables():
+                # get the required physical variables from control.
                 if physical_control_variable in physical_space_sensitivity_variable_and_collective_expressions_map.keys():
+                    # if the sensitivities for the given physical control variable exists, then try to find whether
+                    # for this specific control the physical control variable sensitivities exists.
                     control_expression = control.GetEmptyControlField()
                     sensitivity_collective_expression = physical_space_sensitivity_variable_and_collective_expressions_map[physical_control_variable]
                     for container_expression in sensitivity_collective_expression.GetContainerExpressions():
                         if control_expression.GetContainer() == container_expression.GetContainer():
+                            # there exists for this control's physical variables sensitivities. then add it to control map.
                             control_expression.CopyFrom(container_expression)
                             control_physical_sensitivities_container_expression_map[physical_control_variable] = control_expression
                             break
 
+            # map the physical control variable sensitivities to one control space
             mapped_gradients.Add(control.MapGradient(control_physical_sensitivities_container_expression_map))
 
         return mapped_gradients
 
     def Update(self, update_collective_expressions: KratosOA.ContainerExpression.CollectiveExpressions) -> None:
+        """Update each control with given collective expression's respective container expression.
+
+        Args:
+            update_collective_expressions (KratosOA.ContainerExpression.CollectiveExpressions): Update
+
+        Raises:
+            RuntimeError: If number of controls and number of container expressions mismatch.
+        """
         if len(self.__list_of_controls) != len(update_collective_expressions.GetContainerExpressions()):
             raise RuntimeError(f"Controls size and update size mismatch [ number of controls: {len(self.__list_of_controls)}, number of container expressions: {len(update_collective_expressions.GetContainerExpressions())} ].")
 
