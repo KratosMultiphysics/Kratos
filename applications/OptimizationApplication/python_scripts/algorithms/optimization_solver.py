@@ -10,7 +10,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.response_function_impl
 from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ConstraintResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
-class Algorithm(PythonSolver, ABC):
+class OptimizationSolver(PythonSolver, ABC):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         PythonSolver.__init__(self, model, parameters)
 
