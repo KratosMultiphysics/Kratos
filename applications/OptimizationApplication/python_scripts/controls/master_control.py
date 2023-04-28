@@ -7,7 +7,7 @@ class MasterControl:
     """Master control class.
 
     This class is used to simplify working with many controls at once. Following responsibilities are assumed:
-        1. Maps physical gradients from different domains to one CollectiveExpression (using MapGradients).
+        1. Maps physical gradients from different domains to one CollectiveExpression (using MapGradient).
         2. Updates each respective domain from updates given by one CollectiveExpression (using Update).
 
     There should be only one master control class per optimization problem.
