@@ -1,23 +1,23 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class StandardizationUtilities:
-    """Communicator class to simplify standardization between responses and OptimizationInfo
+    """Communicator class to simplify standardization between responses and OptimizationProblem
 
-    Instances of this class simplifies interaction between OptimizationInfo
+    Instances of this class simplifies interaction between OptimizationProblem
     and responses.
 
     """
-    def __init__(self, name: str, optimization_info: OptimizationInfo, required_buffer_size: int = 2):
+    def __init__(self, name: str, optimization_info: OptimizationProblem, required_buffer_size: int = 2):
         """Creates an instance of StandardizationUtilities.
 
         This creates an instance of response function utility. If it finds an already existing
         response function problem data, then this communicator links to it. Otherwise, it creates
-        respective response function problem data containers in OptimizationInfo
+        respective response function problem data containers in OptimizationProblem
 
         In the event, this creates the response function problem data, then a buffered data container with
         required_buffer_size is created (given by GetBufferedData). Another unbuffered data container is
@@ -27,7 +27,7 @@ class StandardizationUtilities:
 
         Args:
             name (str): Name of the response function.
-            optimization_info (OptimizationInfo): Root or child instance of type OptimizationInfo
+            optimization_info (OptimizationProblem): Root or child instance of type OptimizationProblem
             required_buffer_size (int, optional): Required buffer size for this response. Defaults to 2.
 
         Raises:
@@ -77,22 +77,22 @@ class StandardizationUtilities:
         """
         return self.__response_function
 
-    def GetBufferedData(self) -> OptimizationInfo:
+    def GetBufferedData(self) -> OptimizationProblem:
         """Get the buffered data container for response function.
 
         Returns:
-            OptimizationInfo: Buffered data container for response function
+            OptimizationProblem: Buffered data container for response function
         """
         return self.__response_buffered_data
 
-    def GetUnbufferedData(self) -> OptimizationInfo:
+    def GetUnbufferedData(self) -> OptimizationProblem:
         """Get the unbuffered data container for the response function.
 
         This method returns the unbuffered data container for response functions which
         is used to store heavy objects such as response senstivity data.
 
         Returns:
-            OptimizationInfo: Unbuffered data container for response function.
+            OptimizationProblem: Unbuffered data container for response function.
         """
         return self.__response_unbuffered_data
 
