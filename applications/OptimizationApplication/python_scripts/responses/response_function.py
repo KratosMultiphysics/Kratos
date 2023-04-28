@@ -11,6 +11,9 @@ class ResponseFunction(ABC):
     This reponse function is the base response function. This is assumed to have following responsibilities.
         1. CalculateValue for a fresh design. (@see CalculateValue)
         2. CalculateSensitivity for a fresh design (@see CalculateSensitivity)
+
+    This response should only work on one model part. Hence, if required multiple model parts can be used
+    by using the union operator in Kratos.ModelPartBinaryOperators to create one model part within the response.
     """
     def Initialize(self) -> None:
         """Initializes the response.
@@ -95,5 +98,14 @@ class ResponseFunction(ABC):
 
         Args:
             physical_variable_collective_expressions (dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]): Output containing calculated sensitivities w.r.t. requested physical variables.
+        """
+        pass
+
+    @abstractmethod
+    def GetModelPart(self) -> Kratos.ModelPart:
+        """Returns the model part for which this response is computed on.
+
+        Returns:
+            Kratos.ModelPart: Response function model part.
         """
         pass
