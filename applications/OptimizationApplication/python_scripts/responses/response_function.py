@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class ResponseFunction(ABC):
@@ -42,7 +41,7 @@ class ResponseFunction(ABC):
 
     @staticmethod
     @abstractmethod
-    def Create(model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo) -> Any:
+    def Create(model: Kratos.Model, parameters: Kratos.Parameters, optimization_info) -> Any:
         """Returns a new response constructed with standard input parameters.
 
         Args:

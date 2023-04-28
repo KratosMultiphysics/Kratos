@@ -160,7 +160,7 @@ class MasterControl:
 
         return mapped_gradients
 
-    def Update(self, update_collective_expressions: KratosOA.ContainerExpression.CollectiveExpressions) -> None:
+    def Update(self, update_collective_expressions: KratosOA.ContainerExpression.CollectiveExpressions) -> 'dict[Control, bool]':
         """Update each control with given collective expression's respective container expression.
 
         Args:
@@ -168,10 +168,16 @@ class MasterControl:
 
         Raises:
             RuntimeError: If number of controls and number of container expressions mismatch.
+
+        Returns:
+            dict[Control, bool]: A map with control and a boolean whether the update changed anything in that control.
         """
         if len(self.__list_of_controls) != len(update_collective_expressions.GetContainerExpressions()):
             raise RuntimeError(f"Controls size and update size mismatch [ number of controls: {len(self.__list_of_controls)}, number of container expressions: {len(update_collective_expressions.GetContainerExpressions())} ].")
 
+        update_map: 'dict[Control, bool]' = {}
         for control, container_expression in zip(self.__list_of_controls, update_collective_expressions.GetContainerExpressions()):
-            control.Update(container_expression)
+            update_map[control] = control.Update(container_expression)
+
+        return update_map
 

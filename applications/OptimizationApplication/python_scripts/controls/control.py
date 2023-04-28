@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
@@ -62,7 +61,7 @@ class Control(ABC):
 
     @staticmethod
     @abstractmethod
-    def Create(model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo) -> Any:
+    def Create(model: Kratos.Model, parameters: Kratos.Parameters, optimization_info) -> Any:
         """Returns a new control constructed with standard input parameters.
 
         Args:
@@ -117,7 +116,7 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def Update(self, update_container_expression: ContainerExpressionTypes) -> None:
+    def Update(self, update_container_expression: ContainerExpressionTypes) -> bool:
         """Updates the current control.
 
         This method updates the control with the given update from @ref update_container_expression. This
@@ -125,6 +124,9 @@ class Control(ABC):
 
         Args:
             update_container_expression (ContainerExpressionTypes): Final design in control space as an update.
+
+        Returns:
+            bool: True if the update was carried out, otherwise False
         """
         pass
 
