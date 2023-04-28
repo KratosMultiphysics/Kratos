@@ -157,6 +157,7 @@ double& DamJoint3DLaw::GetValue( const Variable<double>& rThisVariable, double& 
     {
         rValue = mStateVariable;
     }
+
     return rValue;
 
     KRATOS_CATCH("")
@@ -164,8 +165,8 @@ double& DamJoint3DLaw::GetValue( const Variable<double>& rThisVariable, double& 
 
 //----------------------------------------------------------------------------------------
 
-void DamJoint3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                                        const ProcessInfo& rCurrentProcessInfo )
+void DamJoint3DLaw::SetValue(const Variable<double>& rThisVariable, const double& rValue,
+                             const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -180,7 +181,7 @@ void DamJoint3DLaw::SetValue( const Variable<double>& rThisVariable, const doubl
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void DamJoint3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables,
-                                                                Parameters& rValues)
+                                                       Parameters& rValues)
 
 {
     KRATOS_TRY
@@ -195,20 +196,20 @@ void DamJoint3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLawVariables&
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void DamJoint3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues)
+                                            Parameters& rValues)
 {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void DamJoint3DLaw::CheckLoadingFunction(ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues)
+                                         Parameters& rValues)
 {}
 
 //----------------------------------------------------------------------------------------
 
 void DamJoint3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                                        ConstitutiveLawVariables& rVariables,
-                                                        Parameters& rValues)
+                                              ConstitutiveLawVariables& rVariables,
+                                              Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -246,8 +247,8 @@ void DamJoint3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
 //----------------------------------------------------------------------------------------
 
 void DamJoint3DLaw::ComputeStressVector(Vector& rStressVector,
-                                                ConstitutiveLawVariables& rVariables,
-                                                Parameters& rValues)
+                                        ConstitutiveLawVariables& rVariables,
+                                        Parameters& rValues)
 {
     KRATOS_TRY
 
