@@ -19,7 +19,7 @@ class StandardizedConstraint:
     The reference value for the constraint either can be the "initial_value" or a specified value.
 
     """
-    def __init__(self, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+    def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_info: OptimizationInfo, required_buffer_size: int = 2):
         default_parameters = Kratos.Parameters("""{
             "response_name": "",
             "type"         : "",

@@ -3,10 +3,8 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.responses.standardized_response_function import StandardizedResponseFunction
 
-class StandardizedObjective(StandardizedResponseFunction):
+class StandardizedObjective(ResponseRoutine):
     """Standardized objective response function
 
     This class creates instances to standardize any response function (make it a minimization problem).
@@ -24,6 +22,8 @@ class StandardizedObjective(StandardizedResponseFunction):
         parameters.ValidateAndAssignDefaults(default_parameters)
 
         super().__init__(master_control, parameters["response_name"].GetString(), optimization_info, required_buffer_size)
+
+        # TODO: setting the buffer sizes correclty
 
         scaling = parameters["scaling"].GetDouble()
         if scaling < 0.0:
@@ -43,17 +43,17 @@ class StandardizedObjective(StandardizedResponseFunction):
         if self.__initial_response_value is None:
             return self.__initial_response_value
         else:
-            raise RuntimeError(f"Response value for {self.GetName()} is not calculated yet.")
+            raise RuntimeError(f"Response value for {self.GetReponseName()} is not calculated yet.")
     
     def CalculateStandardizedValue(self, control_space_updates: KratosOA.ContainerExpression.CollectiveExpressions) -> float:
-        standardized_response_value = self.CalculateScaledValue(control_space_updates, self.__scaling)
+        standardized_response_value = self.CalculateValue(control_space_updates) * self.__scaling
         if not self.__initial_response_value:
             self.__initial_response_value = standardized_response_value
 
         return standardized_response_value
 
-    def CalculateStandardizedGradient(self, sensitivity_variable_collective_expression_info: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]'):
-        self.CalculateScaledGradient(self.__scaling)
+    def CalculateStandardizedGradient(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
+        self.CalculateGradient() * self.__scaling
 
     def UpdateObjectiveData(self) -> None:
         response_problem_data = self.__utility.GetBufferedData()
