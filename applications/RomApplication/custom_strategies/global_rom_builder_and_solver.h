@@ -711,8 +711,8 @@ protected:
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
         // Compute the matrix multiplication
-        meigen_romA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-        meigen_romb = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+        mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+        mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
         
         KRATOS_CATCH("")
     }
@@ -734,7 +734,7 @@ protected:
 
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
-        dxrom_eigen = meigen_romA.colPivHouseholderQr().solve(meigen_romb);
+        dxrom_eigen = mEigenRomA.colPivHouseholderQr().solve(mEigenRomB);
         
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
@@ -767,8 +767,8 @@ private:
     ///@{
         
     SizeType mNumberOfRomModes;
-    EigenDynamicMatrix meigen_romA;
-    EigenDynamicVector meigen_romb;
+    EigenDynamicMatrix mEigenRomA;
+    EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
 
     ///@}
