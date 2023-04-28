@@ -335,8 +335,8 @@ void SmallDisplacementNonLocalHex::CalculateAll(
         // Compute material reponse
         CalculateAllConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, this_non_local_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
-        // Calculate and set non locl constitutive variables
-        CalculateNonLocalConstitutiveVariables(this_kinematic_variables, this_non_local_constitutive_variables, Values, DAMAGE_VARIABLE, point_number);
+        // Calculate and set non locl constitutive variables......................................................
+        CalculateNonLocalConstitutiveVariables(this_kinematic_variables, this_non_local_constitutive_variables, Values, EQUIVALENT_STRAIN, point_number);
 
         SetNonLocalConstitutiveVariables(mConstitutiveMatrix, this_constitutive_variables, this_non_local_constitutive_variables);
 
@@ -540,14 +540,14 @@ void SmallDisplacementNonLocalHex::CalculateNonLocalConstitutiveVariables(
     KRATOS_TRY;
     const auto& r_geometry = GetGeometry();
     const auto& N = rThisKinematicVariables.N;
-    double local_damage_gp = 0.0; 
-    rThisNonLocalConstitutiveVariables.NL_D_GP = 0;
+    double local_variable_gp = 0.0; 
+    rThisNonLocalConstitutiveVariables.NonLocal_Variable_GP = 0;
 
     for (unsigned int i = 0; i < N.size(); ++i) {
-        rThisNonLocalConstitutiveVariables.NL_D_GP += N[i] * r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
+        rThisNonLocalConstitutiveVariables.NonLocal_Variable_GP += N[i] * r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
     }
-    mConstitutiveLawVector[PointNumber]->CalculateValue(rValues, rThisVariable, local_damage_gp); 
-    rThisNonLocalConstitutiveVariables.Local_D_GP = local_damage_gp;
+    mConstitutiveLawVector[PointNumber]->CalculateValue(rValues, rThisVariable, local_variable_gp); 
+    rThisNonLocalConstitutiveVariables.Local_Variable_GP = local_variable_gp;
     KRATOS_CATCH( "" )
 }
 
@@ -704,15 +704,15 @@ void SmallDisplacementNonLocalHex::CalculateAndAddResidualNonLocalVector(
     const double Lc = r_properties[CHARACTERISTIC_INTERNAL_LENGTH];
     const Vector rN = rThisKinematicVariables.N;
     const Matrix rdNdX = rThisKinematicVariables.DN_DX;
-    const double rNL_D_GP = rThisNonLocalConstitutiveVariables.NL_D_GP;
-    const double rLocal_D_GP = rThisNonLocalConstitutiveVariables.Local_D_GP;
-    Vector NL_Damage = ZeroVector(rN.size());
+    const double rNonLocal_Variable_GP = rThisNonLocalConstitutiveVariables.NonLocal_Variable_GP;
+    const double rLocal_Variable_GP = rThisNonLocalConstitutiveVariables.Local_Variable_GP;
+    Vector NL_variable_vector = ZeroVector(rN.size());
 
     for (unsigned int i = 0; i < rN.size(); ++i) {
-        NL_Damage[i] = r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
+        NL_variable_vector[i] = r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
     }
-    rResidualNonLocalVector -= IntegrationWeight * rN * (rNL_D_GP-rLocal_D_GP);
-    rResidualNonLocalVector -= IntegrationWeight * pow(Lc, 2) * prod(prod(rdNdX, trans(rdNdX)),NL_Damage );
+    rResidualNonLocalVector -= IntegrationWeight * rN * (rNonLocal_Variable_GP-rLocal_Variable_GP);
+    rResidualNonLocalVector -= IntegrationWeight * pow(Lc, 2) * prod(prod(rdNdX, trans(rdNdX)),NL_variable_vector );
     KRATOS_CATCH( "" )
 }
 

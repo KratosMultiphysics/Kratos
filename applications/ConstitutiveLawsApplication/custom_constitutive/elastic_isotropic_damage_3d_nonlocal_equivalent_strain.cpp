@@ -83,7 +83,7 @@ bool ElasticIsotropicDamage3DNonLocalEquivalentStrain::Has(const Variable<double
     if(rThisVariable == STRAIN_ENERGY){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
-    } else if(rThisVariable == DAMAGE_VARIABLE){
+    } else if(rThisVariable == EQUIVALENT_STRAIN){
         return true;
     }
 
@@ -115,8 +115,8 @@ double& ElasticIsotropicDamage3DNonLocalEquivalentStrain::GetValue(
     )
 {
     KRATOS_TRY
-    if(rThisVariable == DAMAGE_VARIABLE){
-        rValue = mDamageVariable;
+    if(rThisVariable == EQUIVALENT_STRAIN){
+        rValue = mEquivalentStrain;
     }
     return rValue;
     KRATOS_CATCH("")
@@ -132,8 +132,8 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::SetValue(
     )
 {
     KRATOS_TRY
-    if(rThisVariable == DAMAGE_VARIABLE){
-        mDamageVariable = rValue;
+    if(rThisVariable == EQUIVALENT_STRAIN){
+        mEquivalentStrain = rValue;
     }
     KRATOS_CATCH("")
 }
@@ -159,9 +159,9 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::FinalizeMaterialResponseC
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     KRATOS_TRY
-    double damage_variable;
-    this->CalculateStressResponse(rParametersValues, damage_variable);
-    mDamageVariable = damage_variable;
+    double equivalent_strain;
+    this->CalculateStressResponse(rParametersValues, equivalent_strain);
+    mEquivalentStrain = equivalent_strain;
 
     KRATOS_CATCH("")
 }
@@ -173,8 +173,8 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateMaterialResponse
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     KRATOS_TRY
-    double damage_variable;
-    CalculateStressResponse(rParametersValues, damage_variable);
+    double equivalent_strain;
+    CalculateStressResponse(rParametersValues, equivalent_strain);
 
     KRATOS_CATCH("")
 }
@@ -184,7 +184,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateMaterialResponse
 
 void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
-    double& rDamageVariable)
+    double& rEquivalentStrain)
 {
     KRATOS_TRY
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
@@ -226,7 +226,6 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
         }
         //local equivalent strain
         local_equivalent_strain = sqrt(pow(MacaulayBrackets(principal_strains[0]),2) + pow(MacaulayBrackets(principal_strains[1]),2) + pow(MacaulayBrackets(principal_strains[2]),2));
-        
         GetStressWeightFactor(r,Spr);
         const double del_r = (r > 0 && r < 0.1) ? 1.0 : 0.0;
         const double beta1t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_TENSION];
@@ -246,8 +245,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
         const double k0 = k0t  * H * (1-del_r) + (1.0- H + del_r) * k0c;
         const double beta1 = beta1t  * H * (1-del_r) + (1.-H + del_r) * beta1c;
         const double beta2 = beta2t  * H * (1-del_r) + (1.-H + del_r) * beta2c;
-        const double kappa = std::max(nonlocal_equivalent_strain,k0);      
-
+        const double kappa = std::max(nonlocal_equivalent_strain,k0);     
         //damage loading condition
         const double f_d   = nonlocal_equivalent_strain - kappa;
         if (f_d < 0.0){
@@ -266,7 +264,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
             CalculateDerivativesofEigenvalues(derivatives_of_eigen_values, principal_strains, r_strain_vector, STRAIN);
             for(SizeType i = 0; i < Dimension; ++i){
                 if (MacaulayBrackets(principal_strains[i])!=0.0){   
-                    for (SizeType j = 0; i < VoigtSize; ++j){
+                    for (SizeType j = 0; j < VoigtSize; ++j){
                         H_NLu[j]   +=  principal_strains[i] * derivatives_of_eigen_values(i,j); 
                     }
                 }
@@ -277,7 +275,8 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
             KRATOS_ERROR << "check the damage loading function" << std::endl;
         }
         if(D < 0.0) D = 0.0;
-        rDamageVariable = D;
+        rEquivalentStrain = local_equivalent_strain;
+
     }
     KRATOS_CATCH("")
 }
@@ -413,10 +412,10 @@ double& ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateValue(
     )
 {
     KRATOS_TRY
-    if (rThisVariable == DAMAGE_VARIABLE) {
-        double damage_variable;
-        this->CalculateStressResponse( rParametersValues, damage_variable);
-        rValue = damage_variable;
+    if (rThisVariable == EQUIVALENT_STRAIN) {
+        double equivalent_strain;
+        this->CalculateStressResponse( rParametersValues, equivalent_strain);
+        rValue = equivalent_strain;
     }
     return( rValue );
     KRATOS_CATCH("")
@@ -459,7 +458,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::GetLawFeatures(Features& 
 void ElasticIsotropicDamage3DNonLocalEquivalentStrain::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mDamageVariable", mDamageVariable);
+    rSerializer.save("mEquivalentStrain", mEquivalentStrain);
 }
 
 //************************************************************************************
@@ -468,7 +467,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::save(Serializer& rSeriali
 void ElasticIsotropicDamage3DNonLocalEquivalentStrain::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mDamageVariable", mDamageVariable);
+    rSerializer.save("mEquivalentStrain", mEquivalentStrain);
 }
 
 

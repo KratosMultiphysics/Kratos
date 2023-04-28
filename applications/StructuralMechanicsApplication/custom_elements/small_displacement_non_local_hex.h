@@ -68,8 +68,8 @@ public:
         Vector DuNL;
         Vector DNLu;
         double DNLNL;
-        double Local_D_GP;
-        double NL_D_GP;
+        double Local_Variable_GP;
+        double NonLocal_Variable_GP;
         
         /**
          * The default constructor
@@ -82,11 +82,11 @@ public:
             if (DNLu.size() != StrainSize)
                 DNLu.resize(StrainSize);
 
-            noalias(DuNL) = ZeroVector(StrainSize);
-            noalias(DNLu) = ZeroVector(StrainSize);
-            DNLNL         = 0.0;
-            Local_D_GP    = 0.0;
-            NL_D_GP       = 0.0;
+            noalias(DuNL)        = ZeroVector(StrainSize);
+            noalias(DNLu)        = ZeroVector(StrainSize);
+            DNLNL                = 0.0;
+            Local_Variable_GP    = 0.0;
+            NonLocal_Variable_GP = 0.0;
         }
     };
     ///@name Type Definitions

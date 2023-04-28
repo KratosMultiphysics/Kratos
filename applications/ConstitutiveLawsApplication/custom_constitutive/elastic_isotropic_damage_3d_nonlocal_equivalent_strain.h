@@ -277,7 +277,7 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-    double mDamageVariable;
+    double mEquivalentStrain;
     ///@}
 
     ///@name Protected Operators
