@@ -316,22 +316,31 @@ protected:
     }
 
     /**
-     * @brief This method initializes the search
-     * @details This method initializes the search
+     * @brief This method synchronizes the search in radius
+     * @param rResults The results of the search (local version)
      */
-    virtual void InitializeSearch()
-    {
-        // do nothing
-    }
+    virtual void SynchronizeSearchInRadius(std::vector<ResultType>& rLocalResults);
 
     /**
-     * @brief This method finalizes the search
-     * @details This method finalizes the search
+     * @brief This method synchronizes the search nearest in radius
+     * @param rLocalResult The results of the search (local version)
+     * @return The results of the search (global version)
      */
-    virtual void FinalizeSearch()
-    {
-        // do nothing
-    }
+    virtual ResultType& SynchronizeSearchNearestInRadius(ResultType& rLocalResult);
+
+    /**
+     * @brief This method synchronizes the search nearest
+     * @param rLocalResult The results of the search (local version)
+     * @return The results of the search (global version)
+     */
+    virtual ResultType& SynchronizeSearchNearest(ResultType& rLocalResult);
+
+    /**
+     * @brief This method synchronizes the search is inside
+     * @param rLocalResult The results of the search (local version)
+     * @return The results of the search (global version)
+     */
+    virtual ResultType& SynchronizeSearchIsInside(ResultType& rLocalResult);
 
     ///@}
 private:
