@@ -10,7 +10,7 @@ class Control(ABC):
     The base abstract control class has the following responsibilities.
         1. Initalizes and finalizes the control.
         2. Mapping physical space gradients to control space gradients.
-        2. Updating the controlled parts of the model part with final design given in control space.
+        2. Updating the controlled parts of the model part with new design given in control space.
         3. Retrieve control variable.
         4. Retrieve physical space variables (If more than one physical space variables are controlled by the given control variable.)
 
@@ -18,6 +18,7 @@ class Control(ABC):
     by using the union operator in Kratos.ModelPartBinaryOperators to create one model part within the control.
 
     """
+    @abstractmethod
     def Initialize(self) -> None:
         """Initializes the control.
 
@@ -34,7 +35,8 @@ class Control(ABC):
 
         """
         pass
-
+    
+    @abstractmethod
     def Finalize(self) -> None:
         """Finalizes the control.
 
@@ -43,7 +45,7 @@ class Control(ABC):
         """
         pass
 
-    def GetPhysicalVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
+    def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         """Returns list of physical control variables controlled by this control.
 
         This method returns list of physical variable which are controlled by the control. In most of the cases, there is only one
@@ -71,15 +73,6 @@ class Control(ABC):
 
         Returns:
             Any: The constructed control.
-        """
-        pass
-
-    @abstractmethod
-    def GetControlVariable(self) -> SupportedSensitivityFieldVariableTypes:
-        """Returns the variable used in this control.
-
-        Returns:
-            SupportedSensitivityFieldVariableTypes: Variable used in this control.
         """
         pass
 

@@ -8,12 +8,13 @@ class ResponseFunction(ABC):
     """Base response function.
 
     This reponse function is the base response function. This is assumed to have following responsibilities.
-        1. CalculateValue for a fresh design. (@see CalculateValue)
-        2. CalculateSensitivity for a fresh design (@see CalculateSensitivity)
+        1. CalculateValue for a new design. (@see CalculateValue)
+        2. CalculateSensitivity for a new design (@see CalculateSensitivity)
 
-    This response should only work on one model part. Hence, if required multiple model parts can be used
-    by using the union operator in Kratos.ModelPartBinaryOperators to create one model part within the response.
+    This response should only work on one model part. Hence, if required multiple model parts then a single
+    model part should be created using Kratos.ModelPartBinaryOperators.
     """
+    @abstractmethod
     def Initialize(self) -> None:
         """Initializes the response.
 
@@ -30,7 +31,8 @@ class ResponseFunction(ABC):
 
         """
         pass
-
+    
+    @abstractmethod
     def Finalize(self) -> None:
         """Finalizes the response.
 
@@ -55,7 +57,7 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def GetDependentPhysicalVariable(cls) -> 'list[SupportedSensitivityFieldVariableTypes]':
+    def GetDependentPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         """Returns all the dependent physical variables of the response.
 
         This method should return all the dependent physical variables of the response to make sure
@@ -82,14 +84,14 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateSensitivity(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]') -> None:
-        """Calculate sensitivity w.r.t. given physical variables.
+    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]') -> None:
+        """Calculate gradient w.r.t. given physical variables.
 
         This method should always calculate the sensitivities w.r.t. requested physical variables on the given container expressions
         in the collective expression. An error should be thrown if sensitivitiy computation w.r.t. one or more given physical variables
         are not implemented.
 
-        This method should always calculate the sensitivities assuming the domain has changed.
+        This method should always calculate the sensitivities assuming the domain has changed and CalculateValue is called before this.
 
         physical_variable_collective_expressions is a map of physical variables, and their domains. The domains are represented by a CollectiveExpression
         which contains list of empty ContainerExpression. Each empty ContainerExpression contains details of the model part's nodes/conditions/element/properties

@@ -24,7 +24,7 @@ class MasterControl:
         """
         self.__list_of_controls.append(control)
 
-    def GetControls(self) -> 'list[Control]':
+    def GetListOfControls(self) -> 'list[Control]':
         """Returns the list of controls in the master control.
 
         Returns:
@@ -47,7 +47,7 @@ class MasterControl:
         """
         CallOnAll(self.__list_of_controls, Control.Finalize)
 
-    def GetPhysicalVariableCollectiveExpressionsMap(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]':
+    def GetPhysicalKratosVariableCollectiveExpressionsMap(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]':
         """Returns map of physical variables and collective expressions from each control.
 
         This returns a map of physical control variables and a collective expressions. The collective expressions will contain
@@ -71,19 +71,6 @@ class MasterControl:
                     physical_variable_collective_expressions[physical_variable].Add(control_container_expression)
 
         return physical_variable_collective_expressions
-
-    def GetControlVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        """Returns list of control variables.
-
-        Returns:
-            list[SupportedSensitivityFieldVariableTypes]: List of control variables.
-        """
-        control_variables: 'list[SupportedSensitivityFieldVariableTypes]' = []
-
-        for control in self.__list_of_controls:
-            control_variables.append(control.GetControlVariable())
-
-        return control_variables
 
     def GetEmptyControlFields(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
         """Returns empty CollectiveExpressions containing empty ContainerExpressions for each control.
@@ -116,7 +103,7 @@ class MasterControl:
         control1: domain = ControlDomain1
                   physical_vars = YOUND_MODULUS, DENSITY
 
-        control1: domain = ControlDomain2
+        control2: domain = ControlDomain2
                   physical_vars = VISCOSITY, DENSITY
 
 

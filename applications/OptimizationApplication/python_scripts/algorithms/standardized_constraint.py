@@ -1,6 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.responses.standardization_utilities import StandardizationUtilities
 
@@ -63,11 +64,12 @@ class StandardizedConstraint:
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.__utility.GetScaledValue(step_index, self.__standardization_value) - self.__standardization_value * self.GetReferenceValue()
 
-    def IsActive(self, step_index: int = 0) -> bool:
-        return (self.__constraint_type == "=") or self.GetStandardizedValue(step_index) >= 0.0
+    def GetViolationAbsolute(self, step_index: int = 0) -> float:
+        is_violated = int(self.__constraint_type == "=") or self.GetStandardizedValue(step_index) >= 0.0
+        return self.GetStandardizedValue(step_index) * is_violated
 
     def GetViolationRatio(self, step_index: int = 0) -> float:
-        return (self.GetStandardizedValue(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetStandardizedValue(step_index)) * self.IsActive()
+        return (self.GetViolationAbsolute(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetViolationAbsolute(step_index))
 
     def CalculateStandardizedSensitivity(self, sensitivity_variable_collective_expression_info: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]'):
         self.__utility.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__standardization_value)
