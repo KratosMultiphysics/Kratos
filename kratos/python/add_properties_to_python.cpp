@@ -32,11 +32,12 @@ namespace Python
 {
 namespace py = pybind11;
 
-typedef Node<3> NodeType;
-typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
-typedef ConstitutiveLaw ConstitutiveLawBaseType;
-typedef std::size_t IndexType;
-typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
+using Node<3> = NodeType;
+using Mesh<NodeType, Properties, Element, Condition> = MeshType;
+using ConstitutiveLaw = ConstitutiveLawBaseType;
+using std::size_t = IndexType;
+using PointerVectorSet<Properties, IndexedObject> = PropertiesContainerType;
+using GeometryType = Geometry<NodeType>;
 
 template< class TContainerType, class TVariableType >
 bool PropertiesHasHelperFunction(TContainerType& rProperties, const TVariableType& rVar)
