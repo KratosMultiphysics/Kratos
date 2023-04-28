@@ -362,8 +362,9 @@ class RomManager(object):
         """
         #other options: "trainHROM", "runHROM"
         #taken from code by Philipa & Catharina
+        parameters_file_folder = self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder") else "rom_data"
         parameters_file_name = self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString()
-        parameters_file_name = f"{parameters_file_name}.json"
+        parameters_file_name = f"{parameters_file_folder}/{parameters_file_name}.json"
         with open(parameters_file_name, 'r+') as parameter_file:
             f=json.load(parameter_file)
             if simulation_to_run=='GalerkinROM':
@@ -462,6 +463,8 @@ class RomManager(object):
             defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
         if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name"):
             defaults["Parameters"]["rom_basis_output_name"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString())
+        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder"):
+            defaults["Parameters"]["rom_basis_output_folder"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
         if self.general_rom_manager_parameters["ROM"].Has("nodal_unknowns"):
             defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
         if self.general_rom_manager_parameters["ROM"].Has("snapshots_interval"):
@@ -506,6 +509,7 @@ class RomManager(object):
                     "nodal_unknowns":  [],
                     "rom_basis_output_format": "json",
                     "rom_basis_output_name": "RomParameters",
+                    "rom_basis_output_folder": "rom_data",
                     "svd_truncation_tolerance": 1e-3
                 }
             }""")
