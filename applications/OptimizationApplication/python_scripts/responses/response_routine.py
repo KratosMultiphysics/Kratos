@@ -3,6 +3,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class ResponseRoutine:
     def __init__(self, master_control: MasterControl, response_name: str, optimization_info: OptimizationInfo) -> None:
@@ -10,8 +11,9 @@ class ResponseRoutine:
         self.__response_name = response_name
         self.__response = optimization_info.GetResponse(response_name)
         self.__optimization_info = optimization_info
+        self.__contributing_controls_list: 'list[Control]' = []
+        self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]' = {}
         self.__reponse_value = None
-        self.__contributin_controls_list: 'list[Control]' = []
 
     def Initialize(self):
         """
@@ -20,17 +22,24 @@ class ResponseRoutine:
         for this response.
 
         """
-
-        self.__contributin_controls_list: 'list[Control]' = []
-
         # create the required physical control fields to compute gradients
-        self.__required_physical_gradients = self.__master_control.GetPhysicalVariableCollectiveExpressionsMap()
+        self.__required_physical_gradients = self.__master_control.GetPhysicalKratosVariableCollectiveExpressionsMap()
 
         # now check which are the dependent physical space variables for the response, if not then remove
         # that variable
         for required_physical_variable in self.__required_physical_gradients.keys():
             if required_physical_variable not in self.__response.GetDependentPhysicalKratosVariables():
                 del self.__required_physical_gradients[required_physical_variable]        
+
+        for control in self.__master_control.GetListOfControls():
+            if set(control.GetPhysicalKratosVariables()).intersection(self.__required_physical_gradients.keys()):
+                model_part: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities([self.__response.GetModelPart()], [control.GetEmptyControlField().GetModelPart()], True, True, True, True)[0]
+                communicator: Kratos.Communicator = model_part.GetCommunicator()
+                if communicator.GlobalNumberOfNodes() > 0 or communicator.GlobalNumberOfElements() > 0 or communicator.GlobalNumberOfConditions():
+                    self.__contributing_controls_list.append(control)                    
+
+        if not self.__contributing_controls_list:
+            raise RuntimeError(f"The controls does not have any influence over the response {self.GetReponseName()}.")
 
     def GetReponseName(self) -> str:
         return self.__response_name
@@ -39,24 +48,27 @@ class ResponseRoutine:
         # update using the master control and get updated states.
         update_states = self.__master_control.Update(control_field)
 
-        dependent_kratos_variables = self.__response.GetDependentPhysicalKratosVariables()
-
-        # now get modified model parts
-        compute_value = False
+        compute_response_value_flag = False
         for control, is_updated in update_states.items():
-            if is_updated and control in self.__contributin_controls_list:
-                compute_value = True
+            if is_updated and control in self.__contributing_controls_list:
+                compute_response_value_flag = True
 
-        compute_value = compute_value or self.__reponse_value is None
+        compute_response_value_flag = compute_response_value_flag or self.__reponse_value is None
 
-        # now set the response value in response data container
-        if len(modified_model_parts) > 0:
-            # if there are any modified model parts, then this changes state of is_executed to false
-            # in the execution policies which has some intersection with the modified model parts.
-            ChangeExecutionPolicyStates(modified_model_parts, False, self.__optimization_info)
+        # TODO: In the case of having two analysis with the same mesh (model parts) for two different
+        #       responses, we need to flag all the anayses which are affected by the control update_state
+        #       from the first call, otherwise the second call will not update anything, hence no execution
+        #       policies will be executed.
+        
+        #       Example: Drag 1 with 10m/s, Drag 2 with 20 m/s using the same mesh and model parts with two
+        #                different analyses.
+        # # now set the response value in response data container
+        # if len(modified_model_parts) > 0:
+        #     # if there are any modified model parts, then this changes state of is_executed to false
+        #     # in the execution policies which has some intersection with the modified model parts.
+        #     ChangeExecutionPolicyStates(modified_model_parts, False, self.__optimization_info)
 
-
-        if compute_reponse_value:
+        if compute_response_value_flag:
             self.__response_value = self.__response.CalculateValue()
 
         return self.__response_value
