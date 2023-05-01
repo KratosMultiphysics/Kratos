@@ -124,7 +124,7 @@ public:
             mDerivativeParameterType = DerivativeParameterType::ModalCoordinate;
         else if (derivative_parameter == "density")
             mDerivativeParameterType = DerivativeParameterType::Mass;
-        else if (derivative_parameter == "poisson_ratio" || derivative_parameter == "young_modulus")
+        else if (derivative_parameter == "poisson_ratio" || derivative_parameter == "young_modulus" || derivative_parameter == "truss_prestress_pk2")
             mDerivativeParameterType = DerivativeParameterType::Stiffness;
         else
             KRATOS_ERROR << "\"derivative_parameter\" can not be " << derivative_parameter << std::endl;
