@@ -26,7 +26,7 @@
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
 
-#include "../StructuralMechanicsApplication/structural_mechanics_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
