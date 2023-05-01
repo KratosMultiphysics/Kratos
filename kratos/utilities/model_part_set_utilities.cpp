@@ -64,37 +64,13 @@ void FillNodePointersForEntities(
     rOutput.merge(result);
 }
 
-template <class TContainerType>
-void FillNodesEntityMap(
-    ModelPartSetUtilities::RangedKeyMapType<ModelPartSetUtilities::CNodePointersType, typename TContainerType::value_type*>& rOutput,
-    TContainerType& rEntityContainer)
-{
-    using reduction_type = ModelPartSetUtilities::RangedKeyMapType<ModelPartSetUtilities::CNodePointersType, typename TContainerType::value_type*>;
-
-    auto result = block_for_each<MapReduction<reduction_type>>(rEntityContainer, [](auto& rEntity) {
-        const auto& r_geometry = rEntity.GetGeometry();
-        const IndexType number_of_nodes = r_geometry.size();
-
-        ModelPartSetUtilities::CNodePointersType nodes(number_of_nodes);
-
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            nodes[i] = &r_geometry[i];
-        }
-
-        std::sort(nodes.begin(), nodes.end());
-        return std::make_pair(nodes, &rEntity);
-    });
-
-    rOutput.merge(result);
-}
-
 template<class TOutputContainerType>
 IndexType FillCommonNodes(
     TOutputContainerType& rOutput,
     ModelPart::NodesContainerType& rMainNodes,
     const std::set<ModelPart::NodeType const*>& rNodesSet)
 {
-    auto result = block_for_each<AccumReduction<std::pair<IndexType, ModelPart::NodeType*>>>(rMainNodes, [&rNodesSet](auto& rNode) -> std::pair<IndexType, ModelPart::NodeType*> {
+    const auto& result = block_for_each<AccumReduction<std::pair<IndexType, ModelPart::NodeType*>>>(rMainNodes, [&rNodesSet](auto& rNode) -> std::pair<IndexType, ModelPart::NodeType*> {
         auto p_itr = rNodesSet.find(&rNode);
 
         if (p_itr != rNodesSet.end()) {
@@ -138,7 +114,7 @@ void FindNeighbourEntities(
 {
     using p_entity_type = typename TContainerType::value_type*;
 
-    auto result = block_for_each<AccumReduction<p_entity_type>>(rMainEntities, [&rNodeSelectionFlag](auto& rEntity) -> p_entity_type {
+    const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntities, [&rNodeSelectionFlag](auto& rEntity) -> p_entity_type {
         for (auto& r_node : rEntity.GetGeometry()) {
             if (r_node.Is(rNodeSelectionFlag)) {
                 return &rEntity;
@@ -223,21 +199,21 @@ ModelPart& CreateOutputModelPart(
     auto& r_output_model_part = rMainModelPart.CreateSubModelPart(rOutputSubModelPartName);
 
     // add unique conditions
-    auto condition_last = std::unique(rOutputConditions.begin(), rOutputConditions.end());
+    const auto& condition_last = std::unique(rOutputConditions.begin(), rOutputConditions.end());
     std::for_each(rOutputConditions.begin(), condition_last, [&r_output_model_part](auto p_condition) {
         r_output_model_part.Conditions().push_back(Kratos::intrusive_ptr<ModelPart::ConditionType>(p_condition));
     });
     FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), condition_last);
 
     // add uniqe elements
-    auto element_last = std::unique(rOutputElements.begin(), rOutputElements.end());
+    const auto& element_last = std::unique(rOutputElements.begin(), rOutputElements.end());
     std::for_each(rOutputElements.begin(), element_last, [&r_output_model_part](auto p_element) {
         r_output_model_part.Elements().push_back(Kratos::intrusive_ptr<ModelPart::ElementType>(p_element));
     });
     FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), element_last);
 
     // populate the mesh with nodes.
-    auto node_last = std::unique(rOutputNodes.begin(), rOutputNodes.end());
+    const auto& node_last = std::unique(rOutputNodes.begin(), rOutputNodes.end());
     std::for_each(rOutputNodes.begin(), node_last, [&r_output_model_part](auto p_node) {
         r_output_model_part.Nodes().push_back(Kratos::intrusive_ptr<ModelPart::NodeType>(p_node));
     });
@@ -310,7 +286,7 @@ void AddNodes(
 {
     using p_entity_type = ModelPart::NodeType*;
 
-    auto result = block_for_each<AccumReduction<p_entity_type>>(rNodesContainer, [&rIsValidEntity](auto& rMainEntity) -> p_entity_type {
+    const auto& result = block_for_each<AccumReduction<p_entity_type>>(rNodesContainer, [&rIsValidEntity](auto& rMainEntity) -> p_entity_type {
         ModelPart::NodeType const* p_entity = &rMainEntity;
         if (rIsValidEntity(p_entity)) {
             return &rMainEntity;
@@ -333,7 +309,7 @@ void AddEntities(
     TUnaryFunc&& rIsValidEntity)
 {
     using p_entity_type = typename TContainerType::value_type*;
-    auto result = block_for_each<AccumReduction<p_entity_type>>(rMainEntityContainer, ModelPartSetUtilities::CNodePointersType(), [&rIsValidEntity](auto& rMainEntity, ModelPartSetUtilities::CNodePointersType& rTLS) -> p_entity_type {
+    const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntityContainer, ModelPartSetUtilities::CNodePointersType(), [&rIsValidEntity](auto& rMainEntity, ModelPartSetUtilities::CNodePointersType& rTLS) -> p_entity_type {
         const auto& r_geometry = rMainEntity.GetGeometry();
         const IndexType number_of_nodes = r_geometry.size();
 
@@ -361,11 +337,11 @@ void AddEntities(
     });
 }
 
-template<class TSetOperation>
-ModelPart& SetOperation(
+template<class TModelPartOperation>
+ModelPart& ModelPartOperation(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
-    const std::vector<ModelPart const*>& rSetOperationModelParts,
+    const std::vector<ModelPart const*>& rModelPartOperationModelParts,
     const bool AddNeighbourEntities)
 {
     KRATOS_ERROR_IF(rMainModelPart.HasSubModelPart(rOutputSubModelPartName))
@@ -377,8 +353,8 @@ ModelPart& SetOperation(
     std::vector<std::set<ModelPartSetUtilities::CNodePointersType>> set_operation_element_sets;
 
     // now iterate through model parts' conditions/elements containers and get available main model part entities.
-    for (IndexType i = 0; i < rSetOperationModelParts.size(); ++i) {
-        auto p_model_part = rSetOperationModelParts[i];
+    for (IndexType i = 0; i < rModelPartOperationModelParts.size(); ++i) {
+        auto p_model_part = rModelPartOperationModelParts[i];
 
         // fill the set_operation nodes
         FillNodesPointerSet(set_operation_node_sets[i], p_model_part->Nodes());
@@ -395,15 +371,15 @@ ModelPart& SetOperation(
     std::vector<ModelPart::ElementType*> output_elements;
 
     AddNodes(output_nodes, rMainModelPart.Nodes(), [&set_operation_node_sets](auto& rEntity) {
-        return TSetOperation::IsValid(rEntity, set_operation_node_sets);
+        return TModelPartOperation::IsValid(rEntity, set_operation_node_sets);
     });
 
     AddEntities(output_conditions, rMainModelPart.Conditions(), [&set_operation_condition_sets](auto& rEntity) {
-        return TSetOperation::IsValid(rEntity, set_operation_condition_sets);
+        return TModelPartOperation::IsValid(rEntity, set_operation_condition_sets);
     });
 
     AddEntities(output_elements, rMainModelPart.Elements(), [&set_operation_element_sets](auto& rEntity) {
-        return TSetOperation::IsValid(rEntity, set_operation_element_sets);
+        return TModelPartOperation::IsValid(rEntity, set_operation_element_sets);
     });
 
     // now we have all the nodes to find and add neighbour entities.
@@ -414,6 +390,7 @@ ModelPart& SetOperation(
     // now create the sub model part
     return CreateOutputModelPart(rOutputSubModelPartName, rMainModelPart, output_nodes, output_conditions, output_elements);
 }
+
 struct Union
 {
     template<class TCheckType>
@@ -476,7 +453,7 @@ struct Intersection
 
 } // namespace ModelPartSetHelperUtilities
 
-bool ModelPartSetUtilities::CheckValidityOfSetOperationModelParts(
+bool ModelPartSetUtilities::CheckValidityOfModelPartsForOperations(
     const ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rCheckModelParts,
     const bool ThrowError)
@@ -557,7 +534,7 @@ ModelPart& ModelPartSetUtilities::Union(
     const std::vector<ModelPart const*>& rUnionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartSetHelperUtilities::SetOperation<ModelPartSetHelperUtilities::Union>(
+    return ModelPartSetHelperUtilities::ModelPartOperation<ModelPartSetHelperUtilities::Union>(
         rOutputSubModelPartName, rMainModelPart, rUnionModelParts,
         AddNeighbourEntities);
 }
@@ -568,7 +545,7 @@ ModelPart& ModelPartSetUtilities::Substraction(
     const std::vector<ModelPart const*>& rSubstractionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartSetHelperUtilities::SetOperation<ModelPartSetHelperUtilities::Substraction>(
+    return ModelPartSetHelperUtilities::ModelPartOperation<ModelPartSetHelperUtilities::Substraction>(
         rOutputSubModelPartName, rMainModelPart, rSubstractionModelParts,
         AddNeighbourEntities);
 }
@@ -579,7 +556,7 @@ ModelPart& ModelPartSetUtilities::Intersection(
     const std::vector<ModelPart const*>& rIntersectionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartSetHelperUtilities::SetOperation<ModelPartSetHelperUtilities::Intersection>(
+    return ModelPartSetHelperUtilities::ModelPartOperation<ModelPartSetHelperUtilities::Intersection>(
         rOutputSubModelPartName, rMainModelPart, rIntersectionModelParts,
         AddNeighbourEntities);
 }

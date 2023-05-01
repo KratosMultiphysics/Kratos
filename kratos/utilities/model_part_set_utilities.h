@@ -41,7 +41,7 @@ public:
     ///@name Static operations
     ///@{
 
-    static bool CheckValidityOfSetOperationModelParts(
+    static bool CheckValidityOfModelPartsForOperations(
         const ModelPart& rMainModelPart,
         const std::vector<ModelPart const*>& rCheckModelParts,
         const bool ThrowError = false);
