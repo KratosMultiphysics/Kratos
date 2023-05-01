@@ -243,7 +243,17 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("GetSubProperties", GetSubPropertiesArray2)
     .def("SetSubProperties", &Properties::SetSubProperties)
     .def("__str__", PrintObject<Properties>)
+
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<bool>>)
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<int>>)
     .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<double>>)
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<Vector>>)
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<Matrix>>)
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 3>>>)
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 6>>>)
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 9>>>)
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 4>>>)
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<std::string>>)
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
