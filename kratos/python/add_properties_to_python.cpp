@@ -115,8 +115,8 @@ typename TVariableType::Type GetValueHelperFunction1( TContainerType& rContainer
 }
 
 template< class TContainerType, class TVariableType >
-typename TVariableType::Type GetValueHelperFunctionCustom( TContainerType& rContainer,
-    const TVariableType& rVar,
+typename TVariableType::Type GetValueHelperFunctionAccessor( TContainerType& rContainer,
+        const TVariableType& rVar,
         const GeometryType& rGeometry,
         const Vector& rShapeFunctionVector,
         const ProcessInfo& rProcessInfo )
@@ -243,10 +243,7 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("GetSubProperties", GetSubPropertiesArray2)
     .def("SetSubProperties", &Properties::SetSubProperties)
     .def("__str__", PrintObject<Properties>)
-
-    // .def("GetValue", GetValueHelperFunctionCustom< Properties, const Variable<double>&, const GeometryType&, const Vector&, const ProcessInfo& > )
-    .def("GetValue", GetValueHelperFunctionCustom< Properties, Variable<double>, GeometryType, Vector, ProcessInfo > )
-    // .def("GetValue", &Properties::GetValue< Variable<double>, GeometryType, Vector, ProcessInfo > )
+    .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<double>>)
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
