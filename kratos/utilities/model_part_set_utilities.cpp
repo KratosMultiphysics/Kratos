@@ -15,6 +15,7 @@
 #include <limits>
 #include <unordered_map>
 #include <algorithm>
+#include <sstream>
 
 // External includes
 
@@ -33,8 +34,8 @@ namespace ModelPartSetHelperUtilities {
 using IndexType = std::size_t;
 
 void FillNodesPointerSet(
-    std::set<ModelPart::NodeType*>& rOutput,
-    ModelPart::NodesContainerType& rNodes)
+    std::set<ModelPart::NodeType const*>& rOutput,
+    const ModelPart::NodesContainerType& rNodes)
 {
     for (auto& r_node : rNodes) {
         rOutput.insert(&r_node);
@@ -90,10 +91,10 @@ void FillNodesEntityMap(
 template<class TOutputContainerType>
 IndexType FillCommonNodes(
     TOutputContainerType& rOutput,
-    const std::set<ModelPart::NodeType*>& rNodesSet,
-    const ModelPart::NodesContainerType& rNodes)
+    ModelPart::NodesContainerType& rMainNodes,
+    const std::set<ModelPart::NodeType const*>& rNodesSet)
 {
-    auto result = block_for_each<AccumReduction<std::pair<IndexType, ModelPart::NodeType*>>>(rNodes, [&rNodesSet](auto& rNode) -> std::pair<IndexType, ModelPart::NodeType*> {
+    auto result = block_for_each<AccumReduction<std::pair<IndexType, ModelPart::NodeType*>>>(rMainNodes, [&rNodesSet](auto& rNode) -> std::pair<IndexType, ModelPart::NodeType*> {
         auto p_itr = rNodesSet.find(&rNode);
 
         if (p_itr != rNodesSet.end()) {
@@ -177,9 +178,9 @@ void FillWithMainNodesFromSearchNodes(
     ModelPart::NodesContainerType& rMainNodes,
     ModelPart::NodesContainerType& rSearchedNodes)
 {
-    std::set<ModelPart::NodeType*> main_local_node_set;
-    FillNodesPointerSet(main_local_node_set, rMainNodes);
-    FillCommonNodes(rOutput, main_local_node_set, rSearchedNodes);
+    std::set<ModelPart::NodeType const*> search_local_node_set;
+    FillNodesPointerSet(search_local_node_set, rSearchedNodes);
+    FillCommonNodes(rOutput, rMainNodes, search_local_node_set);
 }
 
 void SetCommunicator(
@@ -247,6 +248,60 @@ ModelPart& CreateOutputModelPart(
     return r_output_model_part;
 }
 
+void CheckNodes(
+    std::vector<IndexType>& rNodeIdsWithIssues,
+    const ModelPart::NodesContainerType& rCheckNodes,
+    const std::set<ModelPart::NodeType const*>& rMainNodes)
+{
+    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckNodes, [&rMainNodes](const auto& rCheckNode) -> IndexType {
+        if (rMainNodes.find(&rCheckNode) == rMainNodes.end()) {
+            return rCheckNode.Id();
+        } else {
+            return std::numeric_limits<IndexType>::max();
+        }
+    });
+
+    std::for_each(result.begin(), result.end(), [&rNodeIdsWithIssues](auto NodeId) {
+        if (NodeId != std::numeric_limits<IndexType>::max()) {
+            rNodeIdsWithIssues.push_back(NodeId);
+        }
+    });
+}
+
+template<class TContainerType>
+void CheckEntities(
+    std::vector<IndexType>& rEntityIdsWithIssues,
+    const TContainerType& rCheckEntities,
+    const std::set<ModelPartSetUtilities::CNodePointersType>& rMainEntities)
+{
+    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckEntities, ModelPartSetUtilities::CNodePointersType(), [&rMainEntities](const auto& rCheckEntity, ModelPartSetUtilities::CNodePointersType& rTLS) -> IndexType {
+        const auto& r_geometry = rCheckEntity.GetGeometry();
+        const IndexType number_of_nodes = r_geometry.size();
+
+        if (rTLS.size() != number_of_nodes) {
+            rTLS.resize(number_of_nodes);
+        }
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            rTLS[i] = &r_geometry[i];
+        }
+
+        std::sort(rTLS.begin(), rTLS.end());
+
+        if (rMainEntities.find(rTLS) == rMainEntities.end()) {
+            return rCheckEntity.Id();
+        } else {
+            return std::numeric_limits<IndexType>::max();
+        }
+    });
+
+    std::for_each(result.begin(), result.end(), [&rEntityIdsWithIssues](auto NodeId) {
+        if (NodeId != std::numeric_limits<IndexType>::max()) {
+            rEntityIdsWithIssues.push_back(NodeId);
+        }
+    });
+}
+
 template<class TUnaryFunc>
 void AddNodes(
     std::vector<ModelPart::NodeType*>& rNodesOutput,
@@ -256,9 +311,9 @@ void AddNodes(
     using p_entity_type = ModelPart::NodeType*;
 
     auto result = block_for_each<AccumReduction<p_entity_type>>(rNodesContainer, [&rIsValidEntity](auto& rMainEntity) -> p_entity_type {
-        auto p_entity = &rMainEntity;
+        ModelPart::NodeType const* p_entity = &rMainEntity;
         if (rIsValidEntity(p_entity)) {
-            return p_entity;
+            return &rMainEntity;
         } else {
             return nullptr;
         }
@@ -270,16 +325,6 @@ void AddNodes(
         }
     });
 }
-
-// void CheckNodes(
-//     std::vector<IndexType>& rNodeIdsWithIssues,
-//     const ModelPart::NodesContainerType& rCheckNodes,
-//     const std::set<ModelPart::NodeType*>& rMainNodes)
-// {
-//     auto result = block_for_each<AccumReduction<IndexType>>(rCheckNodes, [&rMainNodes](const auto& rCheckNodes) -> IndexType {
-//         if
-//     });
-// }
 
 template<class TContainerType, class TUnaryFunc>
 void AddEntities(
@@ -320,14 +365,14 @@ template<class TSetOperation>
 ModelPart& SetOperation(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
-    const std::vector<ModelPart*>& rSetOperationModelParts,
+    const std::vector<ModelPart const*>& rSetOperationModelParts,
     const bool AddNeighbourEntities)
 {
     KRATOS_ERROR_IF(rMainModelPart.HasSubModelPart(rOutputSubModelPartName))
         << rOutputSubModelPartName << " already exists in the "
         << rMainModelPart.FullName() << ".\n";
 
-    std::vector<std::set<ModelPart::NodeType*>> set_operation_node_sets;
+    std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets;
     std::vector<std::set<ModelPartSetUtilities::CNodePointersType>> set_operation_condition_sets;
     std::vector<std::set<ModelPartSetUtilities::CNodePointersType>> set_operation_element_sets;
 
@@ -369,7 +414,6 @@ ModelPart& SetOperation(
     // now create the sub model part
     return CreateOutputModelPart(rOutputSubModelPartName, rMainModelPart, output_nodes, output_conditions, output_elements);
 }
-
 struct Union
 {
     template<class TCheckType>
@@ -434,29 +478,83 @@ struct Intersection
 
 bool ModelPartSetUtilities::CheckValidityOfSetOperationModelParts(
     const ModelPart& rMainModelPart,
-    const std::vector<ModelPart const*>& rUnionModelParts,
+    const std::vector<ModelPart const*>& rCheckModelParts,
     const bool ThrowError)
 {
     using namespace ModelPartSetHelperUtilities;
 
-    std::set<ModelPart::NodeType*> main_node_sets;
+    std::set<ModelPart::NodeType const*> main_node_sets;
     std::set<ModelPartSetUtilities::CNodePointersType> main_condition_sets;
     std::set<ModelPartSetUtilities::CNodePointersType> main_element_sets;
 
-    // // fill the check nodes
-    // FillNodesPointerSet(main_node_sets, rMainModelPart.Nodes());
+    // fill the check nodes
+    FillNodesPointerSet(main_node_sets, rMainModelPart.Nodes());
 
-    // // fill the check conditions
-    // FillNodePointersForEntities(main_condition_sets, rMainModelPart.Conditions());
+    // fill the check conditions
+    FillNodePointersForEntities(main_condition_sets, rMainModelPart.Conditions());
 
-    // // fill the check elements
-    // FillNodePointersForEntities(main_element_sets, rMainModelPart.Elements());
+    // fill the check elements
+    FillNodePointersForEntities(main_element_sets, rMainModelPart.Elements());
+
+    std::vector<IndexType> issue_ids;
+
+    for (auto p_model_part : rCheckModelParts) {
+        CheckNodes(issue_ids, p_model_part->Nodes(), main_node_sets);
+
+        if (issue_ids.size() > 0) {
+            if (ThrowError) {
+                std::stringstream msg;
+                msg << "Following nodes with ids in " << p_model_part->FullName() << " not found in the main model part " << rMainModelPart.FullName() << ":";
+                for (const auto node_id : issue_ids) {
+                    msg << "\n\t" << node_id;
+                }
+
+                KRATOS_ERROR << msg.str();
+            }
+
+            return false;
+        }
+
+        CheckEntities(issue_ids, p_model_part->Conditions(), main_condition_sets);
+
+        if (issue_ids.size() > 0) {
+            if (ThrowError) {
+                std::stringstream msg;
+                msg << "Following conditions with ids in " << p_model_part->FullName() << " not found in the main model part " << rMainModelPart.FullName() << ":";
+                for (const auto condition_id : issue_ids) {
+                    msg << "\n\t" << condition_id;
+                }
+
+                KRATOS_ERROR << msg.str();
+            }
+
+            return false;
+        }
+
+        CheckEntities(issue_ids, p_model_part->Elements(), main_element_sets);
+
+        if (issue_ids.size() > 0) {
+            if (ThrowError) {
+                std::stringstream msg;
+                msg << "Following elements with ids in " << p_model_part->FullName() << " not found in the main model part " << rMainModelPart.FullName() << ":";
+                for (const auto element_id : issue_ids) {
+                    msg << "\n\t" << element_id;
+                }
+
+                KRATOS_ERROR << msg.str();
+            }
+
+            return false;
+        }
+    }
+
+    return true;
 }
 
 ModelPart& ModelPartSetUtilities::Union(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
-    const std::vector<ModelPart*>& rUnionModelParts,
+    const std::vector<ModelPart const*>& rUnionModelParts,
     const bool AddNeighbourEntities)
 {
     return ModelPartSetHelperUtilities::SetOperation<ModelPartSetHelperUtilities::Union>(
@@ -467,7 +565,7 @@ ModelPart& ModelPartSetUtilities::Union(
 ModelPart& ModelPartSetUtilities::Substraction(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
-    const std::vector<ModelPart*>& rSubstractionModelParts,
+    const std::vector<ModelPart const*>& rSubstractionModelParts,
     const bool AddNeighbourEntities)
 {
     return ModelPartSetHelperUtilities::SetOperation<ModelPartSetHelperUtilities::Substraction>(
@@ -478,7 +576,7 @@ ModelPart& ModelPartSetUtilities::Substraction(
 ModelPart& ModelPartSetUtilities::Intersection(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
-    const std::vector<ModelPart*>& rIntersectionModelParts,
+    const std::vector<ModelPart const*>& rIntersectionModelParts,
     const bool AddNeighbourEntities)
 {
     return ModelPartSetHelperUtilities::SetOperation<ModelPartSetHelperUtilities::Intersection>(

@@ -43,25 +43,25 @@ public:
 
     static bool CheckValidityOfSetOperationModelParts(
         const ModelPart& rMainModelPart,
-        const std::vector<ModelPart const*>& rUnionModelParts,
+        const std::vector<ModelPart const*>& rCheckModelParts,
         const bool ThrowError = false);
 
     static ModelPart& Union(
         const std::string& rOutputSubModelPartName,
         ModelPart& rMainModelPart,
-        const std::vector<ModelPart*>& rUnionModelParts,
+        const std::vector<ModelPart const*>& rUnionModelParts,
         const bool AddNeighbourEntities);
 
     static ModelPart& Substraction(
         const std::string& rOutputSubModelPartName,
         ModelPart& rMainModelPart,
-        const std::vector<ModelPart*>& rSubstractionModelParts,
+        const std::vector<ModelPart const*>& rSubstractionModelParts,
         const bool AddNeighbourEntities);
 
     static ModelPart& Intersection(
         const std::string& rOutputSubModelPartName,
         ModelPart& rMainModelPart,
-        const std::vector<ModelPart*>& rIntersectionModelParts,
+        const std::vector<ModelPart const*>& rIntersectionModelParts,
         const bool AddNeighbourEntities);
 
     ///@}
