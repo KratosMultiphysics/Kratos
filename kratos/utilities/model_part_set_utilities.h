@@ -65,11 +65,6 @@ public:
         const bool AddNeighbourEntities);
 
     ///@}
-private:
-    ///@name Private static operations
-    ///@{
-
-    ///@}
 };
 
 ///@}
