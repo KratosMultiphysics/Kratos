@@ -68,6 +68,7 @@
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
 #include "utilities/particles_utilities.h"
 #include "utilities/string_utilities.h"
+#include "utilities/model_part_operation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -803,6 +804,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
              "snake_case to CamelCase conversion")
         ;
 
+    m.def_submodule("ModelPartOperationUtilities", "Free-floating utility functions for model part operations.")
+        .def("CheckValidityOfModelPartsForOperations", &ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations, py::arg("main_model_part"), py::arg("list_of_checking_model_parts"), py::arg("thow_error"), "Checks validty of main model part and checking model parts to be used with operations")
+        .def("Union", &ModelPartOperationUtilities::Union, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_union"), py::return_value_policy::reference_internal, py::arg("add_neighbours"), "Make a union out of model parts list domains whith matching domain elements are found from main model part for final output.")
+        .def("Substract", &ModelPartOperationUtilities::Substract, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"), py::return_value_policy::reference_internal, "Make a substraction of model parts list from main model part domains whith matching domain elements are removed from main model part for final output.")
+        .def("Intersect", &ModelPartOperationUtilities::Intersect, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"), py::return_value_policy::reference_internal, "Make a intersection of model parts list domains domains whith matching intersecting domain elements are found from main model part for final output.")
+    ;
 
 }
 

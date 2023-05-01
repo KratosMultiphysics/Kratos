@@ -25,11 +25,11 @@
 #include "utilities/variable_utils.h"
 
 // Include base h
-#include "model_part_set_utilities.h"
+#include "model_part_operation_utilities.h"
 
 namespace Kratos {
 
-namespace ModelPartSetHelperUtilities {
+namespace ModelPartOperationHelperUtilities {
 
 using IndexType = std::size_t;
 
@@ -44,14 +44,14 @@ void FillNodesPointerSet(
 
 template <class TContainerType>
 void FillNodePointersForEntities(
-    std::set<ModelPartSetUtilities::CNodePointersType>& rOutput,
+    std::set<ModelPartOperationUtilities::CNodePointersType>& rOutput,
     const TContainerType& rEntityContainer)
 {
-    auto result = block_for_each<AccumReduction<ModelPartSetUtilities::CNodePointersType, std::set<ModelPartSetUtilities::CNodePointersType>>>(rEntityContainer, [](const auto& rEntity) {
+    auto result = block_for_each<AccumReduction<ModelPartOperationUtilities::CNodePointersType, std::set<ModelPartOperationUtilities::CNodePointersType>>>(rEntityContainer, [](const auto& rEntity) {
         const auto& r_geometry = rEntity.GetGeometry();
         const IndexType number_of_nodes = r_geometry.size();
 
-        ModelPartSetUtilities::CNodePointersType nodes(number_of_nodes);
+        ModelPartOperationUtilities::CNodePointersType nodes(number_of_nodes);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             nodes[i] = &r_geometry[i];
@@ -180,9 +180,9 @@ void SetCommunicator(
     });
 
     // now set the local, interface and ghost meshes
-    ModelPartSetHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->LocalMesh().Nodes(), r_reference_communicator.LocalMesh().Nodes(), rOutputModelPart.Nodes());
-    ModelPartSetHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->InterfaceMesh().Nodes(), r_reference_communicator.InterfaceMesh().Nodes(), rOutputModelPart.Nodes());
-    ModelPartSetHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->GhostMesh().Nodes(), r_reference_communicator.GhostMesh().Nodes(), rOutputModelPart.Nodes());
+    ModelPartOperationHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->LocalMesh().Nodes(), r_reference_communicator.LocalMesh().Nodes(), rOutputModelPart.Nodes());
+    ModelPartOperationHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->InterfaceMesh().Nodes(), r_reference_communicator.InterfaceMesh().Nodes(), rOutputModelPart.Nodes());
+    ModelPartOperationHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->GhostMesh().Nodes(), r_reference_communicator.GhostMesh().Nodes(), rOutputModelPart.Nodes());
 
     // now set the communicator
     rOutputModelPart.SetCommunicator(p_output_communicator);
@@ -248,9 +248,9 @@ template<class TContainerType>
 void CheckEntities(
     std::vector<IndexType>& rEntityIdsWithIssues,
     const TContainerType& rCheckEntities,
-    const std::set<ModelPartSetUtilities::CNodePointersType>& rMainEntities)
+    const std::set<ModelPartOperationUtilities::CNodePointersType>& rMainEntities)
 {
-    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckEntities, ModelPartSetUtilities::CNodePointersType(), [&rMainEntities](const auto& rCheckEntity, ModelPartSetUtilities::CNodePointersType& rTLS) -> IndexType {
+    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckEntities, ModelPartOperationUtilities::CNodePointersType(), [&rMainEntities](const auto& rCheckEntity, ModelPartOperationUtilities::CNodePointersType& rTLS) -> IndexType {
         const auto& r_geometry = rCheckEntity.GetGeometry();
         const IndexType number_of_nodes = r_geometry.size();
 
@@ -309,7 +309,7 @@ void AddEntities(
     TUnaryFunc&& rIsValidEntity)
 {
     using p_entity_type = typename TContainerType::value_type*;
-    const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntityContainer, ModelPartSetUtilities::CNodePointersType(), [&rIsValidEntity](auto& rMainEntity, ModelPartSetUtilities::CNodePointersType& rTLS) -> p_entity_type {
+    const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntityContainer, ModelPartOperationUtilities::CNodePointersType(), [&rIsValidEntity](auto& rMainEntity, ModelPartOperationUtilities::CNodePointersType& rTLS) -> p_entity_type {
         const auto& r_geometry = rMainEntity.GetGeometry();
         const IndexType number_of_nodes = r_geometry.size();
 
@@ -349,8 +349,8 @@ ModelPart& ModelPartOperation(
         << rMainModelPart.FullName() << ".\n";
 
     std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets;
-    std::vector<std::set<ModelPartSetUtilities::CNodePointersType>> set_operation_condition_sets;
-    std::vector<std::set<ModelPartSetUtilities::CNodePointersType>> set_operation_element_sets;
+    std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_condition_sets;
+    std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_element_sets;
 
     // now iterate through model parts' conditions/elements containers and get available main model part entities.
     for (IndexType i = 0; i < rModelPartOperationModelParts.size(); ++i) {
@@ -451,18 +451,18 @@ struct Intersection
     }
 };
 
-} // namespace ModelPartSetHelperUtilities
+} // namespace ModelPartOperationHelperUtilities
 
-bool ModelPartSetUtilities::CheckValidityOfModelPartsForOperations(
+bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
     const ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rCheckModelParts,
     const bool ThrowError)
 {
-    using namespace ModelPartSetHelperUtilities;
+    using namespace ModelPartOperationHelperUtilities;
 
     std::set<ModelPart::NodeType const*> main_node_sets;
-    std::set<ModelPartSetUtilities::CNodePointersType> main_condition_sets;
-    std::set<ModelPartSetUtilities::CNodePointersType> main_element_sets;
+    std::set<ModelPartOperationUtilities::CNodePointersType> main_condition_sets;
+    std::set<ModelPartOperationUtilities::CNodePointersType> main_element_sets;
 
     // fill the check nodes
     FillNodesPointerSet(main_node_sets, rMainModelPart.Nodes());
@@ -528,35 +528,35 @@ bool ModelPartSetUtilities::CheckValidityOfModelPartsForOperations(
     return true;
 }
 
-ModelPart& ModelPartSetUtilities::Union(
+ModelPart& ModelPartOperationUtilities::Union(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rUnionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartSetHelperUtilities::ModelPartOperation<ModelPartSetHelperUtilities::Union>(
+    return ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Union>(
         rOutputSubModelPartName, rMainModelPart, rUnionModelParts,
         AddNeighbourEntities);
 }
 
-ModelPart& ModelPartSetUtilities::Substraction(
+ModelPart& ModelPartOperationUtilities::Substract(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rSubstractionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartSetHelperUtilities::ModelPartOperation<ModelPartSetHelperUtilities::Substraction>(
+    return ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Substraction>(
         rOutputSubModelPartName, rMainModelPart, rSubstractionModelParts,
         AddNeighbourEntities);
 }
 
-ModelPart& ModelPartSetUtilities::Intersection(
+ModelPart& ModelPartOperationUtilities::Intersect(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rIntersectionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartSetHelperUtilities::ModelPartOperation<ModelPartSetHelperUtilities::Intersection>(
+    return ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Intersection>(
         rOutputSubModelPartName, rMainModelPart, rIntersectionModelParts,
         AddNeighbourEntities);
 }

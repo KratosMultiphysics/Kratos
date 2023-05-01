@@ -27,7 +27,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_CORE) ModelPartSetUtilities {
+class KRATOS_API(KRATOS_CORE) ModelPartOperationUtilities {
 public:
     ///@name Type definitions
     ///@{
@@ -52,13 +52,13 @@ public:
         const std::vector<ModelPart const*>& rUnionModelParts,
         const bool AddNeighbourEntities);
 
-    static ModelPart& Substraction(
+    static ModelPart& Substract(
         const std::string& rOutputSubModelPartName,
         ModelPart& rMainModelPart,
         const std::vector<ModelPart const*>& rSubstractionModelParts,
         const bool AddNeighbourEntities);
 
-    static ModelPart& Intersection(
+    static ModelPart& Intersect(
         const std::string& rOutputSubModelPartName,
         ModelPart& rMainModelPart,
         const std::vector<ModelPart const*>& rIntersectionModelParts,
