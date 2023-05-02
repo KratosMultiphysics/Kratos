@@ -434,6 +434,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
             rThisVariable == PLASTIC_STRAIN_VECTOR_LAYER_3 ||
             rThisVariable == PLASTIC_STRAIN_VECTOR_LAYER_4 ||
             rThisVariable == PLASTIC_STRAIN_VECTOR_LAYER_5) {
+                // Given in local axes
                 mConstitutiveLaws[layer_id - 1]->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
         }
         return rValue;
