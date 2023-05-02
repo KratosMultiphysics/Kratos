@@ -4,6 +4,7 @@ from typing import Any
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
+from KratosMultiphysics.OptimizationApplication.controls.control import Control
 
 class OptimizationProblem:
     """This is the main data holder for optimization problems
@@ -23,7 +24,8 @@ class OptimizationProblem:
         # create the optimization components data container with basic types
         self.__components: 'dict[Any, dict[str, Any]]' = {
             ResponseFunction: {},
-            ExecutionPolicy: {}
+            ExecutionPolicy: {},
+            Control: {}
         }
 
         # create the unbufferd optimization problem data container
@@ -33,12 +35,11 @@ class OptimizationProblem:
         self.__problem_data["step"] = 0
 
     def GetComponentType(self, component: Any) -> Any:
-        if isinstance(component, ResponseFunction):
-            return ResponseFunction
-        elif isinstance(component, ExecutionPolicy):
-            return ExecutionPolicy
-        else:
-            return None
+        for k in self.__components.keys():
+            if isinstance(component, k):
+                return k
+
+        return None
 
     def GetComponentName(self, component: Any) -> str:
         component_type = self.GetComponentType(component)
@@ -59,12 +60,8 @@ class OptimizationProblem:
     def GetResponse(self, name: str) -> ResponseFunction:
         return self.__GetComponent(name, ResponseFunction)
 
-    def GetReponseData(self, name: str) -> BufferedDict:
-        return self.__GetComponentDataContainer(name, ResponseFunction)
-
     def RemoveResponse(self, name: str) -> None:
         self.__RemoveComponent(name, ResponseFunction)
-        self.__RemoveComponentDataContainer(name, ResponseFunction)
 
     def AddExecutionPolicy(self, name: str, response_function: ExecutionPolicy) -> None:
         self.__AddComponent(name, response_function, ExecutionPolicy)
@@ -72,12 +69,17 @@ class OptimizationProblem:
     def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
         return self.__GetComponent(name, ExecutionPolicy)
 
-    def GetExecutionPolicyData(self, name: str) -> BufferedDict:
-        return self.__GetComponentDataContainer(name, ExecutionPolicy)
-
     def RemoveExecutionPolicy(self, name: str) -> None:
         self.__RemoveComponent(name, ExecutionPolicy)
-        self.__RemoveComponentDataContainer(name, ExecutionPolicy)
+
+    def AddControl(self, name: str, response_function: Control) -> None:
+        self.__AddComponent(name, response_function, Control)
+
+    def GetControl(self, name: str) -> Control:
+        return self.__GetComponent(name, Control)
+
+    def RemoveControl(self, name: str) -> None:
+        self.__RemoveComponent(name, Control)
 
     def GetStep(self) -> int:
         """Gets the current step of the optimization info
@@ -129,21 +131,3 @@ class OptimizationProblem:
             del components[name]
         else:
             raise RuntimeError(f"No {component_type.__name__} with name = \"{name}\" exists. Followings are the available {component_type.__name__}:\n" + "\n\t".join(components.keys()))
-
-    def __GetComponentDataContainer(self, name: str, component_type: Any) -> BufferedDict:
-        components = self.__components[component_type]
-
-        if not name in components.keys():
-            raise RuntimeError(f"No {component_type.__name__} with name = \"{name}\" exists. Followings are the available {component_type.__name__}:\n" + "\n\t".join(components.keys()))
-
-        data_name = f"{component_type.__name__}/{name}"
-        if not self.__problem_data.HasValue(data_name):
-            self.__problem_data[data_name] = {}
-
-        return self.__problem_data[data_name]
-
-    def __RemoveComponentDataContainer(self, name: str, component_type: Any) -> None:
-        data_name = f"{component_type.__name__}/{name}"
-        if self.__problem_data.HasValue(data_name):
-            del self.__problem_data[data_name]
-
