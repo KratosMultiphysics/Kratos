@@ -4,23 +4,25 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //
 
-#if !defined(KRATOS_GLOBAL_POINTER_H_INCLUDED )
-#define  KRATOS_GLOBAL_POINTER_H_INCLUDED
+#pragma once
 
+// System includes
 #include <iostream>
 
+// External includes
+
+// Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/key_hash.h"
+
 namespace Kratos {
-
-
 
 template<class TDataType>
 class GlobalPointer {
@@ -343,5 +345,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 } // namespace Kratos
-
-#endif // KRATOS_GLOBAL_POINTER_H_INCLUDED
