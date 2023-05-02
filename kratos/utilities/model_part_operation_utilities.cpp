@@ -345,15 +345,17 @@ ModelPart& ModelPartOperation(
     const bool AddNeighbourEntities)
 {
     KRATOS_ERROR_IF(rMainModelPart.HasSubModelPart(rOutputSubModelPartName))
-        << rOutputSubModelPartName << " already exists in the "
-        << rMainModelPart.FullName() << ".\n";
+        << "\"" << rOutputSubModelPartName << "\" already exists in the \""
+        << rMainModelPart.FullName() << "\".\n";
 
-    std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets;
-    std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_condition_sets;
-    std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_element_sets;
+    const IndexType number_of_operation_model_parts = rModelPartOperationModelParts.size();
+
+    std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets(number_of_operation_model_parts);
+    std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_condition_sets(number_of_operation_model_parts);
+    std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_element_sets(number_of_operation_model_parts);
 
     // now iterate through model parts' conditions/elements containers and get available main model part entities.
-    for (IndexType i = 0; i < rModelPartOperationModelParts.size(); ++i) {
+    for (IndexType i = 0; i < number_of_operation_model_parts; ++i) {
         auto p_model_part = rModelPartOperationModelParts[i];
 
         // fill the set_operation nodes
@@ -384,6 +386,11 @@ ModelPart& ModelPartOperation(
 
     // now we have all the nodes to find and add neighbour entities.
     if (AddNeighbourEntities) {
+        // we need to fill the boundary nodes for elements and conditions
+        FillNodesFromEntities<ModelPart::ConditionType>(output_nodes, output_conditions.begin(), output_conditions.end());
+        FillNodesFromEntities<ModelPart::ElementType>(output_nodes, output_elements.begin(), output_elements.end());
+
+        // now add all the neighbours
         AddNeighbours(output_nodes, output_conditions, output_elements, rMainModelPart);
     }
 
@@ -391,7 +398,7 @@ ModelPart& ModelPartOperation(
     return CreateOutputModelPart(rOutputSubModelPartName, rMainModelPart, output_nodes, output_conditions, output_elements);
 }
 
-struct Union
+struct Merge
 {
     template<class TCheckType>
     static bool IsValid(
@@ -481,7 +488,7 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
         if (issue_ids.size() > 0) {
             if (ThrowError) {
                 std::stringstream msg;
-                msg << "Following nodes with ids in " << p_model_part->FullName() << " not found in the main model part " << rMainModelPart.FullName() << ":";
+                msg << "Following nodes with ids in \"" << p_model_part->FullName() << "\" not found in the main model part \"" << rMainModelPart.FullName() << "\":";
                 for (const auto node_id : issue_ids) {
                     msg << "\n\t" << node_id;
                 }
@@ -497,7 +504,7 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
         if (issue_ids.size() > 0) {
             if (ThrowError) {
                 std::stringstream msg;
-                msg << "Following conditions with ids in " << p_model_part->FullName() << " not found in the main model part " << rMainModelPart.FullName() << ":";
+                msg << "Following conditions with ids in \"" << p_model_part->FullName() << "\" not found in the main model part \"" << rMainModelPart.FullName() << "\":";
                 for (const auto condition_id : issue_ids) {
                     msg << "\n\t" << condition_id;
                 }
@@ -513,7 +520,7 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
         if (issue_ids.size() > 0) {
             if (ThrowError) {
                 std::stringstream msg;
-                msg << "Following elements with ids in " << p_model_part->FullName() << " not found in the main model part " << rMainModelPart.FullName() << ":";
+                msg << "Following elements with ids in \"" << p_model_part->FullName() << "\" not found in the main model part \"" << rMainModelPart.FullName() << "\":";
                 for (const auto element_id : issue_ids) {
                     msg << "\n\t" << element_id;
                 }
@@ -528,13 +535,13 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
     return true;
 }
 
-ModelPart& ModelPartOperationUtilities::Union(
+ModelPart& ModelPartOperationUtilities::Merge(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rUnionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Union>(
+    return ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Merge>(
         rOutputSubModelPartName, rMainModelPart, rUnionModelParts,
         AddNeighbourEntities);
 }
