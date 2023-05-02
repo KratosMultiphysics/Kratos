@@ -341,21 +341,43 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     double& rValue
     )
 {
-    // We combine the values of the layers
-    rValue = 0.0;
-    double aux_value;
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        const double factor = mCombinationFactors[i_layer];
+    const bool is_layer_print = IsLayerVariable(rThisVariable);
 
-        // we average over the layers
-        if (p_law->Has(rThisVariable)) {
-            aux_value = 0.0;
-            p_law->GetValue(rThisVariable, aux_value);
-            rValue += aux_value * factor;
+    if (!is_layer_print) {
+        // We combine the values of the layers
+        rValue = 0.0;
+        double aux_value;
+        for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+            const double factor = mCombinationFactors[i_layer];
+
+            // we average over the layers
+            if (p_law->Has(rThisVariable)) {
+                aux_value = 0.0;
+                p_law->GetValue(rThisVariable, aux_value);
+                rValue += aux_value * factor;
+            }
         }
+        return rValue;
+    } else {
+        // In here we print layer-wise information
+        const int layer_id = rThisVariable.Name().back() - 48; // we convert from char to int
+
+        if (rThisVariable == DAMAGE_LAYER_1 ||
+            rThisVariable == DAMAGE_LAYER_2 ||
+            rThisVariable == DAMAGE_LAYER_3 ||
+            rThisVariable == DAMAGE_LAYER_4 ||
+            rThisVariable == DAMAGE_LAYER_5) {
+                mConstitutiveLaws[layer_id - 1]->GetValue(DAMAGE, rValue);
+        } else if (rThisVariable == PLASTIC_DISSIPATION_LAYER_1 ||
+            rThisVariable == PLASTIC_DISSIPATION_LAYER_2 ||
+            rThisVariable == PLASTIC_DISSIPATION_LAYER_3 ||
+            rThisVariable == PLASTIC_DISSIPATION_LAYER_4 ||
+            rThisVariable == PLASTIC_DISSIPATION_LAYER_5) {
+                mConstitutiveLaws[layer_id - 1]->GetValue(PLASTIC_DISSIPATION, rValue);
+        }
+        return rValue;
     }
-    return rValue;
 }
 
 /***********************************************************************************/
