@@ -32,14 +32,32 @@ class OptimizationProblem:
         # initialize the step
         self.__problem_data["step"] = 0
 
+    def GetComponentType(self, component: Any) -> Any:
+        if isinstance(component, ResponseFunction):
+            return ResponseFunction
+        elif isinstance(component, ExecutionPolicy):
+            return ExecutionPolicy
+        else:
+            return None
+
+    def GetComponentName(self, component: Any) -> str:
+        component_type = self.GetComponentType(component)
+        if not component_type is None:
+            components = self.__components[component_type]
+        else:
+            raise RuntimeError(f"Unsupported component type {component} provided.")
+
+        for comp_name, current_component in components.items():
+            if component == current_component:
+                return comp_name
+
+        raise RuntimeError(f"The given {component} not found in components of type {component_type}.")
+
     def AddResponse(self, name: str, response_function: ResponseFunction) -> None:
         self.__AddComponent(name, response_function, ResponseFunction)
 
     def GetResponse(self, name: str) -> ResponseFunction:
         return self.__GetComponent(name, ResponseFunction)
-
-    def GetResponseName(self, response: ResponseFunction) -> str:
-        return self.__GetComponentName(response, ResponseFunction)
 
     def GetReponseData(self, name: str) -> BufferedDict:
         return self.__GetComponentDataContainer(name, ResponseFunction)
@@ -53,9 +71,6 @@ class OptimizationProblem:
 
     def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
         return self.__GetComponent(name, ExecutionPolicy)
-
-    def GetExecutionPolicyName(self, execution_policy: ExecutionPolicy) -> str:
-        return self.__GetComponentName(execution_policy, ExecutionPolicy)
 
     def GetExecutionPolicyData(self, name: str) -> BufferedDict:
         return self.__GetComponentDataContainer(name, ExecutionPolicy)
@@ -107,14 +122,6 @@ class OptimizationProblem:
             return components[name]
         else:
             raise RuntimeError(f"No {component_type.__name__} with name = \"{name}\" exists. Followings are the available {component_type.__name__}:\n" + "\n\t".join(components.keys()))
-
-    def __GetComponentName(self, component: Any, component_type: Any) -> str:
-        components = self.__components[component_type]
-        for comp_name, current_component in components.items():
-            if component == current_component:
-                return comp_name
-
-        raise RuntimeError(f"The given {component} not found in components of type {component_type}.")
 
     def __RemoveComponent(self, name: str, component_type: Any) -> None:
         components = self.__components[component_type]

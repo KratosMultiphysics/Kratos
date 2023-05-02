@@ -38,7 +38,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
 
     def Initialize(self) -> None:
         # get the model part name
-        response_name = self.optimization_problem.GetResponseName(self)
+        response_name = self.optimization_problem.GetComponentName(self)
         output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", response_name)
 
         # get root model part
