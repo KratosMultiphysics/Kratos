@@ -29,8 +29,6 @@ class ComponentData:
 
     def SetDataBuffer(self, buffer_size: int):
         if not self.__component_data.HasValue("buffered"):
-            # first create the buffered data containers to store light objects
-            # such as primitive variables
             self.__component_buffered_data = BufferedDict(buffer_size)
             self.__component_data["buffered"] = self.__component_buffered_data
         else:
