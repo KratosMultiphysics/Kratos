@@ -31,10 +31,10 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<MassResponseUtils >(m, "MassResponseUtils")
-        .def_static("Check", &MassResponseUtils::Check)
-        .def_static("CalculateValue", &MassResponseUtils::CalculateValue)
-        .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity)
+    m.def_submodule("MassResponseUtils")
+        .def("Check", &MassResponseUtils::Check)
+        .def("CalculateValue", &MassResponseUtils::CalculateValue)
+        .def("CalculateGradient", &MassResponseUtils::CalculateGradient)
         ;
 
     py::class_<LinearStrainEnergyResponseUtils >(m, "LinearStrainEnergyResponseUtils")
