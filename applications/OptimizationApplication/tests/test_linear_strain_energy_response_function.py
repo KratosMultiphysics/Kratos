@@ -5,7 +5,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.linear_strain_energy_response_function import LinearStrainEnergyResponseFunction
 
@@ -14,7 +14,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
-        cls.optimization_info = OptimizationInfo()
+        cls.optimization_info = OptimizationProblem()
         cls.model_part = cls.model.CreateModelPart("Structure")
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 
