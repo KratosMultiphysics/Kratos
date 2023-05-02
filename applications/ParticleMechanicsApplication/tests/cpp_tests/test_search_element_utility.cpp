@@ -116,7 +116,7 @@ namespace Testing
 
 
         // Nodes
-        std::vector<Kratos::Properties::NodeType::Pointer> point_vector(number_of_nodes);
+        std::vector<Node::Pointer> point_vector(number_of_nodes);
         const double dx = 1.0;
         const double dy = 1.0;
         IndexType point_index = 1;
