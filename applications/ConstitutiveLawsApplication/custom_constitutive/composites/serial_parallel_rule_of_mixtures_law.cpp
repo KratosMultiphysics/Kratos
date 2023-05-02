@@ -945,6 +945,10 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (rThisVariable == PLASTIC_DISSIPATION_FIBER) {
+        return mpFiberConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, rValue);
+    } else if (rThisVariable == PLASTIC_DISSIPATION_MATRIX) {
+        return mpMatrixConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, rValue);
     } else {
         if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
             rValue = mFiberVolumetricParticipation;
