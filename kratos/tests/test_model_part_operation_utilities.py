@@ -1,4 +1,3 @@
-# Importing the Kratos Library
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
@@ -27,21 +26,6 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
             # Clean up temporary files
             KratosUtils.DeleteFileIfExisting("model_part_operations.time")
 
-    def test_CheckValidityOfModelPartsForOperations(self):
-        # check against empty model part
-        empty_model_part = self.model.CreateModelPart("empty_test")
-        with self.assertRaises(RuntimeError):
-            Kratos.ModelPartOperationUtilities.CheckValidityOfModelPartsForOperations(empty_model_part, self.model_parts_list, True)
-        self.assertFalse(Kratos.ModelPartOperationUtilities.CheckValidityOfModelPartsForOperations(empty_model_part, self.model_parts_list, False))
-
-        # check against same root model part
-        self.assertTrue(Kratos.ModelPartOperationUtilities.CheckValidityOfModelPartsForOperations(self.model_part, self.model_parts_list, True))
-
-        # check against different root model part
-        temp_model_part = self.model.CreateModelPart("temp_test")
-        Kratos.ConnectivityPreserveModeler().GenerateModelPart(self.model_part, temp_model_part, "Element2D4N", "LineCondition2D2N")
-        self.assertTrue(Kratos.ModelPartOperationUtilities.CheckValidityOfModelPartsForOperations(temp_model_part, self.model_parts_list, True))
-
     @staticmethod
     def __GenerateUniqueIdsList(container) -> 'list[int]':
         entity_ids = []
@@ -61,7 +45,7 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         for node in merged_model_part.Nodes:
             node_ids.extend(node_node_ids_map[node.Id])
         node_ids = list(set(node_ids))
-        # self.assertEqual(node_ids, merged_with_neighbours_node_ids)
+        self.assertEqual(sorted(node_ids), sorted(merged_with_neighbours_node_ids))
 
         # check for neigghbour elements
         process = Kratos.FindGlobalNodalElementalNeighboursProcess(self.model_part)
@@ -70,8 +54,25 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         for node in merged_model_part.Nodes:
             element_ids.extend(node_element_ids_map[node.Id])
         element_ids = list(set(element_ids))
-        self.assertEqual(element_ids, merged_with_neighbours_element_ids)
+        self.assertEqual(sorted(element_ids), sorted(merged_with_neighbours_element_ids))
 
+    @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
+    def test_CheckValidityOfModelPartsForOperations(self):
+        # check against empty model part
+        empty_model_part = self.model.CreateModelPart("empty_test")
+        with self.assertRaises(RuntimeError):
+            Kratos.ModelPartOperationUtilities.CheckValidityOfModelPartsForOperations(empty_model_part, self.model_parts_list, True)
+        self.assertFalse(Kratos.ModelPartOperationUtilities.CheckValidityOfModelPartsForOperations(empty_model_part, self.model_parts_list, False))
+
+        # check against same root model part
+        self.assertTrue(Kratos.ModelPartOperationUtilities.CheckValidityOfModelPartsForOperations(self.model_part, self.model_parts_list, True))
+
+        # check against different root model part
+        temp_model_part = self.model.CreateModelPart("temp_test")
+        Kratos.ConnectivityPreserveModeler().GenerateModelPart(self.model_part, temp_model_part, "Element2D4N", "LineCondition2D2N")
+        self.assertTrue(Kratos.ModelPartOperationUtilities.CheckValidityOfModelPartsForOperations(temp_model_part, self.model_parts_list, True))
+
+    @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
     def test_Merge(self):
         merged_model_part = Kratos.ModelPartOperationUtilities.Merge("merge_1", self.model_part, self.model_parts_list, False)
 
@@ -92,13 +93,14 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         merged_condition_ids = list(set(TestModelPartOperationUtilities.__GenerateUniqueIdsList(merged_model_part.Conditions)))
         merged_element_ids = list(set(TestModelPartOperationUtilities.__GenerateUniqueIdsList(merged_model_part.Elements)))
 
-        self.assertEqual(node_ids, merged_node_ids)
-        self.assertEqual(condition_ids, merged_condition_ids)
-        self.assertEqual(element_ids, merged_element_ids)
+        self.assertEqual(sorted(node_ids), sorted(merged_node_ids))
+        self.assertEqual(sorted(condition_ids), sorted(merged_condition_ids))
+        self.assertEqual(sorted(element_ids), sorted(merged_element_ids))
 
         merged_with_neighbours_model_part = Kratos.ModelPartOperationUtilities.Merge("merge_2", self.model_part, self.model_parts_list, True)
         self.__CheckNeighbours(node_ids, element_ids, merged_model_part, merged_with_neighbours_model_part)
 
+    @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
     def test_Substract(self):
         merged_model_part = Kratos.ModelPartOperationUtilities.Substract("substract_1", self.model_part, self.model_parts_list, False)
 
@@ -137,13 +139,14 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         merged_condition_ids = list(set(TestModelPartOperationUtilities.__GenerateUniqueIdsList(merged_model_part.Conditions)))
         merged_element_ids = list(set(TestModelPartOperationUtilities.__GenerateUniqueIdsList(merged_model_part.Elements)))
 
-        self.assertEqual(node_ids, merged_node_ids)
-        self.assertEqual(condition_ids, merged_condition_ids)
-        self.assertEqual(element_ids, merged_element_ids)
+        self.assertEqual(sorted(node_ids), sorted(merged_node_ids))
+        self.assertEqual(sorted(condition_ids), sorted(merged_condition_ids))
+        self.assertEqual(sorted(element_ids), sorted(merged_element_ids))
 
         merged_with_neighbours_model_part = Kratos.ModelPartOperationUtilities.Substract("substract_2", self.model_part, self.model_parts_list, True)
         self.__CheckNeighbours(node_ids, element_ids, merged_model_part, merged_with_neighbours_model_part)
 
+    @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
     def test_Intersect(self):
         merged_model_part = Kratos.ModelPartOperationUtilities.Intersect("intersect_1", self.model_part, self.model_parts_list, False)
 
@@ -160,12 +163,36 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         merged_condition_ids = list(set(TestModelPartOperationUtilities.__GenerateUniqueIdsList(merged_model_part.Conditions)))
         merged_element_ids = list(set(TestModelPartOperationUtilities.__GenerateUniqueIdsList(merged_model_part.Elements)))
 
-        self.assertEqual(node_ids, merged_node_ids)
-        self.assertEqual(condition_ids, merged_condition_ids)
-        self.assertEqual(element_ids, merged_element_ids)
+        self.assertEqual(sorted(node_ids), sorted(merged_node_ids))
+        self.assertEqual(sorted(condition_ids), sorted(merged_condition_ids))
+        self.assertEqual(sorted(element_ids), sorted(merged_element_ids))
 
         merged_with_neighbours_model_part = Kratos.ModelPartOperationUtilities.Intersect("intersect_2", self.model_part, self.model_parts_list, True)
         self.__CheckNeighbours(node_ids, element_ids, merged_model_part, merged_with_neighbours_model_part)
+
+    def test_Sum(self):
+        # communicator check
+        for node in self.model_part.Nodes:
+            node.SetValue(Kratos.PRESSURE, node.Id)
+
+        for condition in self.model_part.Conditions:
+            condition.SetValue(Kratos.PRESSURE, condition.Id)
+
+        for element in self.model_part.Elements:
+            element.SetValue(Kratos.PRESSURE, element.Id)
+
+        merged_model_part = Kratos.ModelPartOperationUtilities.Merge("merge_3", self.model_part, self.model_parts_list, False)
+        substract_model_part = Kratos.ModelPartOperationUtilities.Substract("substract_3", self.model_part, self.model_parts_list, False)
+        intersect_model_part = Kratos.ModelPartOperationUtilities.Intersect("intersect_3", self.model_part, self.model_parts_list, False)
+
+        merged_sum = Kratos.VariableUtils().SumNonHistoricalNodeScalarVariable(Kratos.PRESSURE, merged_model_part)
+        self.assertEqual(merged_sum, 13415.0)
+
+        substracted_sum = Kratos.VariableUtils().SumNonHistoricalNodeScalarVariable(Kratos.PRESSURE, substract_model_part)
+        self.assertEqual(substracted_sum, 34926.0)
+
+        intersected_sum = Kratos.VariableUtils().SumNonHistoricalNodeScalarVariable(Kratos.PRESSURE, intersect_model_part)
+        self.assertEqual(intersected_sum, 2894.0)
 
 if __name__ == '__main__':
     KratosUnittest.main()
