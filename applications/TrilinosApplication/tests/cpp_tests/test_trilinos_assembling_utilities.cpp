@@ -50,7 +50,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosAppl
     // Solution global
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetValue(vector, rank * 2 + i, 1.0);
+        TrilinosAssemblingUtilities::SetGlobalValue(vector, rank * 2 + i, 1.0);
     }
 
     // Check global
@@ -59,14 +59,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosAppl
     // Solution local
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetValue<false>(vector, i, 1.0);
+        TrilinosAssemblingUtilities::SetLocalValue(vector, i, 1.0);
     }
 
     // Check local
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetGlobalValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -83,7 +83,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValueWithoutGlobalAssembl
     // Solution global
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(vector, rank * 2 + i, 1.0);
+        TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(vector, rank * 2 + i, 1.0);
     }
     vector.GlobalAssemble();
 
@@ -93,7 +93,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValueWithoutGlobalAssembl
     // Solution local
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly<false>(vector, i, 1.0);
+        TrilinosAssemblingUtilities::SetLocalValueWithoutGlobalAssembly(vector, i, 1.0);
     }
     vector.GlobalAssemble();
 
@@ -117,7 +117,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosAppl
 
     // Solution global
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetValue(matrix, rank * 2 + i, rank * 2 + i, 1.0);
+        TrilinosAssemblingUtilities::SetGlobalValue(matrix, rank * 2 + i, rank * 2 + i, 1.0);
     }
 
     // Check global
@@ -126,14 +126,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosAppl
     // Solution local
     TrilinosSparseSpaceType::SetToZero(matrix);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetValue<false>(matrix, i, i, 1.0);
+        TrilinosAssemblingUtilities::SetLocalValue(matrix, i, i, 1.0);
     }
 
     // Check local
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetGlobalValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -149,7 +149,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValueWithoutGlobalAssembl
 
     // Solution global
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly(matrix, rank * 2 + i, rank * 2 + i, 1.0);
+        TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(matrix, rank * 2 + i, rank * 2 + i, 1.0);
     }
     matrix.GlobalAssemble();
 
@@ -159,7 +159,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValueWithoutGlobalAssembl
     // Solution local
     TrilinosSparseSpaceType::SetToZero(matrix);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetValueWithoutGlobalAssembly<false>(matrix, i, i, 1.0);
+        TrilinosAssemblingUtilities::SetLocalValueWithoutGlobalAssembly(matrix, i, i, 1.0);
     }
     matrix.GlobalAssemble();
 
