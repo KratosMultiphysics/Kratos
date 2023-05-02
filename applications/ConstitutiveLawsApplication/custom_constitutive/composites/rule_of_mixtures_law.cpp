@@ -202,6 +202,19 @@ bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<int>& rThisVariable)
 template<unsigned int TDim>
 bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<double>& rThisVariable)
 {
+    if (rThisVariable == DAMAGE_LAYER_1 ||
+        rThisVariable == DAMAGE_LAYER_2 ||
+        rThisVariable == DAMAGE_LAYER_3 ||
+        rThisVariable == DAMAGE_LAYER_4 ||
+        rThisVariable == DAMAGE_LAYER_5 ||
+        rThisVariable == PLASTIC_DISSIPATION_LAYER_1 ||
+        rThisVariable == PLASTIC_DISSIPATION_LAYER_2 ||
+        rThisVariable == PLASTIC_DISSIPATION_LAYER_3 ||
+        rThisVariable == PLASTIC_DISSIPATION_LAYER_4 ||
+        rThisVariable == PLASTIC_DISSIPATION_LAYER_5) {
+            return true;
+        }
+
     // At least one layer should have the value
     bool has = false;
     for (auto& p_law : mConstitutiveLaws) {
