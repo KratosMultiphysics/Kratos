@@ -193,6 +193,10 @@ ModelPart& CreateOutputModelPart(
     std::vector<ModelPart::ConditionType*>& rOutputConditions,
     std::vector<ModelPart::ElementType*>& rOutputElements)
 {
+    KRATOS_ERROR_IF(rMainModelPart.HasSubModelPart(rOutputSubModelPartName))
+        << "\"" << rOutputSubModelPartName << "\" already exists in the \""
+        << rMainModelPart.FullName() << "\".\n";
+
     // create the output sub model part
     auto& r_output_model_part = rMainModelPart.CreateSubModelPart(rOutputSubModelPartName);
 
@@ -339,16 +343,14 @@ void AddEntities(
 }
 
 template<class TModelPartOperation>
-ModelPart& ModelPartOperation(
-    const std::string& rOutputSubModelPartName,
+void ModelPartOperation(
+    std::vector<ModelPart::NodeType*>& rOutputNodes,
+    std::vector<ModelPart::ConditionType*>& rOutputConditions,
+    std::vector<ModelPart::ElementType*>& rOutputElements,
     ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rModelPartOperationModelParts,
     const bool AddNeighbourEntities)
 {
-    KRATOS_ERROR_IF(rMainModelPart.HasSubModelPart(rOutputSubModelPartName))
-        << "\"" << rOutputSubModelPartName << "\" already exists in the \""
-        << rMainModelPart.FullName() << "\".\n";
-
     const IndexType number_of_operation_model_parts = rModelPartOperationModelParts.size();
 
     std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets(number_of_operation_model_parts);
@@ -369,31 +371,42 @@ ModelPart& ModelPartOperation(
         FillNodePointersForEntities(set_operation_element_sets[i], p_model_part->Elements());
     }
 
-    std::vector<ModelPart::NodeType*> output_nodes;
-    std::vector<ModelPart::ConditionType*> output_conditions;
-    std::vector<ModelPart::ElementType*> output_elements;
-
-    AddNodes(output_nodes, rMainModelPart.Nodes(), [&set_operation_node_sets](auto& rEntity) {
+    AddNodes(rOutputNodes, rMainModelPart.Nodes(), [&set_operation_node_sets](auto& rEntity) {
         return TModelPartOperation::IsValid(rEntity, set_operation_node_sets);
     });
 
-    AddEntities(output_conditions, rMainModelPart.Conditions(), [&set_operation_condition_sets](auto& rEntity) {
+    AddEntities(rOutputConditions, rMainModelPart.Conditions(), [&set_operation_condition_sets](auto& rEntity) {
         return TModelPartOperation::IsValid(rEntity, set_operation_condition_sets);
     });
 
-    AddEntities(output_elements, rMainModelPart.Elements(), [&set_operation_element_sets](auto& rEntity) {
+    AddEntities(rOutputElements, rMainModelPart.Elements(), [&set_operation_element_sets](auto& rEntity) {
         return TModelPartOperation::IsValid(rEntity, set_operation_element_sets);
     });
 
     // now we have all the nodes to find and add neighbour entities.
     if (AddNeighbourEntities) {
         // we need to fill the boundary nodes for elements and conditions
-        FillNodesFromEntities<ModelPart::ConditionType>(output_nodes, output_conditions.begin(), output_conditions.end());
-        FillNodesFromEntities<ModelPart::ElementType>(output_nodes, output_elements.begin(), output_elements.end());
+        FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), rOutputConditions.end());
+        FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), rOutputElements.end());
 
         // now add all the neighbours
-        AddNeighbours(output_nodes, output_conditions, output_elements, rMainModelPart);
+        AddNeighbours(rOutputNodes, rOutputConditions, rOutputElements, rMainModelPart);
     }
+}
+
+template<class TModelPartOperation>
+ModelPart& CreateModelPartWithOperation(
+    const std::string& rOutputSubModelPartName,
+    ModelPart& rMainModelPart,
+    const std::vector<ModelPart const*>& rModelPartOperationModelParts,
+    const bool AddNeighbourEntities)
+{
+    std::vector<ModelPart::NodeType*> output_nodes;
+    std::vector<ModelPart::ConditionType*> output_conditions;
+    std::vector<ModelPart::ElementType*> output_elements;
+
+    // fill vectors
+    ModelPartOperation<TModelPartOperation>(output_nodes, output_conditions, output_elements, rMainModelPart, rModelPartOperationModelParts, AddNeighbourEntities);
 
     // now create the sub model part
     return CreateOutputModelPart(rOutputSubModelPartName, rMainModelPart, output_nodes, output_conditions, output_elements);
@@ -542,7 +555,7 @@ ModelPart& ModelPartOperationUtilities::Merge(
     const std::vector<ModelPart const*>& rUnionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Merge>(
+    return ModelPartOperationHelperUtilities::CreateModelPartWithOperation<ModelPartOperationHelperUtilities::Merge>(
         rOutputSubModelPartName, rMainModelPart, rUnionModelParts,
         AddNeighbourEntities);
 }
@@ -553,7 +566,7 @@ ModelPart& ModelPartOperationUtilities::Substract(
     const std::vector<ModelPart const*>& rSubstractionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Substraction>(
+    return ModelPartOperationHelperUtilities::CreateModelPartWithOperation<ModelPartOperationHelperUtilities::Substraction>(
         rOutputSubModelPartName, rMainModelPart, rSubstractionModelParts,
         AddNeighbourEntities);
 }
@@ -564,9 +577,29 @@ ModelPart& ModelPartOperationUtilities::Intersect(
     const std::vector<ModelPart const*>& rIntersectionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Intersection>(
+    return ModelPartOperationHelperUtilities::CreateModelPartWithOperation<ModelPartOperationHelperUtilities::Intersection>(
         rOutputSubModelPartName, rMainModelPart, rIntersectionModelParts,
         AddNeighbourEntities);
+}
+
+bool ModelPartOperationUtilities::HasIntersection(
+    ModelPart& rMainModelPart,
+    const std::vector<ModelPart const*>& rIntersectionModelParts)
+{
+    std::vector<ModelPart::NodeType*> output_nodes;
+    std::vector<ModelPart::ConditionType*> output_conditions;
+    std::vector<ModelPart::ElementType*> output_elements;
+
+    // fill vectors
+    ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Intersection>(output_nodes, output_conditions, output_elements, rMainModelPart, rIntersectionModelParts, false);
+
+    bool is_intersected = false;
+
+    is_intersected = is_intersected || rMainModelPart.GetCommunicator().GetDataCommunicator().SumAll(output_nodes.size()) > 0;
+    is_intersected = is_intersected || rMainModelPart.GetCommunicator().GetDataCommunicator().SumAll(output_conditions.size()) > 0;
+    is_intersected = is_intersected || rMainModelPart.GetCommunicator().GetDataCommunicator().SumAll(output_elements.size()) > 0;
+
+    return is_intersected;
 }
 
 } // namespace Kratos

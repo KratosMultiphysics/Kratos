@@ -144,6 +144,23 @@ public:
         const std::vector<ModelPart const*>& rIntersectionModelParts,
         const bool AddNeighbourEntities);
 
+    /**
+     * @brief Checks whether given model parts list has an intersection.
+     *
+     * This method checks whether @ref rIntersectionModelParts has intersections.
+     *
+     * The intersection is carried out by finding all the nodes, geometries in @ref rIntersectionModelParts
+     * within the @ref rMainModelPart which are intersecting.
+     *
+     * @param rMainModelPart                Main Model part.
+     * @param rIntersectionModelParts       Model parts to find intersection.
+     * @return true                         If there are entities intersecting.
+     * @return false                        If there aren't any entities intersecting.
+     */
+    static bool HasIntersection(
+        ModelPart& rMainModelPart,
+        const std::vector<ModelPart const*>& rIntersectionModelParts);
+
     ///@}
 };
 

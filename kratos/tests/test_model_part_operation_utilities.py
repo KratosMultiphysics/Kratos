@@ -170,6 +170,10 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         merged_with_neighbours_model_part = Kratos.ModelPartOperationUtilities.Intersect("intersect_2", self.model_part, self.model_parts_list, True)
         self.__CheckNeighbours(node_ids, element_ids, merged_model_part, merged_with_neighbours_model_part)
 
+    @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
+    def test_HasIntersection(self):
+        self.assertTrue(Kratos.ModelPartOperationUtilities.HasIntersection(self.model_part, self.model_parts_list))
+
     def test_Sum(self):
         # communicator check
         for node in self.model_part.Nodes:
