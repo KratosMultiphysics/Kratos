@@ -315,33 +315,6 @@ protected:
         }
     }
 
-    /**
-     * @brief This method synchronizes the search in radius
-     * @param rResults The results of the search (local version)
-     */
-    virtual void SynchronizeSearchInRadius(std::vector<ResultType>& rLocalResults);
-
-    /**
-     * @brief This method synchronizes the search nearest in radius
-     * @param rLocalResult The results of the search (local version)
-     * @return The results of the search (global version)
-     */
-    virtual ResultType& SynchronizeSearchNearestInRadius(ResultType& rLocalResult);
-
-    /**
-     * @brief This method synchronizes the search nearest
-     * @param rLocalResult The results of the search (local version)
-     * @return The results of the search (global version)
-     */
-    virtual ResultType& SynchronizeSearchNearest(ResultType& rLocalResult);
-
-    /**
-     * @brief This method synchronizes the search is inside
-     * @param rLocalResult The results of the search (local version)
-     * @return The results of the search (global version)
-     */
-    virtual ResultType& SynchronizeSearchIsInside(ResultType& rLocalResult);
-
     ///@}
 private:
     ///@name Private Operators
@@ -350,53 +323,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it.
-     * @details The result contains the object and also its distance to the point. Local version.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     */
-    void LocalSearchInRadius(
-        const Point& rPoint,
-        const double Radius,
-        std::vector<ResultType>& rResults
-        );
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the result will be set to not found. Local version.
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @return ResultType The result of the search
-     */
-    ResultType LocalSearchNearestInRadius(
-        const Point& rPoint,
-        const double Radius
-        );
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not. Local version.
-     * @param rPoint The point to be checked
-     * @return ResultType The result of the search
-    */
-    ResultType LocalSearchNearest(const Point& rPoint);
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * This method is a simplified and faster method of SearchNearest. Local version.
-     * @param rPoint The point to be checked
-     * @return ResultType The result of the search
-     */
-    ResultType LocalSearchIsInside(const Point& rPoint);
 
     /**
      * @brief Giving the min and max position of cells intersecting with the bounding box of the geometry.
