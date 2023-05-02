@@ -1,4 +1,4 @@
-import os
+import pathlib
 
 from KratosMultiphysics import KratosUnittest, Model, ModelPartIO, PARTITION_INDEX, FRACTIONAL_STEP
 from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
@@ -13,14 +13,14 @@ class QuadPartitionTest(KratosUnittest.TestCase):
         domain_size = 2
         verbosity = 0
 
-        work_dir = os.path.abspath(os.path.dirname(__file__))
+        work_dir = pathlib.Path(__file__).parent.absolute()
         model = Model()
         io_flags = ModelPartIO.READ|ModelPartIO.SKIP_TIMER|ModelPartIO.IGNORE_VARIABLES_ERROR
 
         # Register clean up operation for files created by the partitioner
         self.addCleanup(
             DeleteDirectoryIfExisting,
-            os.path.join(work_dir, f'{test_file}_partitioned'))
+            work_dir / f'{test_file}_partitioned')
 
         with KratosUnittest.WorkFolderScope(work_dir, ''):
             io = ModelPartIO(test_file, io_flags)
