@@ -197,6 +197,7 @@ ModelPart& CreateOutputModelPart(
     auto& r_output_model_part = rMainModelPart.CreateSubModelPart(rOutputSubModelPartName);
 
     // add unique conditions
+    std::sort(rOutputConditions.begin(), rOutputConditions.end());
     const auto& condition_last = std::unique(rOutputConditions.begin(), rOutputConditions.end());
     std::for_each(rOutputConditions.begin(), condition_last, [&r_output_model_part](auto p_condition) {
         r_output_model_part.Conditions().push_back(Kratos::intrusive_ptr<ModelPart::ConditionType>(p_condition));
@@ -204,6 +205,7 @@ ModelPart& CreateOutputModelPart(
     FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), condition_last);
 
     // add uniqe elements
+    std::sort(rOutputElements.begin(), rOutputElements.end());
     const auto& element_last = std::unique(rOutputElements.begin(), rOutputElements.end());
     std::for_each(rOutputElements.begin(), element_last, [&r_output_model_part](auto p_element) {
         r_output_model_part.Elements().push_back(Kratos::intrusive_ptr<ModelPart::ElementType>(p_element));
@@ -211,6 +213,7 @@ ModelPart& CreateOutputModelPart(
     FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), element_last);
 
     // populate the mesh with nodes.
+    std::sort(rOutputNodes.begin(), rOutputNodes.end());
     const auto& node_last = std::unique(rOutputNodes.begin(), rOutputNodes.end());
     std::for_each(rOutputNodes.begin(), node_last, [&r_output_model_part](auto p_node) {
         r_output_model_part.Nodes().push_back(Kratos::intrusive_ptr<ModelPart::NodeType>(p_node));
