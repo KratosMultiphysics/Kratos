@@ -1,7 +1,9 @@
 from pathlib import Path
 from importlib import import_module
+from typing import Any
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
@@ -30,6 +32,15 @@ def GetClassModuleFromKratos(class_name: str) -> str:
 def CallOnAll(list_of_objects: 'list[any]', method: any, *args, **kwargs):
     for obj in list_of_objects:
         getattr(obj, method.__name__)(*args, **kwargs)
+
+def ConvertCollectiveExpressionValueMapToModelPartValueMap(input_dict: 'dict[Any, KratosOA.ContainerExpression.CollectiveExpressions]') -> 'dict[Any, list[Kratos.ModelPart]]':
+    result: 'dict[Any, list[Kratos.ModelPart]]' = {}
+    for k, v in input_dict.items():
+        result[k]: 'list[Kratos.ModelPart]' = []
+        for mp in v.GetContainerExpressions():
+            result[k].append(mp.GetModelPart())
+
+    return result
 
 def OptimizationProcessFactory(
     module_name: str,
