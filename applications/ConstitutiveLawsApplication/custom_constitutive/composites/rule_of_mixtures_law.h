@@ -649,6 +649,17 @@ protected:
 
 private:
 
+    /**
+     * @brief This method returns true if the variable is related to a layer
+     * @param rVariable The variable to be printed
+     */
+    template<class TVariableType>
+    const bool IsLayerVariable(const TVariableType& rVariable)
+    {
+        // returns true if LAYER is found
+        return (rVariable.Name().find("LAYER") != std::string::npos);
+    }
+
     ///@name Static Member Variables
     ///@{
 
