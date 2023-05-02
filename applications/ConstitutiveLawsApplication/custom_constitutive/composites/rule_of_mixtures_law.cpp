@@ -612,26 +612,48 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     double& rValue
     )
 {
-    const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+    const bool is_layer_print = IsLayerVariable(rThisVariable);
 
-    // We combine the value of each layer
-    rValue = 0.0;
-    double aux_value = 0.0;
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        Properties& r_prop = *(it_prop_begin + i_layer);
+    if (!is_layer_print) {
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+        // We combine the value of each layer
+        rValue = 0.0;
+        double aux_value = 0.0;
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+        for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+            const double factor = mCombinationFactors[i_layer];
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+            Properties& r_prop = *(it_prop_begin + i_layer);
 
-        rParameterValues.SetMaterialProperties(r_prop);
-        aux_value = 0.0;
-        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
-        rValue += factor * aux_value;
+            rParameterValues.SetMaterialProperties(r_prop);
+            aux_value = 0.0;
+            p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+            rValue += factor * aux_value;
+        }
+
+        // Reset properties
+        rParameterValues.SetMaterialProperties(r_material_properties);
+        return rValue;
+
+    } else {
+        if (rThisVariable == UNIAXIAL_STRESS_LAYER_1 ||
+            rThisVariable == UNIAXIAL_STRESS_LAYER_2 ||
+            rThisVariable == UNIAXIAL_STRESS_LAYER_3 ||
+            rThisVariable == UNIAXIAL_STRESS_LAYER_4 ||
+            rThisVariable == UNIAXIAL_STRESS_LAYER_5) {
+                const Properties &r_material_properties = rParameterValues.GetMaterialProperties();
+                const int layer_id = rThisVariable.Name().back() - 48; // we convert from char to int
+
+                const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+                Properties &r_prop = *(it_prop_begin + layer_id - 1);
+                rParameterValues.SetMaterialProperties(r_prop);
+                mConstitutiveLaws[layer_id - 1]->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+
+                // Reset the props
+                rParameterValues.SetMaterialProperties(r_material_properties);
+                return rValue;
+        }
     }
-
-    // Reset properties
-    rParameterValues.SetMaterialProperties(r_material_properties);
-
     return rValue;
 }
 
