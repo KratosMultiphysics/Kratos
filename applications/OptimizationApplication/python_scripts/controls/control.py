@@ -13,7 +13,7 @@ class Control(ABC):
         4. Retrieve physical space kratos variables (If more than one physical space kratos variables are controlled by the given control field.)
 
     This control should only work on one model part and one kratos control variable. Hence, if multiple model parts required then,
-    a single model part should be created using Kratos.ModelPartBinaryOperators.
+    a single model part should be created using Kratos.ModelPartOperationUtilities.
 
     """
     @abstractmethod
