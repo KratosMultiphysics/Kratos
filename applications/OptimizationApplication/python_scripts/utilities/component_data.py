@@ -4,27 +4,30 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 
 class ComponentData:
     def __init__(self, component: Any, optimization_problem: OptimizationProblem):
-        problem_data = optimization_problem.GetProblemDataContainer()
+        self.__problem_data = optimization_problem.GetProblemDataContainer()
 
         self.__component_type = optimization_problem.GetComponentType(component)
         self.__component_name = optimization_problem.GetComponentName(component)
 
-        data_name = f"{self.__component_type.__name__}/{self.__component_name}"
+        self.__data_name = f"{self.__component_type.__name__}/{self.__component_name}"
 
         # if the component data container not found, then create it.
-        if not problem_data.HasValue(data_name):
-            problem_data[data_name] = {}
+        if not self.__problem_data.HasValue(self.__data_name):
+            self.ResetData()
 
-        self.__component_data: BufferedDict = problem_data[data_name]
+        self.__component = component
+
+    def ResetData(self):
+        self.__problem_data[self.__data_name] = {}
+
+        self.__component_data: BufferedDict = self.__problem_data[self.__data_name]
         self.__component_buffered_data: BufferedDict = None
 
         # create the unbuffered data container
         self.__component_unbuffered_data = BufferedDict(1)
         self.__component_data["unbuffered"] = self.__component_unbuffered_data
 
-        self.__component = component
-
-    def SetBuffer(self, buffer_size: int):
+    def SetDataBuffer(self, buffer_size: int):
         if not self.__component_data.HasValue("buffered"):
             # first create the buffered data containers to store light objects
             # such as primitive variables
@@ -37,9 +40,6 @@ class ComponentData:
 
     def GetComponent(self) -> Any:
         return self.__component
-
-    def GetData(self) -> BufferedDict:
-        return self.__component_data
 
     def GetBufferedData(self) -> BufferedDict:
         if self.__component_buffered_data is None:
