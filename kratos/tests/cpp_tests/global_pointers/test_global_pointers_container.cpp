@@ -4,11 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "testing/testing.h"
 #include "includes/global_pointer.h"
 #include "containers/global_pointers_vector.h"
@@ -17,10 +23,7 @@
 #include "includes/model_part.h" 
 #include "includes/mpi_serializer.h" 
 
-
-namespace Kratos {
-namespace Testing {
-
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointersVectorTest, KratosCoreFastSuite)
 {
@@ -108,5 +111,4 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersVectorDeepSerializationTest , KratosCore
     }
 };
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing
