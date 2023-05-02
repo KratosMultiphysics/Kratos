@@ -73,6 +73,7 @@
 #include "add_sparse_matrices_to_python.h"
 #include "add_registry_to_python.h"
 #include "add_container_expression_to_python.h"
+#include "add_accessor_to_python.h"
 
 namespace Kratos::Python
 {
@@ -149,6 +150,7 @@ PYBIND11_MODULE(Kratos, m)
     AddSparseMatricesToPython(m);
     AddRegistryToPython(m);
     AddContainerExpressionToPython(m);
+    AddAccessorToPython(m);
 
     m.def("Hello", Hello);
 }
