@@ -192,6 +192,14 @@ public:
 
     double ExecuteGradient();
 
+    double ExecuteModelPart(
+        const Variable<array_1d<double,3>>& rVariable,
+        ModelPart& rReferenceModelPart);
+
+    double ExecuteModelPartGradient(
+        const Variable<array_1d<double,3>>& rVariable,
+        ModelPart& rReferenceModelPart);
+
     double ExecuteOnConditions(ModelPart& rModelPart);
 
     double ExecuteOnConditionsGradient(ModelPart& rModelPart);

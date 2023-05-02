@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
+#include "utilities/binbased_fast_point_locator.h"
 #include "utilities/variable_utils.h"
 #include "utilities/divide_triangle_2d_3.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
@@ -250,6 +251,208 @@ double GaussPointErrorUtility::Execute()
 
     t_error_norm = std::sqrt(t_error_norm);
     return t_error_norm;
+}
+
+double GaussPointErrorUtility::ExecuteModelPart(
+    const Variable<array_1d<double,3>>& rVariable,
+    ModelPart& rReferenceModelPart)
+{
+    // Initialize values
+    double val_error_norm = 0.0;
+
+    // Get DOMAIN_SIZE from reference model part
+    KRATOS_ERROR_IF_NOT(rReferenceModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) 
+        << "'DOMAIN_SIZE' is not found in reference model part." << std::endl;
+    const std::size_t domain_size = rReferenceModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        
+    // Set the search structure
+    KRATOS_ERROR_IF_NOT(domain_size == 2) << "DOMAIN_SIZE 3 to be implemented!" << std::endl;
+    auto p_point_locator = Kratos::make_shared<BinBasedFastPointLocator<2>>(rReferenceModelPart);
+    p_point_locator->UpdateSearchDatabase();
+
+    // Loop the elements to calculate the error
+    Vector ref_mesh_N;
+    Element::Pointer p_ref_mesh_elem;
+    const int n_elems = mrModelPart.NumberOfElements();
+    for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        const auto p_geom = it_elem->pGetGeometry();
+        const int n_nodes = p_geom->PointsNumber();
+        const auto d_vect = SetDistancesVector(it_elem);
+
+        // Initialize values
+        Matrix r_N_container;
+        ModifiedShapeFunctions::ShapeFunctionsGradientsType r_DN_DX_container;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        const auto& r_integrations_points = p_geom->IntegrationPoints(integration_method);
+
+        array_1d<double,3> i_gauss_err;
+        array_1d<double,3> i_gauss_val;
+        array_1d<double,3> i_gauss_val_exact;
+
+        // Check if element is ACTIVE (inactive elements are not assembled to the system)
+        if (ElementIsPositive(p_geom, d_vect)) {
+
+            r_N_container = p_geom->ShapeFunctionsValues(integration_method);
+            Vector det_J_vector(r_integrations_points.size());
+            p_geom->DeterminantOfJacobian(det_J_vector, integration_method);
+
+            const unsigned int n_gauss = r_integrations_points.size();
+            for (int i_gauss = 0; i_gauss < n_gauss; ++i_gauss ) {
+                // Get Gauss pt. data
+                const Vector& rN = row(r_N_container, i_gauss);
+                const double w = r_integrations_points[i_gauss].Weight() * det_J_vector[i_gauss];
+
+                // Calculate the Gauss pt. coordinates
+                array_1d<double,3> coords = ZeroVector(3);
+                coords[0] = ((*p_geom)[0]).X()*rN[0] + ((*p_geom)[1]).X()*rN[1] + ((*p_geom)[2]).X()*rN[2];
+                coords[1] = ((*p_geom)[0]).Y()*rN[0] + ((*p_geom)[1]).Y()*rN[1] + ((*p_geom)[2]).Y()*rN[2];
+
+                // Find current Gauss pt. in reference mesh
+                const bool is_found = p_point_locator->FindPointOnMeshSimplified(
+                    coords,
+                    ref_mesh_N,
+                    p_ref_mesh_elem);
+                KRATOS_ERROR_IF_NOT(is_found) << "Point (" << coords[0] << "," << coords[1] << "," << coords[2] << ") not found in reference mesh." << std::endl;
+
+                // Interpolate the Gauss pt. value in reference mesh
+                noalias(i_gauss_val_exact) = ZeroVector(3);
+                const std::size_t n_nodes_ref = ref_mesh_N.size();
+                for (std::size_t i_node_ref = 0; i_node_ref < n_nodes_ref; ++i_node_ref) {
+                    const auto& r_node_ref = p_ref_mesh_elem->GetGeometry()[i_node_ref];
+                    i_gauss_val_exact += ref_mesh_N[i_node_ref] * r_node_ref.FastGetSolutionStepValue(rVariable);
+                }
+
+                // Interpolate the Gauss pt. value in current mesh
+                noalias(i_gauss_val) = ZeroVector(3);
+                for (int i_node = 0; i_node < n_nodes; ++i_node) {
+                    const auto& r_node = (*p_geom)[i_node];
+                    i_gauss_val += rN[i_node] * r_node.FastGetSolutionStepValue(rVariable);
+                }
+
+                // Add the current Gauss pt. error to the total norm
+                i_gauss_err = i_gauss_val - i_gauss_val_exact;
+                val_error_norm += w * (std::pow(i_gauss_err[0], 2) + std::pow(i_gauss_err[1], 2) + std::pow(i_gauss_err[2], 2));
+            }
+        }
+    }
+
+    val_error_norm = std::sqrt(val_error_norm);
+    return val_error_norm;
+}
+
+double GaussPointErrorUtility::ExecuteModelPartGradient(
+    const Variable<array_1d<double,3>>& rVariable,
+    ModelPart& rReferenceModelPart)
+{
+    // Initialize values
+    double val_error_norm = 0.0;
+
+    // Get DOMAIN_SIZE from reference model part
+    KRATOS_ERROR_IF_NOT(rReferenceModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) 
+        << "'DOMAIN_SIZE' is not found in reference model part." << std::endl;
+    const std::size_t domain_size = rReferenceModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        
+    // Set the search structure
+    KRATOS_ERROR_IF_NOT(domain_size == 2) << "DOMAIN_SIZE 3 to be implemented!" << std::endl;
+    auto p_point_locator = Kratos::make_shared<BinBasedFastPointLocator<2>>(rReferenceModelPart);
+    p_point_locator->UpdateSearchDatabase();
+
+    // Loop the elements to calculate the error
+    Vector ref_mesh_N;
+    Element::Pointer p_ref_mesh_elem;
+    const int n_elems = mrModelPart.NumberOfElements();
+    for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        const auto p_geom = it_elem->pGetGeometry();
+        const int n_nodes = p_geom->PointsNumber();
+        const auto d_vect = SetDistancesVector(it_elem);
+
+        // Initialize values
+        Matrix r_N_container;
+        ModifiedShapeFunctions::ShapeFunctionsGradientsType r_DN_DX_container;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        const auto& r_integrations_points = p_geom->IntegrationPoints(integration_method);
+
+        Matrix i_gauss_err;
+        Matrix i_gauss_val;
+        Matrix i_gauss_val_exact;
+
+        // Check if element is ACTIVE (inactive elements are not assembled to the system)
+        if (ElementIsPositive(p_geom, d_vect)) {
+
+            r_N_container = p_geom->ShapeFunctionsValues(integration_method);
+            p_geom->ShapeFunctionsIntegrationPointsGradients(r_DN_DX_container, integration_method);
+            Vector det_J_vector(r_integrations_points.size());
+            p_geom->DeterminantOfJacobian(det_J_vector, integration_method);
+
+            const unsigned int n_gauss = r_integrations_points.size();
+            for (int i_gauss = 0; i_gauss < n_gauss; ++i_gauss ) {
+                // Get Gauss pt. data
+                const Vector& rN = row(r_N_container, i_gauss);
+                const Matrix& rDN_DX = r_DN_DX_container[i_gauss];
+                const double w = r_integrations_points[i_gauss].Weight() * det_J_vector[i_gauss];
+
+                // Calculate the Gauss pt. coordinates
+                array_1d<double,3> coords = ZeroVector(3);
+                coords[0] = ((*p_geom)[0]).X()*rN[0] + ((*p_geom)[1]).X()*rN[1] + ((*p_geom)[2]).X()*rN[2];
+                coords[1] = ((*p_geom)[0]).Y()*rN[0] + ((*p_geom)[1]).Y()*rN[1] + ((*p_geom)[2]).Y()*rN[2];
+
+                // Find current Gauss pt. in reference mesh
+                const bool is_found = p_point_locator->FindPointOnMeshSimplified(
+                    coords,
+                    ref_mesh_N,
+                    p_ref_mesh_elem);
+                KRATOS_ERROR_IF_NOT(is_found) << "Point (" << coords[0] << "," << coords[1] << "," << coords[2] << ") not found in reference mesh." << std::endl;
+
+                // Calculate shape functions gradients in reference mesh
+                const auto& r_ref_geom = p_ref_mesh_elem->GetGeometry();
+                const std::size_t n_nodes_ref = r_ref_geom.PointsNumber();
+                array_1d<double,3> loc_coords;
+                double jacobian_det;
+                Matrix jacobian_mat(domain_size, domain_size);
+                Matrix jacobian_mat_inv(domain_size, domain_size);
+                Matrix DN_DX_loc(n_nodes_ref, domain_size);
+                r_ref_geom.PointLocalCoordinates(loc_coords, coords);
+                r_ref_geom.Jacobian(jacobian_mat, loc_coords);
+                MathUtils<double>::InvertMatrix(jacobian_mat, jacobian_mat_inv, jacobian_det);
+                r_ref_geom.ShapeFunctionsLocalGradients(DN_DX_loc, loc_coords);
+                Matrix DN_DX = prod(DN_DX_loc, jacobian_mat_inv);
+
+                // Interpolate the Gauss pt. value in reference mesh
+                i_gauss_val_exact = ZeroMatrix(domain_size, domain_size);
+                for (std::size_t d1 = 0; d1 < domain_size; ++d1) {
+                    for (std::size_t d2 = 0; d2 < domain_size; ++d2) {
+                        for (std::size_t i_node_ref = 0; i_node_ref < n_nodes_ref; ++i_node_ref) {
+                            const auto& r_node_ref = p_ref_mesh_elem->GetGeometry()[i_node_ref];
+                            const auto& r_val = r_node_ref.FastGetSolutionStepValue(rVariable);
+                            i_gauss_val_exact(d1, d2) += DN_DX(i_node_ref, d2) * r_val[d1];
+                        }
+                    }
+                }
+
+                // Interpolate the Gauss pt. value in current mesh
+                i_gauss_val = ZeroMatrix(domain_size,domain_size);
+                for (std::size_t d1 = 0; d1 < domain_size; ++d1) {
+                    for (std::size_t d2 = 0; d2 < domain_size; ++d2) {
+                        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+                            const auto& r_node = (*p_geom)[i_node];
+                            const auto& i_DN_DX = row(rDN_DX, i_node);
+                            const auto& r_val = r_node.FastGetSolutionStepValue(rVariable);
+                            i_gauss_val(d1, d2) += i_DN_DX(d2) * r_val[d1];
+                        }
+                    }
+                }
+
+                // Add the current Gauss pt. error to the total norm
+                i_gauss_err = i_gauss_val - i_gauss_val_exact;
+                val_error_norm += w * (std::pow(norm_frobenius(i_gauss_err),2));
+            }
+        }
+    }
+
+    val_error_norm = std::sqrt(val_error_norm);
+    return val_error_norm;
 }
 
 double GaussPointErrorUtility::ExecuteGradient()
