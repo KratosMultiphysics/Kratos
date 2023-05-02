@@ -70,7 +70,7 @@ public:
         double DNLNL;
         double Local_Variable_GP;
         double NonLocal_Variable_GP;
-        
+
         /**
          * The default constructor
          * @param StrainSize The size of the strain vector in Voigt notation
@@ -132,6 +132,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Creates a new element
@@ -250,7 +252,7 @@ public:
     ///@name Input and output
     ///@{
 
-    const Parameters GetSpecifications() const override;        
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -374,7 +376,7 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
         ) ;
-    
+
     /**
      * @brief This functions assembles D(Duu) from rThisConstitutiveVariables and DuNL, DNLu, DNLNL from rThisNonLocalConstitutiveVariables to get D
      * @param rThisConstitutiveVariables The constitutive variables
@@ -385,7 +387,7 @@ protected:
         ConstitutiveVariables& rThisConstitutiveVariables,
         NonLocalConstitutiveVariables& rThisNonLocalConstitutiveVariables
         ) const;
-    
+
     /**
      * Calculation of the Deformation Matrix B
      * @param rB The deformation matrix
@@ -454,7 +456,7 @@ protected:
 
     /**
      * @brief Assembling stiffness matrix and residual vector
-     * @param LeftHandSideMatrix assembled element stiffness matrix 
+     * @param LeftHandSideMatrix assembled element stiffness matrix
      * @param RightHandSideVector assembled residual vector
      */
     void AssembleRHSAndLHS(
@@ -467,12 +469,12 @@ protected:
         const Matrix& Kdu,
         const Matrix& Kdd,
         const Vector& rFu,
-        const Vector& rFNL 
+        const Vector& rFNL
         );
-    
+
     /**
      * @brief Assembling stiffness matrix and residual vector
-     * @param LeftHandSideMatrix assembled element stiffness matrix 
+     * @param LeftHandSideMatrix assembled element stiffness matrix
      * @param RightHandSideVector assembled residual vector
      */
     void CalculateAndAddResidualForceVector(
@@ -488,13 +490,13 @@ protected:
      * @param rResidualNonLocalVector
      */
     void CalculateAndAddResidualNonLocalVector(
-        Vector& rResidualNonLocalVector, 
+        Vector& rResidualNonLocalVector,
         const KinematicVariables& rThisKinematicVariables,
         const NonLocalConstitutiveVariables& rThisNonLocalConstitutiveVariables,
-        const ProcessInfo& rCurrentProcessInfo, 
+        const ProcessInfo& rCurrentProcessInfo,
         const double IntegrationWeight);
     /**
-     * @brief 
+     * @brief
      * @param rKuu
      */
     void CalculateAndAddKuu(
@@ -526,6 +528,8 @@ private:
     ///@{
 
     Matrix mConstitutiveMatrix;
+
+    const Variable<double>* mpNonLocalVariable;
 
     ///@}
     ///@name Private Operators

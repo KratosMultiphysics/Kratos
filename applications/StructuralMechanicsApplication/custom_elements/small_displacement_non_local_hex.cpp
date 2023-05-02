@@ -92,6 +92,15 @@ Element::Pointer SmallDisplacementNonLocalHex::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementNonLocalHex::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Initialize(rCurrentProcessInfo);
+    mpNonLocalVariable = &KratosComponents<Variable<double>>::Get(this->GetProperties()[NON_LOCAL_VARIABLE_NAME]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool SmallDisplacementNonLocalHex::UseElementProvidedStrain() const
 {
     return true;
@@ -115,7 +124,7 @@ void SmallDisplacementNonLocalHex::EquationIdVector(
     if (rResult.size() != mat_size){
         rResult.resize(mat_size,false);
     }
-       
+
     const SizeType pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
     if(dimension == 2) {
@@ -223,8 +232,8 @@ void SmallDisplacementNonLocalHex::GetFirstDerivativesVector(
         const SizeType index = i * (dimension + 1);
         for(unsigned int k = 0; k < dimension; ++k){
             rValues[index + k] = velocity[k];
-        } 
-        rValues[index + dimension] = 0.0;   
+        }
+        rValues[index + dimension] = 0.0;
     }
     KRATOS_CATCH( "" )
 }
@@ -251,7 +260,7 @@ void SmallDisplacementNonLocalHex::GetSecondDerivativesVector(
         for(unsigned int k = 0; k < dimension; ++k){
             rValues[index + k] = acceleration[k];
         }
-        rValues[index + dimension] = 0.0; 
+        rValues[index + dimension] = 0.0;
     }
     KRATOS_CATCH( "" )
 }
@@ -270,16 +279,16 @@ void SmallDisplacementNonLocalHex::CalculateAll(
     KRATOS_TRY;
 
     auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
-    const SizeType dimension = r_geometry.WorkingSpaceDimension();
-    const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    constexpr SizeType number_of_nodes = 8;
+    constexpr SizeType dimension = 3;
+    constexpr SizeType strain_size = 6;
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
     NonLocalConstitutiveVariables this_non_local_constitutive_variables(strain_size);
 
     // Resizing as needed the LHS
-    const SizeType mat_size = number_of_nodes * (dimension+1);
+    constexpr SizeType mat_size = number_of_nodes * (dimension+1);
 
     if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required
         if ( rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size )
@@ -336,7 +345,7 @@ void SmallDisplacementNonLocalHex::CalculateAll(
         CalculateAllConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, this_non_local_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
         // Calculate and set non locl constitutive variables......................................................
-        CalculateNonLocalConstitutiveVariables(this_kinematic_variables, this_non_local_constitutive_variables, Values, EQUIVALENT_STRAIN, point_number);
+        CalculateNonLocalConstitutiveVariables(this_kinematic_variables, this_non_local_constitutive_variables, Values, *mpNonLocalVariable, point_number);
 
         SetNonLocalConstitutiveVariables(mConstitutiveMatrix, this_constitutive_variables, this_non_local_constitutive_variables);
 
@@ -364,11 +373,11 @@ void SmallDisplacementNonLocalHex::CalculateAll(
             CalculateAndAddResidualForceVector(Fu, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
 
             CalculateAndAddResidualNonLocalVector(FNL, this_kinematic_variables, this_non_local_constitutive_variables, rCurrentProcessInfo, int_to_reference_weight);
-            
+
         }
     }
     //assemble right hand side and left hand sides
-    AssembleRHSAndLHS(rLeftHandSideMatrix, rRightHandSideVector, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag, Kuu, Kud, Kdu, Kdd, Fu, FNL); 
+    AssembleRHSAndLHS(rLeftHandSideMatrix, rRightHandSideVector, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag, Kuu, Kud, Kdu, Kdd, Fu, FNL);
     KRATOS_CATCH( "" )
 }
 
@@ -405,7 +414,7 @@ void SmallDisplacementNonLocalHex::FinalizeSolutionStep( const ProcessInfo& rCur
 
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
         Values.SetStressVector(this_constitutive_variables.StressVector);
-        Values.SetConstitutiveMatrix(mConstitutiveMatrix); 
+        Values.SetConstitutiveMatrix(mConstitutiveMatrix);
         SetNonLocalConstitutiveVariables(mConstitutiveMatrix, this_constitutive_variables, this_non_local_constitutive_variables);
 
         // Reading integration points
@@ -520,8 +529,8 @@ void SmallDisplacementNonLocalHex::SetConstitutiveVariables(
     rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
 
     // Here we set the space on which the results shall be written
-    rValues.SetConstitutiveMatrix(mConstitutiveMatrix); 
-    rValues.SetStressVector(rThisConstitutiveVariables.StressVector); 
+    rValues.SetConstitutiveMatrix(mConstitutiveMatrix);
+    rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
 
     KRATOS_CATCH( "" )
 }
@@ -540,13 +549,13 @@ void SmallDisplacementNonLocalHex::CalculateNonLocalConstitutiveVariables(
     KRATOS_TRY;
     const auto& r_geometry = GetGeometry();
     const auto& N = rThisKinematicVariables.N;
-    double local_variable_gp = 0.0; 
+    double local_variable_gp = 0.0;
     rThisNonLocalConstitutiveVariables.NonLocal_Variable_GP = 0;
 
     for (unsigned int i = 0; i < N.size(); ++i) {
         rThisNonLocalConstitutiveVariables.NonLocal_Variable_GP += N[i] * r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
     }
-    mConstitutiveLawVector[PointNumber]->CalculateValue(rValues, rThisVariable, local_variable_gp); 
+    mConstitutiveLawVector[PointNumber]->CalculateValue(rValues, rThisVariable, local_variable_gp);
     rThisNonLocalConstitutiveVariables.Local_Variable_GP = local_variable_gp;
     KRATOS_CATCH( "" )
 }
@@ -565,7 +574,7 @@ void SmallDisplacementNonLocalHex::SetNonLocalConstitutiveVariables(
     const std::size_t num_cols_D = rThisConstitutiveVariables.D.size2();
     const std::size_t size_DuNL  = rThisNonLocalConstitutiveVariables.DuNL.size();
     const std::size_t size_DNLu  = rThisNonLocalConstitutiveVariables.DNLu.size();
-    
+
     for (std::size_t i = 0; i < num_rows_D ; ++i) {
         for (std::size_t j = 0; j < num_cols_D ; ++j) {
             rThisConstitutiveVariables.D(i,j) = ConstitutiveMatrix(i, j) ;
@@ -691,10 +700,10 @@ void SmallDisplacementNonLocalHex::CalculateAndAddResidualForceVector(
 /***********************************************************************************/
 
 void SmallDisplacementNonLocalHex::CalculateAndAddResidualNonLocalVector(
-    Vector& rResidualNonLocalVector, 
+    Vector& rResidualNonLocalVector,
     const KinematicVariables& rThisKinematicVariables,
     const NonLocalConstitutiveVariables& rThisNonLocalConstitutiveVariables,
-    const ProcessInfo& rCurrentProcessInfo, 
+    const ProcessInfo& rCurrentProcessInfo,
     const double IntegrationWeight
     )
 {
@@ -729,31 +738,31 @@ void SmallDisplacementNonLocalHex::AssembleRHSAndLHS(
     const Matrix& Kdu,
     const Matrix& Kdd,
     const Vector& rFu,
-    const Vector& rFNL 
+    const Vector& rFNL
     )
 {
     KRATOS_TRY;
     auto& r_geometry = this->GetGeometry();
     const SizeType nnod = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-    Vector Pos_u = ZeroVector(nnod * dimension); 
+    Vector Pos_u = ZeroVector(nnod * dimension);
     Vector Pos_NL = ZeroVector(nnod);
-    
+
     for(unsigned int a = 0; a < nnod ; a++){
         const SizeType index = a * dimension;
         for(unsigned int b = 0; b < dimension; b++){
             Pos_u(index+b) = index + a + b;
-        } 
-        Pos_NL(a) = index + dimension + a ;    
+        }
+        Pos_NL(a) = index + dimension + a ;
     }
     for(unsigned int i = 0; i < (nnod * dimension); i++){
-        if ( ResidualVectorFlag ) { 
+        if ( ResidualVectorFlag ) {
             RightHandSideVector(Pos_u[i]) = rFu[i];
             if(i < nnod){
                 RightHandSideVector(Pos_NL[i]) = rFNL[i];
             }
         }
-        if ( StiffnessMatrixFlag ) { 
+        if ( StiffnessMatrixFlag ) {
             for(unsigned int j = 0; j < (nnod * dimension); j++){
                 LeftHandSideMatrix(Pos_u[i],Pos_u[j]) = Kuu(i,j);
                 if(j < nnod){
@@ -764,8 +773,8 @@ void SmallDisplacementNonLocalHex::AssembleRHSAndLHS(
                 }
                 if(i < nnod && j < nnod){
                     LeftHandSideMatrix(Pos_NL[i],Pos_NL[j]) = Kdd(i,j);
-                } 
-            }    
+                }
+            }
         }
     }
     KRATOS_CATCH( "" )
