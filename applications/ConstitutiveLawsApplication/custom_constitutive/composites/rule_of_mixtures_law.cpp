@@ -389,22 +389,34 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     Vector& rValue
     )
 {
-    // We combine the values of the layers
-    rValue.resize(VoigtSize, false);
-    rValue.clear();
-    Vector aux_value;
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    const bool is_layer_print = IsLayerVariable(rThisVariable);
+    if (!is_layer_print) {
+        // We combine the values of the layers
+        rValue.resize(VoigtSize, false);
+        rValue.clear();
+        Vector aux_value;
+        for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+            const double factor = mCombinationFactors[i_layer];
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        if (p_law->Has(rThisVariable)) {
-            aux_value.clear();
-            p_law->GetValue(rThisVariable, aux_value);
-            rValue += aux_value * factor;
+            if (p_law->Has(rThisVariable)) {
+                aux_value.clear();
+                p_law->GetValue(rThisVariable, aux_value);
+                rValue += aux_value * factor;
+            }
         }
+        return rValue;
+    } else { // Layer type print
+        const int layer_id = rThisVariable.Name().back() - 48; // we convert from char to int
+        if (rThisVariable == PLASTIC_STRAIN_VECTOR_LAYER_1 ||
+            rThisVariable == PLASTIC_STRAIN_VECTOR_LAYER_2 ||
+            rThisVariable == PLASTIC_STRAIN_VECTOR_LAYER_3 ||
+            rThisVariable == PLASTIC_STRAIN_VECTOR_LAYER_4 ||
+            rThisVariable == PLASTIC_STRAIN_VECTOR_LAYER_5) {
+                mConstitutiveLaws[layer_id - 1]->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
+        }
+        return rValue;
     }
-
-    return rValue;
 }
 
 /***********************************************************************************/
