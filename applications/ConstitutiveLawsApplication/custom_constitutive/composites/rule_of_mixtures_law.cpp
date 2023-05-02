@@ -667,101 +667,136 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Vector& rValue
     )
 {
-    // We do some special operation for strains and stresses
-    if (rThisVariable == STRAIN ||
-        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
+    const bool is_layer_print = IsLayerVariable(rThisVariable);
 
-        // Get Values to compute the constitutive law:
-        Flags& r_flags = rParameterValues.GetOptions();
+    if (!is_layer_print) {
+        // We do some special operation for strains and stresses
+        if (rThisVariable == STRAIN ||
+            rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+            rThisVariable == ALMANSI_STRAIN_VECTOR) {
 
-        // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+            // Get Values to compute the constitutive law:
+            Flags& r_flags = rParameterValues.GetOptions();
 
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+            // Previous flags saved
+            const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+            const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        // We compute the strain
-        if (rThisVariable == STRAIN) {
-            this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
-        } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-            this->CalculateMaterialResponsePK2(rParameterValues);
-        } else if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
-            this->CalculateMaterialResponseKirchhoff(rParameterValues);
+            r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+            r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+
+            // We compute the strain
+            if (rThisVariable == STRAIN) {
+                this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+            } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+                this->CalculateMaterialResponsePK2(rParameterValues);
+            } else if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
+                this->CalculateMaterialResponseKirchhoff(rParameterValues);
+            }
+
+            noalias(rValue) = rParameterValues.GetStrainVector();
+
+            // Previous flags restored
+            r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+            r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        } else if (rThisVariable == STRESSES ||
+            rThisVariable == CAUCHY_STRESS_VECTOR ||
+            rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
+            rThisVariable == PK2_STRESS_VECTOR) {
+
+            // Get Values to compute the constitutive law:
+            Flags& r_flags = rParameterValues.GetOptions();
+
+            // Previous flags saved
+            const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+            const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+            r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+            r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+            // We compute the stress
+            if (rThisVariable == STRESSES) {
+                this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+            } if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
+                this->CalculateMaterialResponseKirchhoff(rParameterValues);
+            } if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+                this->CalculateMaterialResponseCauchy(rParameterValues);
+            } if (rThisVariable == PK2_STRESS_VECTOR) {
+                this->CalculateMaterialResponsePK2(rParameterValues);
+            }
+
+            noalias(rValue) = rParameterValues.GetStressVector();
+
+            // Previous flags restored
+            r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+            r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        } else {
+            const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+            const Vector strain_vector = rParameterValues.GetStrainVector();
+
+            // We combine the value of each layer
+            rValue.resize(VoigtSize, false);
+            rValue.clear();
+            BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+            const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+            for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+                this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
+                const double factor = mCombinationFactors[i_layer];
+                ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+                Properties& r_prop = *(it_prop_begin + i_layer);
+
+                // We rotate to local axes the strain
+                noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
+                rParameterValues.SetMaterialProperties(r_prop);
+                Vector aux_value;
+                p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+
+                // we return the aux_value to the global coordinates
+                aux_value = prod(trans(voigt_rotation_matrix), aux_value);
+
+                noalias(rValue) += factor * aux_value;
+
+                noalias(rParameterValues.GetStrainVector()) = strain_vector;
+            }
+
+            // Reset properties
+            rParameterValues.SetMaterialProperties(r_material_properties);
         }
-
-        noalias(rValue) = rParameterValues.GetStrainVector();
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    } else if (rThisVariable == STRESSES ||
-        rThisVariable == CAUCHY_STRESS_VECTOR ||
-        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
-        rThisVariable == PK2_STRESS_VECTOR) {
-
-        // Get Values to compute the constitutive law:
-        Flags& r_flags = rParameterValues.GetOptions();
-
-        // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
-
-        // We compute the stress
-        if (rThisVariable == STRESSES) {
-            this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
-        } if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
-            this->CalculateMaterialResponseKirchhoff(rParameterValues);
-        } if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-            this->CalculateMaterialResponseCauchy(rParameterValues);
-        } if (rThisVariable == PK2_STRESS_VECTOR) {
-            this->CalculateMaterialResponsePK2(rParameterValues);
-        }
-
-        noalias(rValue) = rParameterValues.GetStressVector();
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        return rValue;
     } else {
-        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
-        const Vector strain_vector = rParameterValues.GetStrainVector();
+        // Layer info print
+        if (rThisVariable == CAUCHY_STRESS_VECTOR_LAYER_1 ||
+            rThisVariable == CAUCHY_STRESS_VECTOR_LAYER_2 ||
+            rThisVariable == CAUCHY_STRESS_VECTOR_LAYER_3 ||
+            rThisVariable == CAUCHY_STRESS_VECTOR_LAYER_4 ||
+            rThisVariable == CAUCHY_STRESS_VECTOR_LAYER_5) {
+                const Vector strain_vector = rParameterValues.GetStrainVector();
+                const Properties &r_material_properties = rParameterValues.GetMaterialProperties();
+                BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+                const int layer_id = rThisVariable.Name().back() - 48; // we convert from char to int
+                this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, layer_id - 1);
 
-        // We combine the value of each layer
-        rValue.resize(VoigtSize, false);
-        rValue.clear();
-        BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-        for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-            this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-            const double factor = mCombinationFactors[i_layer];
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-            Properties& r_prop = *(it_prop_begin + i_layer);
+                const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+                Properties &r_prop = *(it_prop_begin + layer_id - 1);
+                rParameterValues.SetMaterialProperties(r_prop);
 
-            // We rotate to local axes the strain
-            noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+                // Rotate to local axes
+                noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
 
-            rParameterValues.SetMaterialProperties(r_prop);
-            Vector aux_value;
-            p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+                mConstitutiveLaws[layer_id - 1]->CalculateValue(rParameterValues, CAUCHY_STRESS_VECTOR, rValue);
 
-            // we return the aux_value to the global coordinates
-            aux_value = prod(trans(voigt_rotation_matrix), aux_value);
+                // Rotate to global axes
+                rValue = prod(trans(voigt_rotation_matrix), rValue);
 
-            noalias(rValue) += factor * aux_value;
+                noalias(rParameterValues.GetStrainVector()) = strain_vector;
 
-            noalias(rParameterValues.GetStrainVector()) = strain_vector;
+                // Reset the props
+                rParameterValues.SetMaterialProperties(r_material_properties);
+                return rValue;
         }
-
-        // Reset properties
-        rParameterValues.SetMaterialProperties(r_material_properties);
     }
-
-    return( rValue );
+    return rValue;
 }
 
 /***********************************************************************************/
