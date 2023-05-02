@@ -15,10 +15,8 @@
 // System includes
 
 // External includes
-#include "mpi.h"
 
 // Project includes
-#include "mpi/utilities/mpi_search_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 
 namespace Kratos
@@ -30,6 +28,7 @@ namespace Kratos
 ///@{
 
 class GeometricalObject; // forward declaration, to be included in the cpp. This is needed to reduce the compilation time. Can be done as we consider the GeometricalObject as a pointer
+class DataCommunicator;  // forward declaration, to be included in the cpp. This is needed to reduce the compilation time. Can be done as we consider the GeometricalObject as a pointer
 
 /**
  * @class GeometricalObjectsBinsMPI
@@ -70,59 +69,45 @@ public:
      * @brief The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
      * @param GeometricalObjectsBegin The begin iterator of the geometries to be stored
      * @param GeometricalObjectsEnd The end iterator of the geometries to be stored
+     * @param rDataCommunicator The data communicator
      * @tparam TIteratorType The type of the iterator
      */
     template<typename TIteratorType>
     GeometricalObjectsBinsMPI(
         TIteratorType GeometricalObjectsBegin,
-        TIteratorType GeometricalObjectsEnd
-        )
+        TIteratorType GeometricalObjectsEnd,
+        DataCommunicator& rDataCommunicator
+        ) : mLocalGeometricalObjectsBins(GeometricalObjectsBegin, GeometricalObjectsEnd),
+            mrDataCommunicator(rDataCommunicator)
     {
+        // We get the world size
+        const int world_size = GetWorldSize();
+
         // Set up the buffers
-        MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
+        mSendSizes.resize(world_size);
+        mRecvSizes.resize(world_size);
 
-        mSendSizes.resize(mCommSize);
-        mRecvSizes.resize(mCommSize);
+        mSendBufferDouble.resize(world_size);
+        mRecvBufferDouble.resize(world_size);
 
-        mSendBufferDouble.resize(mCommSize);
-        mRecvBufferDouble.resize(mCommSize);
+        mSendBufferChar.resize(world_size);
+        mRecvBufferChar.resize(world_size);
 
-        mSendBufferChar.resize(mCommSize);
-        mRecvBufferChar.resize(mCommSize);
-
-        // TODO: Do equivalent
-        // mMapperInterfaceInfosContainer.resize(mCommSize);
-
-        // We compute the local bounding box
-        const std::size_t local_number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
-        if (local_number_of_objects > 0){
-            mBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
-            for (TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
-                mBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
-            }
-        }
-        mBoundingBox.Extend(Tolerance);
-
-        // Now we compute the global bounding boxes
-        ComputeGlobalBoundingBoxes();
-
-        // We compute the cell size (WIP)
-        // TODO: Update for global bounding boxes
-        const std::size_t global_number_of_objects = local_number_of_objects;
-        CalculateCellSize(global_number_of_objects);
-        mCells.resize(GetTotalNumberOfCells());
-        AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
+        // Set up the global bounding boxes
+        InitializeGlobalBoundingBoxes();
     }
 
     /**
      * @brief The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
      * @param rGeometricalObjectsVector The geometries to be stored
+     * @param rDataCommunicator The data communicator
      * @tparam TContainer The container type
      */
     template<typename TContainer>
-    GeometricalObjectsBinsMPI(TContainer& rGeometricalObjectsVector)
-        : GeometricalObjectsBinsMPI(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end())
+    GeometricalObjectsBinsMPI(
+        TContainer& rGeometricalObjectsVector,
+        DataCommunicator& rDataCommunicator
+        ) : GeometricalObjectsBinsMPI(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end(), rDataCommunicator)
     {
     }
 
@@ -176,13 +161,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    // TODO: Replace with the BB class instead
-    std::vector<double> mGlobalBoundingBoxes; /// The global bounding boxes of the model part, in the form: xmax, xmin,  ymax, ymin,  zmax, zmin
+    std::vector<double> mGlobalBoundingBoxes; /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
 
-    double mRadius = 0.0;                     /// The radius of the search
+    DataCommunicator& mrDataCommunicator; /// The data communicator
 
-    int mCommRank;
-    int mCommSize;
+    GeometricalObjectsBins mLocalGeometricalObjectsBins; /// The local bins
 
     std::vector<int> mSendSizes; /// The sizes of the send buffers
     std::vector<int> mRecvSizes; /// The sizes of the recv buffers
@@ -202,21 +185,55 @@ private:
     ///@{
 
     /**
-     * @brief This method initializes the search
-     * @details This method initializes the search
+     * @brief Returns the current rank
+     * @return The current rank
      */
-    void InitializeSearch() override;
+    int GetRank() const;
 
     /**
-     * @brief This method finalizes the search
-     * @details This method finalizes the search
+     * @brief Returns the world size
+     * @return The world size
      */
-    void FinalizeSearch() override;
+    int GetWorldSize() const;
 
     /**
-     * @brief This method computes the global bounding boxes
+     * @brief Initializes the global bounding boxes
      */
-    void ComputeGlobalBoundingBoxes();
+    void InitializeGlobalBoundingBoxes();
+
+    /**
+     * @brief This method checks if a point is inside any bounding box of the global bounding boxes
+     * @param rCoords The coordinates of the point
+     * @return The index of the ranks inside the bounding box
+     */
+    std::vector<int> RansksPointIsInsideBoundingBox(const array_1d<double, 3>& rCoords);
+
+    // /**
+    //  * @brief This method synchronizes the search in radius
+    //  * @param rResults The results of the search (local version)
+    //  */
+    // void SynchronizeSearchInRadius(std::vector<ResultType>& rLocalResults);
+
+    // /**
+    //  * @brief This method synchronizes the search nearest in radius
+    //  * @param rLocalResult The results of the search (local version)
+    //  * @return The results of the search (global version)
+    //  */
+    // ResultType SynchronizeSearchNearestInRadius(ResultType& rLocalResult);
+
+    // /**
+    //  * @brief This method synchronizes the search nearest
+    //  * @param rLocalResult The results of the search (local version)
+    //  * @return The results of the search (global version)
+    //  */
+    // ResultType SynchronizeSearchNearest(ResultType& rLocalResult);
+
+    // /**
+    //  * @brief This method synchronizes the search is inside
+    //  * @param rLocalResult The results of the search (local version)
+    //  * @return The results of the search (global version)
+    //  */
+    // ResultType SynchronizeSearchIsInside(ResultType& rLocalResult);
 
     ///@}
     ///@name Private  Access
