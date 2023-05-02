@@ -350,6 +350,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 
         // we average over the layers
         if (p_law->Has(rThisVariable)) {
+            aux_value = 0.0;
             p_law->GetValue(rThisVariable, aux_value);
             rValue += aux_value * factor;
         }
@@ -375,6 +376,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
         if (p_law->Has(rThisVariable)) {
+            aux_value.clear();
             p_law->GetValue(rThisVariable, aux_value);
             rValue += aux_value * factor;
         }
