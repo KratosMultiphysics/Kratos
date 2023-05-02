@@ -147,6 +147,30 @@ public:
         );
 
     /**
+     * @brief This method takes a point and finds all of the objects in the given radius to it.
+     * @details The result contains the object and also its distance to the point.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void IterativeSearchInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        std::vector<std::vector<ResultType>>& rResults
+        )
+    {
+        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+        rResults.resize(number_of_points);
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            SearchInRadius(*it_point, Radius, rResults[it_point - itPointBegin]);
+        }
+    }
+
+    /**
      * @brief This method takes a point and finds the nearest object to it in a given radius.
      * @details If there are more than one object in the same minimum distance only one is returned
      * If there are no objects in that radius the result will be set to not found.
@@ -161,6 +185,34 @@ public:
         );
 
     /**
+     * @brief This method takes a point and finds the nearest object to it in a given radius.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * If there are no objects in that radius the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param Radius The radius to be checked
+     * @return ResultType The result of the search
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    std::vector<ResultType> IterativeSearchNearestInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius
+        )
+    {
+        // Doing a vector of results
+        std::vector<ResultType> results;
+        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+        results.resize(number_of_points);
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            results[it_point - itPointBegin] = SearchNearestInRadius(*it_point, Radius);
+        }
+        return results;
+    }
+
+    /**
      * @brief This method takes a point and finds the nearest object to it.
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
@@ -168,6 +220,30 @@ public:
      * @return ResultType The result of the search
     */
     ResultType SearchNearest(const Point& rPoint);
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @return ResultType The result of the search
+     */
+    template<typename TPointIteratorType>
+    std::vector<ResultType> IterativeSearchNearest(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd
+        )
+    {
+        // Doing a vector of results
+        std::vector<ResultType> results;
+        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+        results.resize(number_of_points);
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            results[it_point - itPointBegin] = SearchNearest(*it_point);
+        }
+        return results;
+    }
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain.
