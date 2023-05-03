@@ -109,8 +109,7 @@ class StandardizedConstraint(ResponseRoutine):
         return self.GetStandardizedValue(step_index) * is_violated
 
     def GetRelativeViolation(self, step_index: int = 0) -> float:
-        is_violated = self.IsEqualityType() or self.GetStandardizedValue(step_index) >= 0.0
-        return ((self.GetAbsoluteViolation(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetAbsoluteViolation(step_index))) * is_violated
+        return self.GetAbsoluteViolation(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetAbsoluteViolation(step_index)
 
     def GetRelativeChange(self) -> float:
         if self.__optimization_problem.GetStep() > 1:
