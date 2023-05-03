@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Union
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
@@ -88,10 +89,22 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def GetModelPart(self) -> Kratos.ModelPart:
+    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
         """Returns the model part for which this response is computed on.
 
         Returns:
             Kratos.ModelPart: Response function model part.
+        """
+        pass
+
+    @abstractmethod
+    def GetAnalysisModelPart(self) -> 'Union[Kratos.ModelPart, None]':
+        """Returns the analysis model part if exists. Otherwise returns None.
+
+        This method returns the analysis model part if an analysis is used (as in Adjoint case)
+        to compute the gradients. If it is not the case, then None should be returned.
+
+        Returns:
+            Union[Kratos.ModelPart, None]: Analysis model part if used, otherwise None
         """
         pass
