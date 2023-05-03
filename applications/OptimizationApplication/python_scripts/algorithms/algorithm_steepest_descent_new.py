@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 
 class KratosSteepestDescent(PythonSolver):
     """
-        Simple steepest descent algorithm to solve unconstrainted optimization problems.
+        A classical steepest descent algorithm to solve unconstrainted optimization problems.
     """
 
     @classmethod
@@ -86,7 +86,7 @@ class KratosSteepestDescent(PythonSolver):
             search_direction = self.ComputeSearchDirection(obj_grad)
             self.ComputeDesignVariableUpdate(search_direction)
             alpha = self.LineSearch()
-            self.des_var += search_direction * alpha
+            self.control_field += search_direction * alpha
 
             self.converged = self.CheckConvergence()
 
