@@ -20,6 +20,8 @@
 #include "python/add_search_strategies_to_python.h"
 #include "utilities/parallel_utilities.h"
 #include "spatial_containers/spatial_search.h"
+#include "spatial_containers/specialized_spatial_search.h"
+#include "spatial_containers/specialized_spatial_search_factory.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_search_result.h"
 
@@ -666,6 +668,31 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     ;
 
+    py::class_<SpecializedSpatialSearchFactory, SpecializedSpatialSearchFactory::Pointer, SpatialSearch>(m, "SpecializedSpatialSearch")
+    .def(py::init< >())
+    .def(py::init<Parameters>())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::KDTree>, SpecializedSpatialSearch<SpatialContainer::KDTree>::Pointer, SpatialSearch>(m, "SpatialSearchKDTree")
+    .def(py::init< >())
+    .def(py::init<Parameters>())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::Octree>, SpecializedSpatialSearch<SpatialContainer::Octree>::Pointer, SpatialSearch>(m, "SpatialSearchOctree")
+    .def(py::init< >())
+    .def(py::init<Parameters>())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsStatic>, SpecializedSpatialSearch<SpatialContainer::BinsStatic>::Pointer, SpatialSearch>(m, "SpatialSearchBinsStatic")
+    .def(py::init< >())
+    .def(py::init<Parameters>())
+    ;
+
+    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsDynamic>, SpecializedSpatialSearch<SpatialContainer::BinsDynamic>::Pointer, SpatialSearch>(m, "SpatialSearchBinsDynamic")
+    .def(py::init< >())
+    .def(py::init<Parameters>())
+    ;
+
     using ResultType = SpatialSearchResult<GeometricalObject>;
 
     py::class_<ResultType, ResultType::Pointer>(m, "ResultType")
@@ -747,4 +774,3 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 }
 
 }  // namespace Kratos::Python.
-
