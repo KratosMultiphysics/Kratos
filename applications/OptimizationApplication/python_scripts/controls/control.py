@@ -16,6 +16,12 @@ class Control(ABC):
     a single model part should be created using Kratos.ModelPartOperationUtilities.
 
     """
+    def __init__(self, control_name: str) -> None:
+        self.__name = control_name
+
+    def GetName(self) -> str:
+        return self.__name
+
     @abstractmethod
     def Initialize(self) -> None:
         """Initializes the control.
@@ -65,9 +71,13 @@ class Control(ABC):
         this model part is acting on. This has O(1) complexity, hence has the least cost because it does not read
         any data from respective model part's container.
 
-        Dimensionality information is provided by calling a ContainerExpression::SetZero(var). This creates a single
+        Dimensionality information is provided by calling a ContainerExpression::SetData(value). This creates a single
         memory allocation for whole container with the dimensions of the variable. This operation is cheap in memory and
         consumes least time.
+
+        Eg:
+            1. If the control field is a scalar, then container_expression.SetData(0.0)
+            2. If the control field is a array3, then container_expression.SetData(Kratos.Array3(0.0))
 
         Returns:
             ContainerExpressionTypes: Returns a new empty ContainerExpression corresponding to control's model part's respective container.
