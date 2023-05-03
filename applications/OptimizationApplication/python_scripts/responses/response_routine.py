@@ -31,7 +31,7 @@ class ResponseRoutine:
         self.__required_physical_gradients = self.__master_control.GetPhysicalKratosVariableCollectiveExpressionsMap()
 
         # create zero gradient fields for non-dependent control fields
-        self.__independent_physical_gradients = {}
+        self.__independent_physical_gradients: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions] = {}
 
         # now check which are the dependent physical space variables for the response, if not then remove
         # that variable
@@ -42,7 +42,9 @@ class ResponseRoutine:
 
                 # add the collective expression to the independent collective expression.
                 independent_collective_expression: KratosOA.ContainerExpression.CollectiveExpressions = self.__independent_physical_gradients[required_physical_variable]
-                independent_collective_expression.Add(self.__required_physical_gradients[required_physical_variable])
+                zero_expression = self.__required_physical_gradients[required_physical_variable]
+                zero_expression.SetToZero()
+                independent_collective_expression.Add(zero_expression)
 
                 # now remove this independent collective expression from the require collective expressions map.
                 del self.__required_physical_gradients[required_physical_variable]
@@ -51,7 +53,14 @@ class ResponseRoutine:
             # check whether control has keys given by required gradients
             if set(control.GetPhysicalKratosVariables()).intersection(self.__required_physical_gradients.keys()):
                 # check whether there is an intersection of model parts between respones domain and control domain.
-                if Kratos.ModelPartOperationUtilities.HasIntersection([self.__response.GetModelPart(), control.GetEmptyControlField().GetModelPart()]):
+                #   1. in the case where response does not require an analysis, then intersection between evaluated and control domain is checked.
+                #   2. in the case where response require an analysis, then intersection between analysis and control domain is checked.
+                if self.__response.GetAnalysisModelPart() is None:
+                    checked_model_part = self.__response.GetEvaluatedModelPart()
+                else:
+                    checked_model_part = self.__response.GetAnalysisModelPart()
+
+                if Kratos.ModelPartOperationUtilities.HasIntersection([checked_model_part, control.GetEmptyControlField().GetModelPart()]):
                     self.__contributing_controls_list.append(control)
 
         if not self.__contributing_controls_list:
@@ -115,11 +124,20 @@ class ResponseRoutine:
             2. The gradients are computed with respect to updates from master control.
 
         Returns:
-            KratosOA.ContainerExpression.CollectiveExpressions: _description_
+            KratosOA.ContainerExpression.CollectiveExpressions: Returns mapped gradients collective expression.
         """
         # fills the proper physical gradients from the response
         self.__response.CalculateGradient(self.__required_physical_gradients)
 
+        # now fill final mapping gradients with the dependent variables collective expressions
+        mapping_gradients: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions] = {}
+        for k, v in self.__required_physical_gradients.items():
+            mapping_gradients[k] = v
+
+        # now fill final mapping gradients with independent variables collective expressions
+        for k, v in self.__independent_physical_gradients.items():
+            mapping_gradients[k] = v
+
         # calculate and return the control space gradients from respective controls
-        return self.__master_control.MapGradient(self.__required_physical_gradients)
+        return self.__master_control.MapGradient(mapping_gradients)
 
