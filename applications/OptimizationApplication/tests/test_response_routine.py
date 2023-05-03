@@ -29,14 +29,14 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test2"],
-            "control_variable_name" : "DENSITY"
+            "control_variable_name" : "YOUNG_MODULUS"
         }""")
         cls.properties_control_2 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
         cls.optimization_problem.AddControl("control2", cls.properties_control_2)
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
-            "model_part_names"      : ["test3"],
+            "model_part_names"      : ["test1"],
             "control_variable_name" : "THICKNESS"
         }""")
         cls.properties_control_3 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
@@ -60,6 +60,7 @@ class TestResponseRoutine(kratos_unittest.TestCase):
                 properties = model_part.CreateNewProperties(i)
                 properties[Kratos.DENSITY] = 2.0 * (i + 1)
                 properties[Kratos.THICKNESS] = 3.0 * (i + 1)
+                properties[Kratos.YOUNG_MODULUS] = 4.0 * (i + 1)
                 model_part.CreateNewElement("Element2D2N", i, node_ids, properties)
 
         cls.master_control = MasterControl()
@@ -70,70 +71,49 @@ class TestResponseRoutine(kratos_unittest.TestCase):
 
         cls.master_control.Initialize()
 
-    def test_GetListOfControls(self):
-        self.assertEqual([self.properties_control_1, self.properties_control_2, self.properties_control_3, self.properties_control_4], self.master_control.GetListOfControls())
+        # now create the response
+        parameters = Kratos.Parameters("""{
+            "combined_output_model_part_name": "<RESPONSE_NAME>",
+            "evaluated_model_part_names"     : [
+                "test1", "test2"
+            ]
+        }""")
+        cls.response = MassResponseFunction(cls.model, parameters, cls.optimization_problem)
+        cls.optimization_problem.AddResponse("test", cls.response)
 
-    def test_GetPhysicalKratosVariableCollectiveExpressionsMap(self):
-        result = self.master_control.GetPhysicalKratosVariableCollectiveExpressionsMap()
-        self.assertEqual([Kratos.DENSITY, Kratos.THICKNESS], list(result.keys()))
+        cls.response_routine = ResponseRoutine(cls.master_control, "test", cls.optimization_problem)
+        cls.response_routine.Initialize()
 
-        density_collective_expression = result[Kratos.DENSITY]
-        density_container_expression_model_part_names = []
-        for container_expression in density_collective_expression.GetContainerExpressions():
-            self.assertTrue(isinstance(container_expression, KratosOA.ContainerExpression.ElementPropertiesExpression))
-            density_container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
+    def test_CalculateValue(self):
+        control_field = self.master_control.GetEmptyControlFields()
+        control_field.Read(Kratos.DENSITY)
+        value = self.response_routine.CalculateValue(control_field)
+        self.assertEqual(value, 84)
 
-        self.assertEqual(
-            ["test1.control1", "test2.control2", "test3.control4"],
-            density_container_expression_model_part_names)
+        value = self.response_routine.CalculateValue(control_field)
+        self.assertEqual(value, 84)
 
-        thickness_collective_expression = result[Kratos.THICKNESS]
-        thickness_container_expression_model_part_names = []
-        for container_expression in thickness_collective_expression.GetContainerExpressions():
-            self.assertTrue(isinstance(container_expression, KratosOA.ContainerExpression.ElementPropertiesExpression))
-            thickness_container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
+        # now change the control field where response does not depend on
+        # changing a variable such as YOUNG_MODULUS
+        control_field.GetContainerExpressions()[1].SetData(2.0)
+        value = self.response_routine.CalculateValue(control_field)
+        self.assertEqual(value, 84)
 
-        self.assertEqual(
-            ["test3.control3"],
-            thickness_container_expression_model_part_names)
+        # now change a dependent variable where the domain is not having intersection
+        # changing DENSITY variable
+        control_field.GetContainerExpressions()[3].SetData(3.0)
+        value = self.response_routine.CalculateValue(control_field)
+        self.assertEqual(value, 84)
 
-    def test_GetEmptyControlFields(self):
-        empty_control_fields = self.master_control.GetEmptyControlFields()
-        container_expression_model_part_names = []
-        for container_expression in empty_control_fields.GetContainerExpressions():
-            self.assertTrue(isinstance(container_expression, KratosOA.ContainerExpression.ElementPropertiesExpression))
-            container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
+        # now change a dependent field
+        control_field.GetContainerExpressions()[0].SetData(3.0)
+        value = self.response_routine.CalculateValue(control_field)
+        self.assertEqual(value, 66)
 
-        self.assertEqual(
-            ["test1.control1", "test2.control2", "test3.control3", "test3.control4"],
-            container_expression_model_part_names)
-
-    def test_MapGradient(self):
-        result = self.master_control.GetPhysicalKratosVariableCollectiveExpressionsMap()
-        mapped_gradients = self.master_control.MapGradient(result)
-
-        for i, control in enumerate(self.master_control.GetListOfControls()):
-            self.assertTrue(IsSameContainerExpression(mapped_gradients.GetContainerExpressions()[i], control.GetEmptyControlField()))
-
-    def test_Update(self):
-        update = self.master_control.GetEmptyControlFields()
-
-        # assigning density for all the mapped gradients
-        update.Read(Kratos.DENSITY)
-
-        # now updating density should not do anything for density controls, but thickness should be updated
-        # checking for that
-        updated_status = self.master_control.Update(update)
-        for k, v in updated_status.items():
-            if k.GetPhysicalKratosVariables() == [Kratos.THICKNESS]:
-                self.assertTrue(v)
-            else:
-                self.assertFalse(v)
-
-        update *= 2
-        # now everyhing should be updated
-        updated_status = self.master_control.Update(update)
-        self.assertTrue(all(updated_status.values()))
+    def test_CalculateGradient(self):
+        control_field = self.master_control.GetEmptyControlFields()
+        control_field.Read(Kratos.DENSITY)
+        value = self.response_routine.CalculateValue(control_field)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

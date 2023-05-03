@@ -46,8 +46,9 @@ class ResponseRoutine:
                 zero_expression.SetToZero()
                 independent_collective_expression.Add(zero_expression)
 
-                # now remove this independent collective expression from the require collective expressions map.
-                del self.__required_physical_gradients[required_physical_variable]
+        # now remove this independent collective expression from the require collective expressions map.
+        for independent_variable in self.__independent_physical_gradients.keys():
+            del self.__required_physical_gradients[independent_variable]
 
         for control in self.__master_control.GetListOfControls():
             # check whether control has keys given by required gradients
