@@ -12,7 +12,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 class LinearStrainEnergyResponseFunction(ResponseFunction):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<RESPONSE_NAME>_combined",
+            "combined_output_model_part_name": "<RESPONSE_NAME>_combined_no_neighbours_response",
             "primal_analysis_name"           : "",
             "perturbation_size"              : 1e-8,
             "evaluated_model_part_names"     : [
@@ -46,7 +46,10 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         root_model_part = model_parts_list[0].GetRootModelPart()
 
         # create the combined model part
-        self.model_part = Kratos.ModelPartOperationUtilities.Merge(output_model_part_name, root_model_part, model_parts_list, False)
+        if not root_model_part.HasSubModelPart(output_model_part_name):
+            self.model_part = Kratos.ModelPartOperationUtilities.Merge(output_model_part_name, root_model_part, model_parts_list, False)
+        else:
+            self.model_part = root_model_part.GetSubModelPart(output_model_part_name)
 
     def Check(self) -> None:
         pass
