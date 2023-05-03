@@ -59,11 +59,15 @@ class Control(ABC):
 
     @abstractmethod
     def GetEmptyField(self) -> ContainerExpressionTypes:
-        """Returns a new empty data field holder.
+        """Returns a new empty data field holder with correct dimensionality information.
 
         This returns a new empty data field holder to give information about on which model part's container
         this model part is acting on. This has O(1) complexity, hence has the least cost because it does not read
         any data from respective model part's container.
+
+        Dimensionality information is provided by calling a ContainerExpression::SetZero(var). This creates a single
+        memory allocation for whole container with the dimensions of the variable. This operation is cheap in memory and
+        consumes least time.
 
         Returns:
             ContainerExpressionTypes: Returns a new empty ContainerExpression corresponding to control's model part's respective container.

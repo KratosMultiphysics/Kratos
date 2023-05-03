@@ -64,7 +64,9 @@ class MaterialPropertiesControl(Control):
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
-        return KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
+        field = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
+        field.SetZero(self.controlled_physical_variable)
+        return field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
