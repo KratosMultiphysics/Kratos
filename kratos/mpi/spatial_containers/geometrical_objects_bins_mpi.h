@@ -76,7 +76,7 @@ public:
     GeometricalObjectsBinsMPI(
         TIteratorType GeometricalObjectsBegin,
         TIteratorType GeometricalObjectsEnd,
-        DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator
         ) : mLocalGeometricalObjectsBins(GeometricalObjectsBegin, GeometricalObjectsEnd),
             mrDataCommunicator(rDataCommunicator)
     {
@@ -106,7 +106,7 @@ public:
     template<typename TContainer>
     GeometricalObjectsBinsMPI(
         TContainer& rGeometricalObjectsVector,
-        DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator
         ) : GeometricalObjectsBinsMPI(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end(), rDataCommunicator)
     {
     }
@@ -163,9 +163,9 @@ private:
 
     std::vector<double> mGlobalBoundingBoxes; /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
 
-    DataCommunicator& mrDataCommunicator; /// The data communicator
-
     GeometricalObjectsBins mLocalGeometricalObjectsBins; /// The local bins
+
+    const DataCommunicator& mrDataCommunicator; /// The data communicator
 
     std::vector<int> mSendSizes; /// The sizes of the send buffers
     std::vector<int> mRecvSizes; /// The sizes of the recv buffers
