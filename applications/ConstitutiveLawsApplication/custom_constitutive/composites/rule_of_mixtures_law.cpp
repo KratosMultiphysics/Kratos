@@ -670,6 +670,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     } else {
+        if (rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_ONE && rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
         const Vector strain_vector = rParameterValues.GetStrainVector();
 
@@ -701,6 +702,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
 
         // Reset properties
         rParameterValues.SetMaterialProperties(r_material_properties);
+        }
     }
 
     return( rValue );
