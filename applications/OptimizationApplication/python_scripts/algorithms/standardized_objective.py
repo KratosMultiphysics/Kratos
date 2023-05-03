@@ -39,14 +39,21 @@ class StandardizedObjective(ResponseRoutine):
 
         self.__initial_response_value = None
 
+    def Initialize(self):
+        self.__initial_response_value = None
+        return super().Initialize()
+    
+    def Finalize():
+        pass
+
     def GetInitialValue(self) -> float:
-        if self.__initial_response_value is None:
+        if not self.__initial_response_value is None:
             return self.__initial_response_value
         else:
             raise RuntimeError(f"Response value for {self.GetReponseName()} is not calculated yet.")
     
-    def CalculateStandardizedValue(self, control_space_updates: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
-        standardized_response_value = self.CalculateValue(control_space_updates) * self.__scaling
+    def CalculateStandardizedValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
+        standardized_response_value = self.CalculateValue(control_field) * self.__scaling
         if not self.__initial_response_value:
             self.__initial_response_value = standardized_response_value
 
