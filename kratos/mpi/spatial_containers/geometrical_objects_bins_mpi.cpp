@@ -24,6 +24,45 @@
 
 namespace Kratos
 {
+
+void GeometricalObjectsBinsMPI::SearchInRadius(
+    const Point& rPoint,
+    const double Radius,
+    std::vector<ResultType>& rResults
+    )
+{
+    // TODO
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearestInRadius(
+    const Point& rPoint,
+    const double Radius
+    )
+{
+    ResultType current_result;
+    current_result.SetDistance(std::numeric_limits<double>::max());
+    // TODO
+    return current_result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearest(const Point& rPoint)
+{
+    ResultType current_result;
+    const array_1d<double, 3> box_size = mBoundingBox.GetMaxPoint() - mBoundingBox.GetMinPoint();
+    double max_radius= *std::max_element(box_size.begin(), box_size.end());
+    max_radius = mrDataCommunicator.MaxAll(max_radius);
+    return SearchNearestInRadius(rPoint, max_radius);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 // void GeometricalObjectsBinsMPI::InitializeSearch()
 // {
 //     KRATOS_TRY;
@@ -228,8 +267,36 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBox(const
     std::vector<int> ranks;
     const int world_size = GetWorldSize();
     std::array<double, 6> local_bb;
+    const auto it_begin = mGlobalBoundingBoxes.begin();
     for (int i = 0; i < world_size; ++i) {
-        auto vec_it = mGlobalBoundingBoxes.begin() + 6 * i;
+        auto vec_it = it_begin + 6 * i;
+        for (size_t i = 0; i < 6; ++i, ++vec_it) {
+            local_bb[i] = *vec_it;
+        }
+        if (MPISearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
+            ranks.push_back(i);
+        }
+    }
+
+    return ranks;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBoxWithTolerance(
+    const array_1d<double, 3>& rCoords,
+    const double Tolerance
+    )
+{
+    std::vector<int> ranks;
+    const int world_size = GetWorldSize();
+    std::array<double, 6> local_bb;
+    std::vector<double> bb_tolerance(mGlobalBoundingBoxes.size());
+    MPISearchUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes, Tolerance, bb_tolerance);
+    const auto it_begin = bb_tolerance.begin();
+    for (int i = 0; i < world_size; ++i) {
+        auto vec_it = it_begin + 6 * i;
         for (size_t i = 0; i < 6; ++i, ++vec_it) {
             local_bb[i] = *vec_it;
         }
