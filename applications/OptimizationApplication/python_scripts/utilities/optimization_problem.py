@@ -63,8 +63,8 @@ class OptimizationProblem:
     def RemoveResponse(self, name: str) -> None:
         self.__RemoveComponent(name, ResponseFunction)
 
-    def AddExecutionPolicy(self, name: str, response_function: ExecutionPolicy) -> None:
-        self.__AddComponent(name, response_function, ExecutionPolicy)
+    def AddExecutionPolicy(self, name: str, execution_policy: ExecutionPolicy) -> None:
+        self.__AddComponent(name, execution_policy, ExecutionPolicy)
 
     def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
         return self.__GetComponent(name, ExecutionPolicy)
@@ -72,8 +72,8 @@ class OptimizationProblem:
     def RemoveExecutionPolicy(self, name: str) -> None:
         self.__RemoveComponent(name, ExecutionPolicy)
 
-    def AddControl(self, name: str, response_function: Control) -> None:
-        self.__AddComponent(name, response_function, Control)
+    def AddControl(self, name: str, control: Control) -> None:
+        self.__AddComponent(name, control, Control)
 
     def GetControl(self, name: str) -> Control:
         return self.__GetComponent(name, Control)
