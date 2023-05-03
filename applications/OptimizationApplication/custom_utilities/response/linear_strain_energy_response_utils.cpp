@@ -23,9 +23,10 @@
 #include "utilities/variable_utils.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/string_utilities.h"
+#include "utilities/model_part_operation_utilities.h"
 
 // Application includes
-#include "custom_utilities/geometrical/model_part_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -53,87 +54,84 @@ double LinearStrainEnergyResponseUtils::CalculateEntityStrainEnergy(
     }
 }
 
-double LinearStrainEnergyResponseUtils::CalculateValue(const std::vector<ModelPart*>& rModelParts)
-{
-    double value = 0.0;
-    for (auto p_model_part : rModelParts) {
-        value += CalculateModelPartValue(*p_model_part);
-    }
-    return value;
-}
-
-double LinearStrainEnergyResponseUtils::CalculateModelPartValue(ModelPart& rModelPart)
+double LinearStrainEnergyResponseUtils::CalculateValue(ModelPart& rEvaluatedModelPart)
 {
     KRATOS_TRY
 
     using tls_type = std::tuple<Matrix, Vector, Vector>;
 
-    const double local_element_value = block_for_each<SumReduction<double>>(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
+    const double local_element_value = block_for_each<SumReduction<double>>(rEvaluatedModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
         Matrix& r_lhs = std::get<0>(rTLS);
         Vector& r_rhs = std::get<1>(rTLS);
         Vector& r_u = std::get<2>(rTLS);
-        return CalculateEntityStrainEnergy(rElement, r_lhs, r_rhs, r_u, rModelPart.GetProcessInfo());
+        return CalculateEntityStrainEnergy(rElement, r_lhs, r_rhs, r_u, rEvaluatedModelPart.GetProcessInfo());
     });
 
-    const double local_condition_value = block_for_each<SumReduction<double>>(rModelPart.Conditions(), tls_type(), [&](auto& rCondition, tls_type& rTLS) {
+    const double local_condition_value = block_for_each<SumReduction<double>>(rEvaluatedModelPart.Conditions(), tls_type(), [&](auto& rCondition, tls_type& rTLS) {
         Matrix& r_lhs = std::get<0>(rTLS);
         Vector& r_rhs = std::get<1>(rTLS);
         Vector& r_u = std::get<2>(rTLS);
-        return CalculateEntityStrainEnergy(rCondition, r_lhs, r_rhs, r_u, rModelPart.GetProcessInfo());
+        return CalculateEntityStrainEnergy(rCondition, r_lhs, r_rhs, r_u, rEvaluatedModelPart.GetProcessInfo());
     });
 
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_element_value + local_condition_value);
+    return rEvaluatedModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_element_value + local_condition_value);
 
     KRATOS_CATCH("");
 }
 
-void LinearStrainEnergyResponseUtils::CalculateSensitivity(
+void LinearStrainEnergyResponseUtils::CalculateGradient(
     ModelPart& rAnalysisModelPart,
-    const std::vector<ModelPart*>& rEvaluatedModelParts,
-    const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
+    ModelPart& rEvaluatedModelPart,
+    const GradientVariableModelPartsListMap& rGradientVariableModelPartInfo,
     const double PerturbationSize)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(rEvaluatedModelParts.size() != 1)
-        << "Currently, there can be only one evaluated model part as same as "
-           "the analysis model part.\n";
-    KRATOS_ERROR_IF(rEvaluatedModelParts[0] != &rAnalysisModelPart)
-        << "Currently, there can be only one evaluated model part as same as "
-           "the analysis model part.\n";
-
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (const auto& it : rSensitivityVariableModelPartInfo) {
+    for (const auto& it : rGradientVariableModelPartInfo) {
         std::visit([&](auto&& r_variable) {
-            const auto& r_sensitivity_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
-                it.second, {&rAnalysisModelPart}, true, true, true, true, 0);
 
-            // reset nodal common interface values
-            for (auto p_sensitivity_model_part : r_sensitivity_model_parts) {
-                if (*r_variable == SHAPE_SENSITIVITY) {
-                    VariableUtils().SetNonHistoricalVariablesToZero(p_sensitivity_model_part->Nodes(), SHAPE_SENSITIVITY);
-                }
+            std::stringstream unique_intersected_model_part_name_generator;
+            for (auto p_sensitivity_model_part : it.second) {
+                unique_intersected_model_part_name_generator << p_sensitivity_model_part->FullName() << "_";
+            }
+            const auto& unique_intersected_model_part_name = StringUtilities::ReplaceAllSubstrings(unique_intersected_model_part_name_generator.str(), ".", "_");
+
+            ModelPart* p_intersected_model_part;
+            if (rAnalysisModelPart.HasSubModelPart(unique_intersected_model_part_name)) {
+                p_intersected_model_part = &rAnalysisModelPart.GetSubModelPart(unique_intersected_model_part_name);
+            } else {
+                unique_intersected_model_part_name_generator << "merged";
+                // get the merged sensitivity model part.
+                auto& merged_model_part = ModelPartOperationUtilities::Merge(
+                    StringUtilities::ReplaceAllSubstrings(
+                        unique_intersected_model_part_name_generator.str(), ".",
+                        "_"),
+                    rAnalysisModelPart, it.second, false);
+
+                // get the intersected sensitivity model part with the evaluated model part.
+                p_intersected_model_part = &ModelPartOperationUtilities::Intersect(
+                    unique_intersected_model_part_name, rAnalysisModelPart,
+                    {&rEvaluatedModelPart, &merged_model_part}, true);
             }
 
             // now compute sensitivities on the variables
-            for (auto p_sensitivity_model_part : r_sensitivity_model_parts) {
-                if (*r_variable == YOUNG_MODULUS_SENSITIVITY) {
-                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(*p_sensitivity_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
-                } else if (*r_variable == THICKNESS_SENSITIVITY) {
-                    CalculateStrainEnergyLinearlyDependentPropertySensitivity(*p_sensitivity_model_part, THICKNESS, THICKNESS_SENSITIVITY);
-                } else if (*r_variable == POISSON_RATIO_SENSITIVITY) {
-                    CalculateStrainEnergySemiAnalyticPropertySensitivity(*p_sensitivity_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
-                } else if (*r_variable == SHAPE_SENSITIVITY) {
-                    CalculateStrainEnergySemiAnalyticShapeSensitivity(*p_sensitivity_model_part, PerturbationSize, SHAPE_SENSITIVITY);
-                } else {
-                    KRATOS_ERROR
-                        << "Unsupported sensitivity w.r.t. " << r_variable->Name()
-                        << " requested. Followings are supported sensitivity variables:"
-                        << "\n\t" << YOUNG_MODULUS_SENSITIVITY.Name()
-                        << "\n\t" << THICKNESS_SENSITIVITY.Name()
-                        << "\n\t" << POISSON_RATIO_SENSITIVITY.Name()
-                        << "\n\t" << SHAPE_SENSITIVITY.Name();
-                }
+            if (*r_variable == YOUNG_MODULUS) {
+                CalculateStrainEnergyLinearlyDependentPropertyGradient(*p_intersected_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
+            } else if (*r_variable == THICKNESS) {
+                CalculateStrainEnergyLinearlyDependentPropertyGradient(*p_intersected_model_part, THICKNESS, THICKNESS_SENSITIVITY);
+            } else if (*r_variable == POISSON_RATIO) {
+                CalculateStrainEnergySemiAnalyticPropertyGradient(*p_intersected_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+            } else if (*r_variable == SHAPE) {
+                CalculateStrainEnergySemiAnalyticShapeGradient(*p_intersected_model_part, PerturbationSize, SHAPE_SENSITIVITY);
+            } else {
+                KRATOS_ERROR
+                    << "Unsupported sensitivity w.r.t. " << r_variable->Name()
+                    << " requested. Followings are supported sensitivity variables:"
+                    << "\n\t" << YOUNG_MODULUS.Name()
+                    << "\n\t" << THICKNESS.Name()
+                    << "\n\t" << POISSON_RATIO.Name()
+                    << "\n\t" << SHAPE.Name();
             }
         }, it.first);
     }
@@ -142,7 +140,7 @@ void LinearStrainEnergyResponseUtils::CalculateSensitivity(
 }
 
 template<class TEntityType>
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticShapeGradient(
     TEntityType& rEntity,
     Vector& rX,
     Vector& rRefRHS,
@@ -152,7 +150,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
     std::vector<std::string>& rModelPartNames,
     const double Delta,
     const IndexType MaxNodeId,
-    const Variable<array_1d<double, 3>>& rOutputSensitivityVariable)
+    const Variable<array_1d<double, 3>>& rOutputGradientVariable)
 {
     KRATOS_TRY
 
@@ -211,7 +209,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
 
         // now calculate perturbed
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            auto& r_orig_node_sensitivity = r_geometry[i].GetValue(rOutputSensitivityVariable);
+            auto& r_orig_node_sensitivity = r_geometry[i].GetValue(rOutputGradientVariable);
 
             auto& r_node = pThreadLocalEntity->GetGeometry()[i];
             auto& r_coordinates = r_node.Coordinates();
@@ -245,11 +243,10 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
     KRATOS_CATCH("");
 }
 
-
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeSensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGradient(
     ModelPart& rModelPart,
     const double Delta,
-    const Variable<array_1d<double, 3>>& rOutputSensitivityVariable)
+    const Variable<array_1d<double, 3>>& rOutputGradientVariable)
 {
     KRATOS_TRY
 
@@ -262,9 +259,10 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeSens
     });
 
     std::vector<std::string> model_part_names;
+    VariableUtils().SetNonHistoricalVariableToZero(rOutputGradientVariable, rModelPart.Nodes());
 
     block_for_each(rModelPart.Elements(), tls_element_type(), [&](auto& rElement, tls_element_type& rTLS) {
-        CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
+        CalculateStrainEnergyEntitySemiAnalyticShapeGradient(
             rElement,
             std::get<0>(rTLS),
             std::get<1>(rTLS),
@@ -274,11 +272,11 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeSens
             model_part_names,
             Delta,
             max_id,
-            rOutputSensitivityVariable);
+            rOutputGradientVariable);
     });
 
     block_for_each(rModelPart.Conditions(), tls_condition_type(), [&](auto& rCondition, tls_condition_type& rTLS) {
-        CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
+        CalculateStrainEnergyEntitySemiAnalyticShapeGradient(
             rCondition,
             std::get<0>(rTLS),
             std::get<1>(rTLS),
@@ -288,7 +286,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeSens
             model_part_names,
             Delta,
             max_id + ParallelUtilities::GetNumThreads() * 1000, // no element or condition is not suppose to have 1000 nodes per element or condition. This is done to avoid re-calculating the max id for conditions
-            rOutputSensitivityVariable);
+            rOutputGradientVariable);
     });
 
     // now clear the temp model part
@@ -309,15 +307,15 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeSens
     }
 
     // Assemble nodal result
-    rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputSensitivityVariable);
+    rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputGradientVariable);
 
     KRATOS_CATCH("");
 }
 
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergyLinearlyDependentPropertySensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergyLinearlyDependentPropertyGradient(
     ModelPart& rModelPart,
     const Variable<double>& rPrimalVariable,
-    const Variable<double>& rOutputSensitivityVariable)
+    const Variable<double>& rOutputGradientVariable)
 {
     KRATOS_TRY
 
@@ -340,20 +338,20 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyLinearlyDependentProp
             r_properties[rPrimalVariable] = current_value;
 
             // now calculate the sensitivity
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.5 * inner_prod(r_u, r_sensitivity));
+            rElement.GetProperties().SetValue(rOutputGradientVariable, 0.5 * inner_prod(r_u, r_sensitivity));
         } else {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
+            rElement.GetProperties().SetValue(rOutputGradientVariable, 0.0);
         }
     });
 
     KRATOS_CATCH("");
 }
 
-void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticPropertySensitivity(
+void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticPropertyGradient(
     ModelPart& rModelPart,
     const double Delta,
     const Variable<double>& rPrimalVariable,
-    const Variable<double>& rOutputSensitivityVariable)
+    const Variable<double>& rOutputGradientVariable)
 {
     KRATOS_TRY
 
@@ -379,9 +377,9 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticPropertyS
             r_properties[rPrimalVariable] -= Delta;
 
             // now calculate the sensitivity
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.5 * inner_prod(r_u, r_perturbed_rhs - r_ref_rhs) / Delta);
+            rElement.GetProperties().SetValue(rOutputGradientVariable, 0.5 * inner_prod(r_u, r_perturbed_rhs - r_ref_rhs) / Delta);
         } else {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
+            rElement.GetProperties().SetValue(rOutputGradientVariable, 0.0);
         }
     });
 
