@@ -2,7 +2,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
@@ -16,39 +15,34 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         cls.model_part_1 = cls.model.CreateModelPart("test1")
         cls.model_part_2 = cls.model.CreateModelPart("test2")
         cls.model_part_3 = cls.model.CreateModelPart("test3")
-        cls.optimization_problem = OptimizationProblem()
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test1"],
             "control_variable_name" : "DENSITY"
         }""")
-        cls.properties_control_1 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("control1", cls.properties_control_1)
+        cls.properties_control_1 = MaterialPropertiesControl("control1", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test2"],
             "control_variable_name" : "YOUNG_MODULUS"
         }""")
-        cls.properties_control_2 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("control2", cls.properties_control_2)
+        cls.properties_control_2 = MaterialPropertiesControl("control2", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test1"],
             "control_variable_name" : "THICKNESS"
         }""")
-        cls.properties_control_3 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("control3", cls.properties_control_3)
+        cls.properties_control_3 = MaterialPropertiesControl("control3", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test3"],
             "control_variable_name" : "DENSITY"
         }""")
-        cls.properties_control_4 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("control4", cls.properties_control_4)
+        cls.properties_control_4 = MaterialPropertiesControl("control4", cls.model, parameters)
 
         for model_part in [cls.model_part_1, cls.model_part_2, cls.model_part_3]:
             model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -78,14 +72,13 @@ class TestResponseRoutine(kratos_unittest.TestCase):
                 "test1", "test2"
             ]
         }""")
-        cls.response = MassResponseFunction(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddResponse("test", cls.response)
+        cls.response = MassResponseFunction("test", cls.model, parameters)
 
-        cls.response_routine = ResponseRoutine(cls.master_control, "test", cls.optimization_problem)
+        cls.response_routine = ResponseRoutine(cls.master_control, cls.response)
         cls.response_routine.Initialize()
 
     def test_CalculateValue(self):
-        control_field = self.master_control.GetEmptyControlFields()
+        control_field = self.master_control.GetEmptyField()
         control_field.Read(Kratos.DENSITY)
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
@@ -111,9 +104,25 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         self.assertEqual(value, 66)
 
     def test_CalculateGradient(self):
-        control_field = self.master_control.GetEmptyControlFields()
+        control_field = self.master_control.GetEmptyField()
         control_field.Read(Kratos.DENSITY)
-        value = self.response_routine.CalculateValue(control_field)
+        _ = self.response_routine.CalculateValue(control_field)
+
+        gradient = self.response_routine.CalculateGradient()
+
+        self.assertEqual(len(gradient.GetContainerExpressions()), 4)
+
+        control_1_gradient = gradient.GetContainerExpressions()[0]
+        self.assertEqual(KratosOA.ContainerExpressionUtils.NormL2(control_1_gradient), 20.09975124224178)
+
+        control_2_gradient = gradient.GetContainerExpressions()[1]
+        self.assertEqual(KratosOA.ContainerExpressionUtils.NormL2(control_2_gradient), 0.0)
+
+        control_3_gradient = gradient.GetContainerExpressions()[2]
+        self.assertEqual(KratosOA.ContainerExpressionUtils.NormL2(control_3_gradient), 20.09975124224178)
+
+        control_4_gradient = gradient.GetContainerExpressions()[3]
+        self.assertEqual(KratosOA.ContainerExpressionUtils.NormL2(control_4_gradient), 0.0)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

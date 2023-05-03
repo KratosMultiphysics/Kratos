@@ -51,7 +51,7 @@ class ResponseRoutine:
                 else:
                     checked_model_part: Kratos.ModelPart = self.__response.GetAnalysisModelPart()
 
-                if Kratos.ModelPartOperationUtilities.HasIntersection([checked_model_part, control.GetEmptyControlField().GetModelPart()]):
+                if Kratos.ModelPartOperationUtilities.HasIntersection([checked_model_part, control.GetEmptyField().GetModelPart()]):
                     self.__contributing_controls_list.append(control)
 
         if not self.__contributing_controls_list:
