@@ -3,10 +3,10 @@ from KratosMultiphysics.model_parameters_factory import KratosModelParametersFac
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import FileLogger
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationProcessFactory
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
 class ExecutionPolicyDecorator(ExecutionPolicy):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationProblem):
         super().__init__()
 
         default_parameters = Kratos.Parameters("""{

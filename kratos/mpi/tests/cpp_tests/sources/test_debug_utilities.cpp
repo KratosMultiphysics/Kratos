@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
-//
 //
 
 // System includes
@@ -25,9 +24,7 @@
 #include "mpi/utilities/debug_utilities.h"
 #include "testing/testing.h"
 
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValue, KratosMPICoreFastSuite)
 {
@@ -285,5 +282,4 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
 //     MpiDebugUtilities::CheckNodalHistoricalDatabase(model_part);
 // }
 
-}
 }
