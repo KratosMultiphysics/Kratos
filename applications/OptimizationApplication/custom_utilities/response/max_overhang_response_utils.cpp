@@ -34,17 +34,17 @@ namespace Kratos
 {
 
 double MaxOverhangAngleResponseUtils::CalculateValue(
-    const std::vector<ModelPart*>& rModelParts, 
+    const std::vector<ModelPart*>& rModelParts,
     const Parameters ResponseSettings)
 {
-    double value = 0.0;    
+    double value = 0.0;
     for (auto p_model_part : rModelParts) {
         const double local_condition_value = block_for_each<SumReduction<double>>(p_model_part->Conditions(), [&](const auto& rCondition) {
             return CalculateConditionValue(rCondition,ResponseSettings);
         });
         value += p_model_part->GetCommunicator().GetDataCommunicator().SumAll(local_condition_value);
     }
-    
+
     double total_area = 0.0;
     for (auto p_model_part : rModelParts) {
         const double local_condition_area = block_for_each<SumReduction<double>>(p_model_part->Conditions(), [&](const auto& rCondition) {
@@ -61,14 +61,14 @@ double MaxOverhangAngleResponseUtils::CalculateConditionValue(
     const Parameters& rResponseSettings)
 {
     array_3d print_direction = rResponseSettings["print_direction"].GetVector();
-    KRATOS_ERROR_IF(!(norm_2(print_direction) > std::numeric_limits<double>::epsilon()))
-    << "MaxOverhangAngleResponseUtils:print_direction: "<<print_direction<<" has size close to zero\n";    
+    KRATOS_ERROR_IF_NOT(norm_2(print_direction) > std::numeric_limits<double>::epsilon())
+    << "MaxOverhangAngleResponseUtils:print_direction: "<<print_direction<<" has size close to zero\n";
     print_direction /= norm_2(print_direction);
 
     const double max_angle = rResponseSettings["max_angle"].GetDouble();
     KRATOS_ERROR_IF(!(max_angle >= 0.0 && max_angle <= 90.0))
     << "MaxOverhangAngleResponseUtils: max_angle: "<<max_angle<<" should be in range [0,90]\n";
-    double sin_max_angle = std::sin(max_angle * Globals::Pi / 180);
+    const double sin_max_angle = std::sin(max_angle * Globals::Pi / 180);
 
 
     const double heaviside_beta = rResponseSettings["heaviside_beta"].GetDouble();
@@ -77,13 +77,13 @@ double MaxOverhangAngleResponseUtils::CalculateConditionValue(
 
     const double penalty_factor = rResponseSettings["penalty_factor"].GetDouble();
     KRATOS_ERROR_IF(std::signbit(penalty_factor))
-    << "MaxOverhangAngleResponseUtils: penalty_factor: "<<penalty_factor<<" should be positive\n";    
+    << "MaxOverhangAngleResponseUtils: penalty_factor: "<<penalty_factor<<" should be positive\n";
 
     const array_3d local_coords = ZeroVector(3);
     const array_3d& normal = rCondition.GetGeometry().UnitNormal(local_coords);
     const double area = rCondition.GetGeometry().Area();
     const double ratio = -inner_prod(print_direction, normal)/sin_max_angle;
-    double pow_val = -2.0 * heaviside_beta * (ratio-1); 
+    double pow_val = -2.0 * heaviside_beta * (ratio-1);
     std::clamp(pow_val, -700.0, 700.0);
 
     return area * (1.0/(1+std::exp(pow_val))) * std::pow(ratio,penalty_factor);
@@ -92,7 +92,7 @@ double MaxOverhangAngleResponseUtils::CalculateConditionValue(
 void MaxOverhangAngleResponseUtils::CalculateSensitivity(
     const std::vector<ModelPart*>& rEvaluatedModelParts,
     const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
-    const Parameters& rResponseSettings)
+    const Parameters ResponseSettings)
 {
     KRATOS_TRY
 
@@ -112,7 +112,7 @@ void MaxOverhangAngleResponseUtils::CalculateSensitivity(
             // now compute sensitivities on the variables
             for (auto p_sensitivity_model_part : r_sensitivity_model_parts) {
                 if (*r_variable == SHAPE_SENSITIVITY) {
-                    CalculateFiniteDifferenceShapeSensitivity(*p_sensitivity_model_part, rResponseSettings, SHAPE_SENSITIVITY);
+                    CalculateFiniteDifferenceShapeSensitivity(*p_sensitivity_model_part, ResponseSettings, SHAPE_SENSITIVITY);
                 } else {
                     KRATOS_ERROR
                         << "Unsupported sensitivity w.r.t. " << r_variable->Name()
@@ -128,7 +128,7 @@ void MaxOverhangAngleResponseUtils::CalculateSensitivity(
 
 void MaxOverhangAngleResponseUtils::CalculateFiniteDifferenceShapeSensitivity(
     ModelPart& rModelPart,
-    const Parameters& rResponseSettings,
+    const Parameters ResponseSettings,
     const Variable<array_3d>& rOutputSensitivityVariable)
 {
     KRATOS_TRY
@@ -147,7 +147,7 @@ void MaxOverhangAngleResponseUtils::CalculateFiniteDifferenceShapeSensitivity(
             rTLS,
             rModelPart,
             model_part_names,
-            rResponseSettings,
+            ResponseSettings,
             max_id + ParallelUtilities::GetNumThreads() * 1000, // no element or condition is not suppose to have 1000 nodes per element or condition. This is done to avoid re-calculating the max id for conditions
             rOutputSensitivityVariable);
     });
@@ -180,7 +180,7 @@ void MaxOverhangAngleResponseUtils::CalculateConditionFiniteDifferenceShapeSensi
     Condition::Pointer& pThreadLocalCondition,
     ModelPart& rModelPart,
     std::vector<std::string>& rModelPartNames,
-    const Parameters& rResponseSettings,
+    const Parameters ResponseSettings,
     const IndexType MaxNodeId,
     const Variable<array_3d>& rOutputSensitivityVariable)
 {
@@ -189,10 +189,10 @@ void MaxOverhangAngleResponseUtils::CalculateConditionFiniteDifferenceShapeSensi
     const auto& r_process_info = rModelPart.GetProcessInfo();
     auto& r_geometry = rCondition.GetGeometry();
     const auto domain_size = r_geometry.WorkingSpaceDimension();
-    double pert_size =  rResponseSettings["gradient_settings"]["step_size"].GetDouble();
+    const double pert_size =  ResponseSettings["gradient_settings"]["step_size"].GetDouble();
 
     // calculate the reference value
-    double ref_val = CalculateConditionValue(rCondition,rResponseSettings);
+    const double ref_val = CalculateConditionValue(rCondition,ResponseSettings);
 
     // initialize dummy element for parallelized perturbation based sensitivity calculation
     // in each thread seperately
@@ -200,9 +200,9 @@ void MaxOverhangAngleResponseUtils::CalculateConditionFiniteDifferenceShapeSensi
 
         std::stringstream name;
         const int thread_id = OpenMPUtils::ThisThread();
-        name << rModelPart.Name() << "_temp_" << thread_id;        
+        name << rModelPart.Name() << "_temp_" << thread_id;
         name << "_condition";
-         
+
 
         GeometryType::PointsArrayType nodes;
         {
@@ -245,14 +245,14 @@ void MaxOverhangAngleResponseUtils::CalculateConditionFiniteDifferenceShapeSensi
 
         r_initial_coordintes[0] += pert_size;
         r_coordinates[0] += pert_size;
-        double pert_val = CalculateConditionValue(*pThreadLocalCondition,rResponseSettings);
+        double pert_val = CalculateConditionValue(*pThreadLocalCondition,ResponseSettings);
         r_initial_coordintes[0] -= pert_size;
         r_coordinates[0] -= pert_size;
         AtomicAdd<double>(r_orig_node_sensitivity[0], (pert_val - ref_val) / pert_size);
 
         r_initial_coordintes[1] += pert_size;
         r_coordinates[1] += pert_size;
-        pert_val = CalculateConditionValue(*pThreadLocalCondition,rResponseSettings);
+        pert_val = CalculateConditionValue(*pThreadLocalCondition,ResponseSettings);
         r_initial_coordintes[1] -= pert_size;
         r_coordinates[1] -= pert_size;
         AtomicAdd<double>(r_orig_node_sensitivity[1], (pert_val - ref_val) / pert_size);
@@ -261,7 +261,7 @@ void MaxOverhangAngleResponseUtils::CalculateConditionFiniteDifferenceShapeSensi
         if (domain_size == 3) {
             r_initial_coordintes[2] += pert_size;
             r_coordinates[2] += pert_size;
-            pert_val = CalculateConditionValue(*pThreadLocalCondition,rResponseSettings);
+            pert_val = CalculateConditionValue(*pThreadLocalCondition,ResponseSettings);
             r_initial_coordintes[2] -= pert_size;
             r_coordinates[2] -= pert_size;
             AtomicAdd<double>(r_orig_node_sensitivity[2], (pert_val - ref_val) / pert_size);

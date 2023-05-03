@@ -55,7 +55,7 @@ public:
     static void CalculateSensitivity(
         const std::vector<ModelPart*>& rEvaluatedModelParts,
         const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
-        const Parameters& rResponseSettings);
+        const Parameters ResponseSettings);
 
     ///@}
 private:
@@ -69,13 +69,13 @@ private:
         Condition::Pointer& pThreadLocalCondition,
         ModelPart& rModelPart,
         std::vector<std::string>& rModelPartNames,
-        const Parameters& rResponseSettings,
+        const Parameters ResponseSettings,
         const IndexType MaxNodeId,
         const Variable<array_3d>& rOutputSensitivityVariable);
 
     static void CalculateFiniteDifferenceShapeSensitivity(
        ModelPart& rModelPart,
-       const Parameters& rResponseSettings,
+       const Parameters ResponseSettings,
        const Variable<array_3d>& rOutputSensitivityVariable);
 
     ///@}
