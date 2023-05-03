@@ -19,6 +19,8 @@ class MaterialPropertiesControl(Control):
 
     """
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
+        super().__init__(name)
+
         default_settings = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>_combined_no_neighbours_control",
             "model_part_names"               : [""],
@@ -28,7 +30,6 @@ class MaterialPropertiesControl(Control):
 
         self.output_model_part_name = parameters["combined_output_model_part_name"].GetString()
         self.model_part_names = parameters["model_part_names"].GetStringArray()
-        self.control_name = name
         self.model = model
 
         control_variable_name = parameters["control_variable_name"].GetString()
@@ -40,7 +41,7 @@ class MaterialPropertiesControl(Control):
 
     def Initialize(self) -> None:
         # get the model part name
-        output_model_part_name = self.output_model_part_name.replace("<CONTROL_NAME>", self.control_name)
+        output_model_part_name = self.output_model_part_name.replace("<CONTROL_NAME>", self.GetName())
 
         # get root model part
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
@@ -65,26 +66,26 @@ class MaterialPropertiesControl(Control):
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
         field = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
-        field.SetZero(self.controlled_physical_variable)
+        field.SetData(0.0)
         return field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
         if len(keys) != 1:
-            raise RuntimeError(f"Provided more than required gradient fields for control \"{self.control_name}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+            raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if self.controlled_physical_variable not in keys:
-            raise RuntimeError(f"The required gradient for control \"{self.control_name}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+            raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
         physical_gradient = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
         if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
-            raise RuntimeError(f"Gradients for the required element container not found for control \"{self.control_name}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
+            raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
         # TODO: Implement filtering mechanisms here
         return physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.control_name}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
         # TODO: Implement inverse filtering mechanisms here
         # since no filtering is implemented yet, we are checking the unfiltered updates with the filtered updates. This needs to be changed once the
@@ -101,4 +102,4 @@ class MaterialPropertiesControl(Control):
         return False
 
     def __str__(self) -> str:
-        return f"Control [type = {self.__class__.__name__}, name = {self.control_name}, model part name = {self.model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
+        return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
