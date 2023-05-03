@@ -52,6 +52,10 @@
 #include "custom_processes/set_main_material_property_process.hpp"
 #include "custom_processes/find_nodal_h_for_rigid_walls_process.hpp"
 
+#include "custom_processes/remove_mesh_nodes_for_fluids_cut_pfem_process.hpp"
+#include "custom_processes/select_mesh_elements_for_fluids_cut_pfem_process.hpp"
+#include "custom_processes/generate_new_nodes_before_meshing_cut_pfem_process.hpp"
+
 #include "custom_processes/assign_scalar_variable_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_vector_variable_to_pfem_conditions_process.hpp"
 #include "custom_processes/assign_vector_field_to_pfem_entities_process.hpp"
@@ -91,6 +95,15 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
     py::class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, MesherProcess>(m, "SelectMeshElementsForFluids")
+        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+
+    py::class_<RemoveMeshNodesForFluidsCutPfemProcess, RemoveMeshNodesForFluidsCutPfemProcess::Pointer, MesherProcess>(m, "RemoveMeshNodesForFluidsCutPfem")
+        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+
+    py::class_<GenerateNewNodesBeforeMeshingCutPfemProcess, GenerateNewNodesBeforeMeshingCutPfemProcess::Pointer, MesherProcess>(m, "GenerateNewNodesBeforeMeshingCutPfem")
+        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+
+    py::class_<SelectMeshElementsForFluidsCutPfemProcess, SelectMeshElementsForFluidsCutPfemProcess::Pointer, MesherProcess>(m, "SelectMeshElementsForFluidsCutPfem")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
     py::class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>(m, "InletManagement")

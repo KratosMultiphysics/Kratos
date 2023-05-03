@@ -85,7 +85,8 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
 
         meshers_list = []
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
-            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_complete_mesher")
+            #meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_complete_mesher")
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.cut_pfem_fluid_complete_mesher")
             #mesher_list.append("fluid_post_refining_mesher")
         elif( self.settings["remesh"].GetBool() ):
             meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_keeping_nodes_mesher")
