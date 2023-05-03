@@ -11,6 +11,8 @@ def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, _: Op
 
 class MassResponseFunction(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
+        super().__init__(name)
+
         default_settings = Kratos.Parameters("""{
             "combined_output_model_part_name": "<RESPONSE_NAME>_combined_no_neighbours_response",
             "evaluated_model_part_names"     : [
@@ -21,7 +23,6 @@ class MassResponseFunction(ResponseFunction):
 
         self.output_model_part_name = parameters["combined_output_model_part_name"].GetString()
         self.model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
-        self.response_name = name
         self.model = model
         self.model_part: Kratos.ModelPart = None
 
@@ -33,7 +34,7 @@ class MassResponseFunction(ResponseFunction):
 
     def Initialize(self) -> None:
         # get the model part name
-        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.response_name)
+        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.GetName())
 
         # get root model part
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
@@ -71,4 +72,4 @@ class MassResponseFunction(ResponseFunction):
             collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
 
     def __str__(self) -> str:
-        return f"Response [type = {self.__class__.__name__}, name = {self.response_name}, model part name = {self.model_part.FullName()}]"
+        return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"

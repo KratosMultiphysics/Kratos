@@ -14,6 +14,11 @@ class ResponseFunction(ABC):
     This response should only work on one model part. Hence, if multiple model parts required then,
     a single model part should be created using Kratos.ModelPartOperationUtilities.
     """
+    def __init__(self, response_name: str) -> None:
+        self.__name = response_name
+
+    def GetName(self) -> str:
+        return self.__name
 
     @abstractmethod
     def Initialize(self) -> None:
