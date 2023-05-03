@@ -57,18 +57,20 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
     def Finalize(self) -> None:
         pass
 
-    def GetModelPart(self) -> Kratos.ModelPart:
+    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
-            raise RuntimeError("Please call MassResponseFunction::Initialize first.")
+            raise RuntimeError("Please call LinearStrainEnergyResponseFunction::Initialize first.")
         return self.model_part
+
+    def GetAnalysisModelPart(self) -> Kratos.ModelPart:
+        return self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:
         return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_part)
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
         # first calculate the gradients
-        analysis_model_part = self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().GetAnalysisModelPart()
-        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(analysis_model_part, self.GetModelPart(), ConvertCollectiveExpressionValueMapToModelPartValueMap(physical_variable_collective_expressions), self.perturbation_size)
+        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(self.GetAnalysisModelPart(), self.GetEvaluatedModelPart(), ConvertCollectiveExpressionValueMapToModelPartValueMap(physical_variable_collective_expressions), self.perturbation_size)
 
         # now fill the collective expressions
         for variable, collective_expression in physical_variable_collective_expressions.items():

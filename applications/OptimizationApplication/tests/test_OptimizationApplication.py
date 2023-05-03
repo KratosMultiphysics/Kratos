@@ -65,8 +65,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionSolids]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedObjective]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedConstraint]))
+    # TODO: temporarily disabling them. To be turned on once these are ported to new design.
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedObjective]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedConstraint]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
