@@ -1,5 +1,6 @@
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.StructuralMechanicsApplication
 
 # Import KratosUnittest
@@ -21,6 +22,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         Kratos.ReadMaterialsUtility(material_settings, cls.model)
 
         parameters = Kratos.Parameters("""{
+            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["Structure.structure"],
             "control_variable_name" : "DENSITY"
         }""")
@@ -63,6 +65,46 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
                 self.assertEqual(element.Properties[Kratos.DENSITY], element.Id * i)
 
         self.properties_control.Finalize()
+
+    def test_PropertiesControlUpdate(self):
+        self.properties_control.Initialize()
+
+        control_model_part = self.model_part.GetSubModelPart("test")
+
+        with self.assertRaises(RuntimeError):
+            self.properties_control.Update(Kratos.ContainerExpression.ConditionNonHistoricalExpression(control_model_part))
+
+        temp = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
+        temp.Read(Kratos.DENSITY)
+
+        with self.assertRaises(RuntimeError):
+            self.properties_control.Update(temp)
+
+        temp = KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)
+        temp.Read(Kratos.DENSITY)
+
+        self.properties_control.Update(temp)
+
+    def test_PropertiesControlMapGradient(self):
+        self.properties_control.Initialize()
+
+        control_model_part = self.model_part.GetSubModelPart("test")
+
+        with self.assertRaises(RuntimeError):
+            self.properties_control.MapGradient({Kratos.DENSITY: Kratos.ContainerExpression.NodalNonHistoricalExpression(control_model_part)})
+
+        with self.assertRaises(RuntimeError):
+            self.properties_control.MapGradient({Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)})
+
+        with self.assertRaises(RuntimeError):
+            self.properties_control.MapGradient({Kratos.THICKNESS: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)})
+
+        with self.assertRaises(RuntimeError):
+            self.properties_control.MapGradient({
+                Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part),
+                Kratos.THICKNESS: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)})
+
+        self.properties_control.MapGradient({Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)})
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS

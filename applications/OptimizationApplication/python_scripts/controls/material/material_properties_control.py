@@ -2,7 +2,9 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return MaterialPropertiesControl(model, parameters, optimization_problem)
@@ -49,7 +51,7 @@ class MaterialPropertiesControl(Control):
 
         # create the combined model part
         if not root_model_part.HasSubModelPart(output_model_part_name):
-            self.model_part = Kratos.ModelPartOperationUtilities.Merge(output_model_part_name, root_model_part, model_parts_list, False)
+            self.model_part: Kratos.ModelPart = Kratos.ModelPartOperationUtilities.Merge(output_model_part_name, root_model_part, model_parts_list, False)
             # now create entity specific properties for the merged model part which is used for the control.
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
         else:
@@ -70,20 +72,20 @@ class MaterialPropertiesControl(Control):
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
         if len(keys) != 1:
-            raise RuntimeError(f"Provided more than required gradient fields for \"{self.control_name}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+            raise RuntimeError(f"Provided more than required gradient fields for control \"{self.control_name}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if self.control_variable not in keys:
-            raise RuntimeError(f"The required gradient for \"{self.control_name}\" w.r.t. {self.control_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+            raise RuntimeError(f"The required gradient for control \"{self.control_name}\" w.r.t. {self.control_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
         physical_gradient = physical_gradient_variable_container_expression_map[self.control_variable]
-        if physical_gradient.GetModelPart().FullName() != self.model_part.FullName() or not isinstance(physical_gradient, KratosOA.ContainerExpression.ElementPropertiesExpression):
-            raise RuntimeError(f"Gradients for the required element container not found for \"{self.control_name}\". [model part name: {self.model_part.FullName()}]")
+        if not IsSameContainerExpression(physical_gradient, self.GetEmptyControlField()):
+            raise RuntimeError(f"Gradients for the required element container not found for control \"{self.control_name}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
         # TODO: Implement filtering mechanisms here
         return physical_gradient_variable_container_expression_map[self.control_variable].Clone()
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
-        if control_field.GetModelPart().FullName() != self.model_part.FullName() or not isinstance(control_field, KratosOA.ContainerExpression.ElementPropertiesExpression):
-            raise RuntimeError(f"Updates for the required element container not found for \"{self.control_name}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+        if not IsSameContainerExpression(control_field, self.GetEmptyControlField()):
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.control_name}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
         # TODO: Implement inverse filtering mechanisms here
         # since no filtering is implemented yet, we are checking the unfiltered updates with the filtered updates. This needs to be changed once the
