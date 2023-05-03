@@ -100,3 +100,6 @@ class MaterialPropertiesControl(Control):
             return True
 
         return False
+
+    def __str__(self) -> str:
+        return f"Control [type = {self.__class__.__name__}, name = {self.optimization_problem.GetComponentName(self)}, model part name = {self.model_part.FullName()}, control variable = {self.control_variable.Name()}"
