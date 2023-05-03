@@ -70,7 +70,7 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
             sensitivity = (value - ref_value)/delta
             element.Properties[Kratos.DENSITY] -= delta
 
-            ref_sensitivity = element.Properties[KratosOA.YOUNG_MODULUS]
+            ref_sensitivity = element.Properties[Kratos.YOUNG_MODULUS]
             self.assertAlmostEqual(ref_sensitivity, sensitivity, precision)
 
 class TestStandardizedObjective(TestStandardizedComponent):
@@ -95,132 +95,105 @@ class TestStandardizedObjective(TestStandardizedComponent):
         }""")
 
         standardized_objective = StandardizedObjective(parameters, self.master_control, self.optimization_problem)
-        self.assertAlmostEqual(standardized_objective.CalculateStandardizedValue(self.initial_configuration), self.response_function.CalculateValue() * 2.0)
+        self.assertAlmostEqual(standardized_objective.GetStandardizedValue(), self.response_function.CalculateValue() * 2.0)
         self._CheckSensitivity(standardized_objective, 1e-9, 6)
 
-    # def test_ObjectiveMaximization(self):
-    #     parameters = Kratos.Parameters("""{
-    #         "response_name": "mass",
-    #         "type"         : "maximization",
-    #         "scaling"      : 2.0
-    #     }""")
+    def test_ObjectiveMaximization(self):
+        parameters = Kratos.Parameters("""{
+            "response_name": "mass",
+            "type"         : "maximization",
+            "scaling"      : 2.0
+        }""")
 
-    #     standardized_objective = StandardizedObjective(parameters, self.optimization_problem)
-    #     self.assertAlmostEqual(standardized_objective.CalculateStandardizedValue(), self.response_function.CalculateValue() * -2.0)
-    #     self._CheckSensitivity(standardized_objective, 1e-9, 6)
+        standardized_objective = StandardizedObjective(parameters, self.master_control, self.optimization_problem)
+        self.assertAlmostEqual(standardized_objective.GetStandardizedValue(), self.response_function.CalculateValue() * -2.0)
+        self._CheckSensitivity(standardized_objective, 1e-9, 6)
 
-    # def test_GetInitialValue(self):
-    #     self.assertEqual(self.standardized_objective.GetInitialValue(), self.response_function.CalculateValue() * -2.0)
+    def test_GetInitialValue(self):
+        self.assertEqual(self.standardized_objective.GetInitialValue(), self.response_function.CalculateValue() * -2.0)
 
-    # def test_UpdateOptimizationProblemData(self):
-    #     self.standardized_objective.UpdateOptimizationProblemData()
-    #     response_data: BufferedDict = ComponentDataView(self.response_function, self.optimization_problem).GetBufferedData()
-    #     self.assertTrue(response_data.HasValue("rel_change"))
-    #     self.assertTrue(response_data.HasValue("abs_change"))
+class TestStandardizedConstraint(TestStandardizedComponent):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
 
-# class TestStandardizedConstraint(TestStandardizedComponent):
-#     @classmethod
-#     def setUpClass(cls):
-#         super().setUpClass()
+        parameters = Kratos.Parameters("""{
+            "response_name"   : "mass",
+            "type"            : ">=",
+            "scaled_ref_value"    : 4.0
+        }""")
 
-#         parameters = Kratos.Parameters("""{
-#             "response_name": "mass",
-#             "type"         : ">=",
-#             "ref_value"    : 4.0
-#         }""")
+        cls.standardized_constraint = StandardizedConstraint(parameters, cls.master_control, cls.optimization_problem)
+        cls.standardized_constraint.CalculateStandardizedValue(cls.initial_configuration)
 
-#         cls.standardized_constraint = StandardizedConstraint(parameters, cls.optimization_problem)
+    def test_ConstraintInitialValueEquality(self):
+        parameters = Kratos.Parameters("""{
+            "response_name"   : "mass",
+            "type"            : "=",
+            "scaled_ref_value": "initial_value"
+        }""")
 
-#     def test_ConstraintInitialValueEquality(self):
-#         parameters = Kratos.Parameters("""{
-#             "response_name": "mass",
-#             "type"         : "=",
-#             "ref_value"    : "initial_value"
-#         }""")
+        standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
+        self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
+        self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
-#         standardized_constraint = StandardizedConstraint(parameters, self.optimization_problem)
-#         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
-#         self.assertTrue(standardized_constraint.IsActive())
-#         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
+    def test_ConstraintInitialValueLessThan(self):
+        parameters = Kratos.Parameters("""{
+            "response_name"   : "mass",
+            "type"            : "<=",
+            "scaled_ref_value": "initial_value"
+        }""")
 
-#     def test_ConstraintInitialValueLessThan(self):
-#         parameters = Kratos.Parameters("""{
-#             "response_name": "mass",
-#             "type"         : "<=",
-#             "ref_value"    : "initial_value"
-#         }""")
+        standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
+        self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
+        self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
-#         standardized_constraint = StandardizedConstraint(parameters, self.optimization_problem)
-#         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
-#         self.assertTrue(standardized_constraint.IsActive())
-#         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
+    def test_ConstraintInitialValueGreaterThan(self):
+        parameters = Kratos.Parameters("""{
+            "response_name"   : "mass",
+            "type"            : ">=",
+            "scaled_ref_value": "initial_value"
+        }""")
 
-#     def test_ConstraintInitialValueGreaterThan(self):
-#         parameters = Kratos.Parameters("""{
-#             "response_name": "mass",
-#             "type"         : ">=",
-#             "ref_value"    : "initial_value"
-#         }""")
+        standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
+        self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
+        self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
-#         standardized_constraint = StandardizedConstraint(parameters, self.optimization_problem)
-#         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
-#         self.assertTrue(standardized_constraint.IsActive())
-#         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
+    def test_ConstraintSpecifiedValueEquality(self):
+        parameters = Kratos.Parameters("""{
+            "response_name"   : "mass",
+            "type"            : "=",
+            "scaled_ref_value": 4.0
+        }""")
 
-#     def test_ConstraintSpecifiedValueEquality(self):
-#         parameters = Kratos.Parameters("""{
-#             "response_name": "mass",
-#             "type"         : "=",
-#             "ref_value"    : 4.0
-#         }""")
+        standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
+        self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), self.response_function.CalculateValue() - 4.0)
+        self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
-#         standardized_constraint = StandardizedConstraint(parameters, self.optimization_problem)
-#         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), self.response_function.CalculateValue() - 4.0)
-#         self.assertTrue(standardized_constraint.IsActive())
-#         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
+    def test_ConstraintSpecifiedValueLessThan(self):
+        parameters = Kratos.Parameters("""{
+            "response_name"   : "mass",
+            "type"            : "<=",
+            "scaled_ref_value": 4.0
+        }""")
 
-#     def test_ConstraintSpecifiedValueLessThan(self):
-#         parameters = Kratos.Parameters("""{
-#             "response_name": "mass",
-#             "type"         : "<=",
-#             "ref_value"    : 4.0
-#         }""")
+        standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
+        self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), self.response_function.CalculateValue() - 4.0)
+        self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
-#         standardized_constraint = StandardizedConstraint(parameters, self.optimization_problem)
-#         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), self.response_function.CalculateValue() - 4.0)
-#         self.assertTrue(standardized_constraint.IsActive())
-#         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
+    def test_ConstraintSpecifiedValueGreaterThan(self):
+        parameters = Kratos.Parameters("""{
+            "response_name"   : "mass",
+            "type"            : ">=",
+            "scaled_ref_value": 4.0
+        }""")
 
-#     def test_ConstraintSpecifiedValueGreaterThan(self):
-#         parameters = Kratos.Parameters("""{
-#             "response_name": "mass",
-#             "type"         : ">=",
-#             "ref_value"    : 4.0
-#         }""")
+        standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
+        self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), -self.response_function.CalculateValue() + 4.0)
+        self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
-#         standardized_constraint = StandardizedConstraint(parameters, self.optimization_problem)
-#         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), -self.response_function.CalculateValue() + 4.0)
-#         self.assertFalse(standardized_constraint.IsActive())
-#         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
-
-#     def test_GetReferenceValue(self):
-#         self.assertEqual(self.standardized_constraint.GetReferenceValue(), 4.0)
-
-#     def test_GetResponseFunctionName(self):
-#         self.assertEqual(self.standardized_constraint.GetName(), "mass")
-
-#     def test_GetResponseType(self):
-#         self.assertEqual(self.standardized_constraint.GetType(), ">=")
-
-#     def test_UpdateConstraintData(self):
-#         self.standardized_constraint.UpdateConstraintData()
-#         response_data: BufferedDict = self.optimization_problem.GetReponseData("mass")["buffered"]
-#         self.assertEqual(response_data["type"], self.standardized_constraint.GetType())
-#         self.assertTrue(response_data.HasValue("rel_change"))
-#         self.assertTrue(response_data.HasValue("abs_change"))
-#         self.assertTrue(response_data.HasValue("violation"))
-#         self.assertFalse(response_data["is_active"])
-#         self.assertEqual(response_data["ref_value"], 4.0)
+    def test_GetStandardizedReferenceValue(self):
+        self.assertEqual(self.standardized_constraint.GetStandardizedReferenceValue(), -4.0)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

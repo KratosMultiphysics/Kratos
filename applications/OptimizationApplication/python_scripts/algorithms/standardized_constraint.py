@@ -27,8 +27,8 @@ class StandardizedConstraint(ResponseRoutine):
             "scaled_ref_value": "initial_value"
         }""")
 
-        if parameters.Has("ref_value") and parameters["ref_value"].IsDouble():
-            default_parameters["ref_value"].SetDouble(0.0)
+        if parameters.Has("scaled_ref_value") and parameters["scaled_ref_value"].IsDouble():
+            default_parameters["scaled_ref_value"].SetDouble(0.0)
 
         parameters.ValidateAndAssignDefaults(default_parameters)
 
@@ -39,9 +39,12 @@ class StandardizedConstraint(ResponseRoutine):
         if required_buffer_size < 2:
             raise RuntimeError(f"Standardized objective requires 2 as minimum buffer size. [ response name = {self.GetReponse().GetName()} ]")
 
+        component_data_view = ComponentDataView(response, optimization_problem)
+        component_data_view.SetDataBuffer(required_buffer_size)
+
         self.__optimization_problem = optimization_problem
-        self.__component_data_view = ComponentDataView(response, optimization_problem)
-        self.__component_data_view.SetDataBuffer(required_buffer_size)
+        self.__buffered_data = component_data_view.GetBufferedData()
+        self.__unbuffered_data = component_data_view.GetUnBufferedData()
 
         scaling = parameters["scaling"].GetDouble()
         if scaling < 0.0:
@@ -61,31 +64,34 @@ class StandardizedConstraint(ResponseRoutine):
             self.__scaling = scaling
         elif self.__constraint_type in [">="]:
             self.__scaling = -scaling
+            if not self.__reference_value is None: self.__reference_value *= -1
         else:
             raise RuntimeError(f"Provided \"type\" = {self.__constraint_type} is not supported in constraint response functions. Followings are supported options: \n\t=\n\t<=\n\t<\n\t>=\n\t>")
 
     def IsEqualityType(self) -> str:
         return self.__constraint_type == "="
 
-    def GetReferenceValue(self) -> float:
+    def GetStandardizedReferenceValue(self) -> float:
         if self.__reference_value is not None:
             return self.__reference_value
         else:
-            raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
+            if self.__unbuffered_data.HasValue("initial_value"):
+                return self.__unbuffered_data["initial_value"] * self.__scaling
+            else:
+                raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
     def CalculateStandardizedValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
         response_value = self.CalculateValue(control_field)
         standardized_response_value = response_value * self.__scaling
 
-        if self.__reference_value is None:
-            self.__reference_value = standardized_response_value
+        if not self.__unbuffered_data.HasValue("initial_value"):
+            self.__unbuffered_data["initial_value"] = response_value
 
-        standardized_response_value -= self.GetReferenceValue()
+        standardized_response_value -= self.GetStandardizedReferenceValue()
 
         if save_value:
-            data = self.__component_data_view.GetBufferedData()
-            data["value"] = response_value
-            data["standardized_value"] = standardized_response_value
+            if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+            self.__buffered_data["value"] = response_value
 
         return standardized_response_value
 
@@ -94,22 +100,24 @@ class StandardizedConstraint(ResponseRoutine):
 
         if save_value:
             for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                self.__component_data_view.GetUnBufferedData()[f"d{self.GetReponse().GetName()}_d{control.GetName()}"] = gradient_container_expression.Clone()
+                variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
+                if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
 
         return gradient_collective_expression * self.__scaling
 
-    def GetValue(self, step_index: int) -> float:
-        return self.__component_data_view.GetBufferedData().GetValue("value", step_index)
+    def GetValue(self, step_index: int = 0) -> float:
+        return self.__buffered_data.GetValue("value", step_index)
 
-    def GetStandardizedValue(self, step_index: int) -> float:
-        return self.__component_data_view.GetBufferedData().GetValue("standardized_value", step_index)
+    def GetStandardizedValue(self, step_index: int = 0) -> float:
+        return self.GetValue(step_index) * self.__scaling - self.GetStandardizedReferenceValue()
 
     def GetAbsoluteViolation(self, step_index: int = 0) -> float:
         is_violated = self.IsEqualityType() or self.GetStandardizedValue(step_index) >= 0.0
         return self.GetStandardizedValue(step_index) * is_violated
 
     def GetRelativeViolation(self, step_index: int = 0) -> float:
-        return self.GetAbsoluteViolation(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetAbsoluteViolation(step_index)
+        return self.GetAbsoluteViolation(step_index) / self.GetStandardizedReferenceValue() if abs(self.GetStandardizedReferenceValue()) > 1e-12 else self.GetAbsoluteViolation(step_index)
 
     def GetRelativeChange(self) -> float:
         if self.__optimization_problem.GetStep() > 1:
@@ -118,23 +126,14 @@ class StandardizedConstraint(ResponseRoutine):
             return 0.0
 
     def GetAbsoluteChange(self) -> float:
-        return self.GetStandardizedValue() / self.GetReferenceValue() - 1.0 if abs(self.GetReferenceValue()) > 1e-12 else self.GetStandardizedValue()
-
-    def UpdateOptimizationProblemData(self) -> None:
-        response_problem_data = self.__component_data_view.GetBufferedData()
-        response_problem_data["type"] = self.__constraint_type
-        response_problem_data["ref_value"] = self.GetReferenceValue()
-        response_problem_data["rel_change"] = self.GetRelativeChange()
-        response_problem_data["abs_change"] = self.GetAbsoluteChange()
-        response_problem_data["rel_violation"] = self.GetRelativeViolation()
-        response_problem_data["abs_violation"] = self.GetAbsoluteViolation()
+        return self.GetStandardizedValue() / self.GetStandardizedReferenceValue() - 1.0 if abs(self.GetStandardizedReferenceValue()) > 1e-12 else self.GetStandardizedValue()
 
     def GetInfo(self) -> str:
         msg = "\tConstraint info:"
         msg += f"\n\t\t name             : {self.GetReponse().GetName()}"
         msg += f"\n\t\t value            : {self.GetValue():0.6e}"
         msg += f"\n\t\t type             : {self.__constraint_type}"
-        msg += f"\n\t\t ref_value        : {self.GetReferenceValue():0.6e}"
+        msg += f"\n\t\t ref_value        : {self.GetStandardizedReferenceValue():0.6e}"
         msg += f"\n\t\t abs_change       : {self.GetAbsoluteChange():0.6e}"
         msg += f"\n\t\t rel_change [%]   : {self.GetRelativeChange() * 100.0:0.6e}"
         msg += f"\n\t\t abs_violation    : {self.GetAbsoluteViolation():0.6e}"

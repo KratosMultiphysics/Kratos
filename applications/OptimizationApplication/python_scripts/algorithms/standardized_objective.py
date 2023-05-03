@@ -29,9 +29,12 @@ class StandardizedObjective(ResponseRoutine):
         if required_buffer_size < 2:
             raise RuntimeError(f"Standardized objective requires 2 as minimum buffer size. [ response name = {self.GetReponse().GetName()} ]")
 
+        component_data_view = ComponentDataView(response, optimization_problem)
+        component_data_view.SetDataBuffer(required_buffer_size)
+
         self.__optimization_problem = optimization_problem
-        self.__component_data_view = ComponentDataView(response, optimization_problem)
-        self.__component_data_view.SetDataBuffer(required_buffer_size)
+        self.__buffered_data = component_data_view.GetBufferedData()
+        self.__unbuffered_data = component_data_view.GetUnBufferedData()
 
         scaling = parameters["scaling"].GetDouble()
         if scaling < 0.0:
@@ -45,11 +48,9 @@ class StandardizedObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Requesting unsupported type {self.__objective_type} for objective response function. Supported types are: \n\tminimization\n\tmaximization")
 
-        self.__initial_response_value = None
-
     def GetInitialValue(self) -> float:
-        if self.__initial_response_value is None:
-            return self.__initial_response_value
+        if self.__unbuffered_data.HasValue("initial_value"):
+            return self.__unbuffered_data["initial_value"] * self.__scaling
         else:
             raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
@@ -57,28 +58,29 @@ class StandardizedObjective(ResponseRoutine):
         response_value = self.CalculateValue(control_field)
         standardized_response_value = response_value * self.__scaling
 
-        if not self.__initial_response_value:
-            self.__initial_response_value = standardized_response_value
+        if not self.__unbuffered_data.HasValue("initial_value"):
+            self.__unbuffered_data["initial_value"] = response_value
 
         if save_value:
-            data = self.__component_data_view.GetBufferedData()
-            data["value"] = response_value
-            data["standardized_value"] = standardized_response_value
+            if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+            self.__buffered_data["value"] = response_value
 
         return standardized_response_value
 
-    def GetValue(self, step_index: int) -> float:
-        return self.__component_data_view.GetBufferedData().GetValue("value", step_index)
+    def GetValue(self, step_index: int = 0) -> float:
+        return self.__buffered_data.GetValue("value", step_index)
 
-    def GetStandardizedValue(self, step_index: int) -> float:
-        return self.__component_data_view.GetBufferedData().GetValue("standardized_value", step_index)
+    def GetStandardizedValue(self, step_index: int = 0) -> float:
+        return self.GetValue(step_index) * self.__scaling
 
     def CalculateStandardizedGradient(self, save_value: bool = True) -> KratosOA.ContainerExpression.CollectiveExpressions:
         gradient_collective_expression = self.CalculateGradient()
 
         if save_value:
             for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                self.__component_data_view.GetUnBufferedData()[f"d{self.GetReponse().GetName()}_d{control.GetName()}"] = gradient_container_expression.Clone()
+                variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
+                if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
 
         return gradient_collective_expression * self.__scaling
 
@@ -90,11 +92,6 @@ class StandardizedObjective(ResponseRoutine):
 
     def GetAbsoluteChange(self) -> float:
         return self.GetStandardizedValue() / self.GetInitialValue() - 1.0 if abs(self.GetInitialValue()) > 1e-12 else self.GetStandardizedValue()
-
-    def UpdateOptimizationProblemData(self) -> None:
-        response_problem_data = self.__component_data_view.GetBufferedData()
-        response_problem_data["rel_change"] = self.GetRelativeChange()
-        response_problem_data["abs_change"] = self.GetAbsoluteChange()
 
     def GetInfo(self) -> str:
         msg = "\tObjective info:"
