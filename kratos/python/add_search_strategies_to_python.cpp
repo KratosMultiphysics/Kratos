@@ -680,6 +680,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
     ;
 
+    using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
 
@@ -701,8 +702,46 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         }
         return list_results;
     })
+    .def("SearchInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        std::vector<std::vector<ResultType>> results;
+        self.IterativeSearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            py::list sub_list_results;
+            for (auto& r_sub_result : r_result) {
+                sub_list_results.append(r_sub_result);
+            }
+            list_results.append(sub_list_results);
+        }
+        return list_results;
+    })
     .def("SearchNearestInRadius", &GeometricalObjectsBins::SearchNearestInRadius)
+    .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        std::vector<ResultType> results = self.IterativeSearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
     .def("SearchNearest", &GeometricalObjectsBins::SearchNearest)
+    .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        std::vector<ResultType> results = self.IterativeSearchNearest(rNodes.begin(), rNodes.end());
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
     .def("SearchIsInside", &GeometricalObjectsBins::SearchIsInside)
     ;
 }
