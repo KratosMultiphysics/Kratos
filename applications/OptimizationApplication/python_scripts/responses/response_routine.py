@@ -7,13 +7,16 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 
 class ResponseRoutine:
     def __init__(self, master_control: MasterControl, response_name: str, optimization_problem: OptimizationProblem) -> None:
+        # set the master control
         self.__master_control = master_control
-        self.__response_name = response_name
+
+        # set the response
         self.__response = optimization_problem.GetResponse(response_name)
-        self.__optimization_problem = optimization_problem
+        self.__response_name = response_name
+        self.__response_value = None
+
         self.__contributing_controls_list: 'list[Control]' = []
         self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]' = {}
-        self.__reponse_value = None
 
     def Initialize(self):
         """
@@ -51,7 +54,7 @@ class ResponseRoutine:
             if is_updated and control in self.__contributing_controls_list:
                 compute_response_value_flag = True
 
-        compute_response_value_flag = compute_response_value_flag or self.__reponse_value is None
+        compute_response_value_flag = compute_response_value_flag or self.__response_value is None
 
         # TODO: In the case of having two analysis with the same mesh (model parts) for two different
         #       responses, we need to flag all the anayses which are affected by the control update_state
