@@ -7,7 +7,7 @@ class Control(ABC):
 
     The base abstract control class has the following responsibilities.
         1. Initalizes and finalizes the control.
-        2. Maps physical space gradients to control space gradients, if needed. Otherwise, it passes. 
+        2. Maps physical space gradients to control space gradients, if needed. Otherwise, it passes.
         2. Updating the controlled parts of the model part with new design given in control space.
         3. Retrieve control field.
         4. Retrieve physical space kratos variables (If more than one physical space kratos variables are controlled by the given control field.)
@@ -52,18 +52,16 @@ class Control(ABC):
         the control space should only have one variable per control in the control space, but they can have multiple physical variables
         in their design space.
 
-        If the case is that this control has one physical variable, then it should be same as the control variable.
-
         Returns:
             list[SupportedSensitivityFieldVariableTypes]: List of physical control variables.
         """
         pass
 
     @abstractmethod
-    def GetEmptyControlField(self) -> ContainerExpressionTypes:
-        """Returns a new empty control field data holder.
+    def GetEmptyField(self) -> ContainerExpressionTypes:
+        """Returns a new empty data field holder.
 
-        This returns a new empty control field data holder to give information about on which model part's container
+        This returns a new empty data field holder to give information about on which model part's container
         this model part is acting on. This has O(1) complexity, hence has the least cost because it does not read
         any data from respective model part's container.
 
@@ -99,9 +97,6 @@ class Control(ABC):
     @abstractmethod
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         """Modifies the current control with the given control field.
-
-        This method modifies the control with the given control field from @ref control_field. This
-        control_field should be in the control space, and it should not represent a change of design.
 
         Args:
             control_field (ContainerExpressionTypes): The control field in control space.

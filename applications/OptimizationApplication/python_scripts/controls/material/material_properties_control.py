@@ -6,8 +6,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-    return MaterialPropertiesControl(model, parameters, optimization_problem)
+def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem):
+    return MaterialPropertiesControl(name, model, parameters)
 
 class MaterialPropertiesControl(Control):
     """Material properties control
@@ -18,7 +18,7 @@ class MaterialPropertiesControl(Control):
     TODO: Extend with filtering techniques when they are implemented.
 
     """
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
         super().__init__()
 
         default_settings = Kratos.Parameters("""{
@@ -30,7 +30,7 @@ class MaterialPropertiesControl(Control):
 
         self.output_model_part_name = parameters["combined_output_model_part_name"].GetString()
         self.model_part_names = parameters["model_part_names"].GetStringArray()
-        self.optimization_problem = optimization_problem
+        self.control_name = name
         self.model = model
 
         control_variable_name = parameters["control_variable_name"].GetString()
@@ -38,11 +38,10 @@ class MaterialPropertiesControl(Control):
         if control_variable_type != "Double":
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
 
-        self.control_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
+        self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
     def Initialize(self) -> None:
         # get the model part name
-        self.control_name = self.optimization_problem.GetComponentName(self)
         output_model_part_name = self.output_model_part_name.replace("<CONTROL_NAME>", self.control_name)
 
         # get root model part
@@ -64,27 +63,27 @@ class MaterialPropertiesControl(Control):
         pass
 
     def GetPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
-        return [self.control_variable]
+        return [self.controlled_physical_variable]
 
-    def GetEmptyControlField(self) -> ContainerExpressionTypes:
+    def GetEmptyField(self) -> ContainerExpressionTypes:
         return KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
         if len(keys) != 1:
             raise RuntimeError(f"Provided more than required gradient fields for control \"{self.control_name}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
-        if self.control_variable not in keys:
-            raise RuntimeError(f"The required gradient for control \"{self.control_name}\" w.r.t. {self.control_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+        if self.controlled_physical_variable not in keys:
+            raise RuntimeError(f"The required gradient for control \"{self.control_name}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-        physical_gradient = physical_gradient_variable_container_expression_map[self.control_variable]
-        if not IsSameContainerExpression(physical_gradient, self.GetEmptyControlField()):
+        physical_gradient = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
+        if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.control_name}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
         # TODO: Implement filtering mechanisms here
-        return physical_gradient_variable_container_expression_map[self.control_variable].Clone()
+        return physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(control_field, self.GetEmptyControlField()):
+        if not IsSameContainerExpression(control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.control_name}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
         # TODO: Implement inverse filtering mechanisms here
@@ -92,14 +91,14 @@ class MaterialPropertiesControl(Control):
         # filtering mechanisms are implemented.
 
         # get the current unfiltered control field
-        unfiltered_control_field = self.GetEmptyControlField()
-        unfiltered_control_field.Read(self.control_variable)
+        unfiltered_control_field = self.GetEmptyField()
+        unfiltered_control_field.Read(self.controlled_physical_variable)
 
         if KratosOA.ContainerExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
-            control_field.Evaluate(self.control_variable)
+            control_field.Evaluate(self.controlled_physical_variable)
             return True
 
         return False
 
     def __str__(self) -> str:
-        return f"Control [type = {self.__class__.__name__}, name = {self.optimization_problem.GetComponentName(self)}, model part name = {self.model_part.FullName()}, control variable = {self.control_variable.Name()}"
+        return f"Control [type = {self.__class__.__name__}, name = {self.control_name}, model part name = {self.model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
