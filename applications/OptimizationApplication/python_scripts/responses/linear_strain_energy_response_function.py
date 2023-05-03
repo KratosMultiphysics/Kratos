@@ -11,6 +11,8 @@ def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, optim
 
 class LinearStrainEnergyResponseFunction(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        super().__init__(name)
+
         default_settings = Kratos.Parameters("""{
             "combined_output_model_part_name": "<RESPONSE_NAME>_combined_no_neighbours_response",
             "primal_analysis_name"           : "",
@@ -26,7 +28,6 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
         self.model = model
-        self.response_name = name
         self.model_part: Kratos.ModelPart = None
         self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_problem.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
 
@@ -38,7 +39,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
 
     def Initialize(self) -> None:
         # get the model part name
-        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.response_name)
+        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.GetName())
 
         # get root model part
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
@@ -76,4 +77,4 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
 
     def __str__(self) -> str:
-        return f"Response [type = {self.__class__.__name__}, name = {self.response_name}, model part name = {self.model_part.FullName()}]"
+        return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
