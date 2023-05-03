@@ -6,11 +6,11 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import ConvertCollectiveExpressionValueMapToModelPartValueMap
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
-    return LinearStrainEnergyResponseFunction(model, parameters, optimization_problem)
+def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
+    return LinearStrainEnergyResponseFunction(name, model, parameters, optimization_problem)
 
 class LinearStrainEnergyResponseFunction(ResponseFunction):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
             "combined_output_model_part_name": "<RESPONSE_NAME>_combined_no_neighbours_response",
             "primal_analysis_name"           : "",
@@ -26,9 +26,9 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
         self.model = model
-        self.optimization_problem = optimization_problem
+        self.response_name = name
         self.model_part: Kratos.ModelPart = None
-        self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = self.optimization_problem.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
+        self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_problem.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
 
         if len(self.model_part_names) == 0:
             raise RuntimeError("No model parts were provided for LinearStrainEnergyResponseFunction.")
@@ -38,8 +38,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
 
     def Initialize(self) -> None:
         # get the model part name
-        response_name = self.optimization_problem.GetComponentName(self)
-        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", response_name)
+        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.response_name)
 
         # get root model part
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
@@ -77,4 +76,4 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
 
     def __str__(self) -> str:
-        return f"Response [type = {self.__class__.__name__}, name = {self.optimization_problem.GetComponentName(self)}, model part name = {self.model_part.FullName()}]"
+        return f"Response [type = {self.__class__.__name__}, name = {self.response_name}, model part name = {self.model_part.FullName()}]"
