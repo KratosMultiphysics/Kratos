@@ -77,11 +77,16 @@ class Control(ABC):
         """Maps physical space gradients to the control space.
 
         This method is used to map the given physical space gradients to the control space. The input should be as in the following example:
-            sensitivity_variable_collective_expression_info = {
+            physical_gradient_variable_container_expression_map = {
                 Kratos.YOUNG_MODULUS: Kratos.ContainerExpressions.NodalNonHistoricalContainer,
                 Kratos.DENSITY      : Kratos.ContainerExpressions.ElementNonHistoricalContainer,
                 Kratos.SHAPE        : Kratos.ContainerExpressions.ElementNonHistoricalContainer
             }
+
+        All the gradients w.r.t. @see GetPhysicalKratosVariables() variables should be given in @ref physical_gradient_variable_container_expression_map.
+        If the response does not depend on some of them or all, then ContainerExpression::SetDataToZero() called container expressions should
+        be passed. [ContainerExpression::SetDataToZero() will make the container expression to zero, but will only allocate one double value for the
+        whole container, hence it is cheap in memory and execution.]
 
         Args:
             physical_gradient_variable_container_expression_map (dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]): Map of physical space variable and ContainerExpression with sensitivities.
