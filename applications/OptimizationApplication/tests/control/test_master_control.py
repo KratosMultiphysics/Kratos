@@ -2,7 +2,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
@@ -14,39 +13,34 @@ class TestMassterControl(kratos_unittest.TestCase):
         cls.model_part_1 = cls.model.CreateModelPart("test1")
         cls.model_part_2 = cls.model.CreateModelPart("test2")
         cls.model_part_3 = cls.model.CreateModelPart("test3")
-        cls.optimization_problem = OptimizationProblem()
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test1"],
             "control_variable_name" : "DENSITY"
         }""")
-        cls.properties_control_1 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("control1", cls.properties_control_1)
+        cls.properties_control_1 = MaterialPropertiesControl("control1", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test2"],
             "control_variable_name" : "DENSITY"
         }""")
-        cls.properties_control_2 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("control2", cls.properties_control_2)
+        cls.properties_control_2 = MaterialPropertiesControl("control2", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test3"],
             "control_variable_name" : "THICKNESS"
         }""")
-        cls.properties_control_3 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("control3", cls.properties_control_3)
+        cls.properties_control_3 = MaterialPropertiesControl("control3", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test3"],
             "control_variable_name" : "DENSITY"
         }""")
-        cls.properties_control_4 = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("control4", cls.properties_control_4)
+        cls.properties_control_4 = MaterialPropertiesControl("control4", cls.model, parameters)
 
         for model_part in [cls.model_part_1, cls.model_part_2, cls.model_part_3]:
             model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -95,11 +89,12 @@ class TestMassterControl(kratos_unittest.TestCase):
             ["test3.control3"],
             thickness_container_expression_model_part_names)
 
-    def test_GetEmptyControlFields(self):
-        empty_control_fields = self.master_control.GetEmptyControlFields()
+    def test_GetEmptyField(self):
+        empty_control_fields = self.master_control.GetEmptyField()
         container_expression_model_part_names = []
         for container_expression in empty_control_fields.GetContainerExpressions():
             self.assertTrue(isinstance(container_expression, KratosOA.ContainerExpression.ElementPropertiesExpression))
+            self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(container_expression), 0.0)
             container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
@@ -111,10 +106,17 @@ class TestMassterControl(kratos_unittest.TestCase):
         mapped_gradients = self.master_control.MapGradient(result)
 
         for i, control in enumerate(self.master_control.GetListOfControls()):
-            self.assertTrue(IsSameContainerExpression(mapped_gradients.GetContainerExpressions()[i], control.GetEmptyControlField()))
+            self.assertTrue(IsSameContainerExpression(mapped_gradients.GetContainerExpressions()[i], control.GetEmptyField()))
+
+        # now check without any gradients so the master control should fill them with zeros.
+        mapped_gradients = self.master_control.MapGradient({})
+        for i, control in enumerate(self.master_control.GetListOfControls()):
+            mapped_expression = mapped_gradients.GetContainerExpressions()[i]
+            self.assertTrue(IsSameContainerExpression(mapped_expression, control.GetEmptyField()))
+            self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(mapped_expression), 0.0)
 
     def test_Update(self):
-        update = self.master_control.GetEmptyControlFields()
+        update = self.master_control.GetEmptyField()
 
         # assigning density for all the mapped gradients
         update.Read(Kratos.DENSITY)

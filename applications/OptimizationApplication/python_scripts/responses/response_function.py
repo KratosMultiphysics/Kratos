@@ -11,7 +11,7 @@ class ResponseFunction(ABC):
         1. CalculateValue for a fresh design. (@see CalculateValue)
         2. CalculateSensitivity for a fresh design (@see CalculateSensitivity)
 
-    This control should only work on one model part. Hence, if multiple model parts required then,
+    This response should only work on one model part. Hence, if multiple model parts required then,
     a single model part should be created using Kratos.ModelPartOperationUtilities.
     """
 
