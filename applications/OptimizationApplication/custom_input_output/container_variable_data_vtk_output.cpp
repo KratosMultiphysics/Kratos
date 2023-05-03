@@ -17,4 +17,17 @@
 
 namespace Kratos
 {
+
+        explicit ContainerVariableDataVtkOutput(ModelPart &rModelPart, Parameters Parameters = Parameters(R"({})")) : VtkOutput(rModelPart, Parameters)
+        {
+        }
+
+        void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ContainerVariableData<TContainerType> &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream) const
+        {
+                rFileStream << "Test";
+        }
+
+        template void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ModelPart::NodesContainerType &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream);
+        template void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ModelPart::ConditionsContainerType &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream);
+        template void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ModelPart::ElementsContainerType &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream);
 }

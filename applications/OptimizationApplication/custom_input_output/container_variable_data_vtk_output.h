@@ -10,6 +10,11 @@
 //  Main author:     Fabian Meister
 //
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "input_output/vtk_output.h"
 
 #include "custom_utilities/container_variable_data/container_variable_data.h"
@@ -28,10 +33,10 @@ namespace Kratos
          */
         class ContainerVariableDataVtkOutput : public VtkOutput
         {
-                template <class TContainerType>
-                void WriteContainerDataToFile(const ContainerVariableData<TContainerType> &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream)
-                {
-                }
-        }
+        public:
+                explicit ContainerVariableDataVtkOutput(ModelPart &rModelPart, Parameters Parameters = Parameters(R"({})"));
 
+                template <class TContainerType>
+                void WriteContainerDataToFile(const ContainerVariableData<TContainerType> &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream);
+        };
 }
