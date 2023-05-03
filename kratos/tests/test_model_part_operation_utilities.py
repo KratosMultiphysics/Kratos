@@ -172,7 +172,7 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
     def test_HasIntersection(self):
-        self.assertTrue(Kratos.ModelPartOperationUtilities.HasIntersection(self.model_part, self.model_parts_list))
+        self.assertTrue(Kratos.ModelPartOperationUtilities.HasIntersection(self.model_parts_list))
 
     def test_Sum(self):
         # communicator check

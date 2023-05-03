@@ -582,22 +582,26 @@ ModelPart& ModelPartOperationUtilities::Intersect(
         AddNeighbourEntities);
 }
 
-bool ModelPartOperationUtilities::HasIntersection(
-    ModelPart& rMainModelPart,
-    const std::vector<ModelPart const*>& rIntersectionModelParts)
+bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>& rIntersectionModelParts)
 {
+    KRATOS_ERROR_IF(rIntersectionModelParts.size() == 2) << "HasIntersection check requires atleast 2 model parts.\n";
+
+    auto& r_main_model_part = rIntersectionModelParts[0]->GetRootModelPart();
+
     std::vector<ModelPart::NodeType*> output_nodes;
     std::vector<ModelPart::ConditionType*> output_conditions;
     std::vector<ModelPart::ElementType*> output_elements;
 
     // fill vectors
-    ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Intersection>(output_nodes, output_conditions, output_elements, rMainModelPart, rIntersectionModelParts, false);
+    std::vector<ModelPart const*> intersection_model_parts(rIntersectionModelParts.size());
+    std::transform(rIntersectionModelParts.begin(), rIntersectionModelParts.end(), intersection_model_parts.begin(), [](ModelPart* p_model_part) -> ModelPart const* {return &*(p_model_part); });
+    ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Intersection>(output_nodes, output_conditions, output_elements, r_main_model_part, intersection_model_parts, false);
 
     bool is_intersected = false;
 
-    is_intersected = is_intersected || rMainModelPart.GetCommunicator().GetDataCommunicator().SumAll(output_nodes.size()) > 0;
-    is_intersected = is_intersected || rMainModelPart.GetCommunicator().GetDataCommunicator().SumAll(output_conditions.size()) > 0;
-    is_intersected = is_intersected || rMainModelPart.GetCommunicator().GetDataCommunicator().SumAll(output_elements.size()) > 0;
+    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(output_nodes.size()) > 0;
+    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(output_conditions.size()) > 0;
+    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(output_elements.size()) > 0;
 
     return is_intersected;
 }

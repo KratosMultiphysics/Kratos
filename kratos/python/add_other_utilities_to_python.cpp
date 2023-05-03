@@ -809,7 +809,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Merge", &ModelPartOperationUtilities::Merge, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
         .def("Substract", &ModelPartOperationUtilities::Substract, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
         .def("Intersect", &ModelPartOperationUtilities::Intersect, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
-        .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("main_model_part"), py::arg("model_parts_to_intersect"))
+        .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("model_parts_to_intersect"))
     ;
 
 }
