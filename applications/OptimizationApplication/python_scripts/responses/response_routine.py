@@ -56,9 +56,9 @@ class ResponseRoutine:
                 #   1. in the case where response does not require an analysis, then intersection between evaluated and control domain is checked.
                 #   2. in the case where response require an analysis, then intersection between analysis and control domain is checked.
                 if self.__response.GetAnalysisModelPart() is None:
-                    checked_model_part = self.__response.GetEvaluatedModelPart()
+                    checked_model_part: Kratos.ModelPart = self.__response.GetEvaluatedModelPart()
                 else:
-                    checked_model_part = self.__response.GetAnalysisModelPart()
+                    checked_model_part: Kratos.ModelPart = self.__response.GetAnalysisModelPart()
 
                 if Kratos.ModelPartOperationUtilities.HasIntersection([checked_model_part, control.GetEmptyControlField().GetModelPart()]):
                     self.__contributing_controls_list.append(control)
