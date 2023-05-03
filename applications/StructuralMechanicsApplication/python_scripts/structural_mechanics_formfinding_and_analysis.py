@@ -25,31 +25,49 @@ class StructuralMechanicsFormfindingAndAnalysis(StructuralMechanicsAnalysis):
         it has attributes of the various simulations (nested simulations)
 
         TO-DO:
-        [x] Simulation under one Run() function
-        [x] Materials management
-        [x] Loads management
-        [x] Test workflow with manual approach
-            [ ] Different load combinations bug?
-        [ ] Print to console with echo_level
-        [ ] Project parameters forced changes:
-            [ ] "time_step" to 1.1
-            [ ] "displacement_criterion" for formfinding
-            [ ] "and_criterion" for analysis
-            [ ] Tolerances
-            [ ] "list_other_processes"
-            [ ] "rotation_dofs"
-            [ ] "printing_format"
-            [ ] "write_formfound_geometry_file"
-            [ ] "projection_settings"
         [ ] Design check evtl. invoke formfinding again with higher prestress
         '''
 
         # Control Parameters
         self.stage = 'formfinding - start'
 
-        # Project parameters
+        # Empty simluations (PyLint req. within __init__)
+        self.formfinding_simulation = None
+        self.analysis_simulation = None
+
+        # Project Parameters
         self.formfinding_parameters = project_parameters.Clone()
         self.analysis_parameters = project_parameters.Clone()
+
+        # Convergence Criterion
+
+        '''
+        In the event that the User desires different convergence_criterion 
+        for formfinding and analysis, this can be achieved by creating the 
+        following parameters in the ProjectParameters.json file:
+
+                formfinding_convergence_criterion
+                analysis_convergence_criterion
+
+        This code block then sets the parameters accordingly and removes values 
+        such that validation does not fail.
+        '''
+        try:
+            project_parameters["solver_settings"]["formfinding_convergence_criterion"].GetString()
+            project_parameters["solver_settings"]["analysis_convergence_criterion"].GetString()
+        except:
+            KratosMultiphysics.Logger.PrintInfo("::[FormfindingAndAnalysis]:: ", "Using standard convergence criterion for both formfinding and analysis")
+        else:
+            KratosMultiphysics.Logger.PrintInfo("::[FormfindingAndAnalysis]:: ", "Different convergence criterion detected, applying appropriately to solver_settings")
+            
+            self.formfinding_parameters["solver_settings"]["convergence_criterion"].SetString(project_parameters["solver_settings"]["formfinding_convergence_criterion"].GetString())
+            self.analysis_parameters["solver_settings"]["convergence_criterion"].SetString(project_parameters["solver_settings"]["analysis_convergence_criterion"].GetString())
+            
+            self.formfinding_parameters["solver_settings"].RemoveValue("formfinding_convergence_criterion")
+            self.formfinding_parameters["solver_settings"].RemoveValue("analysis_convergence_criterion")
+            
+            self.analysis_parameters["solver_settings"].RemoveValue("formfinding_convergence_criterion")
+            self.analysis_parameters["solver_settings"].RemoveValue("analysis_convergence_criterion")
 
         # Models
         self.input_model = model
@@ -67,6 +85,7 @@ class StructuralMechanicsFormfindingAndAnalysis(StructuralMechanicsAnalysis):
 
         # Formfinding
         self.formfinding_simulation = Formfinding(self.input_model, self.formfinding_parameters)
+        self.CheckProjectionSettings()
         self.LoadsAndMaterialsManager()
         self.formfinding_simulation.Initialize()
         self.formfinding_simulation.RunSolutionLoop()
@@ -91,18 +110,52 @@ class StructuralMechanicsFormfindingAndAnalysis(StructuralMechanicsAnalysis):
         raised.
         '''
 
+        KratosMultiphysics.Logger.PrintInfo("::[FormfindingAndAnalysis]:: ", "Adjusting parameter files")
+
         if self.analysis_parameters["solver_settings"]["solver_type"].GetString() != "formfinding":
             raise NotImplementedError("Required manipulations are based off of an export off a model with Kratos Solver Type 'Formfinding'.")
 
-        # Using existing model_part from formfinding
+        # The analysis uses result from formfinding
         self.analysis_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
+        self.analysis_parameters["solver_settings"]["model_import_settings"].RemoveValue("input_filename")
 
         # Some project_parameters for formdinding not needed for anaylsis and cause validation errors
         self.analysis_parameters["solver_settings"].RemoveValue('formfinding_model_part_name')
         self.analysis_parameters["solver_settings"].RemoveValue('printing_format')
-        self.analysis_parameters["solver_settings"].RemoveValue('projection_settings')
         self.analysis_parameters["solver_settings"].RemoveValue('write_formfound_geometry_file')
+        self.analysis_parameters["solver_settings"].RemoveValue('projection_settings')
         self.analysis_parameters["solver_settings"].RemoveValue('printing_format')
+
+        # Time stepping - the default time_step_table was always manually deleted from ProjectParameters.json and replaced with time_step = 1.1
+        try:
+            self.formfinding_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+
+        except:
+            KratosMultiphysics.Logger.PrintInfo("::[FormfindingAndAnalysis]:: ", "'time_step' manually set to 1.1. 'time_step_table' parameter removed.")
+            self.formfinding_parameters["solver_settings"]["time_stepping"].RemoveValue("time_step_table")
+            self.formfinding_parameters["solver_settings"]["time_stepping"].AddDouble("time_step", 1.1)
+            self.analysis_parameters["solver_settings"]["time_stepping"].RemoveValue("time_step_table")
+            self.analysis_parameters["solver_settings"]["time_stepping"].AddDouble("time_step", 1.1)
+        
+        # list_other_processes default from GiD causes ModuleNotFoundError, remove
+        self.formfinding_parameters["processes"].RemoveValue("list_other_processes")
+        self.analysis_parameters["processes"].RemoveValue("list_other_processes")
+
+    def CheckProjectionSettings(self):
+
+        '''
+        With the export from GiD, the projection_settings in the json 
+        ProjectParameters file is always manually updated. Avoiding this step 
+        by setting the required values which the ValidateAndAssignDefaults() 
+        doesn't do.
+        '''
+
+        global_echo_level = self.formfinding_simulation.project_parameters["solver_settings"]["echo_level"].GetDouble()
+        self.formfinding_simulation.project_parameters["solver_settings"]["projection_settings"]["echo_level"].SetDouble(global_echo_level)
+        
+        if self.formfinding_simulation.project_parameters["solver_settings"]["projection_settings"]["variable_name"].GetString() != "LOCAL_PRESTRESS_AXIS_1":
+            self.formfinding_simulation.project_parameters["solver_settings"]["projection_settings"]["variable_name"].SetString("LOCAL_PRESTRESS_AXIS_1")
+            KratosMultiphysics.Logger.PrintInfo("::[FormfindingUpdate]:: ", "Projection setting adjusted to LOCAL_PRESTRESS_AXIS_1")
 
     def LoadsAndMaterialsManager(self):
 
@@ -127,12 +180,16 @@ class StructuralMechanicsFormfindingAndAnalysis(StructuralMechanicsAnalysis):
         '''
 
         if self.stage == "formfinding - start":
+
+            KratosMultiphysics.Logger.PrintInfo("::[FormfindingUpdate]:: ", "Removing external loads for formfinding")
             
             for load in self.formfinding_parameters["processes"]["loads_process_list"]:
                 self.loads.append(load["Parameters"]["modulus"].GetDouble())
                 load["Parameters"]["modulus"].SetDouble(0.0)
         
         if self.stage == "analysis - start":
+
+            KratosMultiphysics.Logger.PrintInfo("::[AnalysisUpdate]:: ", "Re-instating external loads for analysis")
 
             for index, load in enumerate(self.analysis_parameters["processes"]["loads_process_list"]):
                 load["Parameters"]["modulus"].SetDouble(self.loads[index])
@@ -160,10 +217,14 @@ class StructuralMechanicsFormfindingAndAnalysis(StructuralMechanicsAnalysis):
 
         if self.stage == 'formfinding - start':
 
+            KratosMultiphysics.Logger.PrintInfo("::[FormfindingUpdate]:: ", "Setting density and E_Mod to zero for formfinding")
+
             self._StructuralMaterialsUpdate(mp_name, data["properties"], "Membrane")
             self._StructuralMaterialsUpdate(mp_name, data["properties"], "Cable", {"DENSITY": 0, "YOUNG_MODULUS": 1e-18})
 
         if self.stage == 'analysis - start':
+
+            KratosMultiphysics.Logger.PrintInfo("::[AnalysisUpdate]:: ", "Re-instating density and E_Mod to zero for analysis")
 
             self._StructuralMaterialsUpdate(mp_name, data["properties"], "Membrane", {"DENSITY": self.materials["Membrane"]["DENSITY"], "YOUNG_MODULUS": self.materials["Membrane"]["YOUNG_MODULUS"]})
             self._StructuralMaterialsUpdate(mp_name, data["properties"], "Cable", {"DENSITY": self.materials["Cable"]["DENSITY"], "YOUNG_MODULUS": self.materials["Cable"]["YOUNG_MODULUS"]})
@@ -234,6 +295,7 @@ class StructuralMechanicsFormfindingAndAnalysis(StructuralMechanicsAnalysis):
         '''
 
         if self.stage == 'formfinding - end':
+            KratosMultiphysics.Logger.PrintInfo("Switching simulation from formfinding to analysis")
             self.stage = 'analysis - start'
         if self.stage == 'analysis - end':
             self.stage = 'completed'
