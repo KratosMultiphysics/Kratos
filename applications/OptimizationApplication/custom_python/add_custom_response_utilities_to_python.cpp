@@ -31,15 +31,15 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<MassResponseUtils >(m, "MassResponseUtils")
-        .def_static("Check", &MassResponseUtils::Check)
-        .def_static("CalculateValue", &MassResponseUtils::CalculateValue)
-        .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity)
+    m.def_submodule("MassResponseUtils")
+        .def("Check", &MassResponseUtils::Check)
+        .def("CalculateValue", &MassResponseUtils::CalculateValue)
+        .def("CalculateGradient", &MassResponseUtils::CalculateGradient, py::arg("evaluated_model_part"), py::arg("gradient_variable_model_parts_map"))
         ;
 
-    py::class_<LinearStrainEnergyResponseUtils >(m, "LinearStrainEnergyResponseUtils")
-        .def_static("CalculateValue", &LinearStrainEnergyResponseUtils::CalculateValue)
-        .def_static("CalculateSensitivity", &LinearStrainEnergyResponseUtils::CalculateSensitivity)
+    m.def_submodule("LinearStrainEnergyResponseUtils")
+        .def("CalculateValue", &LinearStrainEnergyResponseUtils::CalculateValue)
+        .def("CalculateGradient", &LinearStrainEnergyResponseUtils::CalculateGradient, py::arg("analysis_model_part"), py::arg("evaluated_model_part"), py::arg("gradient_variable_model_parts_map"), py::arg("perturbation_size"))
         ;
 
 }
