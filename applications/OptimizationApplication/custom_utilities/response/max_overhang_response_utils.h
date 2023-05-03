@@ -62,7 +62,7 @@ private:
     ///@name Private static operations
     ///@{
 
-    static double CalculateConditionValue(const Condition& rCondition, const Parameters& rResponseSettings);
+    static double CalculateConditionValue(const Condition& rCondition, const Parameters ResponseSettings);
 
     static void CalculateConditionFiniteDifferenceShapeSensitivity(
         Condition& rCondition,

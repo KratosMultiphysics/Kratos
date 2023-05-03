@@ -58,24 +58,24 @@ double MaxOverhangAngleResponseUtils::CalculateValue(
 
 double MaxOverhangAngleResponseUtils::CalculateConditionValue(
     const Condition& rCondition,
-    const Parameters& rResponseSettings)
+    const Parameters ResponseSettings)
 {
-    array_3d print_direction = rResponseSettings["print_direction"].GetVector();
+    array_3d print_direction = ResponseSettings["print_direction"].GetVector();
     KRATOS_ERROR_IF_NOT(norm_2(print_direction) > std::numeric_limits<double>::epsilon())
     << "MaxOverhangAngleResponseUtils:print_direction: "<<print_direction<<" has size close to zero\n";
     print_direction /= norm_2(print_direction);
 
-    const double max_angle = rResponseSettings["max_angle"].GetDouble();
+    const double max_angle = ResponseSettings["max_angle"].GetDouble();
     KRATOS_ERROR_IF(!(max_angle >= 0.0 && max_angle <= 90.0))
     << "MaxOverhangAngleResponseUtils: max_angle: "<<max_angle<<" should be in range [0,90]\n";
     const double sin_max_angle = std::sin(max_angle * Globals::Pi / 180);
 
 
-    const double heaviside_beta = rResponseSettings["heaviside_beta"].GetDouble();
+    const double heaviside_beta = ResponseSettings["heaviside_beta"].GetDouble();
     KRATOS_ERROR_IF(std::signbit(heaviside_beta))
     << "MaxOverhangAngleResponseUtils: heaviside_beta: "<<heaviside_beta<<" should be positive\n";
 
-    const double penalty_factor = rResponseSettings["penalty_factor"].GetDouble();
+    const double penalty_factor = ResponseSettings["penalty_factor"].GetDouble();
     KRATOS_ERROR_IF(std::signbit(penalty_factor))
     << "MaxOverhangAngleResponseUtils: penalty_factor: "<<penalty_factor<<" should be positive\n";
 
