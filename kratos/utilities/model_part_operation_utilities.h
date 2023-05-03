@@ -61,7 +61,7 @@ public:
         const bool ThrowError = false);
 
     /**
-     * @brief Merge given union model parts to one model part.
+     * @brief Union given union model parts to one model part.
      *
      * This method merges all the nodes, geometries in @ref rUnionModelParts in to one model part
      * given by @ref rOutputSubModelPartName. The output model part is a sub-model part of
@@ -82,7 +82,7 @@ public:
      * @param AddNeighbourEntities          To add or not the neighbours.
      * @return ModelPart&                   Output sub model part.
      */
-    static ModelPart& Merge(
+    static ModelPart& Union(
         const std::string& rOutputSubModelPartName,
         ModelPart& rMainModelPart,
         const std::vector<ModelPart const*>& rUnionModelParts,

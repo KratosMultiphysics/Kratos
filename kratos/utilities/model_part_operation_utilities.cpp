@@ -412,7 +412,7 @@ ModelPart& CreateModelPartWithOperation(
     return CreateOutputModelPart(rOutputSubModelPartName, rMainModelPart, output_nodes, output_conditions, output_elements);
 }
 
-struct Merge
+struct Union
 {
     template<class TCheckType>
     static bool IsValid(
@@ -549,13 +549,13 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
     return true;
 }
 
-ModelPart& ModelPartOperationUtilities::Merge(
+ModelPart& ModelPartOperationUtilities::Union(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rUnionModelParts,
     const bool AddNeighbourEntities)
 {
-    return ModelPartOperationHelperUtilities::CreateModelPartWithOperation<ModelPartOperationHelperUtilities::Merge>(
+    return ModelPartOperationHelperUtilities::CreateModelPartWithOperation<ModelPartOperationHelperUtilities::Union>(
         rOutputSubModelPartName, rMainModelPart, rUnionModelParts,
         AddNeighbourEntities);
 }
