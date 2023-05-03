@@ -706,7 +706,6 @@ namespace Kratos
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 
 			SizeType rigidNodes = 0;
-			SizeType boundaryNodes = 0;
 			SizeType freesurfaceNodes = 0;
 			SizeType lagrangianInletNodes = 0;
 			SizeType eulerianInletNodes = 0;
@@ -722,10 +721,6 @@ namespace Kratos
 					rigidNodes++;
 					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H_WALL);
 					rigidNodeMeshCounter += 1.0;
-				}
-				if (Element[pn].Is(BOUNDARY))
-				{
-					boundaryNodes++;
 				}
 				if (Element[pn].Is(TO_ERASE))
 				{
