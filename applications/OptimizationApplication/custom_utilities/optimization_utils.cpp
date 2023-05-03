@@ -92,8 +92,8 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
 {
     KRATOS_TRY
 
-    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.PropertiesArray(), [](const auto pProperties) {
-        return pProperties->Id();
+    auto properties_id = block_for_each<MaxReduction<IndexType>>(rContainer, [](const auto& rEntity) {
+        return rEntity.GetProperties().Id();
     });
 
     // creation of properties is done in serial
