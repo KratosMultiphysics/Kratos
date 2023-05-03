@@ -584,7 +584,7 @@ ModelPart& ModelPartOperationUtilities::Intersect(
 
 bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>& rIntersectionModelParts)
 {
-    KRATOS_ERROR_IF(rIntersectionModelParts.size() == 2) << "HasIntersection check requires atleast 2 model parts.\n";
+    KRATOS_ERROR_IF(rIntersectionModelParts.size() < 2) << "HasIntersection check requires atleast 2 model parts.\n";
 
     auto& r_main_model_part = rIntersectionModelParts[0]->GetRootModelPart();
 
