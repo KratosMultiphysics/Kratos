@@ -6,44 +6,43 @@ class ComponentData:
     def __init__(self, component: Any, optimization_problem: OptimizationProblem):
         self.__problem_data = optimization_problem.GetProblemDataContainer()
 
+        # get data name
         self.__component_type = optimization_problem.GetComponentType(component)
         self.__component_name = optimization_problem.GetComponentName(component)
-
         self.__data_name = f"{self.__component_type.__name__}/{self.__component_name}"
+        self.__buffered_data_name = f"{self.__data_name}/buffered"
+        self.__unbuffered_data_name = f"{self.__data_name}/unbuffered"
+        self.__component = component
 
         # if the component data container not found, then create it.
         if not self.__problem_data.HasValue(self.__data_name):
             self.ResetData()
 
-        self.__component = component
-
     def ResetData(self):
-        self.__problem_data[self.__data_name] = {}
+        if self.__problem_data.HasValue(self.__data_name):
+            # if exists, delete the current problem data
+            del self.__problem_data[self.__data_name]
 
-        self.__component_data: BufferedDict = self.__problem_data[self.__data_name]
-        self.__component_buffered_data: BufferedDict = None
-
+        self.__problem_data[self.__data_name] = BufferedDict(1)
         # create the unbuffered data container
-        self.__component_unbuffered_data = BufferedDict(1)
-        self.__component_data["unbuffered"] = self.__component_unbuffered_data
+        self.__problem_data[self.__unbuffered_data_name] = BufferedDict(1)
 
     def SetDataBuffer(self, buffer_size: int):
-        if not self.__component_data.HasValue("buffered"):
-            self.__component_buffered_data = BufferedDict(buffer_size)
-            self.__component_data["buffered"] = self.__component_buffered_data
+        if not self.__problem_data.HasValue(self.__buffered_data_name):
+            self.__problem_data[self.__buffered_data_name] = BufferedDict(buffer_size)
         else:
-            self.__component_buffered_data: BufferedDict = self.__component_data["buffered"]
-            if self.__component_buffered_data.GetBufferSize() < buffer_size:
-                raise RuntimeError(f"The required buffer size is not satisfied with the existing problem data container. [ response data container buffer size = {self.__response_buffered_data.GetBufferSize()}, required buffer size = {required_buffer_size}")
+            buffered_data: BufferedDict = self.__problem_data[self.__buffered_data_name]
+            if buffered_data.GetBufferSize() < buffer_size:
+                raise RuntimeError(f"The required buffer size is not satisfied with the existing problem data container. [ component data container buffer size = {buffered_data.GetBufferSize()}, required buffer size = {buffer_size}, component = {self.__component_name}, component type = {self.__component_type}")
 
     def GetComponent(self) -> Any:
         return self.__component
 
     def GetBufferedData(self) -> BufferedDict:
-        if self.__component_buffered_data is None:
+        if not self.__problem_data.HasValue(self.__buffered_data_name):
             raise RuntimeError(f"Buffered data is not set by calling ComponentData::SetBuffer for component of type \"{self.__component_type}\" with component name \"{self.__component_name}\".")
 
-        return self.__component_buffered_data
+        return self.__problem_data[self.__buffered_data_name]
 
     def GetUnBufferedData(self) -> BufferedDict:
-        return self.__component_unbuffered_data
+        return self.__problem_data[self.__unbuffered_data_name]
