@@ -19,8 +19,6 @@ class MaterialPropertiesControl(Control):
 
     """
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
-        super().__init__()
-
         default_settings = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>_combined_no_neighbours_control",
             "model_part_names"               : [""],
