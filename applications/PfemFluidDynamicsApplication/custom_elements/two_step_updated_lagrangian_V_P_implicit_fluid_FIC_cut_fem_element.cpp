@@ -989,7 +989,7 @@ namespace Kratos
 
                 // Take dynamic viscosity from the bottom right corner of the constitutive matrix
                 double mu = r_constitutive_matrix(StrainSize-1, StrainSize-1);
-                const double max_mu_value = 10000;
+                const double max_mu_value = 10000; // TODO: check it 
                 if (mu > max_mu_value)
                 {
                     mu = max_mu_value;
