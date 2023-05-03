@@ -4,6 +4,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
+from KratosMultiphysics.OptimizationApplication.controls.control import Control
 
 
 class KratosSteepestDescent(PythonSolver):
@@ -36,6 +37,11 @@ class KratosSteepestDescent(PythonSolver):
         self.optimization_problem = optimization_problem
 
         self.master_control = MasterControl() # Need to fill it with controls
+        control_list = parameters["controls"]
+
+        for control in control_list:
+            control = Control() # Use Control Factory 
+            self.master_control.AddControl(control)
 
         algorithm_parameters = parameters["settings"]
         algorithm_parameters.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
