@@ -6,20 +6,20 @@ import KratosMultiphysics.StructuralMechanicsApplication
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
 
 class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
-        cls.optimization_problem = OptimizationProblem()
         cls.model_part = cls.model.CreateModelPart("Structure")
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
-        Kratos.ModelPartIO("linear_strain_energy_test/Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 
-        material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": "linear_strain_energy_test/StructuralMaterials.json"}} """)
-        Kratos.ReadMaterialsUtility(material_settings, cls.model)
+        with kratos_unittest.WorkFolderScope("../../linear_strain_energy_test", __file__):
+            Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
+            material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": "StructuralMaterials.json"}} """)
+            Kratos.ReadMaterialsUtility(material_settings, cls.model)
 
         parameters = Kratos.Parameters("""{
             "combined_output_model_part_name": "<CONTROL_NAME>",
@@ -27,12 +27,11 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
             "control_variable_name" : "DENSITY"
         }""")
 
-        cls.properties_control = MaterialPropertiesControl(cls.model, parameters, cls.optimization_problem)
-        cls.optimization_problem.AddControl("test", cls.properties_control)
+        cls.properties_control = MaterialPropertiesControl("test", cls.model, parameters)
 
     @classmethod
     def tearDownClass(cls):
-        with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
+        with kratos_unittest.WorkFolderScope("../../linear_strain_energy_test", __file__):
             DeleteFileIfExisting("Structure.time")
 
     def test_PropertiesControlInitialize(self):
@@ -52,13 +51,11 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         for element in model_part.Elements:
             element.Properties[Kratos.DENSITY] = element.Id
 
-        update_vector = self.properties_control.GetEmptyControlField()
+        update_vector = self.properties_control.GetEmptyField()
         update_vector.Read(Kratos.DENSITY)
 
         # run for 3 iterations
         for i in range(1, 4, 1):
-            self.optimization_problem.AdvanceStep()
-
             self.properties_control.Update(update_vector.Clone() * i)
 
             for element in model_part.Elements:
@@ -104,7 +101,10 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
                 Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part),
                 Kratos.THICKNESS: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)})
 
-        self.properties_control.MapGradient({Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)})
+        self.assertTrue(
+            IsSameContainerExpression(
+                self.properties_control.MapGradient({Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)}),
+                KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)))
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
