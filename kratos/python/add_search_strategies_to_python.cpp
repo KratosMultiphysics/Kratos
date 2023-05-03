@@ -774,4 +774,3 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 }
 
 }  // namespace Kratos::Python.
-
