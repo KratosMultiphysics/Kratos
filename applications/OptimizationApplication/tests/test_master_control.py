@@ -114,13 +114,24 @@ class TestMassterControl(kratos_unittest.TestCase):
             self.assertTrue(IsSameContainerExpression(mapped_gradients.GetContainerExpressions()[i], control.GetEmptyControlField()))
 
     def test_Update(self):
-        result = self.master_control.GetPhysicalKratosVariableCollectiveExpressionsMap()
-        mapped_gradients = self.master_control.MapGradient(result)
-        mapped_gradients.Read(Kratos.DENSITY)
+        update = self.master_control.GetEmptyControlFields()
 
-        updated_status = self.master_control.Update(mapped_gradients)
-        upd
-        self.assertFalse(any(updated_status.values()))
+        # assigning density for all the mapped gradients
+        update.Read(Kratos.DENSITY)
+
+        # now updating density should not do anything for density controls, but thickness should be updated
+        # checking for that
+        updated_status = self.master_control.Update(update)
+        for k, v in updated_status.items():
+            if k.GetPhysicalKratosVariables() == [Kratos.THICKNESS]:
+                self.assertTrue(v)
+            else:
+                self.assertFalse(v)
+
+        update *= 2
+        # now everyhing should be updated
+        updated_status = self.master_control.Update(update)
+        self.assertTrue(all(updated_status.values()))
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
