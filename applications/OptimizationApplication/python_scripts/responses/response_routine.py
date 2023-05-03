@@ -17,6 +17,9 @@ class ResponseRoutine:
         self.__contributing_controls_list: 'list[Control]' = []
         self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]' = {}
 
+    def GetMasterControl(self) -> MasterControl:
+        return self.__master_control
+
     def Initialize(self):
         """Initializes the response routine and underlying response.
 
