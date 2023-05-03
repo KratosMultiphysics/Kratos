@@ -106,8 +106,9 @@ class TestResponseRoutine(kratos_unittest.TestCase):
     def test_CalculateGradient(self):
         control_field = self.master_control.GetEmptyField()
         control_field.Read(Kratos.DENSITY)
-        _ = self.response_routine.CalculateValue(control_field)
 
+        # Calculate value should always be called once before the calculate gradient
+        _ = self.response_routine.CalculateValue(control_field)
         gradient = self.response_routine.CalculateGradient()
 
         self.assertEqual(len(gradient.GetContainerExpressions()), 4)
