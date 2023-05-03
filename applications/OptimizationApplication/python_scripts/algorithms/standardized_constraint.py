@@ -1,10 +1,11 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.responses.standardization_utilities import StandardizationUtilities
+from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
+from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
-class StandardizedConstraint:
+class StandardizedConstraint(ResponseRoutine):
     """Standardized constraint response function
 
     This class creates instances to standardize any response function for the specified type of the contraint.
@@ -18,11 +19,12 @@ class StandardizedConstraint:
     The reference value for the constraint either can be the "initial_value" or a specified value.
 
     """
-    def __init__(self, parameters: Kratos.Parameters, optimization_info: OptimizationProblem):
+    def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 2):
         default_parameters = Kratos.Parameters("""{
-            "response_name": "",
-            "type"         : "",
-            "ref_value"    : "initial_value"
+            "response_name"   : "",
+            "type"            : "",
+            "scaling"         : 1.0,
+            "scaled_ref_value": "initial_value"
         }""")
 
         if parameters.Has("ref_value") and parameters["ref_value"].IsDouble():
@@ -30,65 +32,112 @@ class StandardizedConstraint:
 
         parameters.ValidateAndAssignDefaults(default_parameters)
 
-        if parameters["ref_value"].IsDouble():
+        response = optimization_problem.GetResponse(parameters["response_name"].GetString())
+
+        super().__init__(master_control, response)
+
+        if required_buffer_size < 2:
+            raise RuntimeError(f"Standardized objective requires 2 as minimum buffer size. [ response name = {self.GetReponse().GetName()} ]")
+
+        self.__optimization_problem = optimization_problem
+        self.__component_data_view = ComponentDataView(response, optimization_problem)
+        self.__component_data_view.SetDataBuffer(required_buffer_size)
+
+        scaling = parameters["scaling"].GetDouble()
+        if scaling < 0.0:
+            raise RuntimeError(f"Scaling should be always positive [ given scale = {scaling}]")
+
+        if parameters["scaled_ref_value"].IsDouble():
             self.__ref_type = "specified_value"
-            self.__reference_value = parameters["ref_value"].GetDouble()
-        elif parameters["ref_value"].IsString() and parameters["ref_value"].GetString() == "initial_value":
+            self.__reference_value = parameters["scaled_ref_value"].GetDouble()
+        elif parameters["scaled_ref_value"].IsString() and parameters["scaled_ref_value"].GetString() == "initial_value":
             self.__ref_type = "initial_value"
             self.__reference_value = None
         else:
             raise RuntimeError(f"Provided \"reference_type\" = {self.__ref_type} is not supported for constraint response functions. Followings are supported options: \n\tinitial_value\n\tfloat value")
 
         self.__constraint_type = parameters["type"].GetString()
-        if self.__constraint_type in ["<", "<=", "="]:
-            self.__standardization_value = 1.0
-        elif self.__constraint_type in [">", ">="]:
-            self.__standardization_value = -1.0
+        if self.__constraint_type in ["<=", "="]:
+            self.__scaling = scaling
+        elif self.__constraint_type in [">="]:
+            self.__scaling = -scaling
         else:
             raise RuntimeError(f"Provided \"type\" = {self.__constraint_type} is not supported in constraint response functions. Followings are supported options: \n\t=\n\t<=\n\t<\n\t>=\n\t>")
 
-        self.__utility = StandardizationUtilities(parameters["response_name"].GetString(), optimization_info)
+    def IsEqualityType(self) -> str:
+        return self.__constraint_type == "="
 
-    def GetName(self) -> str:
-        return self.__utility.GetName()
+    def GetReferenceValue(self) -> float:
+        if self.__reference_value is not None:
+            return self.__reference_value
+        else:
+            raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
-    def GetType(self) -> str:
-        return self.__constraint_type
+    def CalculateStandardizedValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
+        response_value = self.CalculateValue(control_field)
+        standardized_response_value = response_value * self.__scaling
 
-    def GetReferenceValue(self):
         if self.__reference_value is None:
-            self.__reference_value = self.__utility.GetScaledValue()
-        return self.__reference_value
+            self.__reference_value = standardized_response_value
 
-    def GetStandardizedValue(self, step_index: int = 0) -> float:
-        return self.__utility.GetScaledValue(step_index, self.__standardization_value) - self.__standardization_value * self.GetReferenceValue()
+        standardized_response_value -= self.GetReferenceValue()
 
-    def IsActive(self, step_index: int = 0) -> bool:
-        return (self.__constraint_type == "=") or self.GetStandardizedValue(step_index) >= 0.0
+        if save_value:
+            data = self.__component_data_view.GetBufferedData()
+            data["value"] = response_value
+            data["standardized_value"] = standardized_response_value
 
-    def GetViolationRatio(self, step_index: int = 0) -> float:
-        return (self.GetStandardizedValue(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetStandardizedValue(step_index)) * self.IsActive()
+        return standardized_response_value
 
-    def CalculateStandardizedSensitivity(self, sensitivity_variable_collective_expression_info: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]'):
-        self.__utility.CalculateScaledSensitivity(sensitivity_variable_collective_expression_info, self.__standardization_value)
+    def CalculateStandardizedGradient(self, save_value: bool = True) -> KratosOA.ContainerExpression.CollectiveExpressions:
+        gradient_collective_expression = self.CalculateGradient()
 
-    def UpdateConstraintData(self) -> None:
-        response_problem_data = self.__utility.GetBufferedData()
-        response_problem_data["rel_change"] = self.__utility.GetRelativeChange()
-        response_problem_data["abs_change"] = self.__utility.GetAbsoluteChange(self.GetReferenceValue())
+        if save_value:
+            for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+                self.__component_data_view.GetUnBufferedData()[f"d{self.GetReponse().GetName()}_d{control.GetName()}"] = gradient_container_expression.Clone()
+
+        return gradient_collective_expression * self.__scaling
+
+    def GetValue(self, step_index: int) -> float:
+        return self.__component_data_view.GetBufferedData().GetValue("value", step_index)
+
+    def GetStandardizedValue(self, step_index: int) -> float:
+        return self.__component_data_view.GetBufferedData().GetValue("standardized_value", step_index)
+
+    def GetAbsoluteViolation(self, step_index: int = 0) -> float:
+        is_violated = self.IsEqualityType() or self.GetStandardizedValue(step_index) >= 0.0
+        return self.GetStandardizedValue(step_index) * is_violated
+
+    def GetRelativeViolation(self, step_index: int = 0) -> float:
+        is_violated = self.IsEqualityType() or self.GetStandardizedValue(step_index) >= 0.0
+        return ((self.GetAbsoluteViolation(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else self.GetAbsoluteViolation(step_index))) * is_violated
+
+    def GetRelativeChange(self) -> float:
+        if self.__optimization_problem.GetStep() > 1:
+            return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
+        else:
+            return 0.0
+
+    def GetAbsoluteChange(self) -> float:
+        return self.GetStandardizedValue() / self.GetReferenceValue() - 1.0 if abs(self.GetReferenceValue()) > 1e-12 else self.GetStandardizedValue()
+
+    def UpdateOptimizationProblemData(self) -> None:
+        response_problem_data = self.__component_data_view.GetBufferedData()
+        response_problem_data["type"] = self.__constraint_type
         response_problem_data["ref_value"] = self.GetReferenceValue()
-        response_problem_data["is_active"] = self.IsActive()
-        response_problem_data["type"] = self.GetType()
-        response_problem_data["violation"] = abs(self.GetViolationRatio())
+        response_problem_data["rel_change"] = self.GetRelativeChange()
+        response_problem_data["abs_change"] = self.GetAbsoluteChange()
+        response_problem_data["rel_violation"] = self.GetRelativeViolation()
+        response_problem_data["abs_violation"] = self.GetAbsoluteViolation()
 
-    def GetConstraintInfo(self) -> str:
+    def GetInfo(self) -> str:
         msg = "\tConstraint info:"
-        msg += f"\n\t\t name          : {self.GetName()}"
-        msg += f"\n\t\t value         : {self.__utility.GetScaledValue():0.6e}"
-        msg += f"\n\t\t type          : {self.GetType()}"
-        msg += f"\n\t\t ref_value     : {self.GetReferenceValue():0.6e}"
-        msg += f"\n\t\t is_active     : {self.IsActive()}"
-        msg += f"\n\t\t rel_change [%]: {self.__utility.GetRelativeChange() * 100.0:0.6e}"
-        msg += f"\n\t\t abs_change [%]: {self.__utility.GetAbsoluteChange(self.GetReferenceValue()) * 100.0:0.6e}"
-        msg += f"\n\t\t violation  [%]: {abs(self.GetViolationRatio()) * 100.0:0.6e}"
+        msg += f"\n\t\t name             : {self.GetReponse().GetName()}"
+        msg += f"\n\t\t value            : {self.GetValue():0.6e}"
+        msg += f"\n\t\t type             : {self.__constraint_type}"
+        msg += f"\n\t\t ref_value        : {self.GetReferenceValue():0.6e}"
+        msg += f"\n\t\t abs_change       : {self.GetAbsoluteChange():0.6e}"
+        msg += f"\n\t\t rel_change [%]   : {self.GetRelativeChange() * 100.0:0.6e}"
+        msg += f"\n\t\t abs_violation    : {self.GetAbsoluteViolation():0.6e}"
+        msg += f"\n\t\t rel_violation [%]: {self.GetRelativeViolation() * 100.0:0.6e}"
         return msg

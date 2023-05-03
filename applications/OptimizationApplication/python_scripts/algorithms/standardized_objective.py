@@ -26,6 +26,9 @@ class StandardizedObjective(ResponseRoutine):
 
         super().__init__(master_control, response)
 
+        if required_buffer_size < 2:
+            raise RuntimeError(f"Standardized objective requires 2 as minimum buffer size. [ response name = {self.GetReponse().GetName()} ]")
+
         self.__optimization_problem = optimization_problem
         self.__component_data_view = ComponentDataView(response, optimization_problem)
         self.__component_data_view.SetDataBuffer(required_buffer_size)
@@ -50,8 +53,8 @@ class StandardizedObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
-    def CalculateStandardizedValue(self, control_space_updates: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
-        response_value = self.CalculateValue(control_space_updates)
+    def CalculateStandardizedValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
+        response_value = self.CalculateValue(control_field)
         standardized_response_value = response_value * self.__scaling
 
         if not self.__initial_response_value:
@@ -98,6 +101,6 @@ class StandardizedObjective(ResponseRoutine):
         msg += f"\n\t\t name          : {self.GetReponse().GetName()}"
         msg += f"\n\t\t type          : {self.__objective_type}"
         msg += f"\n\t\t value         : {self.GetValue():0.6e}"
+        msg += f"\n\t\t abs_change    : {self.GetAbsoluteChange():0.6e}"
         msg += f"\n\t\t rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"
-        msg += f"\n\t\t abs_change [%]: {self.GetAbsoluteChange(self.GetInitialValue()) * 100.0:0.6e}"
         return msg
