@@ -1,18 +1,17 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
+from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class ResponseRoutine:
-    def __init__(self, master_control: MasterControl, response_name: str, optimization_problem: OptimizationProblem) -> None:
+    def __init__(self, master_control: MasterControl, response: ResponseFunction) -> None:
         # set the master control
         self.__master_control = master_control
 
         # set the response
-        self.__response = optimization_problem.GetResponse(response_name)
-        self.__response_name = response_name
+        self.__response = response
         self.__response_value = None
 
         self.__contributing_controls_list: 'list[Control]' = []
@@ -30,24 +29,15 @@ class ResponseRoutine:
         # create the required physical control fields to compute gradients
         self.__required_physical_gradients = self.__master_control.GetPhysicalKratosVariableCollectiveExpressionsMap()
 
-        # create zero gradient fields for non-dependent control fields
-        self.__independent_physical_gradients: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions] = {}
-
         # now check which are the dependent physical space variables for the response, if not then remove
         # that variable
+        list_of_independent_variables = []
         for required_physical_variable in self.__required_physical_gradients.keys():
             if required_physical_variable not in self.__response.GetDependentPhysicalKratosVariables():
-                if not required_physical_variable in self.__independent_physical_gradients.keys():
-                    self.__independent_physical_gradients[required_physical_variable] = KratosOA.ContainerExpression.CollectiveExpressions()
-
-                # add the collective expression to the independent collective expression.
-                independent_collective_expression: KratosOA.ContainerExpression.CollectiveExpressions = self.__independent_physical_gradients[required_physical_variable]
-                zero_expression = self.__required_physical_gradients[required_physical_variable]
-                zero_expression.SetToZero()
-                independent_collective_expression.Add(zero_expression)
+                list_of_independent_variables.append(required_physical_variable)
 
         # now remove this independent collective expression from the require collective expressions map.
-        for independent_variable in self.__independent_physical_gradients.keys():
+        for independent_variable in list_of_independent_variables:
             del self.__required_physical_gradients[independent_variable]
 
         for control in self.__master_control.GetListOfControls():
@@ -73,8 +63,8 @@ class ResponseRoutine:
     def Finalize(self):
         self.__response.Finalize()
 
-    def GetReponseName(self) -> str:
-        return self.__response_name
+    def GetReponse(self) -> ResponseFunction:
+        return self.__response
 
     def CalculateValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions) -> float:
         """Calculates the value of the response.
@@ -130,15 +120,6 @@ class ResponseRoutine:
         # fills the proper physical gradients from the response
         self.__response.CalculateGradient(self.__required_physical_gradients)
 
-        # now fill final mapping gradients with the dependent variables collective expressions
-        mapping_gradients: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions] = {}
-        for k, v in self.__required_physical_gradients.items():
-            mapping_gradients[k] = v
-
-        # now fill final mapping gradients with independent variables collective expressions
-        for k, v in self.__independent_physical_gradients.items():
-            mapping_gradients[k] = v
-
         # calculate and return the control space gradients from respective controls
-        return self.__master_control.MapGradient(mapping_gradients)
+        return self.__master_control.MapGradient(self.__required_physical_gradients)
 
