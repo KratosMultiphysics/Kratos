@@ -26,6 +26,7 @@ class StandardizedObjective(ResponseRoutine):
 
         super().__init__(master_control, response)
 
+        self.__optimization_problem = optimization_problem
         self.__component_data_view = ComponentDataView(response, optimization_problem)
         self.__component_data_view.SetDataBuffer(required_buffer_size)
 
@@ -73,21 +74,30 @@ class StandardizedObjective(ResponseRoutine):
         gradient_collective_expression = self.CalculateGradient()
 
         if save_value:
-            for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.)
-            self.__component_data_view.GetUnBufferedData()[f"{self.GetReponse().GetName()}_"]
-        return self.CalculateGradient() * self.__scaling
+            for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+                self.__component_data_view.GetUnBufferedData()[f"d{self.GetReponse().GetName()}_d{control.GetName()}"] = gradient_container_expression.Clone()
 
-    def UpdateObjectiveData(self) -> None:
-        response_problem_data = self.__utility.GetBufferedData()
-        response_problem_data["type"] = self.GetType()
-        response_problem_data["rel_change"] = self.__utility.GetRelativeChange()
-        response_problem_data["abs_change"] = self.__utility.GetAbsoluteChange(self.GetInitialValue())
+        return gradient_collective_expression * self.__scaling
 
-    def GetObjectiveInfo(self) -> str:
+    def GetRelativeChange(self) -> float:
+        if self.__optimization_problem.GetStep() > 1:
+            return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
+        else:
+            return 0.0
+
+    def GetAbsoluteChange(self) -> float:
+        return self.GetStandardizedValue() / self.GetInitialValue() - 1.0 if abs(self.GetInitialValue()) > 1e-12 else self.GetStandardizedValue()
+
+    def UpdateOptimizationProblemData(self) -> None:
+        response_problem_data = self.__component_data_view.GetBufferedData()
+        response_problem_data["rel_change"] = self.GetRelativeChange()
+        response_problem_data["abs_change"] = self.GetAbsoluteChange()
+
+    def GetInfo(self) -> str:
         msg = "\tObjective info:"
-        msg += f"\n\t\t name          : {self.GetName()}"
-        msg += f"\n\t\t type          : {self.GetType()}"
-        msg += f"\n\t\t value         : {self.__utility.GetScaledValue():0.6e}"
-        msg += f"\n\t\t rel_change [%]: {self.__utility.GetRelativeChange() * 100.0:0.6e}"
-        msg += f"\n\t\t abs_change [%]: {self.__utility.GetAbsoluteChange(self.GetInitialValue()) * 100.0:0.6e}"
+        msg += f"\n\t\t name          : {self.GetReponse().GetName()}"
+        msg += f"\n\t\t type          : {self.__objective_type}"
+        msg += f"\n\t\t value         : {self.GetValue():0.6e}"
+        msg += f"\n\t\t rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"
+        msg += f"\n\t\t abs_change [%]: {self.GetAbsoluteChange(self.GetInitialValue()) * 100.0:0.6e}"
         return msg
