@@ -29,6 +29,9 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(KM.NODAL_VAUX)
         cls.model_part.AddNodalSolutionStepVariable(KM.EXTERNAL_FORCES_VECTOR)
         cls.model_part.AddNodalSolutionStepVariable(KM.LOCAL_AXES_MATRIX)
+        # Adding PARTITION_INDEX
+        if KM.IsDistributedRun():
+            cls.model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
         cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
@@ -38,10 +41,20 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
     def setUp(self):
         # Create search
-        self.search = KM.GeometricalObjectsBins(self.model_part.Conditions)
+        
+        if KM.IsDistributedRun():
+            raise Exception("MPI version comming in a future PR")
+            self.search = KM.GeometricalObjectsBinsMPI(self.model_part.Conditions, self.model_part.GetCommunicator().GetDataCommunicator())
+        else:
+            self.search = KM.GeometricalObjectsBins(self.model_part.Conditions)
 
         # Create node for search
         self.node = self.model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)
+        if KM.IsDistributedRun():
+            import KratosMultiphysics.mpi as KratosMPI
+            self.node.SetSolutionStepValue(KM.PARTITION_INDEX, 0)
+            ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.model_part)
+            ParallelFillCommunicator.Execute()
 
     def test_GeometricalObjectsBins_SearchInRadius(self):
         radius = 0.35
