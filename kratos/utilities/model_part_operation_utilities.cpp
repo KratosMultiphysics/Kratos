@@ -584,7 +584,7 @@ ModelPart& ModelPartOperationUtilities::Intersect(
 
 bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>& rIntersectionModelParts)
 {
-    KRATOS_ERROR_IF(rIntersectionModelParts.size() == 2) << "HasIntersection check requires atleast 2 model parts.\n";
+    KRATOS_ERROR_IF(rIntersectionModelParts.size() < 2) << "HasIntersection check requires atleast 2 model parts.\n";
 
     auto& r_main_model_part = rIntersectionModelParts[0]->GetRootModelPart();
 
@@ -599,9 +599,9 @@ bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>&
 
     bool is_intersected = false;
 
-    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(output_nodes.size()) > 0;
-    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(output_conditions.size()) > 0;
-    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(output_elements.size()) > 0;
+    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(static_cast<unsigned int>(output_nodes.size())) > 0;
+    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(static_cast<unsigned int>(output_conditions.size())) > 0;
+    is_intersected = is_intersected || r_main_model_part.GetCommunicator().GetDataCommunicator().SumAll(static_cast<unsigned int>(output_elements.size())) > 0;
 
     return is_intersected;
 }
