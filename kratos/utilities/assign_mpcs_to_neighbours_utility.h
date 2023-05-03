@@ -102,19 +102,21 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
        * @param rNodes Nodes to obtain their respective neighbouring nodes.
        * @param Radius Search radius.
        * @param rResults Results container.
+       * @param MinNumOfNeighNodes Minimum Number of Neighbouring nodes (minimum cloud of nodes)
        **/
 
       // Search for the neighbouring nodes (in rStructureNodes) of each rNode on a given array of rNodes
       void SearchNodesInRadiusForNodes(
           NodesContainerType const& rNodes,
           const double Radius,
-          VectorResultNodesContainerType& rResults);
+          VectorResultNodesContainerType& rResults,
+          const double MinNumOfNeighNodes);
 
       /**
        * @brief Perform Node Search
        * @details Searches for nodes within a given 'Radius' of the current node
        * @param rStructureNodes Nodes Container.
-       * @param rNode Node to obtain its respective neighbouring nodes.
+       * @param pNode Node to obtain its respective neighbouring nodes.
        * @param Radius Search radius.
        * @param rResults Results container.
        **/
@@ -128,31 +130,13 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
        * @brief Collect Dofs and Coordinates
        * @details Collects Dofs and Coordinates for a given node or set of nodes.
        * @param rStructureNodes Nodes Container.
+       * @param nodes_array Nodes Container.
        * @param pNode Obtain respective dofs and coordinates for a given node or set of nodes.
        * @param rVariable Dof variable array or double.
        * @param rCloud_of_dofs Dofs container.
        * @param rCloud_of_nodes_coordinates Coordinates container.
        **/
-      void GetDofsAndCoordinatesForNodes(
-        NodeType::Pointer pNode,
-        const Variable<array_1d<double, 3>>& rVariable,
-        DofPointerVectorType& rCloud_of_dofs_x,
-        DofPointerVectorType& rCloud_of_dofs_y,
-        DofPointerVectorType& rCloud_of_dofs_z,
-        array_1d<double,3>& rSlave_coordinates
-      );
-
-      // Get Dofs and coordinates arrays for a given variable array. (For nodes)
-      void GetDofsAndCoordinatesForNodes(
-        ResultNodesContainerType nodes_array,
-        const Variable<array_1d<double, 3>>& rVariable,
-        DofPointerVectorType& rCloud_of_dofs_x,
-        DofPointerVectorType& rCloud_of_dofs_y,
-        DofPointerVectorType& rCloud_of_dofs_z,
-        Matrix& rCloud_of_nodes_coordinates
-        );
-
-      void GetDofsAndCoordinatesForNodes(
+      void GetDofsAndCoordinatesForNode(
         NodeType::Pointer pNode,
         const Variable<double>& rVariable,
         DofPointerVectorType& rCloud_of_dofs,
@@ -201,6 +185,14 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
           double const MinNumOfNeighNodes
           );
           //TODO: Do it in parallel and allow rVariable to be a double variable i.e. TEMPERATURE (Make a template)
+      
+      void AssignMPCsToNodesParallel(
+          NodesContainerType pNodes,
+          double const Radius,
+          ModelPart& rComputingModelPart,
+          const Variable<array_1d<double, 3>>& rVariable,
+          const double MinNumOfNeighNodes
+          );
 
       ///@}
       ///@name Input and output
