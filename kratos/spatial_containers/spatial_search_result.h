@@ -170,6 +170,27 @@ private:
     ///@name Private Operations
     ///@{
 
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Object", mpObject);
+        rSerializer.save("Distance", mDistance);
+        rSerializer.save("Is Object Found", mIsObjectFound);
+        rSerializer.save("Is Distance Calculated", mIsDistanceCalculated);
+    }
+
+    void load(Serializer& rSerializer)
+    {
+        rSerializer.load("Object", mpObject);
+        rSerializer.load("Distance", mDistance);
+        rSerializer.load("Is Object Found", mIsObjectFound);
+        rSerializer.load("Is Distance Calculated", mIsDistanceCalculated);
+    }
 
     ///@}
 
