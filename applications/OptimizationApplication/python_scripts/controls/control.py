@@ -7,7 +7,7 @@ class Control(ABC):
 
     The base abstract control class has the following responsibilities.
         1. Initalizes and finalizes the control.
-        2. Mapping physical space gradients to control space gradients.
+        2. Maps physical space gradients to control space gradients, if needed. Otherwise, it passes. 
         2. Updating the controlled parts of the model part with new design given in control space.
         3. Retrieve control field.
         4. Retrieve physical space kratos variables (If more than one physical space kratos variables are controlled by the given control field.)
