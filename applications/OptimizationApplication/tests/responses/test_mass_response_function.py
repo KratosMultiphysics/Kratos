@@ -4,7 +4,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 
 class TestMassResponseFunctionBase(kratos_unittest.TestCase, ABC):
@@ -22,10 +21,8 @@ class TestMassResponseFunctionBase(kratos_unittest.TestCase, ABC):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
-        cls.optimization_problem = OptimizationProblem()
 
-        cls.response_function = MassResponseFunction(cls.model, cls.GetParameters(), cls.optimization_problem)
-        cls.optimization_problem.AddResponse("mass", cls.response_function)
+        cls.response_function = MassResponseFunction("mass", cls.model, cls.GetParameters())
         cls.CreateElements()
 
         cls.response_function.Initialize()
