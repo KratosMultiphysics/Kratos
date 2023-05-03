@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 template<>
-void PointObject<Node<3>>::UpdatePoint()
+void PointObject<Node>::UpdatePoint()
 {
     noalias(this->Coordinates()) = mpObject->Coordinates();
 }
@@ -45,7 +45,7 @@ void PointObject<Element>::UpdatePoint()
     noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
 }
 
-template class PointObject<Node<3>>;
+template class PointObject<Node>;
 template class PointObject<Condition>;
 template class PointObject<Element>;
 
@@ -147,7 +147,7 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     )
 {
     // Defining the point type for the search
-    using PointType = PointObject<Node<3>>;
+    using PointType = PointObject<Node>;
     using PointVector = std::vector<PointType::Pointer>;
 
     // Defining the PointVector
