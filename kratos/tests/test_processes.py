@@ -1,4 +1,4 @@
-﻿# Importing the Kratos Library
+# Importing the Kratos Library
 import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -2521,6 +2521,61 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[0].Id, 33)
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[1].Id, 2)
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[2].Id, 31)
+
+    def test_assign_mpcs_to_neighbours_process(self):
+
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/assign_mpcs_to_neighbours_process"))
+        model_part_io.ReadModelPart(model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module": "assign_mpcs_to_neighbours_process",
+                    "kratos_module": "KratosMultiphysics",
+                    "process_name": "AssignMPCsToNeighboursProcess",
+                    "Parameters": {
+                        "computing_model_part_name": "Main",
+                        "master_model_part_name": "Main.GENERIC_Master",
+                        "slave_model_part_name": "Main.GENERIC_Slave",
+                        "search_radius": 0.01,
+                        "minimum_number_of_neighbouring_nodes": 3,
+                        "assign_mpcs_every_time_step":  true,
+                        "variable_names": ["DISPLACEMENT_X","DISPLACEMENT_Y"]
+                    }
+                }
+                ]
+            }
+        """
+        )
+
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        for process in list_of_processes:
+            process.ExecuteInitialize()
+            process.ExecuteInitializeSolutionStep()
+
+        expected_constraints_weights = [
+            [0.9949671095597711, 0.004088586770086852, 0.0009443036701421518],
+            [0.0009443036701422211, 0.004088586770086458, 0.9949671095597714],
+            [0.0009443036701422211, 0.004088586770086458, 0.9949671095597714]]
+        
+        contraints_to_validate = [1,51,102]
+        for i, id in enumerate(contraints_to_validate):
+            const = model_part.GetMasterSlaveConstraint(id)
+            output_contraints_weights = KratosMultiphysics.Matrix()
+            constants = KratosMultiphysics.Vector()
+            const.CalculateLocalSystem(output_contraints_weights, constants, KratosMultiphysics.ProcessInfo())
+            for j in range(3):
+                self.assertAlmostEqual(output_contraints_weights[0,j], expected_constraints_weights[i][j], delta=1e-6)
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
