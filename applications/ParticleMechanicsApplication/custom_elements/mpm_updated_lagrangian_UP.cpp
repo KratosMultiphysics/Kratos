@@ -406,6 +406,9 @@ void MPMUpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentP
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
     }
+
+
+
 }
 //************************************************************************************
 //************************************************************************************

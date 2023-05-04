@@ -280,7 +280,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        Vector volume_force =  Variables.BodyForceMP; //mMP.volume_acceleration * mMP.mass +
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass);
 //         std::cout << "mass Elem System:  " << mMP.mass << "\n";
         this->CalculateAndAddRHS(
             rRightHandSideVector,
@@ -366,8 +366,6 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
         rVariables.BulkModulus = 1e16;
     }
 
-
-
     // Body forces
     rVariables.BodyForceMP = ZeroVector(3);
     array_1d<double, 3 > nodal_body_force = ZeroVector(3);
@@ -375,15 +373,12 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
     {
         if (r_geometry[j].SolutionStepsDataHas(BODY_FORCE))
         {
+
             nodal_body_force = r_geometry[j].FastGetSolutionStepValue(BODY_FORCE,0);
-            // std::cout << "Bodyforce: " << nodal_body_force <<"\n";
             for (unsigned int k = 0; k < dimension; k++)
             {
                 rVariables.BodyForceMP[k] += r_N(0, j) * nodal_body_force[k];
-                //rVariables.BodyForceMP[k] += 5000;
-
             }
-            // std::cout << "Bodyforce: " << rVariables.BodyForceMP <<"\n";
         }
 
     }
@@ -624,6 +619,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddRHS(
 //************************************************************************************
 //************************************************************************************
 
+
+
+
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
         Vector& rVolumeForce,
@@ -677,9 +675,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-           rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] + rVariables.DynamicRHS[idime] + rVariables.ResProjDisplGP[idime]) * rIntegrationWeight;
-        }
+         for ( unsigned int idime = 0; idime < dimension; idime++ ) {
+            rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] + rVariables.DynamicRHS[idime] + rVariables.ResProjDisplGP[idime]) * rIntegrationWeight;
+         }
 
         rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) - VolumetricStrainFunction + rVariables.ResProjPressGP) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
 
