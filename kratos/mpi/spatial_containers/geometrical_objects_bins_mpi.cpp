@@ -52,6 +52,32 @@ BoundingBox<Point> GeometricalObjectsBinsMPI::GetBoundingBox() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+array_1d<double, 3> GeometricalObjectsBinsMPI::GetCellSizes()
+{
+    array_1d<double, 3> cell_sizes;
+    const auto& r_local_cellsizes = mLocalGeometricalObjectsBins.GetCellSizes();
+    cell_sizes[0] = mrDataCommunicator.SumAll(r_local_cellsizes[0]);
+    cell_sizes[1] = mrDataCommunicator.SumAll(r_local_cellsizes[1]);
+    cell_sizes[2] = mrDataCommunicator.SumAll(r_local_cellsizes[2]);
+    return cell_sizes;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+array_1d<std::size_t, 3> GeometricalObjectsBinsMPI::GetNumberOfCells()
+{
+    array_1d<std::size_t, 3> number_of_cells;
+    const auto& r_local_number_of_cells = mLocalGeometricalObjectsBins.GetNumberOfCells();
+    number_of_cells[0] = mrDataCommunicator.SumAll(r_local_number_of_cells[0]);
+    number_of_cells[1] = mrDataCommunicator.SumAll(r_local_number_of_cells[1]);
+    number_of_cells[2] = mrDataCommunicator.SumAll(r_local_number_of_cells[2]);
+    return number_of_cells;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void GeometricalObjectsBinsMPI::SearchInRadius(
     const Point& rPoint,
     const double Radius,
