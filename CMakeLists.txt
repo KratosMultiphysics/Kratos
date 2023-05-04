@@ -151,9 +151,20 @@ if(GIT_FOUND)
     message("Git did not find the SHA1 number. It will be set to 0.")
     set (KratosMultiphysics_SHA1_NUMBER 0)
   endif(SHA1_NOT_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} branch --show-current
+    OUTPUT_VARIABLE KratosMultiphysics_BRANCH_NAME
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE BRANCH_NAME_NOT_FOUND
+  )
+  if(BRANCH_NAME_NOT_FOUND)
+    message("Git did not find the branch name. It will be set to empty.")
+    set (KratosMultiphysics_BRANCH_NAME "")
+  endif(BRANCH_NAME_NOT_FOUND)
 else(GIT_FOUND)
-  message("Git was not found on your system. SHA1 number will be set to 0.")
+  message(STATUS "Git was not found on your system. SHA1 number will be set to 0. Branch name to empty.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
+  set (KratosMultiphysics_BRANCH_NAME "")
 endif(GIT_FOUND)
 
 # Configure files depending on the build type
@@ -597,7 +608,7 @@ endforeach()
 message("\n***********************************************************************\n")
 
 message("\nList of upcoming API-breaking and behavior changes:")
-message("\t Geometry 'Dimension' deprecation: https://github.com/KratosMultiphysics/Kratos/pull/10445")
+message("\t Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")

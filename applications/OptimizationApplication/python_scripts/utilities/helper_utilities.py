@@ -2,7 +2,7 @@ from pathlib import Path
 from importlib import import_module
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
 
@@ -27,12 +27,16 @@ def GetClassModuleFromKratos(class_name: str) -> str:
     else:
         raise RuntimeError(f"{class_name} is not found in KratosMultiphysics core or any of the available application root directories in Kratos. Available applications:\n\t" + "\n\t".join(list_of_available_appliacations))
 
+def CallOnAll(list_of_objects: 'list[any]', method: any, *args, **kwargs):
+    for obj in list_of_objects:
+        getattr(obj, method.__name__)(*args, **kwargs)
+
 def OptimizationProcessFactory(
     module_name: str,
     class_name: str,
     model: Kratos.Model,
     parameters: Kratos.Parameters,
-    optimization_info: OptimizationInfo,
+    optimization_info: OptimizationProblem,
     required_object_type = Kratos.Process):
 
     python_file_name = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(class_name)
