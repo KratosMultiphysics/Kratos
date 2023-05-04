@@ -159,6 +159,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
     const double nu = mViscosity;
     const double u_char = mUchar;
     const double Re = std::pow(u_char,2) / (nu * alpha_min);
+    const double Da = mSigma/(alpha_min * nu);
     const double a = mPlateauRadius;
     const double b = mBumpRadius;
     const double x10 = mX1Origin;
@@ -296,7 +297,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
             }
 
-        r_pressure = 2.0*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + 1.0/Re);
+        r_pressure = ((std::pow(u_char,2)/alpha_min)*nu)*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + Re + Da);
 
         r_Pressure = r_pressure;
 
@@ -311,8 +312,8 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
         const double grad_of_div1 = du111 + du221;
         const double grad_of_div2 = du112 + du222;
 
-        const double press_grad1 = -2.0*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*(1.0 + 1.0/Re);
-        const double press_grad2 = 2.0*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)*(1.0 + 1.0/Re);
+        const double press_grad1 = -((std::pow(u_char,2)/alpha_min)*nu)*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*(1.0 + Re + Da);
+        const double press_grad2 = ((std::pow(u_char,2)/alpha_min)*nu)*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)*(1.0 + Re + Da);
 
         if (mAlternativeFormulation){
             const double grad_alpha_sym_grad1 = (1.0/2.0) * (2 * r_alpha1 * du11 + r_alpha2 * (du21 + du12));
@@ -354,6 +355,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
     const double rho = mDensity;
     const double nu = mViscosity;
     const double Re = std::pow(u_char,2) / (nu * alpha_min);
+    const double Da = mSigma/(alpha_min * nu);
     Matrix I = IdentityMatrix(Dim, Dim);
     Matrix sigma = ZeroMatrix(Dim, Dim);
 
@@ -518,10 +520,10 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
 
             }
 
-            pressure = 2.0*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + 1.0/Re);
+            pressure = ((std::pow(u_char,2)/alpha_min)*nu)*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + Re + Da);
 
-            const double press_grad1 = -2.0*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*(1.0 + 1.0/Re);
-            const double press_grad2 = 2.0*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)*(1.0 + 1.0/Re);
+            const double press_grad1 = -((std::pow(u_char,2)/alpha_min)*nu)*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*(1.0 + Re + Da);
+            const double press_grad2 = ((std::pow(u_char,2)/alpha_min)*nu)*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)*(1.0 + Re + Da);
 
             sigma = mSigma * I;
 

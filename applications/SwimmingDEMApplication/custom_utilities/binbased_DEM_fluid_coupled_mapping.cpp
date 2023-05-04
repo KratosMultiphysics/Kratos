@@ -46,7 +46,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     ResetDEMVariables(r_dem_model_part);
 
     Vector shape_function_values_at_point;
-    const int max_results = 10000;
+    const int max_results = 10000000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
     #pragma omp parallel for firstprivate(results, shape_function_values_at_point)

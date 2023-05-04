@@ -20,8 +20,17 @@ class ErrorNormCalculatorUtility:
 
         self.rho = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DENSITY)
         self.nu = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)/self.rho
+        alpha_min = parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["alpha_min"].GetDouble()
+        sigma = parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["sigma"].GetDouble()
+        if parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"].Has("omega"):
+            omega = parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["omega"].GetDouble()
+        else:
+            omega = 0.0
+
+
         Re = self.u_characteristic/self.nu
-        self.p_characteristic = (1/2)*self.rho*self.u_characteristic**2 * (1 + 1/Re)
+        Da = sigma/(self.nu * alpha_min)
+        self.p_characteristic = self.u_characteristic * self.nu * (1 + omega/self.nu + Re + Da)
 
         self.model_part.AddNodalSolutionStepVariable(SDEM.VECTORIAL_ERROR)
         self.model_part.AddNodalSolutionStepVariable(SDEM.SCALAR_ERROR)
