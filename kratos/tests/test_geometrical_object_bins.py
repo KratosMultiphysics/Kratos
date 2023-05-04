@@ -50,12 +50,17 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
             self.search = KM.GeometricalObjectsBins(self.model_part.Conditions)
 
         # Create node for search
-        self.node = self.sub_model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)
         if KM.IsDistributedRun():
             import KratosMultiphysics.mpi as KratosMPI
-            self.node.SetSolutionStepValue(KM.PARTITION_INDEX, 0)
+            self.data_comm = self.mpi_model_part.GetCommunicator().GetDataCommunicator()
+            # Only added to first rank to actualy check it works in all ranks
+            if self.data_comm.Rank() == 0:
+                self.node = self.sub_model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)
+                self.node.SetSolutionStepValue(KM.PARTITION_INDEX, 0)
             ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.model_part)
             ParallelFillCommunicator.Execute()
+        else:
+            self.node = self.sub_model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)
 
     def test_GeometricalObjectsBins_SearchInRadius(self):
         # Define radius
@@ -72,7 +77,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
-        self.assertEqual(len(results), self.sub_model_part.NumberOfNodes())
+        self.assertEqual(len(results), 1)
         self.assertEqual(len(results[0]), 8)
         for result in results[0]:
             self.assertTrue(result.Get().Id in cond_id_ref)
@@ -82,21 +87,21 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         result = self.search.SearchNearestInRadius(self.node, radius)
         self.assertEqual(result.Get().Id, 1)
         results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)
-        self.assertEqual(len(results), self.sub_model_part.NumberOfNodes())
+        self.assertEqual(len(results), 1)
         self.assertEqual(results[0].Get().Id, 1)
 
     def test_GeometricalObjectsBins_SearchNearest(self):
         result = self.search.SearchNearest(self.node)
         self.assertEqual(result.Get().Id, 1)
         results = self.search.SearchNearest(self.sub_model_part.Nodes)
-        self.assertEqual(len(results), self.sub_model_part.NumberOfNodes())
+        self.assertEqual(len(results), 1)
         self.assertEqual(results[0].Get().Id, 1)
 
     def test_GeometricalObjectsBins_SearchIsInside(self):
         result = self.search.SearchIsInside(self.node)
         self.assertEqual(result.Get(), None)
         results = self.search.SearchIsInside(self.sub_model_part.Nodes)
-        self.assertEqual(len(results), self.sub_model_part.NumberOfNodes())
+        self.assertEqual(len(results), 1)
         self.assertEqual(results[0].Get(), None)
 
 if __name__ == '__main__':
