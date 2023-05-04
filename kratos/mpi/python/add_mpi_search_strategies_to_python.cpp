@@ -36,9 +36,9 @@ void AddMPISearchStrategiesToPython(pybind11::module& m)
     .def(py::init<ElementsContainerType&, const DataCommunicator&>())
     .def(py::init<ConditionsContainerType&, const DataCommunicator&>())
     .def("GetBoundingBox", &GeometricalObjectsBinsMPI::GetBoundingBox)
-    // .def("GetCellSizes", &GeometricalObjectsBinsMPI::GetCellSizes)
-    // .def("GetNumberOfCells", &GeometricalObjectsBinsMPI::GetNumberOfCells)
-    // .def("GetTotalNumberOfCells", &GeometricalObjectsBinsMPI::GetTotalNumberOfCells)
+    .def("GetCellSizes", &GeometricalObjectsBinsMPI::GetCellSizes)
+    .def("GetNumberOfCells", &GeometricalObjectsBinsMPI::GetNumberOfCells)
+    .def("GetTotalNumberOfCells", &GeometricalObjectsBinsMPI::GetTotalNumberOfCells)
     .def("SearchInRadius", [&](GeometricalObjectsBinsMPI& self, const Point& rPoint, const double Radius) {
         // Perform the search
         std::vector<ResultType> results;
