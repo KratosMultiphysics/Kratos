@@ -142,7 +142,7 @@ public:
      *
      * @warning This instance does not take the ownership of the passed array. 
      *  The life time of the passed array is not managed by this instance
-     * @throws Seg faults if this is used when passed @ref pBegin is destroyed. 
+     * @warning Seg faults if this is used when passed @ref pBegin was destroyed. 
      *
      * @param pBegin            Starting pointer to the data.
      * @param NumberOfEntities  Number of entities present in data.
