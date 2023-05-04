@@ -64,8 +64,8 @@ namespace Kratos
 
 		/// Default constructor.
 		GenerateNewNodesBeforeMeshingCutPfemProcess(ModelPart &rModelPart,
-											 MesherUtilities::MeshingParameters &rRemeshingParameters,
-											 int EchoLevel)
+													MesherUtilities::MeshingParameters &rRemeshingParameters,
+													int EchoLevel)
 			: mrModelPart(rModelPart),
 			  mrRemesh(rRemeshingParameters)
 		{
@@ -412,9 +412,9 @@ namespace Kratos
 			{
 				penalization = 0;
 			}
-			else if (negativeDistanceNodes > 0)
+			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary 
 			{
-				penalization = 0.8;
+				penalization = 0.9;
 			}
 			// else if (freesurfaceNodes > 0)
 			// {
@@ -687,9 +687,9 @@ namespace Kratos
 			{
 				penalization = 0.95;
 			}
-			else if (negativeDistanceNodes > 0)
+			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary 
 			{
-				penalization = 0.8;
+				penalization = 0.9;
 			}
 
 			double ElementalVolume = Element.Volume();
@@ -969,9 +969,9 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			else if (negativeDistanceNodes > 0)
+			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary 
 			{
-				penalization = 0.8;
+				penalization = 0.9;
 			}
 			const double safetyCoefficient2D = 1.5;
 			array_1d<double, 3> Edges(3, 0.0);
@@ -1150,9 +1150,9 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			else if (negativeDistanceNodes > 0)
+			else if (negativeDistanceNodes > 0) // to penalize insertion of nodes near the boundary 
 			{
-				penalization = 0.8;
+				penalization = 0.9;
 			}
 
 			const double safetyCoefficient3D = 1.6;

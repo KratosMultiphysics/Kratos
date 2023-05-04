@@ -475,6 +475,10 @@ namespace Kratos
 					{
 						radius = 0.2 * meshSize; // 1/3 of normal nodes
 					}
+					if (in->GetSolutionStepValue(DISTANCE) < distance_tolerance * 2.0)
+					{
+						radius = 0.4 * meshSize; // 2/3 of normal nodes
+					}
 					n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(), neighbour_distances.begin(), num_neighbours);
 
 					if (n_points_in_radius > 1 && neighErasedNodes == 0 && in->IsNot(INLET))
