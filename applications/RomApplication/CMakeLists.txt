@@ -5,41 +5,9 @@ message("**** configuring KratosRomApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-add_definitions( -DEIGEN_MPL2_ONLY)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
 
-include_directories(
-    ${KRATOS_SOURCE_DIR}/kratos
-    SYSTEM ${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/eigen3
-    SYSTEM ${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/
-)
-
-if( USE_EIGEN_MKL MATCHES ON )
-    if( DEFINED ENV{MKLROOT} )
-        message( "-- MKLROOT = $ENV{MKLROOT}" )
-
-        include_directories( SYSTEM $ENV{MKLROOT}/include )
-
-        link_directories("$ENV{MKLROOT}/lib")
-
-        if( NOT MSVC )
-            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
-        endif()
-    elseif( DEFINED ENV{CONDA_PREFIX} )
-        message("-- Found Conda environment: $ENV{CONDA_PREFIX}")
-
-        if( WIN32 )
-            include_directories(SYSTEM $ENV{CONDA_PREFIX}/Library/include)
-            link_directories("$ENV{CONDA_PREFIX}/Library/lib")
-        else()
-            include_directories(SYSTEM $ENV{CONDA_PREFIX}/include)
-            link_directories("$ENV{CONDA_PREFIX}/lib")
-        endif()
-    else()
-        message( FATAL_ERROR "MKLROOT not defined" )
-    endif()
-
-    add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
-endif()
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## RomApplication Core sources
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE
@@ -61,7 +29,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosRomApplicationCore SHARED ${KRATOS_ROM_APPLICATION_CORE} ${KRATOS_ROM_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosRomApplicationCore PUBLIC KratosCore)
+target_link_libraries(KratosRomApplicationCore PUBLIC KratosCore KratosLinearSolversCore)
 set_target_properties(KratosRomApplicationCore PROPERTIES COMPILE_DEFINITIONS "ROM_APPLICATION=EXPORT,API")
 
 ###############################################################
@@ -75,25 +43,6 @@ IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosRomApplicationCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
     set_target_properties(KratosRomApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
-
-if( USE_EIGEN_MKL MATCHES ON )
-    if( MSVC )
-        find_library(MKL_RT_LIB mkl_rt)
-        if(NOT MKL_RT_LIB)
-            message( FATAL_ERROR "mkl_rt.lib not found")
-        else(NOT MKL_RT_LIB)
-            message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
-            target_link_libraries( KratosLinearSolversCore PUBLIC ${MKL_RT_LIB} )
-        endif(NOT MKL_RT_LIB)
-    elseif( ${CMAKE_CXX_COMPILER_ID} MATCHES Clang )
-        message( FATAL_ERROR "Clang does not yet support MKL" )
-    else( MSVC )
-        target_link_libraries( KratosLinearSolversCore PUBLIC mkl_rt )
-        if( USE_EIGEN_FEAST MATCHES ON )
-            target_link_libraries(KratosLinearSolversCore PUBLIC feast4 gfortran m)
-        endif()
-    endif( MSVC )
-endif()
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
