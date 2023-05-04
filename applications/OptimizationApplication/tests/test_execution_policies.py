@@ -21,7 +21,7 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
             }
         }""")
         execution_policy = ExecutionPolicyDecorator(model, parameters, OptimizationProblem())
-        execution_policy.ExecuteInitialize()
+        execution_policy.Initialize()
         execution_policy.Execute()
 
 if __name__ == "__main__":

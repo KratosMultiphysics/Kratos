@@ -56,21 +56,18 @@ def HasContainerExpression(container_expression: ContainerExpressionTypes, list_
     return any([IsSameContainerExpression(container_expression, list_container_expression) for list_container_expression in list_of_container_expressions])
 
 def OptimizationProcessFactory(
+    component_name: str,
     module_name: str,
     class_name: str,
     model: Kratos.Model,
     parameters: Kratos.Parameters,
-    optimization_info: OptimizationProblem,
-    required_object_type = Kratos.Process):
+    optimization_problem: OptimizationProblem):
 
     python_file_name = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(class_name)
     full_module_name = f"{module_name}.{python_file_name}"
 
     module = import_module(full_module_name)
-    retrieved_object = getattr(module, class_name)(model, parameters, optimization_info)
+    if not hasattr(module, "Factory"):
+        raise RuntimeError(f"Python module {full_module_name} does not have a Factory method.")
 
-    # check retrieved object is of the required type
-    if not isinstance(retrieved_object, required_object_type):
-        raise RuntimeError(f"The retrieved object is of type \"{retrieved_object.__class__.__name__}\" which is not derived from the \"{required_object_type.__name__}\".")
-    else:
-        return retrieved_object
+    return getattr(module, "Factory")(component_name, model, parameters, optimization_problem)
