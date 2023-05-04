@@ -1,159 +1,155 @@
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.controls.control import control
+from KratosMultiphysics.OptimizationApplication.controls.control import Control
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationComponentFactory
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationProcessFactory
 
 class OptimizationAnalysis:
-    def __init__(self, model: Kratos.Model, project_parameters: Kratos.Parameters):
-        default_parametetrs = Kratos.Parameters("""{
-            "model_parts"                       : [],
+    @classmethod
+    def GetDefaultParameters(cls) -> Kratos.Parameters:
+        return Kratos.Parameters("""{
+            "model_parts"       : [],
             "analyses"          : [],
             "responses"         : [],
             "controls"          : [],
             "algorithm_settings": {},
-            "processes"         : {
-
+            "processes"  : {
+                "kratos_processes"           : {},
+                "optimization_data_processes": {}
             }
-            "optimization_info_output_processes": []
         }""")
 
-
+    def __init__(self, model: Kratos.Model, project_parameters: Kratos.Parameters):
         self.model = model
         self.project_parameters = project_parameters
-        self.project_parameters.AddMissingParameters(default_parametetrs)
+        self.project_parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.optimization_problem = OptimizationProblem(self.project_parameters["problem_data"]["echo_level"].GetInt())
 
+        self.__list_of_model_part_controllers: 'list[ModelPartController]' = []
+        self.__algorithm: Algorithm = None
+
         self._CreateModelPartControllers()
         self._CreateAnalyses()
-        self._CreateResponses()
         self._CreateControls()
+        self._CreateResponses()
+        self._CreateAlgorithm()
+        self._CreateProcesses()
 
-        super().__init__(model, project_parameters)
+    def Initialize(self):
+        CallOnAll(self.__list_of_model_part_controllers, ModelPartController.ImportModelPart)
+        CallOnAll(self.__list_of_model_part_controllers, ModelPartController.Initialize)
+        for process_type in self.__algorithm.GetProcessesOrder():
+            CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitialize)
+        CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Initialize)
+        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Initialize)
+        CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Initialize)
 
-    def InitializeSolutionStep(self):
-        # this resets all the saved data for the current time step
-        # so it indicates all the objects using the optimization info
-        # now should recalculate current time step data.
-        self.optimization_problem.SetValue("problem_data", {}, 0, True)
+        self.__algorithm.Initialize()
 
-        super().InitializeSolutionStep()
+    def Check(self):
+        for process_type in self.__algorithm.GetProcessesOrder():
+            CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.Check)
+        CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Check)
+        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Check)
+        CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Check)
 
-    def PrintAnalysisStageProgressInformation(self):
-        Kratos.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.optimization_problem["step"])
+        self.__algorithm.Check()
 
-    def KeepAdvancingSolutionLoop(self):
-        step = int(self.optimization_problem["step"])
+    def Finalize(self):
+        self.__algorithm.Finalize()
 
-        self._GetSolver().PrintConvergence()
+        CallOnAll(self.__list_of_model_part_controllers, ModelPartController.Finalize)
+        for process_type in self.__algorithm.GetProcessesOrder():
+            CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalize)
+        CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Finalize)
+        CallOnAll(self.optimization_problem.GetListOfControls(), Control.Finalize)
+        CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Finalize)
 
-        if step == self.end_time:
-            Kratos.Logger.PrintWarning(self._GetSimulationName(), f"=== Maximum iterations of {step} reached. ===")
-
-        if self._GetSolver().IsConverged():
-            Kratos.Logger.PrintInfo(self._GetSimulationName(), f"=== Optimization converged within {step} iterations. ===")
-
-        return self.optimization_problem["step"] < self.end_time and not self._GetSolver().IsConverged()
-
-    def _CreateSolver(self):
-        default_algorithm_settings = Kratos.Parameters("""{
-            "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
-            "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME"
-        }""")
-        algorithm_settings = self.project_parameters["algorithm_settings"]
-        algorithm_settings.AddMissingParameters(default_algorithm_settings)
-
-        return OptimizationProcessFactory(algorithm_settings["module"].GetString(), algorithm_settings["type"].GetString(), self.model, algorithm_settings, self.optimization_problem, Algorithm)
-
+    def Run(self):
+        self.Initialize()
+        self.Check()
+        self.__algorithm.SolveOptimizationProblem()
+        self.Finalize()
 
     def _CreateModelPartControllers(self):
-        for model_part_controller_settings in self.project_parameters["model_parts"]:
-            default_model_part_controller_settings = Kratos.Parameters("""{
-                "name"    : "",
-                "module"  : "KratosMultiphysics.OptimizationApplication.model_part_controllers",
-                "type"    : "MdpaModelPartController",
-                "settings": {}
-            }""")
-            model_part_controller_settings.ValidateAndAssignDefaults(default_model_part_controller_settings)
-            routine: ModelPartController = OptimizationProcessFactory(model_part_controller_settings["module"].GetString(), model_part_controller_settings["type"].GetString(), self.model, model_part_controller_settings["settings"], self.optimization_problem, ModelPartController)
-            self.optimization_problem.AddOptimizationProcess(ModelPartController, model_part_controller_settings["name"].GetString(), routine)
+        default_model_part_controller_settings = Kratos.Parameters("""{
+            "python_module": "mdpa_model_part_controller",
+            "kratos_module": "KratosMultiphysics.OptimizationApplication.model_part_controllers",
+            "Parameters"   : {}
+        }""")
+        # assign defaults to all model part controllers
+        CallOnAll(self.project_parameters["model_parts"], Kratos.Parameters.AddMissingParameters, default_model_part_controller_settings)
+
+        factory = KratosProcessFactory(self.model)
+        self.__list_of_model_part_controllers: 'list[ModelPartController]' = factory.ConstructListOfProcesses(self.project_parameters["model_parts"])
 
     def _CreateAnalyses(self):
         for analyses_settings in self.project_parameters["analyses"]:
-            routine = ExecutionPolicyDecorator(self.model, analyses_settings)
-            self.optimization_problem.AddOptimizationProcess(ExecutionPolicyDecorator, routine.GetExecutionPolicyName(), routine)
+            execution_policy = ExecutionPolicyDecorator(self.model, analyses_settings, self.optimization_problem)
+            self.optimization_problem.AddComponent(execution_policy)
 
     def _CreateResponses(self):
         default_settings = Kratos.Parameters("""{
-            "name"     : "",
-            "module"   : "KratosMultiphysics.OptimizationApplication.responses",
-            "type"     : "",
-            "settings" : {}
+            "name"         : "",
+            "python_module": "",
+            "kratos_module": "KratosMultiphysics.OptimizationApplication.responses",
+            "Parameters"   : {}
         }""")
         for response_settings in self.project_parameters["responses"]:
             response_settings.ValidateAndAssignDefaults(default_settings)
-            routine: ResponseFunction = OptimizationProcessFactory(response_settings["module"].GetString(), response_settings["type"].GetString(), self.model, response_settings["settings"], self.optimization_problem, ResponseFunction)
-            self.optimization_problem.AddOptimizationProcess(ResponseFunction, response_settings["name"].GetString(), routine)
+            response_function: ResponseFunction = OptimizationComponentFactory(self.model, response_settings, self.optimization_problem)
+            self.optimization_problem.AddComponent(response_function)
 
     def _CreateControls(self):
         default_settings = Kratos.Parameters("""{
-            "name"     : "",
-            "module"   : "KratosMultiphysics.OptimizationApplication.controls",
-            "type"     : "",
-            "settings" : {}
+            "name"          : "",
+            "python_module" : "",
+            "kratos_module" : "KratosMultiphysics.OptimizationApplication.controls",
+            "Parameters"    : {}
         }""")
         for control_settings in self.project_parameters["controls"]:
-            routine = Con(self.model, control_settings, self.optimization_problem)
-            self.optimization_problem.AddOptimizationProcess(ControlTransformationTechnique, routine.GetName(), routine)
+            control_settings.ValidateAndAssignDefaults(default_settings)
+            control = OptimizationComponentFactory(self.model, control_settings, self.optimization_problem)
+            self.optimization_problem.AddComponent(control)
 
-    def _CreateOptimizationInfoOutputProcesses(self) -> 'list[Kratos.OutputProcess]':
-        list_of_processes: 'list[Kratos.OutputProcess]' = []
-        for output_process_settings in self.project_parameters["optimization_info_output_processes"]:
-            default_settings = Kratos.Parameters("""{
-                "module"  : "KratosMultiphysics.OptimizationApplication.output",
-                "type"    : ""
-            }""")
-            output_process_settings.AddMissingParameters(default_settings)
-            list_of_processes.append(
-                OptimizationProcessFactory(output_process_settings["module"].GetString(),
-                                           output_process_settings["type"].GetString(), self.model, output_process_settings, self.optimization_problem, Kratos.OutputProcess))
-        return list_of_processes
+    def _CreateProcesses(self):
+        process_settings = self.project_parameters["processes"]
+        process_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["processes"])
 
-    def _CreateProcesses(self, parameter_name, initialization_order):
-        if parameter_name == "processes":
-            # create the normal processes which does not get the optimization info parameter
-            list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
-            # now add all optimization processes which get the optimization info parameter
-            self.__AddOptimizationProcesses(list_of_processes)
-        elif parameter_name == "output_processes":
-            # now add all output processes which get the optimization info parameter
-            list_of_processes = self._CreateOptimizationInfoOutputProcesses()
-            # now add normal output processes which does not require optimization info parameter
-            list_of_processes.extend(super()._CreateProcesses(parameter_name, initialization_order))
+        kratos_processes = process_settings["kratos_processes"]
+        optimization_data_processes = process_settings["optimization_data_processes"]
 
-        return list_of_processes
+        factory = KratosProcessFactory(self.model)
 
-    def __AddOptimizationProcesses(self, list_of_processes: 'list[Kratos.Process]') -> 'list[Kratos.Process]':
-        for optimization_processes_type in self._GetOptimizationProcessTypesOrder():
-            for optimization_process in self.optimization_problem.GetOptimizationProcesses(optimization_processes_type):
-                if not isinstance(optimization_process, ControlTransformationTechnique):
-                    list_of_processes.append(optimization_process)
-                else:
-                    # adds the control
-                    list_of_processes.append(optimization_process.GetControl())
+        process_lists_order = self.__algorithm.GetProcessesOrder()
+        optimization_data_process_default_settings = Kratos.Parameters("""{
+            "python_module" : "",
+            "kratos_module" : "KratosMultiphysics.OptimizationApplication.optimization_data_processes",
+            "Parameters"    : {}
+        }""")
 
-                    # adds the transformation techniques
-                    for transformation_technique in optimization_process.GetTransformationTechniques():
-                        list_of_processes.append(transformation_technique)
+        for process_type in process_lists_order:
+            if kratos_processes.Has(process_type):
+                for process in factory.ConstructListOfProcesses(kratos_processes[process_type]):
+                    self.optimization_problem.AddProcess(process_type, process)
+            if optimization_data_processes.Has(process_type):
+                for process_settings in optimization_data_processes[process_type]:
+                    process_settings.ValidateAndAssignDefaults(optimization_data_process_default_settings)
+                    process = OptimizationComponentFactory(self.model, process_settings, self.optimization_problem)
+                    self.optimization_problem.AddProcess(process_type, process)
 
-                    # adds the control tranformation technique
-                    list_of_processes.append(optimization_process)
-                    Kratos.Logger.PrintInfo(optimization_process.GetControl())
-        return list_of_processes
-
-    def _GetOptimizationProcessTypesOrder(self):
-        return [ModelPartController, ExecutionPolicyDecorator, ResponseFunction, ControlTransformationTechnique]
+    def _CreateAlgorithm(self):
+        default_settings = Kratos.Parameters("""{
+            "python_module" : "",
+            "kratos_module" : "KratosMultiphysics.OptimizationApplication.algorithms",
+            "Parameters"    : {}
+        }""")
+        algorithm_settings = self.project_parameters["algorithm_settings"]
+        algorithm_settings.ValidateAndAssignDefaults(default_settings)
+        self.__algorithm = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
