@@ -177,7 +177,7 @@ public:
 
     /**
      * @brief This method returns de the material ultimate stress.
-     * @param rUltimateStress Ultimate stress.
+     * @param rUltimateStress Material ultimate stress.
      * @param MaterialParameters Material properties.
      */
     static void CalculateUltimateStress(double& rUltimateStress,
@@ -206,9 +206,10 @@ public:
     /**
      * @brief This method computes internal variables (B0, Sth and ALPHAT) of the CL
      * @param MaxStress Signed maximum stress in the current cycle.
+     * @param UltimateStress Material ultimate stress.
      * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
-     * @param ReferenceDamage 
-     * @param ReferenceNumberOfCycles
+     * @param ReferenceDamage Reference damage for Fred calculation
+     * @param ReferenceNumberOfCycles Number of cycle at EFred begins the calculation
      * @param MaterialParameters Material properties.
      * @param rB0 Internal variable of the fatigue model.
      * @param rSth Endurance limit of the fatigue model.
@@ -247,7 +248,7 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-        const double Se_ref = r_fatigue_coefficients[0] * UltimateStress;
+        // const double Se_ref = r_fatigue_coefficients[0] * UltimateStress;
         const double Se = r_fatigue_coefficients[0] * UltimateStress * (1 - UniaxialResidualStress / UltimateStress);
         const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
@@ -307,6 +308,7 @@ public:
      * @brief This method computes the reduction factor and the wohler stress (SN curve)
      * @param MaterialParameters Material properties.
      * @param MaxStress Signed maximum stress in the current cycle.
+     * @param UltimateStress Material ultimate stress.
      * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle. 
      * @param LocalNumberOfCycles Number of cycles in the current load.
      * @param GlobalNumberOfCycles Number of cycles in the whole analysis.
