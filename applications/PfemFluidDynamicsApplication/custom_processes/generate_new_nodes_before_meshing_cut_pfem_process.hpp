@@ -349,7 +349,7 @@ namespace Kratos
 			SizeType freesurfaceNodes = 0;
 			SizeType lagrangianInletNodes = 0;
 			SizeType eulerianInletNodes = 0;
-			SizeType negativeDistanceNode = 0;
+			SizeType negativeDistanceNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
@@ -381,7 +381,7 @@ namespace Kratos
 				}
 				if (Element[pn].GetSolutionStepValue(DISTANCE) < distance_tolerance)
 				{
-					negativeDistanceNode++;
+					negativeDistanceNodes++;
 				}
 			}
 
@@ -412,7 +412,7 @@ namespace Kratos
 			{
 				penalization = 0;
 			}
-			else if (negativeDistanceNode > 0)
+			else if (negativeDistanceNodes > 0)
 			{
 				penalization = 0.8;
 			}
@@ -620,6 +620,7 @@ namespace Kratos
 			SizeType freesurfaceNodes = 0;
 			SizeType lagrangianInletNodes = 0;
 			SizeType eulerianInletNodes = 0;
+			SizeType negativeDistanceNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
@@ -651,7 +652,7 @@ namespace Kratos
 				}
 				if (Element[pn].GetSolutionStepValue(DISTANCE) < distance_tolerance)
 				{
-					negativeDistanceNode++;
+					negativeDistanceNodes++;
 				}
 			}
 
@@ -686,7 +687,7 @@ namespace Kratos
 			{
 				penalization = 0.95;
 			}
-			else if (negativeDistanceNode > 0)
+			else if (negativeDistanceNodes > 0)
 			{
 				penalization = 0.8;
 			}
@@ -916,6 +917,7 @@ namespace Kratos
 
 			SizeType rigidNodes = 0;
 			SizeType freesurfaceNodes = 0;
+			SizeType negativeDistanceNodes = 0;
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
@@ -946,7 +948,7 @@ namespace Kratos
 				}
 				if (Element[pn].GetSolutionStepValue(DISTANCE) < distance_tolerance)
 				{
-					negativeDistanceNode++;
+					negativeDistanceNodes++;
 				}
 			}
 
@@ -967,7 +969,7 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			else if (negativeDistanceNode > 0)
+			else if (negativeDistanceNodes > 0)
 			{
 				penalization = 0.8;
 			}
@@ -1095,8 +1097,8 @@ namespace Kratos
 
 			SizeType rigidNodes = 0;
 			SizeType freesurfaceNodes = 0;
+			SizeType negativeDistanceNodes = 0;
 			bool toEraseNodeFound = false;
-
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
@@ -1126,7 +1128,7 @@ namespace Kratos
 				}
 				if (Element[pn].GetSolutionStepValue(DISTANCE) < distance_tolerance)
 				{
-					negativeDistanceNode++;
+					negativeDistanceNodes++;
 				}
 			}
 
@@ -1148,7 +1150,7 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			else if (negativeDistanceNode > 0)
+			else if (negativeDistanceNodes > 0)
 			{
 				penalization = 0.8;
 			}
