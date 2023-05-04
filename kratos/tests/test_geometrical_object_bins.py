@@ -95,6 +95,9 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
     def test_GeometricalObjectsBins_SearchIsInside(self):
         result = self.search.SearchIsInside(self.node)
         self.assertEqual(result.Get(), None)
+        results = self.search.SearchIsInside(self.sub_model_part.Nodes)
+        self.assertEqual(len(results), self.sub_model_part.NumberOfNodes())
+        self.assertEqual(results[0].Get(), None)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
