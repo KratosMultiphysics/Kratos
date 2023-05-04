@@ -59,15 +59,15 @@ namespace Kratos
         typedef ModelPart::PropertiesType PropertiesType;
         typedef ConditionType::GeometryType GeometryType;
         typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
-		typedef std::size_t SizeType;
+        typedef std::size_t SizeType;
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Default constructor.
         SelectMeshElementsForFluidsCutPfemProcess(ModelPart &rModelPart,
-                                           MesherUtilities::MeshingParameters &rRemeshingParameters,
-                                           int EchoLevel)
+                                                  MesherUtilities::MeshingParameters &rRemeshingParameters,
+                                                  int EchoLevel)
             : mrModelPart(rModelPart),
               mrRemesh(rRemeshingParameters)
         {
@@ -159,6 +159,7 @@ namespace Kratos
                 {
                     Geometry<Node<3>> vertices;
                     double meanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
+                    double distance_tolerance = 0.05 * meanMeshSize;
                     SizeType numfreesurf = 0;
                     SizeType numboundary = 0;
                     SizeType numrigid = 0;
@@ -196,7 +197,7 @@ namespace Kratos
                         }
                         vertices.push_back(rNodes(OutElementList[el * nds + pn]));
 
-                        if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID) && vertices.back().GetSolutionStepValue(DISTANCE) > 0.0)
+                        if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
                         {
                             isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
                         }
@@ -248,7 +249,7 @@ namespace Kratos
                             }
                         }
 
-                        if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY) && vertices.back().GetSolutionStepValue(DISTANCE) > 0.0)
+                        if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
                         {
                             numfreesurf++;
                             const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);

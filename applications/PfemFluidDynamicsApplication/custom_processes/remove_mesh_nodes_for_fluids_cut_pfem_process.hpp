@@ -75,8 +75,8 @@ namespace Kratos
 
 		/// Default constructor.
 		RemoveMeshNodesForFluidsCutPfemProcess(ModelPart &rModelPart,
-										MesherUtilities::MeshingParameters &rRemeshingParameters,
-										int EchoLevel)
+											   MesherUtilities::MeshingParameters &rRemeshingParameters,
+											   int EchoLevel)
 			: mrModelPart(rModelPart),
 			  mrRemesh(rRemeshingParameters)
 		{
@@ -303,7 +303,6 @@ namespace Kratos
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			const double currentTime = rCurrentProcessInfo[TIME];
 			double meshSize = mrRemesh.Refine->CriticalRadius;
-
 			bool refiningBox = false;
 			for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
 			{
@@ -321,10 +320,10 @@ namespace Kratos
 				// coordinates
 				for (SizeType i = 0; i < ie->GetGeometry().size(); i++)
 				{
-					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(PFEMFlags::LAGRANGIAN_INLET)) || 
-					ie->GetGeometry()[i].Is(SOLID) || 
-					ie->GetGeometry()[i].Is(PFEMFlags::EULERIAN_INLET) || 
-					ie->GetGeometry()[i].GetSolutionStepValue(DISTANCE) < 0.0)
+					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(PFEMFlags::LAGRANGIAN_INLET)) ||
+						ie->GetGeometry()[i].Is(SOLID) ||
+						ie->GetGeometry()[i].Is(PFEMFlags::EULERIAN_INLET) ||
+						ie->GetGeometry()[i].GetSolutionStepValue(DISTANCE) < 0)
 					{
 						rigidNodes++;
 					}
@@ -373,6 +372,8 @@ namespace Kratos
 						mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, NodeCoordinates, meshSize, insideTransitionZone);
 					}
 				}
+
+				const double distance_tolerance = 0.05 * meshSize;
 
 				if (rigidNodeMeshCounter > 0)
 				{
@@ -470,7 +471,7 @@ namespace Kratos
 						if (dimension == 3)
 							radius = 0.48 * meshSize; // 20% less than normal nodes
 					}
-					if (in->GetSolutionStepValue(DISTANCE) < 0.0)
+					if (in->GetSolutionStepValue(DISTANCE) < distance_tolerance)
 					{
 						radius = 0.2 * meshSize; // 1/3 of normal nodes
 					}
@@ -479,7 +480,7 @@ namespace Kratos
 					if (n_points_in_radius > 1 && neighErasedNodes == 0 && in->IsNot(INLET))
 					{
 
-						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) && in->GetSolutionStepValue(DISTANCE) > 0.0)
+						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) && in->GetSolutionStepValue(DISTANCE) > distance_tolerance)
 						{
 							if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 							{
@@ -587,7 +588,7 @@ namespace Kratos
 					}
 				}
 
-				if (in->Is(ISOLATED) && in->GetSolutionStepValue(DISTANCE) < 0.0 && in->IsNot(TO_ERASE))
+				if (in->Is(ISOLATED) && in->GetSolutionStepValue(DISTANCE) < distance_tolerance && in->IsNot(TO_ERASE))
 				{
 					in->Set(TO_ERASE);
 					some_node_is_removed = true;
