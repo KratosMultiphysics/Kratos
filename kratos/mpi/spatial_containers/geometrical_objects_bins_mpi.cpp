@@ -66,12 +66,16 @@ void GeometricalObjectsBinsMPI::SearchInRadius(
     std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
+    bool local_computed = false;
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
         mLocalGeometricalObjectsBins.SearchInRadius(rPoint, Radius, rResults);
 
         // Remove current rank from the set
         ranks_set.erase(current_rank);
+
+        // Set local computed to true
+        local_computed = true;
     }
 
     // Now iterate over the other ranks
@@ -99,12 +103,16 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearestIn
     std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
+    bool local_computed = false;
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
         current_result = mLocalGeometricalObjectsBins.SearchNearestInRadius(rPoint, Radius);
 
         // Remove current rank from the set
         ranks_set.erase(current_rank);
+
+        // Set local computed to true
+        local_computed = true;
     }
 
     // Now iterate over the other ranks
@@ -143,12 +151,16 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchIsInside(
     std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
+    bool local_computed = false;
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
         current_result = mLocalGeometricalObjectsBins.SearchIsInside(rPoint);
 
         // Remove current rank from the set
         ranks_set.erase(current_rank);
+
+        // Set local computed to true
+        local_computed = true;
     }
 
     // Now iterate over the other ranks
