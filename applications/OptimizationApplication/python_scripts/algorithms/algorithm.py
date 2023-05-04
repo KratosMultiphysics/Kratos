@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
@@ -27,18 +26,7 @@ class Algorithm(ABC):
     def GetProcessesOrder(self) -> 'list[str]':
         return ["auxiliary_processes", "output_processes"]
 
-    def ExecuteBeforeSolutionLoop(self):
-        for process_type in self.GetProcessesOrder():
-            CallOnAll(self._optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeSolutionLoop)
+    def CallOnAllProcesses(self, process_types: 'list[str]', *args, **kwargs):
+        for process_type in process_types:
+            CallOnAll(self._optimization_problem.GetListOfProcesses(process_type), *args, **kwargs)
 
-    def ExecuteInitializeSolutionStep(self):
-        for process_type in self.GetProcessesOrder():
-            CallOnAll(self._optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitializeSolutionStep)
-
-    def ExecuteBeforeOutputStep(self):
-        for process_type in self.GetProcessesOrder():
-            CallOnAll(self._optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeOutputStep)
-
-    def ExecuteBeforeOutputStep(self):
-        for process_type in self.GetProcessesOrder():
-            CallOnAll(self._optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeOutputStep)
