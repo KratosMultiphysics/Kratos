@@ -153,67 +153,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIBoundingBox, Krat
     KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], cube_z, tolerance);
 }
 
-// /** Checks bins number of cells
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPICellSizes, KratosMPICoreFastSuite)
-// {
-//     constexpr double tolerance = 1e-12;
-
-//     Model current_model;
-
-//     const double cube_x = 0.6;
-//     const double cube_y = 0.9;
-//     const double cube_z = 0.3;
-
-//     // Generate the cube skin
-//     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
-//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
-//     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
-
-//     auto number_of_cells = bins.GetNumberOfCells();
-//     KRATOS_CHECK_EQUAL(number_of_cells[0], 3);
-//     KRATOS_CHECK_EQUAL(number_of_cells[1], 3);
-//     KRATOS_CHECK_EQUAL(number_of_cells[2], 2);
-
-//     auto cell_sizes = bins.GetCellSizes();
-//     KRATOS_CHECK_NEAR(cell_sizes[0], 2.00 * cube_x / 3.00, tolerance);
-//     KRATOS_CHECK_NEAR(cell_sizes[1], 2.00 * cube_y / 3.00, tolerance);
-//     KRATOS_CHECK_NEAR(cell_sizes[2], 2.00 * cube_z / 2.00, tolerance);
-// }
-
-
-// /** Checks bins AddObjectsToCells
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIAddObjectsToCells, KratosMPICoreFastSuite)
-// {
-//     Model current_model;
-
-//     const double cube_x = 0.6;
-//     const double cube_y = 0.9;
-//     const double cube_z = 0.3;
-
-//     // Generate the cube skin
-//     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
-//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
-//     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
-
-//     auto& cell = bins.GetCell(0,0,0);
-//     KRATOS_CHECK_EQUAL(cell.size(), 4);
-//     for(auto& geometrical_object : cell){
-//         std::size_t id = geometrical_object->GetId();
-//         KRATOS_CHECK((id == 1) ||(id == 2) ||(id == 7) ||(id == 11));
-//     }
-
-//     cell = bins.GetCell(2,2,1);
-//     KRATOS_CHECK_EQUAL(cell.size(), 4);
-//     for(auto& geometrical_object : cell){
-//         std::size_t id = geometrical_object->GetId();
-//         KRATOS_CHECK((id == 3) ||(id == 4) ||(id == 6) ||(id == 10));
-//     }
-// }
-
 /** Checks bins search in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, KratosMPICoreFastSuite)
@@ -270,7 +209,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRa
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
-    double epsilon = 1.00e-6;
+    double epsilon = 1.0e-6;
     Point near_point{epsilon,epsilon,epsilon};
     auto result = bins.SearchNearestInRadius(near_point, cube_z - 1.e-4);
 
@@ -301,7 +240,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, Kr
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
-    double epsilon = 1.00e-6;
+    double epsilon = 1.0e-6;
     Point near_point{epsilon,epsilon,epsilon};
     auto result = bins.SearchNearest(near_point);
 

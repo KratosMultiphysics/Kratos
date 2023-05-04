@@ -129,28 +129,6 @@ public:
     BoundingBox<Point> GetBoundingBox() const;
 
     /**
-     * @brief return an array with the x, y and z size of the cube
-     * @return The size of the cube
-     */
-    array_1d<double, 3> GetCellSizes();
-
-    /**
-     * @brief returns a 3D array having the number of cells in direction x, y and z
-     * @return The number of cells in each direction
-     */
-    array_1d<std::size_t, 3> GetNumberOfCells();
-
-    /**
-     * @brief The total number of cells in the container
-     * @return The total number of cells
-     */
-    std::size_t GetTotalNumberOfCells()
-    {
-        const auto& number_of_cells = GetNumberOfCells();
-        return number_of_cells[0] * number_of_cells[1] * number_of_cells[2];
-    }
-
-    /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
      * @param rPoint The point to be checked
