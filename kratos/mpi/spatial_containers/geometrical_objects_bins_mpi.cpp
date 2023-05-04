@@ -59,6 +59,8 @@ void GeometricalObjectsBinsMPI::SearchInRadius(
     )
 {
     // TODO
+    const int current_rank = GetRank();
+    std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
 }
 
 /***********************************************************************************/
@@ -72,6 +74,8 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearestIn
     ResultType current_result;
     current_result.SetDistance(std::numeric_limits<double>::max());
     // TODO
+    const int current_rank = GetRank();
+    std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
     return current_result;
 }
 
@@ -85,6 +89,18 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearest(c
     const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
     const double max_radius= *std::max_element(box_size.begin(), box_size.end());
     return SearchNearestInRadius(rPoint, max_radius);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchIsInside(const Point& rPoint)
+{
+    ResultType current_result;
+    // TODO
+    const int current_rank = GetRank();
+    std::vector<int> ranks = RansksPointIsInsideBoundingBox(rPoint.Coordinates());
+    return current_result;
 }
 
 /***********************************************************************************/

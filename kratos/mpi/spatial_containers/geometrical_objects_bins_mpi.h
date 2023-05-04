@@ -240,43 +240,43 @@ public:
         return results;
     }
 
-    // /**
-    //  * @brief This method takes a point and search if it's inside an geometrical object of the domain.
-    //  * @details If it is inside an object, it returns it, and search distance is set to zero.
-    //  * If there is no object, the result will be set to not found.
-    //  * Result contains a flag is the object has been found or not.
-    //  * This method is a simplified and faster method of SearchNearest.
-    //  * @param rPoint The point to be checked
-    //  * @return ResultType The result of the search
-    //  */
-    // ResultType SearchIsInside(const Point& rPoint);
+    /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest.
+     * @param rPoint The point to be checked
+     * @return ResultType The result of the search
+     */
+    ResultType SearchIsInside(const Point& rPoint);
 
-    // /**
-    //  * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
-    //  * @details If it is inside an object, it returns it, and search distance is set to zero.
-    //  * If there is no object, the result will be set to not found.
-    //  * Result contains a flag is the object has been found or not.
-    //  * This method is a simplified and faster method of SearchNearest.
-    //  * @param itPointBegin The first point iterator
-    //  * @param itPointEnd The last point iterator
-    //  * @return std::vector<ResultType> The result of the search
-    //  * @tparam TPointIteratorType The type of the point iterator
-    //  */
-    // template<typename TPointIteratorType>
-    // std::vector<ResultType> IterativeSearchIsInside(
-    //     TPointIteratorType itPointBegin,
-    //     TPointIteratorType itPointEnd
-    //     )
-    // {
-    //     // Doing a vector of results
-    //     std::vector<ResultType> results;
-    //     const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
-    //     results.resize(number_of_points);
-    //     for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-    //         results[it_point - itPointBegin] = SearchIsInside(*it_point);
-    //     }
-    //     return results;
-    // }
+    /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @return std::vector<ResultType> The result of the search
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    std::vector<ResultType> IterativeSearchIsInside(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd
+        )
+    {
+        // Doing a vector of results
+        std::vector<ResultType> results;
+        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+        results.resize(number_of_points);
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            results[it_point - itPointBegin] = SearchIsInside(*it_point);
+        }
+        return results;
+    }
 
     ///@}
     ///@name Access
