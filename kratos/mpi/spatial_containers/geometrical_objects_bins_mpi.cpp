@@ -58,9 +58,26 @@ void GeometricalObjectsBinsMPI::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
-    // TODO
+    // Find the partitions were point is inside
     const int current_rank = GetRank();
     std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
+
+    // Generate a unorderded_set from the ranks
+    std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
+
+    // Check if the point is inside the set
+    if (ranks_set.find(current_rank) != ranks_set.end()) {
+        // Call local search
+        mLocalGeometricalObjectsBins.SearchInRadius(rPoint, Radius, rResults);
+
+        // Remove current rank from the set
+        ranks_set.erase(current_rank);
+    }
+
+    // Now iterate over the other ranks
+    for (auto rank : ranks_set) {
+        // TODO: Implement MPI search
+    }
 }
 
 /***********************************************************************************/
@@ -71,11 +88,30 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearestIn
     const double Radius
     )
 {
+    // Result to return
     ResultType current_result;
-    current_result.SetDistance(std::numeric_limits<double>::max());
-    // TODO
+
+    // Find the partitions were point is inside
     const int current_rank = GetRank();
     std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
+
+    // Generate a unorderded_set from the ranks
+    std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
+
+    // Check if the point is inside the set
+    if (ranks_set.find(current_rank) != ranks_set.end()) {
+        // Call local search
+        current_result = mLocalGeometricalObjectsBins.SearchNearestInRadius(rPoint, Radius);
+
+        // Remove current rank from the set
+        ranks_set.erase(current_rank);
+    }
+
+    // Now iterate over the other ranks
+    for (auto rank : ranks_set) {
+        // TODO: Implement MPI search
+    }
+
     return current_result;
 }
 
@@ -96,10 +132,30 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearest(c
 
 GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchIsInside(const Point& rPoint)
 {
+    // Result to return
     ResultType current_result;
-    // TODO
+
+    // Find the partitions were point is inside
     const int current_rank = GetRank();
     std::vector<int> ranks = RansksPointIsInsideBoundingBox(rPoint.Coordinates());
+
+    // Generate a unorderded_set from the ranks
+    std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
+
+    // Check if the point is inside the set
+    if (ranks_set.find(current_rank) != ranks_set.end()) {
+        // Call local search
+        current_result = mLocalGeometricalObjectsBins.SearchIsInside(rPoint);
+
+        // Remove current rank from the set
+        ranks_set.erase(current_rank);
+    }
+
+    // Now iterate over the other ranks
+    for (auto rank : ranks_set) {
+        // TODO: Implement MPI search
+    }
+
     return current_result;
 }
 
