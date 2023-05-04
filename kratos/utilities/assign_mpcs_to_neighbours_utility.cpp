@@ -171,14 +171,15 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
     NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
 
     ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
-    ConstraintContainerType all_constraints;
-    all_constraints.reserve(nodes_array.size());
-    KRATOS_WATCH(prev_num_mpcs)
+    
 
     // KRATOS_WATCH(Results)
-    // #pragma omp parallel
+    #pragma omp parallel
     {
-        // #pragma omp for
+        // A buffer to store auxiliary constraints
+        ConstraintContainerType constraints_buffer;
+
+        #pragma omp for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
         {
 
@@ -198,10 +199,15 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
         noalias(row(shape_matrix,0)) = r_n_container;// Shape functions matrix
         const Vector constant_vector = ZeroVector(r_n_container.size());
         IndexType it = i;
-        all_constraints.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,r_cloud_of_dofs,r_slave_dof,shape_matrix,constant_vector));
+        constraints_buffer.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,r_cloud_of_dofs,r_slave_dof,shape_matrix,constant_vector));
+        }
+
+        #pragma omp critical
+        {
+            rComputingModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
         }
     }
-    rComputingModelPart.AddMasterSlaveConstraints(all_constraints.begin(),all_constraints.end());
+    
     KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
 }
