@@ -106,6 +106,14 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
                 self.properties_control.MapGradient({Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)}),
                 KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)))
 
+    def test_GetControlFiield(self):
+        self.properties_control.Initialize()
+        field = self.properties_control.GetControlField()
+        field.Evaluate(Kratos.YOUNG_MODULUS)
+        for element in self.model_part.Elements:
+            properties = element.Properties
+            self.assertEqual(properties[Kratos.DENSITY], properties[Kratos.YOUNG_MODULUS])
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
     kratos_unittest.main()

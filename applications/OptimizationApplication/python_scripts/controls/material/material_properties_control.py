@@ -69,6 +69,11 @@ class MaterialPropertiesControl(Control):
         field.SetData(0.0)
         return field
 
+    def GetControlField(self) -> ContainerExpressionTypes:
+        field = self.GetEmptyField()
+        field.Read(self.controlled_physical_variable)
+        return field
+
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
         if len(keys) != 1:
