@@ -147,7 +147,7 @@ public:
         );
 
     /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it.
+     * @brief This method takes a point and finds all of the objects in the given radius to it (iterative version).
      * @details The result contains the object and also its distance to the point.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
@@ -185,14 +185,14 @@ public:
         );
 
     /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius.
+     * @brief This method takes a point and finds the nearest object to it in a given radius (iterative version).
      * @details If there are more than one object in the same minimum distance only one is returned
      * If there are no objects in that radius the result will be set to not found.
      * Result contains a flag is the object has been found or not.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
-     * @return ResultType The result of the search
+     * @return std::vector<ResultType> The result of the search
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
@@ -222,12 +222,13 @@ public:
     ResultType SearchNearest(const Point& rPoint);
 
     /**
-     * @brief This method takes a point and finds the nearest object to it.
+     * @brief This method takes a point and finds the nearest object to it (iterative version).
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
-     * @return ResultType The result of the search
+     * @return std::vector<ResultType> The result of the search
+     * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
     std::vector<ResultType> IterativeSearchNearest(
@@ -255,6 +256,33 @@ public:
      * @return ResultType The result of the search
      */
     ResultType SearchIsInside(const Point& rPoint);
+
+    /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @return std::vector<ResultType> The result of the search
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    std::vector<ResultType> IterativeSearchIsInside(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd
+        )
+    {
+        // Doing a vector of results
+        std::vector<ResultType> results;
+        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+        results.resize(number_of_points);
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            results[it_point - itPointBegin] = SearchIsInside(*it_point);
+        }
+        return results;
+    }
 
     ///@}
     ///@name Access
