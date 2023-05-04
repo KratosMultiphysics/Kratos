@@ -25,6 +25,12 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif(POLICY CMP0057)
 
+# Allow target dependeices built in other directories to be used in other subprojects.
+# This is a fix to be able to use mkl and feast4 in the LinearSolver and Rom Applications
+if(POLICY CMP0079 )
+  cmake_policy(SET CMP0079 NEW)
+endif()
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 3)
