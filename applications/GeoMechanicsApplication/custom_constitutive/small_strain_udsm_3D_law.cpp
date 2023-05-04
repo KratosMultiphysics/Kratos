@@ -859,7 +859,10 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &r
     mStressAndUnsatVector[6] = mDegreeOfSaturaion;
     mStressAndUnsatVector[7] = mDerivativeOfSaturation; 
     mStressAndUnsatVector[8] = mIncrementOfSuction;
-      
+
+    KRATOS_INFO("mStressAndUnsatVector[6]") << mStressAndUnsatVector[6] << std::endl;
+    KRATOS_INFO("mStressAndUnsatVector[7]") << mStressAndUnsatVector[7] << std::endl;
+    KRATOS_INFO("mStressAndUnsatVector[8]") << mStressAndUnsatVector[8] << std::endl;
 
 
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
