@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
@@ -11,7 +11,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
     def GetSensitivityFieldVariables(cls) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [Kratos.SHAPE_SENSITIVITY, KratosOA.YOUNG_MODULUS_SENSITIVITY, KratosOA.THICKNESS_SENSITIVITY, KratosOA.POISSON_RATIO_SENSITIVITY]
 
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
             "evaluated_model_part_names": [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
