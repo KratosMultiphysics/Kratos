@@ -861,7 +861,7 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &r
     mStressAndUnsatVector[8] = mIncrementOfSuction;
 
     KRATOS_INFO("mStressAndUnsatVector[6]") << mStressAndUnsatVector[6] << std::endl;
-    KRATOS_INFO("mStressAndUnsatVector[7]") << mStressAndUnsatVector[7] << std::endl;
+    KRATOS_INFO("mStressAndUnsatVector[7]") << mStressAndUnsatVector[7GIT] << std::endl;
     KRATOS_INFO("mStressAndUnsatVector[8]") << mStressAndUnsatVector[8] << std::endl;
 
 
