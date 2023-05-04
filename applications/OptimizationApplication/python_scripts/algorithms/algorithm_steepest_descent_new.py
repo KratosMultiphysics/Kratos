@@ -50,10 +50,9 @@ class KratosSteepestDescent(PythonSolver):
         self.echo_level = algorithm_parameters["echo_level"].GetInt()
 
         self.step_size = algorithm_parameters["step_size"].GetInt()
-        self.max_iter = algorithm_parameters["max_iter"].GetInt()
+        self.__max_iter = algorithm_parameters["max_iter"].GetInt()
 
-        objective = StandardizedObjective(parameters["objectives"][0], self.master_control, optimization_problem)
-        self.objective_function = optimization_problem.GetResponse(objective["name"].GetString())
+        self.__objective = StandardizedObjective(parameters["objectives"][0], self.master_control, optimization_problem)
         self.control_field = None
 
     def GetMinimumBufferSize(self) -> int:
@@ -87,8 +86,8 @@ class KratosSteepestDescent(PythonSolver):
 
         while not self.converged:
 
-            obj_val = self.objective.CalculateStandardizedValue(self.control_field) # obj_val is typically not used. It is needed if we use Line Search Technique
-            obj_grad = self.objective.CalculateStandardizedGradient()
+            obj_val = self.__objective.CalculateStandardizedValue(self.control_field) # obj_val is typically not used. It is needed if we use Line Search Technique
+            obj_grad = self.__objective.CalculateStandardizedGradient()
             search_direction = self.ComputeSearchDirection(obj_grad)
             self.ComputeDesignVariableUpdate(search_direction)
             alpha = self.LineSearch()
@@ -99,4 +98,4 @@ class KratosSteepestDescent(PythonSolver):
         self.Finalize()
 
     def CheckConvergence(self) -> bool:
-        return True if self.opt_iter >= self.max_iter else False
+        return True if self.opt_iter >= self.__max_iter else False
