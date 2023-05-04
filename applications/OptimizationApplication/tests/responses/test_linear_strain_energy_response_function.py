@@ -39,7 +39,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
                 "log_file_name"            : "structure.log"
             }""")
             cls.execution_policy_decorator = ExecutionPolicyDecorator(cls.model, execution_policy_wrapper_settings, cls.optimization_problem)
-            cls.optimization_problem.AddExecutionPolicy(cls.execution_policy_decorator.GetName(), cls.execution_policy_decorator)
+            cls.optimization_problem.AddComponent(cls.execution_policy_decorator)
 
             Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 
@@ -50,7 +50,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
                 "perturbation_size"         : 1e-8
             }""")
             cls.response_function: LinearStrainEnergyResponseFunction = LinearStrainEnergyResponseFunction("strain_energy", cls.model, response_function_settings, cls.optimization_problem)
-            cls.optimization_problem.AddResponse("strain_energy", cls.response_function)
+            cls.optimization_problem.AddComponent(cls.response_function)
 
             cls.execution_policy_decorator.Initialize()
             cls.response_function.Initialize()
