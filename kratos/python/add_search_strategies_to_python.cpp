@@ -770,6 +770,17 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         return list_results;
     })
     .def("SearchIsInside", &GeometricalObjectsBins::SearchIsInside)
+    .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        std::vector<ResultType> results = self.IterativeSearchIsInside(rNodes.begin(), rNodes.end());
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
     ;
 }
 
