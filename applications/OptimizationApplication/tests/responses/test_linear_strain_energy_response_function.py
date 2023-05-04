@@ -23,9 +23,9 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             # creating the execution policy wrapper
             execution_policy_wrapper_settings = Kratos.Parameters("""{
                 "name"    : "primal",
-                "module"  : "KratosMultiphysics.OptimizationApplication.execution_policies",
-                "type"    : "SteppingAnalysisExecutionPolicy",
-                "settings": {
+                "kratos_module": "KratosMultiphysics.OptimizationApplication.execution_policies",
+                "python_module": "stepping_analysis_execution_policy",
+                "Parameters": {
                     "model_part_names" : ["Structure"],
                     "analysis_module"  : "KratosMultiphysics.StructuralMechanicsApplication",
                     "analysis_type"    : "StructuralMechanicsAnalysis",

@@ -11,8 +11,8 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
         model = Kratos.Model()
         parameters = Kratos.Parameters("""{
             "name"                 : "test",
-            "type"                 : "IndependentAnalysisExecutionPolicy",
-            "settings"             : {
+            "python_module": "independent_analysis_execution_policy",
+            "Parameters": {
                 "analysis_type"    : "MultistageAnalysis",
                 "analysis_settings": {
                     "stages": [],

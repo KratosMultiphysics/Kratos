@@ -55,16 +55,20 @@ def IsSameContainerExpression(container_expression_1: ContainerExpressionTypes, 
 def HasContainerExpression(container_expression: ContainerExpressionTypes, list_of_container_expressions: 'list[ContainerExpressionTypes]') -> bool:
     return any([IsSameContainerExpression(container_expression, list_container_expression) for list_container_expression in list_of_container_expressions])
 
-def OptimizationProcessFactory(
+def OptimizationComponentFactory(
     component_name: str,
-    module_name: str,
-    class_name: str,
+    python_module: str,
+    kratos_module: str,
     model: Kratos.Model,
     parameters: Kratos.Parameters,
     optimization_problem: OptimizationProblem):
 
-    python_file_name = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(class_name)
-    full_module_name = f"{module_name}.{python_file_name}"
+    if kratos_module == "":
+        # in the case module comes from outside of kratos
+        full_module_name = python_module
+    else:
+        # in the case module comes from within kratos
+        full_module_name = f"{kratos_module}.{python_module}"
 
     module = import_module(full_module_name)
     if not hasattr(module, "Factory"):

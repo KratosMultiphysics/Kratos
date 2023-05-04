@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import FileLogger
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationProcessFactory
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationComponentFactory
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
@@ -10,13 +10,13 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationProblem):
         default_parameters = Kratos.Parameters("""{
             "name"           : "",
-            "module"         : "KratosMultiphysics.OptimizationApplication.execution_policies",
-            "type"           : "PleaseProvideClassName",
-            "settings"       : {},
+            "python_module"  : "please_provide_python_module_name",
+            "kratos_module"  : "KratosMultiphysics.OptimizationApplication.execution_policies",
             "pre_operations" : [],
             "post_operations": [],
             "log_in_file"    : false,
-            "log_file_name"  : ""
+            "log_file_name"  : "",
+            "Parameters"     : {}
         }""")
         parameters.ValidateAndAssignDefaults(default_parameters)
 
@@ -35,7 +35,7 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
         self.__list_of_post_operations: 'list[Kratos.Operation]' = factory.ConstructListOfItems(parameters["post_operations"])
 
         # create execution policy
-        self.__execution_policy: ExecutionPolicy = OptimizationProcessFactory(self.GetName(), parameters["module"].GetString(), parameters["type"].GetString(), model, parameters["settings"], optimization_info)
+        self.__execution_policy: ExecutionPolicy = OptimizationComponentFactory(self.GetName(), parameters["python_module"].GetString(), parameters["kratos_module"].GetString(), model, parameters["Parameters"], optimization_info)
 
     def GetExecutionPolicy(self):
         return self.__execution_policy

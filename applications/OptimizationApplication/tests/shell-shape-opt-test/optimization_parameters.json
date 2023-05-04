@@ -13,8 +13,8 @@
         "analyses": [
             {
                 "name": "shell_static",
-                "type": "SteppingAnalysisExecutionPolicy",
-                "settings": {
+                "python_module": "stepping_analysis_execution_policy",
+                "Parameters": {
                     "model_part_names": [
                         "shell"
                     ],
