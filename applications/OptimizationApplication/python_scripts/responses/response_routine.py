@@ -126,3 +126,15 @@ class ResponseRoutine:
         # calculate and return the control space gradients from respective controls
         return self.__master_control.MapGradient(self.__required_physical_gradients)
 
+    def GetRequiredPhysicalGradients(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]':
+        """Returns required physical gradients by this response
+
+        This method returns required physical gradients. The expressions may or not be empty field
+        depending on CalculateGradient is called or not.
+
+        Returns:
+            dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]: Required physical gradients.
+        """
+        return self.__required_physical_gradients
+
+
