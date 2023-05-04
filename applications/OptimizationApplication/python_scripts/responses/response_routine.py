@@ -26,9 +26,6 @@ class ResponseRoutine:
         Raises:
             RuntimeError: If control domain and response domain does not have any intersection.
         """
-        # initialize the response
-        self.__response.Initialize()
-
         # create the required physical control fields to compute gradients
         self.__required_physical_gradients = self.__master_control.GetPhysicalKratosVariableCollectiveExpressionsMap()
 
@@ -61,10 +58,10 @@ class ResponseRoutine:
             raise RuntimeError(f"The controls does not have any influence over the response {self.GetReponseName()}.")
 
     def Check(self):
-        self.__response.Check()
+        pass
 
     def Finalize(self):
-        self.__response.Finalize()
+        pass
 
     def GetReponse(self) -> ResponseFunction:
         return self.__response
