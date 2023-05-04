@@ -23,7 +23,8 @@ def Factory(settings, Model):
                 "load"            : [0.0, 1.0, 0.0],
                 "direction"       : [1,1,1],
                 "velocity"        : 1,
-                "origin"          : [0.0,0.0,0.0]
+                "origin"          : [0.0,0.0,0.0],
+                "offset"          : 0.0
             }
             """
                                                      )
