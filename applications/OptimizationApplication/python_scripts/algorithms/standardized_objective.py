@@ -73,10 +73,10 @@ class StandardizedObjective(ResponseRoutine):
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.GetValue(step_index) * self.__scaling
 
-    def CalculateStandardizedGradient(self, save_value: bool = True) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.ContainerExpression.CollectiveExpressions:
         gradient_collective_expression = self.CalculateGradient()
 
-        if save_value:
+        if save_field:
             # save the physical gradients for post processing in unbuffered data container.
             for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
                 variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
