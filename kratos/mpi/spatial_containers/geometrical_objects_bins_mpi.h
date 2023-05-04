@@ -123,6 +123,34 @@ public:
     ///@{
 
     /**
+     * @brief Getting the bins bounding box
+     * @return The bounding box of the bins
+     */
+    BoundingBox<Point> GetBoundingBox() const;
+
+    // /**
+    //  * @brief return an array with the x,y and z size of the cube
+    //  * @return The size of the cube
+    //  */
+    // const array_1d<double, 3>& GetCellSizes();
+
+    // /**
+    //  * @brief returns a 3D array having the number of cells in direction x, y and z
+    //  * @return The number of cells in each direction
+    //  */
+    // const array_1d<std::size_t, 3>& GetNumberOfCells();
+
+    // /**
+    //  * @brief The total number of cells in the container
+    //  * @return The total number of cells
+    //  */
+    // std::size_t GetTotalNumberOfCells()
+    // {
+    //     const auto& number_of_cells = GetNumberOfCells();
+    //     return number_of_cells[0] * number_of_cells[1] * number_of_cells[2];
+    // }
+
+    /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
      * @param rPoint The point to be checked
@@ -233,6 +261,44 @@ public:
         }
         return results;
     }
+
+    // /**
+    //  * @brief This method takes a point and search if it's inside an geometrical object of the domain.
+    //  * @details If it is inside an object, it returns it, and search distance is set to zero.
+    //  * If there is no object, the result will be set to not found.
+    //  * Result contains a flag is the object has been found or not.
+    //  * This method is a simplified and faster method of SearchNearest.
+    //  * @param rPoint The point to be checked
+    //  * @return ResultType The result of the search
+    //  */
+    // ResultType SearchIsInside(const Point& rPoint);
+
+    // /**
+    //  * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
+    //  * @details If it is inside an object, it returns it, and search distance is set to zero.
+    //  * If there is no object, the result will be set to not found.
+    //  * Result contains a flag is the object has been found or not.
+    //  * This method is a simplified and faster method of SearchNearest.
+    //  * @param itPointBegin The first point iterator
+    //  * @param itPointEnd The last point iterator
+    //  * @return std::vector<ResultType> The result of the search
+    //  * @tparam TPointIteratorType The type of the point iterator
+    //  */
+    // template<typename TPointIteratorType>
+    // std::vector<ResultType> IterativeSearchIsInside(
+    //     TPointIteratorType itPointBegin,
+    //     TPointIteratorType itPointEnd
+    //     )
+    // {
+    //     // Doing a vector of results
+    //     std::vector<ResultType> results;
+    //     const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+    //     results.resize(number_of_points);
+    //     for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+    //         results[it_point - itPointBegin] = SearchIsInside(*it_point);
+    //     }
+    //     return results;
+    // }
 
     ///@}
     ///@name Access

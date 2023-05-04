@@ -25,6 +25,33 @@
 namespace Kratos
 {
 
+BoundingBox<Point> GeometricalObjectsBinsMPI::GetBoundingBox() const
+{
+    // Generate BB
+    BoundingBox<Point> bb;
+    auto& r_max = bb.GetMaxPoint();
+    auto& r_min = bb.GetMinPoint();
+
+    const auto& r_local_bb = mLocalGeometricalObjectsBins.GetBoundingBox();
+    const auto& r_local_max = r_local_bb.GetMaxPoint();
+    const auto& r_local_min = r_local_bb.GetMinPoint();
+
+    // Getting max values
+    r_max[0] = mrDataCommunicator.MaxAll(r_local_max[0]);
+    r_max[1] = mrDataCommunicator.MaxAll(r_local_max[1]);
+    r_max[2] = mrDataCommunicator.MaxAll(r_local_max[2]);
+
+    // Getting min values
+    r_min[0] = mrDataCommunicator.MinAll(r_local_min[0]);
+    r_min[1] = mrDataCommunicator.MinAll(r_local_min[1]);
+    r_min[2] = mrDataCommunicator.MinAll(r_local_min[2]);
+
+    return bb;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void GeometricalObjectsBinsMPI::SearchInRadius(
     const Point& rPoint,
     const double Radius,
@@ -54,9 +81,9 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearestIn
 GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearest(const Point& rPoint)
 {
     ResultType current_result;
-    const array_1d<double, 3> box_size = mBoundingBox.GetMaxPoint() - mBoundingBox.GetMinPoint();
-    double max_radius= *std::max_element(box_size.begin(), box_size.end());
-    max_radius = mrDataCommunicator.MaxAll(max_radius);
+    const auto bb = GetBoundingBox();
+    const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
+    const double max_radius= *std::max_element(box_size.begin(), box_size.end());
     return SearchNearestInRadius(rPoint, max_radius);
 }
 
