@@ -23,6 +23,6 @@
 namespace Kratos::Python
 {
 
-    void AddAccessorToPython(pybind11::module &m);
+    void AddAccessorsToPython(pybind11::module &m);
 
 }  // namespace Kratos::Python.

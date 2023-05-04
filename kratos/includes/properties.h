@@ -297,15 +297,6 @@ public:
         }
     }
 
-    /*
-    Method to add Accessors to properties
-    */
-    template<class TVariableType>
-    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
-    {
-        mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
-    }
-
     template<class TVariableType>
     void SetValue(TVariableType const& rV, typename TVariableType::Type const& rValue)
     {
@@ -315,6 +306,34 @@ public:
     bool HasVariables() const
     {
         return !mData.IsEmpty();
+    }
+
+    /**
+     * @brief Set the Accessor object
+     * This method sets a variable-accessor pair in current properties accessor container
+     * @tparam TVariableType The variable data type
+     * @param rVariable Variable to which the accessor will refer to
+     * @param pAccessor Pointer to the accessor instance
+     */
+    template <class TVariableType>
+    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
+    {
+        mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
+    }
+
+    template <class TVariableType>
+    AccessorPointerType GetAccessor(const TVariableType& rVariable) const
+    {
+        auto it_value = mAccessors.find(rVariable.Key());
+        KRATOS_ERROR_IF(it_value == mAccessors.end())
+            << "Trying to retrieve inexisting accessor for '" << rVariable.Name() << "' in properties " << Id() << "." << std::endl;
+        return it_value->second;
+    }
+
+    template <class TVariableType>
+    bool HasAccessor(const TVariableType& rVariable) const
+    {
+        return (mAccessors.find(rVariable.Key()) == mAccessors.end()) ? false : true;
     }
 
     template<class TXVariableType, class TYVariableType>

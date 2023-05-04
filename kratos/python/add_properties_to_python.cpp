@@ -255,11 +255,7 @@ void  AddPropertiesToPython(pybind11::module& m)
         .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 4>>>)
         .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<std::string>>)
 
-        .def("SetAccessor", [&](Properties &rSelf, Variable<double> &rVar, Properties::AccessorPointerType &rpAccessor)
-            {
-                rSelf.SetAccessor(rVar, rpAccessor);
-            })
-        
+        .def("HasAccessor", py::overload_cast<Variable<double>&>(&Properties::HasAccessor), "Checks if there is an accessor for a variable of type 'double'.")
         ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
