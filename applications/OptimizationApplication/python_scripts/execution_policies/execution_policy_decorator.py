@@ -7,7 +7,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
 class ExecutionPolicyDecorator(ExecutionPolicy):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationProblem):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_parameters = Kratos.Parameters("""{
             "name"           : "",
             "python_module"  : "please_provide_python_module_name",
@@ -35,7 +35,7 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
         self.__list_of_post_operations: 'list[Kratos.Operation]' = factory.ConstructListOfItems(parameters["post_operations"])
 
         # create execution policy
-        self.__execution_policy: ExecutionPolicy = OptimizationComponentFactory(self.GetName(), parameters["python_module"].GetString(), parameters["kratos_module"].GetString(), model, parameters["Parameters"], optimization_info)
+        self.__execution_policy: ExecutionPolicy = OptimizationComponentFactory(model, parameters, optimization_problem)
 
     def GetExecutionPolicy(self):
         return self.__execution_policy

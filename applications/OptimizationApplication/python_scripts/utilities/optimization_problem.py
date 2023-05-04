@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, Union
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
@@ -41,14 +41,14 @@ class OptimizationProblem:
         # initialize the step
         self.__problem_data["step"] = 0
 
-    def GetComponentType(self, component: Any) -> Any:
+    def GetComponentType(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> Any:
         for k in self.__components.keys():
             if isinstance(component, k):
                 return k
 
         return None
 
-    def GetComponentName(self, component: Any) -> str:
+    def GetComponentName(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> str:
         component_type = self.GetComponentType(component)
         if not component_type is None:
             components = self.__components[component_type]
@@ -61,7 +61,7 @@ class OptimizationProblem:
 
         raise RuntimeError(f"The given {component} not found in components of type {component_type}.")
 
-    def AddComponent(self, component: Any) -> None:
+    def AddComponent(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> None:
         for k, v in self.__components.items():
             if isinstance(component, k):
                 added_component_type = k.__name__
