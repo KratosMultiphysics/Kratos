@@ -39,7 +39,7 @@ ModelPart& CreateCubeSkinModelPart(
     auto p_properties = r_skin_part.CreateNewProperties(1, 0);
 
     // Set partitions
-    auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
     const int rank =  r_data_comm.Rank();
     const int world_size = r_data_comm.Size();
     if (world_size == 1) {
@@ -125,37 +125,37 @@ ModelPart& CreateCubeSkinModelPart(
     return r_skin_part;
 }
 
-// /** Checks bins bounding box
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsBoundingBox, KratosMPICoreFastSuite) 
-// {
-//     constexpr double tolerance = 1e-12;
+/** Checks bins bounding box
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIBoundingBox, KratosMPICoreFastSuite)
+{
+    constexpr double tolerance = 1e-12;
 
-//     Model current_model;
+    Model current_model;
 
-//     const double cube_x = 0.6;
-//     const double cube_y = 0.9;
-//     const double cube_z = 0.3;
+    const double cube_x = 0.6;
+    const double cube_y = 0.9;
+    const double cube_z = 0.3;
 
-//     // Generate the cube skin
-//     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
-//     auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+    // Generate the cube skin
+    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-//     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
-//     auto bounding_box = bins.GetBoundingBox();
+    auto bounding_box = bins.GetBoundingBox();
 
-//     KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[0],-cube_x, tolerance);
-//     KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[1],-cube_y, tolerance);
-//     KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[2],-cube_z, tolerance);
-//     KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[0], cube_x, tolerance);
-//     KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[1], cube_y, tolerance);
-//     KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], cube_z, tolerance);
-// }
+    KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[0],-cube_x, tolerance);
+    KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[1],-cube_y, tolerance);
+    KRATOS_CHECK_NEAR(bounding_box.GetMinPoint()[2],-cube_z, tolerance);
+    KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[0], cube_x, tolerance);
+    KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[1], cube_y, tolerance);
+    KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], cube_z, tolerance);
+}
 
 // /** Checks bins number of cells
 // */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsCellSizes, KratosMPICoreFastSuite)
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPICellSizes, KratosMPICoreFastSuite)
 // {
 //     constexpr double tolerance = 1e-12;
 
@@ -167,7 +167,7 @@ ModelPart& CreateCubeSkinModelPart(
 
 //     // Generate the cube skin
 //     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
-//     auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
 //     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
@@ -185,7 +185,7 @@ ModelPart& CreateCubeSkinModelPart(
 
 // /** Checks bins AddObjectsToCells
 // */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsAddObjectsToCells, KratosMPICoreFastSuite)
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIAddObjectsToCells, KratosMPICoreFastSuite)
 // {
 //     Model current_model;
 
@@ -195,7 +195,7 @@ ModelPart& CreateCubeSkinModelPart(
 
 //     // Generate the cube skin
 //     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
-//     auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
 //     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
@@ -216,7 +216,7 @@ ModelPart& CreateCubeSkinModelPart(
 
 /** Checks bins search in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, KratosMPICoreFastSuite)
 {
     Model current_model;
 
@@ -226,7 +226,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, Krat
 
     // Generate the cube skin
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
-    auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
@@ -254,7 +254,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, Krat
 
 /** Checks bins search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRadius, KratosMPICoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -266,7 +266,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadiu
 
     // Generate the cube skin
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
-    auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
@@ -285,7 +285,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadiu
 
 /** Checks bins search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, KratosMPICoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -297,7 +297,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, Krato
 
     // Generate the cube skin
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
-    auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
@@ -313,13 +313,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, Krato
 
 /** Checks bins empty search nearest 
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIEmptySearchNearest, KratosMPICoreFastSuite) 
 {
     Model current_model;
 
     // Generate the cube skin
     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
-    auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
@@ -331,7 +331,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, 
 
 // /** Checks bins search is inside 
 // */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite) 
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchIsInside, KratosMPICoreFastSuite) 
 // {
 //     constexpr double tolerance = 1e-12;
 
@@ -339,7 +339,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, 
 
 //     // Generate the cube skin
 //     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
-//     auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 //     r_skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 //     r_skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
 //     r_skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
@@ -358,13 +358,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, 
 
 // /** Checks bins search is inside = not found
 // */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite) 
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchIsNotInside, KratosMPICoreFastSuite) 
 // {
 //     Model current_model;
 
 //     // Generate the cube skin
 //     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
-//     auto& r_data_comm = r_skin_part.GetCommunicator().GetDataCommunicator();
+//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 //     r_skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 //     r_skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
 //     r_skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
