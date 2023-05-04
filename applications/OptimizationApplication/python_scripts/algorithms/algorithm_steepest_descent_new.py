@@ -78,8 +78,8 @@ class KratosSteepestDescent(PythonSolver):
     def ComputeSearchDirection(obj_grad) -> KratosOA.ContainerExpression.CollectiveExpressions:
         return obj_grad * -1.0
     
-    def LineSearch(self) -> float:
-        return self.step_size
+    def LineSearch(self, search_direction) -> float:
+        return self.step_size / KratosOA.ContainerExpressionUtils.NormInf(search_direction)
 
     def SolveSolutionStep(self) -> bool:
         self.Initialize()
@@ -89,8 +89,7 @@ class KratosSteepestDescent(PythonSolver):
             obj_val = self.__objective.CalculateStandardizedValue(self.control_field) # obj_val is typically not used. It is needed if we use Line Search Technique
             obj_grad = self.__objective.CalculateStandardizedGradient()
             search_direction = self.ComputeSearchDirection(obj_grad)
-            self.ComputeDesignVariableUpdate(search_direction)
-            alpha = self.LineSearch()
+            alpha = self.LineSearch(search_direction)
             self.control_field += search_direction * alpha
 
             self.converged = self.CheckConvergence()
