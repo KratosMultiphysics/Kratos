@@ -147,6 +147,15 @@ void AssignMPCsToNeighboursUtility::AssignRotationToNodes(
     KRATOS_CATCH("");
 }
 
+// /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+// void ThreadSafeAddMasterSlaveConstraints(
+//     ModelPart& rComputingModelPart, 
+//     ConstraintContainerType constraints_buffer)
+// {
+//     KRATOS_CRITICAL_SECTION
+//     rComputingModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
+// }
+
 void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
     NodesContainerType pNodes,
     double const Radius,
@@ -245,33 +254,34 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallel(
         // Create a lock_guard object to lock the mutex and prevent other threads from accessing the critical section
         std::lock_guard<std::mutex> lock(mtx);
 
-        // Increment the counter variable
-        i++;
-
         // Get Dofs and Coordinates
         DofPointerVectorType r_cloud_of_dofs, r_slave_dof;
         Matrix r_cloud_of_nodes_coordinates;
         array_1d<double,3> r_slave_coordinates;
         GetDofsAndCoordinatesForNode(pNode, rVariable, r_slave_dof, r_slave_coordinates);
-        KRATOS_WATCH(i)
         GetDofsAndCoordinatesForNodes(results[i], rVariable, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
 
-        // // Calculate shape functions
-        // Vector r_n_container;
-        // RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates,r_slave_coordinates,r_n_container);
+        // Calculate shape functions
+        Vector r_n_container;
+        RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates,r_slave_coordinates,r_n_container);
 
-        // //Create MPCs
-        // Matrix shape_matrix(1,r_n_container.size());
-        // noalias(row(shape_matrix,0)) = r_n_container;// Shape functions matrix
-        // const Vector constant_vector = ZeroVector(r_n_container.size());
-        // IndexType it = i;
-        // constraints_buffer.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,r_cloud_of_dofs,r_slave_dof,shape_matrix,constant_vector));
+        //Create MPCs
+        Matrix shape_matrix(1,r_n_container.size());
+        noalias(row(shape_matrix,0)) = r_n_container;// Shape functions matrix
+        const Vector constant_vector = ZeroVector(r_n_container.size());
+        IndexType it = i;
+        constraints_buffer.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,r_cloud_of_dofs,r_slave_dof,shape_matrix,constant_vector));
         // }
 
-        // #pragma omp critical
-        // {
-        //     rComputingModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
-        // }
+        {
+            KRATOS_CRITICAL_SECTION
+            rComputingModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
+        }
+
+        // ThreadSafeAddMasterSlaveConstraints(rComputingModelPart, constraints_buffer);
+
+        // Increment the counter variable
+        i++;
     });
     
     KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;

@@ -151,6 +151,11 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
         Matrix RotationMatrix
         );
 
+      void ThreadSafeAddMasterSlaveConstraints(
+        ModelPart& rComputingModelPart, 
+        ConstraintContainerType constraints_buffer
+        );
+
 
       /**
        * @brief Assign Multipoint Constraints to a set of Nodes.
