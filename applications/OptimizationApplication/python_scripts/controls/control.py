@@ -85,6 +85,17 @@ class Control(ABC):
         pass
 
     @abstractmethod
+    def GetControlField(self) -> ContainerExpressionTypes:
+        """Returns the current control field of the control.
+
+        This method returns the control field of the current design.
+
+        Returns:
+            ContainerExpressionTypes: Current designs control field.
+        """
+        pass
+
+    @abstractmethod
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         """Maps physical space gradients to the control space.
 
