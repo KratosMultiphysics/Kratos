@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> Control:
     if not parameters.Has("name"):
@@ -26,38 +27,32 @@ class MaterialPropertiesControl(Control):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>_combined_no_neighbours_control",
-            "model_part_names"               : [""],
-            "control_variable_name"          : ""
+            "model_part_names"     : [""],
+            "control_variable_name": ""
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.output_model_part_name = parameters["combined_output_model_part_name"].GetString()
         self.model_part_names = parameters["model_part_names"].GetStringArray()
         self.model = model
 
         control_variable_name = parameters["control_variable_name"].GetString()
         control_variable_type = Kratos.KratosGlobals.GetVariableType(control_variable_name)
+
         if control_variable_type != "Double":
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
+        if len(self.model_part_names) == 0:
+            raise RuntimeError(f"\"{self.GetName()}\" control has not specified any model part names.")
 
         self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
     def Initialize(self) -> None:
-        # get the model part name
-        output_model_part_name = self.output_model_part_name.replace("<CONTROL_NAME>", self.GetName())
-
-        # get root model part
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
         root_model_part = model_parts_list[0].GetRootModelPart()
+        is_new_model_part, self.model_part = ModelPartUtilities.MergeModelParts(root_model_part, model_parts_list, False)
 
-        # create the combined model part
-        if not root_model_part.HasSubModelPart(output_model_part_name):
-            self.model_part: Kratos.ModelPart = Kratos.ModelPartOperationUtilities.Merge(output_model_part_name, root_model_part, model_parts_list, False)
+        if is_new_model_part:
             # now create entity specific properties for the merged model part which is used for the control.
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
-        else:
-            self.model_part = root_model_part.GetSubModelPart(output_model_part_name)
 
     def Check(self) -> None:
         pass
