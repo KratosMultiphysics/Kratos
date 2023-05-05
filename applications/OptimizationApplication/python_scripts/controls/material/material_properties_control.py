@@ -5,7 +5,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _):
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> Control:
     if not parameters.Has("name"):
         raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("Parameters"):
