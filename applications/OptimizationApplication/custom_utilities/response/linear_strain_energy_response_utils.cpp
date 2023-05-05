@@ -80,66 +80,44 @@ double LinearStrainEnergyResponseUtils::CalculateValue(ModelPart& rEvaluatedMode
 }
 
 void LinearStrainEnergyResponseUtils::CalculateGradient(
-    ModelPart& rAnalysisModelPart,
-    ModelPart& rEvaluatedModelPart,
-    const GradientVariableModelPartsListMap& rGradientVariableModelPartInfo,
+    const std::vector<GradientFieldVariableTypes>& rListOfGradientVariables,
+    const std::vector<ModelPart*>& rListOfGradientRequiredModelParts,
+    const std::vector<ModelPart*>& rListOfGradientComputedModelParts,
     const double PerturbationSize)
 {
     KRATOS_TRY
 
-    // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (const auto& it : rGradientVariableModelPartInfo) {
-        std::visit([&](auto&& r_variable) {
+    KRATOS_ERROR_IF(rListOfGradientVariables.size() !=
+                    rListOfGradientRequiredModelParts.size())
+        << "Number of gradient variables and required model parts mismatch.";
+    KRATOS_ERROR_IF(rListOfGradientVariables.size() !=
+                    rListOfGradientComputedModelParts.size())
+        << "Number of gradient variables and computed model parts mismatch.";
 
-            std::stringstream unique_intersected_model_part_name_generator;
-            for (auto p_sensitivity_model_part : it.second) {
-                unique_intersected_model_part_name_generator << p_sensitivity_model_part->FullName() << "_";
-            }
-            const auto& unique_intersected_model_part_name = StringUtilities::ReplaceAllSubstrings(unique_intersected_model_part_name_generator.str(), ".", "_");
-            unique_intersected_model_part_name_generator << "merged";
-            const auto& unique_merged_model_part_name = StringUtilities::ReplaceAllSubstrings(unique_intersected_model_part_name_generator.str(), ".", "_");
-
-            ModelPart* p_intersected_model_part;
-            ModelPart* p_merged_model_part;
-            if (rEvaluatedModelPart.HasSubModelPart(unique_intersected_model_part_name)) {
-                p_merged_model_part = &rEvaluatedModelPart.GetSubModelPart(unique_merged_model_part_name);
-                p_intersected_model_part = &rEvaluatedModelPart.GetSubModelPart(unique_intersected_model_part_name);
-            } else {
-                unique_intersected_model_part_name_generator << "merged";
-                // get the merged sensitivity model part.
-                p_merged_model_part = &ModelPartOperationUtilities::Merge(
-                    unique_merged_model_part_name, rEvaluatedModelPart, it.second, false);
-
-                // get the intersected sensitivity model part with the evaluated model part.
-                p_intersected_model_part = &ModelPartOperationUtilities::Intersect(
-                    unique_intersected_model_part_name, rEvaluatedModelPart,
-                    {&rEvaluatedModelPart, p_merged_model_part}, false);
-            }
-
-            // clear the variables in model parts in the case where difference of evaluated and sensitivity model parts
-            // has a remainder, those values needs to be set to zero. Thereafter now compute sensitivities on the variables
-            if (*r_variable == YOUNG_MODULUS) {
-                block_for_each(p_merged_model_part->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(YOUNG_MODULUS_SENSITIVITY, 0.0); });
-                CalculateStrainEnergyLinearlyDependentPropertyGradient(*p_intersected_model_part, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
-            } else if (*r_variable == THICKNESS) {
-                block_for_each(p_merged_model_part->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
-                CalculateStrainEnergyLinearlyDependentPropertyGradient(*p_intersected_model_part, THICKNESS, THICKNESS_SENSITIVITY);
-            } else if (*r_variable == POISSON_RATIO) {
-                block_for_each(p_merged_model_part->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
-                CalculateStrainEnergySemiAnalyticPropertyGradient(*p_intersected_model_part, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
-            } else if (*r_variable == SHAPE) {
-                VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, p_merged_model_part->Nodes());
-                CalculateStrainEnergySemiAnalyticShapeGradient(*p_intersected_model_part, PerturbationSize, SHAPE_SENSITIVITY);
+    for (IndexType i = 0; i < rListOfGradientVariables.size(); ++i) {
+        std::visit([&](auto p_variable) {
+            if (*p_variable == YOUNG_MODULUS) {
+                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(YOUNG_MODULUS_SENSITIVITY, 0.0); });
+                CalculateStrainEnergyLinearlyDependentPropertyGradient(*rListOfGradientComputedModelParts[i], YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
+            } else if (*p_variable == THICKNESS) {
+                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
+                CalculateStrainEnergyLinearlyDependentPropertyGradient(*rListOfGradientComputedModelParts[i], THICKNESS, THICKNESS_SENSITIVITY);
+            } else if (*p_variable == POISSON_RATIO) {
+                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
+                CalculateStrainEnergySemiAnalyticPropertyGradient(*rListOfGradientComputedModelParts[i], PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+            } else if (*p_variable == SHAPE) {
+                VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rListOfGradientRequiredModelParts[i]->Nodes());
+                CalculateStrainEnergySemiAnalyticShapeGradient(*rListOfGradientComputedModelParts[i], PerturbationSize, SHAPE_SENSITIVITY);
             } else {
                 KRATOS_ERROR
-                    << "Unsupported sensitivity w.r.t. " << r_variable->Name()
+                    << "Unsupported sensitivity w.r.t. " << p_variable->Name()
                     << " requested. Followings are supported sensitivity variables:"
                     << "\n\t" << YOUNG_MODULUS.Name()
                     << "\n\t" << THICKNESS.Name()
                     << "\n\t" << POISSON_RATIO.Name()
                     << "\n\t" << SHAPE.Name();
             }
-        }, it.first);
+        }, rListOfGradientVariables[i]);
     }
 
     KRATOS_CATCH("");

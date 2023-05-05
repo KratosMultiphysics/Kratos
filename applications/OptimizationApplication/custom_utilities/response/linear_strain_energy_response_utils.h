@@ -14,7 +14,6 @@
 #pragma once
 
 // System includes
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -42,8 +41,6 @@ public:
 
     using GradientFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
 
-    using GradientVariableModelPartsListMap = std::unordered_map<GradientFieldVariableTypes, std::vector<ModelPart const*>>;
-
     ///@}
     ///@name Static operations
     ///@{
@@ -51,9 +48,9 @@ public:
     static double CalculateValue(ModelPart& rEvaluatedModelPart);
 
     static void CalculateGradient(
-        ModelPart& rAnalysisModelPart,
-        ModelPart& rEvaluatedModelPart,
-        const GradientVariableModelPartsListMap& rGradientVariableModelPartInfo,
+        const std::vector<GradientFieldVariableTypes>& rListOfGradientVariables,
+        const std::vector<ModelPart*>& rListOfGradientRequiredModelParts,
+        const std::vector<ModelPart*>& rListOfGradientComputedModelParts,
         const double PerturbationSize);
 
     ///@}

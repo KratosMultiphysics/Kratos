@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import ConvertCollectiveExpressionValueMapToModelPartValueMap
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
@@ -19,7 +20,6 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<RESPONSE_NAME>_combined_no_neighbours_response",
             "primal_analysis_name"           : "",
             "perturbation_size"              : 1e-8,
             "evaluated_model_part_names"     : [
@@ -28,7 +28,6 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.output_model_part_name = parameters["combined_output_model_part_name"].GetString()
         self.model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
@@ -43,18 +42,9 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         return [KratosOA.SHAPE, Kratos.YOUNG_MODULUS, Kratos.THICKNESS, Kratos.POISSON_RATIO]
 
     def Initialize(self) -> None:
-        # get the model part name
-        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.GetName())
-
-        # get root model part
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
         root_model_part = model_parts_list[0].GetRootModelPart()
-
-        # create the combined model part
-        if not root_model_part.HasSubModelPart(output_model_part_name):
-            self.model_part = Kratos.ModelPartOperationUtilities.Merge(output_model_part_name, root_model_part, model_parts_list, False)
-        else:
-            self.model_part = root_model_part.GetSubModelPart(output_model_part_name)
+        _, self.model_part = ModelPartUtilities.MergeModelParts(root_model_part, model_parts_list, False)
 
     def Check(self) -> None:
         pass
@@ -75,7 +65,9 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
         # first calculate the gradients
-        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(self.GetAnalysisModelPart(), self.GetEvaluatedModelPart(), ConvertCollectiveExpressionValueMapToModelPartValueMap(physical_variable_collective_expressions), self.perturbation_size)
+        merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.GetAnalysisModelPart(), merged_model_part_map, False)
+        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(list(merged_model_part_map.keys()), list(merged_model_part_map.values()), list(intersected_model_part_map.values()), self.perturbation_size)
 
         # now fill the collective expressions
         for variable, collective_expression in physical_variable_collective_expressions.items():
