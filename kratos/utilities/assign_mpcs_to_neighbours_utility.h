@@ -4,36 +4,31 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Sebastian Ares de Parga Regalado
 //
 
-#if !defined(KRATOS_ASSIGN_MPCS_TO_NEIGHBOURS_H_INCLUDED )
-#define  KRATOS_ASSIGN_MPCS_TO_NEIGHBOURS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 
+// External includes
+
 // Include kratos definitions
 #include "includes/define.h"
-
 
 // Application includes
 #include "utilities/variable_utils.h"
 #include "utilities/rbf_shape_functions_utility.h"
 
-
 // Project includes
 #include "spatial_containers/spatial_search.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/builtin_timer.h"
-
-// Configures
-
-// External includes
 
 namespace Kratos {
 ///@addtogroup Kratos Core
@@ -229,5 +224,3 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
 
 }; // Class AssignMPCsToNeighboursUtility
 }  // namespace Kratos.
-
-#endif // KRATOS_ASSIGN_MPCS_TO_NEIGHBOURS_H_INCLUDED  defined

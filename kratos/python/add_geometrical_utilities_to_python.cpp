@@ -41,8 +41,7 @@
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/assign_mpcs_to_neighbours_utility.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 // Embedded skin utility auxiliar functions
 template<std::size_t TDim>
@@ -445,5 +444,4 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         ;
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

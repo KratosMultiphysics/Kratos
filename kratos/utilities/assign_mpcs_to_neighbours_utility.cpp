@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Sebastian Ares de Parga Regalado
 //
@@ -17,12 +17,10 @@
 #include <string>
 #include <iostream>
 
+// External includes
+
 // Project includes
 #include "utilities/assign_mpcs_to_neighbours_utility.h"
-
-// Configures
-
-// External includes
 
 namespace Kratos {
 ///@addtogroup Kratos Core
@@ -172,8 +170,6 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
 
     ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
     
-
-    // KRATOS_WATCH(Results)
     #pragma omp parallel
     {
         // A buffer to store auxiliary constraints

@@ -71,7 +71,6 @@ class AssignMPCsToNeighboursProcess(KM.Process):
         # Apply mpcs at each time step (True) or only once (False)
         self.assign_mpcs_every_time_step = settings["assign_mpcs_every_time_step"].GetBool()
 
-
         # Retrieve and check if variables exist
         variable_names = settings["variable_names"].GetStringArray()
         if len(variable_names) == 0:
@@ -90,9 +89,6 @@ class AssignMPCsToNeighboursProcess(KM.Process):
                 err_msg = "\'{}\' variable in \'variable_names\' is not double type. Please check provide double type variables (e.g. [\"DISPLACEMENT_X\",\"DISPLACEMENT_Y\"]).".format(var_name)
             self.variables_list.append(KM.KratosGlobals.GetVariable(var_name))
         debug = True
-
-        
-
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
