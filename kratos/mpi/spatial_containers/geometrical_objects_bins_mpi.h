@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <numeric>
 
 // External includes
 
@@ -270,10 +271,36 @@ public:
     {
         // Doing a vector of results
         std::vector<ResultType> results;
-        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+        const int number_of_points = std::distance(itPointBegin, itPointEnd);
         results.resize(number_of_points);
+        const int rank = GetRank();
+        const int world_size = GetWorldSize();
+        std::vector<int> points_per_partition(world_size);
+        std::vector<int> send_points_per_partition(1, number_of_points);
+        mrDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
+        const int total_number_of_points = mrDataCommunicator.SumAll(number_of_points);
+        std::vector<double> all_points_coordinates(total_number_of_points * 3);
+        std::vector<double> send_points_coordinates(number_of_points * 3);
+        std::size_t counter = 0;
+        array_1d<double, 3> coordinates;
+        unsigned int i_coord;
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            results[it_point - itPointBegin] = SearchIsInside(*it_point);
+            noalias(coordinates) = it_point->Coordinates();
+            for (i_coord = 0; i_coord < 3; ++i_coord) {
+                all_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+            }
+            ++counter;
+        }
+        const int lower_limit = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 1);
+        const int upper_limit = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 2);
+        mrDataCommunicator.AllGather(send_points_coordinates, all_points_coordinates);
+        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            const auto result = SearchIsInside(point);
+            // Added only in the corresponding partition
+            if (i_node > lower_limit && i_node < upper_limit) {
+                results[i_node - lower_limit] = result;
+            }
         }
         return results;
     }
