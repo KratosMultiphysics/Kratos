@@ -20,13 +20,8 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "custom_processes/normal_gap_process.h"
-
-/* Custom includes*/
-#include "custom_includes/point_item.h"
+#include "spatial_containers/specialized_spatial_search.h"
 #include "custom_conditions/paired_condition.h"
-
-/* Tree structures */
-// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
@@ -39,7 +34,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -73,28 +68,25 @@ public:
     ///@{
 
     /// General type definitions
-    typedef ModelPart::NodesContainerType                    NodesArrayType;
-    typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
-    typedef Geometry<NodeType>                                 GeometryType;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
+    using NodeType = Node<3>;
+    using GeometryType = Geometry<NodeType>;
 
     /// Index type definition
-    typedef std::size_t                                           IndexType;
+    using IndexType = std::size_t;
 
     /// Type definitions for the tree
-    typedef PointItem<Condition>                                  PointType;
-    typedef PointType::Pointer                             PointTypePointer;
-    typedef std::vector<PointTypePointer>                       PointVector;
-    typedef PointVector::iterator                             PointIterator;
-    typedef std::vector<double>                              DistanceVector;
-    typedef DistanceVector::iterator                       DistanceIterator;
+    using PointType = PointObject<Condition>;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointTypePointer>;
 
     /// KDtree definitions
-    typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;
+    using BucketType = Bucket<3ul, PointType, PointVector, PointTypePointer>;
+    using KDTree = Tree<KDTreePartition<BucketType>>;
 
     /// The type of mapper considered
-    typedef NormalGapProcess<TDim, TNumNodes, TNumNodesMaster> NormalGapProcessType;
+    using NormalGapProcessType = NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>;
 
     /// The definition of zero tolerance
     static constexpr double GapThreshold = 2.0e-3;

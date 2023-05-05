@@ -635,7 +635,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
                     if (mCheckGap == CheckGap::MappingCheck) {
                         for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                             // Master condition
-                            Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
+                            Condition::Pointer p_cond_master = points_found[i_point]->pGetObject();
 
                             // Checking with OBB
                             if (with_obb) {
@@ -661,7 +661,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
                         for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                             // Master condition
-                            Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
+                            Condition::Pointer p_cond_master = points_found[i_point]->pGetObject();
 
                             // Checking with OBB
                             if (with_obb) {
@@ -1108,7 +1108,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
             // If not active we check if can be potentially in contact
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                 // Master condition
-                Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
+                Condition::Pointer p_cond_master = points_found[i_point]->pGetObject();
 
                 // Checking with OBB
                 if (with_obb) {
