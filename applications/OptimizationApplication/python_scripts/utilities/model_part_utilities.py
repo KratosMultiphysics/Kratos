@@ -15,7 +15,6 @@ class ModelPartUtilities:
         else:
             return True, Kratos.ModelPartOperationUtilities.Merge(unique_name, main_model_part, union_model_parts, add_neighbours)
 
-
     @staticmethod
     def IntersectModelParts(main_model_part: Kratos.ModelPart, intersecting_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool) -> 'tuple[bool, Kratos.ModelPart]':
         unique_name = ModelPartUtilities.__GenerateUniqueModelPartName("Intersect", [model_part.FullName() for model_part in intersecting_model_parts], add_neighbours)
