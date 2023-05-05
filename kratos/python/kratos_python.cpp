@@ -73,7 +73,7 @@
 #include "add_sparse_matrices_to_python.h"
 #include "add_registry_to_python.h"
 #include "add_container_expression_to_python.h"
-#include "add_accessor_to_python.h"
+#include "add_accessors_to_python.h"
 
 namespace Kratos::Python
 {

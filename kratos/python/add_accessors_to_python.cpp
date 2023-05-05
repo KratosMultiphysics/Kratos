@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "add_accessor_to_python.h"
+#include "add_accessors_to_python.h"
 #include "includes/define_python.h"
 #include "includes/accessor.h"
 #include "includes/properties.h"
