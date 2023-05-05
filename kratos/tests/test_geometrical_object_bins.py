@@ -62,6 +62,15 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         else:
             self.node = self.sub_model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)
 
+    def is_first_partition(self):
+        if KM.IsDistributedRun():
+            if self.data_comm.Rank() == 0:
+                return True
+            else:
+                return False
+        else:
+            return True
+
     def test_GeometricalObjectsBins_SearchInRadius(self):
         # Define radius
         radius = 0.35
@@ -77,11 +86,12 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
                 self.assertTrue(result.Get().Id in cond_id_ref)
 
         # Nodes array search
-        results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(len(results[0]), 8)
-        for result in results[0]:
-            self.assertTrue(result.Get().Id in cond_id_ref)
+        if self.is_first_partition():
+            results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
+            self.assertEqual(len(results), 1)
+            self.assertEqual(len(results[0]), 8)
+            for result in results[0]:
+                self.assertTrue(result.Get().Id in cond_id_ref)
 
     def test_GeometricalObjectsBins_SearchNearestInRadius(self):
         radius = 0.35
@@ -92,9 +102,10 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
             self.assertEqual(result.Get().Id, 1)
 
         # Nodes array search
-        results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].Get().Id, 1)
+        if self.is_first_partition():
+            results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0].Get().Id, 1)
 
     def test_GeometricalObjectsBins_SearchNearest(self):
         # One node search
@@ -103,9 +114,10 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
             self.assertEqual(result.Get().Id, 1)
 
         # Nodes array search
-        results = self.search.SearchNearest(self.sub_model_part.Nodes)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].Get().Id, 1)
+        if self.is_first_partition():
+            results = self.search.SearchNearest(self.sub_model_part.Nodes)
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0].Get().Id, 1)
 
     def test_GeometricalObjectsBins_SearchIsInside(self):
         # One node search
@@ -114,9 +126,10 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
             self.assertEqual(result.Get(), None)
 
         # Nodes array search
-        results = self.search.SearchIsInside(self.sub_model_part.Nodes)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].Get(), None)
+        if self.is_first_partition():
+            results = self.search.SearchIsInside(self.sub_model_part.Nodes)
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0].Get(), None)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
