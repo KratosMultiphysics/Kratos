@@ -10,13 +10,13 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_parameters = Kratos.Parameters("""{
             "name"           : "",
-            "python_module"  : "please_provide_python_module_name",
-            "kratos_module"  : "KratosMultiphysics.OptimizationApplication.execution_policies",
+            "type"           : "please_provide_python_module_name",
+            "module"         : "KratosMultiphysics.OptimizationApplication.execution_policies",
             "pre_operations" : [],
             "post_operations": [],
             "log_in_file"    : false,
             "log_file_name"  : "",
-            "Parameters"     : {}
+            "settings"       : {}
         }""")
         parameters.ValidateAndAssignDefaults(default_parameters)
 

@@ -56,18 +56,19 @@ def HasContainerExpression(container_expression: ContainerExpressionTypes, list_
     return any([IsSameContainerExpression(container_expression, list_container_expression) for list_container_expression in list_of_container_expressions])
 
 def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-    if not parameters.Has("python_module"):
-        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"python_module\" [ provided paramters = {parameters}].")
+    if not parameters.Has("type"):
+        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided paramters = {parameters}].")
 
-    python_module = parameters["python_module"].GetString()
+    python_type = parameters["type"].GetString()
 
-    if not parameters.Has("kratos_module") or parameters["kratos_module"].GetString() == "":
-        # in the case module comes from outside of kratos
-        full_module_name = python_module
+    if not parameters.Has("module") or parameters["module"].GetString() == "":
+        # in the case python type comes without a module
+        # as in the case python_type is in the sys path or the current working directory.
+        full_module_name = python_type
     else:
-        # in the case module comes from within kratos
-        kratos_module = parameters["kratos_module"].GetString()
-        full_module_name = f"{kratos_module}.{python_module}"
+        # in the case python type comes witha a module.
+        module = parameters["module"].GetString()
+        full_module_name = f"{module}.{python_type}"
 
     module = import_module(full_module_name)
     if not hasattr(module, "Factory"):

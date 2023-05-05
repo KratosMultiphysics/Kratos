@@ -6,8 +6,13 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
-def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem) -> ExecutionPolicy:
-    return SteppingAnalysisExecutionPolicy(name, model, parameters)
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ExecutionPolicy:
+    if not parameters.Has("name"):
+        raise RuntimeError(f"SteppingAnalysisExecutionPolicy instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("settings"):
+        raise RuntimeError(f"SteppingAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+
+    return SteppingAnalysisExecutionPolicy(parameters["name"].GetString(), model, parameters["settings"])
 
 class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):

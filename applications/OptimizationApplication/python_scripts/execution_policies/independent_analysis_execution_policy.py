@@ -6,10 +6,14 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.multistage_analysis import MultistageAnalysis
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
-def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem) -> ExecutionPolicy:
-    return IndependentAnalysisExecutionPolicy(name, model, parameters)
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ExecutionPolicy:
+    if not parameters.Has("name"):
+        raise RuntimeError(f"IndependentAnalysisExecutionPolicy instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("settings"):
+        raise RuntimeError(f"IndependentAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+
+    return IndependentAnalysisExecutionPolicy(parameters["name"].GetString(), model, parameters["settings"])
 
 class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
